@@ -1,0 +1,70 @@
+name: Bug Report
+description: Report a defect or unexpected behavior
+title: "[BUG]: "
+labels: ["bug"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide enough detail to reproduce the issue reliably.
+
+  - type: input
+    id: affected-area
+    attributes:
+      label: Affected Area
+      description: Which module/service is affected? (e.g., Core/Auth, Modules/Identity, Gateway, Bff)
+      placeholder: "Modules/Identity"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect to happen?
+      placeholder: "Describe the bug and expected behavior."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Provide step-by-step instructions to reproduce.
+      placeholder: |
+        1. Go to ...
+        2. Call endpoint ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots
+      description: Add relevant logs, stack traces, or screenshots (remove sensitive data).
+      placeholder: "Paste logs here."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Where did it occur? (local/staging/prod) + version/tag if known
+      placeholder: "staging, v0.1.0"
+    validations:
+      required: true
