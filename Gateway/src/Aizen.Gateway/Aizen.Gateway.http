@@ -1,0 +1,6 @@
+@Aizen.Gateway_HostAddress = http://localhost:5216
+
+GET {{Aizen.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
