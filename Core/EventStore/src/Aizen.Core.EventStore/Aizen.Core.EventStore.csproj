@@ -1,9 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+  <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\src\Aizen.Core.Common\Aizen.Core.Common.csproj" />
+    <ProjectReference Include="..\..\..\CQRS\src\Aizen.Core.CQRS\Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\Domain\src\Aizen.Core.Domain\Aizen.Core.Domain.csproj" />
+    <ProjectReference Include="..\..\..\InfoAccessor\src\Aizen.Core.InfoAccessor\Aizen.Core.InfoAccessor.csproj" />
+    <ProjectReference Include="..\Aizen.Core.EventStore.Abstraction\Aizen.Core.EventStore.Abstraction.csproj" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <PackageReference Include="Elastic.Apm.AspNetCore" Version="1.28.0" />
+    <PackageReference Include="EventStore.Client.Grpc.ProjectionManagement" Version="23.3.3" />
+  </ItemGroup>
 
 </Project>
