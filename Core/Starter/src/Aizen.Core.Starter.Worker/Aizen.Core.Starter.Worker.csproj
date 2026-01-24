@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <RazorCompileOnBuild>true</RazorCompileOnBuild>
+    <RazorCompileOnPublish>true</RazorCompileOnPublish>
+</PropertyGroup>
+
+
+<ItemGroup>
+  <None Remove="Properties\launchSettings.json" />
+</ItemGroup>
+
+<ItemGroup>
+  <ProjectReference Include="..\..\..\CQRS\src\Aizen.Core.CQRS\Aizen.Core.CQRS.csproj" />
+  <ProjectReference Include="..\..\..\InfoAccessor\src\Aizen.Core.InfoAccessor\Aizen.Core.InfoAccessor.csproj" />
+  <ProjectReference Include="..\..\..\IOC\src\Aizen.Core.IOC\Aizen.Core.IOC.csproj" />
+  <ProjectReference Include="..\..\..\Messagebus\src\Aizen.Core.Messagebus.Abstraction\Aizen.Core.Messagebus.Abstraction.csproj" />
+  <ProjectReference Include="..\..\..\Messagebus\src\Aizen.Core.Messagebus\Aizen.Core.Messagebus.csproj" />
+  <ProjectReference Include="..\..\..\RemoteCall\src\Aizen.Core.RemoteCall\Aizen.Core.RemoteCall.csproj" />
+  <ProjectReference Include="..\..\..\Validation\src\Aizen.Core.Validation\Aizen.Core.Validation.csproj" />
+  <ProjectReference Include="..\Aizen.Core.Starter.Abstraction\Aizen.Core.Starter.Abstraction.csproj" />
+</ItemGroup>
+
+<ItemGroup>
+  <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.7" />
+  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+</ItemGroup>
+
+<ItemGroup>
+  <Folder Include="Views\" />
+</ItemGroup>
+
+</Project>

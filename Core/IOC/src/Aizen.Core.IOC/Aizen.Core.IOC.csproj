@@ -1,9 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+  <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="AutoMapper" Version="12.0.0" />
+    <PackageReference Include="ImpromptuInterface" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Scrutor" Version="4.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\src\Aizen.Core.Common\Aizen.Core.Common.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Aizen.Core.Data.Mongo\Aizen.Core.Data.Mongo.csproj" />
+    <ProjectReference Include="..\..\..\EFCore\src\Aizen.Core.EFCore\Aizen.Core.EFCore.csproj" />
+    <ProjectReference Include="..\..\..\RemoteCall\src\Aizen.Core.RemoteCall\Aizen.Core.RemoteCall.csproj" />
+    <ProjectReference Include="..\..\..\UnitOfWork\src\Aizen.Core.UnitOfWork\Aizen.Core.UnitOfWork.csproj" />
+    <ProjectReference Include="..\Aizen.Core.IOC.Abstraction\Aizen.Core.IOC.Abstraction.csproj" />
+  </ItemGroup>
 
 </Project>

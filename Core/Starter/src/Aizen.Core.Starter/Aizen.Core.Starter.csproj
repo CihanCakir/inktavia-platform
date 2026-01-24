@@ -1,9 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+  <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\InfoAccessor\src\Aizen.Core.InfoAccessor.Abstraction\Aizen.Core.InfoAccessor.Abstraction.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Abstraction\Aizen.Core.Starter.Abstraction.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Api\Aizen.Core.Starter.Api.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Gateway\Aizen.Core.Starter.Gateway.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Scheduler\Aizen.Core.Starter.Scheduler.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Worker\Aizen.Core.Starter.Worker.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Bff\Aizen.Core.Starter.Bff.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Operation\Aizen.Core.Starter.Operation.csproj" />
+  </ItemGroup>
 
 </Project>

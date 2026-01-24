@@ -1,9 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+  <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Configuration\src\Aizen.Core.Configuration\Aizen.Core.Configuration.csproj" />
+    <ProjectReference Include="..\..\..\InfoAccessor\src\Aizen.Core.InfoAccessor.Abstraction\Aizen.Core.InfoAccessor.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\IOC\src\Aizen.Core.IOC\Aizen.Core.IOC.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Scheduler.Abstraction\Aizen.Core.Scheduler.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Elastic.Apm.MongoDb" Version="1.28.0" />
+  </ItemGroup>
+  
 </Project>

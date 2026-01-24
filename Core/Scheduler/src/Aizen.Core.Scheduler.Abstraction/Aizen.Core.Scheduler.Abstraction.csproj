@@ -1,9 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+  <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hangfire.Core" Version="1.8.14" />
+    <PackageReference Include="Hangfire" Version="1.8.14" />
+	<PackageReference Include="Hangfire.AspNetCore" Version="1.8.14" />
+	<PackageReference Include="Hangfire.Console" Version="1.4.3" />
+	<PackageReference Include="Hangfire.Heartbeat" Version="0.6.0" />
+	<PackageReference Include="Hangfire.MemoryStorage" Version="1.8.1.1" />
+	<PackageReference Include="Hangfire.Mongo" Version="1.10.7" />
+	<PackageReference Include="Hangfire.PostgreSql" Version="1.20.9" />
+	<PackageReference Include="Hangfire.SqlServer" Version="1.8.14" />
+  </ItemGroup>
+
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Common\src\Aizen.Core.Common\Aizen.Core.Common.csproj" />
+      <ProjectReference Include="..\..\..\InfoAccessor\src\Aizen.Core.InfoAccessor\Aizen.Core.InfoAccessor.csproj" />
+    </ItemGroup>
 
 </Project>
