@@ -1,0 +1,48 @@
+@using Aizen.Core.Starter.Operation.Controllers
+@model Aizen.Core.Starter.Operation.Controllers.DynamicFormModel
+
+@{
+    Layout = null;
+
+    void RenderFields(List<FormField> fields, string parentFieldName)
+    {
+        foreach (var field in fields)
+        {
+            <div class="form-group m-2">
+                <label>@field.Name</label>
+                @if (field.NestedFields != null && field.NestedFields.Any())
+                {
+                    <div>
+                        @{
+                            @if (string.IsNullOrEmpty(parentFieldName))
+                            {
+                                RenderFields(field.NestedFields, $"{field.Name}");
+                            }
+                            else
+                            {
+                                RenderFields(field.NestedFields, $"{parentFieldName}-{field.Name}");
+                            }
+                        }
+                    </div>
+                }
+                else
+                {
+                    @if (string.IsNullOrEmpty(parentFieldName))
+                    {
+                        <input name="@($"{field.Name}")" value="@field.Value" type="@field.Type" class="form-control"/>
+                    }
+                    else
+                    {
+                        <input name="@($"{parentFieldName}-{field.Name}")" value="@field.Value" type="@field.Type" class="form-control"/>
+                    }
+                }
+            </div>
+        }
+    }
+}
+
+<div>
+    @{
+        RenderFields(Model.FormFields, "");
+    }
+</div>

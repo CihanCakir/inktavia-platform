@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Api\src\Aizen.Core.Api\Aizen.Core.Api.csproj" />
+    <ProjectReference Include="..\..\..\InfoAccessor\src\Aizen.Core.InfoAccessor\Aizen.Core.InfoAccessor.csproj" />
+    <ProjectReference Include="..\..\..\IOC\src\Aizen.Core.IOC\Aizen.Core.IOC.csproj" />
+    <ProjectReference Include="..\..\..\Messagebus\src\Aizen.Core.Messagebus\Aizen.Core.Messagebus.csproj" />
+    <ProjectReference Include="..\..\..\RemoteCall\src\Aizen.Core.RemoteCall\Aizen.Core.RemoteCall.csproj" />
+    <ProjectReference Include="..\..\..\Validation\src\Aizen.Core.Validation\Aizen.Core.Validation.csproj" />
+    <ProjectReference Include="..\Aizen.Core.Starter.Abstraction\Aizen.Core.Starter.Abstraction.csproj" />
+  </ItemGroup>
+
+
+</Project>
