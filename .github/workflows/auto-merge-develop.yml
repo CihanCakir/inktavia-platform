@@ -1,0 +1,48 @@
+name: Auto-merge (develop only)
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  enable_auto_merge_on_develop:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.review.state == 'approved' &&
+      github.event.pull_request.base.ref == 'develop' &&
+      github.event.pull_request.draft == false
+    steps:
+      - name: Enable auto-merge (squash)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.payload.pull_request.number;
+
+            // Fetch PR to get node_id
+            const pr = await github.rest.pulls.get({ owner, repo, pull_number });
+            const node_id = pr.data.node_id;
+
+            // Enable auto-merge. If it's already enabled, ignore the error.
+            const mutation = `
+              mutation EnableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+                enablePullRequestAutoMerge(input: {
+                  pullRequestId: $pullRequestId,
+                  mergeMethod: $mergeMethod
+                }) {
+                  pullRequest { number }
+                }
+              }
+            `;
+
+            try {
+              await github.graphql(mutation, { pullRequestId: node_id, mergeMethod: "SQUASH" });
+              core.info(\`Auto-merge enabled for PR #\${pull_number} (base: develop)\`);
+            } catch (e) {
+              core.info(\`Auto-merge enable skipped for PR #\${pull_number}: \${e.message}\`);
+            }
