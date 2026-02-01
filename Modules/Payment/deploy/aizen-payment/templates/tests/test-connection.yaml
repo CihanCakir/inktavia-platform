@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "aizen-payment.fullname" . }}-test-connection"
+  labels:
+    {{- include "aizen-payment.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "aizen-payment.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

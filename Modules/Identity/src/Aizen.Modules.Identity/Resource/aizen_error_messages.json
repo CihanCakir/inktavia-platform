@@ -1,0 +1,2901 @@
+[
+  {
+    "ErrorCode": 1,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bilinmeyen bir hata oluştu."
+      },
+      {
+        "Language": "EN",
+        "Description": "An unknown error occurred."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ein unbekannter Fehler ist aufgetreten."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Doğrulama hatası."
+      },
+      {
+        "Language": "EN",
+        "Description": "Validation error."
+      },
+      {
+        "Language": "DE",
+        "Description": "Validierungsfehler."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kayıt bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Yetkisiz işlem."
+      },
+      {
+        "Language": "EN",
+        "Description": "Unauthorized operation."
+      },
+      {
+        "Language": "DE",
+        "Description": "Unautorisierte Aktion."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 5,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kayıt zaten silinmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "Record already deleted."
+      },
+      {
+        "Language": "DE",
+        "Description": "Eintrag bereits gelöscht."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 100,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Uygulama bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Application not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Anwendung nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 101,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Yaş sınırı aşıldı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Age limit exceeded."
+      },
+      {
+        "Language": "DE",
+        "Description": "Altersgrenze überschritten."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 102,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Yetişkin içerik kısıtlaması."
+      },
+      {
+        "Language": "EN",
+        "Description": "Adult content restricted."
+      },
+      {
+        "Language": "DE",
+        "Description": "Einschränkung für Inhalte für Erwachsene."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 103,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Ülke izinli değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "Country not allowed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Land nicht erlaubt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 104,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefon numarası zaten kayıtlı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Phone number already registered."
+      },
+      {
+        "Language": "DE",
+        "Description": "Telefonnummer bereits registriert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 105,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefon başka bir uygulamada kullanılıyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Phone number used in another application."
+      },
+      {
+        "Language": "DE",
+        "Description": "Telefonnummer wird in einer anderen Anwendung verwendet."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 106,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçerli cihaz kilitlendi."
+      },
+      {
+        "Language": "EN",
+        "Description": "Current device has been locked."
+      },
+      {
+        "Language": "DE",
+        "Description": "Das aktuelle Gerät wurde gesperrt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 107,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Cihaz izinli değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device not allowed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Gerät nicht erlaubt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 108,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Cihaz bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Gerät nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 109,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Cihaz desteklenmiyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device not supported."
+      },
+      {
+        "Language": "DE",
+        "Description": "Gerät wird nicht unterstützt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 110,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Cihaz onaylanmadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device not approved."
+      },
+      {
+        "Language": "DE",
+        "Description": "Gerät nicht genehmigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 111,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Sözleşme bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 112,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Sözleşme onaylanmadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement not approved."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung nicht genehmigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 113,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı için sözleşme bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement not found for user."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung für den Benutzer nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 114,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı sözleşmeyi onaylamamış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement not approved for user."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung für den Benutzer nicht genehmigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 115,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı, bu tipteki sözleşmeyi onaylamamış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement not approved for user by type."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung für den Benutzer nach Typ nicht genehmigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 116,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı, bu tip ve versiyondaki sözleşmeyi onaylamamış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement not approved for user by type and version."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung für den Benutzer nach Typ und Version nicht genehmigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 117,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı, bu tip, versiyon ve kimlikteki sözleşmeyi onaylamamış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement not approved for user by type, version and id."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung für den Benutzer nach Typ, Version und ID nicht genehmigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 118,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Sözleşme zaten onaylanmış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Agreement already approved."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vereinbarung bereits genehmigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 119,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Cihaz zaten engellenmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device already blocked."
+      },
+      {
+        "Language": "DE",
+        "Description": "Gerät bereits blockiert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 120,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Aşırı giriş denemesi nedeniyle cihaz engellendi."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device blocked due to excessive login attempts."
+      },
+      {
+        "Language": "DE",
+        "Description": "Gerät aufgrund zu vieler Anmeldeversuche blockiert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 121,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Aşırı giriş denemesi ve kullanıcı sayısı nedeniyle cihaz engellendi."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device blocked due to excessive login attempts and user count."
+      },
+      {
+        "Language": "DE",
+        "Description": "Gerät aufgrund zu vieler Anmeldeversuche und Benutzeranzahl blockiert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 122,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı adı veya PIN hatalı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Username or PIN is wrong."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzername oder PIN ist falsch."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 123,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 124,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı aktif değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "User is not active."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer ist nicht aktiv."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 125,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı doğrulanmamış."
+      },
+      {
+        "Language": "EN",
+        "Description": "User not confirmed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer nicht bestätigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 126,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcının yetkisi yok."
+      },
+      {
+        "Language": "EN",
+        "Description": "User not authorized."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer nicht autorisiert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 127,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefona göre kullanıcı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User not found for phone."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer für Telefonnummer nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 128,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "E-postaya göre kullanıcı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User not found for email."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer für E-Mail nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 129,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı adına göre kullanıcı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User not found for username."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer für Benutzernamen nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 130,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Cihaza göre kullanıcı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User not found for device."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer für Gerät nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 131,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı adı veya şifre hatalı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Username or password is wrong."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzername oder Passwort ist falsch."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 132,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı zaten mevcut."
+      },
+      {
+        "Language": "EN",
+        "Description": "User already exists."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer existiert bereits."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 133,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefon için kullanıcı zaten mevcut."
+      },
+      {
+        "Language": "EN",
+        "Description": "User already exists for phone."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer für Telefonnummer existiert bereits."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 134,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "E-posta için kullanıcı zaten mevcut."
+      },
+      {
+        "Language": "EN",
+        "Description": "User already exists for email."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer für E-Mail existiert bereits."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 135,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı adı için kullanıcı zaten mevcut."
+      },
+      {
+        "Language": "EN",
+        "Description": "User already exists for username."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer für Benutzernamen existiert bereits."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 136,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Şifre engelli kullanıcı için giriş başarısız."
+      },
+      {
+        "Language": "EN",
+        "Description": "Login failed for password-blocked user."
+      },
+      {
+        "Language": "DE",
+        "Description": "Anmeldung für passwortgesperrten Benutzer fehlgeschlagen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 137,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı zaten şartları kabul etti."
+      },
+      {
+        "Language": "EN",
+        "Description": "User already accepted terms."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer hat die Bedingungen bereits akzeptiert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 138,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcının bu panelde aktif profili yok."
+      },
+      {
+        "Language": "EN",
+        "Description": "User has no active profile in this panel."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer hat in diesem Panel kein aktives Profil."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 139,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcının bu panelde belirtilen rolde aktif profili yok."
+      },
+      {
+        "Language": "EN",
+        "Description": "User has no active profile in this panel for the role."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer hat in diesem Panel kein aktives Profil für die Rolle."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 140,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcının bu panelde rol ve bağlama göre aktif profili yok."
+      },
+      {
+        "Language": "EN",
+        "Description": "User has no active profile in this panel for role and context."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer hat in diesem Panel kein aktives Profil für Rolle und Kontext."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 141,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefon onaylanmamış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Phone not confirmed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Telefon nicht bestätigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 142,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "E-posta onaylanmamış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Email not confirmed."
+      },
+      {
+        "Language": "DE",
+        "Description": "E-Mail nicht bestätigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 143,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP kodu hatalı."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP is wrong."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP ist falsch."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 144,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP kodunun süresi dolmuş."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP has expired."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP ist abgelaufen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 145,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 146,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP zaten kullanılmış."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP already used."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP bereits verwendet."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 147,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP kullanımı yasak."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP not allowed."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP nicht erlaubt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 148,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu kullanıcı için OTP kullanımı yasak."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP not allowed for user."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP für den Benutzer nicht erlaubt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 149,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu kullanıcı ve cihaz için OTP kullanımı yasak."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP not allowed for user and device."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP für Benutzer und Gerät nicht erlaubt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 150,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı pasif."
+      },
+      {
+        "Language": "EN",
+        "Description": "User is passive."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzer ist passiv."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 151,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP kodu geçerli değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP code is not valid."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP-Code ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 152,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu kullanıcı için OTP kodu geçerli değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP code is not valid for user."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP-Code ist für den Benutzer ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 153,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu kullanıcı ve cihaz için OTP kodu geçerli değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP code is not valid for user and device."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP-Code ist für Benutzer und Gerät ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 154,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu kullanıcı, cihaz ve bağlam için OTP kodu geçerli değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP code is not valid for user, device and context."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP-Code ist für Benutzer, Gerät und Kontext ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 155,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP boş olamaz."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP cannot be null."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP darf nicht leer sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 156,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "OTP 6 haneli olmalıdır."
+      },
+      {
+        "Language": "EN",
+        "Description": "OTP must be 6 digits."
+      },
+      {
+        "Language": "DE",
+        "Description": "OTP muss 6 Stellen haben."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 157,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefon numarası boş olamaz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Phone number cannot be null."
+      },
+      {
+        "Language": "DE",
+        "Description": "Telefonnummer darf nicht leer sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 158,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefon numarası 10 haneli olmalıdır."
+      },
+      {
+        "Language": "EN",
+        "Description": "Phone number must be 10 digits."
+      },
+      {
+        "Language": "DE",
+        "Description": "Telefonnummer muss 10-stellig sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 159,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "ValidationGuid boş olamaz."
+      },
+      {
+        "Language": "EN",
+        "Description": "ValidationGuid cannot be null."
+      },
+      {
+        "Language": "DE",
+        "Description": "ValidationGuid darf nicht leer sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 160,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bir hata oluştu."
+      },
+      {
+        "Language": "EN",
+        "Description": "An error occurred."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ein Fehler ist aufgetreten."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 161,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Şehir kodu 1-81 arasında olmalıdır."
+      },
+      {
+        "Language": "EN",
+        "Description": "City Id must be between 1 and 81."
+      },
+      {
+        "Language": "DE",
+        "Description": "Stadt-ID muss zwischen 1 und 81 liegen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 162,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "İlçe Id 0'dan büyük olmalıdır."
+      },
+      {
+        "Language": "EN",
+        "Description": "District Id must be greater than 0."
+      },
+      {
+        "Language": "DE",
+        "Description": "Landkreis-ID muss größer als 0 sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 163,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mahalle Id 0'dan büyük olmalıdır."
+      },
+      {
+        "Language": "EN",
+        "Description": "Neighborhood Id must be greater than 0."
+      },
+      {
+        "Language": "DE",
+        "Description": "Stadtteil-ID muss größer als 0 sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 164,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "AVM Id 0'dan büyük olmalıdır."
+      },
+      {
+        "Language": "EN",
+        "Description": "Mall Id must be greater than 0."
+      },
+      {
+        "Language": "DE",
+        "Description": "Einkaufszentrum-ID muss größer als 0 sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 165,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mağaza Id 0'dan büyük olmalıdır."
+      },
+      {
+        "Language": "EN",
+        "Description": "Store Id must be greater than 0."
+      },
+      {
+        "Language": "DE",
+        "Description": "Laden-ID muss größer als 0 sein."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 166,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mağaza belirtilen AVM içinde bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Store not found in the given mall."
+      },
+      {
+        "Language": "DE",
+        "Description": "Geschäft im angegebenen Einkaufszentrum nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2000,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekan adı zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue name is required."
+      },
+      {
+        "Language": "DE",
+        "Description": "Veranstaltungsname ist erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2001,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekan açıklaması zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue description is required."
+      },
+      {
+        "Language": "DE",
+        "Description": "Beschreibung des Veranstaltungsorts ist erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2002,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekan adresi zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue address is required."
+      },
+      {
+        "Language": "DE",
+        "Description": "Adresse des Veranstaltungsorts ist erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2003,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekan kapasitesi geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue capacity is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Kapazität des Veranstaltungsorts ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2004,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Saatlik ücret geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Hourly rate is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Stundensatz ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2005,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz durum geçişi."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid status transition."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ungültiger Statusübergang."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2100,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekan konumu geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue location is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Standort des Veranstaltungsorts ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2200,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Görsel URL'si zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Image URL is required."
+      },
+      {
+        "Language": "DE",
+        "Description": "Bild-URL ist erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2201,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Görsel bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Image not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Bild nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2300,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Uygunluk zaman aralığı geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Availability time range is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Zeitfenster der Verfügbarkeit ist ungültig."
+      },
+      {
+        "Language": "TR",
+        "Description": "Uygunluk zaman aralığı geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Availability time range is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Zeitfenster der Verfügbarkeit ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2301,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Uygunluk aralıkları çakışıyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Availability ranges overlap."
+      },
+      {
+        "Language": "DE",
+        "Description": "Verfügbarkeitszeiträume überschneiden sich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2302,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Uygunluk kaydı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Availability entry not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Verfügbarkeitseintrag nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2303,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz sezon aralığı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid seasonal range."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ungültiger Saisonzeitraum."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2400,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Özellik zaten mevcut."
+      },
+      {
+        "Language": "EN",
+        "Description": "Feature already exists."
+      },
+      {
+        "Language": "DE",
+        "Description": "Merkmal ist bereits vorhanden."
+      },
+      {
+        "Language": "TR",
+        "Description": "Mükerrer değerlendirme."
+      },
+      {
+        "Language": "EN",
+        "Description": "Duplicate rating."
+      },
+      {
+        "Language": "DE",
+        "Description": "Doppelte Bewertung."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2401,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Özellik bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Feature not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Merkmal nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2402,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Özellik için ek fiyat geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Extra price for feature is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Zusätzlicher Preis für Merkmal ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2500,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etiket zaten doğrulanmış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Already verified."
+      },
+      {
+        "Language": "DE",
+        "Description": "Bereits verifiziert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2501,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Doğrulama için uygun değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "Not eligible for verification."
+      },
+      {
+        "Language": "DE",
+        "Description": "Nicht zur Verifizierung berechtigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2600,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz puan."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid rating score."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ungültige Bewertungspunkte."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2601,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Puanlama bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Rating not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Bewertung nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2700,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Teklif bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Offer not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Angebot nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2701,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Teklif geçersiz durumda."
+      },
+      {
+        "Language": "EN",
+        "Description": "Offer in invalid state."
+      },
+      {
+        "Language": "DE",
+        "Description": "Angebot in ungültigem Zustand."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2702,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Teklif zaten kabul edilmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "Offer already accepted."
+      },
+      {
+        "Language": "DE",
+        "Description": "Angebot bereits angenommen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2800,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Enlem aralığı dışında."
+      },
+      {
+        "Language": "EN",
+        "Description": "Latitude out of range."
+      },
+      {
+        "Language": "DE",
+        "Description": "Breitengrad außerhalb des Bereichs."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2801,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Boylam aralığı dışında."
+      },
+      {
+        "Language": "EN",
+        "Description": "Longitude out of range."
+      },
+      {
+        "Language": "DE",
+        "Description": "Längengrad außerhalb des Bereichs."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3000,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etkinlik tarih aralığı geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Activity date range is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Datumsbereich der Aktivität ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3001,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etkinlik kapasitesi geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Activity capacity is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Aktivitätskapazität ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3002,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etkinlik mevcut durumda değiştirilemez."
+      },
+      {
+        "Language": "EN",
+        "Description": "Activity is immutable in the current state."
+      },
+      {
+        "Language": "DE",
+        "Description": "Aktivität kann im aktuellen Zustand nicht geändert werden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3003,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Yayınlama izni yok (yalnızca Draft → Published)."
+      },
+      {
+        "Language": "EN",
+        "Description": "Publishing not allowed (only Draft → Published)."
+      },
+      {
+        "Language": "DE",
+        "Description": "Veröffentlichung nicht erlaubt (nur Entwurf → Veröffentlicht)."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3004,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçmiş tarihli etkinlik yayınlanamaz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Past event cannot be published."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vergangenes Ereignis kann nicht veröffentlicht werden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3005,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Çevrimiçi etkinlikler için katılım URL'si zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Online events require a join URL."
+      },
+      {
+        "Language": "DE",
+        "Description": "Online-Veranstaltungen erfordern eine Beitritts-URL."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3100,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etkinlik görsel URL'si zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Activity image URL is required."
+      },
+      {
+        "Language": "DE",
+        "Description": "Bild-URL für Aktivität ist erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3200,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Seans tarih aralığı geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Schedule time range is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Zeitbereich des Zeitplans ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3201,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Seans bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Schedule not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Zeitplan nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3300,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etiket zaten mevcut."
+      },
+      {
+        "Language": "EN",
+        "Description": "Tag already exists."
+      },
+      {
+        "Language": "DE",
+        "Description": "Tag ist bereits vorhanden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3301,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etiket bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Tag not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Tag nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3400,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz e-posta adresi."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid email address."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ungültige E-Mail-Adresse."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3401,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Davetiye kodu geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invitation code is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "Einladungscode ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3402,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Davetiye süresi dolmuş."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invitation has expired."
+      },
+      {
+        "Language": "DE",
+        "Description": "Die Einladung ist abgelaufen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3403,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Davetiye zaten kullanılmış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invitation has already been used."
+      },
+      {
+        "Language": "DE",
+        "Description": "Die Einladung wurde bereits verwendet."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3404,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Davetiye iptal edilmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invitation has been revoked."
+      },
+      {
+        "Language": "DE",
+        "Description": "Die Einladung wurde widerrufen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3405,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu davetiye durumunda işlem yapılamaz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Operation is not allowed in the current invitation state."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vorgang ist im aktuellen Einladungsstatus nicht zulässig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3406,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Tekrar gönderim için yeterli süre geçmedi."
+      },
+      {
+        "Language": "EN",
+        "Description": "Not enough time has passed to resend."
+      },
+      {
+        "Language": "DE",
+        "Description": "Es ist noch nicht genug Zeit für das erneute Senden vergangen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3500,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu etkinlik için zaten bir katılım kaydınız var."
+      },
+      {
+        "Language": "EN",
+        "Description": "You already have a participation record for this activity."
+      },
+      {
+        "Language": "DE",
+        "Description": "Sie haben bereits eine Teilnahmeregistrierung für diese Aktivität."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3501,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etkinlik kapasitesi dolu."
+      },
+      {
+        "Language": "EN",
+        "Description": "Activity capacity is full."
+      },
+      {
+        "Language": "DE",
+        "Description": "Die Kapazität der Aktivität ist voll."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3502,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu etkinlik için bekleme listesi kullanılamıyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Waitlist is not allowed for this activity."
+      },
+      {
+        "Language": "DE",
+        "Description": "Die Warteliste ist für diese Aktivität nicht zulässig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3503,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kayıt dönemi kapalı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Registration window is closed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Das Registrierungsfenster ist geschlossen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3504,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu katılımcı üzerinde bu durumda işlem yapılamaz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Operation is not allowed in the participant's current state."
+      },
+      {
+        "Language": "DE",
+        "Description": "Vorgang ist im aktuellen Zustand des Teilnehmers nicht zulässig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3505,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Katılımcı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Participant not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Teilnehmer nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3506,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Katılımcı bekleme listesinde değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "Participant is not on the waitlist."
+      },
+      {
+        "Language": "DE",
+        "Description": "Teilnehmer steht nicht auf der Warteliste."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3507,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Katılım zaten iptal edilmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "Participation is already cancelled."
+      },
+      {
+        "Language": "DE",
+        "Description": "Die Teilnahme wurde bereits storniert."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3508,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Katılım zaten onaylanmış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Participation is already confirmed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Die Teilnahme ist bereits bestätigt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3509,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kişi başı katılım limiti aşıldı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Per-user participation limit exceeded."
+      },
+      {
+        "Language": "DE",
+        "Description": "Teilnahmebeschränkung pro Benutzer überschritten."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3600,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "QR kodu geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "QR code is invalid."
+      },
+      {
+        "Language": "DE",
+        "Description": "QR-Code ist ungültig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3601,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "QR kodunun süresi dolmuş."
+      },
+      {
+        "Language": "EN",
+        "Description": "QR code has expired."
+      },
+      {
+        "Language": "DE",
+        "Description": "Der QR-Code ist abgelaufen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3602,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "QR kodu zaten kullanılmış."
+      },
+      {
+        "Language": "EN",
+        "Description": "QR code has already been used."
+      },
+      {
+        "Language": "DE",
+        "Description": "Der QR-Code wurde bereits verwendet."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 2713,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Teklif süreci zaten finalize edilmiştir."
+      },
+      {
+        "Language": "EN",
+        "Description": "The offer process is already finalized."
+      },
+      {
+        "Language": "DE",
+        "Description": "Der Angebotsprozess ist bereits abgeschlossen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3603,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "QR kodu iptal edilmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "QR code has been revoked."
+      },
+      {
+        "Language": "DE",
+        "Description": "Der QR-Code wurde widerrufen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3604,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "QR kodu çok sık okutuluyor. Lütfen tekrar deneyin."
+      },
+      {
+        "Language": "EN",
+        "Description": "QR code scanned too frequently. Please try again."
+      },
+      {
+        "Language": "DE",
+        "Description": "QR-Code zu häufig gescannt. Bitte versuchen Sie es erneut."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1101,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Zorunlu sözleşmeler onaylanmadan kayıt tamamlanamaz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Registration cannot proceed without accepting required agreements."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1102,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı oluşturulamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User could not be created."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1103,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Parola ayarlanamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Failed to set password."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1104,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "E-posta mevcut kullanıcıyla eşleşmiyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Email does not match the existing user."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1105,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Telefon numarası mevcut kullanıcıyla eşleşmiyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Phone number does not match the existing user."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1106,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcının bu rolde zaten bir profili var."
+      },
+      {
+        "Language": "EN",
+        "Description": "User already has a profile for this role."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1107,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Rol bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Role not found."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1108,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Role atama işlemi başarısız."
+      },
+      {
+        "Language": "EN",
+        "Description": "Failed to assign role."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1109,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Profil oluşturma başarısız."
+      },
+      {
+        "Language": "EN",
+        "Description": "Profile creation failed."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1200,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz ya da süresi dolmuş istek (state)."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid or expired request (state)."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1201,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Sağlayıcı ile token değişimi başarısız."
+      },
+      {
+        "Language": "EN",
+        "Description": "Token exchange with provider failed."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1202,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kimlik belirteci (id_token) geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Identity token (id_token) is invalid."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1203,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Güvenlik denetimi başarısız (nonce uyuşmuyor)."
+      },
+      {
+        "Language": "EN",
+        "Description": "Security check failed (nonce mismatch)."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1210,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dış hesap bağlantısı bulunan kullanıcı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User linked to external account not found."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1211,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Participant rolü bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Participant role not found."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1110,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu panelde aktif profil bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "No active profile found for this panel."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1113,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Profil zaten onaylanmış."
+      },
+      {
+        "Language": "EN",
+        "Description": "Profile already approved."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1114,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Profil zaten reddedilmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "Profile already rejected."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1115,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Red nedeni zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Reject reason is required."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1116,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Aktif profil reddedilemez."
+      },
+      {
+        "Language": "EN",
+        "Description": "Active profile cannot be rejected."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 1117,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Profil durumu bu işlem için geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Profile status is invalid for this action."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 40101,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Token bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Token not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Token nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 40102,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Refresh token süresi doldu."
+      },
+      {
+        "Language": "EN",
+        "Description": "Refresh token has expired."
+      },
+      {
+        "Language": "DE",
+        "Description": "Refresh-Token ist abgelaufen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 40091,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bilinmeyen uygulama bağlamı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Unknown application context."
+      },
+      {
+        "Language": "DE",
+        "Description": "Unbekannter Anwendungskontext."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 40111,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu panel için access token gereklidir."
+      },
+      {
+        "Language": "EN",
+        "Description": "Access token is required for this panel."
+      },
+      {
+        "Language": "DE",
+        "Description": "Für dieses Panel ist ein Access-Token erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 40031,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "DeviceId (Cihaz Kimliği) gereklidir."
+      },
+      {
+        "Language": "EN",
+        "Description": "Device ID is required."
+      },
+      {
+        "Language": "DE",
+        "Description": "Geräte-ID ist erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3710,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Profil pasif veya askıda. İşlem gerçekleştirilemez."
+      },
+      {
+        "Language": "EN",
+        "Description": "Profile is suspended or inactive. Action not allowed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Profil ist gesperrt oder inaktiv. Aktion nicht zulässig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3711,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekân (venue) pasif durumda."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue is inactive."
+      },
+      {
+        "Language": "DE",
+        "Description": "Veranstaltungsort ist inaktiv."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3712,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Başlangıç zamanı çok yakın. Lütfen daha ileri bir zaman seçin."
+      },
+      {
+        "Language": "EN",
+        "Description": "Start time is too soon. Please choose a later time."
+      },
+      {
+        "Language": "DE",
+        "Description": "Startzeit ist zu früh. Bitte späteren Zeitpunkt wählen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3713,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Etkinlik süresi izin verilen maksimum süreyi aşıyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Activity duration exceeds the maximum allowed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Aktivitätsdauer überschreitet das zulässige Maximum."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3714,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Para birimi desteklenmiyor."
+      },
+      {
+        "Language": "EN",
+        "Description": "Currency is not allowed."
+      },
+      {
+        "Language": "DE",
+        "Description": "Währung ist nicht zulässig."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3715,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Fiyat ondalık hassasiyeti geçersiz."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid price precision."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ungültige Preisgenauigkeit."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3716,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Online etkinlikler için katılım URL’si zorunludur."
+      },
+      {
+        "Language": "EN",
+        "Description": "Join URL is required for online events."
+      },
+      {
+        "Language": "DE",
+        "Description": "Teilnahme-URL ist für Online-Events erforderlich."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3717,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz veya izin verilmeyen katılım URL’si."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid or disallowed join URL."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ungültige oder nicht erlaubte Teilnahme-URL."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3718,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Zaman çakışması tespit edildi."
+      },
+      {
+        "Language": "EN",
+        "Description": "A time overlap was detected."
+      },
+      {
+        "Language": "DE",
+        "Description": "Zeitüberschneidung festgestellt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3719,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekân belirtilen saatlerde dolu."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue is booked for the selected time."
+      },
+      {
+        "Language": "DE",
+        "Description": "Veranstaltungsort ist zur gewählten Zeit belegt."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3720,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Oluşturma limiti aşıldı. Daha sonra tekrar deneyin."
+      },
+      {
+        "Language": "EN",
+        "Description": "Creation rate limit exceeded. Please try again later."
+      },
+      {
+        "Language": "DE",
+        "Description": "Erstellungslimit überschritten. Bitte später erneut versuchen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3721,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Ödeme profili eksik. KYC ve ödeme ayarlarını tamamlayın."
+      },
+      {
+        "Language": "EN",
+        "Description": "Payout setup incomplete. Complete KYC and payout settings."
+      },
+      {
+        "Language": "DE",
+        "Description": "Auszahlungsprofil unvollständig. KYC und Auszahlungseinstellungen vervollständigen."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3722,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "İçerik moderasyonundan geçmedi."
+      },
+      {
+        "Language": "EN",
+        "Description": "Content failed moderation."
+      },
+      {
+        "Language": "DE",
+        "Description": "Inhalt hat die Moderation nicht bestanden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3723,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Gönderilen veri çok büyük."
+      },
+      {
+        "Language": "EN",
+        "Description": "Payload is too large."
+      },
+      {
+        "Language": "DE",
+        "Description": "Nutzlast ist zu groß."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3724,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Kullanıcı profili bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "User profile not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Benutzerprofil wurde nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3725,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Mekân (venue) bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Venue not found."
+      },
+      {
+        "Language": "DE",
+        "Description": "Veranstaltungsort wurde nicht gefunden."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 3726,
+    "Key": "InvalidState",
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz durum. Bu işlem mevcut durumda gerçekleştirilemez."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid state. This action cannot be performed in the current state."
+      },
+      {
+        "Language": "DE",
+        "Description": "Ungültiger Zustand. Diese Aktion kann im aktuellen Zustand nicht ausgeführt werden."
+      }
+    ]
+  }
+]

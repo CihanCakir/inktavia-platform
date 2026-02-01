@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aizen.Modules.Identity.Domain\Aizen.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Identity.Core\Aizen.Modules.Identity.Core.csproj" />
+  </ItemGroup>
+
 </Project>
