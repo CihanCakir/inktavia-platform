@@ -3,7 +3,7 @@ using Aizen.Core.CQRS.GenericMessage;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.CQRS.Library;
 using Aizen.Core.Domain;
-using Aizen.Core.Infrastructure.CQRS.Extention;
+using Aizen.Core.Infrastructure.CQRS.Extension;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Microsoft.EntityFrameworkCore;
 using MiniUow.Paging;

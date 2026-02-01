@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Aizen.Core.IOC.Extention;
+namespace Aizen.Core.IOC.Extension;
 
 public static class BuilderExtensions
 {

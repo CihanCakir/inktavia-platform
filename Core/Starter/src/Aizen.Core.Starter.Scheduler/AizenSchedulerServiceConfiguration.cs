@@ -1,10 +1,10 @@
 using Aizen.Core.Configuration;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.InfoAccessor.Extensions;
-using Aizen.Core.Infrastructure.CQRS.Extention;
-using Aizen.Core.IOC.Extention;
-using Aizen.Core.Messagebus.Extentions;
-using Aizen.Core.RemoteCall.Extentions;
+using Aizen.Core.Infrastructure.CQRS.Extension;
+using Aizen.Core.IOC.Extension;
+using Aizen.Core.Messagebus.Extensions;
+using Aizen.Core.RemoteCall.Extensions;
 using Aizen.Core.Scheduler.Extensions;
 using Aizen.Core.Starter.Abstraction;
 using Microsoft.Extensions.DependencyInjection;

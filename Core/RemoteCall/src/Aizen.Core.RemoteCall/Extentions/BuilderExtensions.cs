@@ -5,10 +5,10 @@ using Aizen.Core.RemoteCall.Abstraction;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Aizen.Core.Configuration.Extentions;
+using Aizen.Core.Configuration.Extensions;
 using Refit;
 
-namespace Aizen.Core.RemoteCall.Extentions;
+namespace Aizen.Core.RemoteCall.Extensions;
 
 public static class BuilderExtensions
 {

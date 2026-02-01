@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Aizen.Core.Infrastructure.Auth.Extension;
 using Aizen.Core.Starter.Operation;
-using Aizen.Core.IOC.Extention;
+using Aizen.Core.IOC.Extension;
 
 namespace Aizen.Core.Starter;
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Aizen.Core.Configuration.Extentions
+namespace Aizen.Core.Configuration.Extensions
 {
     public static class BuilderExtensions
     {

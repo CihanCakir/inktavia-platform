@@ -1,6 +1,6 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Cache.Abstraction.Common;
-using Aizen.Core.Cache.Extention;
+using Aizen.Core.Cache.Extension;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Options;

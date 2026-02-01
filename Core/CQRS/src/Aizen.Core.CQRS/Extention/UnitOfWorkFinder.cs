@@ -2,7 +2,7 @@ using Aizen.Core.Domain;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Microsoft.EntityFrameworkCore;
 
-namespace Aizen.Core.Infrastructure.CQRS.Extention;
+namespace Aizen.Core.Infrastructure.CQRS.Extension;
 
 public static class UnitOfWorkFinder
 {
