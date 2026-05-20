@@ -2,7 +2,7 @@
   "id": "aizen-realm-export",
   "realm": "aizen",
   "enabled": true,
-  "sslRequired": "external",
+  "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,

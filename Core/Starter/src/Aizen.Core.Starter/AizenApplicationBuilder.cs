@@ -43,14 +43,23 @@ public class AizenApplicationBuilder
         AppInfo = appInfo;
         _builder = WebApplication.CreateBuilder(args);
 
-        _builder.Configuration
-            .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "configuration"))
+        var configPath = Path.Combine(Directory.GetCurrentDirectory(), "configuration");
+        var configBuilder = _builder.Configuration
+            .SetBasePath(configPath)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-            .AddJsonFile($"appsettings.{_builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
-            .AddEnvironmentVariables();
+            .AddJsonFile($"appsettings.{_builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false);
+
+        if (!IsRunningInDocker())
+            configBuilder.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: false);
+
+        configBuilder.AddEnvironmentVariables();
 
         _builder.Host.UseAizenServiceProviderFactory();
     }
+
+    private static bool IsRunningInDocker() =>
+        System.Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
+        || File.Exists("/.dockerenv");
 
 
 

@@ -22,6 +22,7 @@ namespace Aizen.Modules.Identity.Repository.Context.Seed
             var userManager = services.GetRequiredService<UserManager<UserEntity>>();
             var cfg = services.GetRequiredService<IConfiguration>();
 
+            // db.Database.GetMigrations()
             // 0) migrate
             await db.Database.MigrateAsync(ct);
 
