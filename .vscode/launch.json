@@ -1,0 +1,112 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Bff",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Bff",
+      "program": "${workspaceFolder}/Bff/src/Aizen.Bff/bin/Debug/net9.0/Aizen.Bff.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Bff/src/Aizen.Bff",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5040"
+      }
+    },
+    {
+      "name": "Gateway",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Gateway",
+      "program": "${workspaceFolder}/Gateway/src/Aizen.Gateway/bin/Debug/net9.0/Aizen.Gateway.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Gateway/src/Aizen.Gateway",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5216"
+      }
+    },
+    {
+      "name": "Identity",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.Identity",
+      "program": "${workspaceFolder}/Modules/Identity/src/Aizen.Modules.Identity/bin/Debug/net9.0/Aizen.Modules.Identity.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/Identity/src/Aizen.Modules.Identity",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5183"
+      }
+    },
+    {
+      "name": "Payment",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.Payment",
+      "program": "${workspaceFolder}/Modules/Payment/src/Aizen.Modules.Payment/bin/Debug/net9.0/Aizen.Modules.Payment.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/Payment/src/Aizen.Modules.Payment",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5073"
+      }
+    },
+    {
+      "name": "Profile",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.Profile",
+      "program": "${workspaceFolder}/Modules/Profile/src/Aizen.Modules.Profile/bin/Debug/net9.0/Aizen.Modules.Profile.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/Profile/src/Aizen.Modules.Profile",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5295"
+      }
+    },
+    {
+      "name": "Attach to Process",
+      "type": "coreclr",
+      "request": "attach"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Services",
+      "configurations": ["Bff", "Gateway", "Identity", "Payment", "Profile"],
+      "stopAll": true
+    },
+    {
+      "name": "Modules Only",
+      "configurations": ["Identity", "Payment", "Profile"],
+      "stopAll": true
+    }
+  ]
+}
