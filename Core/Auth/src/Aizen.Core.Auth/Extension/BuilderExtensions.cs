@@ -62,21 +62,38 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
             })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
             {
-                // If Keycloak settings exist in configuration, use Keycloak as authority
-                var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
-                var keycloakAudience = builder.Configuration["Keycloak:Audience"];
+                var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
+                    ?? builder.Configuration["KEYCLOAK_AUTHORITY"];
+
+                var keycloakMetadataAddress = builder.Configuration["Keycloak:MetadataAddress"]
+                    ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"];
+
+                var keycloakAudience = builder.Configuration["Keycloak:Audience"]
+                    ?? builder.Configuration["KEYCLOAK_AUDIENCE"];
+
+                var requireHttpsMetadataValue = builder.Configuration["Keycloak:RequireHttpsMetadata"]
+                    ?? builder.Configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
+
+                var requireHttpsMetadata = bool.TryParse(requireHttpsMetadataValue, out var parsedBool) && parsedBool;
 
                 if (!string.IsNullOrWhiteSpace(keycloakAuthority))
                 {
                     o.Authority = keycloakAuthority;
-                    o.RequireHttpsMetadata = false; // for local dev
 
-                    // If audience provided use it, otherwise do not validate audience strictly
+                    if (!string.IsNullOrWhiteSpace(keycloakMetadataAddress))
+                        o.MetadataAddress = keycloakMetadataAddress;
+
+                    o.RequireHttpsMetadata = requireHttpsMetadata;
+
                     o.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
+                        ValidIssuer = keycloakAuthority,
                         ValidateAudience = !string.IsNullOrWhiteSpace(keycloakAudience),
-                        ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience
+                        ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience,
+                        ValidateLifetime = true,
+                        RoleClaimType = ClaimTypes.Role,
+                        NameClaimType = "preferred_username"
                     };
 
                     o.Events = new JwtBearerEvents
@@ -84,35 +101,29 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
                         OnTokenValidated = ctx =>
                         {
                             var jwt = ctx.SecurityToken as JwtSecurityToken;
-                            if (jwt != null)
-                            {
-                                // Map realm roles to Claims.Role
-                                if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
-                                {
-                                    var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
-                                    var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
-                                    var id = ctx.Principal?.Identity as ClaimsIdentity;
-                                    if (id != null)
-                                    {
-                                        foreach (var r in roles)
-                                            id.AddClaim(new Claim(ClaimTypes.Role, r));
-                                    }
-                                }
+                            if (jwt is null)
+                                return System.Threading.Tasks.Task.CompletedTask;
 
-                                // Map client roles (resource_access)
-                                if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                            var id = ctx.Principal?.Identity as ClaimsIdentity;
+                            if (id is null)
+                                return System.Threading.Tasks.Task.CompletedTask;
+
+                            if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                            {
+                                var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
+                                var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
+                                foreach (var r in roles)
+                                    id.AddClaim(new Claim(ClaimTypes.Role, r));
+                            }
+
+                            if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                            {
+                                var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
+                                foreach (var clientProp in resourceAccess.Properties())
                                 {
-                                    var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
-                                    foreach (var clientProp in resourceAccess.Properties())
-                                    {
-                                        var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();
-                                        var id = ctx.Principal?.Identity as ClaimsIdentity;
-                                        if (id != null)
-                                        {
-                                            foreach (var cr in clientRoles)
-                                                id.AddClaim(new Claim(ClaimTypes.Role, cr));
-                                        }
-                                    }
+                                    var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();
+                                    foreach (var cr in clientRoles)
+                                        id.AddClaim(new Claim(ClaimTypes.Role, cr));
                                 }
                             }
 
@@ -184,19 +195,38 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
                             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                         }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                             {
-                                // Keycloak-based configuration when present
-                                var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
-                                var keycloakAudience = builder.Configuration["Keycloak:Audience"];
+                                var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
+                                    ?? builder.Configuration["KEYCLOAK_AUTHORITY"];
+
+                                var keycloakMetadataAddress = builder.Configuration["Keycloak:MetadataAddress"]
+                                    ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"];
+
+                                var keycloakAudience = builder.Configuration["Keycloak:Audience"]
+                                    ?? builder.Configuration["KEYCLOAK_AUDIENCE"];
+
+                                var requireHttpsMetadataValue = builder.Configuration["Keycloak:RequireHttpsMetadata"]
+                                    ?? builder.Configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
+
+                                var requireHttpsMetadata = bool.TryParse(requireHttpsMetadataValue, out var parsedBool) && parsedBool;
 
                                 if (!string.IsNullOrWhiteSpace(keycloakAuthority))
                                 {
                                     options.Authority = keycloakAuthority;
-                                    options.RequireHttpsMetadata = false;
+
+                                    if (!string.IsNullOrWhiteSpace(keycloakMetadataAddress))
+                                        options.MetadataAddress = keycloakMetadataAddress;
+
+                                    options.RequireHttpsMetadata = requireHttpsMetadata;
+
                                     options.TokenValidationParameters = new TokenValidationParameters
                                     {
                                         ValidateIssuer = true,
+                                        ValidIssuer = keycloakAuthority,
                                         ValidateAudience = !string.IsNullOrWhiteSpace(keycloakAudience),
-                                        ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience
+                                        ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience,
+                                        ValidateLifetime = true,
+                                        RoleClaimType = ClaimTypes.Role,
+                                        NameClaimType = "preferred_username"
                                     };
 
                                     options.Events = new JwtBearerEvents
@@ -204,30 +234,29 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
                                         OnTokenValidated = ctx =>
                                         {
                                             var jwt = ctx.SecurityToken as JwtSecurityToken;
-                                            if (jwt != null && jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                                            if (jwt is null)
+                                                return System.Threading.Tasks.Task.CompletedTask;
+
+                                            var id = ctx.Principal?.Identity as ClaimsIdentity;
+                                            if (id is null)
+                                                return System.Threading.Tasks.Task.CompletedTask;
+
+                                            if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
                                             {
                                                 var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
                                                 var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
-                                                var id = ctx.Principal?.Identity as ClaimsIdentity;
-                                                if (id != null)
-                                                {
-                                                    foreach (var r in roles)
-                                                        id.AddClaim(new Claim(ClaimTypes.Role, r));
-                                                }
+                                                foreach (var r in roles)
+                                                    id.AddClaim(new Claim(ClaimTypes.Role, r));
                                             }
 
-                                            if (jwt != null && jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                                            if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
                                             {
                                                 var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
                                                 foreach (var clientProp in resourceAccess.Properties())
                                                 {
                                                     var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();
-                                                    var id = ctx.Principal?.Identity as ClaimsIdentity;
-                                                    if (id != null)
-                                                    {
-                                                        foreach (var cr in clientRoles)
-                                                            id.AddClaim(new Claim(ClaimTypes.Role, cr));
-                                                    }
+                                                    foreach (var cr in clientRoles)
+                                                        id.AddClaim(new Claim(ClaimTypes.Role, cr));
                                                 }
                                             }
 

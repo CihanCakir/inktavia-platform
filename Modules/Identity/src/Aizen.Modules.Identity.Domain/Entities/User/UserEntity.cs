@@ -42,6 +42,16 @@ namespace Aizen.Modules.Identity.Domain.Entities
 
         protected UserEntity() { }
 
+        public string? KeycloakSubjectId { get; private set; }
+
+        public void SetKeycloakSubjectId(string subjectId)
+        {
+            if (string.IsNullOrWhiteSpace(subjectId))
+                throw new ArgumentException("Keycloak subject id cannot be empty.", nameof(subjectId));
+
+            KeycloakSubjectId = subjectId;
+        }
+
         public static UserEntity CreateLocal(string email, string? phone, string passwordHash, LoginType loginType)
         {
             var u = new UserEntity

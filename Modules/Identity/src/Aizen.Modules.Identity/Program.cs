@@ -7,6 +7,8 @@ using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Repository.Context;
 using Aizen.Core.Domain.Abstraction.Extension;
 using Aizen.Modules.InktaviaStore.Repository;
+using Aizen.Modules.Identity.Extensions;
+using Aizen.Modules.Identity.Services;
 
 var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
@@ -30,6 +32,9 @@ builder.Services.AddAizenUnitOfWork<IdentityDbContext>(builder.Configuration, "I
 builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
 
 builder.Services.AddInktaviaService(builder.Configuration).AddInktaviaRepository();
+
+builder.Services.AddInktaviaAuthorizationPolicies();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(IdentityDbContext).Assembly);
 

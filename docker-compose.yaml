@@ -62,13 +62,16 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME:-keycloak}
       KC_DB_USERNAME: ${KC_DB_USER:-keycloak}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD:-keycloakpw}
+
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-      KC_HOSTNAME: ${KC_HOSTNAME:-localhost}
+
+      KC_HOSTNAME: ${KC_HOSTNAME:-http://localhost:8080}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     ports:
       - "8080:8080"
     volumes:
-      - ./infrastructure/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./infrastructure/keycloak/inktavia-realm-realm.json:/opt/keycloak/data/import/inktavia-realm-realm.json:ro
     networks: [aizen]
 
   # Messaging (RabbitMQ)
@@ -155,6 +158,10 @@ services:
       Messaging__RabbitMQ__Port: 5672
       Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
       Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: identity-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
     ports:
       - "7101:8080"
     networks: [aizen]
@@ -168,6 +175,7 @@ services:
       - postgres
       - mongo
       - redis
+      - keycloak
       - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
@@ -179,8 +187,39 @@ services:
       Messaging__RabbitMQ__Port: 5672
       Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
       Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: profile-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
     ports:
       - "7102:8080"
+    networks: [aizen]
+
+  payment-api:
+    build:
+      context: ./Modules/Payment
+      dockerfile: ./build/Dockerfile
+    container_name: payment-api
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      Redis__Host: redis:6379
+      Messaging__RabbitMQ__Host: rabbitmq
+      Messaging__RabbitMQ__Port: 5672
+      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
+      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: payment-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+    ports:
+      - "7103:8080"
     networks: [aizen]
 
   # Load testing - k6

@@ -29,6 +29,14 @@ namespace Aizen.Modules.Identity.Domain.Entities
             builder.Property(x => x.LoginType)
                    .IsRequired();
 
+            builder.Property(x => x.KeycloakSubjectId)
+                   .HasMaxLength(128)
+                   .IsRequired(false);
+
+            builder.HasIndex(x => x.KeycloakSubjectId)
+                   .IsUnique()
+                   .HasFilter("\"KeycloakSubjectId\" IS NOT NULL");
+
             builder.HasMany(x => x.Profiles)
                    .WithOne(x => x.User)
                    .HasForeignKey(x => x.UserId)
