@@ -154,9 +154,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Identity: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Redis__Host: redis:6379
-      Identity__Authority: http://keycloak:8080/realms/${KC_REALM:-aizen}
+      Identity__Authority: http://keycloak:8080/realms/${KC_REALM:-inktavia-realm}
       Messaging__RabbitMQ__Host: rabbitmq
       Messaging__RabbitMQ__Port: 5672
       Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
