@@ -83,6 +83,10 @@ Modules/<ModuleName>/
 docker compose -f docker-compose.yaml up -d
 ```
 
+### New Endpoint Added After call this Prompt
+
+node tools/postman/sync-postman-collection.mjs
+
 ### Run a module (example)
 ```bash
 consider updating this path to the actual csproj once modules are committed
