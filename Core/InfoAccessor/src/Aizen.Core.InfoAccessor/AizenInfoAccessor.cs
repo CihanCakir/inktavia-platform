@@ -8,7 +8,7 @@ namespace Aizen.Core.InfoAccessor;
 
 internal class AizenInfoAccessor : IAizenInfoAccessor, IAizenServerInfoAccessor, IAizenAppInfoAccessor,
     IAizenUserInfoAccessor, IAizenChannelInfoAccessor, IAizenDeviceInfoAccessor, IAizenRequestInfoAccessor, IAizenNetworkInfoAccessor, IAizenClientInfoAccessor,
-    IAizenExecutionInfoAccessor
+    IAizenExecutionInfoAccessor, IAizenKeycloakTokenInfoAccessor
 {
     private readonly IAizenInfoContainer _infoContainer;
 
@@ -28,10 +28,11 @@ internal class AizenInfoAccessor : IAizenInfoAccessor, IAizenServerInfoAccessor,
 
     public IAizenExecutionInfoAccessor ExecutionInfoAccessor => this;
 
-
     public IAizenDeviceInfoAccessor DeviceInfoAccessor => this;
 
     public IAizenRequestInfoAccessor RequestInfoAccessor => this;
+
+    public IAizenKeycloakTokenInfoAccessor KeycloakTokenInfoAccessor => this;
 
     public AizenServerInfo ServerInfo => _infoContainer.Get<AizenServerInfo>();
 
@@ -46,6 +47,7 @@ internal class AizenInfoAccessor : IAizenInfoAccessor, IAizenServerInfoAccessor,
     public AizenDeviceInfo DeviceInfo => _infoContainer.Get<AizenDeviceInfo>();
     public AizenRequestInfo RequestInfo => _infoContainer.Get<AizenRequestInfo>();
     public AizenExecutionInfo ExecutionInfo => _infoContainer.Get<AizenExecutionInfo>();
+    public AizenKeycloakTokenInfo KeycloakTokenInfo => _infoContainer.Get<AizenKeycloakTokenInfo>();
 
 
     public AizenInfoAccessor(IAizenInfoContainer infoContainer, IConfiguration configuration)

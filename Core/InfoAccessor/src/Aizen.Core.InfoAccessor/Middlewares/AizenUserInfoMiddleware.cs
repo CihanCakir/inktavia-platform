@@ -19,15 +19,14 @@ namespace Aizen.Core.InfoAccessor.Middlewares
 
         public async Task Invoke(HttpContext httpContext)
         {
-            var seyirInfoAccessor = (IAizenInfoAccessor)httpContext.RequestServices.GetRequiredService(typeof(IAizenInfoAccessor));
+            var infoAccessor = (IAizenInfoAccessor)httpContext.RequestServices.GetRequiredService(typeof(IAizenInfoAccessor));
 
-            if (seyirInfoAccessor.UserInfoAccessor.UserInfo != null)
+            if (infoAccessor.UserInfoAccessor.UserInfo != null)
             {
                 await _next(httpContext);
                 return;
             }
 
-            AizenUserInfo userInfo = null;
             string token = null;
 
             if (httpContext?.Request?.Path.Value?.Contains("auth/refresh") == true)
@@ -46,23 +45,64 @@ namespace Aizen.Core.InfoAccessor.Middlewares
                 token = httpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             }
 
-            if (!string.IsNullOrEmpty(token))
+            var container = (IAizenInfoContainer)httpContext.RequestServices.GetRequiredService(typeof(IAizenInfoContainer));
+
+            if (string.IsNullOrEmpty(token))
             {
-                var isTokenValid = TryGetUserInfoFromToken(token, out userInfo, out string errorMessage);
+                container.Set(new AizenUserInfo());
+                await _next(httpContext);
+                return;
+            }
+
+            if (IsKeycloakClientToken(token, out var keycloakTokenInfo))
+            {
+                // Keycloak API/service-account  do not parse as application user.token 
+                container.Set(keycloakTokenInfo);
+                container.Set(new AizenUserInfo());
+            }
+            else
+            {
+                var isTokenValid = TryGetUserInfoFromToken(token, out AizenUserInfo userInfo, out string errorMessage);
                 if (!isTokenValid)
                 {
                     throw new AizenBusinessException(errorMessage);
                 }
-            }
-            else
-            {
-                userInfo = new AizenUserInfo();
-            }
 
-            var container = (IAizenInfoContainer)httpContext.RequestServices.GetRequiredService(typeof(IAizenInfoContainer));
-            container.Set(userInfo);
+                container.Set(userInfo);
+            }
 
             await _next(httpContext);
+        }
+
+        /// <summary>
+        /// Returns true when <paramref name="token"/> is a Keycloak API/client credential token.
+        /// Detection: valid JWT that does NOT carry the application-specific <c>UserId</c> claim.
+        /// </summary>
+        private static bool IsKeycloakClientToken(string token, out AizenKeycloakTokenInfo keycloakTokenInfo)
+        {
+            keycloakTokenInfo = null;
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            if (!tokenHandler.CanReadToken(token))
+                return false;
+
+            var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            if (jwtToken == null)
+                return false;
+
+            var hasUserId = jwtToken.Claims.Any(c => c.Type == "UserId");
+            if (hasUserId)
+                return false;
+
+            keycloakTokenInfo = new AizenKeycloakTokenInfo
+            {
+                IsPresent = true,
+                ClientId = ClaimVal(jwtToken, "azp"),
+                Subject = ClaimVal(jwtToken, JwtRegisteredClaimNames.Sub),
+                RawToken = token,
+            };
+
+            return true;
         }
 
         private bool TryGetUserInfoFromToken(string token, out AizenUserInfo userInfo, out string errorMessage)
@@ -79,7 +119,6 @@ namespace Aizen.Core.InfoAccessor.Middlewares
                 return false;
             }
 
-            // Extract the RefreshTokenExpire claim and check expiration
             var refreshTokenExpireClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "RefreshTokenExpire")?.Value;
             if (refreshTokenExpireClaim == null)
             {
@@ -99,12 +138,8 @@ namespace Aizen.Core.InfoAccessor.Middlewares
                 return false;
             }
 
-            // --- claim’leri çek
             var userIdStr = ClaimVal(jwtToken, "UserId");
-            var subjectStr = ClaimVal(jwtToken, JwtRegisteredClaimNames.Sub, ClaimTypes.Name, ClaimTypes.Email); // bizde sub=username/e-posta
-            var jtiStr = ClaimVal(jwtToken, JwtRegisteredClaimNames.Jti, "jti");
-            var versionStr = ClaimVal(jwtToken, "Version");
-            var rtExpStr = ClaimVal(jwtToken, "RefreshTokenExpire");
+            var subjectStr = ClaimVal(jwtToken, JwtRegisteredClaimNames.Sub, ClaimTypes.Name, ClaimTypes.Email);
 
             var roles = jwtToken.Claims
                     .Where(c => c.Type == ClaimTypes.Role)
@@ -112,46 +147,21 @@ namespace Aizen.Core.InfoAccessor.Middlewares
                     .Distinct()
                     .ToArray();
 
-            var refreshExp = ParseRefreshExp(rtExpStr);
-
-            // Extract other user info from token
             userInfo = new AizenUserInfo
             {
                 UserId = ParseLong(userIdStr),
                 PhoneNumber = subjectStr ?? string.Empty,
                 AccessToken = token,
-                // Aşağıdakiler opsiyonel alanlar ise (sende varsa doldururuz):
-                Roles = roles                         // class’ta IEnumerable<string> Roles varsa
-                                                      // RoleId yok — roller isim olarak geliyor. Gerekirse ilk rolü map’leyip RoleId türetebilirsin.
+                Roles = roles
             };
 
             return true;
         }
 
-
-
-        static string? ClaimVal(JwtSecurityToken t, params string[] types)
+        static string ClaimVal(JwtSecurityToken t, params string[] types)
             => types.Select(tt => t.Claims.FirstOrDefault(c => c.Type == tt)?.Value)
                     .FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
 
-        static long ParseLong(string? s, long def = 0) => long.TryParse(s, out var v) ? v : def;
-
-        static DateTimeOffset? ParseRefreshExp(string? v)
-        {
-            if (string.IsNullOrWhiteSpace(v)) return null;
-
-            // Önce ISO/Tarih biçimleri
-            if (DateTimeOffset.TryParse(v, out var dto)) return dto;
-
-            // epoch seconds olarak geldiyse
-            if (long.TryParse(v, out var sec) && sec > 1_000_000)
-                return DateTimeOffset.FromUnixTimeSeconds(sec);
-
-            // ticks olarak geldiyse
-            if (long.TryParse(v, out var ticks) && ticks > 62_000_000_000_000) // rough guard
-                return new DateTimeOffset(ticks, TimeSpan.Zero);
-
-            return null;
-        }
+        static long ParseLong(string s, long def = 0) => long.TryParse(s, out var v) ? v : def;
     }
 }
