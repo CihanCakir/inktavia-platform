@@ -18,6 +18,7 @@ namespace Aizen.Modules.InktaviaStore.Repository
 
         public static IServiceCollection AddInktaviaRepository(this IServiceCollection services)
         {
+            services.AddScoped<IAgreementRepository, AgreementRepository>();
             services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
             services.AddScoped<IUserLoginTokenRepository, UserLoginTokenRepository>();
             services.AddScoped<IUserMessagePermissionRepository, UserMessagePermissionRepository>();
