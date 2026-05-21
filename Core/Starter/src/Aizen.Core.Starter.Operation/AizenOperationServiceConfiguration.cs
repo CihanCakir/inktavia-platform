@@ -10,6 +10,7 @@ using Aizen.Core.Infrastructure.CQRS.Extension;
 using Aizen.Core.IOC.Extension;
 using Aizen.Core.Messagebus.Extensions;
 using Aizen.Core.RemoteCall.Extensions;
+using Aizen.Core.Infrastructure.Auth.Extension;
 using Microsoft.OpenApi.Models;
 namespace Aizen.Core.Starter.Operation;
 
@@ -30,6 +31,7 @@ public class AizenOperationServiceConfiguration : IAizenServiceConfiguration
         if (this.AppInfo.TypeInclude.Contains(AppType.Api))
         {
             services.AddAizenApi(configuration);
+            services.AddAizenKeycloakAuth(configuration);
         }
 
         // Ortak servisler

@@ -6,10 +6,13 @@ using Aizen.Core.Auth;
 using Aizen.Core.Auth.Abstraction;
 using Aizen.Core.Auth.Extension;
 using Aizen.Core.Common.Abstraction.Exception;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
@@ -18,6 +21,126 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
 {
     public static class BuilderExtensions
     {
+        /// <summary>
+        /// Registers Keycloak JWT Bearer authentication and a global authorization policy
+        /// that requires authenticated users on all endpoints by default.
+        /// Controllers with [AllowAnonymous] remain publicly accessible.
+        /// Use this in service layers that validate Keycloak tokens but do not manage identity entities.
+        /// </summary>
+        public static IServiceCollection AddAizenKeycloakAuth(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            var keycloakAuthority = configuration["Keycloak:Authority"]
+                ?? configuration["KEYCLOAK_AUTHORITY"];
+
+            var keycloakMetadataAddress = configuration["Keycloak:MetadataAddress"]
+                ?? configuration["KEYCLOAK_METADATA_ADDRESS"];
+
+            var keycloakAudience = configuration["Keycloak:Audience"]
+                ?? configuration["KEYCLOAK_AUDIENCE"];
+
+            var requireHttpsMetadataValue = configuration["Keycloak:RequireHttpsMetadata"]
+                ?? configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
+
+            var requireHttpsMetadata = bool.TryParse(requireHttpsMetadataValue, out var parsedBool) && parsedBool;
+
+            // Only register authentication if it hasn't been registered already (e.g. by AddAizenAuth).
+            // Registering the Bearer scheme twice causes a runtime InvalidOperationException.
+            if (!services.Any(d => d.ServiceType == typeof(IAuthenticationSchemeProvider)))
+            {
+                services.AddAuthentication(o =>
+                {
+                    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
+                {
+                    if (!string.IsNullOrWhiteSpace(keycloakAuthority))
+                    {
+                        o.Authority = keycloakAuthority;
+
+                        if (!string.IsNullOrWhiteSpace(keycloakMetadataAddress))
+                            o.MetadataAddress = keycloakMetadataAddress;
+
+                        o.RequireHttpsMetadata = requireHttpsMetadata;
+
+                        o.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidIssuer = keycloakAuthority,
+                            ValidateAudience = !string.IsNullOrWhiteSpace(keycloakAudience),
+                            ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience,
+                            ValidateLifetime = true,
+                            RoleClaimType = ClaimTypes.Role,
+                            NameClaimType = "preferred_username"
+                        };
+
+                        o.Events = new JwtBearerEvents
+                        {
+                            OnTokenValidated = ctx =>
+                            {
+                                var jwt = ctx.SecurityToken as JwtSecurityToken;
+                                if (jwt is null)
+                                    return System.Threading.Tasks.Task.CompletedTask;
+
+                                var id = ctx.Principal?.Identity as ClaimsIdentity;
+                                if (id is null)
+                                    return System.Threading.Tasks.Task.CompletedTask;
+
+                                if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                                {
+                                    var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
+                                    var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
+                                    foreach (var r in roles)
+                                        id.AddClaim(new Claim(ClaimTypes.Role, r));
+                                }
+
+                                if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                                {
+                                    var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
+                                    foreach (var clientProp in resourceAccess.Properties())
+                                    {
+                                        var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();
+                                        foreach (var cr in clientRoles)
+                                            id.AddClaim(new Claim(ClaimTypes.Role, cr));
+                                    }
+                                }
+
+                                return System.Threading.Tasks.Task.CompletedTask;
+                            }
+                        };
+                    }
+                    else
+                    {
+                        o.RequireHttpsMetadata = false;
+                        o.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidIssuer = configuration["TokenOption:Issuer"],
+                            ValidAudience = configuration["TokenOption:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(configuration["TokenOption:SecurityKey"] ?? string.Empty)),
+                            ValidateIssuerSigningKey = true,
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                        };
+                    }
+                });
+            }
+
+            // Require authenticated user on all controller endpoints by default.
+            // Endpoints decorated with [AllowAnonymous] remain publicly accessible.
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
+            return services;
+        }
+
+
         public static IServiceCollection AddAizenAuth<
         TUser, TRole,
         TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,

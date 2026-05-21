@@ -113,7 +113,6 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
         // POST /api/v1/auth/login/username
         // =================================
         [HttpPost("login/username")]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername([FromBody] LoginWithUsernameRequest req, CancellationToken ct)

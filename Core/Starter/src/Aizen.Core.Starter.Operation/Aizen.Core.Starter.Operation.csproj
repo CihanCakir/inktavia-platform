@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Auth\src\Aizen.Core.Auth\Aizen.Core.Auth.csproj" />
     <ProjectReference Include="..\..\..\Api\src\Aizen.Core.Api\Aizen.Core.Api.csproj" />
     <ProjectReference Include="..\..\..\Cache\src\Aizen.Core.Cache\Aizen.Core.Cache.csproj" />
     <ProjectReference Include="..\..\..\CQRS\src\Aizen.Core.CQRS\Aizen.Core.CQRS.csproj" />
