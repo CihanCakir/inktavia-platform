@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Aizen.Core.InfoAccessor.Abstraction;
 using System.IdentityModel.Tokens.Jwt;
-using Newtonsoft.Json.Linq;
 using Aizen.Core.Infrastructure.Exception;
 using System.Security.Claims;
 
@@ -27,50 +26,34 @@ namespace Aizen.Core.InfoAccessor.Middlewares
                 return;
             }
 
-            string token = null;
-
-            if (httpContext?.Request?.Path.Value?.Contains("auth/refresh") == true)
-            {
-                httpContext.Request.EnableBuffering();
-                using (var reader = new StreamReader(httpContext.Request.Body, leaveOpen: true))
-                {
-                    var body = await reader.ReadToEndAsync();
-                    var jObject = JObject.Parse(body);
-                    token = jObject["accessToken"]?.ToString();
-                    httpContext.Request.Body.Position = 0;
-                }
-            }
-            else if (httpContext?.Request?.Headers != null && httpContext.Request.Headers.ContainsKey("Authorization"))
-            {
-                token = httpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            }
-
             var container = (IAizenInfoContainer)httpContext.RequestServices.GetRequiredService(typeof(IAizenInfoContainer));
 
-            if (string.IsNullOrEmpty(token))
+            // Detect and register Keycloak/service-account token from Authorization header.
+            if (httpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                var authToken = authHeader.ToString().Replace("Bearer ", "");
+                if (IsKeycloakClientToken(authToken, out var keycloakTokenInfo))
+                {
+                    container.Set(keycloakTokenInfo);
+                }
+            }
+
+            // Read the application/identity user token exclusively from X-Aizen-User-Token.
+            if (!httpContext.Request.Headers.TryGetValue("X-Aizen-User-Token", out var userTokenHeader)
+                || string.IsNullOrWhiteSpace(userTokenHeader))
             {
                 container.Set(new AizenUserInfo());
                 await _next(httpContext);
                 return;
             }
 
-            if (IsKeycloakClientToken(token, out var keycloakTokenInfo))
+            var isTokenValid = TryGetUserInfoFromToken(userTokenHeader.ToString(), out AizenUserInfo userInfo, out string errorMessage);
+            if (!isTokenValid)
             {
-                // Keycloak API/service-account  do not parse as application user.token 
-                container.Set(keycloakTokenInfo);
-                container.Set(new AizenUserInfo());
-            }
-            else
-            {
-                var isTokenValid = TryGetUserInfoFromToken(token, out AizenUserInfo userInfo, out string errorMessage);
-                if (!isTokenValid)
-                {
-                    throw new AizenBusinessException(errorMessage);
-                }
-
-                container.Set(userInfo);
+                throw new AizenBusinessException(errorMessage);
             }
 
+            container.Set(userInfo);
             await _next(httpContext);
         }
 
