@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Aizen.Core.Api.Middleware;
-using Aizen.Core.Auth.Abstraction;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.UnitOfWork.Abstraction;
