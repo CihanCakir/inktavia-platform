@@ -8,6 +8,6 @@ public abstract class AizenDomainEventBase: IAizenDomainEvent
     
     public AizenDomainEventBase()
     {
-        this.OccurredOn = DateTime.Now;
+        this.OccurredOn = DateTime.UtcNow;
     }
 }

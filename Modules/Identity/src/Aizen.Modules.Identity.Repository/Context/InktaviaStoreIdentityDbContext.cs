@@ -53,5 +53,34 @@ namespace Aizen.Modules.Identity.Repository.Context
             modelBuilder.ApplyConfiguration(new UserEmailConfirmEntityConfiguration());
             modelBuilder.ApplyConfiguration(new UserValidationEntityConfiguration());
         }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            NormalizeDateTimeProperties();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override int SaveChanges()
+        {
+            NormalizeDateTimeProperties();
+            return base.SaveChanges();
+        }
+
+        private void NormalizeDateTimeProperties()
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.State is not (EntityState.Added or EntityState.Modified))
+                    continue;
+
+                foreach (var property in entry.Properties)
+                {
+                    if (property.CurrentValue is DateTime dt && dt.Kind == DateTimeKind.Local)
+                    {
+                        property.CurrentValue = dt.ToUniversalTime();
+                    }
+                }
+            }
+        }
     }
 }
