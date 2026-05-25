@@ -15,7 +15,7 @@ public class AizenServiceProvider : IServiceProvider, ISupportRequiredService, I
     
     public AizenServiceProvider(ILifetimeScope lifetimeScope)
     {
-        _autofacServiceProvider = new AutofacServiceProvider(lifetimeScope.BeginLifetimeScope());
+        _autofacServiceProvider = new AutofacServiceProvider(lifetimeScope);
     }
 
     public object? GetService(Type serviceType)

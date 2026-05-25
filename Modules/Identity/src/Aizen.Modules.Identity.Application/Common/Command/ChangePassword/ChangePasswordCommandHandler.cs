@@ -1,4 +1,3 @@
-using System.Data.Entity;
 using Aizen.Core.Api.Middleware;
 using Aizen.Core.Auth.Abstraction;
 using Aizen.Core.CQRS.Handler;
@@ -10,22 +9,24 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using MiniUow;
+using Aizen.Core.InfoAccessor.Abstraction;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity.Command;
     public class ChangePasswordCommandHandler: AizenCommandHandler<ChangePasswordCommand, ChangePasswordDto>
 {
-    private readonly IAizenUserService _userService;
+    private readonly IAizenInfoAccessor _infoAccessor;
     private readonly IRepository<UserEntity> _userRepository;
     private readonly IRepository<UserLoginTokenEntity> _tokenRepository;
     private readonly UserManager<UserEntity> _userManager;
     private readonly IHttpContextAccessor _contextAccessor;
 
     public ChangePasswordCommandHandler(
-        IAizenUserService userService,
+        IAizenInfoAccessor infoAccessor,
         IUnitOfWork<IdentityDbContext> unitOfWorkForUser,
         UserManager<UserEntity> userManager, IHttpContextAccessor contextAccessor)
     {
-        _userService = userService;
+        _infoAccessor = infoAccessor;
         _userRepository = unitOfWorkForUser.GetRepository<UserEntity>();
         _tokenRepository = unitOfWorkForUser.GetRepository<UserLoginTokenEntity>(); ;
         _userManager = userManager;
@@ -34,7 +35,11 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command;
 
     public override async Task<ChangePasswordDto> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
-        var userId = Convert.ToInt32(_userService.FindUserIdFromClaimsPrinciple());
+        var userInfo = _infoAccessor.UserInfoAccessor.UserInfo;
+        if (userInfo is null || userInfo.UserId == 0)
+            throw new AizenBusinessException(((int)AizenErrorCode.UserNotFound).ToString());
+
+        var userId = Convert.ToInt32(userInfo.UserId);
 
         var user = await _userRepository.FirstOrDefaultAsync(x => x.Id == userId, disableTracking: false);
 
@@ -52,7 +57,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command;
 
         var tokens = await _tokenRepository.GetAllAsync(x => x.UserId == user.Id && x.IsRevoked == false);
 
-        if (await tokens.AnyAsync())
+        if ( await tokens.AnyAsync())
         {
             foreach (var entity in await tokens.ToListAsync(cancellationToken))
             {
