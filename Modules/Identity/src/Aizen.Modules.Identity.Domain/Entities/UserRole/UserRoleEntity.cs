@@ -8,10 +8,8 @@ namespace Aizen.Modules.Identity.Domain.Entities
         public UserRoleEntity()
         {
         }
-        public new long UserId { get; set; }
-        public virtual UserEntity? User { get; set; }
 
-        public new long RoleId { get; set; }
+        public virtual UserEntity? User { get; set; }
         public virtual RoleEntity? Role { get; set; }
     }
 }

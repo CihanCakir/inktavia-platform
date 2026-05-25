@@ -58,7 +58,7 @@ public sealed class OrganizerRegistrationDomainService : IOrganizerRegistrationD
             : null;
 
         if (user is null && !string.IsNullOrWhiteSpace(phone))
-            user = await _userRepo.GetUserByPhoneNumber(phone!, false);
+            user = await _userRepo.CheckUserByPhoneNumber(phone!, false);
 
         if (user is null)
         {

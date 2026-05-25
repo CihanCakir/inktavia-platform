@@ -55,7 +55,7 @@ public class LoginWithUsernameCommandHandler : AizenCommandHandler<LoginWithUser
                 await _userManager.UpdateAsync(user);
             }
 
-            throw new AizenBusinessException(((int)AizenErrorCode.UserAlreadyAcceptedTerms).ToString());
+            throw new AizenBusinessException(((int)AizenErrorCode.UserNameOrPasswordWrong).ToString());
         }
 
         var roleContext = GetRoleContextFromAppInfo(_infoAccessor.AppInfoAccessor.AppInfo.Code);

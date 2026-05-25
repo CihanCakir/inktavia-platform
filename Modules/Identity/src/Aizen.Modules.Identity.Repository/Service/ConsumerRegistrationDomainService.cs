@@ -51,7 +51,7 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
                 user = await _userManager.FindByEmailAsync(m.Email);
 
             if (user is null && !string.IsNullOrWhiteSpace(m.Phone))
-                user = await _userRepo.GetUserByPhoneNumber(m.Phone!, disableTracking: false);
+                user = await _userRepo.CheckUserByPhoneNumber(m.Phone!, disableTracking: false);
 
             var isNew = user is null;
 
@@ -113,12 +113,15 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
                 taxpayerType: TaxpayerType.Individual);
             profile.RoleContext = consumerCtx;
 
-            // Entity seviyesinde bağla
-            user.AddProfile(profile, markAsActive: true);
+            // Entity seviyesinde bağla (markAsActive: false — profile.Id henüz 0, FK ihlali yaratır)
+            user.AddProfile(profile, markAsActive: false);
 
-            // Persist
+            // Persist: profile.Id burada DB tarafından üretilir
             await _profileRepo.AddProfileAsync(profile);
-            // ActiveProfileId user üzerinde tutuluyorsa güncelle
+            await _userManager.UpdateAsync(user);
+
+            // Gerçek ID atandıktan sonra aktif profili işaretle
+            user.SetActiveProfile(profile.Id);
             await _userManager.UpdateAsync(user);
 
             // 6) Sözleşmeler (sadece onaylanmamış zorunlu olanları topla → onayla)

@@ -14,6 +14,10 @@ namespace Aizen.Modules.Identity.Domain.Interface.Repository
         Task<UserEntity> GetUserByPhoneNumber(string phoneNumber, bool disableTracking = false);
 
         /// <summary>
+        /// Telefon numarasına göre kullanıcıyı kontrol eder.
+        /// </summary>
+        Task<UserEntity?> CheckUserByPhoneNumber(string phoneNumber, bool disableTracking = false);
+        /// <summary>
         /// Kullanıcının başarısız giriş sayısını arttırır, gerekiyorsa lockout uygular.
         /// </summary>
         Task BlockUser(UserEntity user);

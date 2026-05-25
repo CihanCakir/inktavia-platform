@@ -58,7 +58,7 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
                 : null;
 
             if (user is null && !string.IsNullOrWhiteSpace(phone))
-                user = await _userRepo.GetUserByPhoneNumber(phone!, false);
+                user = await _userRepo.CheckUserByPhoneNumber(phone!, false);
 
             if (user is null)
             {
