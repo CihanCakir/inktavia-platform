@@ -86,7 +86,7 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
             await CheckDeviceHasBeenApproval(request);
 
             // 2. Token oluştur
-            var accessToken = _tokenHelper.GenerateToken(request.UserId, request.UserName ?? request.Email, roles: new List<string> { request.RoleContext.ToString() });
+            var accessToken = _tokenHelper.GenerateToken(request.UserId, request.UserName ?? request.Email, roles: new List<string>(request.Roles ?? new List<string>()) { request.RoleContext.ToString() });
 
             var refreshToken = _tokenHelper.GenerateRefreshToken();
             var accessTokenExpiration = _tokenHelper.GetAccessTokenExpiration();

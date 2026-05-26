@@ -14,6 +14,7 @@ namespace Aizen.Modules.Identity.Abstraction.Request
         public WorkshopRoleContext RoleContext { get; set; }
         public ConsumerDeviceType DeviceType { get; set; }
         public long? ActiveProfileId { get; set; }
+        public List<string>? Roles { get; set; }
     }
 
 }

@@ -93,7 +93,6 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
 
         // POST /api/v1/identity/participant/register
         [HttpPost("participant/register")]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(RegisterResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
@@ -119,7 +118,6 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
 
         // POST /api/v1/identity/organizers/register
         [HttpPost("organizers/register")]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(RegisterResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
@@ -147,7 +145,6 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
 
         // POST /api/v1/identity/venues/register
         [HttpPost("venues/register")]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(RegisterResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]

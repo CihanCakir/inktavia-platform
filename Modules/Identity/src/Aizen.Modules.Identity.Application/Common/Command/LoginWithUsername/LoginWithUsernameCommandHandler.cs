@@ -58,6 +58,7 @@ public class LoginWithUsernameCommandHandler : AizenCommandHandler<LoginWithUser
             throw new AizenBusinessException(((int)AizenErrorCode.UserNameOrPasswordWrong).ToString());
         }
 
+        var roles = await _userManager.GetRolesAsync(user);
         var roleContext = GetRoleContextFromAppInfo(_infoAccessor.AppInfoAccessor.AppInfo.Code);
         var activeProfile = await _userProfileRepository.GetActiveProfileIdAsync(user.Id, roleContext);
 
@@ -75,7 +76,8 @@ public class LoginWithUsernameCommandHandler : AizenCommandHandler<LoginWithUser
             PhoneNumber = user.PhoneNumber,
             NotificationToken = request.NotificationToken,
             RoleContext = roleContext,
-            ActiveProfileId = activeProfile.Id
+            ActiveProfileId = activeProfile.Id,
+            Roles = roles.ToList()  
         };
 
         var loginResponse = await _authorizationService.CreateLoginToken(loginRequest);
