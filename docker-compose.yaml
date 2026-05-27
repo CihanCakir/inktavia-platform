@@ -1,0 +1,276 @@
+name: aizen-inktavia-local
+
+services:
+  # Databases
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aizen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aizenpw}
+      POSTGRES_DB: ${POSTGRES_DB:-aizen}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d
+    networks: [aizen]
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-aizen}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-aizenpw}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks: [aizen]
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    networks: [aizen]
+
+  # Keycloak and its DB (separate DB to avoid mixing schemas)
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: keycloak-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${KC_DB_USER:-keycloak}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:-keycloakpw}
+      POSTGRES_DB: ${KC_DB_NAME:-keycloak}
+    volumes:
+      - kc_pg_data:/var/lib/postgresql/data
+    networks: [aizen]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.0
+    container_name: keycloak
+    depends_on:
+      - keycloak-db
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME:-keycloak}
+      KC_DB_USERNAME: ${KC_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-keycloakpw}
+
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+
+      KC_HOSTNAME: ${KC_HOSTNAME:-http://localhost:8080}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infrastructure/keycloak/inktavia-realm-realm.json:/opt/keycloak/data/import/inktavia-realm-realm.json:ro
+    networks: [aizen]
+
+  # Messaging (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-aizen}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-aizenpw}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    networks: [aizen]
+
+  # Gateway (reverse proxy / edge)
+  gateway:
+    build:
+      context: ./Gateway
+      dockerfile: ./build/Dockerfile
+    container_name: gateway
+    depends_on:
+      - keycloak
+      - bff
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      REDIS__HOST: redis
+      POSTGRES__HOST: postgres
+      MONGO__HOST: mongo
+      KEYCLOAK__URL: http://keycloak:8080
+    ports:
+      - "${GATEWAY_PORT:-18000}:8080"
+    networks: [aizen]
+
+  # BFF layer
+  bff:
+    build:
+      context: ./Bff
+      dockerfile: ./build/Dockerfile
+    container_name: bff
+    depends_on:
+      - redis
+      - postgres
+      - mongo
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Mongo: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
+      Redis__Host: redis:6379
+      Identity__Authority: http://keycloak:8080/realms/${KC_REALM:-aizen}
+      Identity__ClientId: ${KC_CLIENT_ID:-aizen-client}
+      Identity__ClientSecret: ${KC_CLIENT_SECRET:-changeme}
+      Messaging__RabbitMQ__Host: rabbitmq
+      Messaging__RabbitMQ__Port: 5672
+      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
+      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+    ports:
+      - "${BFF_PORT:-17000}:8080"
+    networks: [aizen]
+
+  # Example modules (expand as needed)
+  identity-api:
+    build:
+      context: .
+      dockerfile: ./Modules/Identity/build/Dockerfile
+    container_name: identity-api
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Identity: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      Redis__Host: redis:6379
+      Identity__Authority: http://keycloak:8080/realms/${KC_REALM:-inktavia-realm}
+      Messaging__RabbitMQ__Host: rabbitmq
+      Messaging__RabbitMQ__Port: 5672
+      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
+      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: identity-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      ElasticApm__Enabled: "false"
+    ports:
+      - "7101:8080"
+    networks: [aizen]
+
+  profile-api:
+    build:
+      context: ./Modules/Profile
+      dockerfile: ./build/Dockerfile
+    container_name: profile-api
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
+      Redis__Host: redis:6379
+      Messaging__RabbitMQ__Host: rabbitmq
+      Messaging__RabbitMQ__Port: 5672
+      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
+      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: profile-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+    ports:
+      - "7102:8080"
+    networks: [aizen]
+
+  payment-api:
+    build:
+      context: ./Modules/Payment
+      dockerfile: ./build/Dockerfile
+    container_name: payment-api
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      Redis__Host: redis:6379
+      Messaging__RabbitMQ__Host: rabbitmq
+      Messaging__RabbitMQ__Port: 5672
+      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
+      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: payment-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+    ports:
+      - "7103:8080"
+    networks: [aizen]
+
+  # Load testing - k6
+  k6:
+    image: grafana/k6:0.49.0
+    container_name: k6
+    command: ["run", "/scripts/example.js"]
+    environment:
+      K6_OUT: "json"
+    volumes:
+      - ./load-test/scripts:/scripts:ro
+    depends_on:
+      - gateway
+      - bff
+    networks: [aizen]
+
+  # Observability: Prometheus & Grafana
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [aizen]
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-13000}:3000"
+    depends_on:
+      - prometheus
+    networks: [aizen]
+
+networks:
+  aizen:
+    name: aizen
+
+volumes:
+  pg_data:
+  mongo_data:
+  kc_pg_data:

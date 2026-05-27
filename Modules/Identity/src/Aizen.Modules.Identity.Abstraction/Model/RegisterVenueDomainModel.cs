@@ -1,0 +1,24 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Aizen.Modules.Identity.Abstraction.Model
+{
+    public sealed class RegisterVenueDomainModel
+    {
+        public string Email { get; init; } = default!;
+        public string? Phone { get; init; }
+        public string Password { get; init; } = default!;
+        public string OwnerFirstName { get; init; } = default!;
+        public string OwnerLastName { get; init; } = default!;
+        public bool KvkkAccepted { get; init; }
+
+        public string? DeviceId { get; init; }
+        public ConsumerDeviceType? DeviceType { get; init; }
+        public string? NotificationToken { get; init; }
+
+        public string[] RequiredAgreementTypes { get; init; } = new[] { "KVKK", "TERMS_OF_USE", "VENUE_SPECIFIC_TERMS" };
+    }
+
+}

@@ -34,7 +34,7 @@ builder.Services.AddDomainHub<ModuleActivityHub>("activity");
 3. Module-specific implementasyonları register edin:
 ```csharp
 builder.Services.AddScoped<IEventSocketMapper, ActivityEventSocketMapper>();
-builder.Services.AddScoped<IActivityAuthorizationService, InktaviaStoreActivityAuthorizationService>();
+builder.Services.AddScoped<IActivityAuthorizationService, IdentityActivityAuthorizationService>();
 builder.Services.AddRealtimeDomainEvents("activity", "activity.created", "activity.updated", "activity.checkin");
 ```
 4. Pipeline'da connection metadata ve auth sırasını uygulayın, hub endpoint'ini module içinde map edin:
@@ -51,7 +51,7 @@ endpoints.MapHub<ModuleActivityHub>("/hubs/activity");
 
 DI / Program.cs (module örneği)
 ```csharp
-// Modules/InktaviaStore/src/Program.cs (öz)
+// Modules/Identity/src/Program.cs (öz)
 var builder = AizenApplicationBuilder.CreateBuilder(...);
 
 // core registrations
@@ -62,7 +62,7 @@ builder.Services.AddDomainHub<ModuleActivityHub>("activity");
 
 // module implementations
 builder.Services.AddScoped<IEventSocketMapper, ActivityEventSocketMapper>();
-builder.Services.AddScoped<IActivityAuthorizationService, InktaviaStoreActivityAuthorizationService>();
+builder.Services.AddScoped<IActivityAuthorizationService, IdentityActivityAuthorizationService>();
 builder.Services.AddRealtimeDomainEvents("activity", "activity.created", "activity.updated", "activity.checkin");
 
 var app = builder.Build();

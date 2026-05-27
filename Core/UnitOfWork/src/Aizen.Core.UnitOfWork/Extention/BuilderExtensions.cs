@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniUow.DependencyInjection;
 
-namespace Aizen.Core.Infrastructure.UnitOfWork.Extention;
+namespace Aizen.Core.Infrastructure.UnitOfWork.Extension;
 
 public class AizenUnitOfWorkOptions
 {

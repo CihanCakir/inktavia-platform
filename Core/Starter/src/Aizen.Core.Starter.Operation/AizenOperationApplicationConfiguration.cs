@@ -61,6 +61,7 @@ public class AizenOperationApplicationConfiguration : IAizenApplicationConfigura
         app.UseClientInfoMiddleware();
         app.UseUserInfoMiddleware();
 
+        app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
     }

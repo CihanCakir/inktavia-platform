@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Aizen.Core.Cache.Extention
+namespace Aizen.Core.Cache.Extension
 {
 
     public static class BuilderExtensions

@@ -48,7 +48,7 @@ public class AizenUnitOfWork<TContext> : IAizenUnitOfWork<TContext>, IAizenUnitO
             var entity = entry.Entity as AizenEntityWithAudit;
             if (entity != null)
             {
-                entity.CreateDate = DateTime.Now; // Şu anki zamanı atayabilirsiniz.
+                entity.CreateDate = DateTime.UtcNow;
                 entity.CreateUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo != null ? _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId : 1;// Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
                 entity.CreateHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
             }
@@ -64,7 +64,7 @@ public class AizenUnitOfWork<TContext> : IAizenUnitOfWork<TContext>, IAizenUnitO
             var entity = entry.Entity as AizenEntityWithAudit;
             if (entity != null)
             {
-                entity.ModifyDate = DateTime.Now; // Güncelleme zamanını atayabilirsiniz.
+                entity.ModifyDate = DateTime.UtcNow;
                 entity.ModifyUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo != null ? _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId : 1; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
                 entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
             }
@@ -82,7 +82,7 @@ public class AizenUnitOfWork<TContext> : IAizenUnitOfWork<TContext>, IAizenUnitO
             {
                 entity.IsDeleted = true;
                 entry.State = EntityState.Modified; // Nesnenin durumunu "Modified" (Güncellendi) olarak değiştiriyoruz çünkü artık fiziksel olarak silmiyoruz.
-                entity.ModifyDate = DateTime.Now; // Güncelleme zamanını atayabilirsiniz.
+                entity.ModifyDate = DateTime.UtcNow;
                 entity.ModifyUserId =  _aizenInfoAccessor.UserInfoAccessor.UserInfo != null ? _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId : 1; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
                 entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
             }
@@ -104,7 +104,7 @@ public class AizenUnitOfWork<TContext> : IAizenUnitOfWork<TContext>, IAizenUnitO
             var entity = entry.Entity as AizenEntityWithAudit;
             if (entity != null)
             {
-                entity.CreateDate = DateTime.Now; // Şu anki zamanı atayabilirsiniz.
+                entity.CreateDate = DateTime.UtcNow;
                 entity.CreateUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo == null ? 1 : _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
                 entity.CreateHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
             }
@@ -120,7 +120,7 @@ public class AizenUnitOfWork<TContext> : IAizenUnitOfWork<TContext>, IAizenUnitO
             var entity = entry.Entity as AizenEntityWithAudit;
             if (entity != null)
             {
-                entity.ModifyDate = DateTime.Now; // Güncelleme zamanını atayabilirsiniz.
+                entity.ModifyDate = DateTime.UtcNow;
                 entity.ModifyUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo == null ? 1 : _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
                 entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
             }
@@ -138,7 +138,7 @@ public class AizenUnitOfWork<TContext> : IAizenUnitOfWork<TContext>, IAizenUnitO
             {
                 entity.IsDeleted = true;
                 entry.State = EntityState.Modified; // Nesnenin durumunu "Modified" (Güncellendi) olarak değiştiriyoruz çünkü artık fiziksel olarak silmiyoruz.
-                entity.ModifyDate = DateTime.Now; // Güncelleme zamanını atayabilirsiniz.
+                entity.ModifyDate = DateTime.UtcNow;
                 entity.ModifyUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo == null ? 1 : _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
                 entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
             }

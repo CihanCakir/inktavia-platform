@@ -26,10 +26,6 @@ public class AizenInfoContainerForScoped
 
     public void Set<TAizenInfo>(TAizenInfo info) where TAizenInfo : IAizenInfo
     {
-        _infoDictionary.AddOrUpdate(
-            typeof(TAizenInfo),
-            t => info,
-            (t, o) => o
-        );
+        _infoDictionary[typeof(TAizenInfo)] = info;
     }
 }

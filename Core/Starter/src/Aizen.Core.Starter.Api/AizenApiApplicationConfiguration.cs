@@ -1,4 +1,5 @@
 using Aizen.Core.Api.Middleware;
+using Aizen.Core.InfoAccessor.Extensions.UserInfo;
 using Aizen.Core.Starter.Abstraction;
 using Aizen.Core.Starter.Abstraction.Middleware;
 using Microsoft.AspNetCore.Builder;
@@ -16,6 +17,7 @@ public class AizenApiApplicationConfiguration : IAizenApplicationConfiguration
         app.UseSwagger();
         app.UseSwaggerUI();
         app.UseHttpsRedirection();
+        app.UseUserInfoMiddleware();
         app.UseAuthorization();
         app.MapControllers();
     }

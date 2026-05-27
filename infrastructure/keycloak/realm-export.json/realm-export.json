@@ -1,0 +1,149 @@
+{
+  "id": "aizen-realm-export",
+  "realm": "aizen",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "roles": {
+    "realm": [
+      { "name": "admin" },
+      { "name": "user" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "identity-client",
+      "name": "Identity API Client",
+      "description": "Backend service client for the Identity module (port 7101)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "identity-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "bearerOnly": false,
+      "redirectUris": ["http://localhost:7101/*"],
+      "webOrigins": ["http://localhost:7101"]
+    },
+    {
+      "clientId": "profile-client",
+      "name": "Profile API Client",
+      "description": "Backend service client for the Profile module (port 7102)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "profile-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "bearerOnly": false,
+      "redirectUris": ["http://localhost:7102/*"],
+      "webOrigins": ["http://localhost:7102"]
+    },
+    {
+      "clientId": "payment-client",
+      "name": "Payment API Client",
+      "description": "Backend service client for the Payment module (port 7103)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "payment-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "bearerOnly": false,
+      "redirectUris": ["http://localhost:7103/*"],
+      "webOrigins": ["http://localhost:7103"]
+    },
+    {
+      "clientId": "mobile-client",
+      "name": "Mobile App Client",
+      "description": "Public PKCE client for the mobile application. Used by testuser and site-admin.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "redirectUris": [
+        "myapp://callback",
+        "http://localhost/*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "web-panel-client",
+      "name": "Web Panel Dashboard Client",
+      "description": "Public PKCE client for the web admin panel. Used by testuser and site-admin.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:4200/*",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:4200",
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "site-admin",
+      "email": "admin@example.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Site",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "AdminP@ssw0rd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin", "user"]
+    },
+    {
+      "username": "testuser",
+      "email": "testuser@example.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "TestP@ssw0rd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    }
+  ],
+  "eventsEnabled": true,
+  "adminEventsEnabled": true,
+  "internationalizationEnabled": false
+}

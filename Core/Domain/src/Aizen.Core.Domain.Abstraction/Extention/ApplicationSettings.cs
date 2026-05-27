@@ -1,4 +1,4 @@
-namespace Aizen.Core.Domain.Abstraction.Extention
+namespace Aizen.Core.Domain.Abstraction.Extension
 {
     public class ApplicationSettings
     {

@@ -31,7 +31,7 @@ namespace Aizen.Core.Auth
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenSettings.SecurityKey));
             var signIn = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddMinutes(_tokenSettings.AccessTokenExpiration);
+            var expires = DateTime.UtcNow.AddMinutes(_tokenSettings.AccessTokenExpiration);
             var tokenDescriptor = new JwtSecurityToken
                     (this._tokenSettings.Issuer,
                         this._tokenSettings.Audience,

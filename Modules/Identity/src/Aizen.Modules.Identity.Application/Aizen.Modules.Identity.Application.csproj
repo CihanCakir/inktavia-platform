@@ -6,4 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\Core\CQRS\src\Aizen.Core.CQRS\Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Auth\src\Aizen.Core.Auth\Aizen.Core.Auth.csproj" />
+    <ProjectReference
+      Include="..\Aizen.Modules.Identity.Repository\Aizen.Modules.Identity.Repository.csproj" />
+	</ItemGroup>
+
 </Project>

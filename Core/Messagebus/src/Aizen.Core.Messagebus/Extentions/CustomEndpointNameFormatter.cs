@@ -2,7 +2,7 @@ using MassTransit;
 using MassTransit.Transports;
 using Aizen.Core.Messagebus.Abstraction.Settings;
 
-namespace Aizen.Core.Messagebus.Extentions;
+namespace Aizen.Core.Messagebus.Extensions;
 
 public class CustomEndpointNameFormatter : DefaultEndpointNameFormatter
 {

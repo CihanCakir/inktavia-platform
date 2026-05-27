@@ -1,19 +1,146 @@
 using System.Text;
+using System.Linq;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using Aizen.Core.Auth;
 using Aizen.Core.Auth.Abstraction;
 using Aizen.Core.Auth.Extension;
 using Aizen.Core.Common.Abstraction.Exception;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 
 namespace Aizen.Core.Infrastructure.Auth.Extension
 {
     public static class BuilderExtensions
     {
+        /// <summary>
+        /// Registers Keycloak JWT Bearer authentication and a global authorization policy
+        /// that requires authenticated users on all endpoints by default.
+        /// Controllers with [AllowAnonymous] remain publicly accessible.
+        /// Use this in service layers that validate Keycloak tokens but do not manage identity entities.
+        /// </summary>
+        public static IServiceCollection AddAizenKeycloakAuth(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            var keycloakAuthority = configuration["Keycloak:Authority"]
+                ?? configuration["KEYCLOAK_AUTHORITY"];
+
+            var keycloakMetadataAddress = configuration["Keycloak:MetadataAddress"]
+                ?? configuration["KEYCLOAK_METADATA_ADDRESS"];
+
+            var keycloakAudience = configuration["Keycloak:Audience"]
+                ?? configuration["KEYCLOAK_AUDIENCE"];
+
+            var requireHttpsMetadataValue = configuration["Keycloak:RequireHttpsMetadata"]
+                ?? configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
+
+            var requireHttpsMetadata = bool.TryParse(requireHttpsMetadataValue, out var parsedBool) && parsedBool;
+
+            // Only register authentication if it hasn't been registered already (e.g. by AddAizenAuth).
+            // Registering the Bearer scheme twice causes a runtime InvalidOperationException.
+            if (!services.Any(d => d.ServiceType == typeof(IAuthenticationSchemeProvider)))
+            {
+                services.AddAuthentication(o =>
+                {
+                    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
+                {
+                    if (!string.IsNullOrWhiteSpace(keycloakAuthority))
+                    {
+                        o.Authority = keycloakAuthority;
+
+                        if (!string.IsNullOrWhiteSpace(keycloakMetadataAddress))
+                            o.MetadataAddress = keycloakMetadataAddress;
+
+                        o.RequireHttpsMetadata = requireHttpsMetadata;
+
+                        o.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidIssuer = keycloakAuthority,
+                            ValidateAudience = !string.IsNullOrWhiteSpace(keycloakAudience),
+                            ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience,
+                            ValidateLifetime = true,
+                            RoleClaimType = ClaimTypes.Role,
+                            NameClaimType = "preferred_username"
+                        };
+
+                        o.Events = new JwtBearerEvents
+                        {
+                            OnTokenValidated = ctx =>
+                            {
+                                var jwt = ctx.SecurityToken as JwtSecurityToken;
+                                if (jwt is null)
+                                    return System.Threading.Tasks.Task.CompletedTask;
+
+                                var id = ctx.Principal?.Identity as ClaimsIdentity;
+                                if (id is null)
+                                    return System.Threading.Tasks.Task.CompletedTask;
+
+                                if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                                {
+                                    var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
+                                    var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
+                                    foreach (var r in roles)
+                                        id.AddClaim(new Claim(ClaimTypes.Role, r));
+                                }
+
+                                if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                                {
+                                    var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
+                                    foreach (var clientProp in resourceAccess.Properties())
+                                    {
+                                        var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();
+                                        foreach (var cr in clientRoles)
+                                            id.AddClaim(new Claim(ClaimTypes.Role, cr));
+                                    }
+                                }
+
+                                return System.Threading.Tasks.Task.CompletedTask;
+                            }
+                        };
+                    }
+                    else
+                    {
+                        o.RequireHttpsMetadata = false;
+                        o.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidIssuer = configuration["TokenOption:Issuer"],
+                            ValidAudience = configuration["TokenOption:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(configuration["TokenOption:SecurityKey"] ?? string.Empty)),
+                            ValidateIssuerSigningKey = true,
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                        };
+                    }
+                });
+            }
+
+            // Require authenticated user on all controller endpoints by default.
+            // Endpoints decorated with [AllowAnonymous] remain publicly accessible.
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
+            return services;
+        }
+
+
         public static IServiceCollection AddAizenAuth<
         TUser, TRole,
         TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
@@ -27,52 +154,125 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
         where TRoleClaim : IdentityRoleClaim<long>
         where TUserToken : IdentityUserToken<long>
         where TContext   : IdentityDbContext<TUser, TRole, long, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
-    {
-        if (services == null)
-            throw new AizenException($"ServiceCollection: {nameof(services)} not found.");
+        {
+            if (services == null)
+                throw new AizenException($"ServiceCollection: {nameof(services)} not found.");
 
-        builder.Services.Configure<TokenSettings>(builder.Configuration.GetSection("TokenOption"));
+            builder.Services.Configure<TokenSettings>(builder.Configuration.GetSection("TokenOption"));
 
-        services.AddScoped<IAizenTokenHelper, AizenTokenHelper>();
-        services.AddScoped<IAizenUserService, AizenUserService>();
+            services.AddScoped<IAizenTokenHelper, AizenTokenHelper>();
+            services.AddScoped<IAizenUserService, AizenUserService>();
 
-        builder.Services
-            .AddIdentity<TUser, TRole>(opts =>
+            builder.Services
+                .AddIdentity<TUser, TRole>(opts =>
+                {
+                    opts.User.RequireUniqueEmail = true;
+                    opts.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                    opts.Password.RequiredLength = 6;
+                    opts.Password.RequireNonAlphanumeric = false;
+                    opts.Password.RequireLowercase = true;
+                    opts.Password.RequireUppercase = true;
+                    opts.Password.RequireDigit = true;
+                })
+                .AddErrorDescriber<AizenCustomIdentityErrorDescriber>()
+                .AddEntityFrameworkStores<TContext>()
+                .AddDefaultTokenProviders();
+
+            services.AddAuthentication(o =>
             {
-                opts.User.RequireUniqueEmail = true;
-                opts.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-                opts.Password.RequiredLength = 6;
-                opts.Password.RequireNonAlphanumeric = false;
-                opts.Password.RequireLowercase = true;
-                opts.Password.RequireUppercase = true;
-                opts.Password.RequireDigit = true;
+                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddErrorDescriber<AizenCustomIdentityErrorDescriber>()
-            .AddEntityFrameworkStores<TContext>()
-            .AddDefaultTokenProviders();
-
-        services.AddAuthentication(o =>
-        {
-            o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
-        {
-            o.RequireHttpsMetadata = false;
-            o.TokenValidationParameters = new TokenValidationParameters
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
             {
-                ValidIssuer = builder.Configuration["TokenOption:Issuer"],
-                ValidAudience = builder.Configuration["TokenOption:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(builder.Configuration["TokenOption:SecurityKey"])),
-                ValidateIssuerSigningKey = true,
-                ValidateIssuer = true,
-                ValidateAudience = true,
-            };
-        });
+                var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
+                    ?? builder.Configuration["KEYCLOAK_AUTHORITY"];
 
-        return services;
-    }
+                var keycloakMetadataAddress = builder.Configuration["Keycloak:MetadataAddress"]
+                    ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"];
+
+                var keycloakAudience = builder.Configuration["Keycloak:Audience"]
+                    ?? builder.Configuration["KEYCLOAK_AUDIENCE"];
+
+                var requireHttpsMetadataValue = builder.Configuration["Keycloak:RequireHttpsMetadata"]
+                    ?? builder.Configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
+
+                var requireHttpsMetadata = bool.TryParse(requireHttpsMetadataValue, out var parsedBool) && parsedBool;
+
+                if (!string.IsNullOrWhiteSpace(keycloakAuthority))
+                {
+                    o.Authority = keycloakAuthority;
+
+                    if (!string.IsNullOrWhiteSpace(keycloakMetadataAddress))
+                        o.MetadataAddress = keycloakMetadataAddress;
+
+                    o.RequireHttpsMetadata = requireHttpsMetadata;
+
+                    o.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = keycloakAuthority,
+                        ValidateAudience = !string.IsNullOrWhiteSpace(keycloakAudience),
+                        ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience,
+                        ValidateLifetime = true,
+                        RoleClaimType = ClaimTypes.Role,
+                        NameClaimType = "preferred_username"
+                    };
+
+                    o.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = ctx =>
+                        {
+                            var jwt = ctx.SecurityToken as JwtSecurityToken;
+                            if (jwt is null)
+                                return System.Threading.Tasks.Task.CompletedTask;
+
+                            var id = ctx.Principal?.Identity as ClaimsIdentity;
+                            if (id is null)
+                                return System.Threading.Tasks.Task.CompletedTask;
+
+                            if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                            {
+                                var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
+                                var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
+                                foreach (var r in roles)
+                                    id.AddClaim(new Claim(ClaimTypes.Role, r));
+                            }
+
+                            if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                            {
+                                var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
+                                foreach (var clientProp in resourceAccess.Properties())
+                                {
+                                    var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();
+                                    foreach (var cr in clientRoles)
+                                        id.AddClaim(new Claim(ClaimTypes.Role, cr));
+                                }
+                            }
+
+                            return System.Threading.Tasks.Task.CompletedTask;
+                        }
+                    };
+                }
+                else
+                {
+                    // Fallback to symmetric key configuration (existing behavior)
+                    o.RequireHttpsMetadata = false;
+                    o.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = builder.Configuration["TokenOption:Issuer"],
+                        ValidAudience = builder.Configuration["TokenOption:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(builder.Configuration["TokenOption:SecurityKey"])),
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                    };
+                }
+            });
+
+            return services;
+        }
       
     
       
@@ -118,19 +318,92 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
                             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                         }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                             {
-                                options.RequireHttpsMetadata = false;
-                                options.TokenValidationParameters = new TokenValidationParameters
+                                var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
+                                    ?? builder.Configuration["KEYCLOAK_AUTHORITY"];
+
+                                var keycloakMetadataAddress = builder.Configuration["Keycloak:MetadataAddress"]
+                                    ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"];
+
+                                var keycloakAudience = builder.Configuration["Keycloak:Audience"]
+                                    ?? builder.Configuration["KEYCLOAK_AUDIENCE"];
+
+                                var requireHttpsMetadataValue = builder.Configuration["Keycloak:RequireHttpsMetadata"]
+                                    ?? builder.Configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
+
+                                var requireHttpsMetadata = bool.TryParse(requireHttpsMetadataValue, out var parsedBool) && parsedBool;
+
+                                if (!string.IsNullOrWhiteSpace(keycloakAuthority))
                                 {
-                                    ValidIssuer = builder.Configuration["TokenOption:Issuer"],
-                                    ValidAudience = builder.Configuration["TokenOption:Audience"],
-                                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenOption:SecurityKey"])),
+                                    options.Authority = keycloakAuthority;
+
+                                    if (!string.IsNullOrWhiteSpace(keycloakMetadataAddress))
+                                        options.MetadataAddress = keycloakMetadataAddress;
+
+                                    options.RequireHttpsMetadata = requireHttpsMetadata;
+
+                                    options.TokenValidationParameters = new TokenValidationParameters
+                                    {
+                                        ValidateIssuer = true,
+                                        ValidIssuer = keycloakAuthority,
+                                        ValidateAudience = !string.IsNullOrWhiteSpace(keycloakAudience),
+                                        ValidAudience = string.IsNullOrWhiteSpace(keycloakAudience) ? null : keycloakAudience,
+                                        ValidateLifetime = true,
+                                        RoleClaimType = ClaimTypes.Role,
+                                        NameClaimType = "preferred_username"
+                                    };
+
+                                    options.Events = new JwtBearerEvents
+                                    {
+                                        OnTokenValidated = ctx =>
+                                        {
+                                            var jwt = ctx.SecurityToken as JwtSecurityToken;
+                                            if (jwt is null)
+                                                return System.Threading.Tasks.Task.CompletedTask;
+
+                                            var id = ctx.Principal?.Identity as ClaimsIdentity;
+                                            if (id is null)
+                                                return System.Threading.Tasks.Task.CompletedTask;
+
+                                            if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                                            {
+                                                var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
+                                                var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
+                                                foreach (var r in roles)
+                                                    id.AddClaim(new Claim(ClaimTypes.Role, r));
+                                            }
+
+                                            if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                                            {
+                                                var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
+                                                foreach (var clientProp in resourceAccess.Properties())
+                                                {
+                                                    var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();
+                                                    foreach (var cr in clientRoles)
+                                                        id.AddClaim(new Claim(ClaimTypes.Role, cr));
+                                                }
+                                            }
+
+                                            return System.Threading.Tasks.Task.CompletedTask;
+                                        }
+                                    };
+                                }
+                                else
+                                {
+                                    options.RequireHttpsMetadata = false;
+                                    options.TokenValidationParameters = new TokenValidationParameters
+                                    {
+                                        ValidIssuer = builder.Configuration["TokenOption:Issuer"],
+                                        ValidAudience = builder.Configuration["TokenOption:Audience"],
+                                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenOption:SecurityKey"])),
+
+                                        ValidateIssuerSigningKey = true,
+                                        ValidateIssuer = true,
+                                        ValidateAudience = true,
+
+                                    };
+                                }
 
 
-                                    ValidateIssuerSigningKey = true,
-                                    ValidateIssuer = true,
-                                    ValidateAudience = true,
-
-                                };
                             });
 
 

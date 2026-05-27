@@ -10,7 +10,7 @@ using Aizen.Core.Messagebus.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Aizen.Core.Messagebus.Extentions;
+namespace Aizen.Core.Messagebus.Extensions;
 
 public static class BuilderExtensions
 {

@@ -15,7 +15,7 @@ public abstract class AizenEntityWithApproval : AizenEntityWithAudit
     protected AizenEntityWithApproval()
     {
         ApprovalStatus = ApprovalStatus.Pending;
-        StartDate = DateTime.Now;
+        StartDate = DateTime.UtcNow;
     }
 
     public bool IsActive
@@ -26,10 +26,10 @@ public abstract class AizenEntityWithApproval : AizenEntityWithAudit
             {
                 if (EndDate.HasValue)
                 {
-                    return StartDate <= DateTime.Now && EndDate.Value > DateTime.Now;
+                    return StartDate <= DateTime.UtcNow && EndDate.Value > DateTime.UtcNow;
                 }
 
-                return StartDate <= DateTime.Now;
+                return StartDate <= DateTime.UtcNow;
             }
 
             return false;

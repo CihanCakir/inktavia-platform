@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <ProjectReference
+      Include="..\..\..\..\Modules\Payment\src\Aizen.Modules.Payment.Abstraction\Aizen.Modules.Payment.Abstraction.csproj" />
+    <ProjectReference
+      Include="..\..\..\..\Core\Data\src\Aizen.Core.Data.Mongo\Aizen.Core.Data.Mongo.csproj" />
+  </ItemGroup>
+
 </Project>

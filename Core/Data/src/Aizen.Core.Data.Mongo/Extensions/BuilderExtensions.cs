@@ -4,7 +4,7 @@ using Aizen.Core.Common.Abstraction.Settings;
 using Aizen.Core.IOC.Abstraction.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Aizen.Core.Configuration.Extentions;
+using Aizen.Core.Configuration.Extensions;
 namespace Aizen.Core.Data.Mongo.Extensions
 {
     public class AizenMongoOptions

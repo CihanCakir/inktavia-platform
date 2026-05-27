@@ -16,7 +16,7 @@ using Aizen.Core.Domain;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Aizen.Core.Infrastructure.CQRS.Extention;
+namespace Aizen.Core.Infrastructure.CQRS.Extension;
 
 public static class BuilderExtensions
 {

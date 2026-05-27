@@ -21,7 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Aizen.Core.Infrastructure.CQRS.Extention;
+namespace Aizen.Core.Infrastructure.CQRS.Extension;
 
 public static class BuilderExtensions
 {

@@ -13,7 +13,7 @@ namespace Aizen.Core.Common.Abstraction.Exception
 
         // Manuel atanmış değerler (ConfigureResource ile)
         private static Assembly? _resourceAssembly = null;
-        private static string _resourceName = "Aizen.Modules.InktaviaStore.Resource.aizen_error_messages.json"; // varsayılan
+        private static string _resourceName = "Aizen.Modules.Identity.Resource.aizen_error_messages.json"; // varsayılan
 
         // Dinamik çözümleyici (ConfigureResourceResolver / ConfigureFromConfiguration ile set edilir)
         private static Func<(Assembly asm, string resourceName)>? _resourceResolver;
@@ -60,8 +60,8 @@ namespace Aizen.Core.Common.Abstraction.Exception
         /// appsettings.json'daki ErrorLocalization bölümünden okur.
         /// Örn:
         /// "ErrorLocalization": {
-        ///   "Assembly": "Aizen.Modules.InktaviaStore",
-        ///   "ResourceName": "Aizen.Modules.InktaviaStore.Resource.aizen_error_messages.json",
+        ///   "Assembly": "Aizen.Modules.Identity",
+        ///   "ResourceName": "Aizen.Modules.Identity.Resource.aizen_error_messages.json",
         ///   "ResourceFolder": "Resource",
         ///   "ResourceFile": "aizen_error_messages.json"
         /// }

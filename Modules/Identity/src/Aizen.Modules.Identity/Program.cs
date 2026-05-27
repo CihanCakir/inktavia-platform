@@ -1,41 +1,45 @@
-var builder = WebApplication.CreateBuilder(args);
+using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.UnitOfWork.Extension;
+using Aizen.Core.Starter;
+using Aizen.Core.Common.Extension;
+using Microsoft.AspNetCore.Identity;
+using Aizen.Modules.Identity.Domain.Entities;
+using Aizen.Modules.Identity.Repository.Context;
+using Aizen.Core.Domain.Abstraction.Extension;
+using Aizen.Modules.InktaviaStore.Repository;
+using Aizen.Modules.Identity.Extensions;
+using Aizen.Modules.Identity.Services;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
+{
+    Name = "Identity",
+    Type = AppType.Operation,
+    TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler }
+}, args)
+.AddAizenAuth<
+    UserEntity, RoleEntity,
+    IdentityUserClaim<long>, UserRoleEntity, IdentityUserLogin<long>, IdentityRoleClaim<long>, IdentityUserToken<long>,
+    IdentityDbContext>();
+
+
+builder.Services.AddAizenUnitOfWork<IdentityDbContext>(builder.Configuration, "Identity", options =>
+{
+    options.UseMigration = true;
+    options.MigrationAssembly = "Aizen.Modules.Identity.Repository";
+});
+
+
+builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
+
+builder.Services.AddInktaviaService(builder.Configuration).AddInktaviaRepository();
+
+builder.Services.AddInktaviaAuthorizationPolicies();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(IdentityDbContext).Assembly);
 
 var app = builder.Build();
+await app.SeedIdentityAsync();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

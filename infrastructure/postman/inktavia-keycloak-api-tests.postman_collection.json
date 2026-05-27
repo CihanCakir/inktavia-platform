@@ -1,0 +1,1423 @@
+{
+  "info": {
+    "_postman_id": "60ea7dd1-c97a-4e26-a267-312ef662da9e",
+    "name": "Inktavia Keycloak API Tests",
+    "description": "Importable Postman collection for Keycloak-based API testing across Identity, Profile and Payment APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Keycloak Auth",
+      "item": [
+        {
+          "name": "Get Mobile Token - inktavia-mobile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{mobile_client_id}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "username",
+                  "value": "{{mobile_username}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "password",
+                  "value": "{{default_password}}",
+                  "type": "text",
+                  "enabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": [
+                "{{keycloak_token_url}}"
+              ]
+            },
+            "description": "Local-only token helper. Works only if direct access grant is enabled. Prefer Authorization Code + PKCE for production-like testing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Token response contains access_token\", function () {",
+                  "  pm.expect(response.access_token).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.environment.set(\"mobile_access_token\", response.access_token);",
+                  "pm.environment.set(\"active_access_token\", response.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customer Token - customer-panel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{customer_panel_client_id}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "username",
+                  "value": "{{customer_username}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "password",
+                  "value": "{{default_password}}",
+                  "type": "text",
+                  "enabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": [
+                "{{keycloak_token_url}}"
+              ]
+            },
+            "description": "Local-only token helper. Works only if direct access grant is enabled. Prefer Authorization Code + PKCE for production-like testing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Token response contains access_token\", function () {",
+                  "  pm.expect(response.access_token).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.environment.set(\"customer_access_token\", response.access_token);",
+                  "pm.environment.set(\"active_access_token\", response.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Admin Token - admin-panel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{admin_panel_client_id}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "username",
+                  "value": "{{admin_username}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "password",
+                  "value": "{{default_password}}",
+                  "type": "text",
+                  "enabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": [
+                "{{keycloak_token_url}}"
+              ]
+            },
+            "description": "Local-only token helper. Works only if direct access grant is enabled. Prefer Authorization Code + PKCE for production-like testing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Token response contains access_token\", function () {",
+                  "  pm.expect(response.access_token).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.environment.set(\"admin_access_token\", response.access_token);",
+                  "pm.environment.set(\"active_access_token\", response.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set Active Token - Mobile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{keycloak_base_url}}",
+              "host": [
+                "{{keycloak_base_url}}"
+              ]
+            },
+            "description": "Copies mobile token into active_access_token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"active_access_token\", pm.environment.get(\"mobile_access_token\"));\\npm.test(\"Active token set\", function () { pm.expect(pm.environment.get(\"active_access_token\")).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set Active Token - Customer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{keycloak_base_url}}",
+              "host": [
+                "{{keycloak_base_url}}"
+              ]
+            },
+            "description": "Copies customer token into active_access_token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"active_access_token\", pm.environment.get(\"customer_access_token\"));\\npm.test(\"Active token set\", function () { pm.expect(pm.environment.get(\"active_access_token\")).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set Active Token - Admin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{keycloak_base_url}}",
+              "host": [
+                "{{keycloak_base_url}}"
+              ]
+            },
+            "description": "Copies admin token into active_access_token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"active_access_token\", pm.environment.get(\"admin_access_token\"));\\npm.test(\"Active token set\", function () { pm.expect(pm.environment.get(\"active_access_token\")).to.exist; });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Identity API",
+      "item": [
+        {
+          "name": "GET /me - Mobile Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mobile_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/me",
+              "host": [
+                "{{identity_api_base_url}}/me"
+              ]
+            },
+            "description": "Identity read scenario using mobile token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /me - Admin Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/me",
+              "host": [
+                "{{identity_api_base_url}}/me"
+              ]
+            },
+            "description": "Identity read scenario using admin token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /admin-only - Admin Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/admin-only",
+              "host": [
+                "{{identity_api_base_url}}/admin-only"
+              ]
+            },
+            "description": "Admin-only Identity endpoint."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Profile API",
+      "item": [
+        {
+          "name": "GET /profiles/me - Mobile Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mobile_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{profile_api_base_url}}/profiles/me",
+              "host": [
+                "{{profile_api_base_url}}/profiles/me"
+              ]
+            },
+            "description": "Profile read scenario using mobile token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /profiles/me - Mobile Token",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mobile_access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{profile_api_base_url}}/profiles/me",
+              "host": [
+                "{{profile_api_base_url}}/profiles/me"
+              ]
+            },
+            "description": "Profile write scenario using mobile token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /profiles/me - Admin Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{profile_api_base_url}}/profiles/me",
+              "host": [
+                "{{profile_api_base_url}}/profiles/me"
+              ]
+            },
+            "description": "Profile read scenario using admin token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Payment API",
+      "item": [
+        {
+          "name": "GET /payments - Customer Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_api_base_url}}/payments",
+              "host": [
+                "{{payment_api_base_url}}/payments"
+              ]
+            },
+            "description": "Payment read scenario using customer token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /payments - Admin Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_api_base_url}}/payments",
+              "host": [
+                "{{payment_api_base_url}}/payments"
+              ]
+            },
+            "description": "Payment read scenario using admin token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /payments - Admin Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_api_base_url}}/payments",
+              "host": [
+                "{{payment_api_base_url}}/payments"
+              ]
+            },
+            "description": "Payment write scenario using admin token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Auto-Discovered Endpoints",
+      "item": [
+        {
+          "name": "Identity",
+          "item": [
+            {
+              "name": "[POST] /api/v1/auth/refresh - AuthController.Refresh",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/auth/refresh"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/AuthorizationController.cs\nAction: Refresh\nController: AuthController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/auth/otp/send - AuthController.SendOtp",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/auth/otp/send",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/auth/otp/send"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/AuthorizationController.cs\nAction: SendOtp\nController: AuthController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/auth/otp/check - AuthController.CheckOtp",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/auth/otp/check",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/auth/otp/check"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/AuthorizationController.cs\nAction: CheckOtp\nController: AuthController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/auth/login/otp - AuthController.LoginWithOtp",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/auth/login/otp",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/auth/login/otp"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/AuthorizationController.cs\nAction: LoginWithOtp\nController: AuthController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/auth/login/phone - AuthController.LoginWithPhone",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/auth/login/phone",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/auth/login/phone"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/AuthorizationController.cs\nAction: LoginWithPhone\nController: AuthController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/auth/login/username - AuthController.LoginWithUsername",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/auth/login/username",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/auth/login/username"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/AuthorizationController.cs\nAction: LoginWithUsername\nController: AuthController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/auth/password/change - AuthController.ChangePassword",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_access_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/auth/password/change",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/auth/password/change"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/AuthorizationController.cs\nAction: ChangePassword\nController: AuthController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[GET] /api/v1/identity/participant/oauth/start - RegistrationController.StartExternalLoginParticipant",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/identity/participant/oauth/start",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/identity/participant/oauth/start"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/RegistrationController.cs\nAction: StartExternalLoginParticipant\nController: RegistrationController\nDetected Policy: Unknown\nDetected Module: Identity"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/identity/participant/oauth/callback/{{provider}} - RegistrationController.CompleteExternalLoginParticipant",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/identity/participant/oauth/callback/{{provider}}",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/identity/participant/oauth/callback/{{provider}}"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/RegistrationController.cs\nAction: CompleteExternalLoginParticipant\nController: RegistrationController\nDetected Policy: Unknown\nDetected Module: Identity"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/identity/participant/register - RegistrationController.RegisterParticipant",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/identity/participant/register",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/identity/participant/register"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/RegistrationController.cs\nAction: RegisterParticipant\nController: RegistrationController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/identity/organizers/register - RegistrationController.RegisterOrganizer",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/identity/organizers/register",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/identity/organizers/register"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/RegistrationController.cs\nAction: RegisterOrganizer\nController: RegistrationController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[POST] /api/v1/identity/venues/register - RegistrationController.RegisterVenue",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "x-generated-by",
+                    "value": "tools/postman/sync-postman-collection.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{identity_api_base_url}}/api/v1/identity/venues/register",
+                  "host": [
+                    "{{identity_api_base_url}}/api/v1/identity/venues/register"
+                  ]
+                },
+                "description": "Generated from Controller\nSource: Modules/Identity/src/Aizen.Modules.Identity/Controller/V1/Identity/RegistrationController.cs\nAction: RegisterVenue\nController: RegistrationController\nDetected Policy: Unknown\nDetected Module: Identity",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is not 500\", function () {",
+                      "  pm.expect(pm.response.code).to.not.eql(500);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "90 - Negative Authorization Tests",
+      "item": [
+        {
+          "name": "Mobile Token -> Payment GET Should Fail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mobile_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_api_base_url}}/payments",
+              "host": [
+                "{{payment_api_base_url}}/payments"
+              ]
+            },
+            "description": "Mobile token should not access Payment API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Request should be unauthorized or forbidden\", function () {\\n  pm.expect([401, 403]).to.include(pm.response.code);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer Token -> Payment POST Should Fail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_api_base_url}}/payments",
+              "host": [
+                "{{payment_api_base_url}}/payments"
+              ]
+            },
+            "description": "Customer token should not allow payment write.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Request should be unauthorized or forbidden\", function () {\\n  pm.expect([401, 403]).to.include(pm.response.code);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Anonymous -> Identity Me Should Fail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{identity_api_base_url}}/me",
+              "host": [
+                "{{identity_api_base_url}}/me"
+              ]
+            },
+            "description": "Anonymous request should fail."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Request should be unauthorized or forbidden\", function () {\\n  pm.expect([401, 403]).to.include(pm.response.code);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer Token -> Admin Only Should Fail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/admin-only",
+              "host": [
+                "{{identity_api_base_url}}/admin-only"
+              ]
+            },
+            "description": "Customer token should not access admin-only endpoint."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Request should be unauthorized or forbidden\", function () {\\n  pm.expect([401, 403]).to.include(pm.response.code);\\n});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "99 - Diagnostics",
+      "item": [
+        {
+          "name": "OpenID Configuration",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{keycloak_base_url}}/realms/{{keycloak_realm}}/.well-known/openid-configuration",
+              "host": [
+                "{{keycloak_base_url}}/realms/{{keycloak_realm}}/.well-known/openid-configuration"
+              ]
+            },
+            "description": "Keycloak OIDC discovery document."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "JWKS",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{keycloak_base_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/certs",
+              "host": [
+                "{{keycloak_base_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/certs"
+              ]
+            },
+            "description": "Keycloak signing keys."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 2xx\", function () {\\n  pm.expect(pm.response.code).to.be.within(200, 299);\\n});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Token Endpoint Smoke - Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{admin_panel_client_id}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "username",
+                  "value": "{{admin_username}}",
+                  "type": "text",
+                  "enabled": true
+                },
+                {
+                  "key": "password",
+                  "value": "{{default_password}}",
+                  "type": "text",
+                  "enabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": [
+                "{{keycloak_token_url}}"
+              ]
+            },
+            "description": "Local-only token helper. Works only if direct access grant is enabled. Prefer Authorization Code + PKCE for production-like testing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Token response contains access_token\", function () {",
+                  "  pm.expect(response.access_token).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.environment.set(\"admin_access_token\", response.access_token);",
+                  "pm.environment.set(\"active_access_token\", response.access_token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

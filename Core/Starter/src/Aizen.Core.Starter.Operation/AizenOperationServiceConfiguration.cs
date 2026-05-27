@@ -6,10 +6,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Aizen.Core.Scheduler.Extensions;
 using Aizen.Core.InfoAccessor.Extensions;
-using Aizen.Core.Infrastructure.CQRS.Extention;
-using Aizen.Core.IOC.Extention;
-using Aizen.Core.Messagebus.Extentions;
-using Aizen.Core.RemoteCall.Extentions;
+using Aizen.Core.Infrastructure.CQRS.Extension;
+using Aizen.Core.IOC.Extension;
+using Aizen.Core.Messagebus.Extensions;
+using Aizen.Core.RemoteCall.Extensions;
+using Aizen.Core.Infrastructure.Auth.Extension;
+using Microsoft.OpenApi.Models;
 namespace Aizen.Core.Starter.Operation;
 
 public class AizenOperationServiceConfiguration : IAizenServiceConfiguration
@@ -29,6 +31,7 @@ public class AizenOperationServiceConfiguration : IAizenServiceConfiguration
         if (this.AppInfo.TypeInclude.Contains(AppType.Api))
         {
             services.AddAizenApi(configuration);
+            services.AddAizenKeycloakAuth(configuration);
         }
 
         // Ortak servisler
@@ -61,6 +64,32 @@ public class AizenOperationServiceConfiguration : IAizenServiceConfiguration
         }
 
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(c =>
+        {
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter your Keycloak access token. Example: Bearer {access_token}"
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+        });
     }
 }
