@@ -67,6 +67,19 @@
       "group": "build"
     },
     {
+      "label": "build: Aizen.Modules.ReferenceData",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Modules/ReferenceData/src/Aizen.Modules.ReferenceData/Aizen.Modules.ReferenceData.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
       "label": "build: All",
       "command": "dotnet",
       "type": "process",

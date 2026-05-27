@@ -92,6 +92,24 @@
       }
     },
     {
+      "name": "ReferenceData",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.ReferenceData",
+      "program": "${workspaceFolder}/Modules/ReferenceData/src/Aizen.Modules.ReferenceData/bin/Debug/net9.0/Aizen.Modules.ReferenceData.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/ReferenceData/src/Aizen.Modules.ReferenceData",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:7104"
+      }
+    },
+    {
       "name": "Attach to Process",
       "type": "coreclr",
       "request": "attach"
@@ -100,12 +118,24 @@
   "compounds": [
     {
       "name": "All Services",
-      "configurations": ["Bff", "Gateway", "Identity", "Payment", "Profile"],
+      "configurations": [
+        "Bff",
+        "Gateway",
+        "Identity",
+        "Payment",
+        "Profile",
+        "ReferenceData"
+      ],
       "stopAll": true
     },
     {
       "name": "Modules Only",
-      "configurations": ["Identity", "Payment", "Profile"],
+      "configurations": [
+        "Identity",
+        "Payment",
+        "Profile",
+        "ReferenceData"
+      ],
       "stopAll": true
     }
   ]
