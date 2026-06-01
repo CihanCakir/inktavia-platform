@@ -18,7 +18,7 @@ public sealed class UpdateDistrictCommandHandler : AizenCommandHandler<UpdateDis
     public override async Task<DistrictDto?> Handle(UpdateDistrictCommand request, CancellationToken cancellationToken)
     {
         var result = await _service.UpdateDistrictAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.Latitude, request.Longitude, request.IsCoastalDistrict, request.IsActive, cancellationToken);
-        await _invalidation.InvalidateLocationAsync(request.CountryCode, cancellationToken);
+        await _invalidation.InvalidateDistrictAsync(request.CountryCode, request.CityCode, cancellationToken);
         return result;
     }
 }

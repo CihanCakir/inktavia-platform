@@ -18,7 +18,7 @@ public sealed class CreateStreetCommandHandler : AizenCommandHandler<CreateStree
     public override async Task<StreetDto?> Handle(CreateStreetCommand request, CancellationToken cancellationToken)
     {
         var result = await _service.CreateStreetAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.NeighborhoodCode, request.StreetCode, request.Name, request.PostalCode, cancellationToken);
-        await _invalidation.InvalidateLocationAsync(request.CountryCode, cancellationToken);
+        await _invalidation.InvalidateNeighborhoodAsync(request.CountryCode, request.CityCode, request.DistrictCode, cancellationToken);
         return result;
     }
 }

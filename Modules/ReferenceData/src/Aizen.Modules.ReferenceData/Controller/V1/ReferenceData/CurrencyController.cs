@@ -5,6 +5,7 @@ using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Abstraction.Request.Currency;
 using Aizen.Modules.ReferenceData.Application.Currency.Commands;
 using Aizen.Modules.ReferenceData.Application.Currency.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aizen.Modules.ReferenceData.Controller.V1.ReferenceData;
@@ -12,7 +13,7 @@ namespace Aizen.Modules.ReferenceData.Controller.V1.ReferenceData;
 [ApiController]
 [Route("api/v1/reference-data/currencies")]
 [Tags("Currency")]
-[DocumentationInfo("Currency management endpoints", "CRUD and lifecycle operations for currencies.")]
+[DocumentationInfo("Currency read endpoints", "Read-only currency queries available to all authenticated users.")]
 public sealed class CurrencyController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -45,45 +46,5 @@ public sealed class CurrencyController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<CurrencyDto?>(new GetCurrencyDetailQuery(id), ct);
         return SetResponse(result);
-    }
-
-    [HttpPost]
-    [ProducesResponseType(typeof(CurrencyDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<CurrencyDto?>> Create([FromBody] CreateCurrencyRequest req, CancellationToken ct = default)
-    {
-        var result = await _cqrs.ProcessAsync<CurrencyDto>(new CreateCurrencyCommand(req), ct);
-        return SetResponse(result);
-    }
-
-    [HttpPut("{id:long}")]
-    [ProducesResponseType(typeof(CurrencyDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<CurrencyDto?>> Update([FromRoute] long id, [FromBody] UpdateCurrencyRequest req, CancellationToken ct = default)
-    {
-        var result = await _cqrs.ProcessAsync<CurrencyDto>(new UpdateCurrencyCommand(id, req.Name, req.Symbol, req.DecimalPlaces, req.IsActive), ct);
-        return SetResponse(result);
-    }
-
-    [HttpPut("{id:long}/set-base")]
-    [ProducesResponseType(typeof(CurrencyDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<CurrencyDto?>> SetBase([FromRoute] long id, CancellationToken ct = default)
-    {
-        var result = await _cqrs.ProcessAsync<CurrencyDto>(new SetBaseCurrencyCommand(id), ct);
-        return SetResponse(result);
-    }
-
-    [HttpPut("{id:long}/activate")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> Activate([FromRoute] long id, CancellationToken ct = default)
-    {
-        await _cqrs.ProcessAsync<bool>(new ActivateCurrencyCommand(id), ct);
-        return SetResponse<object>(new { success = true });
-    }
-
-    [HttpPut("{id:long}/deactivate")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> Deactivate([FromRoute] long id, CancellationToken ct = default)
-    {
-        await _cqrs.ProcessAsync<bool>(new DeactivateCurrencyCommand(id), ct);
-        return SetResponse<object>(new { success = true });
     }
 }

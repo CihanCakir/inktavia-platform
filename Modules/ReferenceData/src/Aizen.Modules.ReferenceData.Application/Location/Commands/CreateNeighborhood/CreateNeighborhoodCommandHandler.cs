@@ -18,7 +18,7 @@ public sealed class CreateNeighborhoodCommandHandler : AizenCommandHandler<Creat
     public override async Task<NeighborhoodDto?> Handle(CreateNeighborhoodCommand request, CancellationToken cancellationToken)
     {
         var result = await _service.CreateNeighborhoodAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.NeighborhoodCode, request.Name, request.PostalCode, cancellationToken);
-        await _invalidation.InvalidateLocationAsync(request.CountryCode, cancellationToken);
+        await _invalidation.InvalidateNeighborhoodAsync(request.CountryCode, request.CityCode, request.DistrictCode, cancellationToken);
         return result;
     }
 }

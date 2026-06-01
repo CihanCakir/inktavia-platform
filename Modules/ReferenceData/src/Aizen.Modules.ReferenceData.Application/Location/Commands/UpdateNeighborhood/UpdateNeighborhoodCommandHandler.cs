@@ -18,7 +18,7 @@ public sealed class UpdateNeighborhoodCommandHandler : AizenCommandHandler<Updat
     public override async Task<NeighborhoodDto?> Handle(UpdateNeighborhoodCommand request, CancellationToken cancellationToken)
     {
         var result = await _service.UpdateNeighborhoodAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.NeighborhoodCode, request.PostalCode, request.IsActive, cancellationToken);
-        await _invalidation.InvalidateLocationAsync(request.CountryCode, cancellationToken);
+        await _invalidation.InvalidateNeighborhoodAsync(request.CountryCode, request.CityCode, request.DistrictCode, cancellationToken);
         return result;
     }
 }

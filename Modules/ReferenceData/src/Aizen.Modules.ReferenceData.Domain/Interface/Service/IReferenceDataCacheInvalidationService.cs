@@ -8,5 +8,7 @@ public interface IReferenceDataCacheInvalidationService
     Task InvalidateLookupItemAsync(string? groupCode = null, CancellationToken cancellationToken = default);
     Task InvalidateMeasurementUnitAsync(long? id = null, CancellationToken cancellationToken = default);
     Task InvalidateLocationAsync(string? countryCode = null, CancellationToken cancellationToken = default);
+    Task InvalidateDistrictAsync(string countryCode, string cityCode, CancellationToken cancellationToken = default);
+    Task InvalidateNeighborhoodAsync(string countryCode, string cityCode, string districtCode, CancellationToken cancellationToken = default);
     Task InvalidateSystemParameterAsync(string? key = null, CancellationToken cancellationToken = default);
 }
