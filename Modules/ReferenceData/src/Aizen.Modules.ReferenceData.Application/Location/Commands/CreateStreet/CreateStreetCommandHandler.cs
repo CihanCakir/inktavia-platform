@@ -7,14 +7,18 @@ namespace Aizen.Modules.ReferenceData.Application.Location.Commands;
 public sealed class CreateStreetCommandHandler : AizenCommandHandler<CreateStreetCommand, StreetDto>
 {
     private readonly ILocationReferenceService _service;
+    private readonly IReferenceDataCacheInvalidationService _invalidation;
 
-    public CreateStreetCommandHandler(ILocationReferenceService service)
+    public CreateStreetCommandHandler(ILocationReferenceService service, IReferenceDataCacheInvalidationService invalidation)
     {
         _service = service;
+        _invalidation = invalidation;
     }
 
     public override async Task<StreetDto?> Handle(CreateStreetCommand request, CancellationToken cancellationToken)
     {
-        return await _service.CreateStreetAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.NeighborhoodCode, request.StreetCode, request.Name, request.PostalCode, cancellationToken);
+        var result = await _service.CreateStreetAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.NeighborhoodCode, request.StreetCode, request.Name, request.PostalCode, cancellationToken);
+        await _invalidation.InvalidateLocationAsync(request.CountryCode, cancellationToken);
+        return result;
     }
 }

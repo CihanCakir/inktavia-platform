@@ -7,14 +7,18 @@ namespace Aizen.Modules.ReferenceData.Application.Lookup.Commands;
 public sealed class CreateLookupItemCommandHandler : AizenCommandHandler<CreateLookupItemCommand, LookupItemDto>
 {
     private readonly ILookupReferenceService _service;
+    private readonly IReferenceDataCacheInvalidationService _invalidation;
 
-    public CreateLookupItemCommandHandler(ILookupReferenceService service)
+    public CreateLookupItemCommandHandler(ILookupReferenceService service, IReferenceDataCacheInvalidationService invalidation)
     {
         _service = service;
+        _invalidation = invalidation;
     }
 
     public override async Task<LookupItemDto?> Handle(CreateLookupItemCommand request, CancellationToken cancellationToken)
     {
-        return await _service.CreateItemAsync(request.Request, cancellationToken);
+        var result = await _service.CreateItemAsync(request.Request, cancellationToken);
+        await _invalidation.InvalidateLookupItemAsync(cancellationToken: cancellationToken);
+        return result;
     }
 }

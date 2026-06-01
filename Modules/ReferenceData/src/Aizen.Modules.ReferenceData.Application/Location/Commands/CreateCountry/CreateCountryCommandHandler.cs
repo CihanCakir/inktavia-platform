@@ -7,14 +7,18 @@ namespace Aizen.Modules.ReferenceData.Application.Location.Commands;
 public sealed class CreateCountryCommandHandler : AizenCommandHandler<CreateCountryCommand, CountryDto>
 {
     private readonly ILocationReferenceService _service;
+    private readonly IReferenceDataCacheInvalidationService _invalidation;
 
-    public CreateCountryCommandHandler(ILocationReferenceService service)
+    public CreateCountryCommandHandler(ILocationReferenceService service, IReferenceDataCacheInvalidationService invalidation)
     {
         _service = service;
+        _invalidation = invalidation;
     }
 
     public override async Task<CountryDto?> Handle(CreateCountryCommand request, CancellationToken cancellationToken)
     {
-        return await _service.CreateCountryAsync(request.Request, cancellationToken);
+        var result = await _service.CreateCountryAsync(request.Request, cancellationToken);
+        await _invalidation.InvalidateLocationAsync(cancellationToken: cancellationToken);
+        return result;
     }
 }

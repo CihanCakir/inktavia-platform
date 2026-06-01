@@ -1,10 +1,14 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
 using Aizen.Modules.ReferenceData.Domain.Interface.Service;
+using Aizen.Core.Cache.Abstraction.Common;
+using Aizen.Core.CQRS.Abstraction.Handler;
+using Aizen.Modules.ReferenceData.Abstraction.Model;
 
 namespace Aizen.Modules.ReferenceData.Application.Lookup.Queries;
 
-public sealed class GetLookupGroupTreeQueryHandler : AizenQueryHandler<GetLookupGroupTreeQuery, IReadOnlyList<LookupGroupTreeDto>>
+[DocumentationInfo("Returns the hierarchical lookup group tree", "Cached for 12 hours; invalidated on lookup group changes.")]
+public sealed class GetLookupGroupTreeQueryHandler : AizenQueryHandler<GetLookupGroupTreeQuery, IReadOnlyList<LookupGroupTreeDto>>, IAizenQueryHandlerCacheable
 {
     private readonly ILookupTreeService _service;
 
@@ -17,4 +21,7 @@ public sealed class GetLookupGroupTreeQueryHandler : AizenQueryHandler<GetLookup
     {
         return await _service.GetTreeAsync(request.OnlyActive, cancellationToken);
     }
+
+    public AizenCacheType CacheType => AizenCacheType.Distributed;
+    public AizenCacheOptions CacheOptions => new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12) };
 }

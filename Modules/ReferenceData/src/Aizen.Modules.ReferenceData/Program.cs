@@ -5,6 +5,9 @@ using Aizen.Core.Common.Extension;
 using Aizen.Core.Domain.Abstraction.Extension;
 using Aizen.Modules.ReferenceData.Repository;
 using Aizen.Modules.ReferenceData.Repository.Context;
+using Aizen.Core.Data.Mongo.Extensions;
+using Aizen.Core.InfoAccessor.Extensions;
+using Aizen.Core.Cache.Extension;
 
 var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
@@ -21,6 +24,10 @@ builder.Services.AddAizenUnitOfWork<ReferenceDataDbContext>(builder.Configuratio
     options.MigrationAssembly = "Aizen.Modules.ReferenceData.Repository";
 });
 
+
+builder.Services.AddAizenCache(builder.Configuration);
+builder.Services.AddAizenMongo(builder.Configuration);
+builder.Services.AddAizenInfoAccessor(builder.Configuration);
 
 builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
 

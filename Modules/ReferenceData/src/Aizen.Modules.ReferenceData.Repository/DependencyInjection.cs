@@ -64,7 +64,7 @@ public static class DependencyInjection
         services.AddScoped<ILocationReferenceService, LocationReferenceService>();
         services.AddScoped<ILocationValidationService, LocationValidationService>();
         services.AddScoped<ISystemParameterReferenceService, SystemParameterReferenceService>();
-        services.AddScoped<IReferenceDataCacheKeyService, ReferenceDataCacheKeyService>();
+        services.AddSingleton<IReferenceDataCacheKeyService, ReferenceDataCacheKeyService>();
         services.AddScoped<IReferenceDataCacheInvalidationService, ReferenceDataCacheInvalidationService>();
         services.AddScoped<IReferenceDataMongoIndexService, ReferenceDataMongoIndexService>();
         services.AddScoped<IReferenceDataSeedService, ReferenceDataSeedService>();

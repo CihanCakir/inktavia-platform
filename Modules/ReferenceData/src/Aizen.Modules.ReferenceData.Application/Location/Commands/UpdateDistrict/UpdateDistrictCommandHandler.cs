@@ -7,14 +7,18 @@ namespace Aizen.Modules.ReferenceData.Application.Location.Commands;
 public sealed class UpdateDistrictCommandHandler : AizenCommandHandler<UpdateDistrictCommand, DistrictDto>
 {
     private readonly ILocationReferenceService _service;
+    private readonly IReferenceDataCacheInvalidationService _invalidation;
 
-    public UpdateDistrictCommandHandler(ILocationReferenceService service)
+    public UpdateDistrictCommandHandler(ILocationReferenceService service, IReferenceDataCacheInvalidationService invalidation)
     {
         _service = service;
+        _invalidation = invalidation;
     }
 
     public override async Task<DistrictDto?> Handle(UpdateDistrictCommand request, CancellationToken cancellationToken)
     {
-        return await _service.UpdateDistrictAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.Latitude, request.Longitude, request.IsCoastalDistrict, request.IsActive, cancellationToken);
+        var result = await _service.UpdateDistrictAsync(request.CountryCode, request.CityCode, request.DistrictCode, request.Latitude, request.Longitude, request.IsCoastalDistrict, request.IsActive, cancellationToken);
+        await _invalidation.InvalidateLocationAsync(request.CountryCode, cancellationToken);
+        return result;
     }
 }
