@@ -1,0 +1,17 @@
+[
+  { "code": "METER",       "name": "Meter",       "symbol": "m",   "unitType": 1, "conversionFactorToBase": 1.0,        "baseUnitCode": null },
+  { "code": "CENTIMETER",  "name": "Centimeter",  "symbol": "cm",  "unitType": 1, "conversionFactorToBase": 0.01,       "baseUnitCode": "METER" },
+  { "code": "FEET",        "name": "Feet",        "symbol": "ft",  "unitType": 1, "conversionFactorToBase": 0.3048,     "baseUnitCode": "METER" },
+  { "code": "INCH",        "name": "Inch",        "symbol": "in",  "unitType": 1, "conversionFactorToBase": 0.0254,     "baseUnitCode": "METER" },
+  { "code": "KILOGRAM",    "name": "Kilogram",    "symbol": "kg",  "unitType": 2, "conversionFactorToBase": 1.0,        "baseUnitCode": null },
+  { "code": "GRAM",        "name": "Gram",        "symbol": "g",   "unitType": 2, "conversionFactorToBase": 0.001,      "baseUnitCode": "KILOGRAM" },
+  { "code": "LITER",       "name": "Liter",       "symbol": "L",   "unitType": 3, "conversionFactorToBase": 1.0,        "baseUnitCode": null },
+  { "code": "CELSIUS",     "name": "Celsius",     "symbol": "°C",  "unitType": 4, "conversionFactorToBase": null,       "baseUnitCode": null },
+  { "code": "FAHRENHEIT",  "name": "Fahrenheit",  "symbol": "°F",  "unitType": 4, "conversionFactorToBase": null,       "baseUnitCode": "CELSIUS" },
+  { "code": "PERCENTAGE",  "name": "Percentage",  "symbol": "%",   "unitType": 5, "conversionFactorToBase": 1.0,        "baseUnitCode": null },
+  { "code": "BAR",         "name": "Bar",         "symbol": "bar", "unitType": 6, "conversionFactorToBase": 1.0,        "baseUnitCode": null },
+  { "code": "KNOT",        "name": "Knot",        "symbol": "kn",  "unitType": 7, "conversionFactorToBase": 1.0,        "baseUnitCode": null },
+  { "code": "HOUR",        "name": "Hour",        "symbol": "h",   "unitType": 11,"conversionFactorToBase": 3600.0,     "baseUnitCode": null },
+  { "code": "DAY",         "name": "Day",         "symbol": "d",   "unitType": 11,"conversionFactorToBase": 86400.0,    "baseUnitCode": "HOUR" },
+  { "code": "PIECE",       "name": "Piece",       "symbol": "pcs", "unitType": 12,"conversionFactorToBase": 1.0,        "baseUnitCode": null }
+]

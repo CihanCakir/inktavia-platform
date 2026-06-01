@@ -1,0 +1,34 @@
+[
+  {
+    "key": "ReferenceData.Seed.Enabled",
+    "value": "true",
+    "valueType": 4,
+    "description": "Enables or disables the ReferenceData JSON seed on startup.",
+    "isEncrypted": false,
+    "isActive": true
+  },
+  {
+    "key": "ReferenceData.Cache.Enabled",
+    "value": "true",
+    "valueType": 4,
+    "description": "Enables or disables caching for ReferenceData queries.",
+    "isEncrypted": false,
+    "isActive": true
+  },
+  {
+    "key": "DefaultCurrencyCode",
+    "value": "TRY",
+    "valueType": 1,
+    "description": "The default currency code used across the platform.",
+    "isEncrypted": false,
+    "isActive": true
+  },
+  {
+    "key": "DefaultLanguageCode",
+    "value": "tr",
+    "valueType": 1,
+    "description": "The default language code used across the platform.",
+    "isEncrypted": false,
+    "isActive": true
+  }
+]

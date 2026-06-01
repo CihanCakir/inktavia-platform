@@ -1,0 +1,53 @@
+[
+  { "groupCode": "VESSEL_TYPE", "code": "MOTOR_YACHT",        "name": "Motor Yacht",          "description": null, "iconKey": null, "colorCode": null, "sortOrder": 1,  "isDefault": false, "isActive": true },
+  { "groupCode": "VESSEL_TYPE", "code": "SAILING_BOAT",       "name": "Sailing Boat",         "description": null, "iconKey": null, "colorCode": null, "sortOrder": 2,  "isDefault": false, "isActive": true },
+  { "groupCode": "VESSEL_TYPE", "code": "CATAMARAN",          "name": "Catamaran",            "description": null, "iconKey": null, "colorCode": null, "sortOrder": 3,  "isDefault": false, "isActive": true },
+  { "groupCode": "VESSEL_TYPE", "code": "FISHING_BOAT",       "name": "Fishing Boat",         "description": null, "iconKey": null, "colorCode": null, "sortOrder": 4,  "isDefault": false, "isActive": true },
+  { "groupCode": "VESSEL_TYPE", "code": "SERVICE_BOAT",       "name": "Service Boat",         "description": null, "iconKey": null, "colorCode": null, "sortOrder": 5,  "isDefault": false, "isActive": true },
+  { "groupCode": "VESSEL_TYPE", "code": "COMMERCIAL_VESSEL",  "name": "Commercial Vessel",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 6,  "isDefault": false, "isActive": true },
+  { "groupCode": "VESSEL_TYPE", "code": "RIB",                "name": "RIB",                  "description": "Rigid Inflatable Boat", "iconKey": null, "colorCode": null, "sortOrder": 7, "isDefault": false, "isActive": true },
+  { "groupCode": "VESSEL_TYPE", "code": "JET_SKI",            "name": "Jet Ski",              "description": null, "iconKey": null, "colorCode": null, "sortOrder": 8,  "isDefault": false, "isActive": true },
+
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "MOTOR_MAINTENANCE",   "name": "Motor Maintenance",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 1,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "BOAT_CLEANING",        "name": "Boat Cleaning",        "description": null, "iconKey": null, "colorCode": null, "sortOrder": 2,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "FOOD_AND_BEVERAGE",    "name": "Food and Beverage",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 3,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "FUEL_SUPPORT",         "name": "Fuel Support",         "description": null, "iconKey": null, "colorCode": null, "sortOrder": 4,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "ELECTRICAL_SERVICE",   "name": "Electrical Service",   "description": null, "iconKey": null, "colorCode": null, "sortOrder": 5,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "INTERIOR_CLEANING",    "name": "Interior Cleaning",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 6,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "EMERGENCY_REPAIR",     "name": "Emergency Repair",     "description": null, "iconKey": null, "colorCode": null, "sortOrder": 7,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "MARINA_SUPPORT",       "name": "Marina Support",       "description": null, "iconKey": null, "colorCode": null, "sortOrder": 8,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "PAINTING_POLISHING",   "name": "Painting & Polishing", "description": null, "iconKey": null, "colorCode": null, "sortOrder": 9,  "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "WINTERIZATION",        "name": "Winterization",        "description": null, "iconKey": null, "colorCode": null, "sortOrder": 10, "isDefault": false, "isActive": true },
+
+  { "groupCode": "CARGODRY_PRODUCT_TYPE", "code": "CARGODRY_BASIC",  "name": "CargoDry Basic",  "description": "Entry-level moisture absorber", "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "CARGODRY_PRODUCT_TYPE", "code": "CARGODRY_SENSE",  "name": "CargoDry Sense",  "description": "Smart sensor-enabled moisture absorber", "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_PRODUCT_TYPE", "code": "CARGODRY_PRO",    "name": "CargoDry Pro",    "description": "Professional-grade moisture management", "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "CABIN",          "name": "Cabin",          "description": null, "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "ENGINE_ROOM",    "name": "Engine Room",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "BILGE",          "name": "Bilge",          "description": null, "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "DECK_STORAGE",   "name": "Deck Storage",   "description": null, "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "WARDROBE",       "name": "Wardrobe",       "description": null, "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "GALLEY",         "name": "Galley",         "description": null, "iconKey": null, "colorCode": null, "sortOrder": 6, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "BATHROOM",       "name": "Bathroom",       "description": null, "iconKey": null, "colorCode": null, "sortOrder": 7, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_USAGE_AREA", "code": "TECHNICAL_ROOM", "name": "Technical Room", "description": null, "iconKey": null, "colorCode": null, "sortOrder": 8, "isDefault": false, "isActive": true },
+
+  { "groupCode": "CARGODRY_RISK_LEVEL", "code": "LOW",      "name": "Low",      "description": null, "iconKey": null, "colorCode": "#4CAF50", "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "CARGODRY_RISK_LEVEL", "code": "MEDIUM",   "name": "Medium",   "description": null, "iconKey": null, "colorCode": "#FF9800", "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_RISK_LEVEL", "code": "HIGH",     "name": "High",     "description": null, "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "CARGODRY_RISK_LEVEL", "code": "CRITICAL", "name": "Critical", "description": null, "iconKey": null, "colorCode": "#B71C1C", "sortOrder": 4, "isDefault": false, "isActive": true },
+
+  { "groupCode": "SENSOR_TYPE", "code": "HUMIDITY",     "name": "Humidity",      "description": null, "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": false, "isActive": true },
+  { "groupCode": "SENSOR_TYPE", "code": "TEMPERATURE",  "name": "Temperature",   "description": null, "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "SENSOR_TYPE", "code": "WATER_LEAK",   "name": "Water Leak",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "SENSOR_TYPE", "code": "BATTERY",      "name": "Battery",       "description": null, "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "SENSOR_TYPE", "code": "DOOR_OPEN",    "name": "Door Open",     "description": null, "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+  { "groupCode": "SENSOR_TYPE", "code": "MULTI_SENSOR", "name": "Multi Sensor",  "description": null, "iconKey": null, "colorCode": null, "sortOrder": 6, "isDefault": false, "isActive": true },
+
+  { "groupCode": "PAYMENT_STATUS", "code": "PENDING",             "name": "Pending",             "description": null, "iconKey": null, "colorCode": "#FF9800", "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "PAYMENT_STATUS", "code": "PAID",                "name": "Paid",                "description": null, "iconKey": null, "colorCode": "#4CAF50", "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "PAYMENT_STATUS", "code": "FAILED",              "name": "Failed",              "description": null, "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "PAYMENT_STATUS", "code": "CANCELED",            "name": "Canceled",            "description": null, "iconKey": null, "colorCode": "#9E9E9E", "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "PAYMENT_STATUS", "code": "REFUNDED",            "name": "Refunded",            "description": null, "iconKey": null, "colorCode": "#2196F3", "sortOrder": 5, "isDefault": false, "isActive": true },
+  { "groupCode": "PAYMENT_STATUS", "code": "PARTIALLY_REFUNDED",  "name": "Partially Refunded",  "description": null, "iconKey": null, "colorCode": "#03A9F4", "sortOrder": 6, "isDefault": false, "isActive": true }
+]

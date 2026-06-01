@@ -1,0 +1,22 @@
+[
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "KADIKOY",
+    "neighborhoodCode": "CAFERAGA",
+    "streetCode": "MODA_CADDESI",
+    "name": { "tr": "Moda Caddesi", "en": "Moda Avenue" },
+    "postalCode": "34710",
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "KADIKOY",
+    "neighborhoodCode": "CAFERAGA",
+    "streetCode": "BAHARIYE_CADDESI",
+    "name": { "tr": "Bahariye Caddesi", "en": "Bahariye Avenue" },
+    "postalCode": "34710",
+    "isActive": true
+  }
+]

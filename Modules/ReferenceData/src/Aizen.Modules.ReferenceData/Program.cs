@@ -37,4 +37,6 @@ builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(Referen
 
 var app = builder.Build();
 
+await app.SeedReferenceDataAsync();
+
 app.Run();

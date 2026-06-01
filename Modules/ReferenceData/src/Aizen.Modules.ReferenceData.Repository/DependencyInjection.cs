@@ -2,15 +2,19 @@ using Aizen.Modules.ReferenceData.Domain.Interface;
 using Aizen.Modules.ReferenceData.Domain.Interface.Service;
 using Aizen.Modules.ReferenceData.Repository.Context;
 using Aizen.Modules.ReferenceData.Repository.Mongo;
+using Aizen.Modules.ReferenceData.Repository.Options;
 using Aizen.Modules.ReferenceData.Repository.Repositories.Currency;
 using Aizen.Modules.ReferenceData.Repository.Repositories.ExchangeRate;
 using Aizen.Modules.ReferenceData.Repository.Repositories.LookupGroup;
 using Aizen.Modules.ReferenceData.Repository.Repositories.Measurement;
 using Aizen.Modules.ReferenceData.Repository.Repositories.SystemParameter;
+using Aizen.Modules.ReferenceData.Repository.Seed.Readers;
+using Aizen.Modules.ReferenceData.Repository.Seed.Services;
 using Aizen.Modules.ReferenceData.Repository.Service;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 
 namespace Aizen.Modules.ReferenceData.Repository;
@@ -51,6 +55,10 @@ public static class DependencyInjection
         services.AddScoped<ILocationRepository, LocationRepository>();
         services.AddScoped<ReferenceDataMongoIndexInitializer>();
 
+        // JSON Seed infrastructure
+        services.Configure<ReferenceDataSeedOptions>(configuration.GetSection("ReferenceDataSeed"));
+        services.AddScoped<IReferenceDataJsonSeedReader, ReferenceDataJsonSeedReader>();
+
         return services;
     }
 
@@ -69,6 +77,22 @@ public static class DependencyInjection
         services.AddScoped<IReferenceDataMongoIndexService, ReferenceDataMongoIndexService>();
         services.AddScoped<IReferenceDataSeedService, ReferenceDataSeedService>();
 
+        // JSON Seed services
+        services.AddScoped<CurrencyJsonSeedService>();
+        services.AddScoped<ExchangeRateJsonSeedService>();
+        services.AddScoped<MeasurementJsonSeedService>();
+        services.AddScoped<LookupJsonSeedService>();
+        services.AddScoped<SystemJsonSeedService>();
+        services.AddScoped<LocationJsonSeedService>();
+        services.AddScoped<IReferenceDataJsonSeedService, ReferenceDataJsonSeedService>();
+
         return services;
+    }
+
+    public static async Task SeedReferenceDataAsync(this IHost host, CancellationToken ct = default)
+    {
+        using var scope = host.Services.CreateScope();
+        var seedService = scope.ServiceProvider.GetRequiredService<IReferenceDataJsonSeedService>();
+        await seedService.SeedAllAsync(ct);
     }
 }

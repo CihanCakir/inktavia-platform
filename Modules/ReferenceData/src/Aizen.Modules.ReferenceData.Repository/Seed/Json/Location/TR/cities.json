@@ -1,0 +1,29 @@
+[
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "name": { "tr": "İstanbul", "en": "Istanbul" },
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "35",
+    "name": { "tr": "İzmir", "en": "Izmir" },
+    "latitude": 38.4237,
+    "longitude": 27.1428,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "06",
+    "name": { "tr": "Ankara", "en": "Ankara" },
+    "latitude": 39.9334,
+    "longitude": 32.8597,
+    "isCoastalCity": false,
+    "isActive": true
+  }
+]

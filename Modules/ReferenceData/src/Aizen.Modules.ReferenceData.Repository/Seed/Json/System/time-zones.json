@@ -1,0 +1,5 @@
+[
+  { "code": "Europe/Istanbul", "displayName": "Turkey Time (UTC+3)",  "utcOffset": "+03:00", "isActive": true },
+  { "code": "UTC",             "displayName": "Coordinated Universal Time", "utcOffset": "+00:00", "isActive": true },
+  { "code": "Europe/Berlin",   "displayName": "Central European Time (UTC+1/+2)", "utcOffset": "+01:00", "isActive": true }
+]

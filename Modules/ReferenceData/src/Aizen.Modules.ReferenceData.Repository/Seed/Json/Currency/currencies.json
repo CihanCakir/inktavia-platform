@@ -1,0 +1,38 @@
+[
+  {
+    "code": "TRY",
+    "numericCode": "949",
+    "name": "Turkish Lira",
+    "symbol": "₺",
+    "decimalPlaces": 2,
+    "isBaseCurrency": true,
+    "isActive": true
+  },
+  {
+    "code": "USD",
+    "numericCode": "840",
+    "name": "US Dollar",
+    "symbol": "$",
+    "decimalPlaces": 2,
+    "isBaseCurrency": false,
+    "isActive": true
+  },
+  {
+    "code": "EUR",
+    "numericCode": "978",
+    "name": "Euro",
+    "symbol": "€",
+    "decimalPlaces": 2,
+    "isBaseCurrency": false,
+    "isActive": true
+  },
+  {
+    "code": "GBP",
+    "numericCode": "826",
+    "name": "Pound Sterling",
+    "symbol": "£",
+    "decimalPlaces": 2,
+    "isBaseCurrency": false,
+    "isActive": true
+  }
+]
