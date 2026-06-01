@@ -33,7 +33,11 @@ public static class DependencyInjection
         services.AddScoped<IMeasurementUnitRepository, MeasurementUnitRepository>();
         services.AddScoped<ISystemParameterRepository, SystemParameterRepository>();
         services.AddScoped<ILocationRepository, LocationRepository>();
-        services.AddScoped<ReferenceDataMongoIndexInitializer>();
+        services.AddScoped<ReferenceDataMongoIndexInitializer>(sp =>
+        {
+            var mongoContext = sp.GetRequiredService<ReferenceDataMongoDbContext>();
+            return new ReferenceDataMongoIndexInitializer(mongoContext);
+        });
 
         // JSON Seed infrastructure
         services.Configure<ReferenceDataSeedOptions>(configuration.GetSection("ReferenceDataSeed"));
@@ -77,6 +81,9 @@ public static class DependencyInjection
         var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(ct);
         if (pendingMigrations.Any())
             await dbContext.Database.MigrateAsync(ct);
+
+        var mongoIndexService = scope.ServiceProvider.GetRequiredService<IReferenceDataMongoIndexService>();
+        await mongoIndexService.EnsureIndexesAsync(ct);
 
         var seedService = scope.ServiceProvider.GetRequiredService<IReferenceDataJsonSeedService>();
         await seedService.SeedAllAsync(ct);

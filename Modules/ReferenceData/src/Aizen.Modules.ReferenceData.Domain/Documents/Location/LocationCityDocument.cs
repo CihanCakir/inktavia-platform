@@ -1,7 +1,9 @@
+using Aizen.Core.Data.Mongo.Attributes;
 using Aizen.Core.Data.Mongo.Document;
 
 namespace Aizen.Modules.ReferenceData.Domain.Documents.Location;
 
+[AizenCollectionInfo(CollectionName = "reference_location_cities")]
 public sealed class LocationCityDocument : AizenDocumentBase
 {
     public string CountryCode { get; set; } = default!;

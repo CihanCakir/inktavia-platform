@@ -1,4 +1,5 @@
 using Aizen.Modules.ReferenceData.Domain.Documents.Location;
+using Aizen.Modules.ReferenceData.Repository.Context;
 using MongoDB.Driver;
 
 namespace Aizen.Modules.ReferenceData.Repository.Mongo;
@@ -7,9 +8,9 @@ public sealed class ReferenceDataMongoIndexInitializer
 {
     private readonly IMongoDatabase _mongoDatabase;
 
-    public ReferenceDataMongoIndexInitializer(IMongoDatabase mongoDatabase)
+    public ReferenceDataMongoIndexInitializer(ReferenceDataMongoDbContext mongoDbContext)
     {
-        _mongoDatabase = mongoDatabase;
+        _mongoDatabase = mongoDbContext.Database;
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
