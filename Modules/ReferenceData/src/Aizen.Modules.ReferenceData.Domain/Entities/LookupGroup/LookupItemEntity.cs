@@ -15,7 +15,7 @@ public sealed class LookupItemEntity : AizenEntityWithAudit
 
     public LookupGroupEntity LookupGroup { get; private set; } = default!;
 
-    private LookupItemEntity() { }
+    public LookupItemEntity() { }
 
     public static LookupItemEntity Create(long lookupGroupId, string code, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault)
     {

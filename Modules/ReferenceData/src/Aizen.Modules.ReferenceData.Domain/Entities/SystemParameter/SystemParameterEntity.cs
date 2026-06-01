@@ -11,7 +11,7 @@ public sealed class SystemParameterEntity : AizenEntityWithAudit
     public string? Description { get; private set; }
     public bool IsEncrypted { get; private set; }
 
-    private SystemParameterEntity() { }
+    public SystemParameterEntity() { }
 
     public static SystemParameterEntity Create(string key, string value, SystemParameterValueType valueType, string? description, bool isEncrypted)
     {

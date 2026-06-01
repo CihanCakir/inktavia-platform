@@ -10,7 +10,7 @@ public sealed class CountryPhoneCodeEntity : AizenEntityWithAudit
     public bool IsAllowedForRegistration { get; private set; }
     public bool IsAllowedForTransfer { get; private set; }
 
-    private CountryPhoneCodeEntity() { }
+    public CountryPhoneCodeEntity() { }
 
     public static CountryPhoneCodeEntity Create(string countryCode, string phoneCode, string countryName, bool isAllowedForRegistration, bool isAllowedForTransfer)
     {

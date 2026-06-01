@@ -8,7 +8,7 @@ public sealed class TimeZoneEntity : AizenEntityWithAudit
     public string DisplayName { get; private set; } = default!;
     public string UtcOffset { get; private set; } = default!;
 
-    private TimeZoneEntity() { }
+    public TimeZoneEntity() { }
 
     public static TimeZoneEntity Create(string code, string displayName, string utcOffset)
     {

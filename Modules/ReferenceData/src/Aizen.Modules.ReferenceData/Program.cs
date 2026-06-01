@@ -22,6 +22,7 @@ builder.Services.AddAizenUnitOfWork<ReferenceDataDbContext>(builder.Configuratio
 {
     options.UseMigration = true;
     options.MigrationAssembly = "Aizen.Modules.ReferenceData.Repository";
+    options.UseLazyLoadingProxies = false;
 });
 
 

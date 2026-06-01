@@ -25,6 +25,8 @@ public sealed class LocationJsonSeedService
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        if (await _locationRepository.AnyCountryAsync(cancellationToken)) return;
+
         await SeedCountryAsync("TR", cancellationToken);
         await SeedCitiesAsync("TR", cancellationToken);
         await SeedAllDistrictsAsync("TR", cancellationToken);

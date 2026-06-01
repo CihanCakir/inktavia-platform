@@ -12,7 +12,7 @@ public sealed class MeasurementUnitEntity : AizenEntityWithAudit
     public decimal? ConversionFactorToBase { get; private set; }
     public string? BaseUnitCode { get; private set; }
 
-    private MeasurementUnitEntity() { }
+    public MeasurementUnitEntity() { }
 
     public static MeasurementUnitEntity Create(string code, string name, string symbol, MeasurementUnitType unitType, decimal? conversionFactorToBase, string? baseUnitCode)
     {

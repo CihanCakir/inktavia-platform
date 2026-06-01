@@ -5,6 +5,7 @@ using Aizen.Modules.ReferenceData.Domain.Interface;
 using Aizen.Modules.ReferenceData.Repository.Context;
 using Aizen.Modules.ReferenceData.Repository.Seed.Models.Lookup;
 using Aizen.Modules.ReferenceData.Repository.Seed.Readers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.ReferenceData.Repository.Seed.Services;
 
@@ -33,6 +34,8 @@ public sealed class LookupJsonSeedService
 
     public async Task SeedGroupsAsync(CancellationToken cancellationToken = default)
     {
+        if (await _dbContext.LookupGroups.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<LookupGroupSeedModel>("Lookup/lookup-groups.json", cancellationToken: cancellationToken);
 
         // Build a map for quick code→entity lookup after insertion
@@ -95,6 +98,8 @@ public sealed class LookupJsonSeedService
 
     public async Task SeedItemsAsync(CancellationToken cancellationToken = default)
     {
+        if (await _dbContext.LookupItems.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<LookupItemSeedModel>("Lookup/lookup-items.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)

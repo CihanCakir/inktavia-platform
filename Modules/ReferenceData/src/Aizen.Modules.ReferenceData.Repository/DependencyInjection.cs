@@ -72,6 +72,12 @@ public static class DependencyInjection
     public static async Task SeedReferenceDataAsync(this IHost host, CancellationToken ct = default)
     {
         using var scope = host.Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(ct);
+        if (pendingMigrations.Any())
+            await dbContext.Database.MigrateAsync(ct);
+
         var seedService = scope.ServiceProvider.GetRequiredService<IReferenceDataJsonSeedService>();
         await seedService.SeedAllAsync(ct);
     }

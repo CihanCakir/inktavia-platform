@@ -12,7 +12,7 @@ public sealed class ExchangeRateHistoryEntity : AizenEntityWithAudit
     public DateTime RateDate { get; private set; }
     public string? RawProviderPayload { get; private set; }
 
-    private ExchangeRateHistoryEntity() { }
+    public ExchangeRateHistoryEntity() { }
 
     public static ExchangeRateHistoryEntity Create(string fromCurrencyCode, string toCurrencyCode, decimal rate, CurrencyRateProviderType providerType, DateTime rateDate, string? rawProviderPayload)
     {

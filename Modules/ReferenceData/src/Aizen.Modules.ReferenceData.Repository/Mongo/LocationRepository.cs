@@ -25,6 +25,9 @@ public sealed class LocationRepository : ILocationRepository
         _streets = aizenMongoRepositoryFactory.GetRepository<LocationStreetDocument>();
     }
 
+    public Task<bool> AnyCountryAsync(CancellationToken cancellationToken = default)
+        => _countries.AnyAsync(null, cancellationToken);
+
     public async Task<IReadOnlyList<LocationCountryDocument>> GetCountriesAsync(bool onlyActive, CancellationToken cancellationToken = default)
     {
         var result = await _countries.FindManyAsync(

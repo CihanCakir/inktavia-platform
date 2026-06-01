@@ -4,6 +4,7 @@ using Aizen.Modules.ReferenceData.Domain.Interface;
 using Aizen.Modules.ReferenceData.Repository.Context;
 using Aizen.Modules.ReferenceData.Repository.Seed.Models.Currency;
 using Aizen.Modules.ReferenceData.Repository.Seed.Readers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.ReferenceData.Repository.Seed.Services;
 
@@ -29,6 +30,8 @@ public sealed class CurrencyJsonSeedService
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        if (await _dbContext.Currencies.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<CurrencySeedModel>("Currency/currencies.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)

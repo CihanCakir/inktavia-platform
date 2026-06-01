@@ -21,4 +21,6 @@ public interface ILocationRepository
 
     Task<IReadOnlyList<LocationStreetDocument>> GetStreetsByNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string? neighborhoodCode, bool onlyActive, CancellationToken cancellationToken = default);
     Task UpsertStreetAsync(LocationStreetDocument document, CancellationToken cancellationToken = default);
+
+    Task<bool> AnyCountryAsync(CancellationToken cancellationToken = default);
 }

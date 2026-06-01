@@ -11,7 +11,7 @@ public sealed class CurrencyEntity : AizenEntityWithAudit
     public int DecimalPlaces { get; private set; }
     public bool IsBaseCurrency { get; private set; }
 
-    private CurrencyEntity() { }
+    public CurrencyEntity() { }
 
     public static CurrencyEntity Create(string code, string numericCode, string name, string symbol, int decimalPlaces, bool isBaseCurrency)
     {

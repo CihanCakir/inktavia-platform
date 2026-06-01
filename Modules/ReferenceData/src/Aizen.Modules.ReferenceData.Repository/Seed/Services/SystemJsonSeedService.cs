@@ -40,6 +40,8 @@ public sealed class SystemJsonSeedService
 
     private async Task SeedLanguagesAsync(CancellationToken cancellationToken)
     {
+        if (await _dbContext.Languages.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<LanguageSeedModel>("System/languages.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)
@@ -60,6 +62,8 @@ public sealed class SystemJsonSeedService
 
     private async Task SeedTimeZonesAsync(CancellationToken cancellationToken)
     {
+        if (await _dbContext.TimeZones.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<TimeZoneSeedModel>("System/time-zones.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)
@@ -80,6 +84,8 @@ public sealed class SystemJsonSeedService
 
     private async Task SeedCountryPhoneCodesAsync(CancellationToken cancellationToken)
     {
+        if (await _dbContext.CountryPhoneCodes.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<CountryPhoneCodeSeedModel>("System/country-phone-codes.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)
@@ -107,6 +113,8 @@ public sealed class SystemJsonSeedService
 
     private async Task SeedSystemParametersAsync(CancellationToken cancellationToken)
     {
+        if (await _dbContext.SystemParameters.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<SystemParameterSeedModel>("System/system-parameters.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)

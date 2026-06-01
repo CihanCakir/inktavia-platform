@@ -23,7 +23,7 @@ public sealed class LookupGroupEntity : AizenEntityWithAudit
     private readonly List<LookupItemEntity> _items = new();
     public IReadOnlyCollection<LookupItemEntity> Items => _items.AsReadOnly();
 
-    private LookupGroupEntity() { }
+    public LookupGroupEntity() { }
 
     public static LookupGroupEntity CreateRoot(string code, string name, string? description, LookupGroupType groupType, bool isSystemGroup, int sortOrder)
     {

@@ -8,7 +8,7 @@ public sealed class LanguageEntity : AizenEntityWithAudit
     public string Name { get; private set; } = default!;
     public string NativeName { get; private set; } = default!;
     public bool IsDefault { get; private set; }
-    private LanguageEntity() { }
+    public LanguageEntity() { }
 
     public static LanguageEntity Create(string code, string name, string nativeName, bool isDefault)
     {

@@ -5,6 +5,7 @@ using Aizen.Modules.ReferenceData.Domain.Interface;
 using Aizen.Modules.ReferenceData.Repository.Context;
 using Aizen.Modules.ReferenceData.Repository.Seed.Models.Measurement;
 using Aizen.Modules.ReferenceData.Repository.Seed.Readers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.ReferenceData.Repository.Seed.Services;
 
@@ -30,6 +31,8 @@ public sealed class MeasurementJsonSeedService
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        if (await _dbContext.MeasurementUnits.AnyAsync(cancellationToken)) return;
+
         var models = await _reader.ReadListAsync<MeasurementUnitSeedModel>("Measurement/measurement-units.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)
