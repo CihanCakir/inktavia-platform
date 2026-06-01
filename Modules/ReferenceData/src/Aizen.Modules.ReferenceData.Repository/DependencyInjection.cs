@@ -25,26 +25,6 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Identity ve InktaviaStore.Repository standardına göre gerekirse değiştir.
-        services.AddDbContext<ReferenceDataDbContext>(options =>
-        {
-            var connectionString = configuration.GetConnectionString("ReferenceDataPostgreSql");
-            options.UseNpgsql(connectionString);
-        });
-
-        // Aizen Mongo registration standardına göre gerekirse options pattern'e çek.
-        services.AddSingleton<IMongoClient>(_ =>
-        {
-            var connectionString = configuration.GetConnectionString("ReferenceDataMongo");
-            return new MongoClient(connectionString);
-        });
-
-        services.AddScoped(sp =>
-        {
-            var databaseName = configuration.GetValue<string>("ReferenceDataMongo:DatabaseName") ?? "reference_data";
-            var client = sp.GetRequiredService<IMongoClient>();
-            return client.GetDatabase(databaseName);
-        });
 
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
