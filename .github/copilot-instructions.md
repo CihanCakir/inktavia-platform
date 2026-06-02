@@ -142,3 +142,70 @@ VesselMediaSortOrderChangedMessage
 Audit/notification events
 Orphan cleanup requests
 ```
+# Copilot Instructions - Inktavia Marine OS ServiceRequest Module
+
+You are working inside the Inktavia Marine OS repository.
+
+## Language
+
+Use English for generated code comments, documentation summaries, markdown reports, class descriptions, commit-style summaries, and final reports.
+
+## Architectural rules
+
+Follow the existing Aizen/Inktavia architecture. Before generating code, inspect similar modules such as Identity, ReferenceData, Vessel, FileStorage, ProviderOperations if present, and reuse their patterns.
+
+Expected module layers:
+
+```text
+Aizen.Modules.ServiceRequest.Api
+Aizen.Modules.ServiceRequest.Application
+Aizen.Modules.ServiceRequest.Abstraction
+Aizen.Modules.ServiceRequest.Domain
+Aizen.Modules.ServiceRequest.Repository
+```
+
+If the repository uses a slightly different physical folder layout, adapt to the actual repository layout while preserving the same logical layers.
+
+Do not introduce a separate `Infrastructure` project if the existing architecture uses a `Repository` project for persistence and dependency injection.
+
+## Mandatory standards
+
+- Use CQRS for commands and queries.
+- Use typed DTO/response returns. Do not return `object` from handlers.
+- Use request models under the Abstraction layer for controller input models.
+- Use DTOs under the Abstraction layer for all API output models.
+- Use enums under the Abstraction layer unless the existing solution has a different enum convention.
+- Use FluentValidation if existing modules use it.
+- Use `DocumentationInfo` on every public class, interface, command, query, handler, validator, DTO, request, controller, service, repository, and mapping type if the project uses this attribute/metadata pattern.
+- Use `IAizenInfoAccessor` or the existing user/client/device accessor pattern for current user, client, tenant, and device context.
+- Use `IAizenQueryHandlerCacheable` or the existing cacheable-query contract for cacheable queries.
+- Invalidate related cache after write commands.
+- Respect current error/result/response wrapper patterns.
+- Respect current namespace, folder, project reference, and dependency injection conventions.
+- Use `DateTimeOffset` or the project-standard UTC time type consistently. For PostgreSQL `timestamptz`, always use UTC-compatible values.
+- Use soft delete/audit conventions from existing base entities.
+- Do not use broad unrelated refactoring.
+- Do not break existing modules.
+- Keep each change focused and buildable.
+
+## Realtime requirement
+
+Inspect and reuse:
+
+```text
+Core/Realtime/src/Aizen.Core.Realtime
+```
+
+Use the framework's current SignalR abstractions, hubs, publishers, DI extensions, group management, user connection model, serialization, authentication, and authorization approach.
+
+Do not invent a separate SignalR architecture if `Aizen.Core.Realtime` already provides a reusable base.
+
+## ServiceRequest module responsibility
+
+ServiceRequest is the operational lifecycle module for marine service marketplace workflows:
+
+```text
+Boat Owner -> Vessel -> Service Request -> Provider Offer -> Assignment -> WorkLog -> Completion -> Owner Approval / Dispute
+```
+
+It must cover request, offer, assignment, realtime communication, messages, work execution, completion evidence, dispute flow, and admin operations in the first phase.
