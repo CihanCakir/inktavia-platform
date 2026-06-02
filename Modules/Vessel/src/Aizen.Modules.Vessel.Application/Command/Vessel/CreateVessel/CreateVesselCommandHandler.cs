@@ -1,0 +1,61 @@
+using Aizen.Core.CQRS.Handler;
+using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
+using Aizen.Modules.Vessel.Abstraction.Enum;
+using Aizen.Modules.Vessel.Abstraction.Model;
+using Aizen.Modules.Vessel.Application.Mapping;
+using Aizen.Modules.Vessel.Domain.Entities.Vessel;
+using Aizen.Modules.Vessel.Domain.Interface.Repository;
+using Aizen.Modules.Vessel.Domain.Interface.Service;
+
+namespace Aizen.Modules.Vessel.Application.Command.Vessel;
+
+[DocumentationInfo("Create Vessel Command Handler", "Handles vessel creation, assigns primary owner and invalidates vessel list cache.")]
+public sealed class CreateVesselCommandHandler : AizenCommandHandler<CreateVesselCommand, VesselDto>
+{
+    private readonly IVesselRepository _vesselRepository;
+    private readonly IVesselOwnerRepository _ownerRepository;
+    private readonly IVesselCacheInvalidationService _invalidation;
+
+    public CreateVesselCommandHandler(
+        IVesselRepository vesselRepository,
+        IVesselOwnerRepository ownerRepository,
+        IVesselCacheInvalidationService invalidation)
+    {
+        _vesselRepository = vesselRepository;
+        _ownerRepository = ownerRepository;
+        _invalidation = invalidation;
+    }
+
+    public override async Task<VesselDto?> Handle(CreateVesselCommand request, CancellationToken cancellationToken)
+    {
+        var vesselCode = $"V{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}";
+        var slug = request.Request.Name.ToLowerInvariant().Replace(" ", "-");
+
+        var entity = VesselEntity.Create(
+            vesselCode,
+            request.Request.Name,
+            slug,
+            request.Request.VesselTypeCode,
+            request.Request.Description,
+            request.Request.VesselUsageTypeCode,
+            request.Request.FlagCountryCode,
+            request.Request.RegistrationNumber,
+            request.Request.MmsiNumber,
+            request.Request.ImoNumber,
+            request.Request.CallSign,
+            request.Request.HomeCountryCode,
+            request.Request.HomeCityCode,
+            request.Request.HomeDistrictCode,
+            request.Request.HomeMarinaName,
+            request.Request.Visibility);
+
+        await _vesselRepository.AddAsync(entity, cancellationToken);
+
+        var owner = VesselOwnerEntity.Create(entity.Id, request.RequestingUserId, null, VesselOwnershipRole.PrimaryOwner, true);
+        await _ownerRepository.AddAsync(owner, cancellationToken);
+
+        await _invalidation.InvalidateUserVesselListAsync(request.RequestingUserId, cancellationToken);
+
+        return entity.ToDto();
+    }
+}

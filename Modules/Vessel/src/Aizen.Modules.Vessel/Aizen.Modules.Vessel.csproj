@@ -13,6 +13,12 @@
       Include="..\..\..\..\Core\UnitOfWork\src\Aizen.Core.UnitOfWork\Aizen.Core.UnitOfWork.csproj" />
     <ProjectReference
       Include="..\Aizen.Modules.Vessel.Application\Aizen.Modules.Vessel.Application.csproj" />
+    <ProjectReference
+      Include="..\Aizen.Modules.Vessel.Repository\Aizen.Modules.Vessel.Repository.csproj" />
+    <ProjectReference
+      Include="..\..\..\..\Modules\ReferenceData\src\Aizen.Modules.ReferenceData.Application\Aizen.Modules.ReferenceData.Application.csproj" />
+    <ProjectReference
+      Include="..\..\..\..\Modules\ReferenceData\src\Aizen.Modules.ReferenceData.Repository\Aizen.Modules.ReferenceData.Repository.csproj" />
   </ItemGroup>
 
   <ItemGroup>

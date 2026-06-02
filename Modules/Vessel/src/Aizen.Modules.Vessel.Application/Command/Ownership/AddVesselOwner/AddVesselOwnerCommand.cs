@@ -1,0 +1,21 @@
+using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
+using Aizen.Modules.Vessel.Abstraction.Model;
+using Aizen.Modules.Vessel.Abstraction.Request.Ownership;
+
+namespace Aizen.Modules.Vessel.Application.Command.Ownership;
+
+[DocumentationInfo("Add Vessel Owner Command", "Carries the payload required to invite a user as a vessel owner.")]
+public sealed class AddVesselOwnerCommand : AizenCommand<VesselOwnerDto>
+{
+    public long VesselId { get; }
+    public AddVesselOwnerRequest Request { get; }
+    public long RequestingUserId { get; }
+
+    public AddVesselOwnerCommand(long vesselId, AddVesselOwnerRequest request, long requestingUserId)
+    {
+        VesselId = vesselId;
+        Request = request;
+        RequestingUserId = requestingUserId;
+    }
+}
