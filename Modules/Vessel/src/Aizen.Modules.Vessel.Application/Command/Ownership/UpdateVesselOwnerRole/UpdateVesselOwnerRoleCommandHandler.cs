@@ -5,11 +5,12 @@ using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 
 namespace Aizen.Modules.Vessel.Application.Command.Ownership;
 
 [DocumentationInfo("Update Vessel Owner Role Command Handler", "Loads owner entity, applies role change and invalidates owners cache.")]
-public sealed class UpdateVesselOwnerRoleCommandHandler : AizenCommandHandler<UpdateVesselOwnerRoleCommand, VesselOwnerDto>
+public sealed class UpdateVesselOwnerRoleCommandHandler : AizenCommandHandler<UpdateVesselOwnerRoleCommand, UpdateVesselOwnerRoleResponse>
 {
     private readonly IVesselOwnerRepository _ownerRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -28,7 +29,7 @@ public sealed class UpdateVesselOwnerRoleCommandHandler : AizenCommandHandler<Up
         _info = info;
     }
 
-    public override async Task<VesselOwnerDto?> Handle(UpdateVesselOwnerRoleCommand request, CancellationToken cancellationToken)
+    public override async Task<UpdateVesselOwnerRoleResponse?> Handle(UpdateVesselOwnerRoleCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanManageOwnersAsync(request.VesselId, currentUserId, cancellationToken);
@@ -41,6 +42,6 @@ public sealed class UpdateVesselOwnerRoleCommandHandler : AizenCommandHandler<Up
 
         await _invalidation.InvalidateOwnersAsync(request.VesselId, cancellationToken);
 
-        return owner.ToDto();
+        return new UpdateVesselOwnerRoleResponse(owner.ToDto());
     }
 }

@@ -1,9 +1,9 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Vessel.Abstraction.Dto.Document;
+using Aizen.Modules.Vessel.Abstraction.Response.Document;
 
 namespace Aizen.Modules.Vessel.Application.Query.Document;
 
-public sealed class GetVesselDocumentsQuery : AizenPagedQuery<VesselDocumentDto>
+public sealed class GetVesselDocumentsQuery : AizenQuery<GetVesselDocumentsResponse>
 {
     public long VesselId { get; }
     public int PageIndex { get; }

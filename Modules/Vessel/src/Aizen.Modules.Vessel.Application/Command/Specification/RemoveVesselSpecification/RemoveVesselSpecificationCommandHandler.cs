@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Specification;
 
 namespace Aizen.Modules.Vessel.Application.Command.Specification;
 
 [DocumentationInfo("Remove Vessel Specification Command Handler", "Removes vessel specification and invalidates spec and vessel detail caches.")]
-public sealed class RemoveVesselSpecificationCommandHandler : AizenCommandHandler<RemoveVesselSpecificationCommand, bool>
+public sealed class RemoveVesselSpecificationCommandHandler : AizenCommandHandler<RemoveVesselSpecificationCommand, RemoveVesselSpecificationResponse>
 {
     private readonly IVesselSpecificationRepository _specRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class RemoveVesselSpecificationCommandHandler : AizenCommandHandle
         _info = info;
     }
 
-    public override async Task<bool> Handle(RemoveVesselSpecificationCommand request, CancellationToken cancellationToken)
+    public override async Task<RemoveVesselSpecificationResponse?> Handle(RemoveVesselSpecificationCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -39,6 +40,6 @@ public sealed class RemoveVesselSpecificationCommandHandler : AizenCommandHandle
         await _invalidation.InvalidateSpecificationAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new RemoveVesselSpecificationResponse(request.VesselId);
     }
 }

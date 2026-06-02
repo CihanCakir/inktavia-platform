@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Engine;
 
 namespace Aizen.Modules.Vessel.Application.Command.Engine;
 
 [DocumentationInfo("Set Primary Vessel Engine Command Handler", "Clears primary flag on all vessel engines, sets it on target and invalidates engines cache.")]
-public sealed class SetPrimaryVesselEngineCommandHandler : AizenCommandHandler<SetPrimaryVesselEngineCommand, bool>
+public sealed class SetPrimaryVesselEngineCommandHandler : AizenCommandHandler<SetPrimaryVesselEngineCommand, SetPrimaryVesselEngineResponse>
 {
     private readonly IVesselEngineRepository _engineRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class SetPrimaryVesselEngineCommandHandler : AizenCommandHandler<S
         _info = info;
     }
 
-    public override async Task<bool> Handle(SetPrimaryVesselEngineCommand request, CancellationToken cancellationToken)
+    public override async Task<SetPrimaryVesselEngineResponse?> Handle(SetPrimaryVesselEngineCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -50,6 +51,6 @@ public sealed class SetPrimaryVesselEngineCommandHandler : AizenCommandHandler<S
 
         await _invalidation.InvalidateEnginesAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new SetPrimaryVesselEngineResponse(request.VesselId, request.EngineId);
     }
 }

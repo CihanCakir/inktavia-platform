@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
 namespace Aizen.Modules.Vessel.Application.Command.Vessel;
 
 [DocumentationInfo("Restore Vessel Command Handler", "Restores an archived vessel and invalidates vessel and list caches.")]
-public sealed class RestoreVesselCommandHandler : AizenCommandHandler<RestoreVesselCommand, bool>
+public sealed class RestoreVesselCommandHandler : AizenCommandHandler<RestoreVesselCommand, RestoreVesselResponse>
 {
     private readonly IVesselRepository _vesselRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class RestoreVesselCommandHandler : AizenCommandHandler<RestoreVes
         _info = info;
     }
 
-    public override async Task<bool> Handle(RestoreVesselCommand request, CancellationToken cancellationToken)
+    public override async Task<RestoreVesselResponse?> Handle(RestoreVesselCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -43,6 +44,6 @@ public sealed class RestoreVesselCommandHandler : AizenCommandHandler<RestoreVes
         await _invalidation.InvalidateVesselAsync(vessel.Id, cancellationToken);
         await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
-        return true;
+        return new RestoreVesselResponse(vessel.Id, vessel.IsArchived);
     }
 }

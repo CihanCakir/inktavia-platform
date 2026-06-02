@@ -6,12 +6,12 @@ using Aizen.Modules.Vessel.Abstraction.Dto.Media;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;
-using MiniUow.Paging;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 
 namespace Aizen.Modules.Vessel.Application.Query.Media;
 
 [DocumentationInfo("Get Vessel Media Query Handler", "Returns a paged list of media items for a vessel ordered by sort order; cached for 15 minutes.")]
-public sealed class GetVesselMediaQueryHandler : AizenQueryHandler<GetVesselMediaQuery, IPaginate<VesselMediaDto>>, IAizenQueryHandlerCacheable
+public sealed class GetVesselMediaQueryHandler : AizenQueryHandler<GetVesselMediaQuery, GetVesselMediaResponse>, IAizenQueryHandlerCacheable
 {
     private readonly IAizenUnitOfWork<VesselDbContext> _uow;
 
@@ -20,11 +20,11 @@ public sealed class GetVesselMediaQueryHandler : AizenQueryHandler<GetVesselMedi
         _uow = uow;
     }
 
-    public override async Task<IPaginate<VesselMediaDto>> Handle(GetVesselMediaQuery request, CancellationToken cancellationToken)
+    public override async Task<GetVesselMediaResponse?> Handle(GetVesselMediaQuery request, CancellationToken cancellationToken)
     {
         var repo = _uow.GetRepository<VesselMediaEntity>();
 
-        return await repo.GetPagedListAsync<VesselMediaDto>(
+        var result = await repo.GetPagedListAsync<VesselMediaDto>(
             selector: m => new VesselMediaDto
             {
                 Id = m.Id,
@@ -42,6 +42,8 @@ public sealed class GetVesselMediaQueryHandler : AizenQueryHandler<GetVesselMedi
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
+
+        return new GetVesselMediaResponse(result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

@@ -6,12 +6,12 @@ using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;
-using MiniUow.Paging;
+using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
 namespace Aizen.Modules.Vessel.Application.Query.Vessel;
 
 [DocumentationInfo("Get All Vessels Admin Query Handler", "Returns a paged list of all vessels for admin use; cached for 5 minutes.")]
-public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVesselsAdminQuery, IPaginate<VesselListItemDto>>, IAizenQueryHandlerCacheable
+public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVesselsAdminQuery, GetAllVesselsAdminResponse>, IAizenQueryHandlerCacheable
 {
     private readonly IAizenUnitOfWork<VesselDbContext> _uow;
 
@@ -20,11 +20,11 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
         _uow = uow;
     }
 
-    public override async Task<IPaginate<VesselListItemDto>> Handle(GetAllVesselsAdminQuery request, CancellationToken cancellationToken)
+    public override async Task<GetAllVesselsAdminResponse?> Handle(GetAllVesselsAdminQuery request, CancellationToken cancellationToken)
     {
         var repo = _uow.GetRepository<VesselEntity>();
 
-        return await repo.GetPagedListAsync<VesselListItemDto>(
+        var result = await repo.GetPagedListAsync<VesselListItemDto>(
             selector: v => new VesselListItemDto
             {
                 Id = v.Id,
@@ -47,6 +47,8 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
+
+        return new GetAllVesselsAdminResponse(result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

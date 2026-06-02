@@ -1,9 +1,9 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
+using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 
 namespace Aizen.Modules.Vessel.Application.Query.Ownership;
 
-public sealed class GetVesselOwnersQuery : AizenPagedQuery<VesselOwnerDto>
+public sealed class GetVesselOwnersQuery : AizenQuery<GetVesselOwnersResponse>
 {
     public long VesselId { get; }
     public int PageIndex { get; }

@@ -6,12 +6,12 @@ using Aizen.Modules.Vessel.Abstraction.Dto.Status;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;
-using MiniUow.Paging;
+using Aizen.Modules.Vessel.Abstraction.Response.Status;
 
 namespace Aizen.Modules.Vessel.Application.Query.Status;
 
 [DocumentationInfo("Get Vessel Status History Query Handler", "Returns a paged status change history for a vessel; cached for 15 minutes.")]
-public sealed class GetVesselStatusHistoryQueryHandler : AizenQueryHandler<GetVesselStatusHistoryQuery, IPaginate<VesselStatusHistoryDto>>, IAizenQueryHandlerCacheable
+public sealed class GetVesselStatusHistoryQueryHandler : AizenQueryHandler<GetVesselStatusHistoryQuery, GetVesselStatusHistoryResponse>, IAizenQueryHandlerCacheable
 {
     private readonly IAizenUnitOfWork<VesselDbContext> _uow;
 
@@ -20,11 +20,11 @@ public sealed class GetVesselStatusHistoryQueryHandler : AizenQueryHandler<GetVe
         _uow = uow;
     }
 
-    public override async Task<IPaginate<VesselStatusHistoryDto>> Handle(GetVesselStatusHistoryQuery request, CancellationToken cancellationToken)
+    public override async Task<GetVesselStatusHistoryResponse?> Handle(GetVesselStatusHistoryQuery request, CancellationToken cancellationToken)
     {
         var repo = _uow.GetRepository<VesselStatusHistoryEntity>();
 
-        return await repo.GetPagedListAsync<VesselStatusHistoryDto>(
+        var result = await repo.GetPagedListAsync<VesselStatusHistoryDto>(
             selector: h => new VesselStatusHistoryDto
             {
                 Id = h.Id,
@@ -40,6 +40,8 @@ public sealed class GetVesselStatusHistoryQueryHandler : AizenQueryHandler<GetVe
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
+
+        return new GetVesselStatusHistoryResponse(result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

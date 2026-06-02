@@ -1,15 +1,15 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Media;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 
 namespace Aizen.Modules.Vessel.Application.Command.Media;
 
 [DocumentationInfo("Update Vessel Media Command Handler", "Loads media, applies metadata update and invalidates media cache.")]
-public sealed class UpdateVesselMediaCommandHandler : AizenCommandHandler<UpdateVesselMediaCommand, VesselMediaDto>
+public sealed class UpdateVesselMediaCommandHandler : AizenCommandHandler<UpdateVesselMediaCommand, UpdateVesselMediaResponse>
 {
     private readonly IVesselMediaRepository _mediaRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -28,7 +28,7 @@ public sealed class UpdateVesselMediaCommandHandler : AizenCommandHandler<Update
         _info = info;
     }
 
-    public override async Task<VesselMediaDto?> Handle(UpdateVesselMediaCommand request, CancellationToken cancellationToken)
+    public override async Task<UpdateVesselMediaResponse?> Handle(UpdateVesselMediaCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -41,6 +41,6 @@ public sealed class UpdateVesselMediaCommandHandler : AizenCommandHandler<Update
 
         await _invalidation.InvalidateMediaAsync(request.VesselId, cancellationToken);
 
-        return media.ToDto();
+        return new UpdateVesselMediaResponse(media.ToDto());
     }
 }

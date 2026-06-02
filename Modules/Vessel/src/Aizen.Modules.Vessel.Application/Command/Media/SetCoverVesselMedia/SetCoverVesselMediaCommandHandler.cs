@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 
 namespace Aizen.Modules.Vessel.Application.Command.Media;
 
 [DocumentationInfo("Set Cover Vessel Media Command Handler", "Clears cover flag on all vessel media, sets it on target and invalidates media and vessel detail caches.")]
-public sealed class SetCoverVesselMediaCommandHandler : AizenCommandHandler<SetCoverVesselMediaCommand, bool>
+public sealed class SetCoverVesselMediaCommandHandler : AizenCommandHandler<SetCoverVesselMediaCommand, SetCoverVesselMediaResponse>
 {
     private readonly IVesselMediaRepository _mediaRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class SetCoverVesselMediaCommandHandler : AizenCommandHandler<SetC
         _info = info;
     }
 
-    public override async Task<bool> Handle(SetCoverVesselMediaCommand request, CancellationToken cancellationToken)
+    public override async Task<SetCoverVesselMediaResponse?> Handle(SetCoverVesselMediaCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -51,6 +52,6 @@ public sealed class SetCoverVesselMediaCommandHandler : AizenCommandHandler<SetC
         await _invalidation.InvalidateMediaAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new SetCoverVesselMediaResponse(request.VesselId, request.MediaId);
     }
 }

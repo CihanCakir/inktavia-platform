@@ -1,15 +1,15 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Engine;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Engine;
 
 namespace Aizen.Modules.Vessel.Application.Command.Engine;
 
 [DocumentationInfo("Update Vessel Engine Command Handler", "Loads engine, applies update and invalidates engines cache.")]
-public sealed class UpdateVesselEngineCommandHandler : AizenCommandHandler<UpdateVesselEngineCommand, VesselEngineDto>
+public sealed class UpdateVesselEngineCommandHandler : AizenCommandHandler<UpdateVesselEngineCommand, UpdateVesselEngineResponse>
 {
     private readonly IVesselEngineRepository _engineRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -28,7 +28,7 @@ public sealed class UpdateVesselEngineCommandHandler : AizenCommandHandler<Updat
         _info = info;
     }
 
-    public override async Task<VesselEngineDto?> Handle(UpdateVesselEngineCommand request, CancellationToken cancellationToken)
+    public override async Task<UpdateVesselEngineResponse?> Handle(UpdateVesselEngineCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -42,6 +42,6 @@ public sealed class UpdateVesselEngineCommandHandler : AizenCommandHandler<Updat
 
         await _invalidation.InvalidateEnginesAsync(request.VesselId, cancellationToken);
 
-        return engine.ToDto();
+        return new UpdateVesselEngineResponse(engine.ToDto());
     }
 }

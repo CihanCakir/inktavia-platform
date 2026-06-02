@@ -1,14 +1,13 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Enum;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
+using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Aizen.Modules.Vessel.Application.Command.Vessel;
 using Aizen.Modules.Vessel.Application.Query.Vessel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniUow.Paging;
 using System.Security.Claims;
 
 namespace Aizen.Modules.Vessel.Controller.V1.Vessel;
@@ -32,79 +31,79 @@ public sealed class VesselController : AizenWebApiController
         long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpPost]
-    [ProducesResponseType(typeof(VesselDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<VesselDto?>> Create([FromBody] CreateVesselRequest req, CancellationToken ct = default)
+    [ProducesResponseType(typeof(CreateVesselResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CreateVesselResponse?>> Create([FromBody] CreateVesselRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselDto>(new CreateVesselCommand(req), ct);
+        var result = await _cqrs.ProcessAsync<CreateVesselResponse>(new CreateVesselCommand(req), ct);
         return SetResponse(result);
     }
 
     [HttpPut("{vesselId:long}")]
-    [ProducesResponseType(typeof(VesselDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<VesselDto?>> Update([FromRoute] long vesselId, [FromBody] UpdateVesselRequest req, CancellationToken ct = default)
+    [ProducesResponseType(typeof(UpdateVesselResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateVesselResponse?>> Update([FromRoute] long vesselId, [FromBody] UpdateVesselRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselDto>(new UpdateVesselCommand(vesselId, req), ct);
+        var result = await _cqrs.ProcessAsync<UpdateVesselResponse>(new UpdateVesselCommand(vesselId, req), ct);
         return SetResponse(result);
     }
 
     [HttpGet("{vesselId:long}")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(VesselDetailDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<VesselDetailDto?>> GetDetail([FromRoute] long vesselId, CancellationToken ct = default)
+    [ProducesResponseType(typeof(GetVesselDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetVesselDetailResponse?>> GetDetail([FromRoute] long vesselId, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselDetailDto>(new GetVesselDetailQuery(vesselId), ct);
+        var result = await _cqrs.ProcessAsync<GetVesselDetailResponse>(new GetVesselDetailQuery(vesselId), ct);
         return SetResponse(result);
     }
 
     [HttpGet("code/{vesselCode}")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(VesselDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<VesselDto?>> GetByCode([FromRoute] string vesselCode, CancellationToken ct = default)
+    [ProducesResponseType(typeof(GetVesselByCodeResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetVesselByCodeResponse?>> GetByCode([FromRoute] string vesselCode, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselDto>(new GetVesselByCodeQuery(vesselCode), ct);
+        var result = await _cqrs.ProcessAsync<GetVesselByCodeResponse>(new GetVesselByCodeQuery(vesselCode), ct);
         return SetResponse(result);
     }
 
     [HttpGet("current-user")]
-    [ProducesResponseType(typeof(IPaginate<VesselListItemDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<IPaginate<VesselListItemDto>?>> GetUserVessels(
+    [ProducesResponseType(typeof(GetUserVesselsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetUserVesselsResponse?>> GetUserVessels(
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<IPaginate<VesselListItemDto>>(new GetUserVesselsQuery(CurrentUserId, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync<GetUserVesselsResponse>(new GetUserVesselsQuery(CurrentUserId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
     [HttpPatch("{vesselId:long}/archive")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> Archive([FromRoute] long vesselId, [FromBody] ArchiveVesselRequest req, CancellationToken ct = default)
+    [ProducesResponseType(typeof(ArchiveVesselResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ArchiveVesselResponse?>> Archive([FromRoute] long vesselId, [FromBody] ArchiveVesselRequest req, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new ArchiveVesselCommand(vesselId, req), ct);
-        return SetResponse<object>(new { success = true });
+        var result = await _cqrs.ProcessAsync<ArchiveVesselResponse>(new ArchiveVesselCommand(vesselId, req), ct);
+        return SetResponse(result);
     }
 
     [HttpPatch("{vesselId:long}/restore")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> Restore([FromRoute] long vesselId, CancellationToken ct = default)
+    [ProducesResponseType(typeof(RestoreVesselResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RestoreVesselResponse?>> Restore([FromRoute] long vesselId, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new RestoreVesselCommand(vesselId), ct);
-        return SetResponse<object>(new { success = true });
+        var result = await _cqrs.ProcessAsync<RestoreVesselResponse>(new RestoreVesselCommand(vesselId), ct);
+        return SetResponse(result);
     }
 
     [HttpPatch("{vesselId:long}/status")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> UpdateStatus([FromRoute] long vesselId, [FromBody] UpdateVesselStatusRequest req, CancellationToken ct = default)
+    [ProducesResponseType(typeof(UpdateVesselStatusResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateVesselStatusResponse?>> UpdateStatus([FromRoute] long vesselId, [FromBody] UpdateVesselStatusRequest req, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new UpdateVesselStatusCommand(vesselId, req), ct);
-        return SetResponse<object>(new { success = true });
+        var result = await _cqrs.ProcessAsync<UpdateVesselStatusResponse>(new UpdateVesselStatusCommand(vesselId, req), ct);
+        return SetResponse(result);
     }
 
     [HttpPatch("{vesselId:long}/visibility")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> UpdateVisibility([FromRoute] long vesselId, [FromBody] VesselVisibility visibility, CancellationToken ct = default)
+    [ProducesResponseType(typeof(UpdateVesselVisibilityResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateVesselVisibilityResponse?>> UpdateVisibility([FromRoute] long vesselId, [FromBody] VesselVisibility visibility, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new UpdateVesselVisibilityCommand(vesselId, visibility), ct);
-        return SetResponse<object>(new { success = true });
+        var result = await _cqrs.ProcessAsync<UpdateVesselVisibilityResponse>(new UpdateVesselVisibilityCommand(vesselId, visibility), ct);
+        return SetResponse(result);
     }
 }

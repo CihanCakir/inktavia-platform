@@ -6,12 +6,12 @@ using Aizen.Modules.Vessel.Abstraction.Dto.Engine;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;
-using MiniUow.Paging;
+using Aizen.Modules.Vessel.Abstraction.Response.Engine;
 
 namespace Aizen.Modules.Vessel.Application.Query.Engine;
 
 [DocumentationInfo("Get Vessel Engines Query Handler", "Returns a paged list of engines for a vessel; cached for 15 minutes.")]
-public sealed class GetVesselEnginesQueryHandler : AizenQueryHandler<GetVesselEnginesQuery, IPaginate<VesselEngineDto>>, IAizenQueryHandlerCacheable
+public sealed class GetVesselEnginesQueryHandler : AizenQueryHandler<GetVesselEnginesQuery, GetVesselEnginesResponse>, IAizenQueryHandlerCacheable
 {
     private readonly IAizenUnitOfWork<VesselDbContext> _uow;
 
@@ -20,11 +20,11 @@ public sealed class GetVesselEnginesQueryHandler : AizenQueryHandler<GetVesselEn
         _uow = uow;
     }
 
-    public override async Task<IPaginate<VesselEngineDto>> Handle(GetVesselEnginesQuery request, CancellationToken cancellationToken)
+    public override async Task<GetVesselEnginesResponse?> Handle(GetVesselEnginesQuery request, CancellationToken cancellationToken)
     {
         var repo = _uow.GetRepository<VesselEngineEntity>();
 
-        return await repo.GetPagedListAsync<VesselEngineDto>(
+        var result = await repo.GetPagedListAsync<VesselEngineDto>(
             selector: e => new VesselEngineDto
             {
                 Id = e.Id,
@@ -45,6 +45,8 @@ public sealed class GetVesselEnginesQueryHandler : AizenQueryHandler<GetVesselEn
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
+
+        return new GetVesselEnginesResponse(result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

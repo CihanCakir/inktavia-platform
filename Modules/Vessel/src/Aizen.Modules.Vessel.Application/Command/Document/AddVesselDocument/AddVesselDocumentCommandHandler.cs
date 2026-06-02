@@ -1,16 +1,16 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Document;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Document;
 
 namespace Aizen.Modules.Vessel.Application.Command.Document;
 
 [DocumentationInfo("Add Vessel Document Command Handler", "Creates a vessel document entity and invalidates documents and vessel detail caches.")]
-public sealed class AddVesselDocumentCommandHandler : AizenCommandHandler<AddVesselDocumentCommand, VesselDocumentDto>
+public sealed class AddVesselDocumentCommandHandler : AizenCommandHandler<AddVesselDocumentCommand, AddVesselDocumentResponse>
 {
     private readonly IVesselDocumentRepository _documentRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -29,7 +29,7 @@ public sealed class AddVesselDocumentCommandHandler : AizenCommandHandler<AddVes
         _info = info;
     }
 
-    public override async Task<VesselDocumentDto?> Handle(AddVesselDocumentCommand request, CancellationToken cancellationToken)
+    public override async Task<AddVesselDocumentResponse?> Handle(AddVesselDocumentCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -51,6 +51,6 @@ public sealed class AddVesselDocumentCommandHandler : AizenCommandHandler<AddVes
         await _invalidation.InvalidateDocumentsAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
 
-        return document.ToDto();
+        return new AddVesselDocumentResponse(document.ToDto());
     }
 }

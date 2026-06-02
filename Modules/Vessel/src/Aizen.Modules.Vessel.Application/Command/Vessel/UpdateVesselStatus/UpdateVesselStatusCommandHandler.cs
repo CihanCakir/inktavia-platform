@@ -2,11 +2,12 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
 namespace Aizen.Modules.Vessel.Application.Command.Vessel;
 
 [DocumentationInfo("Update Vessel Status Command Handler", "Delegates status change to IVesselStatusService and invalidates vessel and status history caches.")]
-public sealed class UpdateVesselStatusCommandHandler : AizenCommandHandler<UpdateVesselStatusCommand, bool>
+public sealed class UpdateVesselStatusCommandHandler : AizenCommandHandler<UpdateVesselStatusCommand, UpdateVesselStatusResponse>
 {
     private readonly IVesselStatusService _statusService;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -25,7 +26,7 @@ public sealed class UpdateVesselStatusCommandHandler : AizenCommandHandler<Updat
         _info = info;
     }
 
-    public override async Task<bool> Handle(UpdateVesselStatusCommand request, CancellationToken cancellationToken)
+    public override async Task<UpdateVesselStatusResponse?> Handle(UpdateVesselStatusCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -35,6 +36,6 @@ public sealed class UpdateVesselStatusCommandHandler : AizenCommandHandler<Updat
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateStatusHistoryAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new UpdateVesselStatusResponse(request.VesselId, request.Request.Status);
     }
 }

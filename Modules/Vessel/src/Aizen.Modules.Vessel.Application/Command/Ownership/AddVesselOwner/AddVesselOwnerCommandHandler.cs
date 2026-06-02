@@ -1,13 +1,13 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 
 namespace Aizen.Modules.Vessel.Application.Command.Ownership;
 
 [DocumentationInfo("Add Vessel Owner Command Handler", "Delegates owner addition to IVesselOwnershipService and invalidates owners and vessel detail caches.")]
-public sealed class AddVesselOwnerCommandHandler : AizenCommandHandler<AddVesselOwnerCommand, VesselOwnerDto>
+public sealed class AddVesselOwnerCommandHandler : AizenCommandHandler<AddVesselOwnerCommand, AddVesselOwnerResponse>
 {
     private readonly IVesselOwnershipService _ownershipService;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +26,7 @@ public sealed class AddVesselOwnerCommandHandler : AizenCommandHandler<AddVessel
         _info = info;
     }
 
-    public override async Task<VesselOwnerDto?> Handle(AddVesselOwnerCommand request, CancellationToken cancellationToken)
+    public override async Task<AddVesselOwnerResponse?> Handle(AddVesselOwnerCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanManageOwnersAsync(request.VesselId, currentUserId, cancellationToken);
@@ -36,6 +36,6 @@ public sealed class AddVesselOwnerCommandHandler : AizenCommandHandler<AddVessel
         await _invalidation.InvalidateOwnersAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
 
-        return result;
+        return new AddVesselOwnerResponse(result);
     }
 }

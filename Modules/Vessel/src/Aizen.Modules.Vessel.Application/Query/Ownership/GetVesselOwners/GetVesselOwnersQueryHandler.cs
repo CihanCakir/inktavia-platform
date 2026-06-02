@@ -6,12 +6,12 @@ using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;
-using MiniUow.Paging;
+using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 
 namespace Aizen.Modules.Vessel.Application.Query.Ownership;
 
 [DocumentationInfo("Get Vessel Owners Query Handler", "Returns a paged list of ownership records for a vessel; cached for 15 minutes.")]
-public sealed class GetVesselOwnersQueryHandler : AizenQueryHandler<GetVesselOwnersQuery, IPaginate<VesselOwnerDto>>, IAizenQueryHandlerCacheable
+public sealed class GetVesselOwnersQueryHandler : AizenQueryHandler<GetVesselOwnersQuery, GetVesselOwnersResponse>, IAizenQueryHandlerCacheable
 {
     private readonly IAizenUnitOfWork<VesselDbContext> _uow;
 
@@ -20,11 +20,11 @@ public sealed class GetVesselOwnersQueryHandler : AizenQueryHandler<GetVesselOwn
         _uow = uow;
     }
 
-    public override async Task<IPaginate<VesselOwnerDto>> Handle(GetVesselOwnersQuery request, CancellationToken cancellationToken)
+    public override async Task<GetVesselOwnersResponse?> Handle(GetVesselOwnersQuery request, CancellationToken cancellationToken)
     {
         var repo = _uow.GetRepository<VesselOwnerEntity>();
 
-        return await repo.GetPagedListAsync<VesselOwnerDto>(
+        var result = await repo.GetPagedListAsync<VesselOwnerDto>(
             selector: o => new VesselOwnerDto
             {
                 Id = o.Id,
@@ -43,6 +43,8 @@ public sealed class GetVesselOwnersQueryHandler : AizenQueryHandler<GetVesselOwn
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
+
+        return new GetVesselOwnersResponse(result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

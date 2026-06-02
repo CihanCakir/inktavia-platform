@@ -1,16 +1,16 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Specification;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Specification;
 
 namespace Aizen.Modules.Vessel.Application.Command.Specification;
 
 [DocumentationInfo("Upsert Vessel Specification Command Handler", "Creates or updates vessel specification and invalidates spec and vessel detail caches.")]
-public sealed class UpsertVesselSpecificationCommandHandler : AizenCommandHandler<UpsertVesselSpecificationCommand, VesselSpecificationDto>
+public sealed class UpsertVesselSpecificationCommandHandler : AizenCommandHandler<UpsertVesselSpecificationCommand, UpsertVesselSpecificationResponse>
 {
     private readonly IVesselSpecificationRepository _specRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -29,7 +29,7 @@ public sealed class UpsertVesselSpecificationCommandHandler : AizenCommandHandle
         _info = info;
     }
 
-    public override async Task<VesselSpecificationDto?> Handle(UpsertVesselSpecificationCommand request, CancellationToken cancellationToken)
+    public override async Task<UpsertVesselSpecificationResponse?> Handle(UpsertVesselSpecificationCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -72,6 +72,6 @@ public sealed class UpsertVesselSpecificationCommandHandler : AizenCommandHandle
         await _invalidation.InvalidateSpecificationAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
 
-        return spec.ToDto();
+        return new UpsertVesselSpecificationResponse(spec.ToDto());
     }
 }

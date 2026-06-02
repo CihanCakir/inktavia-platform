@@ -1,12 +1,11 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Model;
-using MiniUow.Paging;
+using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
 namespace Aizen.Modules.Vessel.Application.Query.Vessel;
 
 [DocumentationInfo("Get All Vessels Admin Query", "Admin query to retrieve a paged list of all vessels.")]
-public sealed class GetAllVesselsAdminQuery : AizenPagedQuery<VesselListItemDto>
+public sealed class GetAllVesselsAdminQuery : AizenQuery<GetAllVesselsAdminResponse>
 {
     public string? SearchTerm { get; }
     public bool? IsArchived { get; }

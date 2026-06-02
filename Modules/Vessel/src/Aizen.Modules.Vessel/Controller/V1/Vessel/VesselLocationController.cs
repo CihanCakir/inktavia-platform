@@ -1,8 +1,8 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.Vessel.Abstraction.Dto.Location;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Location;
+using Aizen.Modules.Vessel.Abstraction.Response.Location;
 using Aizen.Modules.Vessel.Application.Command.Location;
 using Aizen.Modules.Vessel.Application.Query.Location;
 using Microsoft.AspNetCore.Authorization;
@@ -27,18 +27,18 @@ public sealed class VesselLocationController : AizenWebApiController
 
     [HttpGet("current")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(VesselLocationSnapshotDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<VesselLocationSnapshotDto?>> GetCurrent([FromRoute] long vesselId, CancellationToken ct = default)
+    [ProducesResponseType(typeof(GetCurrentVesselLocationResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetCurrentVesselLocationResponse?>> GetCurrent([FromRoute] long vesselId, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselLocationSnapshotDto>(new GetCurrentVesselLocationQuery(vesselId), ct);
+        var result = await _cqrs.ProcessAsync<GetCurrentVesselLocationResponse>(new GetCurrentVesselLocationQuery(vesselId), ct);
         return SetResponse(result);
     }
 
     [HttpPut]
-    [ProducesResponseType(typeof(VesselLocationSnapshotDto), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<VesselLocationSnapshotDto?>> Update([FromRoute] long vesselId, [FromBody] UpdateVesselLocationSnapshotRequest req, CancellationToken ct = default)
+    [ProducesResponseType(typeof(UpdateVesselLocationSnapshotResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateVesselLocationSnapshotResponse?>> Update([FromRoute] long vesselId, [FromBody] UpdateVesselLocationSnapshotRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselLocationSnapshotDto>(new UpdateVesselLocationSnapshotCommand(vesselId, req), ct);
+        var result = await _cqrs.ProcessAsync<UpdateVesselLocationSnapshotResponse>(new UpdateVesselLocationSnapshotCommand(vesselId, req), ct);
         return SetResponse(result);
     }
 }

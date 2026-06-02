@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 
 namespace Aizen.Modules.Vessel.Application.Command.Media;
 
 [DocumentationInfo("Remove Vessel Media Command Handler", "Deactivates a vessel media item and invalidates media cache.")]
-public sealed class RemoveVesselMediaCommandHandler : AizenCommandHandler<RemoveVesselMediaCommand, bool>
+public sealed class RemoveVesselMediaCommandHandler : AizenCommandHandler<RemoveVesselMediaCommand, RemoveVesselMediaResponse>
 {
     private readonly IVesselMediaRepository _mediaRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class RemoveVesselMediaCommandHandler : AizenCommandHandler<Remove
         _info = info;
     }
 
-    public override async Task<bool> Handle(RemoveVesselMediaCommand request, CancellationToken cancellationToken)
+    public override async Task<RemoveVesselMediaResponse?> Handle(RemoveVesselMediaCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -39,6 +40,6 @@ public sealed class RemoveVesselMediaCommandHandler : AizenCommandHandler<Remove
 
         await _invalidation.InvalidateMediaAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new RemoveVesselMediaResponse(request.VesselId, request.MediaId);
     }
 }

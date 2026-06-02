@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Engine;
 
 namespace Aizen.Modules.Vessel.Application.Command.Engine;
 
 [DocumentationInfo("Remove Vessel Engine Command Handler", "Deactivates a vessel engine and invalidates engines cache.")]
-public sealed class RemoveVesselEngineCommandHandler : AizenCommandHandler<RemoveVesselEngineCommand, bool>
+public sealed class RemoveVesselEngineCommandHandler : AizenCommandHandler<RemoveVesselEngineCommand, RemoveVesselEngineResponse>
 {
     private readonly IVesselEngineRepository _engineRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class RemoveVesselEngineCommandHandler : AizenCommandHandler<Remov
         _info = info;
     }
 
-    public override async Task<bool> Handle(RemoveVesselEngineCommand request, CancellationToken cancellationToken)
+    public override async Task<RemoveVesselEngineResponse?> Handle(RemoveVesselEngineCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -39,6 +40,6 @@ public sealed class RemoveVesselEngineCommandHandler : AizenCommandHandler<Remov
 
         await _invalidation.InvalidateEnginesAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new RemoveVesselEngineResponse(request.VesselId, request.EngineId);
     }
 }

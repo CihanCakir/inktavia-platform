@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Document;
 
 namespace Aizen.Modules.Vessel.Application.Command.Document;
 
 [DocumentationInfo("Remove Vessel Document Command Handler", "Deactivates a vessel document and invalidates documents cache.")]
-public sealed class RemoveVesselDocumentCommandHandler : AizenCommandHandler<RemoveVesselDocumentCommand, bool>
+public sealed class RemoveVesselDocumentCommandHandler : AizenCommandHandler<RemoveVesselDocumentCommand, RemoveVesselDocumentResponse>
 {
     private readonly IVesselDocumentRepository _documentRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class RemoveVesselDocumentCommandHandler : AizenCommandHandler<Rem
         _info = info;
     }
 
-    public override async Task<bool> Handle(RemoveVesselDocumentCommand request, CancellationToken cancellationToken)
+    public override async Task<RemoveVesselDocumentResponse?> Handle(RemoveVesselDocumentCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -39,6 +40,6 @@ public sealed class RemoveVesselDocumentCommandHandler : AizenCommandHandler<Rem
 
         await _invalidation.InvalidateDocumentsAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new RemoveVesselDocumentResponse(request.VesselId, request.DocumentId);
     }
 }

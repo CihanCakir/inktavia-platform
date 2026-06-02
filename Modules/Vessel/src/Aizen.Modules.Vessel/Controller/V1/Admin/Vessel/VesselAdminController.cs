@@ -1,12 +1,11 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Model;
-using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Model;
+using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Aizen.Modules.Vessel.Application.Query.Vessel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Controller.V1.Admin.Vessel;
 
@@ -26,15 +25,15 @@ public sealed class VesselAdminController : AizenWebApiController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(IPaginate<VesselListItemDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<IPaginate<VesselListItemDto>?>> GetAll(
+    [ProducesResponseType(typeof(GetAllVesselsAdminResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetAllVesselsAdminResponse?>> GetAll(
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? searchTerm = null,
         [FromQuery] bool? isArchived = null,
         CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<IPaginate<VesselListItemDto>>(
+        var result = await _cqrs.ProcessAsync<GetAllVesselsAdminResponse>(
             new GetAllVesselsAdminQuery(pageIndex, pageSize, searchTerm, isArchived), ct);
         return SetResponse(result);
     }

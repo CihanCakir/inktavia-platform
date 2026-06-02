@@ -1,16 +1,16 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Engine;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Engine;
 
 namespace Aizen.Modules.Vessel.Application.Command.Engine;
 
 [DocumentationInfo("Add Vessel Engine Command Handler", "Creates a vessel engine entity and invalidates engines and vessel detail caches.")]
-public sealed class AddVesselEngineCommandHandler : AizenCommandHandler<AddVesselEngineCommand, VesselEngineDto>
+public sealed class AddVesselEngineCommandHandler : AizenCommandHandler<AddVesselEngineCommand, AddVesselEngineResponse>
 {
     private readonly IVesselEngineRepository _engineRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -29,7 +29,7 @@ public sealed class AddVesselEngineCommandHandler : AizenCommandHandler<AddVesse
         _info = info;
     }
 
-    public override async Task<VesselEngineDto?> Handle(AddVesselEngineCommand request, CancellationToken cancellationToken)
+    public override async Task<AddVesselEngineResponse?> Handle(AddVesselEngineCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -60,6 +60,6 @@ public sealed class AddVesselEngineCommandHandler : AizenCommandHandler<AddVesse
         await _invalidation.InvalidateEnginesAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
 
-        return engine.ToDto();
+        return new AddVesselEngineResponse(engine.ToDto());
     }
 }

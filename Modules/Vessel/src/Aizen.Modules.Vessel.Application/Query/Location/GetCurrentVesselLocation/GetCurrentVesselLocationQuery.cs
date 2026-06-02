@@ -1,9 +1,9 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Vessel.Abstraction.Dto.Location;
+using Aizen.Modules.Vessel.Abstraction.Response.Location;
 
 namespace Aizen.Modules.Vessel.Application.Query.Location;
 
-public sealed class GetCurrentVesselLocationQuery : AizenQuery<VesselLocationSnapshotDto?>
+public sealed class GetCurrentVesselLocationQuery : AizenQuery<GetCurrentVesselLocationResponse>
 {
     public long VesselId { get; }
 

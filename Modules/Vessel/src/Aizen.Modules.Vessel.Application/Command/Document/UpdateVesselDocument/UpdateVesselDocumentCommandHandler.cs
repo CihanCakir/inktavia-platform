@@ -1,15 +1,15 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Document;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Document;
 
 namespace Aizen.Modules.Vessel.Application.Command.Document;
 
 [DocumentationInfo("Update Vessel Document Command Handler", "Loads document, applies metadata update and invalidates documents cache.")]
-public sealed class UpdateVesselDocumentCommandHandler : AizenCommandHandler<UpdateVesselDocumentCommand, VesselDocumentDto>
+public sealed class UpdateVesselDocumentCommandHandler : AizenCommandHandler<UpdateVesselDocumentCommand, UpdateVesselDocumentResponse>
 {
     private readonly IVesselDocumentRepository _documentRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -28,7 +28,7 @@ public sealed class UpdateVesselDocumentCommandHandler : AizenCommandHandler<Upd
         _info = info;
     }
 
-    public override async Task<VesselDocumentDto?> Handle(UpdateVesselDocumentCommand request, CancellationToken cancellationToken)
+    public override async Task<UpdateVesselDocumentResponse?> Handle(UpdateVesselDocumentCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -41,6 +41,6 @@ public sealed class UpdateVesselDocumentCommandHandler : AizenCommandHandler<Upd
 
         await _invalidation.InvalidateDocumentsAsync(request.VesselId, cancellationToken);
 
-        return document.ToDto();
+        return new UpdateVesselDocumentResponse(document.ToDto());
     }
 }

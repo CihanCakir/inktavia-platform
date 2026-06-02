@@ -1,15 +1,15 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
 namespace Aizen.Modules.Vessel.Application.Command.Vessel;
 
 [DocumentationInfo("Update Vessel Command Handler", "Loads vessel, applies profile updates and invalidates vessel and list caches.")]
-public sealed class UpdateVesselCommandHandler : AizenCommandHandler<UpdateVesselCommand, VesselDto>
+public sealed class UpdateVesselCommandHandler : AizenCommandHandler<UpdateVesselCommand, UpdateVesselResponse>
 {
     private readonly IVesselRepository _vesselRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -28,7 +28,7 @@ public sealed class UpdateVesselCommandHandler : AizenCommandHandler<UpdateVesse
         _info = info;
     }
 
-    public override async Task<VesselDto?> Handle(UpdateVesselCommand request, CancellationToken cancellationToken)
+    public override async Task<UpdateVesselResponse?> Handle(UpdateVesselCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -56,6 +56,6 @@ public sealed class UpdateVesselCommandHandler : AizenCommandHandler<UpdateVesse
         await _invalidation.InvalidateVesselAsync(vessel.Id, cancellationToken);
         await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
-        return vessel.ToDto();
+        return new UpdateVesselResponse(vessel.ToDto());
     }
 }

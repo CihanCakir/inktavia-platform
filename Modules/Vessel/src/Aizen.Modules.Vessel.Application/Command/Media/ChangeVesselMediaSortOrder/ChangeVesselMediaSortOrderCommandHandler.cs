@@ -3,11 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 
 namespace Aizen.Modules.Vessel.Application.Command.Media;
 
 [DocumentationInfo("Change Vessel Media Sort Order Command Handler", "Updates the sort order of a vessel media item and invalidates media cache.")]
-public sealed class ChangeVesselMediaSortOrderCommandHandler : AizenCommandHandler<ChangeVesselMediaSortOrderCommand, bool>
+public sealed class ChangeVesselMediaSortOrderCommandHandler : AizenCommandHandler<ChangeVesselMediaSortOrderCommand, ChangeVesselMediaSortOrderResponse>
 {
     private readonly IVesselMediaRepository _mediaRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
@@ -26,7 +27,7 @@ public sealed class ChangeVesselMediaSortOrderCommandHandler : AizenCommandHandl
         _info = info;
     }
 
-    public override async Task<bool> Handle(ChangeVesselMediaSortOrderCommand request, CancellationToken cancellationToken)
+    public override async Task<ChangeVesselMediaSortOrderResponse?> Handle(ChangeVesselMediaSortOrderCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
@@ -39,6 +40,6 @@ public sealed class ChangeVesselMediaSortOrderCommandHandler : AizenCommandHandl
 
         await _invalidation.InvalidateMediaAsync(request.VesselId, cancellationToken);
 
-        return true;
+        return new ChangeVesselMediaSortOrderResponse(request.VesselId, request.MediaId, request.SortOrder);
     }
 }
