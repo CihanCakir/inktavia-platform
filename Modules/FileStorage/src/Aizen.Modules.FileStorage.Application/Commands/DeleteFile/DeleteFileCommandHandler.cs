@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
 using Aizen.Modules.FileStorage.Abstraction.Message;
@@ -14,19 +15,24 @@ public sealed class DeleteFileCommandHandler : AizenCommandHandler<DeleteFileCom
     private readonly IFileStorageService _storageService;
     private readonly IFileRepository _fileRepository;
     private readonly IAizenMessagePublisher _publisher;
+    private readonly IAizenInfoAccessor _info;
 
     public DeleteFileCommandHandler(
         IFileStorageService storageService,
         IFileRepository fileRepository,
-        IAizenMessagePublisher publisher)
+        IAizenMessagePublisher publisher,
+        IAizenInfoAccessor info)
     {
         _storageService = storageService;
         _fileRepository = fileRepository;
         _publisher = publisher;
+        _info = info;
     }
 
     public override async Task<bool> Handle(DeleteFileCommand command, CancellationToken cancellationToken)
     {
+        var userId = _info.UserInfoAccessor.UserInfo.UserId;
+
         var file = await _fileRepository.GetByIdAsync(command.FileId, cancellationToken)
             ?? throw new KeyNotFoundException($"File with id '{command.FileId}' not found.");
 
@@ -34,7 +40,7 @@ public sealed class DeleteFileCommandHandler : AizenCommandHandler<DeleteFileCom
         var objectKey = file.ObjectKey;
         var bucketName = file.BucketName;
 
-        var deleted = await _storageService.DeleteFileAsync(command.FileId, command.UserId, cancellationToken);
+        var deleted = await _storageService.DeleteFileAsync(command.FileId, userId, cancellationToken);
 
         if (deleted)
         {
@@ -44,7 +50,7 @@ public sealed class DeleteFileCommandHandler : AizenCommandHandler<DeleteFileCom
                 ObjectKey = objectKey,
                 BucketName = bucketName,
                 DeleteBehavior = command.Request?.DeleteBehavior ?? FileDeleteBehavior.SoftDeleteOnly,
-                DeletedByUserId = command.UserId
+                DeletedByUserId = userId
             }, cancellationToken);
         }
 

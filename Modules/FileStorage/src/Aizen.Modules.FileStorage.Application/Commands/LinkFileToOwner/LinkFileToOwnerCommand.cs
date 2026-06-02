@@ -10,5 +10,4 @@ public sealed class LinkFileToOwnerCommand : AizenCommand<FileOwnerReferenceDto>
 {
     public long FileId { get; set; }
     public LinkFileToOwnerRequest Request { get; set; } = default!;
-    public long? UserId { get; set; }
 }

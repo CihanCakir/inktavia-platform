@@ -10,5 +10,4 @@ public sealed class CompleteUploadSessionCommand : AizenCommand<FileDto>
 {
     public string UploadSessionCode { get; set; } = default!;
     public CompleteUploadSessionRequest Request { get; set; } = default!;
-    public long? UserId { get; set; }
 }

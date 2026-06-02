@@ -50,8 +50,7 @@ public sealed class LinkFileToOwnerConsumer
                     OwnerModule = message.OwnerModule,
                     OwnerEntityType = message.OwnerEntityType,
                     OwnerEntityId = message.OwnerEntityId
-                },
-                UserId = message.LinkedByUserId
+                }
             }, cancellationToken);
 
         return new LinkFileToOwnerProcessMessageResult

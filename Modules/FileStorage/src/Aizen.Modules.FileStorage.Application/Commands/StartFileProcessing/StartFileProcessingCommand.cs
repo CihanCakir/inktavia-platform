@@ -10,5 +10,4 @@ public sealed class StartFileProcessingCommand : AizenCommand<FileProcessingJobD
 {
     public long FileId { get; set; }
     public StartFileProcessingRequest Request { get; set; } = default!;
-    public long? UserId { get; set; }
 }

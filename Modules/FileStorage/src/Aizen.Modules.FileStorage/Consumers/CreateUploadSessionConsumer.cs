@@ -40,8 +40,7 @@ public sealed class CreateUploadSessionConsumer
                     OwnerModule = message.OwnerModule,
                     OwnerEntityType = message.OwnerEntityType,
                     OwnerEntityId = message.OwnerEntityId
-                },
-                UserId = message.RequestedByUserId
+                }
             }, cancellationToken);
 
         return new CreateUploadSessionProcessMessageResult

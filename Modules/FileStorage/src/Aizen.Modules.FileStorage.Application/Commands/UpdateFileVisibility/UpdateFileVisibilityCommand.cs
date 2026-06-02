@@ -10,5 +10,4 @@ public sealed class UpdateFileVisibilityCommand : AizenCommand<FileDto>
 {
     public long FileId { get; set; }
     public FileVisibility Visibility { get; set; }
-    public long? UserId { get; set; }
 }

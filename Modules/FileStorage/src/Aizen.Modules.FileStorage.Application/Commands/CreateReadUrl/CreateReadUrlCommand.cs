@@ -10,5 +10,4 @@ public sealed class CreateReadUrlCommand : AizenCommand<FileAccessUrlDto>
 {
     public long FileId { get; set; }
     public CreateReadUrlRequest Request { get; set; } = default!;
-    public long? UserId { get; set; }
 }

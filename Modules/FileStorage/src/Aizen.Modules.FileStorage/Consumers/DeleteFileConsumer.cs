@@ -40,8 +40,7 @@ public sealed class DeleteFileConsumer
             new DeleteFileCommand
             {
                 FileId = fileEntity.Id,
-                Request = new DeleteFileRequest { DeleteBehavior = message.DeleteBehavior },
-                UserId = message.DeletedByUserId
+                Request = new DeleteFileRequest { DeleteBehavior = message.DeleteBehavior }
             }, cancellationToken);
 
         return new DeleteFileProcessMessageResult { FileId = message.FileId, IsDeleted = true };

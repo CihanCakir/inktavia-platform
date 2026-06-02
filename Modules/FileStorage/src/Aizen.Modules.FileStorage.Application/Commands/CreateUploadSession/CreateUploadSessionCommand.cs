@@ -9,7 +9,4 @@ namespace Aizen.Modules.FileStorage.Application.Commands.CreateUploadSession;
 public sealed class CreateUploadSessionCommand : AizenCommand<FileUploadSessionDto>
 {
     public CreateUploadSessionRequest Request { get; set; } = default!;
-    public long? UserId { get; set; }
-    public string? ClientId { get; set; }
-    public string? DeviceId { get; set; }
 }

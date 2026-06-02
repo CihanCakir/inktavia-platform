@@ -8,7 +8,6 @@ using Aizen.Modules.FileStorage.Application.Commands.UpdateFileProcessingResult;
 using Aizen.Modules.FileStorage.Application.Queries.GetFileProcessingJobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Aizen.Modules.FileStorage.Controller.V1.File;
 
@@ -27,9 +26,6 @@ public sealed class FileProcessingController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     [HttpPost("start")]
     [ProducesResponseType(typeof(FileProcessingJobDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileProcessingJobDto?>> Start(
@@ -38,7 +34,7 @@ public sealed class FileProcessingController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<FileProcessingJobDto>(
-            new StartFileProcessingCommand { FileId = fileId, Request = req, UserId = CurrentUserId }, ct);
+            new StartFileProcessingCommand { FileId = fileId, Request = req }, ct);
         return SetResponse(result);
     }
 

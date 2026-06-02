@@ -13,7 +13,6 @@ using Aizen.Modules.FileStorage.Application.Queries.GetFileById;
 using Aizen.Modules.FileStorage.Application.Queries.GetFileMetadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Aizen.Modules.FileStorage.Controller.V1.File;
 
@@ -31,9 +30,6 @@ public sealed class FileController : AizenWebApiController
     {
         _cqrs = cqrs;
     }
-
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet("{fileId:long}")]
     [ProducesResponseType(typeof(FileDto), StatusCodes.Status200OK)]
@@ -63,7 +59,7 @@ public sealed class FileController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<bool>(
-            new DeleteFileCommand { FileId = fileId, Request = req, UserId = CurrentUserId }, ct);
+            new DeleteFileCommand { FileId = fileId, Request = req }, ct);
         return Ok(result);
     }
 
@@ -75,7 +71,7 @@ public sealed class FileController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<FileDto>(
-            new UpdateFileVisibilityCommand { FileId = fileId, Visibility = visibility, UserId = CurrentUserId }, ct);
+            new UpdateFileVisibilityCommand { FileId = fileId, Visibility = visibility }, ct);
         return SetResponse(result);
     }
 
@@ -87,7 +83,7 @@ public sealed class FileController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<FileOwnerReferenceDto>(
-            new LinkFileToOwnerCommand { FileId = fileId, Request = req, UserId = CurrentUserId }, ct);
+            new LinkFileToOwnerCommand { FileId = fileId, Request = req }, ct);
         return SetResponse(result);
     }
 }

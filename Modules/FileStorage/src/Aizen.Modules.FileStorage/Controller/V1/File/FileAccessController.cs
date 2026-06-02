@@ -8,7 +8,6 @@ using Aizen.Modules.FileStorage.Application.Commands.CreateReadUrl;
 using Aizen.Modules.FileStorage.Application.Queries.ValidateFileOwnership;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Aizen.Modules.FileStorage.Controller.V1.File;
 
@@ -27,9 +26,6 @@ public sealed class FileAccessController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     [HttpPost("read-url")]
     [ProducesResponseType(typeof(FileAccessUrlDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileAccessUrlDto?>> CreateReadUrl(
@@ -38,7 +34,7 @@ public sealed class FileAccessController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<FileAccessUrlDto>(
-            new CreateReadUrlCommand { FileId = fileId, Request = req, UserId = CurrentUserId }, ct);
+            new CreateReadUrlCommand { FileId = fileId, Request = req }, ct);
         return SetResponse(result);
     }
 

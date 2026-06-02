@@ -7,7 +7,6 @@ using Aizen.Modules.FileStorage.Application.Commands.CompleteUploadSession;
 using Aizen.Modules.FileStorage.Application.Commands.CreateUploadSession;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Aizen.Modules.FileStorage.Controller.V1.UploadSession;
 
@@ -26,9 +25,6 @@ public sealed class UploadSessionController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     [HttpPost]
     [ProducesResponseType(typeof(FileUploadSessionDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileUploadSessionDto?>> Create(
@@ -36,7 +32,7 @@ public sealed class UploadSessionController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<FileUploadSessionDto>(
-            new CreateUploadSessionCommand { Request = req, UserId = CurrentUserId }, ct);
+            new CreateUploadSessionCommand { Request = req }, ct);
         return SetResponse(result);
     }
 
@@ -51,8 +47,7 @@ public sealed class UploadSessionController : AizenWebApiController
             new CompleteUploadSessionCommand
             {
                 UploadSessionCode = uploadSessionCode,
-                Request = req,
-                UserId = CurrentUserId
+                Request = req
             }, ct);
         return SetResponse(result);
     }

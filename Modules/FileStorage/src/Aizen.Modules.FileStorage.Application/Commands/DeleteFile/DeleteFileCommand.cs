@@ -9,5 +9,4 @@ public sealed class DeleteFileCommand : AizenCommand<bool>
 {
     public long FileId { get; set; }
     public DeleteFileRequest Request { get; set; } = default!;
-    public long? UserId { get; set; }
 }
