@@ -6,6 +6,9 @@ namespace Aizen.Modules.Vessel.Abstraction.Request.Document;
 public sealed class UpdateVesselDocumentRequest
 {
     public string DocumentName { get; set; } = default!;
+    public string DocumentTypeCode { get; set; } = default!;
+    public Guid? FileId { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public string? Notes { get; set; }
 }
+

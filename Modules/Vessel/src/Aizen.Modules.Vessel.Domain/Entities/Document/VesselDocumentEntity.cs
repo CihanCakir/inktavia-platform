@@ -10,10 +10,10 @@ public sealed class VesselDocumentEntity : AizenEntityWithAudit
     public long VesselId { get; private set; }
     public string DocumentTypeCode { get; private set; } = default!;
     public string DocumentName { get; private set; } = default!;
-    public string? FileId { get; private set; }
-    public string? FileName { get; private set; }
-    public string? FileUrl { get; private set; }
-    public string? MimeType { get; private set; }
+    public Guid? FileId { get; private set; }
+    public string? OriginalFileNameSnapshot { get; private set; }
+    public string? ContentTypeSnapshot { get; private set; }
+    public long? SizeInBytesSnapshot { get; private set; }
     public DateTime? ExpiresAt { get; private set; }
     public VesselDocumentStatus DocumentStatus { get; private set; }
     public string? Notes { get; private set; }
@@ -23,9 +23,15 @@ public sealed class VesselDocumentEntity : AizenEntityWithAudit
     public VesselDocumentEntity() { }
 
     public static VesselDocumentEntity Create(
-        long vesselId, string documentTypeCode, string documentName,
-        string? fileId, string? fileName, string? fileUrl, string? mimeType,
-        DateTime? expiresAt, string? notes)
+        long vesselId,
+        string documentTypeCode,
+        string documentName,
+        Guid? fileId,
+        string? originalFileNameSnapshot,
+        string? contentTypeSnapshot,
+        long? sizeInBytesSnapshot,
+        DateTime? expiresAt,
+        string? notes)
     {
         return new VesselDocumentEntity
         {
@@ -33,9 +39,9 @@ public sealed class VesselDocumentEntity : AizenEntityWithAudit
             DocumentTypeCode = documentTypeCode.ToUpperInvariant(),
             DocumentName = documentName.Trim(),
             FileId = fileId,
-            FileName = fileName,
-            FileUrl = fileUrl,
-            MimeType = mimeType,
+            OriginalFileNameSnapshot = originalFileNameSnapshot,
+            ContentTypeSnapshot = contentTypeSnapshot,
+            SizeInBytesSnapshot = sizeInBytesSnapshot,
             ExpiresAt = expiresAt,
             DocumentStatus = VesselDocumentStatus.Active,
             Notes = notes,
@@ -43,9 +49,22 @@ public sealed class VesselDocumentEntity : AizenEntityWithAudit
         };
     }
 
-    public void Update(string documentName, DateTime? expiresAt, string? notes)
+    public void Update(
+        string documentName,
+        string documentTypeCode,
+        Guid? fileId,
+        string? originalFileNameSnapshot,
+        string? contentTypeSnapshot,
+        long? sizeInBytesSnapshot,
+        DateTime? expiresAt,
+        string? notes)
     {
         DocumentName = documentName.Trim();
+        DocumentTypeCode = documentTypeCode.ToUpperInvariant();
+        FileId = fileId;
+        OriginalFileNameSnapshot = originalFileNameSnapshot;
+        ContentTypeSnapshot = contentTypeSnapshot;
+        SizeInBytesSnapshot = sizeInBytesSnapshot;
         ExpiresAt = expiresAt;
         Notes = notes;
     }
@@ -53,3 +72,4 @@ public sealed class VesselDocumentEntity : AizenEntityWithAudit
     public void ChangeStatus(VesselDocumentStatus status) => DocumentStatus = status;
     public void Deactivate() => IsActive = false;
 }
+

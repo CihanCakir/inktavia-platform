@@ -10,4 +10,8 @@
     <PackageReference Include="MiniUow" Version="3.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+  </ItemGroup>
+
 </Project>

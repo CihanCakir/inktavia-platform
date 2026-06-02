@@ -4,6 +4,7 @@ using Aizen.Modules.Vessel.Repository.Mongo;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Aizen.Modules.Vessel.Repository.Repositories;
 using Aizen.Modules.Vessel.Repository.Service;
+using Aizen.Modules.Vessel.Repository.Service.FileStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<IVesselSnapshotService, VesselSnapshotService>();
         services.AddSingleton<IVesselCacheKeyService, VesselCacheKeyService>();
         services.AddScoped<IVesselCacheInvalidationService, VesselCacheInvalidationService>();
+        services.AddScoped<IVesselFileStorageService, VesselFileStorageService>();
 
         return services;
     }

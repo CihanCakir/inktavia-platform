@@ -16,8 +16,21 @@ public sealed class VesselDocumentRepository : IVesselDocumentRepository
     public Task<VesselDocumentEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.VesselDocuments.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<VesselDocumentEntity?> GetByIdWithVesselAsync(long id, CancellationToken ct = default)
+        => _db.VesselDocuments
+            .Include(x => x.Vessel)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+
     public async Task<IReadOnlyList<VesselDocumentEntity>> GetByVesselIdAsync(long vesselId, CancellationToken ct = default)
         => await _db.VesselDocuments.AsNoTracking().Where(x => x.VesselId == vesselId).ToListAsync(ct);
+
+    public async Task<IReadOnlyList<VesselDocumentEntity>> GetByVesselIdAsync(long vesselId, bool onlyActive, CancellationToken ct = default)
+    {
+        var query = _db.VesselDocuments.AsNoTracking().Where(x => x.VesselId == vesselId);
+        if (onlyActive)
+            query = query.Where(x => x.IsActive);
+        return await query.ToListAsync(ct);
+    }
 
     public async Task<IReadOnlyList<VesselDocumentEntity>> GetExpiringAsync(int daysAhead, CancellationToken ct = default)
     {
@@ -28,8 +41,15 @@ public sealed class VesselDocumentRepository : IVesselDocumentRepository
             .ToListAsync(ct);
     }
 
+    public Task<bool> ExistsActiveDocumentTypeAsync(long vesselId, string documentTypeCode, CancellationToken ct = default)
+        => _db.VesselDocuments.AnyAsync(
+            x => x.VesselId == vesselId &&
+                 x.DocumentTypeCode == documentTypeCode.ToUpperInvariant() &&
+                 x.IsActive, ct);
+
     public Task AddAsync(VesselDocumentEntity entity, CancellationToken ct = default)
         => _db.VesselDocuments.AddAsync(entity, ct).AsTask();
 
     public void Update(VesselDocumentEntity entity) => _db.VesselDocuments.Update(entity);
 }
+

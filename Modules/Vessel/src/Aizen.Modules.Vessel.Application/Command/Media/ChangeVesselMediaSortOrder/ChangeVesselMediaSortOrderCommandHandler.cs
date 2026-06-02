@@ -1,5 +1,7 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
+using Aizen.Modules.Vessel.Abstraction.Message;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
@@ -7,39 +9,53 @@ using Aizen.Modules.Vessel.Abstraction.Response.Media;
 
 namespace Aizen.Modules.Vessel.Application.Command.Media;
 
-[DocumentationInfo("Change Vessel Media Sort Order Command Handler", "Updates the sort order of a vessel media item and invalidates media cache.")]
+[DocumentationInfo("Change Vessel Media Sort Order Command Handler", "Updates the sort order of a vessel media item, invalidates media cache and publishes VesselMediaSortOrderChangedMessage.")]
 public sealed class ChangeVesselMediaSortOrderCommandHandler : AizenCommandHandler<ChangeVesselMediaSortOrderCommand, ChangeVesselMediaSortOrderResponse>
 {
     private readonly IVesselMediaRepository _mediaRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
     private readonly IVesselAccessService _accessService;
+    private readonly IAizenMessagePublisher _publisher;
     private readonly IAizenInfoAccessor _info;
 
     public ChangeVesselMediaSortOrderCommandHandler(
         IVesselMediaRepository mediaRepository,
         IVesselCacheInvalidationService invalidation,
         IVesselAccessService accessService,
+        IAizenMessagePublisher publisher,
         IAizenInfoAccessor info)
     {
         _mediaRepository = mediaRepository;
         _invalidation = invalidation;
         _accessService = accessService;
+        _publisher = publisher;
         _info = info;
     }
 
     public override async Task<ChangeVesselMediaSortOrderResponse?> Handle(ChangeVesselMediaSortOrderCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+        var isAdmin = _info.UserInfoAccessor.UserInfo.Roles.Contains("Admin");
 
-        var media = await _mediaRepository.GetByIdAsync(request.MediaId, cancellationToken)
+        var media = await _mediaRepository.GetByIdWithVesselAsync(request.MediaId, cancellationToken)
             ?? throw new KeyNotFoundException($"Media {request.MediaId} not found.");
 
-        media.Update(request.SortOrder, media.IsCover);
+        if (!isAdmin)
+            await _accessService.EnsureCanEditAsync(media.VesselId, currentUserId, cancellationToken);
+
+        media.ChangeSortOrder(request.SortOrder);
         _mediaRepository.Update(media);
 
-        await _invalidation.InvalidateMediaAsync(request.VesselId, cancellationToken);
+        await _invalidation.InvalidateMediaAsync(media.VesselId, cancellationToken);
 
-        return new ChangeVesselMediaSortOrderResponse(request.VesselId, request.MediaId, request.SortOrder);
+        await _publisher.PublishAsync(new VesselMediaSortOrderChangedMessage
+        {
+            VesselId = media.VesselId,
+            MediaId = media.Id,
+            NewSortOrder = request.SortOrder,
+            ActorUserId = currentUserId
+        }, cancellationToken);
+
+        return new ChangeVesselMediaSortOrderResponse(media.VesselId, media.Id, request.SortOrder);
     }
 }

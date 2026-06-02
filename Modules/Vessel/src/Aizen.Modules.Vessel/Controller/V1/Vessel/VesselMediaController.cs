@@ -32,9 +32,11 @@ public sealed class VesselMediaController : AizenWebApiController
         [FromRoute] long vesselId,
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20,
+        [FromQuery] bool includeAccessUrls = false,
+        [FromQuery] int accessUrlExpiresInMinutes = 15,
         CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<GetVesselMediaResponse>(new GetVesselMediaQuery(vesselId, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync<GetVesselMediaResponse>(new GetVesselMediaQuery(vesselId, pageIndex, pageSize, includeAccessUrls, accessUrlExpiresInMinutes), ct);
         return SetResponse(result);
     }
 

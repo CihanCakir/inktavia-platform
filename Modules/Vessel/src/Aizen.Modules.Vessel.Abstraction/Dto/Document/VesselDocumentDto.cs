@@ -10,12 +10,15 @@ public sealed class VesselDocumentDto
     public long VesselId { get; set; }
     public string DocumentTypeCode { get; set; } = default!;
     public string DocumentName { get; set; } = default!;
-    public string? FileId { get; set; }
-    public string? FileName { get; set; }
-    public string? FileUrl { get; set; }
-    public string? MimeType { get; set; }
+    public Guid? FileId { get; set; }
+    public string? OriginalFileNameSnapshot { get; set; }
+    public string? ContentTypeSnapshot { get; set; }
+    public long? SizeInBytesSnapshot { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public VesselDocumentStatus Status { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; }
+    public string? AccessUrl { get; set; }
+    public DateTime? AccessUrlExpiresAt { get; set; }
 }
+
