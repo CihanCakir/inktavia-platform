@@ -32,4 +32,16 @@ public sealed class VesselAccessService : IVesselAccessService
 
         return await UserHasAccessAsync(vesselId, requestingUserId.Value, ct);
     }
+
+    public async Task EnsureCanEditAsync(long vesselId, long userId, CancellationToken ct = default)
+    {
+        if (!await UserHasAccessAsync(vesselId, userId, ct))
+            throw new UnauthorizedAccessException("You do not have permission to edit this vessel.");
+    }
+
+    public async Task EnsureCanManageOwnersAsync(long vesselId, long userId, CancellationToken ct = default)
+    {
+        if (!await UserHasRoleAsync(vesselId, userId, VesselOwnershipRole.PrimaryOwner, ct))
+            throw new UnauthorizedAccessException("You do not have permission to manage owners of this vessel.");
+    }
 }

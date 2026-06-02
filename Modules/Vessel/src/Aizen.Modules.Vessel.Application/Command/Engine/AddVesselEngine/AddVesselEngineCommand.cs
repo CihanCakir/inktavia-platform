@@ -10,12 +10,10 @@ public sealed class AddVesselEngineCommand : AizenCommand<VesselEngineDto>
 {
     public long VesselId { get; }
     public AddVesselEngineRequest Request { get; }
-    public long RequestingUserId { get; }
 
-    public AddVesselEngineCommand(long vesselId, AddVesselEngineRequest request, long requestingUserId)
+    public AddVesselEngineCommand(long vesselId, AddVesselEngineRequest request)
     {
         VesselId = vesselId;
         Request = request;
-        RequestingUserId = requestingUserId;
     }
 }

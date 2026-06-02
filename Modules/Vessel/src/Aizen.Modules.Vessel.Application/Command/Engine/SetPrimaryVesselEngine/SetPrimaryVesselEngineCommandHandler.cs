@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
@@ -10,15 +11,26 @@ public sealed class SetPrimaryVesselEngineCommandHandler : AizenCommandHandler<S
 {
     private readonly IVesselEngineRepository _engineRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
-    public SetPrimaryVesselEngineCommandHandler(IVesselEngineRepository engineRepository, IVesselCacheInvalidationService invalidation)
+    public SetPrimaryVesselEngineCommandHandler(
+        IVesselEngineRepository engineRepository,
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _engineRepository = engineRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<bool> Handle(SetPrimaryVesselEngineCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
         var engines = await _engineRepository.GetByVesselIdAsync(request.VesselId, cancellationToken);
 
         foreach (var engine in engines)

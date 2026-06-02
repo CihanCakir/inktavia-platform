@@ -10,12 +10,10 @@ public sealed class UpsertVesselSpecificationCommand : AizenCommand<VesselSpecif
 {
     public long VesselId { get; }
     public UpsertVesselSpecificationRequest Request { get; }
-    public long RequestingUserId { get; }
 
-    public UpsertVesselSpecificationCommand(long vesselId, UpsertVesselSpecificationRequest request, long requestingUserId)
+    public UpsertVesselSpecificationCommand(long vesselId, UpsertVesselSpecificationRequest request)
     {
         VesselId = vesselId;
         Request = request;
-        RequestingUserId = requestingUserId;
     }
 }

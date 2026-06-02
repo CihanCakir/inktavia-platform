@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Engine;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
@@ -13,16 +14,35 @@ public sealed class AddVesselEngineCommandHandler : AizenCommandHandler<AddVesse
 {
     private readonly IVesselEngineRepository _engineRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
-    public AddVesselEngineCommandHandler(IVesselEngineRepository engineRepository, IVesselCacheInvalidationService invalidation)
+    public AddVesselEngineCommandHandler(
+        IVesselEngineRepository engineRepository,
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _engineRepository = engineRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<VesselEngineDto?> Handle(AddVesselEngineCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
         var r = request.Request;
+
+        if (!string.IsNullOrWhiteSpace(r.SerialNumber))
+        {
+            var existing = await _engineRepository.GetByVesselIdAsync(request.VesselId, cancellationToken);
+            if (existing.Any(e => string.Equals(e.SerialNumber, r.SerialNumber, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException($"An engine with serial number '{r.SerialNumber}' already exists for this vessel.");
+        }
+
         var engine = VesselEngineEntity.Create(
             request.VesselId,
             r.EngineName,

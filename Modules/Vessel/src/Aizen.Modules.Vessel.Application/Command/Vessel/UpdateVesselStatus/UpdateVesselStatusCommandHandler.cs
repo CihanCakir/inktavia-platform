@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 
@@ -9,16 +10,27 @@ public sealed class UpdateVesselStatusCommandHandler : AizenCommandHandler<Updat
 {
     private readonly IVesselStatusService _statusService;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
-    public UpdateVesselStatusCommandHandler(IVesselStatusService statusService, IVesselCacheInvalidationService invalidation)
+    public UpdateVesselStatusCommandHandler(
+        IVesselStatusService statusService,
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _statusService = statusService;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<bool> Handle(UpdateVesselStatusCommand request, CancellationToken cancellationToken)
     {
-        await _statusService.ChangeStatusAsync(request.VesselId, request.Request.Status, request.Request.Reason, request.RequestingUserId, cancellationToken);
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
+        await _statusService.ChangeStatusAsync(request.VesselId, request.Request.Status, request.Request.Reason, currentUserId, cancellationToken);
 
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateStatusHistoryAsync(request.VesselId, cancellationToken);

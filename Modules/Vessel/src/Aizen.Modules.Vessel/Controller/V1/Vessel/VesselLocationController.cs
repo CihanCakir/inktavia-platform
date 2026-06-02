@@ -7,7 +7,6 @@ using Aizen.Modules.Vessel.Application.Command.Location;
 using Aizen.Modules.Vessel.Application.Query.Location;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Aizen.Modules.Vessel.Controller.V1.Vessel;
 
@@ -26,9 +25,6 @@ public sealed class VesselLocationController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     [HttpGet("current")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(VesselLocationSnapshotDto), StatusCodes.Status200OK)]
@@ -42,7 +38,7 @@ public sealed class VesselLocationController : AizenWebApiController
     [ProducesResponseType(typeof(VesselLocationSnapshotDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<VesselLocationSnapshotDto?>> Update([FromRoute] long vesselId, [FromBody] UpdateVesselLocationSnapshotRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselLocationSnapshotDto>(new UpdateVesselLocationSnapshotCommand(vesselId, req, CurrentUserId), ct);
+        var result = await _cqrs.ProcessAsync<VesselLocationSnapshotDto>(new UpdateVesselLocationSnapshotCommand(vesselId, req), ct);
         return SetResponse(result);
     }
 }

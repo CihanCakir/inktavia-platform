@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
@@ -10,15 +11,26 @@ public sealed class RemoveVesselEngineCommandHandler : AizenCommandHandler<Remov
 {
     private readonly IVesselEngineRepository _engineRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
-    public RemoveVesselEngineCommandHandler(IVesselEngineRepository engineRepository, IVesselCacheInvalidationService invalidation)
+    public RemoveVesselEngineCommandHandler(
+        IVesselEngineRepository engineRepository,
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _engineRepository = engineRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<bool> Handle(RemoveVesselEngineCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
         var engine = await _engineRepository.GetByIdAsync(request.EngineId, cancellationToken)
             ?? throw new KeyNotFoundException($"Engine {request.EngineId} not found.");
 

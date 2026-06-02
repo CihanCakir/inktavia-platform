@@ -7,11 +7,9 @@ namespace Aizen.Modules.Vessel.Application.Command.Specification;
 public sealed class RemoveVesselSpecificationCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
-    public long RequestingUserId { get; }
 
-    public RemoveVesselSpecificationCommand(long vesselId, long requestingUserId)
+    public RemoveVesselSpecificationCommand(long vesselId)
     {
         VesselId = vesselId;
-        RequestingUserId = requestingUserId;
     }
 }

@@ -10,12 +10,10 @@ public sealed class AddVesselDocumentCommand : AizenCommand<VesselDocumentDto>
 {
     public long VesselId { get; }
     public AddVesselDocumentRequest Request { get; }
-    public long RequestingUserId { get; }
 
-    public AddVesselDocumentCommand(long vesselId, AddVesselDocumentRequest request, long requestingUserId)
+    public AddVesselDocumentCommand(long vesselId, AddVesselDocumentRequest request)
     {
         VesselId = vesselId;
         Request = request;
-        RequestingUserId = requestingUserId;
     }
 }

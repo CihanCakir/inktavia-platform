@@ -8,12 +8,10 @@ public sealed class SetCoverVesselMediaCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
     public long MediaId { get; }
-    public long RequestingUserId { get; }
 
-    public SetCoverVesselMediaCommand(long vesselId, long mediaId, long requestingUserId)
+    public SetCoverVesselMediaCommand(long vesselId, long mediaId)
     {
         VesselId = vesselId;
         MediaId = mediaId;
-        RequestingUserId = requestingUserId;
     }
 }

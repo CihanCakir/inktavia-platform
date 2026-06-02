@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Enum;
 using Aizen.Modules.Vessel.Abstraction.Model;
@@ -15,19 +16,24 @@ public sealed class CreateVesselCommandHandler : AizenCommandHandler<CreateVesse
     private readonly IVesselRepository _vesselRepository;
     private readonly IVesselOwnerRepository _ownerRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IAizenInfoAccessor _info;
 
     public CreateVesselCommandHandler(
         IVesselRepository vesselRepository,
         IVesselOwnerRepository ownerRepository,
-        IVesselCacheInvalidationService invalidation)
+        IVesselCacheInvalidationService invalidation,
+        IAizenInfoAccessor info)
     {
         _vesselRepository = vesselRepository;
         _ownerRepository = ownerRepository;
         _invalidation = invalidation;
+        _info = info;
     }
 
     public override async Task<VesselDto?> Handle(CreateVesselCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+
         var vesselCode = $"V{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}";
         var slug = request.Request.Name.ToLowerInvariant().Replace(" ", "-");
 
@@ -51,10 +57,10 @@ public sealed class CreateVesselCommandHandler : AizenCommandHandler<CreateVesse
 
         await _vesselRepository.AddAsync(entity, cancellationToken);
 
-        var owner = VesselOwnerEntity.Create(entity.Id, request.RequestingUserId, null, VesselOwnershipRole.PrimaryOwner, true);
+        var owner = VesselOwnerEntity.Create(entity.Id, currentUserId, null, VesselOwnershipRole.PrimaryOwner, true);
         await _ownerRepository.AddAsync(owner, cancellationToken);
 
-        await _invalidation.InvalidateUserVesselListAsync(request.RequestingUserId, cancellationToken);
+        await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
         return entity.ToDto();
     }

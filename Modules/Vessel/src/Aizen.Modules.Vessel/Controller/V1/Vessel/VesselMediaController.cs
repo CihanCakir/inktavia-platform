@@ -7,7 +7,7 @@ using Aizen.Modules.Vessel.Application.Command.Media;
 using Aizen.Modules.Vessel.Application.Query.Media;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Controller.V1.Vessel;
 
@@ -26,15 +26,16 @@ public sealed class VesselMediaController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     [HttpGet]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(List<VesselMediaDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<IReadOnlyList<VesselMediaDto>?>> GetAll([FromRoute] long vesselId, CancellationToken ct = default)
+    [ProducesResponseType(typeof(IPaginate<VesselMediaDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IPaginate<VesselMediaDto>?>> GetAll(
+        [FromRoute] long vesselId,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<IReadOnlyList<VesselMediaDto>>(new GetVesselMediaQuery(vesselId), ct);
+        var result = await _cqrs.ProcessAsync<IPaginate<VesselMediaDto>>(new GetVesselMediaQuery(vesselId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -42,7 +43,7 @@ public sealed class VesselMediaController : AizenWebApiController
     [ProducesResponseType(typeof(VesselMediaDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<VesselMediaDto?>> Add([FromRoute] long vesselId, [FromBody] AddVesselMediaRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselMediaDto>(new AddVesselMediaCommand(vesselId, req, CurrentUserId), ct);
+        var result = await _cqrs.ProcessAsync<VesselMediaDto>(new AddVesselMediaCommand(vesselId, req), ct);
         return SetResponse(result);
     }
 
@@ -50,7 +51,7 @@ public sealed class VesselMediaController : AizenWebApiController
     [ProducesResponseType(typeof(VesselMediaDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<VesselMediaDto?>> Update([FromRoute] long vesselId, [FromRoute] long mediaId, [FromBody] UpdateVesselMediaRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselMediaDto>(new UpdateVesselMediaCommand(vesselId, mediaId, req, CurrentUserId), ct);
+        var result = await _cqrs.ProcessAsync<VesselMediaDto>(new UpdateVesselMediaCommand(vesselId, mediaId, req), ct);
         return SetResponse(result);
     }
 
@@ -58,7 +59,7 @@ public sealed class VesselMediaController : AizenWebApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<object>> Remove([FromRoute] long vesselId, [FromRoute] long mediaId, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new RemoveVesselMediaCommand(vesselId, mediaId, CurrentUserId), ct);
+        await _cqrs.ProcessAsync<bool>(new RemoveVesselMediaCommand(vesselId, mediaId), ct);
         return SetResponse<object>(new { success = true });
     }
 
@@ -66,7 +67,7 @@ public sealed class VesselMediaController : AizenWebApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<object>> SetCover([FromRoute] long vesselId, [FromRoute] long mediaId, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new SetCoverVesselMediaCommand(vesselId, mediaId, CurrentUserId), ct);
+        await _cqrs.ProcessAsync<bool>(new SetCoverVesselMediaCommand(vesselId, mediaId), ct);
         return SetResponse<object>(new { success = true });
     }
 
@@ -74,7 +75,7 @@ public sealed class VesselMediaController : AizenWebApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<object>> ChangeSortOrder([FromRoute] long vesselId, [FromRoute] long mediaId, [FromBody] int sortOrder, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new ChangeVesselMediaSortOrderCommand(vesselId, mediaId, sortOrder, CurrentUserId), ct);
+        await _cqrs.ProcessAsync<bool>(new ChangeVesselMediaSortOrderCommand(vesselId, mediaId, sortOrder), ct);
         return SetResponse<object>(new { success = true });
     }
 }

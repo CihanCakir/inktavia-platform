@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
@@ -12,15 +13,26 @@ public sealed class UpdateVesselCommandHandler : AizenCommandHandler<UpdateVesse
 {
     private readonly IVesselRepository _vesselRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
-    public UpdateVesselCommandHandler(IVesselRepository vesselRepository, IVesselCacheInvalidationService invalidation)
+    public UpdateVesselCommandHandler(
+        IVesselRepository vesselRepository,
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _vesselRepository = vesselRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<VesselDto?> Handle(UpdateVesselCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
         var vessel = await _vesselRepository.GetByIdAsync(request.VesselId, cancellationToken)
             ?? throw new KeyNotFoundException($"Vessel {request.VesselId} not found.");
 
@@ -42,7 +54,7 @@ public sealed class UpdateVesselCommandHandler : AizenCommandHandler<UpdateVesse
         _vesselRepository.Update(vessel);
 
         await _invalidation.InvalidateVesselAsync(vessel.Id, cancellationToken);
-        await _invalidation.InvalidateUserVesselListAsync(request.RequestingUserId, cancellationToken);
+        await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
         return vessel.ToDto();
     }

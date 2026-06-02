@@ -8,12 +8,10 @@ public sealed class SetPrimaryVesselEngineCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
     public long EngineId { get; }
-    public long RequestingUserId { get; }
 
-    public SetPrimaryVesselEngineCommand(long vesselId, long engineId, long requestingUserId)
+    public SetPrimaryVesselEngineCommand(long vesselId, long engineId)
     {
         VesselId = vesselId;
         EngineId = engineId;
-        RequestingUserId = requestingUserId;
     }
 }

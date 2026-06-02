@@ -9,4 +9,6 @@ public interface IVesselAccessService
     Task<bool> UserHasAccessAsync(long vesselId, long userId, CancellationToken cancellationToken = default);
     Task<bool> UserHasRoleAsync(long vesselId, long userId, VesselOwnershipRole role, CancellationToken cancellationToken = default);
     Task<bool> CanViewVesselAsync(long vesselId, long? requestingUserId, CancellationToken cancellationToken = default);
+    Task EnsureCanEditAsync(long vesselId, long userId, CancellationToken ct = default);
+    Task EnsureCanManageOwnersAsync(long vesselId, long userId, CancellationToken ct = default);
 }

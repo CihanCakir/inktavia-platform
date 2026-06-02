@@ -8,6 +8,8 @@
 
 <ItemGroup>
     <ProjectReference
+      Include="..\..\..\..\Modules\Identity\src\Aizen.Modules.Identity.Abstraction\Aizen.Modules.Identity.Abstraction.csproj" />
+    <ProjectReference
       Include="..\..\..\..\Core\Starter\src\Aizen.Core.Starter\Aizen.Core.Starter.csproj" />
     <ProjectReference
       Include="..\..\..\..\Core\UnitOfWork\src\Aizen.Core.UnitOfWork\Aizen.Core.UnitOfWork.csproj" />

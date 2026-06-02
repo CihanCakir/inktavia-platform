@@ -7,11 +7,9 @@ namespace Aizen.Modules.Vessel.Application.Command.Vessel;
 public sealed class RestoreVesselCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
-    public long RequestingUserId { get; }
 
-    public RestoreVesselCommand(long vesselId, long requestingUserId)
+    public RestoreVesselCommand(long vesselId)
     {
         VesselId = vesselId;
-        RequestingUserId = requestingUserId;
     }
 }

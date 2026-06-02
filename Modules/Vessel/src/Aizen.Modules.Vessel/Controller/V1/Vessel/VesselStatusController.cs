@@ -5,6 +5,7 @@ using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Query.Status;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Controller.V1.Vessel;
 
@@ -24,10 +25,14 @@ public sealed class VesselStatusController : AizenWebApiController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<VesselStatusHistoryDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<IReadOnlyList<VesselStatusHistoryDto>?>> GetHistory([FromRoute] long vesselId, CancellationToken ct = default)
+    [ProducesResponseType(typeof(IPaginate<VesselStatusHistoryDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IPaginate<VesselStatusHistoryDto>?>> GetHistory(
+        [FromRoute] long vesselId,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<IReadOnlyList<VesselStatusHistoryDto>>(new GetVesselStatusHistoryQuery(vesselId), ct);
+        var result = await _cqrs.ProcessAsync<IPaginate<VesselStatusHistoryDto>>(new GetVesselStatusHistoryQuery(vesselId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 }

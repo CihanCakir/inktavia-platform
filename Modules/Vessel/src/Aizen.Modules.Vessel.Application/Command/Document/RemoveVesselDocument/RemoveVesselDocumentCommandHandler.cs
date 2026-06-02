@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
@@ -10,15 +11,26 @@ public sealed class RemoveVesselDocumentCommandHandler : AizenCommandHandler<Rem
 {
     private readonly IVesselDocumentRepository _documentRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
-    public RemoveVesselDocumentCommandHandler(IVesselDocumentRepository documentRepository, IVesselCacheInvalidationService invalidation)
+    public RemoveVesselDocumentCommandHandler(
+        IVesselDocumentRepository documentRepository,
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _documentRepository = documentRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<bool> Handle(RemoveVesselDocumentCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
         var document = await _documentRepository.GetByIdAsync(request.DocumentId, cancellationToken)
             ?? throw new KeyNotFoundException($"Document {request.DocumentId} not found.");
 

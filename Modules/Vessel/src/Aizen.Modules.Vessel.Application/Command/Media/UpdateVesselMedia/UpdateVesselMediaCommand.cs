@@ -11,13 +11,11 @@ public sealed class UpdateVesselMediaCommand : AizenCommand<VesselMediaDto>
     public long VesselId { get; }
     public long MediaId { get; }
     public UpdateVesselMediaRequest Request { get; }
-    public long RequestingUserId { get; }
 
-    public UpdateVesselMediaCommand(long vesselId, long mediaId, UpdateVesselMediaRequest request, long requestingUserId)
+    public UpdateVesselMediaCommand(long vesselId, long mediaId, UpdateVesselMediaRequest request)
     {
         VesselId = vesselId;
         MediaId = mediaId;
         Request = request;
-        RequestingUserId = requestingUserId;
     }
 }

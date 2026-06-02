@@ -7,7 +7,7 @@ using Aizen.Modules.Vessel.Application.Command.Engine;
 using Aizen.Modules.Vessel.Application.Query.Engine;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Controller.V1.Vessel;
 
@@ -26,15 +26,16 @@ public sealed class VesselEngineController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     [HttpGet]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(List<VesselEngineDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<IReadOnlyList<VesselEngineDto>?>> GetAll([FromRoute] long vesselId, CancellationToken ct = default)
+    [ProducesResponseType(typeof(IPaginate<VesselEngineDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IPaginate<VesselEngineDto>?>> GetAll(
+        [FromRoute] long vesselId,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<IReadOnlyList<VesselEngineDto>>(new GetVesselEnginesQuery(vesselId), ct);
+        var result = await _cqrs.ProcessAsync<IPaginate<VesselEngineDto>>(new GetVesselEnginesQuery(vesselId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -42,7 +43,7 @@ public sealed class VesselEngineController : AizenWebApiController
     [ProducesResponseType(typeof(VesselEngineDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<VesselEngineDto?>> Add([FromRoute] long vesselId, [FromBody] AddVesselEngineRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselEngineDto>(new AddVesselEngineCommand(vesselId, req, CurrentUserId), ct);
+        var result = await _cqrs.ProcessAsync<VesselEngineDto>(new AddVesselEngineCommand(vesselId, req), ct);
         return SetResponse(result);
     }
 
@@ -50,7 +51,7 @@ public sealed class VesselEngineController : AizenWebApiController
     [ProducesResponseType(typeof(VesselEngineDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<VesselEngineDto?>> Update([FromRoute] long vesselId, [FromRoute] long engineId, [FromBody] UpdateVesselEngineRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<VesselEngineDto>(new UpdateVesselEngineCommand(vesselId, engineId, req, CurrentUserId), ct);
+        var result = await _cqrs.ProcessAsync<VesselEngineDto>(new UpdateVesselEngineCommand(vesselId, engineId, req), ct);
         return SetResponse(result);
     }
 
@@ -58,7 +59,7 @@ public sealed class VesselEngineController : AizenWebApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<object>> Remove([FromRoute] long vesselId, [FromRoute] long engineId, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new RemoveVesselEngineCommand(vesselId, engineId, CurrentUserId), ct);
+        await _cqrs.ProcessAsync<bool>(new RemoveVesselEngineCommand(vesselId, engineId), ct);
         return SetResponse<object>(new { success = true });
     }
 
@@ -66,7 +67,7 @@ public sealed class VesselEngineController : AizenWebApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<object>> SetPrimary([FromRoute] long vesselId, [FromRoute] long engineId, CancellationToken ct = default)
     {
-        await _cqrs.ProcessAsync<bool>(new SetPrimaryVesselEngineCommand(vesselId, engineId, CurrentUserId), ct);
+        await _cqrs.ProcessAsync<bool>(new SetPrimaryVesselEngineCommand(vesselId, engineId), ct);
         return SetResponse<object>(new { success = true });
     }
 }

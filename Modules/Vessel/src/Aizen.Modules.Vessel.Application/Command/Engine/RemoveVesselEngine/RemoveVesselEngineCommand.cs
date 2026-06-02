@@ -8,12 +8,10 @@ public sealed class RemoveVesselEngineCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
     public long EngineId { get; }
-    public long RequestingUserId { get; }
 
-    public RemoveVesselEngineCommand(long vesselId, long engineId, long requestingUserId)
+    public RemoveVesselEngineCommand(long vesselId, long engineId)
     {
         VesselId = vesselId;
         EngineId = engineId;
-        RequestingUserId = requestingUserId;
     }
 }

@@ -1,27 +1,50 @@
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Abstraction.Handler;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Engine;
 using Aizen.Modules.Vessel.Abstraction.Model;
-using Aizen.Modules.Vessel.Application.Mapping;
-using Aizen.Modules.Vessel.Domain.Interface.Repository;
+using Aizen.Modules.Vessel.Domain.Entities.Vessel;
+using Aizen.Modules.Vessel.Repository.Persistence;
+using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Application.Query.Engine;
 
-[DocumentationInfo("Get Vessel Engines Query Handler", "Returns all engines for a vessel; cached for 15 minutes.")]
-public sealed class GetVesselEnginesQueryHandler : AizenQueryHandler<GetVesselEnginesQuery, IReadOnlyList<VesselEngineDto>>, IAizenQueryHandlerCacheable
+[DocumentationInfo("Get Vessel Engines Query Handler", "Returns a paged list of engines for a vessel; cached for 15 minutes.")]
+public sealed class GetVesselEnginesQueryHandler : AizenQueryHandler<GetVesselEnginesQuery, IPaginate<VesselEngineDto>>, IAizenQueryHandlerCacheable
 {
-    private readonly IVesselEngineRepository _engineRepository;
+    private readonly IAizenUnitOfWork<VesselDbContext> _uow;
 
-    public GetVesselEnginesQueryHandler(IVesselEngineRepository engineRepository)
+    public GetVesselEnginesQueryHandler(IAizenUnitOfWork<VesselDbContext> uow)
     {
-        _engineRepository = engineRepository;
+        _uow = uow;
     }
 
-    public override async Task<IReadOnlyList<VesselEngineDto>> Handle(GetVesselEnginesQuery request, CancellationToken cancellationToken)
+    public override async Task<IPaginate<VesselEngineDto>> Handle(GetVesselEnginesQuery request, CancellationToken cancellationToken)
     {
-        var engines = await _engineRepository.GetByVesselIdAsync(request.VesselId, cancellationToken);
-        return engines.Select(e => e.ToDto()).ToList().AsReadOnly();
+        var repo = _uow.GetRepository<VesselEngineEntity>();
+
+        return await repo.GetPagedListAsync<VesselEngineDto>(
+            selector: e => new VesselEngineDto
+            {
+                Id = e.Id,
+                VesselId = e.VesselId,
+                EngineName = e.EngineName,
+                EngineTypeCode = e.EngineTypeCode,
+                FuelTypeCode = e.FuelTypeCode,
+                Brand = e.Brand,
+                Model = e.Model,
+                SerialNumber = e.SerialNumber,
+                HorsePower = e.HorsePower,
+                ProductionYear = e.ProductionYear,
+                IsPrimary = e.IsPrimary,
+                IsActive = e.IsActive
+            },
+            predicate: e => e.VesselId == request.VesselId,
+            orderBy: q => q.OrderByDescending(e => e.IsPrimary),
+            pageIndex: request.PageIndex,
+            pageSize: request.PageSize,
+            cancellationToken: cancellationToken);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

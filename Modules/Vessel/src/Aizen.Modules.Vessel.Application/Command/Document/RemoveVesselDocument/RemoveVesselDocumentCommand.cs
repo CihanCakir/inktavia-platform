@@ -8,12 +8,10 @@ public sealed class RemoveVesselDocumentCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
     public long DocumentId { get; }
-    public long RequestingUserId { get; }
 
-    public RemoveVesselDocumentCommand(long vesselId, long documentId, long requestingUserId)
+    public RemoveVesselDocumentCommand(long vesselId, long documentId)
     {
         VesselId = vesselId;
         DocumentId = documentId;
-        RequestingUserId = requestingUserId;
     }
 }

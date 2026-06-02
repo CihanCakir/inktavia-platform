@@ -10,12 +10,10 @@ public sealed class UpdateVesselLocationSnapshotCommand : AizenCommand<VesselLoc
 {
     public long VesselId { get; }
     public UpdateVesselLocationSnapshotRequest Request { get; }
-    public long RequestingUserId { get; }
 
-    public UpdateVesselLocationSnapshotCommand(long vesselId, UpdateVesselLocationSnapshotRequest request, long requestingUserId)
+    public UpdateVesselLocationSnapshotCommand(long vesselId, UpdateVesselLocationSnapshotRequest request)
     {
         VesselId = vesselId;
         Request = request;
-        RequestingUserId = requestingUserId;
     }
 }

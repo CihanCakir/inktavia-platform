@@ -9,12 +9,10 @@ public sealed class ArchiveVesselCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
     public ArchiveVesselRequest Request { get; }
-    public long RequestingUserId { get; }
 
-    public ArchiveVesselCommand(long vesselId, ArchiveVesselRequest request, long requestingUserId)
+    public ArchiveVesselCommand(long vesselId, ArchiveVesselRequest request)
     {
         VesselId = vesselId;
         Request = request;
-        RequestingUserId = requestingUserId;
     }
 }

@@ -9,11 +9,9 @@ namespace Aizen.Modules.Vessel.Application.Command.Vessel;
 public sealed class CreateVesselCommand : AizenCommand<VesselDto>
 {
     public CreateVesselRequest Request { get; }
-    public long RequestingUserId { get; }
 
-    public CreateVesselCommand(CreateVesselRequest request, long requestingUserId)
+    public CreateVesselCommand(CreateVesselRequest request)
     {
         Request = request;
-        RequestingUserId = requestingUserId;
     }
 }

@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Location;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
@@ -13,17 +14,26 @@ public sealed class UpdateVesselLocationSnapshotCommandHandler : AizenCommandHan
 {
     private readonly IVesselLocationSnapshotRepository _locationRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
     public UpdateVesselLocationSnapshotCommandHandler(
         IVesselLocationSnapshotRepository locationRepository,
-        IVesselCacheInvalidationService invalidation)
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _locationRepository = locationRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<VesselLocationSnapshotDto?> Handle(UpdateVesselLocationSnapshotCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
         var current = await _locationRepository.GetCurrentAsync(request.VesselId, cancellationToken);
         if (current is not null)
         {

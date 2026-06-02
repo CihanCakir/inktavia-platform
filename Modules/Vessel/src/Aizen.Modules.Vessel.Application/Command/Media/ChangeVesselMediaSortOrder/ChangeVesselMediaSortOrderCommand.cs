@@ -9,13 +9,11 @@ public sealed class ChangeVesselMediaSortOrderCommand : AizenCommand<bool>
     public long VesselId { get; }
     public long MediaId { get; }
     public int SortOrder { get; }
-    public long RequestingUserId { get; }
 
-    public ChangeVesselMediaSortOrderCommand(long vesselId, long mediaId, int sortOrder, long requestingUserId)
+    public ChangeVesselMediaSortOrderCommand(long vesselId, long mediaId, int sortOrder)
     {
         VesselId = vesselId;
         MediaId = mediaId;
         SortOrder = sortOrder;
-        RequestingUserId = requestingUserId;
     }
 }

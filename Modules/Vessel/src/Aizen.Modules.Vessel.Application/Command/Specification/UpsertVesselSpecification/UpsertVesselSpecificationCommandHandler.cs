@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Specification;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
@@ -13,17 +14,26 @@ public sealed class UpsertVesselSpecificationCommandHandler : AizenCommandHandle
 {
     private readonly IVesselSpecificationRepository _specRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
     public UpsertVesselSpecificationCommandHandler(
         IVesselSpecificationRepository specRepository,
-        IVesselCacheInvalidationService invalidation)
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _specRepository = specRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<VesselSpecificationDto?> Handle(UpsertVesselSpecificationCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanEditAsync(request.VesselId, currentUserId, cancellationToken);
+
         var existing = await _specRepository.GetByVesselIdAsync(request.VesselId, cancellationToken);
         var r = request.Request;
 

@@ -7,11 +7,9 @@ namespace Aizen.Modules.Vessel.Application.Command.Ownership;
 public sealed class AcceptVesselOwnershipInvitationCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
-    public long UserId { get; }
 
-    public AcceptVesselOwnershipInvitationCommand(long vesselId, long userId)
+    public AcceptVesselOwnershipInvitationCommand(long vesselId)
     {
         VesselId = vesselId;
-        UserId = userId;
     }
 }

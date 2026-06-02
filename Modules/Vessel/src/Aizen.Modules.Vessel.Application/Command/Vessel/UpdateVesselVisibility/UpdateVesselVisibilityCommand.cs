@@ -9,12 +9,10 @@ public sealed class UpdateVesselVisibilityCommand : AizenCommand<bool>
 {
     public long VesselId { get; }
     public VesselVisibility Visibility { get; }
-    public long RequestingUserId { get; }
 
-    public UpdateVesselVisibilityCommand(long vesselId, VesselVisibility visibility, long requestingUserId)
+    public UpdateVesselVisibilityCommand(long vesselId, VesselVisibility visibility)
     {
         VesselId = vesselId;
         Visibility = visibility;
-        RequestingUserId = requestingUserId;
     }
 }

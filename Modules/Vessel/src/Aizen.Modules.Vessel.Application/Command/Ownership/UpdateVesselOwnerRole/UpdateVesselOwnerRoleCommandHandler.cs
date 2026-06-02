@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
@@ -12,15 +13,26 @@ public sealed class UpdateVesselOwnerRoleCommandHandler : AizenCommandHandler<Up
 {
     private readonly IVesselOwnerRepository _ownerRepository;
     private readonly IVesselCacheInvalidationService _invalidation;
+    private readonly IVesselAccessService _accessService;
+    private readonly IAizenInfoAccessor _info;
 
-    public UpdateVesselOwnerRoleCommandHandler(IVesselOwnerRepository ownerRepository, IVesselCacheInvalidationService invalidation)
+    public UpdateVesselOwnerRoleCommandHandler(
+        IVesselOwnerRepository ownerRepository,
+        IVesselCacheInvalidationService invalidation,
+        IVesselAccessService accessService,
+        IAizenInfoAccessor info)
     {
         _ownerRepository = ownerRepository;
         _invalidation = invalidation;
+        _accessService = accessService;
+        _info = info;
     }
 
     public override async Task<VesselOwnerDto?> Handle(UpdateVesselOwnerRoleCommand request, CancellationToken cancellationToken)
     {
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        await _accessService.EnsureCanManageOwnersAsync(request.VesselId, currentUserId, cancellationToken);
+
         var owner = await _ownerRepository.GetByIdAsync(request.OwnerId, cancellationToken)
             ?? throw new KeyNotFoundException($"Vessel owner {request.OwnerId} not found.");
 
