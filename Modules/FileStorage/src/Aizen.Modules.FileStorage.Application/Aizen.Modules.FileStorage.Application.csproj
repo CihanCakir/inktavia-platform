@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+
+
+<ItemGroup>
+    <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/InfoAccessor/src/Aizen.Core.InfoAccessor.Abstraction/Aizen.Core.InfoAccessor.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/UnitOfWork/src/Aizen.Core.UnitOfWork.Abstraction/Aizen.Core.UnitOfWork.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Validation/src/Aizen.Core.Validation/Aizen.Core.Validation.csproj" />
+    <ProjectReference Include="../Aizen.Modules.FileStorage.Repository/Aizen.Modules.FileStorage.Repository.csproj" />
+  </ItemGroup>
+
+</Project>
