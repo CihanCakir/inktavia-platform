@@ -1,0 +1,53 @@
+{
+  "_comment": "This file is the Inktavia Marine OS lookup tree reference. It is for documentation only. The authoritative seed data is in lookup-groups.json and lookup-items.json.",
+  "code": "MARINE",
+  "name": "Marine",
+  "children": [
+    {
+      "code": "VESSEL",
+      "name": "Vessel",
+      "children": [
+        { "code": "VESSEL_TYPE" },
+        { "code": "VESSEL_USAGE_TYPE" },
+        { "code": "HULL_MATERIAL" },
+        { "code": "ENGINE_TYPE" },
+        { "code": "FUEL_TYPE" },
+        { "code": "VESSEL_STATUS" },
+        { "code": "VESSEL_DOCUMENT_TYPE" }
+      ]
+    },
+    {
+      "code": "SERVICE_PROVIDER",
+      "name": "Service Provider",
+      "children": [
+        { "code": "SERVICE_PROVIDER_CATEGORY" },
+        { "code": "MAINTENANCE_SERVICE_TYPE" },
+        { "code": "CLEANING_SERVICE_TYPE" },
+        { "code": "FOOD_BEVERAGE_SERVICE_TYPE" },
+        { "code": "EMERGENCY_SERVICE_TYPE" },
+        { "code": "PROVIDER_STATUS" }
+      ]
+    },
+    {
+      "code": "CARGODRY",
+      "name": "CargoDry",
+      "children": [
+        { "code": "CARGODRY_PRODUCT_TYPE" },
+        { "code": "CARGODRY_PACKAGE_TYPE" },
+        { "code": "CARGODRY_RISK_LEVEL" },
+        { "code": "CARGODRY_USAGE_AREA" },
+        { "code": "CARGODRY_KIT_STATUS" }
+      ]
+    },
+    {
+      "code": "SENSOR",
+      "name": "Sensor",
+      "children": [
+        { "code": "SENSOR_TYPE" },
+        { "code": "SENSOR_STATUS" },
+        { "code": "SENSOR_MEASUREMENT_TYPE" },
+        { "code": "SENSOR_CONNECTIVITY_TYPE" }
+      ]
+    }
+  ]
+}

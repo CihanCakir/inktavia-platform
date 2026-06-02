@@ -226,6 +226,35 @@ services:
       - "7103:8080"
     networks: [aizen]
 
+  reference-data-api:
+    build:
+      context: ./Modules/ReferenceData
+      dockerfile: ./build/Dockerfile
+    container_name: reference-data-api
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
+      Redis__Host: redis:6379
+      Messaging__RabbitMQ__Host: rabbitmq
+      Messaging__RabbitMQ__Port: 5672
+      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
+      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: reference-data-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+    ports:
+      - "7104:8080"
+    networks: [aizen]
+
   # Load testing - k6
   k6:
     image: grafana/k6:0.49.0

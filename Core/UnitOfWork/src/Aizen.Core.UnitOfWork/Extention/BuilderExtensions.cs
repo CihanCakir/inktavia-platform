@@ -13,6 +13,11 @@ public class AizenUnitOfWorkOptions
 {
     public bool UseMigration { get; set; } = false;
     public string MigrationAssembly { get; set; } = "";
+    /// <summary>
+    /// Enables EF Core lazy loading proxies. Requires all entity types to be non-sealed
+    /// with virtual navigation properties. Set to false when entities are sealed.
+    /// </summary>
+    public bool UseLazyLoadingProxies { get; set; } = true;
 }
 
 public static class BuilderExtensions
@@ -33,7 +38,8 @@ public static class BuilderExtensions
         
         services.AddDbContext<TContext>(o =>
             {
-                o.UseLazyLoadingProxies();
+                if (options.UseLazyLoadingProxies)
+                    o.UseLazyLoadingProxies();
                 switch (db.Value.Type)
                 {
                     case DatabaseType.SqlLite:

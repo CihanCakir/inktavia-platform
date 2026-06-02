@@ -45,9 +45,11 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
 
             var requireHttpsMetadata = bool.TryParse(requireHttpsMetadataValue, out var parsedBool) && parsedBool;
 
-            // Only register authentication if it hasn't been registered already (e.g. by AddAizenAuth).
+            // Only register JWT Bearer if it hasn't been registered already (e.g. by AddAizenAuth).
             // Registering the Bearer scheme twice causes a runtime InvalidOperationException.
-            if (!services.Any(d => d.ServiceType == typeof(IAuthenticationSchemeProvider)))
+            // Using JwtBearerHandler as the indicator is more precise than IAuthenticationSchemeProvider,
+            // which can be registered by the framework or AddControllers() without JWT Bearer.
+            if (!services.Any(d => d.ServiceType == typeof(JwtBearerHandler)))
             {
                 services.AddAuthentication(o =>
                 {

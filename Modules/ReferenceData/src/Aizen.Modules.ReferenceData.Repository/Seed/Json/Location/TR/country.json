@@ -1,0 +1,8 @@
+{
+  "countryCode": "TR",
+  "numericCode": "792",
+  "name": { "tr": "Türkiye", "en": "Turkey", "de": "Türkei" },
+  "defaultCurrencyCode": "TRY",
+  "phoneCode": "+90",
+  "isActive": true
+}

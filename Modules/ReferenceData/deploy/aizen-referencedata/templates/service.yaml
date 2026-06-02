@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aizen-referencedata.fullname" . }}
+  labels:
+    {{- include "aizen-referencedata.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "aizen-referencedata.selectorLabels" . | nindent 4 }}

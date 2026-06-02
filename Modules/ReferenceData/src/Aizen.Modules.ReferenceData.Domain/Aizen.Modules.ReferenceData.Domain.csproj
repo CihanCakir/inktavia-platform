@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+     <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Core\Domain\src\Aizen.Core.Domain\Aizen.Core.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Data\src\Aizen.Core.Data.Postgresql\Aizen.Core.Data.Postgresql.csproj" />
+		<ProjectReference Include="..\..\..\..\Core\Data\src\Aizen.Core.Data\Aizen.Core.Data.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\UnitOfWork\src\Aizen.Core.UnitOfWork\Aizen.Core.UnitOfWork.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Auth\src\Aizen.Core.Auth\Aizen.Core.Auth.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Cache\src\Aizen.Core.Cache\Aizen.Core.Cache.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\EFCore\src\Aizen.Core.EFCore\Aizen.Core.EFCore.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.ReferenceData.Abstraction\Aizen.Modules.ReferenceData.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\..\Modules\Payment\src\Aizen.Modules.Payment.Abstraction\Aizen.Modules.Payment.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Data\src\Aizen.Core.Data.Mongo\Aizen.Core.Data.Mongo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7" />
+  </ItemGroup>
+
+</Project>

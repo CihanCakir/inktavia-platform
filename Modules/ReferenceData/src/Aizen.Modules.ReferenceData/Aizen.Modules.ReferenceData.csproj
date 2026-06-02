@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="..\..\..\..\Core\Starter\src\Aizen.Core.Starter\Aizen.Core.Starter.csproj" />
+    <ProjectReference
+      Include="..\..\..\..\Core\UnitOfWork\src\Aizen.Core.UnitOfWork\Aizen.Core.UnitOfWork.csproj" />
+    <ProjectReference
+      Include="..\Aizen.Modules.ReferenceData.Application\Aizen.Modules.ReferenceData.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Resource\**" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resource\aizen_error_messages.json" />
+  </ItemGroup>
+
+</Project>

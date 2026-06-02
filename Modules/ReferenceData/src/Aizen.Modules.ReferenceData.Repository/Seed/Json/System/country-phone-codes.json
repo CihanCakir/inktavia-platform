@@ -1,0 +1,5 @@
+[
+  { "countryCode": "TR", "phoneCode": "+90", "countryName": "Turkey",  "isAllowedForRegistration": true,  "isAllowedForTransfer": true  },
+  { "countryCode": "DE", "phoneCode": "+49", "countryName": "Germany", "isAllowedForRegistration": true,  "isAllowedForTransfer": true  },
+  { "countryCode": "IR", "phoneCode": "+98", "countryName": "Iran",    "isAllowedForRegistration": false, "isAllowedForTransfer": false }
+]

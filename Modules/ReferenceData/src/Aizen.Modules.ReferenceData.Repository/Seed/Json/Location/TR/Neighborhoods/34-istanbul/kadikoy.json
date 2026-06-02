@@ -1,0 +1,29 @@
+[
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "KADIKOY",
+    "neighborhoodCode": "CAFERAGA",
+    "name": { "tr": "Caferağa", "en": "Caferaga" },
+    "postalCode": "34710",
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "KADIKOY",
+    "neighborhoodCode": "MODA",
+    "name": { "tr": "Moda", "en": "Moda" },
+    "postalCode": "34710",
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "KADIKOY",
+    "neighborhoodCode": "FENERBAHCE",
+    "name": { "tr": "Fenerbahçe", "en": "Fenerbahce" },
+    "postalCode": "34726",
+    "isActive": true
+  }
+]

@@ -33,16 +33,20 @@ namespace Aizen.Core.Data.Mongo
             Expression<Func<TDocument, bool>> predicate = null,
             CancellationToken cancellationToken = default)
         {
-            return await this.Collection.AsQueryable()
-                .AnyAsync(predicate, cancellationToken);
+            var queryable = this.Collection.AsQueryable();
+            if (predicate is null)
+                return await queryable.AnyAsync(cancellationToken);
+            return await queryable.AnyAsync(predicate, cancellationToken);
         }
 
         public async Task<long> CountAsync(
             Expression<Func<TDocument, bool>> predicate = null,
             CancellationToken cancellationToken = default)
         {
-            return await this.Collection.AsQueryable()
-                .CountAsync(predicate, cancellationToken);
+            var queryable = this.Collection.AsQueryable();
+            if (predicate is null)
+                return await queryable.CountAsync(cancellationToken);
+            return await queryable.CountAsync(predicate, cancellationToken);
         }
 
         public async Task DeleteAsync(

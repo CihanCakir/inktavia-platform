@@ -1,0 +1,32 @@
+[
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "KADIKOY",
+    "name": { "tr": "Kadıköy", "en": "Kadikoy" },
+    "latitude": 40.9911,
+    "longitude": 29.0270,
+    "isCoastalDistrict": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "BESIKTAS",
+    "name": { "tr": "Beşiktaş", "en": "Besiktas" },
+    "latitude": 41.0430,
+    "longitude": 29.0072,
+    "isCoastalDistrict": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "34",
+    "districtCode": "SARIYER",
+    "name": { "tr": "Sarıyer", "en": "Sariyer" },
+    "latitude": 41.1660,
+    "longitude": 29.0546,
+    "isCoastalDistrict": true,
+    "isActive": true
+  }
+]

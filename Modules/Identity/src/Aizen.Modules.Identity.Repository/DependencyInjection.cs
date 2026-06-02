@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Aizen.Modules.InktaviaStore.Repository
+namespace Aizen.Modules.Identity.Repository
 {
     public static class DependencyInjection
     {

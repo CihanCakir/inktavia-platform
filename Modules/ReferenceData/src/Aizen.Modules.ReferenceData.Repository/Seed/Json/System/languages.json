@@ -1,0 +1,5 @@
+[
+  { "code": "tr", "name": "Turkish",  "nativeName": "Türkçe",  "isDefault": true,  "isActive": true },
+  { "code": "en", "name": "English",  "nativeName": "English", "isDefault": false, "isActive": true },
+  { "code": "de", "name": "German",   "nativeName": "Deutsch", "isDefault": false, "isActive": true }
+]
