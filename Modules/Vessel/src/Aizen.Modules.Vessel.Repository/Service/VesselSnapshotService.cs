@@ -68,7 +68,7 @@ public sealed class VesselSnapshotService : IVesselSnapshotService
             Visibility = vessel.Visibility,
             IsArchived = vessel.IsArchived,
             OwnerUserIds = vessel.Owners.Where(o => o.IsActive).Select(o => o.UserId).ToList(),
-            CoverMediaUrl = vessel.Media.FirstOrDefault(m => m.IsCover && m.IsActive)?.FileUrl,
+            CoverMediaUrl = null, // AccessUrl is dynamically generated, not persisted
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = vessel.IsDeleted,
         };

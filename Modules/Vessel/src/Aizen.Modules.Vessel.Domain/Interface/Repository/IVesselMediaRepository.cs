@@ -7,8 +7,13 @@ namespace Aizen.Modules.Vessel.Domain.Interface.Repository;
 public interface IVesselMediaRepository
 {
     Task<VesselMediaEntity?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+    Task<VesselMediaEntity?> GetByIdWithVesselAsync(long id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<VesselMediaEntity>> GetByVesselIdAsync(long vesselId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<VesselMediaEntity>> GetByVesselIdAsync(long vesselId, bool onlyActive, CancellationToken cancellationToken = default);
     Task<VesselMediaEntity?> GetCoverAsync(long vesselId, CancellationToken cancellationToken = default);
+    Task UnsetAllCoversAsync(long vesselId, CancellationToken cancellationToken = default);
     Task AddAsync(VesselMediaEntity entity, CancellationToken cancellationToken = default);
     void Update(VesselMediaEntity entity);
+    void UpdateRange(IEnumerable<VesselMediaEntity> entities);
 }
+

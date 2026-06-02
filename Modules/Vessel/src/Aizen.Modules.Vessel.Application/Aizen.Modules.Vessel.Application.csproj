@@ -12,6 +12,8 @@
     <ProjectReference Include="../../../../Core/UnitOfWork/src/Aizen.Core.UnitOfWork.Abstraction/Aizen.Core.UnitOfWork.Abstraction.csproj" />
     <ProjectReference Include="../../../../Core/Validation/src/Aizen.Core.Validation/Aizen.Core.Validation.csproj" />
     <ProjectReference Include="../Aizen.Modules.Vessel.Repository/Aizen.Modules.Vessel.Repository.csproj" />
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="../../../Identity/src/Aizen.Modules.Identity.Abstraction/Aizen.Modules.Identity.Abstraction.csproj" />
   </ItemGroup>
 
 </Project>

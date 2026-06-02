@@ -9,9 +9,10 @@ public sealed class VesselMediaEntity : AizenEntityWithAudit
 {
     public long VesselId { get; private set; }
     public VesselMediaType MediaType { get; private set; }
-    public string? FileId { get; private set; }
-    public string? FileName { get; private set; }
-    public string? FileUrl { get; private set; }
+    public Guid? FileId { get; private set; }
+    public string? OriginalFileNameSnapshot { get; private set; }
+    public string? ContentTypeSnapshot { get; private set; }
+    public long? SizeInBytesSnapshot { get; private set; }
     public int SortOrder { get; private set; }
     public bool IsCover { get; private set; }
 
@@ -20,25 +21,43 @@ public sealed class VesselMediaEntity : AizenEntityWithAudit
     public VesselMediaEntity() { }
 
     public static VesselMediaEntity Create(
-        long vesselId, VesselMediaType mediaType,
-        string? fileId, string? fileName, string? fileUrl,
-        int sortOrder, bool isCover)
+        long vesselId,
+        VesselMediaType mediaType,
+        Guid? fileId,
+        string? originalFileNameSnapshot,
+        string? contentTypeSnapshot,
+        long? sizeInBytesSnapshot,
+        int sortOrder,
+        bool isCover)
     {
         return new VesselMediaEntity
         {
             VesselId = vesselId,
             MediaType = mediaType,
             FileId = fileId,
-            FileName = fileName,
-            FileUrl = fileUrl,
+            OriginalFileNameSnapshot = originalFileNameSnapshot,
+            ContentTypeSnapshot = contentTypeSnapshot,
+            SizeInBytesSnapshot = sizeInBytesSnapshot,
             SortOrder = sortOrder,
             IsCover = isCover,
             IsActive = true
         };
     }
 
-    public void Update(int sortOrder, bool isCover)
+    public void Update(
+        VesselMediaType mediaType,
+        Guid? fileId,
+        string? originalFileNameSnapshot,
+        string? contentTypeSnapshot,
+        long? sizeInBytesSnapshot,
+        int sortOrder,
+        bool isCover)
     {
+        MediaType = mediaType;
+        FileId = fileId;
+        OriginalFileNameSnapshot = originalFileNameSnapshot;
+        ContentTypeSnapshot = contentTypeSnapshot;
+        SizeInBytesSnapshot = sizeInBytesSnapshot;
         SortOrder = sortOrder;
         IsCover = isCover;
     }
@@ -48,3 +67,4 @@ public sealed class VesselMediaEntity : AizenEntityWithAudit
     public void ChangeSortOrder(int sortOrder) => SortOrder = sortOrder;
     public void Deactivate() => IsActive = false;
 }
+

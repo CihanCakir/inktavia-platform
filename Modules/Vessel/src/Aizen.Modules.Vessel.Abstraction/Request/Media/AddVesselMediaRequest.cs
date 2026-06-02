@@ -7,9 +7,8 @@ namespace Aizen.Modules.Vessel.Abstraction.Request.Media;
 public sealed class AddVesselMediaRequest
 {
     public VesselMediaType MediaType { get; set; }
-    public string? FileId { get; set; }
-    public string? FileName { get; set; }
-    public string? FileUrl { get; set; }
+    public Guid? FileId { get; set; }
     public int SortOrder { get; set; }
     public bool IsCover { get; set; }
 }
+

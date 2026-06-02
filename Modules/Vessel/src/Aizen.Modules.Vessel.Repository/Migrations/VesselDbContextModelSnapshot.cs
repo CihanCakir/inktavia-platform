@@ -31,6 +31,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("ContentTypeSnapshot")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -62,27 +66,14 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("FileId")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("FileName")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("FileUrl")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                    b.Property<Guid?>("FileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("MimeType")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
@@ -97,9 +88,16 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<string>("OriginalFileNameSnapshot")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<Guid?>("PublicId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
+
+                    b.Property<long?>("SizeInBytesSnapshot")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("VesselId")
                         .HasColumnType("bigint");
@@ -443,6 +441,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("ContentTypeSnapshot")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -458,17 +460,8 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<long?>("DeletedBy")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("FileId")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("FileName")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("FileUrl")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                    b.Property<Guid?>("FileId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -491,9 +484,16 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<long?>("ModifyUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("OriginalFileNameSnapshot")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<Guid?>("PublicId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
+
+                    b.Property<long?>("SizeInBytesSnapshot")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
@@ -505,7 +505,7 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     b.HasIndex("VesselId", "IsCover");
 
-                    b.HasIndex("VesselId", "MediaType");
+                    b.HasIndex("VesselId", "SortOrder");
 
                     b.ToTable("vessel_media", "vessel");
                 });
