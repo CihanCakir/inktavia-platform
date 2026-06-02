@@ -132,8 +132,6 @@
       "name": "Modules Only",
       "configurations": [
         "Identity",
-        "Payment",
-        "Profile",
         "ReferenceData"
       ],
       "stopAll": true

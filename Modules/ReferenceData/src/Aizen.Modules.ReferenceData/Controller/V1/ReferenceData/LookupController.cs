@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Modules.ReferenceData.Controller.V1.ReferenceData;
 
 [ApiController]
+[Route("api/v1/reference-data/lookup-groups")]
 [Tags("Lookup")]
 [DocumentationInfo("Lookup read endpoints", "Read-only queries for lookup groups and items.")]
 public sealed class LookupController : AizenWebApiController
@@ -21,7 +22,7 @@ public sealed class LookupController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    [HttpGet("api/v1/reference-data/lookup-groups")]
+    [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<LookupGroupDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<IReadOnlyList<LookupGroupDto>>> GetGroups([FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
@@ -29,7 +30,7 @@ public sealed class LookupController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("api/v1/reference-data/lookup-groups/tree")]
+    [HttpGet("tree")]
     [ProducesResponseType(typeof(IReadOnlyList<LookupGroupTreeDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<IReadOnlyList<LookupGroupTreeDto>>> GetGroupTree([FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
@@ -37,7 +38,7 @@ public sealed class LookupController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("api/v1/reference-data/lookup-groups/{id:long}")]
+    [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(LookupGroupDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupDto?>> GetGroupById([FromRoute] long id, CancellationToken ct = default)
     {
@@ -45,7 +46,7 @@ public sealed class LookupController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("api/v1/reference-data/lookup-items/{groupCode}")]
+    [HttpGet("lookup-items/{groupCode}")]
     [ProducesResponseType(typeof(IReadOnlyList<LookupItemDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<IReadOnlyList<LookupItemDto>>> GetItems([FromRoute] string groupCode, [FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
