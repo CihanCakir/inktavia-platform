@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+<ItemGroup>
+    <ProjectReference Include="..\Aizen.Modules.Vessel.Domain\Aizen.Modules.Vessel.Domain.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Vessel.Core\Aizen.Modules.Vessel.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Seed\Json\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
