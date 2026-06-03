@@ -1,0 +1,28 @@
+namespace Aizen.Modules.ServiceRequest.Abstraction.Enum;
+
+public enum ServiceRequestRealtimeEventType
+{
+    ServiceRequestCreated = 1,
+    ServiceRequestUpdated = 2,
+    ServiceRequestStatusChanged = 3,
+    OfferCreated = 10,
+    OfferUpdated = 11,
+    OfferAccepted = 12,
+    OfferRejected = 13,
+    AssignmentCreated = 20,
+    AssignmentUpdated = 21,
+    AssignmentAccepted = 22,
+    AssignmentRejected = 23,
+    MessageSent = 30,
+    WorkLogAdded = 40,
+    WorkStarted = 41,
+    WorkPaused = 42,
+    WorkResumed = 43,
+    CompletionSubmitted = 50,
+    CompletionApproved = 51,
+    CompletionRejected = 52,
+    DisputeOpened = 60,
+    DisputeStatusChanged = 61,
+    DisputeResolved = 62,
+    AdminInterventionRequired = 70
+}

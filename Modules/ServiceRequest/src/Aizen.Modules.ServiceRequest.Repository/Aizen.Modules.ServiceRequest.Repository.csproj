@@ -8,9 +8,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Aizen.Modules.ServiceRequest.Domain\Aizen.Modules.ServiceRequest.Domain.csproj" />
+    <ProjectReference Include="../../../../Core/EFCore/src/Aizen.Core.EFCore/Aizen.Core.EFCore.csproj" />
+    <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache/Aizen.Core.Cache.csproj" />
+    <ProjectReference Include="../../../../Core/Data/src/Aizen.Core.Data.Mongo/Aizen.Core.Data.Mongo.csproj" />
+    <ProjectReference Include="../../../../Core/Data/src/Aizen.Core.Data.Postgresql/Aizen.Core.Data.Postgresql.csproj" />
+    <ProjectReference Include="../../../FileStorage/src/Aizen.Modules.FileStorage.Abstraction/Aizen.Modules.FileStorage.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
   </ItemGroup>
 
- 
   <ItemGroup>
     <Content Include="Seed\Json\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
