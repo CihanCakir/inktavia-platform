@@ -1,0 +1,1071 @@
+{
+  "info": {
+    "_postman_id": "f6a7b8c9-d0e1-2345-f012-456789012345",
+    "name": "ServiceRequest - Business Scenarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "End-to-end business scenario walkthrough for the ServiceRequest module. Run folders in order."
+  },
+  "item": [
+    {
+      "name": "01 - Auth & Setup",
+      "item": [
+        {
+          "name": "Get Owner Token (Mobile)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{mobile_client_id}}" },
+                { "key": "username", "value": "{{mobile_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": { "raw": "{{keycloak_token_url}}", "host": ["{{keycloak_token_url}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set('mobile_access_token', r.access_token);",
+                  "pm.environment.set('active_access_token', r.access_token);",
+                  "pm.environment.set('owner_access_token', r.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Admin Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{admin_panel_client_id}}" },
+                { "key": "username", "value": "{{admin_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": { "raw": "{{keycloak_token_url}}", "host": ["{{keycloak_token_url}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set('admin_access_token', r.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Identity Login - Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{mobile_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+905301234567\",\n  \"password\": \"{{default_password}}\",\n  \"deviceId\": \"test-device-001\",\n  \"notificationToken\": \"fcm\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/login/phone",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "login", "phone"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('identityAccessToken', r.identityAccessToken || r.accessToken || '');",
+                  "pm.environment.set('X-Aizen-User-Token', r.xAizenUserToken || r.userToken || '');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set Active - Owner",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('active_access_token', pm.environment.get('owner_access_token'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/health",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Setup - Get Vessel",
+      "description": "Get existing vessel or verify vesselId is set",
+      "item": [
+        {
+          "name": "Get My Vessels",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{vessel_api_base_url}}/vessels/current-user?pageIndex=0&pageSize=5",
+              "host": ["{{vessel_api_base_url}}"],
+              "path": ["vessels", "current-user"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "5" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Extract first vessel', () => {",
+                  "  const r = pm.response.json();",
+                  "  const items = r.items || r.data || r;",
+                  "  if (Array.isArray(items) && items.length > 0) {",
+                  "    pm.environment.set('vesselId', items[0].id);",
+                  "    pm.test('vesselId set: ' + items[0].id, () => {});",
+                  "  } else {",
+                  "    pm.test('WARNING: No vessels found - create a vessel first', () => false);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Setup - Get Currency",
+      "description": "Get USD currency ID",
+      "item": [
+        {
+          "name": "Get Currencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/currencies?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["currencies"],
+              "query": [
+                { "key": "onlyActive", "value": "true" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "if (Array.isArray(r) && r.length > 0) {",
+                  "  const usd = r.find(c => c.code === 'USD') || r[0];",
+                  "  pm.environment.set('currencyId', usd.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Create Service Request",
+      "item": [
+        {
+          "name": "Step 1: Create Service Request (Draft)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vesselId\": \"{{vesselId}}\",\n  \"title\": \"Engine Overhaul - Full Service\",\n  \"description\": \"Complete engine overhaul needed after 10000 operating hours. Including inspection, replacement of worn parts, and sea trial.\",\n  \"serviceType\": \"EngineMaintenance\",\n  \"requiredPort\": \"Istanbul Haydarpasa Terminal\",\n  \"scheduledAt\": \"2025-04-01T08:00:00Z\",\n  \"budgetMin\": 10000,\n  \"budgetMax\": 25000,\n  \"currencyId\": \"{{currencyId}}\",\n  \"attachments\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('serviceRequestId', r.id || r.serviceRequestId);",
+                  "pm.test('serviceRequestId saved', () => pm.expect(pm.environment.get('serviceRequestId')).to.not.be.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Step 2: Publish Service Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/publish",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "publish"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Published', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Step 3: Verify Published Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status Published', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.status).to.equal('Published');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Offer Flow",
+      "description": "Provider creates offer, Owner accepts",
+      "item": [
+        {
+          "name": "Provider Creates Offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerProfileId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"offeredPrice\": 18500,\n  \"currency\": \"USD\",\n  \"estimatedDays\": 10,\n  \"notes\": \"We have all required parts in stock. Can begin immediately after contract signing.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/offers",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "offers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Offer created', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('serviceRequestOfferId', r.id || r.offerId);",
+                  "pm.test('offerId saved', () => pm.expect(pm.environment.get('serviceRequestOfferId')).to.not.be.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner Accepts Offer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Accepted. Please coordinate with our fleet manager.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/offers/{{serviceRequestOfferId}}/accept",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "offers", "{{serviceRequestOfferId}}", "accept"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Offer accepted', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Offer Accepted",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status OfferAccepted', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.status).to.be.oneOf(['OfferAccepted', 'Assigned']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Assignment Flow",
+      "item": [
+        {
+          "name": "Create Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": \"{{serviceRequestOfferId}}\",\n  \"scheduledStartAt\": \"2025-04-01T08:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/assignment",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "assignment"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Assignment created', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('assignmentId', r.id || r.assignmentId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Provider Accepts Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/assignment/{{assignmentId}}/accept",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "assignment", "{{assignmentId}}", "accept"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Provider Starts Work",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/assignment/{{assignmentId}}/start",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "assignment", "{{assignmentId}}", "start"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Work In Progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status InProgress', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.status).to.equal('InProgress');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Message Flow",
+      "item": [
+        {
+          "name": "Owner Sends Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Please provide daily progress updates. We need the vessel back in service by April 10.\",\n  \"attachmentFileIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/messages",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "messages"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Message sent', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('messageId', r.id || r.messageId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Provider Replies",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Understood. Day 1 complete: engine disassembled, inspecting components.\",\n  \"attachmentFileIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/messages",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "messages"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/messages?skip=0&take=50",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "messages"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Has messages', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(Array.isArray(r) || r.items).to.be.ok;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark Messages as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageIds\": [\"{{messageId}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/messages/mark-read",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "messages", "mark-read"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 - Work Log Flow",
+      "item": [
+        {
+          "name": "Add Day 1 Work Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workDate\": \"2025-04-01T00:00:00Z\",\n  \"hoursWorked\": 9,\n  \"description\": \"Engine disassembly, inspection of main bearings and crankshaft\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/work-logs/assignment/{{assignmentId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "work-logs", "assignment", "{{assignmentId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Work log added', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('workLogId', r.id || r.workLogId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Day 2 Work Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workDate\": \"2025-04-02T00:00:00Z\",\n  \"hoursWorked\": 8,\n  \"description\": \"Replaced main bearings, connecting rod bearings, and piston rings\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/work-logs/assignment/{{assignmentId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "work-logs", "assignment", "{{assignmentId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Work Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/work-logs/assignment/{{assignmentId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "work-logs", "assignment", "{{assignmentId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Work logs retrieved', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09 - Completion Flow",
+      "item": [
+        {
+          "name": "Provider Submits Completion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"summary\": \"Engine overhaul completed successfully. All bearings replaced, crankshaft polished, engine tested at full load for 4 hours. Ready for sea trial.\",\n  \"completedAt\": \"2025-04-08T16:00:00Z\",\n  \"fileIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/completion/{{assignmentId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "completion", "{{assignmentId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Completion submitted', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('completionId', r.id || r.completionId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner Reviews Completion",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Pending completion', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.status).to.be.oneOf(['PendingCompletion', 'Completed']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner Approves Completion",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Excellent work. Vessel sea trial passed all checks.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/completion/approve",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "completion", "approve"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Completion approved', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Completed",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status Completed', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.status).to.equal('Completed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 - Dispute Flow (Alternative)",
+      "description": "Alternative to completion approval - dispute resolution",
+      "item": [
+        {
+          "name": "Open Dispute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"ServiceQualityIssue\",\n  \"description\": \"Engine still has oil leak that was reported before service. Issue not resolved despite being part of scope.\",\n  \"evidenceFileIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/dispute",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "dispute"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dispute opened', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('disputeId', r.id || r.disputeId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin Reviews Dispute",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"UnderReview\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/service-requests/{{serviceRequestId}}/dispute/{{disputeId}}/status",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "service-requests", "{{serviceRequestId}}", "dispute", "{{disputeId}}", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin Resolves Dispute",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"PartialRefund\",\n  \"notes\": \"Provider agreed to rectify the oil leak within 48 hours at no additional cost. 10% payment held pending fix.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/service-requests/{{serviceRequestId}}/dispute/{{disputeId}}/resolve",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "service-requests", "{{serviceRequestId}}", "dispute", "{{disputeId}}", "resolve"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11 - Admin Operations",
+      "item": [
+        {
+          "name": "Admin List All Service Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/admin/service-requests?pageIndex=0&pageSize=20",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "admin", "service-requests"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has items', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.items || r.data || r).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin Get Service Request Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/admin/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "admin", "service-requests", "{{serviceRequestId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin List Disputes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/admin/service-requests/disputes?pageIndex=0&pageSize=20",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "admin", "service-requests", "disputes"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

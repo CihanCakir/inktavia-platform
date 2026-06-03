@@ -110,6 +110,60 @@
       }
     },
     {
+      "name": "Vessel",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.Vessel",
+      "program": "${workspaceFolder}/Modules/Vessel/src/Aizen.Modules.Vessel/bin/Debug/net9.0/Aizen.Modules.Vessel.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/Vessel/src/Aizen.Modules.Vessel",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:7105"
+      }
+    },
+    {
+      "name": "FileStorage",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.FileStorage",
+      "program": "${workspaceFolder}/Modules/FileStorage/src/Aizen.Modules.FileStorage/bin/Debug/net9.0/Aizen.Modules.FileStorage.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/FileStorage/src/Aizen.Modules.FileStorage",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:7106"
+      }
+    },
+    {
+      "name": "ServiceRequest",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.ServiceRequest",
+      "program": "${workspaceFolder}/Modules/ServiceRequest/src/Aizen.Modules.ServiceRequest/bin/Debug/net9.0/Aizen.Modules.ServiceRequest.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/ServiceRequest/src/Aizen.Modules.ServiceRequest",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:7107"
+      }
+    },
+    {
       "name": "Attach to Process",
       "type": "coreclr",
       "request": "attach"
@@ -124,7 +178,10 @@
         "Identity",
         "Payment",
         "Profile",
-        "ReferenceData"
+        "ReferenceData",
+        "Vessel",
+        "FileStorage",
+        "ServiceRequest"
       ],
       "stopAll": true
     },
@@ -132,7 +189,10 @@
       "name": "Modules Only",
       "configurations": [
         "Identity",
-        "ReferenceData"
+        "ReferenceData",
+        "Vessel",
+        "FileStorage",
+        "ServiceRequest"
       ],
       "stopAll": true
     }

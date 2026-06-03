@@ -209,3 +209,56 @@ Boat Owner -> Vessel -> Service Request -> Provider Offer -> Assignment -> WorkL
 ```
 
 It must cover request, offer, assignment, realtime communication, messages, work execution, completion evidence, dispute flow, and admin operations in the first phase.
+
+# Copilot Instructions - Inktavia Postman Module Docs v2
+
+You are generating Postman documentation and test collections for Inktavia Marine OS.
+
+## Active scope
+
+Generate artifacts for:
+
+- Identity
+- ReferenceData
+- Vessel
+- FileStorage
+- ServiceRequest
+
+Skip active test generation for:
+
+- Payment
+- Profile
+
+## Do not invent contracts
+
+Request bodies must be derived from real request DTOs, controller action parameters, validators, and command/query contracts.
+
+Response examples and tests must be derived from real response DTOs, action return types, handler return types, or existing captured examples.
+
+If inference is uncertain, mark it clearly in a report instead of silently inventing.
+
+## Auth model
+
+Preserve the existing two-token approach:
+
+- Keycloak `access_token` -> `active_access_token` -> Authorization Bearer token
+- Identity `body.token.accessToken` -> `identityAccessToken` and `X-Aizen-User-Token`
+
+Default API request headers:
+
+- Authorization: Bearer `{{active_access_token}}`
+- X-Aizen-User-Token: `{{X-Aizen-User-Token}}`
+
+## Local service roots
+
+- Identity: `http://localhost:7101`
+- ReferenceData: `http://localhost:7104`
+- Vessel: `http://localhost:7105`
+- FileStorage: `http://localhost:7106`
+- ServiceRequest: `http://localhost:7107`
+
+Create both `*_root_url` and `*_base_url` variables.
+
+## Output convention
+
+Create `docs/postman` under every active module directory.

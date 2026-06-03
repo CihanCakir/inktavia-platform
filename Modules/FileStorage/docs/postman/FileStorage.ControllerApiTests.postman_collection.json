@@ -1,0 +1,444 @@
+{
+  "info": {
+    "_postman_id": "d4e5f6a7-b8c9-0123-def0-234567890123",
+    "name": "FileStorage Module - Controller API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Auth Setup",
+      "item": [
+        {
+          "name": "Get Mobile Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set('mobile_access_token', r.access_token);",
+                  "pm.environment.set('active_access_token', r.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{mobile_client_id}}" },
+                { "key": "username", "value": "{{mobile_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": ["{{keycloak_token_url}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Upload Session",
+      "item": [
+        {
+          "name": "Create Upload Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 201', () => { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "pm.test('Has upload session code', () => { const r = pm.response.json(); pm.expect(r).to.have.property('uploadSessionCode'); pm.environment.set('uploadSessionCode', r.uploadSessionCode); pm.environment.set('presignedUrl', r.presignedUrl || ''); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fileName\":\"test-vessel-photo.jpg\",\"contentType\":\"image/jpeg\",\"fileSizeBytes\":2457600,\"bucketContext\":\"vessel-media\",\"ownerEntityType\":\"Vessel\",\"ownerEntityId\":\"{{vesselId}}\"}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/upload-sessions",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["upload-sessions"]
+            }
+          }
+        },
+        {
+          "name": "Complete Upload Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has fileId', () => { const r = pm.response.json(); if(r.id || r.fileId) pm.environment.set('fileId', r.id || r.fileId); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"checksum\":\"d41d8cd98f00b204e9800998ecf8427e\",\"actualSizeBytes\":2457600}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/upload-sessions/{{uploadSessionCode}}/complete",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["upload-sessions", "{{uploadSessionCode}}", "complete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - File Management",
+      "item": [
+        {
+          "name": "Get File By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has id property', () => { const r = pm.response.json(); pm.expect(r).to.have.property('id'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get File Metadata",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/metadata",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "metadata"]
+            }
+          }
+        },
+        {
+          "name": "Update Visibility",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"Public\"",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/visibility",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "visibility"]
+            }
+          }
+        },
+        {
+          "name": "Link File to Owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"ownerEntityType\":\"Vessel\",\"ownerEntityId\":\"{{vesselId}}\"}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/owners",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "owners"]
+            }
+          }
+        },
+        {
+          "name": "Delete File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 204', () => { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"Test cleanup\"}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - File Access",
+      "item": [
+        {
+          "name": "Create Read URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json(); if(r.readUrl) pm.environment.set('readUrl', r.readUrl);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"expiresInMinutes\":15}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/access/read-url",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "access", "read-url"]
+            }
+          }
+        },
+        {
+          "name": "Validate Ownership",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"ownerEntityType\":\"Vessel\",\"ownerEntityId\":\"{{vesselId}}\"}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/access/validate-ownership",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "access", "validate-ownership"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - File Processing",
+      "item": [
+        {
+          "name": "Start Processing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 201', () => { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json(); if(r.jobId || r.id) pm.environment.set('processingJobId', r.jobId || r.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"processingType\":\"ThumbnailGeneration\",\"priority\":5}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/processing/start",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "processing", "start"]
+            }
+          }
+        },
+        {
+          "name": "Update Processing Result",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"jobId\":\"{{processingJobId}}\",\"status\":\"Completed\",\"resultUrl\":\"https://s3.amazonaws.com/thumbs/test-thumb.jpg\",\"errorMessage\":null}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/processing/result",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "processing", "result"]
+            }
+          }
+        },
+        {
+          "name": "Get Processing Jobs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/processing/jobs",
+              "host": ["{{file_storage_api_base_url}}"],
+              "path": ["files", "{{fileId}}", "processing", "jobs"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
