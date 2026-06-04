@@ -1,36 +1,15 @@
-using Aizen.Bff.AdminPanel.Application.Common;
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Core.CQRS.Message;
-using Aizen.Core.CQRS.Handler;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 
 public sealed class GetAdminVesselFormOptionsQuery : AizenQuery<AdminVesselFormOptionsResponse>
 {
     public string Authorization { get; }
-    public GetAdminVesselFormOptionsQuery(string authorization)
-        => Authorization = authorization;
-}
-
-[DocumentationInfo("Get admin vessel form options query handler", "Returns static vessel type and status option lists for admin vessel management forms.")]
-public sealed class GetAdminVesselFormOptionsQueryHandler
-    : AizenQueryHandler<GetAdminVesselFormOptionsQuery, AdminVesselFormOptionsResponse>
-{
-    public override Task<AdminVesselFormOptionsResponse?> Handle(
-        GetAdminVesselFormOptionsQuery request, CancellationToken cancellationToken)
+    public string UserToken { get; }
+    public GetAdminVesselFormOptionsQuery(string authorization, string userToken)
     {
-        var result = new AdminVesselFormOptionsResponse
-        {
-            VesselTypes = new List<string>
-            {
-                "Cargo", "Tanker", "Passenger", "Fishing", "Tug", "Ferry", "Yacht", "Research", "Military", "Other"
-            },
-            StatusOptions = new List<string>
-            {
-                "Active", "Inactive", "UnderMaintenance", "Decommissioned", "Archived"
-            }
-        };
-
-        return Task.FromResult<AdminVesselFormOptionsResponse?>(result);
+        Authorization = authorization;
+        UserToken = userToken;
     }
 }

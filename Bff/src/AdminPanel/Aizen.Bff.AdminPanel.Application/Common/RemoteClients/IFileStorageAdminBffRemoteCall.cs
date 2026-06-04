@@ -11,25 +11,29 @@ public interface IFileStorageAdminBffRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/files/{fileId}")]
     Task<AizenApiResponse<FileMetadataResult>> GetFileMetadata(
-        Guid fileId,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        long fileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallPost("/api/v1/files/{fileId}/access/read-url")]
     Task<AizenApiResponse<FileAccessUrlResult>> CreateReadUrl(
-        Guid fileId,
+        long fileId,
         [AizenRemoteCallBody] CreateFileReadUrlRemoteCallRequest request,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallDelete("/api/v1/files/{fileId}")]
     Task<AizenApiResponse<EmptyResult>> DeleteFile(
-        Guid fileId,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        long fileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallPatch("/api/v1/files/{fileId}/visibility")]
     Task<AizenApiResponse<EmptyResult>> UpdateFileVisibility(
-        Guid fileId,
+        long fileId,
         [AizenRemoteCallBody] UpdateFileVisibilityRequest request,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }
 
 public sealed class FileMetadataResult { public FileMetadataDto? File { get; set; } }

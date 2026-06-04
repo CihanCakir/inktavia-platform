@@ -13,6 +13,7 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/admin/vessels")]
     Task<AizenApiResponse<GetAllVesselsAdminResponse>> GetAdminVesselList(
         [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] int pageIndex = 0,
         [Refit.Query] int pageSize = 20,
         [Refit.Query] string? searchTerm = null,
@@ -21,18 +22,21 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/vessels/{vesselId}")]
     Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(
         long vesselId,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallPut("/api/v1/vessels/{vesselId}")]
     Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
         long vesselId,
         [AizenRemoteCallBody] UpdateVesselRequest request,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallGet("/api/v1/vessels/{vesselId}/owners")]
     Task<AizenApiResponse<GetVesselOwnersResponse>> GetVesselOwners(
         long vesselId,
         [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] int pageIndex = 0,
         [Refit.Query] int pageSize = 20);
 
@@ -40,6 +44,7 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<GetVesselDocumentsResponse>> GetVesselDocuments(
         long vesselId,
         [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] int pageIndex = 0,
         [Refit.Query] int pageSize = 50,
         [Refit.Query] bool includeAccessUrls = false,
@@ -49,22 +54,26 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<RemoveVesselDocumentResponse>> RemoveVesselDocument(
         long vesselId,
         long documentId,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/archive")]
     Task<AizenApiResponse<ArchiveVesselResponse>> ArchiveVessel(
         long vesselId,
         [AizenRemoteCallBody] ArchiveVesselRequest request,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/restore")]
     Task<AizenApiResponse<RestoreVesselResponse>> RestoreVessel(
         long vesselId,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/status")]
     Task<AizenApiResponse<UpdateVesselStatusResponse>> UpdateVesselStatus(
         long vesselId,
         [AizenRemoteCallBody] UpdateVesselStatusRequest request,
-        [AizenRemoteCallHeader("Authorization")] string authorization);
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }

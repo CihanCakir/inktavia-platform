@@ -2,7 +2,6 @@ using Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 using Aizen.Bff.AdminPanel.Application.AdminFiles.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminFiles.Query;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
-using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
@@ -15,24 +14,25 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Files")]
 [Authorize(Roles = "Admin")]
-public sealed class AdminFilesController : AizenWebApiController
+public sealed class FilesController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminFilesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
+    public FilesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
         : base(httpContextAccessor)
     {
         _cqrs = cqrsProcessor;
     }
 
-    [HttpGet("files/{fileId:guid}")]
+    [HttpGet("files/{fileId:long}")]
     [ProducesResponseType(typeof(AdminFileReviewOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminFileReviewOverviewResponse>> GetFileReviewOverview(
-        Guid fileId, CancellationToken ct)
+        long fileId, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminFileReviewOverviewQuery(fileId, auth), ct);
+            new GetAdminFileReviewOverviewQuery(fileId, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -42,19 +42,21 @@ public sealed class AdminFilesController : AizenWebApiController
         [FromBody] BulkGenerateReadUrlsRequest request, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new BulkGenerateReadUrlsCommand(request.FileIds, request.ExpiresInMinutes, auth), ct);
+            new BulkGenerateReadUrlsCommand(request.FileIds, request.ExpiresInMinutes, auth, userToken), ct);
         return SetResponse(result);
     }
 
-    [HttpDelete("files/{fileId:guid}")]
+    [HttpDelete("files/{fileId:long}")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> DeleteFile(
-        Guid fileId, CancellationToken ct)
+        long fileId, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new DeleteFileCommand(fileId, auth), ct);
+            new DeleteFileCommand(fileId, auth, userToken), ct);
         return SetResponse(result);
     }
 }
@@ -62,6 +64,6 @@ public sealed class AdminFilesController : AizenWebApiController
 [DocumentationInfo("Bulk generate read URLs request", "Request body for generating pre-signed read URLs for multiple files.")]
 public sealed class BulkGenerateReadUrlsRequest
 {
-    public List<Guid> FileIds { get; set; } = new();
+    public List<long> FileIds { get; set; } = new();
     public int ExpiresInMinutes { get; set; } = 60;
 }

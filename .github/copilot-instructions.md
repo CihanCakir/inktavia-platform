@@ -385,3 +385,47 @@ ServiceRequest: http://localhost:7107/api/v1
 ```
 
 Use environment variables for deployable configuration.
+
+
+# Copilot Instructions - AdminPanel BFF Corrective Fix
+
+You are working inside the Inktavia Marine OS backend repository.
+
+Your task is to correct and complete the AdminPanel BFF implementation under:
+
+```text
+Bff/src/AdminPanel/Aizen.Bff.AdminPanel
+Bff/src/AdminPanel/Aizen.Bff.AdminPanel.Application
+```
+
+Do not rewrite the entire solution. Apply targeted fixes.
+
+## Non-negotiable rules
+
+1. Re-scan all active module controller files directly from source.
+2. Do not rely only on existing endpoint inventory files.
+3. Every discovered active endpoint that is relevant to AdminPanel must be represented in AdminPanel BFF.
+4. Identity authentication and authorization endpoints must be explicitly included.
+5. ReferenceData endpoints must be fully audited and added where missing.
+6. Do not activate Payment or Profile module flows.
+7. BFF must not contain internal module domain rules.
+8. BFF may orchestrate, aggregate, enrich, map and shape AdminPanel-specific responses.
+9. Internal API calls must use AizenRemoteCall.
+10. Internal API calls must forward:
+    - Authorization: Bearer {current Keycloak token}
+    - X-Aizen-User-Token: {current Identity user token}
+11. Query and QueryHandler must not be in the same file.
+12. Command and CommandHandler must not be in the same file.
+13. Use typed DTO/response classes. Do not return object.
+14. Add DocumentationInfo to all public classes, interfaces, commands, queries, handlers and controllers if this convention exists in the repository.
+15. Run build validation and generate reports.
+
+# Current Task Override - AdminPanel BFF Fix Only
+
+For the current Copilot Agent run, focus only on fixing and completing the AdminPanel BFF implementation.
+
+Target projects:
+
+```text
+Bff/src/AdminPanel/Aizen.Bff.AdminPanel
+Bff/src/AdminPanel/Aizen.Bff.AdminPanel.Application

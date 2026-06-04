@@ -15,11 +15,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Identity")]
 [Authorize(Roles = "Admin")]
-public sealed class AdminIdentityController : AizenWebApiController
+public sealed class IdentityController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminIdentityController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
+    public IdentityController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
         : base(httpContextAccessor)
     {
         _cqrs = cqrsProcessor;
@@ -35,8 +35,9 @@ public sealed class AdminIdentityController : AizenWebApiController
         CancellationToken ct = default)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminProfilesQuery(auth, roleContext, approvalStatus, pageIndex, pageSize), ct);
+            new GetAdminProfilesQuery(auth, userToken, roleContext, approvalStatus, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -48,8 +49,9 @@ public sealed class AdminIdentityController : AizenWebApiController
         CancellationToken ct = default)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminProfileDetailQuery(profileId, auth, roleContext), ct);
+            new GetAdminProfileDetailQuery(profileId, auth, userToken, roleContext), ct);
         return SetResponse(result);
     }
 
@@ -59,8 +61,9 @@ public sealed class AdminIdentityController : AizenWebApiController
         long userId, Guid profileId, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ApproveOrganizerProfileCommand(userId, profileId, auth), ct);
+            new ApproveOrganizerProfileCommand(userId, profileId, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -70,8 +73,9 @@ public sealed class AdminIdentityController : AizenWebApiController
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectOrganizerProfileCommand(userId, profileId, request.Reason, auth), ct);
+            new RejectOrganizerProfileCommand(userId, profileId, request.Reason, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -81,8 +85,9 @@ public sealed class AdminIdentityController : AizenWebApiController
         long userId, Guid profileId, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ApproveVenueProfileCommand(userId, profileId, auth), ct);
+            new ApproveVenueProfileCommand(userId, profileId, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -92,8 +97,9 @@ public sealed class AdminIdentityController : AizenWebApiController
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectVenueProfileCommand(userId, profileId, request.Reason, auth), ct);
+            new RejectVenueProfileCommand(userId, profileId, request.Reason, auth, userToken), ct);
         return SetResponse(result);
     }
 }

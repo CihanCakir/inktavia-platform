@@ -16,11 +16,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Vessels")]
 [Authorize(Roles = "Admin")]
-public sealed class AdminVesselsController : AizenWebApiController
+public sealed class VesselsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminVesselsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
+    public VesselsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
         : base(httpContextAccessor)
     {
         _cqrs = cqrsProcessor;
@@ -36,8 +36,9 @@ public sealed class AdminVesselsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselOverviewQuery(auth, pageIndex, pageSize, searchTerm, isArchived), ct);
+            new GetAdminVesselOverviewQuery(auth, userToken, pageIndex, pageSize, searchTerm, isArchived), ct);
         return SetResponse(result);
     }
 
@@ -47,8 +48,9 @@ public sealed class AdminVesselsController : AizenWebApiController
         long vesselId, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselDocumentsQuery(vesselId, auth), ct);
+            new GetAdminVesselDocumentsQuery(vesselId, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -58,8 +60,9 @@ public sealed class AdminVesselsController : AizenWebApiController
         long vesselId, [FromBody] ArchiveVesselRequest request, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ArchiveVesselCommand(vesselId, request, auth), ct);
+            new ArchiveVesselCommand(vesselId, request, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -69,8 +72,9 @@ public sealed class AdminVesselsController : AizenWebApiController
         long vesselId, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RestoreVesselCommand(vesselId, auth), ct);
+            new RestoreVesselCommand(vesselId, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -80,8 +84,9 @@ public sealed class AdminVesselsController : AizenWebApiController
         long vesselId, [FromBody] UpdateVesselStatusRequest request, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new UpdateVesselStatusCommand(vesselId, request, auth), ct);
+            new UpdateVesselStatusCommand(vesselId, request, auth, userToken), ct);
         return SetResponse(result);
     }
 
@@ -91,8 +96,9 @@ public sealed class AdminVesselsController : AizenWebApiController
         long vesselId, long documentId, CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RemoveVesselDocumentCommand(vesselId, documentId, auth), ct);
+            new RemoveVesselDocumentCommand(vesselId, documentId, auth, userToken), ct);
         return SetResponse(result);
     }
 }

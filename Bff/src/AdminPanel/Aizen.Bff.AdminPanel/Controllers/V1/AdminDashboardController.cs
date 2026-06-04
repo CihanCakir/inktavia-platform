@@ -12,11 +12,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Dashboard")]
 [Authorize(Roles = "Admin")]
-public sealed class AdminDashboardController : AizenWebApiController
+public sealed class DashboardController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminDashboardController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
+    public DashboardController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
         : base(httpContextAccessor)
     {
         _cqrs = cqrsProcessor;
@@ -27,7 +27,8 @@ public sealed class AdminDashboardController : AizenWebApiController
     public async Task<AizenApiResponse<AdminDashboardOverviewResponse>> GetDashboardOverview(CancellationToken ct)
     {
         var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminDashboardOverviewQuery(auth), ct);
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new GetAdminDashboardOverviewQuery(auth, userToken), ct);
         return SetResponse(result);
     }
 }
