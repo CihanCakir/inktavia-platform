@@ -1,0 +1,6 @@
+@Aizen.Bff.AdminPanel_HostAddress = http://localhost:5085
+
+GET {{Aizen.Bff.AdminPanel_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
