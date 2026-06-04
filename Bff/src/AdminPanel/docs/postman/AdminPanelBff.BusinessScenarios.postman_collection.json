@@ -1,0 +1,588 @@
+{
+  "info": {
+    "_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "Admin Panel BFF — Business Scenarios",
+    "description": "End-to-end business scenario flows for the Admin Panel BFF. Each folder represents one scenario. Run requests within a folder in order.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup — Get Admin Token",
+      "item": [
+        {
+          "name": "Get Admin Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.environment.set('admin_token', json.access_token);",
+                  "pm.test('Admin token acquired', function() {",
+                  "  pm.expect(json.access_token).to.be.a('string').and.not.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{keycloak_client_id}}" },
+                { "key": "client_secret", "value": "{{keycloak_client_secret}}" },
+                { "key": "username", "value": "{{admin_username}}" },
+                { "key": "password", "value": "{{admin_password}}" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token",
+              "host": ["{{keycloak_url}}"],
+              "path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scenario 1 — Admin Dashboard Load",
+      "description": "Verifies the admin can load the dashboard overview. This is the first screen after login.",
+      "item": [
+        {
+          "name": "Step 1: GET Dashboard Overview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Dashboard loaded', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "pm.test('Response has data', function() {",
+                  "  pm.expect(json).to.be.an('object');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/dashboard/overview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "dashboard", "overview"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scenario 2 — Approve Organizer Profile Flow",
+      "description": "Admin searches for pending organizers, loads a profile detail, then approves it.",
+      "item": [
+        {
+          "name": "Step 1: Search Pending Organizer Profiles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Profiles listed', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "// If there are results, extract the first profile ID for next step",
+                  "if (json && json.data && json.data.items && json.data.items.length > 0) {",
+                  "  pm.environment.set('flow_profile_id', json.data.items[0].profileId);",
+                  "  pm.environment.set('flow_user_id', json.data.items[0].userId);",
+                  "  console.log('Using profileId:', json.data.items[0].profileId);",
+                  "} else {",
+                  "  pm.environment.set('flow_profile_id', pm.environment.get('sample_profile_id'));",
+                  "  pm.environment.set('flow_user_id', pm.environment.get('sample_user_id'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/profiles?roleContext=Organizer&approvalStatus=Pending&pageIndex=0&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "profiles"],
+              "query": [
+                { "key": "roleContext", "value": "Organizer" },
+                { "key": "approvalStatus", "value": "Pending" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 2: GET Organizer Profile Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Profile detail loaded', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/profiles/{{flow_profile_id}}?roleContext=Organizer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "profiles", "{{flow_profile_id}}"],
+              "query": [
+                { "key": "roleContext", "value": "Organizer" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 3: POST Approve Organizer Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Profile approved', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/organizers/{{flow_user_id}}/profiles/{{flow_profile_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "organizers", "{{flow_user_id}}", "profiles", "{{flow_profile_id}}", "approve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scenario 3 — Archive & Restore Vessel",
+      "description": "Admin archives a vessel for policy violation, verifies it is archived, then restores it.",
+      "item": [
+        {
+          "name": "Step 1: GET Active Vessels",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Vessels listed', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "if (json && json.data && json.data.items && json.data.items.length > 0) {",
+                  "  pm.environment.set('flow_vessel_id', json.data.items[0].vesselId);",
+                  "  console.log('Using vesselId:', json.data.items[0].vesselId);",
+                  "} else {",
+                  "  pm.environment.set('flow_vessel_id', pm.environment.get('sample_vessel_id'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels?isArchived=false&pageIndex=0&pageSize=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels"],
+              "query": [
+                { "key": "isArchived", "value": "false" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 2: PATCH Archive Vessel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Vessel archived', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Vessel failed mandatory safety inspection — archived pending review\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{flow_vessel_id}}/archive",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{flow_vessel_id}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Step 3: GET Vessel Detail (verify archived)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Vessel detail loaded', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{flow_vessel_id}}/detail",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{flow_vessel_id}}", "detail"]
+            }
+          }
+        },
+        {
+          "name": "Step 4: PATCH Restore Vessel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Vessel restored', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{flow_vessel_id}}/restore",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{flow_vessel_id}}", "restore"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scenario 4 — Admin Resolves Dispute",
+      "description": "Admin views open disputes, loads the detail of one, changes its status to UnderReview, then resolves it.",
+      "item": [
+        {
+          "name": "Step 1: GET Dispute List (open)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Disputes listed', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "if (json && json.data && json.data.items && json.data.items.length > 0) {",
+                  "  pm.environment.set('flow_sr_id', json.data.items[0].serviceRequestId);",
+                  "  pm.environment.set('flow_dispute_id', json.data.items[0].disputeId);",
+                  "  console.log('Using serviceRequestId:', json.data.items[0].serviceRequestId, 'disputeId:', json.data.items[0].disputeId);",
+                  "} else {",
+                  "  pm.environment.set('flow_sr_id', pm.environment.get('sample_service_request_id'));",
+                  "  pm.environment.set('flow_dispute_id', pm.environment.get('sample_dispute_id'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/disputes?status=Open&pageIndex=0&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "disputes"],
+              "query": [
+                { "key": "status", "value": "Open" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 2: GET Service Request Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - SR detail loaded', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{flow_sr_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{flow_sr_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Step 3: PATCH Change Dispute Status to UnderReview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Dispute status updated', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"UnderReview\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{flow_sr_id}}/disputes/{{flow_dispute_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{flow_sr_id}}", "disputes", "{{flow_dispute_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Step 4: PATCH Resolve Dispute",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Dispute resolved', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"After reviewing all submitted evidence, the service provider fulfilled all agreed deliverables. Dispute resolved in favor of service provider.\",\n  \"favoredParty\": \"ServiceProvider\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{flow_sr_id}}/disputes/{{flow_dispute_id}}/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{flow_sr_id}}", "disputes", "{{flow_dispute_id}}", "resolve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scenario 5 — Admin Generates File Read URLs",
+      "description": "Admin generates pre-signed S3 read URLs for multiple files to review attachments.",
+      "item": [
+        {
+          "name": "Step 1: GET File Metadata (first file)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - File metadata loaded', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/files/{{sample_file_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "files", "{{sample_file_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Step 2: POST Bulk Generate Read URLs (single file, 30 min expiry)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Read URLs generated', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "pm.test('Response contains URL list', function() {",
+                  "  pm.expect(json).to.be.an('object');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileIds\": [\n    \"{{sample_file_id}}\"\n  ],\n  \"expiresInMinutes\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/files/bulk-read-urls",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "files", "bulk-read-urls"]
+            }
+          }
+        },
+        {
+          "name": "Step 3: POST Bulk Generate Read URLs (multiple files, 60 min expiry)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - Bulk Read URLs generated', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileIds\": [\n    \"{{sample_file_id}}\",\n    \"00000000-0000-0000-0000-000000000003\",\n    \"00000000-0000-0000-0000-000000000004\"\n  ],\n  \"expiresInMinutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/files/bulk-read-urls",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "files", "bulk-read-urls"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5200" },
+    { "key": "keycloak_url", "value": "http://localhost:8080" },
+    { "key": "keycloak_realm", "value": "inktavia" },
+    { "key": "keycloak_client_id", "value": "inktavia-api" },
+    { "key": "keycloak_client_secret", "value": "" },
+    { "key": "admin_username", "value": "admin@inktavia.com" },
+    { "key": "admin_password", "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "sample_profile_id", "value": "00000000-0000-0000-0000-000000000001" },
+    { "key": "sample_user_id", "value": "1" },
+    { "key": "sample_vessel_id", "value": "1" },
+    { "key": "sample_service_request_id", "value": "1" },
+    { "key": "sample_dispute_id", "value": "1" },
+    { "key": "sample_file_id", "value": "00000000-0000-0000-0000-000000000002" },
+    { "key": "flow_profile_id", "value": "" },
+    { "key": "flow_user_id", "value": "" },
+    { "key": "flow_vessel_id", "value": "" },
+    { "key": "flow_sr_id", "value": "" },
+    { "key": "flow_dispute_id", "value": "" }
+  ]
+}

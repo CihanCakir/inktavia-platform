@@ -30,6 +30,14 @@ public class AizenRemoteCallPut : Refit.PutAttribute
 }
 
 [AttributeUsage(AttributeTargets.Method)]
+public class AizenRemoteCallPatch : Refit.PatchAttribute
+{
+    public AizenRemoteCallPatch(string path) : base(path)
+    {
+    }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
 public class AizenRemoteCallDelete : Refit.DeleteAttribute
 {
     public AizenRemoteCallDelete(string path) : base(path)

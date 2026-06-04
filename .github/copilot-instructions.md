@@ -302,3 +302,86 @@ Object storage decision:
 - Local MinIO default credentials may be used only in local-only `.env.example` or docker-compose examples.
 
 Do not break existing FileStorage APIs or existing Postman flows.
+
+# Copilot Instructions - Inktavia Marine OS Admin Panel BFF
+
+You are working in the Inktavia Marine OS backend repository.
+
+## Existing target projects
+
+Use the already-created BFF projects:
+
+```text
+Bff/src/AdminPanel/Aizen.Bff.AdminPanel
+Bff/src/AdminPanel/Aizen.Bff.AdminPanel.Application
+```
+
+Do not create an unrelated BFF architecture. Follow existing AizenFramework conventions in the repository.
+
+## Active modules
+
+The currently active backend modules are:
+
+- Identity
+- ReferenceData
+- Vessel
+- FileStorage
+- ServiceRequest
+
+The following modules may exist but must be treated as inactive/future integration for this task:
+
+- Payment
+- Profile
+
+Do not generate active Admin Panel BFF flows that depend on Payment or Profile.
+
+## Main implementation rules
+
+1. The Admin Panel BFF must not contain domain business logic.
+2. Domain rules remain inside internal modules.
+3. The BFF is responsible only for:
+   - orchestration
+   - aggregation
+   - token forwarding
+   - response shaping
+   - admin-specific DTOs/view models
+   - limited caching if the existing architecture supports it
+4. Internal module calls must use `AizenRemoteCall` and existing Aizen remote-call conventions.
+5. Do not use direct EF Core DbContext access from the BFF.
+6. Do not use repositories from internal modules in the BFF.
+7. The BFF Application layer may reference active modules' Abstraction class libraries for request/response contracts.
+8. Prefer typed command/query responses. Do not return raw `object` unless existing framework contracts absolutely require it.
+9. Add `DocumentationInfo` to public classes, commands, queries, handlers, services, controllers, request/response DTOs, and interfaces if this is the existing repository convention.
+10. Run build validation and create a final report.
+
+## Authentication forwarding contract
+
+Every Admin BFF request to internal module APIs must forward:
+
+```text
+Authorization: Bearer <incoming Keycloak access token>
+X-Aizen-User-Token: <incoming identity user token>
+```
+
+The existing Postman standard uses:
+
+```text
+Authorization: Bearer {{active_access_token}}
+X-Aizen-User-Token: {{X-Aizen-User-Token}}
+```
+
+The implementation must extract those values from the incoming request context and pass them through every `AizenRemoteCall` request.
+
+## Internal service local endpoints
+
+Use these local defaults in development appsettings:
+
+```text
+Identity:        http://localhost:7101/api/v1
+ReferenceData:  http://localhost:7104/api/v1
+Vessel:         http://localhost:7105/api/v1
+FileStorage:    http://localhost:7106/api/v1
+ServiceRequest: http://localhost:7107/api/v1
+```
+
+Use environment variables for deployable configuration.
