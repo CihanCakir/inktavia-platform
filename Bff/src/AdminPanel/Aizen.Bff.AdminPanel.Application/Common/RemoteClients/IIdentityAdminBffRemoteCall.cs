@@ -1,10 +1,12 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
 using Aizen.Modules.Identity.Abstraction.Request;
+using Aizen.Modules.Identity.Abstraction.Response;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -106,6 +108,36 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         long userId,
         Guid profileId,
         [AizenRemoteCallBody] RejectProfileRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/auth/login/username")]
+    Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername(
+        [AizenRemoteCallBody] LoginWithUsernameRequest request);
+
+    [AizenRemoteCallPost("/api/v1/auth/login/phone")]
+    Task<AizenApiResponse<UserLoginResponse>> LoginWithPhone(
+        [AizenRemoteCallBody] LoginWithPhoneRequest request);
+
+    [AizenRemoteCallPost("/api/v1/auth/login/otp")]
+    Task<AizenApiResponse<UserLoginResponse>> LoginWithOtp(
+        [AizenRemoteCallBody] LoginWithOtpRequest request);
+
+    [AizenRemoteCallPost("/api/v1/auth/otp/send")]
+    Task<AizenApiResponse<SendOtpDto>> SendOtp(
+        [AizenRemoteCallBody] SendOtpRequest request);
+
+    [AizenRemoteCallPost("/api/v1/auth/otp/check")]
+    Task<AizenApiResponse<CheckOtpDto>> CheckOtp(
+        [AizenRemoteCallBody] CheckOtpRequest request);
+
+    [AizenRemoteCallPost("/api/v1/auth/refresh")]
+    Task<AizenApiResponse<UserLoginResponse>> Refresh(
+        [AizenRemoteCallBody] RefreshLoginHttpRequest request);
+
+    [AizenRemoteCallPost("/api/v1/auth/password/change")]
+    Task<AizenApiResponse<ChangePasswordDto>> ChangePassword(
+        [AizenRemoteCallBody] ChangePasswordRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }

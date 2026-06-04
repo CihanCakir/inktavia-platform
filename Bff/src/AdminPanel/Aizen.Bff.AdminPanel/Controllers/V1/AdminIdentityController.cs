@@ -102,4 +102,15 @@ public sealed class IdentityController : AizenWebApiController
             new RejectVenueProfileCommand(userId, profileId, request.Reason, auth, userToken), ct);
         return SetResponse(result);
     }
+
+    [HttpGet("identity/profiles/{profileId:guid}/with-roles")]
+    [ProducesResponseType(typeof(ProfileWithRolesResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfileWithRolesResult>> GetProfileWithRoles(
+        Guid profileId, CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new GetProfileWithRolesQuery(profileId, auth, userToken), ct);
+        return SetResponse(result);
+    }
 }

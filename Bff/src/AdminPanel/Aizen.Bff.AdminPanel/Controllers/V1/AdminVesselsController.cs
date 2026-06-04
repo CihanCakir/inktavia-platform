@@ -9,7 +9,6 @@ using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
@@ -99,6 +98,38 @@ public sealed class VesselsController : AizenWebApiController
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
             new RemoveVesselDocumentCommand(vesselId, documentId, auth, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("vessels/{vesselId:long}")]
+    [ProducesResponseType(typeof(GetVesselDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(
+        long vesselId, CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new GetAdminVesselByIdQuery(vesselId, auth, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPut("vessels/{vesselId:long}")]
+    [ProducesResponseType(typeof(UpdateVesselResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
+        long vesselId, [FromBody] UpdateVesselRequest request, CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new UpdateVesselCommand(vesselId, request, auth, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("vessels/form-options")]
+    [ProducesResponseType(typeof(AdminVesselFormOptionsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselFormOptionsResponse>> GetFormOptions(CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new GetAdminVesselFormOptionsQuery(auth, userToken), ct);
         return SetResponse(result);
     }
 }

@@ -135,4 +135,26 @@ public sealed class ServiceRequestsController : AizenWebApiController
             new ResolveDisputeCommand(serviceRequestId, disputeId, request, auth, userToken), ct);
         return SetResponse(result);
     }
+
+    [HttpGet("service-requests/filter-options")]
+    [ProducesResponseType(typeof(AdminServiceRequestFilterOptionsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminServiceRequestFilterOptionsResponse>> GetFilterOptions(CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new GetAdminServiceRequestFilterOptionsQuery(auth, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("service-requests/{serviceRequestId:long}/timeline")]
+    [ProducesResponseType(typeof(AdminServiceRequestTimelineResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminServiceRequestTimelineResponse>> GetTimeline(
+        long serviceRequestId, CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminServiceRequestTimelineQuery(serviceRequestId, auth, userToken), ct);
+        return SetResponse(result);
+    }
 }

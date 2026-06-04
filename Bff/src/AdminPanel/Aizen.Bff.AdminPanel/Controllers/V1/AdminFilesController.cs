@@ -59,6 +59,30 @@ public sealed class FilesController : AizenWebApiController
             new DeleteFileCommand(fileId, auth, userToken), ct);
         return SetResponse(result);
     }
+
+    [HttpPost("files/{fileId:long}/read-url")]
+    [ProducesResponseType(typeof(FileAccessUrlResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<FileAccessUrlResult>> CreateFileReadUrl(
+        long fileId, [FromBody] CreateReadUrlRequest request, CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new CreateFileReadUrlCommand(fileId, request.ExpiresInMinutes, auth, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPatch("files/{fileId:long}/visibility")]
+    [ProducesResponseType(typeof(Aizen.Bff.AdminPanel.Application.Common.RemoteClients.EmptyResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<Aizen.Bff.AdminPanel.Application.Common.RemoteClients.EmptyResult>> UpdateVisibility(
+        long fileId, [FromBody] UpdateVisibilityRequest request, CancellationToken ct)
+    {
+        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new UpdateFileVisibilityCommand(fileId, request.Visibility, auth, userToken), ct);
+        return SetResponse(result);
+    }
 }
 
 [DocumentationInfo("Bulk generate read URLs request", "Request body for generating pre-signed read URLs for multiple files.")]
@@ -67,3 +91,6 @@ public sealed class BulkGenerateReadUrlsRequest
     public List<long> FileIds { get; set; } = new();
     public int ExpiresInMinutes { get; set; } = 60;
 }
+
+public sealed class CreateReadUrlRequest { public int ExpiresInMinutes { get; set; } = 60; }
+public sealed class UpdateVisibilityRequest { public string Visibility { get; set; } = string.Empty; }

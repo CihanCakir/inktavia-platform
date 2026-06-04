@@ -1,0 +1,17 @@
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Core.CQRS.Handler;
+
+namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
+
+[DocumentationInfo("GetParticipantProfileById query handler", "Returns a single participant profile by ID from the Identity module.")]
+public sealed class GetParticipantProfileByIdQueryHandler : AizenQueryHandler<GetParticipantProfileByIdQuery, ParticipantProfileResult>
+{
+    private readonly IIdentityAdminBffRemoteCall _identity;
+    public GetParticipantProfileByIdQueryHandler(IIdentityAdminBffRemoteCall identity) { _identity = identity; }
+
+    public override async Task<ParticipantProfileResult?> Handle(GetParticipantProfileByIdQuery request, CancellationToken ct)
+    {
+        var r = await _identity.GetParticipantProfileById(request.ProfileId, request.Authorization, request.UserToken);
+        return r.Body;
+    }
+}
