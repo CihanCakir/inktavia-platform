@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.FileStorage.Repository;
 
@@ -18,6 +19,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.Configure<S3ObjectStorageOptions>(configuration.GetSection("S3ObjectStorage"));
+        services.AddSingleton<IValidateOptions<S3ObjectStorageOptions>, S3ObjectStorageOptionsValidator>();
         services.AddSingleton<IObjectStorageProvider, S3ObjectStorageProvider>();
 
         services.AddScoped<IFileRepository, FileRepository>();

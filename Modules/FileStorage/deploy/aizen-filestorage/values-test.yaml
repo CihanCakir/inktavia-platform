@@ -89,4 +89,28 @@ env:
 - name: ASPNETCORE_ENVIRONMENT 
   value: test      
 - name: TZ
-  value: Europe/Istanbul 
+  value: Europe/Istanbul
+- name: S3ObjectStorage__Provider
+  value: "AWS"
+- name: S3ObjectStorage__Region
+  value: "eu-central-1"
+- name: S3ObjectStorage__BucketName
+  value: "inktavia-filestorage-test"
+- name: S3ObjectStorage__ForcePathStyle
+  value: "false"
+- name: S3ObjectStorage__UseHttp
+  value: "false"
+- name: S3ObjectStorage__UploadUrlExpirationMinutes
+  value: "15"
+- name: S3ObjectStorage__ReadUrlExpirationMinutes
+  value: "60"
+- name: S3ObjectStorage__AccessKey
+  valueFrom:
+    secretKeyRef:
+      name: filestorage-s3-secret
+      key: access-key
+- name: S3ObjectStorage__SecretKey
+  valueFrom:
+    secretKeyRef:
+      name: filestorage-s3-secret
+      key: secret-key

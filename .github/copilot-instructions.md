@@ -262,3 +262,43 @@ Create both `*_root_url` and `*_base_url` variables.
 ## Output convention
 
 Create `docs/postman` under every active module directory.
+
+
+# Copilot Instructions - Inktavia Marine OS FileStorage Object Storage
+
+You are working inside the Inktavia Marine OS backend repository.
+
+Follow the current repository architecture. Do not introduce unrelated patterns. Prefer the existing AizenFramework conventions for:
+
+- CQRS
+- DependencyInjection
+- Options binding
+- Repository/service abstractions
+- DocumentationInfo metadata
+- Postman documentation generation
+- Build validation reports
+
+Current active modules:
+
+- Identity
+- ReferenceData
+- Vessel
+- FileStorage
+- ServiceRequest
+
+Inactive/future modules:
+
+- Payment
+- Profile
+
+Do not add active flows depending on Payment or Profile.
+
+Object storage decision:
+
+- Local development and local integration tests must use MinIO.
+- Dev/Test/Production cloud environments must use AWS S3-compatible `S3ObjectStorage` settings.
+- Secrets must not be committed into the repository.
+- AccessKey and SecretKey must be supplied through environment variables, secret managers, or Kubernetes secrets.
+- Local MinIO default credentials may be used only in local-only `.env.example` or docker-compose examples.
+
+Do not break existing FileStorage APIs or existing Postman flows.

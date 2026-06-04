@@ -1,0 +1,241 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "FileStorage - Object Storage Flows",
+    "description": "End-to-end object storage flow tests: upload session → S3/MinIO upload → complete → read URL → delete.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Create Upload Session",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 or 201', function () {",
+              "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              "pm.test('Has uploadSessionCode', function () {",
+              "  const r = pm.response.json();",
+              "  pm.expect(r).to.have.property('uploadSessionCode');",
+              "  pm.environment.set('uploadSessionCode', r.uploadSessionCode);",
+              "});",
+              "pm.test('Has signedUploadUrl', function () {",
+              "  const r = pm.response.json();",
+              "  pm.expect(r).to.have.property('signedUploadUrl');",
+              "  pm.environment.set('signedUploadUrl', r.signedUploadUrl);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+          { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fileName\": \"test-document.pdf\",\n  \"contentType\": \"application/pdf\",\n  \"fileSizeBytes\": 1024,\n  \"category\": \"Document\",\n  \"visibility\": \"Private\"\n}"
+        },
+        "url": {
+          "raw": "{{file_storage_api_base_url}}/upload-sessions",
+          "host": ["{{file_storage_api_base_url}}"],
+          "path": ["upload-sessions"]
+        },
+        "description": "Creates an upload session and returns a pre-signed S3/MinIO PUT URL. Copy the signedUploadUrl and use it in step 02."
+      }
+    },
+    {
+      "name": "02 - [Manual] Upload File to Signed URL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Upload accepted (200)', function () {",
+              "  pm.expect(pm.response.code).to.equal(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/pdf" }
+        ],
+        "body": {
+          "mode": "file",
+          "file": {}
+        },
+        "url": {
+          "raw": "{{signedUploadUrl}}",
+          "host": ["{{signedUploadUrl}}"]
+        },
+        "description": "PUT a file directly to the S3/MinIO signed URL obtained in step 01. This request goes directly to S3 or MinIO — NOT via the FileStorage API. Select a binary file in the Body tab."
+      }
+    },
+    {
+      "name": "03 - Complete Upload Session",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 or 201', function () {",
+              "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              "pm.test('Has fileId', function () {",
+              "  const r = pm.response.json();",
+              "  pm.expect(r).to.have.property('fileId');",
+              "  pm.environment.set('fileId', r.fileId);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+          { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+        ],
+        "url": {
+          "raw": "{{file_storage_api_base_url}}/upload-sessions/{{uploadSessionCode}}/complete",
+          "host": ["{{file_storage_api_base_url}}"],
+          "path": ["upload-sessions", "{{uploadSessionCode}}", "complete"]
+        },
+        "description": "Completes the upload session. Verifies the object exists in S3/MinIO and transitions file status to Uploaded."
+      }
+    },
+    {
+      "name": "04 - Get File By ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has fileId', function () {",
+              "  const r = pm.response.json();",
+              "  pm.expect(r).to.have.property('fileId');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+          { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+        ],
+        "url": {
+          "raw": "{{file_storage_api_base_url}}/files/{{fileId}}",
+          "host": ["{{file_storage_api_base_url}}"],
+          "path": ["files", "{{fileId}}"]
+        }
+      }
+    },
+    {
+      "name": "05 - Get File Metadata",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has metadata', function () {",
+              "  const r = pm.response.json();",
+              "  pm.expect(r).to.have.property('fileId');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+          { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+        ],
+        "url": {
+          "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/metadata",
+          "host": ["{{file_storage_api_base_url}}"],
+          "path": ["files", "{{fileId}}", "metadata"]
+        }
+      }
+    },
+    {
+      "name": "06 - Create Read URL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has signedReadUrl', function () {",
+              "  const r = pm.response.json();",
+              "  pm.expect(r).to.have.property('signedReadUrl');",
+              "  pm.environment.set('signedReadUrl', r.signedReadUrl);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+          { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+        ],
+        "url": {
+          "raw": "{{file_storage_api_base_url}}/files/{{fileId}}/access/read-url",
+          "host": ["{{file_storage_api_base_url}}"],
+          "path": ["files", "{{fileId}}", "access", "read-url"]
+        },
+        "description": "Generates a pre-signed GET URL for reading the file. The URL is valid for ReadUrlExpirationMinutes (default 60 min)."
+      }
+    },
+    {
+      "name": "07 - Soft Delete File",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 or 204', function () {",
+              "  pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+          { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+        ],
+        "url": {
+          "raw": "{{file_storage_api_base_url}}/files/{{fileId}}",
+          "host": ["{{file_storage_api_base_url}}"],
+          "path": ["files", "{{fileId}}"]
+        },
+        "description": "Soft deletes the file. The record is marked as deleted; actual S3/MinIO object removal is handled by background cleanup jobs."
+      }
+    }
+  ],
+  "variable": []
+}
