@@ -23,7 +23,15 @@
       { "name": "profile_read", "description": "Read access to Profile API" },
       { "name": "profile_write", "description": "Write access to Profile API" },
       { "name": "payment_read", "description": "Read access to Payment API" },
-      { "name": "payment_write", "description": "Write access to Payment API" }
+      { "name": "payment_write", "description": "Write access to Payment API" },
+      { "name": "vessel_read", "description": "Read access to Vessel API" },
+      { "name": "vessel_write", "description": "Write access to Vessel API" },
+      { "name": "file_storage_read", "description": "Read access to FileStorage API" },
+      { "name": "file_storage_write", "description": "Write access to FileStorage API" },
+      { "name": "service_request_read", "description": "Read access to ServiceRequest API" },
+      { "name": "service_request_write", "description": "Write access to ServiceRequest API" },
+      { "name": "reference_data_read", "description": "Read access to ReferenceData API" },
+      { "name": "reference_data_write", "description": "Write access to ReferenceData API" }
     ]
   },
   "clients": [
@@ -53,6 +61,50 @@
       "clientId": "profile-api",
       "name": "Profile API",
       "description": "Resource server for Profile API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "vessel-api",
+      "name": "Vessel API",
+      "description": "Resource server for Vessel API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "file-storage-api",
+      "name": "FileStorage API",
+      "description": "Resource server for FileStorage API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "service-request-api",
+      "name": "ServiceRequest API",
+      "description": "Resource server for ServiceRequest API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "reference-data-api",
+      "name": "ReferenceData API",
+      "description": "Resource server for ReferenceData API audience validation",
       "enabled": true,
       "publicClient": false,
       "standardFlowEnabled": false,
@@ -98,6 +150,50 @@
           "consentRequired": false,
           "config": {
             "included.client.audience": "profile-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-vessel-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "vessel-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-file-storage-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "file-storage-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-service-request-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "service-request-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-reference-data-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "reference-data-api",
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
@@ -158,6 +254,50 @@
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
+        },
+        {
+          "name": "audience-vessel-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "vessel-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-file-storage-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "file-storage-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-service-request-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "service-request-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-reference-data-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "reference-data-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
         }
       ]
     },
@@ -215,6 +355,50 @@
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
+        },
+        {
+          "name": "audience-vessel-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "vessel-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-file-storage-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "file-storage-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-service-request-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "service-request-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-reference-data-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "reference-data-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
         }
       ]
     }
@@ -237,7 +421,13 @@
       "realmRoles": [
         "mobile_user",
         "profile_read",
-        "profile_write"
+        "profile_write",
+        "vessel_read",
+        "file_storage_read",
+        "file_storage_write",
+        "service_request_read",
+        "service_request_write",
+        "reference_data_read"
       ]
     },
     {
@@ -257,7 +447,13 @@
       "realmRoles": [
         "customer_user",
         "profile_read",
-        "payment_read"
+        "payment_read",
+        "vessel_read",
+        "file_storage_read",
+        "file_storage_write",
+        "service_request_read",
+        "service_request_write",
+        "reference_data_read"
       ]
     },
     {
@@ -281,7 +477,15 @@
         "profile_read",
         "profile_write",
         "payment_read",
-        "payment_write"
+        "payment_write",
+        "vessel_read",
+        "vessel_write",
+        "file_storage_read",
+        "file_storage_write",
+        "service_request_read",
+        "service_request_write",
+        "reference_data_read",
+        "reference_data_write"
       ]
     }
   ]

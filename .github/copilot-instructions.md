@@ -420,12 +420,45 @@ Do not rewrite the entire solution. Apply targeted fixes.
 14. Add DocumentationInfo to all public classes, interfaces, commands, queries, handlers and controllers if this convention exists in the repository.
 15. Run build validation and generate reports.
 
-# Current Task Override - AdminPanel BFF Fix Only
 
-For the current Copilot Agent run, focus only on fixing and completing the AdminPanel BFF implementation.
+# Copilot Instructions — Admin Web Client Contract
 
-Target projects:
+You are working inside the Inktavia Marine OS repository.
+
+Focus on generating a React.js Admin Web client contract and architecture based on the already-created AdminPanel BFF.
+
+Target BFF projects:
 
 ```text
 Bff/src/AdminPanel/Aizen.Bff.AdminPanel
 Bff/src/AdminPanel/Aizen.Bff.AdminPanel.Application
+```
+
+Active backend modules:
+
+- Identity
+- ReferenceData
+- Vessel
+- FileStorage
+- ServiceRequest
+
+Inactive/future modules:
+
+- Payment
+- Profile
+
+Do not generate active admin web flows depending on Payment or Profile. Document those as future integration placeholders only.
+
+The React.js admin web application must call only the AdminPanel BFF. It must not call internal module APIs directly.
+
+Authentication model:
+
+- Keycloak access token is used as the API bearer token.
+- Identity access token is used as the Inktavia user-context token.
+- Every request from the React admin client to AdminPanel BFF must send:
+  - `Authorization: Bearer <keycloakAccessToken>`
+  - `X-Aizen-User-Token: Bearer <identityAccessToken>`
+
+Prefer Authorization Code + PKCE for browser-based Keycloak login. Do not design password-grant based browser login unless it already exists only for local test utilities.
+
+Generate documentation, endpoint inventory, response type mapping, and implementation architecture. If asked to generate code, follow the existing frontend architecture if present. If no frontend architecture exists, propose React + TypeScript + Vite with a modular feature-based structure.
