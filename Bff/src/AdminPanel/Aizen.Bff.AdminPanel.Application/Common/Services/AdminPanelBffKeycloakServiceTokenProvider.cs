@@ -1,5 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.Options;
 using Aizen.Core.Cache.Abstraction;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
@@ -7,29 +8,32 @@ using System.Text.Json.Serialization;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.Services;
 
-[DocumentationInfo("BFF Keycloak service token provider implementation", "Acquires and caches the admin-panel-bff Keycloak client_credentials token using IAizenDistributedCache with TTL = expires_in - CacheSecondsBeforeExpiry.")]
+[DocumentationInfo("BFF Keycloak service token provider implementation", "Acquires and caches the admin-panel-bff Keycloak client_credentials token using IAizenDistributedCache with TTL = expires_in - CacheSecondsBeforeExpiry. Cache key includes environment name to prevent cross-environment collisions on shared Redis instances.")]
 internal sealed class AdminPanelBffKeycloakServiceTokenProvider : IAdminPanelBffKeycloakServiceTokenProvider
 {
     private readonly IAizenDistributedCache _cache;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly KeycloakServiceTokenOptions _options;
     private readonly ILogger<AdminPanelBffKeycloakServiceTokenProvider> _logger;
+    private readonly string _environmentName;
 
     public AdminPanelBffKeycloakServiceTokenProvider(
         IAizenDistributedCache cache,
         IHttpClientFactory httpClientFactory,
         IOptions<KeycloakServiceTokenOptions> options,
+        IHostEnvironment hostEnvironment,
         ILogger<AdminPanelBffKeycloakServiceTokenProvider> logger)
     {
         _cache = cache;
         _httpClientFactory = httpClientFactory;
         _options = options.Value;
+        _environmentName = hostEnvironment.EnvironmentName.ToLowerInvariant();
         _logger = logger;
     }
 
     public async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        var cacheKey = $"{_options.CacheKeyPrefix}:{_options.ClientId}:default";
+        var cacheKey = $"{_options.CacheKeyPrefix}:{_environmentName}:{_options.ClientId}:default";
 
         if (await _cache.ExistNoHash(cacheKey))
         {

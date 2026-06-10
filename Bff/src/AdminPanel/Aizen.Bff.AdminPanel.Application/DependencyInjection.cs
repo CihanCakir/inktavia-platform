@@ -1,6 +1,7 @@
 using Aizen.Bff.AdminPanel.Application.Common.Options;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Services;
+using Aizen.Core.Cache.Extension;
 using Aizen.Core.Infrastructure.RemoteCall;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,15 +9,19 @@ using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application;
 
-[DocumentationInfo("Admin Panel BFF DI registration", "Registers BFF-specific remote call interfaces and application-layer services. BFF remote call interfaces are not auto-discovered by AizenModuleAssemblyDiscovery (assembly name lacks 'Abstraction'), so they are registered manually here.")]
+[DocumentationInfo("Admin Panel BFF DI registration", "Registers BFF-specific remote call interfaces and application-layer services. BFF remote call interfaces are not auto-discovered by AizenModuleAssemblyDiscovery (assembly name lacks 'Abstraction'), so they are registered manually here. Also registers Aizen Core/Cache (Redis) required by the Keycloak service-token provider.")]
 public static class DependencyInjection
 {
     public static IServiceCollection AddAdminPanelBffApplication(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<KeycloakServiceTokenOptions>(
-            configuration.GetSection(KeycloakServiceTokenOptions.SectionName));
+        services.AddAizenCache(configuration);
+
+        services.AddOptions<KeycloakServiceTokenOptions>()
+            .Bind(configuration.GetSection(KeycloakServiceTokenOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         services.AddScoped<IAdminPanelBffKeycloakServiceTokenProvider, AdminPanelBffKeycloakServiceTokenProvider>();
 
