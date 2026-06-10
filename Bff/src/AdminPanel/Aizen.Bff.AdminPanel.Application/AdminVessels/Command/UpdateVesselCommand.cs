@@ -8,13 +8,11 @@ public sealed class UpdateVesselCommand : AizenCommand<UpdateVesselResponse>
 {
     public long VesselId { get; }
     public UpdateVesselRequest Request { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public UpdateVesselCommand(long vesselId, UpdateVesselRequest request, string authorization, string userToken)
+    public UpdateVesselCommand(long vesselId, UpdateVesselRequest request, string userToken)
     {
         VesselId = vesselId;
         Request = request;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

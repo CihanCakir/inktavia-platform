@@ -8,13 +8,11 @@ public sealed class RejectCompletionCommand : AizenCommand<RejectServiceRequestC
 {
     public long ServiceRequestId { get; }
     public RejectServiceRequestCompletionRequest Payload { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public RejectCompletionCommand(long serviceRequestId, RejectServiceRequestCompletionRequest payload, string authorization, string userToken)
+    public RejectCompletionCommand(long serviceRequestId, RejectServiceRequestCompletionRequest payload, string userToken)
     {
         ServiceRequestId = serviceRequestId;
         Payload = payload;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

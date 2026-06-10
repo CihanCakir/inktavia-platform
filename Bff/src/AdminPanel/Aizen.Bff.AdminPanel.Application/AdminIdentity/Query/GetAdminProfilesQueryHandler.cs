@@ -2,6 +2,7 @@ using Aizen.Bff.AdminPanel.Application.AdminIdentity.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 
@@ -10,10 +11,13 @@ public sealed class GetAdminProfilesQueryHandler
     : AizenQueryHandler<GetAdminProfilesQuery, AdminUserOverviewResponse>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public GetAdminProfilesQueryHandler(IIdentityAdminBffRemoteCall identity)
+    public GetAdminProfilesQueryHandler(IIdentityAdminBffRemoteCall identity,
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
     {
         _identity = identity;
+        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminUserOverviewResponse?> Handle(
@@ -21,9 +25,12 @@ public sealed class GetAdminProfilesQueryHandler
     {
         var response = new AdminUserOverviewResponse();
 
-        var orgTask = _identity.SearchOrganizerProfiles(request.Authorization, request.UserToken, request.PageIndex, request.PageSize);
-        var venueTask = _identity.SearchVenueProfiles(request.Authorization, request.UserToken, request.PageIndex, request.PageSize);
-        var participantTask = _identity.SearchParticipantProfiles(request.Authorization, request.UserToken, request.PageIndex, request.PageSize);
+        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
+        var authHeader = $"Bearer {serviceToken}";
+
+        var orgTask = _identity.SearchOrganizerProfiles(authHeader, request.UserToken, request.PageIndex, request.PageSize);
+        var venueTask = _identity.SearchVenueProfiles(authHeader, request.UserToken, request.PageIndex, request.PageSize);
+        var participantTask = _identity.SearchParticipantProfiles(authHeader, request.UserToken, request.PageIndex, request.PageSize);
 
         await Task.WhenAll(
             orgTask.ContinueWith(_ => { }),

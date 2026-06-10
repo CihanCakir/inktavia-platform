@@ -7,13 +7,11 @@ public sealed class CreateFileReadUrlCommand : AizenCommand<FileAccessUrlResult>
 {
     public long FileId { get; }
     public int ExpiresInMinutes { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public CreateFileReadUrlCommand(long fileId, int expiresInMinutes, string authorization, string userToken)
+    public CreateFileReadUrlCommand(long fileId, int expiresInMinutes, string userToken)
     {
         FileId = fileId;
         ExpiresInMinutes = expiresInMinutes;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

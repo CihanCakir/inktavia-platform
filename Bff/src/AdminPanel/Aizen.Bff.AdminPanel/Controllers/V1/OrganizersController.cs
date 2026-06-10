@@ -11,7 +11,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Organizers")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public sealed class OrganizersController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -29,9 +29,8 @@ public sealed class OrganizersController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new SearchOrganizerProfilesQuery(auth, userToken, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(new SearchOrganizerProfilesQuery(userToken, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -40,9 +39,8 @@ public sealed class OrganizersController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileByIdQuery(profileId, auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileByIdQuery(profileId, userToken), ct);
         return SetResponse(result);
     }
 
@@ -51,9 +49,8 @@ public sealed class OrganizersController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerProfileWithUserResult>> GetProfileWithUser(
         Guid profileId, CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileWithUserQuery(profileId, auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileWithUserQuery(profileId, userToken), ct);
         return SetResponse(result);
     }
 }

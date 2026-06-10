@@ -2,6 +2,7 @@ using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 
@@ -10,10 +11,13 @@ public sealed class GetAdminVesselDocumentsQueryHandler
     : AizenQueryHandler<GetAdminVesselDocumentsQuery, AdminVesselDocumentsResponse>
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
+    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public GetAdminVesselDocumentsQueryHandler(IVesselAdminBffRemoteCall vessel)
+    public GetAdminVesselDocumentsQueryHandler(IVesselAdminBffRemoteCall vessel,
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
     {
         _vessel = vessel;
+        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminVesselDocumentsResponse?> Handle(
@@ -21,9 +25,12 @@ public sealed class GetAdminVesselDocumentsQueryHandler
     {
         var response = new AdminVesselDocumentsResponse();
 
-        var detailTask = _vessel.GetVesselById(request.VesselId, request.Authorization, request.UserToken);
-        var docsTask = _vessel.GetVesselDocuments(request.VesselId, request.Authorization, request.UserToken);
-        var ownersTask = _vessel.GetVesselOwners(request.VesselId, request.Authorization, request.UserToken);
+        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
+        var authHeader = $"Bearer {serviceToken}";
+
+        var detailTask = _vessel.GetVesselById(request.VesselId, authHeader, request.UserToken);
+        var docsTask = _vessel.GetVesselDocuments(request.VesselId, authHeader, request.UserToken);
+        var ownersTask = _vessel.GetVesselOwners(request.VesselId, authHeader, request.UserToken);
 
         await Task.WhenAll(
             detailTask.ContinueWith(_ => { }),

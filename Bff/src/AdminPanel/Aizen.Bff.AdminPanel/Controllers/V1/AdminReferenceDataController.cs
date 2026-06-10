@@ -11,7 +11,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Reference Data")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public sealed class ReferenceDataController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -26,9 +26,8 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(LookupGroupListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupListResult>> GetLookupGroups(CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupsQuery(auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupsQuery(userToken), ct);
         return SetResponse(result);
     }
 
@@ -36,9 +35,8 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(LookupGroupTreeResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupTreeResult>> GetLookupTree(CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupTreeQuery(auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupTreeQuery(userToken), ct);
         return SetResponse(result);
     }
 
@@ -47,10 +45,9 @@ public sealed class ReferenceDataController : AizenWebApiController
     public async Task<AizenApiResponse<LookupItemListResult>> GetLookupItemsByGroupCode(
         string groupCode, CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetReferenceDataLookupItemsByGroupCodeQuery(groupCode, auth, userToken), ct);
+            new GetReferenceDataLookupItemsByGroupCodeQuery(groupCode, userToken), ct);
         return SetResponse(result);
     }
 
@@ -58,9 +55,8 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(CurrencyListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CurrencyListResult>> GetCurrencies(CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataCurrenciesQuery(auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataCurrenciesQuery(userToken), ct);
         return SetResponse(result);
     }
 
@@ -68,9 +64,8 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(CountryListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CountryListResult>> GetCountries(CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataCountriesQuery(auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataCountriesQuery(userToken), ct);
         return SetResponse(result);
     }
 
@@ -79,10 +74,9 @@ public sealed class ReferenceDataController : AizenWebApiController
     public async Task<AizenApiResponse<CityListResult>> GetCities(
         [FromQuery] long? countryId, CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetReferenceDataCitiesQuery(countryId, auth, userToken), ct);
+            new GetReferenceDataCitiesQuery(countryId, userToken), ct);
         return SetResponse(result);
     }
 
@@ -91,10 +85,9 @@ public sealed class ReferenceDataController : AizenWebApiController
     public async Task<AizenApiResponse<MeasurementUnitListResult>> GetMeasurementUnits(
         [FromQuery] string? type, CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetReferenceDataMeasurementUnitsQuery(type, auth, userToken), ct);
+            new GetReferenceDataMeasurementUnitsQuery(type, userToken), ct);
         return SetResponse(result);
     }
 
@@ -102,9 +95,8 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(SystemParameterListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<SystemParameterListResult>> GetSystemParameters(CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataSystemParametersQuery(auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataSystemParametersQuery(userToken), ct);
         return SetResponse(result);
     }
 }

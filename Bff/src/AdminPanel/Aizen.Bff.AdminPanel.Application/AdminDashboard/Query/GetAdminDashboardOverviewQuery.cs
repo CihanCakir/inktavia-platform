@@ -5,11 +5,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminDashboard.Query;
 
 public sealed class GetAdminDashboardOverviewQuery : AizenQuery<AdminDashboardOverviewResponse>
 {
-    public string Authorization { get; }
     public string UserToken { get; }
-    public GetAdminDashboardOverviewQuery(string authorization, string userToken)
+    public GetAdminDashboardOverviewQuery(string userToken)
     {
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

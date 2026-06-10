@@ -1,4 +1,6 @@
+using Aizen.Bff.AdminPanel.Application.Common.Options;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.Infrastructure.RemoteCall;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,11 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.Configure<KeycloakServiceTokenOptions>(
+            configuration.GetSection(KeycloakServiceTokenOptions.SectionName));
+
+        services.AddScoped<IAdminPanelBffKeycloakServiceTokenProvider, AdminPanelBffKeycloakServiceTokenProvider>();
+
         services.AddTransient<IIdentityAdminBffRemoteCall>(provider =>
         {
             var factory = provider.GetRequiredService<IHttpClientFactory>();

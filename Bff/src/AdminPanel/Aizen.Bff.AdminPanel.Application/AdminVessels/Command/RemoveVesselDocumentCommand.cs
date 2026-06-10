@@ -7,13 +7,11 @@ public sealed class RemoveVesselDocumentCommand : AizenCommand<RemoveVesselDocum
 {
     public long VesselId { get; }
     public long DocumentId { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public RemoveVesselDocumentCommand(long vesselId, long documentId, string authorization, string userToken)
+    public RemoveVesselDocumentCommand(long vesselId, long documentId, string userToken)
     {
         VesselId = vesselId;
         DocumentId = documentId;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

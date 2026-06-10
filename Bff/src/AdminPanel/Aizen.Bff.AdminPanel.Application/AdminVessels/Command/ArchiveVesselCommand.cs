@@ -8,13 +8,11 @@ public sealed class ArchiveVesselCommand : AizenCommand<ArchiveVesselResponse>
 {
     public long VesselId { get; }
     public ArchiveVesselRequest Payload { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public ArchiveVesselCommand(long vesselId, ArchiveVesselRequest payload, string authorization, string userToken)
+    public ArchiveVesselCommand(long vesselId, ArchiveVesselRequest payload, string userToken)
     {
         VesselId = vesselId;
         Payload = payload;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

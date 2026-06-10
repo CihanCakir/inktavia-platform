@@ -9,14 +9,12 @@ public sealed class ResolveDisputeCommand : AizenCommand<ResolveServiceRequestDi
     public long ServiceRequestId { get; }
     public long DisputeId { get; }
     public ResolveServiceRequestDisputeRequest Payload { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public ResolveDisputeCommand(long serviceRequestId, long disputeId, ResolveServiceRequestDisputeRequest payload, string authorization, string userToken)
+    public ResolveDisputeCommand(long serviceRequestId, long disputeId, ResolveServiceRequestDisputeRequest payload, string userToken)
     {
         ServiceRequestId = serviceRequestId;
         DisputeId = disputeId;
         Payload = payload;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

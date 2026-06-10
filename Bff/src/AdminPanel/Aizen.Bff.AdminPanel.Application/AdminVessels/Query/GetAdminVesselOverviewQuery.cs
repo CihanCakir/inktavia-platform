@@ -5,15 +5,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 
 public sealed class GetAdminVesselOverviewQuery : AizenQuery<AdminVesselOverviewResponse>
 {
-    public string Authorization { get; }
     public string UserToken { get; }
     public int PageIndex { get; }
     public int PageSize { get; }
     public string? SearchTerm { get; }
     public bool? IsArchived { get; }
-    public GetAdminVesselOverviewQuery(string authorization, string userToken, int pageIndex, int pageSize, string? searchTerm, bool? isArchived)
+    public GetAdminVesselOverviewQuery(string userToken, int pageIndex, int pageSize, string? searchTerm, bool? isArchived)
     {
-        Authorization = authorization;
         UserToken = userToken;
         PageIndex = pageIndex;
         PageSize = pageSize;

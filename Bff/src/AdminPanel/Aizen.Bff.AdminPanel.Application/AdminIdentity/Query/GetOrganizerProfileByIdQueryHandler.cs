@@ -1,5 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 
@@ -7,11 +8,21 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 public sealed class GetOrganizerProfileByIdQueryHandler : AizenQueryHandler<GetOrganizerProfileByIdQuery, OrganizerProfileResult>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
-    public GetOrganizerProfileByIdQueryHandler(IIdentityAdminBffRemoteCall identity) { _identity = identity; }
+    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
+    public GetOrganizerProfileByIdQueryHandler(
+        IIdentityAdminBffRemoteCall identity,
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    {
+        _identity = identity;
+        _serviceTokenProvider = serviceTokenProvider;
+    }
 
     public override async Task<OrganizerProfileResult?> Handle(GetOrganizerProfileByIdQuery request, CancellationToken ct)
     {
-        var r = await _identity.GetOrganizerProfileById(request.ProfileId, request.Authorization, request.UserToken);
+        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(ct);
+        var authHeader = $"Bearer {serviceToken}";
+
+        var r = await _identity.GetOrganizerProfileById(request.ProfileId, authHeader, request.UserToken);
         return r.Body;
     }
 }

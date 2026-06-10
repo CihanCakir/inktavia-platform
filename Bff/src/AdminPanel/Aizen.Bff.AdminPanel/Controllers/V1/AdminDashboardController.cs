@@ -11,7 +11,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Dashboard")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public sealed class DashboardController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -26,9 +26,8 @@ public sealed class DashboardController : AizenWebApiController
     [ProducesResponseType(typeof(AdminDashboardOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminDashboardOverviewResponse>> GetDashboardOverview(CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminDashboardOverviewQuery(auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminDashboardOverviewQuery(userToken), ct);
         return SetResponse(result);
     }
 }

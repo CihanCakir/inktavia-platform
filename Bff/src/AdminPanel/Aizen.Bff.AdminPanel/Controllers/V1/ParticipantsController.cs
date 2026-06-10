@@ -11,7 +11,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Participants")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public sealed class ParticipantsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -29,9 +29,8 @@ public sealed class ParticipantsController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new SearchParticipantProfilesQuery(auth, userToken, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(new SearchParticipantProfilesQuery(userToken, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -40,9 +39,8 @@ public sealed class ParticipantsController : AizenWebApiController
     public async Task<AizenApiResponse<ParticipantProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetParticipantProfileByIdQuery(profileId, auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetParticipantProfileByIdQuery(profileId, userToken), ct);
         return SetResponse(result);
     }
 }

@@ -2,6 +2,7 @@ using Aizen.Bff.AdminPanel.Application.AdminFiles.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Query;
 
@@ -10,10 +11,13 @@ public sealed class GetAdminFileReviewOverviewQueryHandler
     : AizenQueryHandler<GetAdminFileReviewOverviewQuery, AdminFileReviewOverviewResponse>
 {
     private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public GetAdminFileReviewOverviewQueryHandler(IFileStorageAdminBffRemoteCall fileStorage)
+    public GetAdminFileReviewOverviewQueryHandler(IFileStorageAdminBffRemoteCall fileStorage,
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
     {
         _fileStorage = fileStorage;
+        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminFileReviewOverviewResponse?> Handle(
@@ -23,7 +27,10 @@ public sealed class GetAdminFileReviewOverviewQueryHandler
 
         try
         {
-            var result = await _fileStorage.GetFileMetadata(request.FileId, request.Authorization, request.UserToken);
+            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
+        var authHeader = $"Bearer {serviceToken}";
+
+        var result = await _fileStorage.GetFileMetadata(request.FileId, authHeader, request.UserToken);
             response.FileMetadata = result.Body;
         }
         catch

@@ -7,13 +7,11 @@ public sealed class ApproveVenueProfileCommand : AizenCommand<AdminBffCommandRes
 {
     public long UserId { get; }
     public Guid ProfileId { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public ApproveVenueProfileCommand(long userId, Guid profileId, string authorization, string userToken)
+    public ApproveVenueProfileCommand(long userId, Guid profileId, string userToken)
     {
         UserId = userId;
         ProfileId = profileId;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

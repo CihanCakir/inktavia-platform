@@ -8,13 +8,11 @@ public sealed class CancelServiceRequestCommand : AizenCommand<CancelServiceRequ
 {
     public long ServiceRequestId { get; }
     public CancelServiceRequestRequest Payload { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public CancelServiceRequestCommand(long serviceRequestId, CancelServiceRequestRequest payload, string authorization, string userToken)
+    public CancelServiceRequestCommand(long serviceRequestId, CancelServiceRequestRequest payload, string userToken)
     {
         ServiceRequestId = serviceRequestId;
         Payload = payload;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

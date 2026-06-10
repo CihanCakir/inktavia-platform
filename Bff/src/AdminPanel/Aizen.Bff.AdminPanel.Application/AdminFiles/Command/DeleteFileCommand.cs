@@ -6,12 +6,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 public sealed class DeleteFileCommand : AizenCommand<AdminBffCommandResultDto>
 {
     public long FileId { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
-    public DeleteFileCommand(long fileId, string authorization, string userToken)
+    public DeleteFileCommand(long fileId, string userToken)
     {
         FileId = fileId;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }

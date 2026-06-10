@@ -1,6 +1,7 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 
@@ -9,16 +10,22 @@ public sealed class CancelServiceRequestCommandHandler
     : AizenCommandHandler<CancelServiceRequestCommand, CancelServiceRequestResponse>
 {
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public CancelServiceRequestCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public CancelServiceRequestCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest,
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
     {
         _serviceRequest = serviceRequest;
+        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<CancelServiceRequestResponse?> Handle(
         CancelServiceRequestCommand request, CancellationToken cancellationToken)
     {
-        var result = await _serviceRequest.CancelServiceRequest(request.ServiceRequestId, request.Payload, request.Authorization, request.UserToken);
+        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
+        var authHeader = $"Bearer {serviceToken}";
+
+        var result = await _serviceRequest.CancelServiceRequest(request.ServiceRequestId, request.Payload, authHeader, request.UserToken);
         return result.Body;
     }
 }

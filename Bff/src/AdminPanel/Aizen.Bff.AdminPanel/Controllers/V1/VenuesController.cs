@@ -11,7 +11,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Venues")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public sealed class VenuesController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -29,9 +29,8 @@ public sealed class VenuesController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new SearchVenueProfilesQuery(auth, userToken, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(new SearchVenueProfilesQuery(userToken, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -40,9 +39,8 @@ public sealed class VenuesController : AizenWebApiController
     public async Task<AizenApiResponse<VenueProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var auth = HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty;
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetVenueProfileByIdQuery(profileId, auth, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetVenueProfileByIdQuery(profileId, userToken), ct);
         return SetResponse(result);
     }
 }

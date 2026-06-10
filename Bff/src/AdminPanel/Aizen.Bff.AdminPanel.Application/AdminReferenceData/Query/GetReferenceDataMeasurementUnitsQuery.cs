@@ -6,13 +6,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataMeasurementUnitsQuery : AizenQuery<MeasurementUnitListResult>
 {
     public string? Type { get; }
-    public string Authorization { get; }
     public string UserToken { get; }
 
-    public GetReferenceDataMeasurementUnitsQuery(string? type, string authorization, string userToken)
+    public GetReferenceDataMeasurementUnitsQuery(string? type, string userToken)
     {
         Type = type;
-        Authorization = authorization;
         UserToken = userToken;
     }
 }
