@@ -32,7 +32,48 @@
       { "name": "service_request_write", "description": "Write access to ServiceRequest API" },
       { "name": "reference_data_read", "description": "Read access to ReferenceData API" },
       { "name": "reference_data_write", "description": "Write access to ReferenceData API" }
-    ]
+    ],
+    "client": {
+      "identity-api": [
+        { "name": "identity.auth", "description": "Authenticate / token-exchange operations" },
+        { "name": "identity.read", "description": "Read identity data" },
+        { "name": "identity.write", "description": "Write / mutate identity data" },
+        { "name": "identity.admin", "description": "Full administrative access to Identity API" },
+        { "name": "identity.profile.read", "description": "Read user profile data" },
+        { "name": "identity.profile.approve", "description": "Approve pending user profiles" },
+        { "name": "identity.profile.reject", "description": "Reject pending user profiles" }
+      ],
+      "reference-data-api": [
+        { "name": "reference-data.read", "description": "Read reference data" },
+        { "name": "reference-data.write", "description": "Write reference data" },
+        { "name": "reference-data.lookup.manage", "description": "Manage lookup tables" },
+        { "name": "reference-data.location.read", "description": "Read location reference data" },
+        { "name": "reference-data.currency.manage", "description": "Manage currency data" }
+      ],
+      "vessel-api": [
+        { "name": "vessel.read", "description": "Read vessel data" },
+        { "name": "vessel.write", "description": "Write / mutate vessel data" },
+        { "name": "vessel.admin", "description": "Full administrative access to Vessel API" },
+        { "name": "vessel.document.manage", "description": "Manage vessel documents" },
+        { "name": "vessel.ownership.manage", "description": "Manage vessel ownership records" }
+      ],
+      "file-storage-api": [
+        { "name": "file.read", "description": "Read file metadata" },
+        { "name": "file.write", "description": "Upload / write files" },
+        { "name": "file.delete", "description": "Delete files" },
+        { "name": "file.read-url.create", "description": "Generate pre-signed read URLs" },
+        { "name": "file.upload-url.create", "description": "Generate pre-signed upload URLs" },
+        { "name": "file.visibility.manage", "description": "Manage public/private access policy" }
+      ],
+      "service-request-api": [
+        { "name": "service-request.read", "description": "Read service requests" },
+        { "name": "service-request.write", "description": "Create / update service requests" },
+        { "name": "service-request.admin", "description": "Full administrative access to ServiceRequest API" },
+        { "name": "service-request.assignment.manage", "description": "Manage assignment of service requests" },
+        { "name": "service-request.dispute.manage", "description": "Manage service request disputes" },
+        { "name": "service-request.completion.manage", "description": "Manage service request completion flow" }
+      ]
+    }
   },
   "clients": [
     {
@@ -304,10 +345,10 @@
     {
       "clientId": "admin-panel",
       "name": "Admin Panel",
-      "description": "Admin panel login client with full access",
-      "enabled": true,
+      "description": "DEPRECATED — React/Admin Web no longer uses Keycloak tokens directly. The BFF (admin-panel-bff) now handles all server-side token acquisition. Kept for reference only.",
+      "enabled": false,
       "publicClient": true,
-      "standardFlowEnabled": true,
+      "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
@@ -321,7 +362,21 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
-      },
+      }
+    },
+    {
+      "clientId": "admin-panel-bff",
+      "name": "AdminPanel BFF",
+      "description": "Confidential server-side BFF client. Obtains service tokens via client_credentials and calls internal APIs. The real secret must be injected via environment variable KeycloakServiceToken__ClientSecret. The secret below is a LOCAL-DEV placeholder only — never use in production.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "local-dev-only-change-me",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "authorizationServicesEnabled": false,
       "protocolMappers": [
         {
           "name": "audience-identity-api",
@@ -331,62 +386,9 @@
           "config": {
             "included.client.audience": "identity-api",
             "id.token.claim": "false",
-            "access.token.claim": "true"
-          }
-        },
-        {
-          "name": "audience-profile-api",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.client.audience": "profile-api",
-            "id.token.claim": "false",
-            "access.token.claim": "true"
-          }
-        },
-        {
-          "name": "audience-payment-api",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.client.audience": "payment-api",
-            "id.token.claim": "false",
-            "access.token.claim": "true"
-          }
-        },
-        {
-          "name": "audience-vessel-api",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.client.audience": "vessel-api",
-            "id.token.claim": "false",
-            "access.token.claim": "true"
-          }
-        },
-        {
-          "name": "audience-file-storage-api",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.client.audience": "file-storage-api",
-            "id.token.claim": "false",
-            "access.token.claim": "true"
-          }
-        },
-        {
-          "name": "audience-service-request-api",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.client.audience": "service-request-api",
-            "id.token.claim": "false",
-            "access.token.claim": "true"
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
           }
         },
         {
@@ -397,7 +399,48 @@
           "config": {
             "included.client.audience": "reference-data-api",
             "id.token.claim": "false",
-            "access.token.claim": "true"
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-vessel-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "vessel-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-file-storage-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "file-storage-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-service-request-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "service-request-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
           }
         }
       ]
@@ -487,6 +530,52 @@
         "reference_data_read",
         "reference_data_write"
       ]
+    },
+    {
+      "username": "service-account-admin-panel-bff",
+      "enabled": true,
+      "serviceAccountClientId": "admin-panel-bff",
+      "clientRoles": {
+        "identity-api": [
+          "identity.auth",
+          "identity.read",
+          "identity.write",
+          "identity.admin",
+          "identity.profile.read",
+          "identity.profile.approve",
+          "identity.profile.reject"
+        ],
+        "reference-data-api": [
+          "reference-data.read",
+          "reference-data.write",
+          "reference-data.lookup.manage",
+          "reference-data.location.read",
+          "reference-data.currency.manage"
+        ],
+        "vessel-api": [
+          "vessel.read",
+          "vessel.write",
+          "vessel.admin",
+          "vessel.document.manage",
+          "vessel.ownership.manage"
+        ],
+        "file-storage-api": [
+          "file.read",
+          "file.write",
+          "file.delete",
+          "file.read-url.create",
+          "file.upload-url.create",
+          "file.visibility.manage"
+        ],
+        "service-request-api": [
+          "service-request.read",
+          "service-request.write",
+          "service-request.admin",
+          "service-request.assignment.manage",
+          "service-request.dispute.manage",
+          "service-request.completion.manage"
+        ]
+      }
     }
   ]
 }
