@@ -164,6 +164,24 @@
       }
     },
     {
+      "name": "AdminPanel BFF",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Bff.AdminPanel",
+      "program": "${workspaceFolder}/Bff/src/AdminPanel/Aizen.Bff.AdminPanel/bin/Debug/net9.0/Aizen.Bff.AdminPanel.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Bff/src/AdminPanel/Aizen.Bff.AdminPanel",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:17001"
+      }
+    },
+    {
       "name": "Attach to Process",
       "type": "coreclr",
       "request": "attach"
@@ -175,6 +193,7 @@
       "configurations": [
         "Bff",
         "Gateway",
+        "AdminPanel BFF",
         "Identity",
         "Payment",
         "Profile",
@@ -188,6 +207,7 @@
     {
       "name": "Modules Only",
       "configurations": [
+        "AdminPanel BFF",
         "Identity",
         "ReferenceData",
         "Vessel",
