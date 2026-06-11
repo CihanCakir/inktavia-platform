@@ -367,7 +367,7 @@
     {
       "clientId": "admin-panel-bff",
       "name": "AdminPanel BFF",
-      "description": "Confidential server-side BFF client. Obtains service tokens via client_credentials and calls internal APIs. The real secret must be injected via environment variable KeycloakServiceToken__ClientSecret. The secret below is a LOCAL-DEV placeholder only — never use in production.",
+      "description": "Confidential BFF client. Uses client_credentials. Inject real secret via KeycloakServiceToken__ClientSecret env var. LOCAL-DEV placeholder only.",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,

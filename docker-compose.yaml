@@ -56,7 +56,7 @@ services:
     container_name: keycloak
     depends_on:
       - keycloak-db
-    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    command: ["start-dev", "--import-realm", "--http-port=8080", "--spi-connections-http-client-default-disable-trust-manager=true"]
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME:-keycloak}
@@ -66,16 +66,32 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
 
-      KC_HOSTNAME: ${KC_HOSTNAME:-http://localhost:8080}
-      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HOSTNAME: ${KC_HOSTNAME:-localhost}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
+      KC_PROXY: "none"
     ports:
       - "8080:8080"
     volumes:
       - ./infrastructure/keycloak/inktavia-realm-realm.json:/opt/keycloak/data/import/inktavia-realm-realm.json:ro
     networks: [aizen]
+
+  keycloak-init:
+    image: quay.io/keycloak/keycloak:25.0.0
+    container_name: keycloak-init
+    depends_on:
+      - keycloak
+    entrypoint: ["/bin/bash", "/init/init.sh"]
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./infrastructure/keycloak/init.sh:/init/init.sh:ro
+    networks: [aizen]
+    restart: "no"
 
   # Messaging (RabbitMQ)
   rabbitmq:
@@ -91,54 +107,7 @@ services:
       - "15672:15672" # Management UI
     networks: [aizen]
 
-  # Gateway (reverse proxy / edge)
-  gateway:
-    build:
-      context: ./Gateway
-      dockerfile: ./build/Dockerfile
-    container_name: gateway
-    depends_on:
-      - keycloak
-      - bff
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      ASPNETCORE_URLS: http://+:8080
-      REDIS__HOST: redis
-      POSTGRES__HOST: postgres
-      MONGO__HOST: mongo
-      KEYCLOAK__URL: http://keycloak:8080
-    ports:
-      - "${GATEWAY_PORT:-18000}:8080"
-    networks: [aizen]
-
   # BFF layer
-  bff:
-    build:
-      context: ./Bff
-      dockerfile: ./build/Dockerfile
-    container_name: bff
-    depends_on:
-      - redis
-      - postgres
-      - mongo
-      - keycloak
-      - rabbitmq
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Postgres: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
-      ConnectionStrings__Mongo: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
-      Redis__Host: redis:6379
-      Identity__Authority: http://keycloak:8080/realms/${KC_REALM:-aizen}
-      Identity__ClientId: ${KC_CLIENT_ID:-aizen-client}
-      Identity__ClientSecret: ${KC_CLIENT_SECRET:-changeme}
-      Messaging__RabbitMQ__Host: rabbitmq
-      Messaging__RabbitMQ__Port: 5672
-      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
-      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
-    ports:
-      - "${BFF_PORT:-17000}:8080"
-    networks: [aizen]
 
   bff-adminpanel:
     build:
@@ -238,66 +207,10 @@ services:
       - "7101:8080"
     networks: [aizen]
 
-  profile-api:
-    build:
-      context: ./Modules/Profile
-      dockerfile: ./build/Dockerfile
-    container_name: profile-api
-    depends_on:
-      - postgres
-      - mongo
-      - redis
-      - keycloak
-      - rabbitmq
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
-      Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
-      Redis__Host: redis:6379
-      Messaging__RabbitMQ__Host: rabbitmq
-      Messaging__RabbitMQ__Port: 5672
-      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
-      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
-      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
-      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
-      KEYCLOAK_AUDIENCE: profile-api
-      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
-    ports:
-      - "7102:8080"
-    networks: [aizen]
-
-  payment-api:
-    build:
-      context: ./Modules/Payment
-      dockerfile: ./build/Dockerfile
-    container_name: payment-api
-    depends_on:
-      - postgres
-      - redis
-      - keycloak
-      - rabbitmq
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
-      Redis__Host: redis:6379
-      Messaging__RabbitMQ__Host: rabbitmq
-      Messaging__RabbitMQ__Port: 5672
-      Messaging__RabbitMQ__User: ${RABBITMQ_USER:-aizen}
-      Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
-      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
-      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
-      KEYCLOAK_AUDIENCE: payment-api
-      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
-    ports:
-      - "7103:8080"
-    networks: [aizen]
-
   reference-data-api:
     build:
-      context: ./Modules/ReferenceData
-      dockerfile: ./build/Dockerfile
+      context: .
+      dockerfile: ./Modules/ReferenceData/build/Dockerfile
     container_name: reference-data-api
     depends_on:
       - postgres
@@ -427,8 +340,7 @@ services:
     volumes:
       - ./load-test/scripts:/scripts:ro
     depends_on:
-      - gateway
-      - bff
+      - bff-adminpanel
     networks: [aizen]
 
   # Observability: Prometheus & Grafana
