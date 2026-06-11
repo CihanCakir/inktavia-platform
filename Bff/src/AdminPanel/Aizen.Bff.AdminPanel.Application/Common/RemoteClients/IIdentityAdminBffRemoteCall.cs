@@ -113,27 +113,33 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallPost("/api/v1/auth/login/username")]
     Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername(
-        [AizenRemoteCallBody] LoginWithUsernameRequest request);
+        [AizenRemoteCallBody] LoginWithUsernameRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization);
 
     [AizenRemoteCallPost("/api/v1/auth/login/phone")]
     Task<AizenApiResponse<UserLoginResponse>> LoginWithPhone(
-        [AizenRemoteCallBody] LoginWithPhoneRequest request);
+        [AizenRemoteCallBody] LoginWithPhoneRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization);
 
     [AizenRemoteCallPost("/api/v1/auth/login/otp")]
     Task<AizenApiResponse<UserLoginResponse>> LoginWithOtp(
-        [AizenRemoteCallBody] LoginWithOtpRequest request);
+        [AizenRemoteCallBody] LoginWithOtpRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization);
 
     [AizenRemoteCallPost("/api/v1/auth/otp/send")]
     Task<AizenApiResponse<SendOtpDto>> SendOtp(
-        [AizenRemoteCallBody] SendOtpRequest request);
+        [AizenRemoteCallBody] SendOtpRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization);
 
     [AizenRemoteCallPost("/api/v1/auth/otp/check")]
     Task<AizenApiResponse<CheckOtpDto>> CheckOtp(
-        [AizenRemoteCallBody] CheckOtpRequest request);
+        [AizenRemoteCallBody] CheckOtpRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization);
 
     [AizenRemoteCallPost("/api/v1/auth/refresh")]
     Task<AizenApiResponse<UserLoginResponse>> Refresh(
-        [AizenRemoteCallBody] RefreshLoginHttpRequest request);
+        [AizenRemoteCallBody] RefreshLoginHttpRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization);
 
     [AizenRemoteCallPost("/api/v1/auth/password/change")]
     Task<AizenApiResponse<ChangePasswordDto>> ChangePassword(
