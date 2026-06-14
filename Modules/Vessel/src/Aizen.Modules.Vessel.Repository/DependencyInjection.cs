@@ -3,6 +3,7 @@ using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Repository.Mongo;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Aizen.Modules.Vessel.Repository.Repositories;
+using Aizen.Modules.Vessel.Repository.Seed.MockData;
 using Aizen.Modules.Vessel.Repository.Service;
 using Aizen.Modules.Vessel.Repository.Service.FileStorage;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,20 @@ public static class DependencyInjection
         return services;
     }
 
+    public static IServiceCollection AddVesselMockData(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<MockDataSeedOptions>(configuration.GetSection("MockData"));
+        services.AddScoped<VesselMockDataSeeder>(sp =>
+        {
+            var db = sp.GetRequiredService<VesselDbContext>();
+            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MockDataSeedOptions>>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<VesselMockDataSeeder>>();
+            var env = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+            return new VesselMockDataSeeder(db, options, logger, env);
+        });
+        return services;
+    }
+
     public static async Task SeedVesselAsync(this IHost host, CancellationToken ct = default)
     {
         using var scope = host.Services.CreateScope();
@@ -62,5 +77,9 @@ public static class DependencyInjection
 
         var mongoIndexInitializer = scope.ServiceProvider.GetRequiredService<VesselMongoIndexInitializer>();
         await mongoIndexInitializer.InitializeAsync(ct);
+
+        // Run mock data seeder
+        var mockSeeder = scope.ServiceProvider.GetRequiredService<VesselMockDataSeeder>();
+        await mockSeeder.SeedAsync(ct);
     }
 }

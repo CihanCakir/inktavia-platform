@@ -12,4 +12,8 @@
     <ProjectReference Include="..\Aizen.Modules.Identity.Core\Aizen.Modules.Identity.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Seed\Json\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

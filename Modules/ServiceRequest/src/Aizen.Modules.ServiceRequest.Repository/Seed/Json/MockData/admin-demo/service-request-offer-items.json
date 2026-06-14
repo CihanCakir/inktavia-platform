@@ -1,0 +1,22 @@
+[
+  { "id": 93001, "serviceRequestOfferId": 50001, "itemType": 5, "title": "Motor Bakımı İşçilik", "quantity": 1, "unitPrice": 3000.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93002, "serviceRequestOfferId": 50001, "itemType": 2, "title": "Antifreeze ve Malzeme", "quantity": 1, "unitPrice": 1200.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93003, "serviceRequestOfferId": 50001, "itemType": 8, "title": "Erken Rezervasyon İndirimi", "quantity": 1, "unitPrice": -500.00, "currencyCode": "TRY", "sortOrder": 3 },
+  { "id": 93004, "serviceRequestOfferId": 50002, "itemType": 6, "title": "Motor Muayene", "quantity": 1, "unitPrice": 800.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93005, "serviceRequestOfferId": 50002, "itemType": 5, "title": "Damperi Değişim İşçilik", "quantity": 2, "unitPrice": 650.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93006, "serviceRequestOfferId": 50003, "itemType": 5, "title": "Elektrik Panosu Yenileme", "quantity": 1, "unitPrice": 2200.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93007, "serviceRequestOfferId": 50003, "itemType": 2, "title": "Malzeme", "quantity": 1, "unitPrice": 450.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93008, "serviceRequestOfferId": 50004, "itemType": 5, "title": "Tekne Altı Temizlik İşçilik", "quantity": 1, "unitPrice": 1500.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93009, "serviceRequestOfferId": 50004, "itemType": 2, "title": "Antifouling Boya", "quantity": 1, "unitPrice": 2800.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93010, "serviceRequestOfferId": 50005, "itemType": 7, "title": "Acil Servis Ücreti", "quantity": 1, "unitPrice": 1500.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93011, "serviceRequestOfferId": 50005, "itemType": 5, "title": "Pompa Değişim İşçilik", "quantity": 1, "unitPrice": 1000.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93012, "serviceRequestOfferId": 50005, "itemType": 2, "title": "Yedek Pompa", "quantity": 1, "unitPrice": 3200.00, "currencyCode": "TRY", "sortOrder": 3 },
+  { "id": 93013, "serviceRequestOfferId": 50006, "itemType": 5, "title": "Motor Bakımı İşçilik", "quantity": 1, "unitPrice": 2800.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93014, "serviceRequestOfferId": 50006, "itemType": 2, "title": "Filtre Seti", "quantity": 1, "unitPrice": 680.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93015, "serviceRequestOfferId": 50007, "itemType": 5, "title": "Motor Servis İşçilik", "quantity": 1, "unitPrice": 3000.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93016, "serviceRequestOfferId": 50007, "itemType": 2, "title": "Yağ ve Filtre Malzeme", "quantity": 1, "unitPrice": 750.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93017, "serviceRequestOfferId": 50008, "itemType": 5, "title": "Teak Döşeme İşçilik", "quantity": 12, "unitPrice": 450.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93018, "serviceRequestOfferId": 50008, "itemType": 2, "title": "Teak ve Dolgu Malzeme", "quantity": 1, "unitPrice": 1200.00, "currencyCode": "TRY", "sortOrder": 2 },
+  { "id": 93019, "serviceRequestOfferId": 50009, "itemType": 6, "title": "Nem Analizi", "quantity": 1, "unitPrice": 600.00, "currencyCode": "TRY", "sortOrder": 1 },
+  { "id": 93020, "serviceRequestOfferId": 50009, "itemType": 3, "title": "Nem Giderici Montaj", "quantity": 2, "unitPrice": 1800.00, "currencyCode": "TRY", "sortOrder": 2 }
+]

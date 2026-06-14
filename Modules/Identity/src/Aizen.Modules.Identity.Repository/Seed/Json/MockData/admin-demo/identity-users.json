@@ -1,0 +1,13 @@
+[
+  { "id": 10001, "email": "admin@inktavia.local", "password": "Admin!123", "firstName": "Cihan", "lastName": "Yönetici", "roleContext": 4, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10002, "email": "operations.admin@inktavia.local", "password": "Admin!123", "firstName": "Deniz", "lastName": "Operasyon", "roleContext": 4, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10003, "email": "ayse.demir@inktavia.local", "password": "Test!123", "firstName": "Ayşe", "lastName": "Demir", "roleContext": 1, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10004, "email": "mehmet.kaya@inktavia.local", "password": "Test!123", "firstName": "Mehmet", "lastName": "Kaya", "roleContext": 1, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10005, "email": "deniz.yilmaz@inktavia.local", "password": "Test!123", "firstName": "Deniz", "lastName": "Yılmaz", "roleContext": 1, "loginType": 1, "approvalStatus": 0 },
+  { "id": 10006, "email": "selin.uzun@inktavia.local", "password": "Test!123", "firstName": "Selin", "lastName": "Uzun", "roleContext": 1, "loginType": 1, "approvalStatus": 2 },
+  { "id": 10007, "email": "burak.arslan@inktavia.local", "password": "Test!123", "firstName": "Burak", "lastName": "Arslan", "roleContext": 1, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10008, "email": "fatma.celik@inktavia.local", "password": "Test!123", "firstName": "Fatma", "lastName": "Çelik", "roleContext": 1, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10011, "email": "marina.ops@inktavia.local", "password": "Test!123", "firstName": "Marina", "lastName": "Operasyonlar", "roleContext": 3, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10012, "email": "teknik.servis@inktavia.local", "password": "Test!123", "firstName": "Teknik", "lastName": "Servis", "roleContext": 3, "loginType": 1, "approvalStatus": 1 },
+  { "id": 10013, "email": "cargodry.team@inktavia.local", "password": "Test!123", "firstName": "CargoDry", "lastName": "Ekip", "roleContext": 3, "loginType": 1, "approvalStatus": 1 }
+]

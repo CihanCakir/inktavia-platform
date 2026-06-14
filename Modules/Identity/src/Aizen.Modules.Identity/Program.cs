@@ -32,6 +32,8 @@ builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection
 
 builder.Services.AddInktaviaService(builder.Configuration).AddInktaviaRepository();
 
+builder.Services.AddIdentityMockData(builder.Configuration);
+
 builder.Services.AddInktaviaAuthorizationPolicies();
 
 builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(IdentityDbContext).Assembly);

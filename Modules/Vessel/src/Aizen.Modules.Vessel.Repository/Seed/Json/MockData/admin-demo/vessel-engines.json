@@ -1,0 +1,10 @@
+[
+  { "id": 23001, "vesselId": 20001, "engineName": "Port Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "DIESEL", "brand": "Volvo Penta", "model": "D4-260", "horsePower": 260, "productionYear": 2018, "isPrimary": true },
+  { "id": 23002, "vesselId": 20001, "engineName": "Starboard Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "DIESEL", "brand": "Volvo Penta", "model": "D4-260", "horsePower": 260, "productionYear": 2018, "isPrimary": false },
+  { "id": 23003, "vesselId": 20003, "engineName": "Main Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "DIESEL", "brand": "Volvo Penta", "model": "D6-400", "horsePower": 400, "productionYear": 2020, "isPrimary": true },
+  { "id": 23004, "vesselId": 20005, "engineName": "Port Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "PETROL", "brand": "Mercury", "model": "300hp V8", "horsePower": 300, "productionYear": 2021, "isPrimary": true },
+  { "id": 23005, "vesselId": 20005, "engineName": "Starboard Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "PETROL", "brand": "Mercury", "model": "300hp V8", "horsePower": 300, "productionYear": 2021, "isPrimary": false },
+  { "id": 23006, "vesselId": 20006, "engineName": "Port Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "DIESEL", "brand": "Cummins", "model": "QSB 6.7", "horsePower": 370, "productionYear": 2017, "isPrimary": true },
+  { "id": 23007, "vesselId": 20006, "engineName": "Starboard Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "DIESEL", "brand": "Cummins", "model": "QSB 6.7", "horsePower": 370, "productionYear": 2017, "isPrimary": false },
+  { "id": 23008, "vesselId": 20007, "engineName": "Main Engine", "engineTypeCode": "INBOARD", "fuelTypeCode": "DIESEL", "brand": "Yanmar", "model": "6LY3-ETP", "horsePower": 315, "productionYear": 2015, "isPrimary": true }
+]

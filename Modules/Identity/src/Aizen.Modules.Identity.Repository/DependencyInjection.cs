@@ -3,9 +3,12 @@ using Aizen.Modules.Identity.Domain.Interface;
 using Aizen.Modules.Identity.Domain.Interface.Repository;
 using Aizen.Modules.Identity.Domain.Interface.Service;
 using Aizen.Modules.Identity.Repository.Context.Seed;
+using Aizen.Modules.Identity.Repository.Context.Seed.MockData;
 using Aizen.Modules.Identity.Repository.Identity;
 using Aizen.Modules.Identity.Repository.Identity.Repository;
 using Aizen.Modules.Identity.Repository.Identity.Service;
+using Aizen.Modules.Identity.Repository.Seed.MockData;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -49,10 +52,29 @@ namespace Aizen.Modules.Identity.Repository
         }
 
 
+        public static IServiceCollection AddIdentityMockData(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<MockDataSeedOptions>(configuration.GetSection("MockData"));
+            services.AddScoped<IdentityMockDataSeeder>(sp =>
+            {
+                var db = sp.GetRequiredService<Context.IdentityDbContext>();
+                var hasher = sp.GetRequiredService<IPasswordHasher<Domain.Entities.UserEntity>>();
+                var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MockDataSeedOptions>>();
+                var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IdentityMockDataSeeder>>();
+                var env = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+                return new IdentityMockDataSeeder(db, hasher, options, logger, env);
+            });
+            return services;
+        }
+
         public static async Task SeedIdentityAsync(this IHost host, CancellationToken ct = default)
         {
             using var scope = host.Services.CreateScope();
             await SeedIdentityBase.RunAsync(scope.ServiceProvider, ct);
+
+            // Run mock data seeder
+            var mockSeeder = scope.ServiceProvider.GetRequiredService<IdentityMockDataSeeder>();
+            await mockSeeder.SeedAsync(ct);
         }
     }
 

@@ -1,0 +1,13 @@
+[
+  { "id": 11001, "userId": 10001, "firstName": "Cihan", "lastName": "Yönetici", "roleContext": 4, "taxpayerType": 2, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11002, "userId": 10002, "firstName": "Deniz", "lastName": "Operasyon", "roleContext": 4, "taxpayerType": 2, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11003, "userId": 10003, "firstName": "Ayşe", "lastName": "Demir", "roleContext": 1, "taxpayerType": 2, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11004, "userId": 10004, "firstName": "Mehmet", "lastName": "Kaya", "roleContext": 1, "taxpayerType": 2, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11005, "userId": 10005, "firstName": "Deniz", "lastName": "Yılmaz", "roleContext": 1, "taxpayerType": 2, "approvalStatus": 0, "profileStatus": 1 },
+  { "id": 11006, "userId": 10006, "firstName": "Selin", "lastName": "Uzun", "roleContext": 1, "taxpayerType": 2, "approvalStatus": 2, "profileStatus": 1, "rejectReason": "Eksik belge" },
+  { "id": 11007, "userId": 10007, "firstName": "Burak", "lastName": "Arslan", "roleContext": 1, "taxpayerType": 2, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11008, "userId": 10008, "firstName": "Fatma", "lastName": "Çelik", "roleContext": 1, "taxpayerType": 2, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11011, "userId": 10011, "firstName": "Marina", "lastName": "Operasyonlar", "roleContext": 3, "taxpayerType": 7, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11012, "userId": 10012, "firstName": "Teknik", "lastName": "Servis", "roleContext": 3, "taxpayerType": 7, "approvalStatus": 1, "profileStatus": 2 },
+  { "id": 11013, "userId": 10013, "firstName": "CargoDry", "lastName": "Ekip", "roleContext": 3, "taxpayerType": 7, "approvalStatus": 1, "profileStatus": 2 }
+]

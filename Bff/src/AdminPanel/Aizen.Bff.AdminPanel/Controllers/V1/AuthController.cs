@@ -24,7 +24,6 @@ public sealed class AuthController : AizenWebApiController
     }
 
     [HttpPost("login/username")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername(
         [FromBody] LoginWithUsernameRequest req, CancellationToken ct)

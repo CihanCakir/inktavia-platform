@@ -35,6 +35,8 @@ builder.Services.AddAizenInfoAccessor(builder.Configuration);
 builder.Services.AddServiceRequestRepository(builder.Configuration);
 builder.Services.AddServiceRequestServices();
 
+builder.Services.AddServiceRequestMockData(builder.Configuration);
+
 builder.Services.AddScoped<ServiceRequestRealtimePublisher>();
 
 builder.Services.AddSingleton<IRealtimeDomainRegistrar, ServiceRequestRealtimeDomainRegistrar>();

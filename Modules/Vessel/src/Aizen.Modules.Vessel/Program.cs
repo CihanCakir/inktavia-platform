@@ -31,6 +31,8 @@ builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection
 
 builder.Services.AddVesselRepository(builder.Configuration).AddVesselServices();
 
+builder.Services.AddVesselMockData(builder.Configuration);
+
 builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(VesselDbContext).Assembly);
 
 var app = builder.Build();
