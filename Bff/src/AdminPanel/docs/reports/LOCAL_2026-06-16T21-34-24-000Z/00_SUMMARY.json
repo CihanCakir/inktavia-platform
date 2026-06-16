@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-06-16T21:34:24Z",
+  "runLabel": "LOCAL_2026-06-16T21-34-24-000Z",
+  "bffUrl": "http://localhost:17001",
+  "bffEnvironment": "Local",
+  "bffBinaryTimestamp": "2026-06-17T00:28:00Z",
+  "hardening": true,
+  "servicesRunning": ["redis", "rabbitmq", "keycloak", "postgres", "minio"],
+  "servicesDown": ["identity:7101", "vessel:7105", "reference-data:7104", "file-storage:7106", "service-request:7107"],
+  "suites": ["auth_policy", "negative_auth", "inactive_501", "anon_endpoints", "change_password"],
+  "totalTests": 44,
+  "passed": 44,
+  "failed": 0,
+  "passRatePct": 100,
+  "notes": [
+    "Downstream 500 errors (errorCode=911) are expected: Identity/module services not running.",
+    "All auth policy, 501, and negative-auth behavior validated at BFF layer.",
+    "Wrong-password login no longer hangs: Identity unreachable → isSuccess=false within 1s.",
+    "Participant/customer tokens correctly rejected with 403 on all protected endpoints."
+  ]
+}

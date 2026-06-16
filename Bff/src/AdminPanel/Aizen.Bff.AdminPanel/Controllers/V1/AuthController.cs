@@ -24,6 +24,7 @@ public sealed class AuthController : AizenWebApiController
     }
 
     [HttpPost("login/username")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername(
         [FromBody] LoginWithUsernameRequest req, CancellationToken ct)
@@ -83,7 +84,7 @@ public sealed class AuthController : AizenWebApiController
     }
 
     [HttpPost("password/change")]
-    [Authorize]
+    [Authorize(Policy = "AdminPanelAccess")]
     [ProducesResponseType(typeof(ChangePasswordDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ChangePasswordDto>> ChangePassword(
         [FromBody] ChangePasswordRequest req, CancellationToken ct)
