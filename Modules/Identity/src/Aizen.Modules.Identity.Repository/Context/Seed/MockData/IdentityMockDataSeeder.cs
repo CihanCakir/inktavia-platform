@@ -61,14 +61,17 @@ public sealed class IdentityMockDataSeeder
 
         var basePath = Path.Combine(AppContext.BaseDirectory, "Seed", "Json", "MockData", _options.DataSet);
 
-        await SeedUsersAsync(basePath, ct);
-        await SeedProfilesAsync(basePath, ct);
+        // Maps seed JSON userId → actual DB userId for users that already existed with a different ID.
+        var userIdRemap = new Dictionary<long, long>();
+
+        await SeedUsersAsync(basePath, userIdRemap, ct);
+        await SeedProfilesAsync(basePath, userIdRemap, ct);
         await AdvanceSequencesAsync(ct);
 
         _logger.LogInformation("Identity MockData seeder completed.");
     }
 
-    private async Task SeedUsersAsync(string basePath, CancellationToken ct)
+    private async Task SeedUsersAsync(string basePath, Dictionary<long, long> userIdRemap, CancellationToken ct)
     {
         var filePath = Path.Combine(basePath, "identity-users.json");
         if (!File.Exists(filePath))
@@ -83,8 +86,28 @@ public sealed class IdentityMockDataSeeder
 
         foreach (var model in models)
         {
+            var normalizedEmail = model.Email.ToUpperInvariant();
+
+            // Check if user already exists by seed ID (idempotent re-run).
             if (await _db.Users.AnyAsync(u => u.Id == model.Id, ct))
                 continue;
+
+            // User may already exist with the same email but a different ID
+            // (e.g. created by SeedIdentityBase). Record the remap so profile seeding
+            // can reference the correct FK, then skip creation.
+            var existingId = await _db.Users
+                .Where(u => u.NormalizedEmail == normalizedEmail)
+                .Select(u => (long?)u.Id)
+                .FirstOrDefaultAsync(ct);
+
+            if (existingId.HasValue)
+            {
+                userIdRemap[model.Id] = existingId.Value;
+                _logger.LogDebug(
+                    "User {Email} already exists with Id {ActualId} (seed Id {SeedId}), remapping.",
+                    model.Email, existingId.Value, model.Id);
+                continue;
+            }
 
             // Use factory method since UserEntity() constructor is protected.
             // IPasswordHasher does not use the user instance for hashing, so a temporary
@@ -99,8 +122,8 @@ public sealed class IdentityMockDataSeeder
                 loginType: (LoginType)model.LoginType);
 
             user.Id = model.Id;
-            user.NormalizedUserName = model.Email.ToUpperInvariant();
-            user.NormalizedEmail = model.Email.ToUpperInvariant();
+            user.NormalizedUserName = normalizedEmail;
+            user.NormalizedEmail = normalizedEmail;
             user.EmailConfirmed = true;
             user.ConcurrencyStamp = Guid.NewGuid().ToString();
 
@@ -119,7 +142,7 @@ public sealed class IdentityMockDataSeeder
         }
     }
 
-    private async Task SeedProfilesAsync(string basePath, CancellationToken ct)
+    private async Task SeedProfilesAsync(string basePath, Dictionary<long, long> userIdRemap, CancellationToken ct)
     {
         var filePath = Path.Combine(basePath, "identity-profiles.json");
         if (!File.Exists(filePath))
@@ -137,8 +160,21 @@ public sealed class IdentityMockDataSeeder
             if (await _db.UserProfiles.AnyAsync(p => p.Id == model.Id, ct))
                 continue;
 
+            // Resolve the actual DB user ID — may differ from seed if user was pre-created.
+            var actualUserId = userIdRemap.TryGetValue(model.UserId, out var remapped)
+                ? remapped
+                : model.UserId;
+
+            if (!await _db.Users.AnyAsync(u => u.Id == actualUserId, ct))
+            {
+                _logger.LogWarning(
+                    "Skipping profile {ProfileId}: user {UserId} does not exist in the database.",
+                    model.Id, actualUserId);
+                continue;
+            }
+
             var profile = UserProfileEntity.Create(
-                userId: model.UserId,
+                userId: actualUserId,
                 firstName: model.FirstName,
                 lastName: model.LastName,
                 taxpayerType: (TaxpayerType)model.TaxpayerType
@@ -169,7 +205,7 @@ public sealed class IdentityMockDataSeeder
                 // Set as active profile on user when status is Active and approved
                 if (model.ProfileStatus == 2 && model.ApprovalStatus == 1)
                 {
-                    await SetActiveProfileAsync(model.UserId, model.Id, ct);
+                    await SetActiveProfileAsync(actualUserId, model.Id, ct);
                 }
 
                 _logger.LogDebug("Seeded profile {Id} for user {UserId}.", model.Id, model.UserId);
@@ -212,7 +248,12 @@ public sealed class IdentityMockDataSeeder
     {
         var prop = obj.GetType().GetProperty(propertyName,
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        prop?.SetValue(obj, value);
+        if (prop is null) return;
+
+        // For properties with a private/protected setter, invoke the set method directly
+        // instead of prop.SetValue(), which throws when the accessor is non-public.
+        var setter = prop.GetSetMethod(nonPublic: true);
+        setter?.Invoke(obj, [value]);
     }
 
     private async Task AdvanceSequencesAsync(CancellationToken ct)
@@ -223,9 +264,9 @@ public sealed class IdentityMockDataSeeder
                 DO $$ 
                 DECLARE seq_name text;
                 BEGIN
-                    SELECT pg_get_serial_sequence('""AspNetUsers""', 'Id') INTO seq_name;
+                    SELECT pg_get_serial_sequence('""Users""', 'Id') INTO seq_name;
                     IF seq_name IS NOT NULL THEN
-                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM ""AspNetUsers""), 0)));
+                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM ""Users""), 0)));
                     END IF;
                     
                     SELECT pg_get_serial_sequence('""UserProfiles""', 'Id') INTO seq_name;

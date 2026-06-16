@@ -1,0 +1,107 @@
+{
+  "suite": "notification.api",
+  "environment": "LOCAL",
+  "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+  "startedAt": "2026-06-15T13:43:31.360Z",
+  "finishedAt": "2026-06-15T13:43:31.387Z",
+  "totalTests": 3,
+  "passed": 1,
+  "failed": 2,
+  "results": [
+    {
+      "id": "375b579c-4b64-497a-8afb-6a538a47bbc0",
+      "suite": "notification.api",
+      "name": "GET /notification-templates — should return list or 404",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.381Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/notification-templates",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "NotificationTemplateListResponse",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:31 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 17,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "789f0a48-6bba-48ba-bf90-418b35906373",
+      "suite": "notification.api",
+      "name": "GET /notification-templates/:id — should return 404 for unknown template",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.384Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/notification-templates/00000000-0000-0000-0000-000000000001",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 404,
+      "expectedShape": "ProblemDetails",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:31 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 1,
+      "passed": true,
+      "failureReason": null
+    },
+    {
+      "id": "3b8be3ba-bd9b-43ec-80eb-48bbe48eadce",
+      "suite": "notification.api",
+      "name": "POST /notification-templates — should attempt to create a template",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.386Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/notification-templates",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "name": "[TEST] BFF Test Notification Template",
+        "subject": "[TEST] BFF Test Subject",
+        "body": "Auto-generated by BFF test suite. Safe to delete.",
+        "channel": "EMAIL"
+      },
+      "expectedStatusCode": 201,
+      "expectedShape": "NotificationTemplate",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:31 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 2,
+      "passed": false,
+      "failureReason": "Expected HTTP 201, got 404. Body: \"\""
+    }
+  ]
+}

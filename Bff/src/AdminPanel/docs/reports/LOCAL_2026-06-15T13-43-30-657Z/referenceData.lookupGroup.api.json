@@ -1,0 +1,142 @@
+{
+  "suite": "referenceData.lookupGroup.api",
+  "environment": "LOCAL",
+  "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+  "startedAt": "2026-06-15T13:43:31.092Z",
+  "finishedAt": "2026-06-15T13:43:31.130Z",
+  "totalTests": 4,
+  "passed": 2,
+  "failed": 2,
+  "results": [
+    {
+      "id": "38aa582f-0854-4d83-ba9a-84bc383d072f",
+      "suite": "referenceData.lookupGroup.api",
+      "name": "GET /reference-data/lookup — should return paginated lookup groups",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.108Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "LookupGroupListResponse { items: LookupGroup[], total: number }",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 15,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "5179e36e-0d68-4a5d-b563-747bd2967b9d",
+      "suite": "referenceData.lookupGroup.api",
+      "name": "GET /reference-data/lookup/:id — should return 404 for unknown group",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.121Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 404,
+      "expectedShape": "ProblemDetails | { message: string }",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 9,
+      "passed": true,
+      "failureReason": null
+    },
+    {
+      "id": "85539909-a94a-4c7e-ae28-17a8cec621f9",
+      "suite": "referenceData.lookupGroup.api",
+      "name": "POST /reference-data/lookup — should create a new lookup group",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.124Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "displayName": "[TEST] BFF Test Suite Group",
+        "iconSymbol": "category",
+        "description": "Auto-generated by BFF test suite. Safe to delete.",
+        "parentId": null,
+        "sortOrder": 999,
+        "accessClearance": "standard"
+      },
+      "expectedStatusCode": 201,
+      "expectedShape": "LookupGroup",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 3,
+      "passed": false,
+      "failureReason": "Expected HTTP 201, got 404. Body: \"\""
+    },
+    {
+      "id": "97ce2a03-0b1b-4c84-aef3-b5f76cd6ba91",
+      "suite": "referenceData.lookupGroup.api",
+      "name": "PUT /reference-data/lookup/:id — should return 404 for unknown group update",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.129Z",
+      "method": "PUT",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000002",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "displayName": "[TEST] Updated Group",
+        "sortOrder": 1
+      },
+      "expectedStatusCode": 404,
+      "expectedShape": "ProblemDetails",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 3,
+      "passed": true,
+      "failureReason": null
+    }
+  ]
+}

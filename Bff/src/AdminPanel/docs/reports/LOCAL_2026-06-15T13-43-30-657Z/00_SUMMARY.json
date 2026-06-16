@@ -1,0 +1,102 @@
+{
+  "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+  "environment": "LOCAL",
+  "startedAt": "2026-06-15T13:43:31.091Z",
+  "finishedAt": "2026-06-15T13:44:36.352Z",
+  "totalSuites": 9,
+  "totalTests": 52,
+  "passed": 20,
+  "failed": 32,
+  "suites": [
+    {
+      "suite": "cargoDry.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.365Z",
+      "finishedAt": "2026-06-15T13:43:31.387Z",
+      "totalTests": 2,
+      "passed": 0,
+      "failed": 2
+    },
+    {
+      "suite": "identity.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.117Z",
+      "finishedAt": "2026-06-15T13:44:36.352Z",
+      "totalTests": 10,
+      "passed": 2,
+      "failed": 8
+    },
+    {
+      "suite": "notification.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.360Z",
+      "finishedAt": "2026-06-15T13:43:31.387Z",
+      "totalTests": 3,
+      "passed": 1,
+      "failed": 2
+    },
+    {
+      "suite": "payment.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.117Z",
+      "finishedAt": "2026-06-15T13:43:31.205Z",
+      "totalTests": 4,
+      "passed": 1,
+      "failed": 3
+    },
+    {
+      "suite": "referenceData.lookupGroup.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.092Z",
+      "finishedAt": "2026-06-15T13:43:31.130Z",
+      "totalTests": 4,
+      "passed": 2,
+      "failed": 2
+    },
+    {
+      "suite": "referenceData.lookupItem.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.093Z",
+      "finishedAt": "2026-06-15T13:43:31.203Z",
+      "totalTests": 8,
+      "passed": 2,
+      "failed": 6
+    },
+    {
+      "suite": "reporting.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.108Z",
+      "finishedAt": "2026-06-15T13:43:31.143Z",
+      "totalTests": 5,
+      "passed": 1,
+      "failed": 4
+    },
+    {
+      "suite": "serviceRequest.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.091Z",
+      "finishedAt": "2026-06-15T13:43:31.212Z",
+      "totalTests": 8,
+      "passed": 6,
+      "failed": 2
+    },
+    {
+      "suite": "vessel.api",
+      "environment": "LOCAL",
+      "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+      "startedAt": "2026-06-15T13:43:31.138Z",
+      "finishedAt": "2026-06-15T13:43:31.208Z",
+      "totalTests": 8,
+      "passed": 5,
+      "failed": 3
+    }
+  ]
+}
