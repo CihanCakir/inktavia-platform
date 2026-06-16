@@ -1,12 +1,7 @@
-using Aizen.Bff.AdminPanel.Application.AdminReferenceData.Command;
 using Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
-using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupItem;
-using Aizen.Modules.ReferenceData.Abstraction.Request.LookupGroup;
-using Aizen.Modules.ReferenceData.Abstraction.Request.LookupItem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,24 +22,12 @@ public sealed class ReferenceDataController : AizenWebApiController
         _cqrs = cqrsProcessor;
     }
 
-    // GET /reference-data/lookup-groups (canonical) and /reference-data/lookup (test alias)
     [HttpGet("reference-data/lookup-groups")]
-    [HttpGet("reference-data/lookup")]
     [ProducesResponseType(typeof(LookupGroupListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupListResult>> GetLookupGroups(CancellationToken ct)
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupsQuery(userToken), ct);
-        return SetResponse(result);
-    }
-
-    [HttpPost("reference-data/lookup")]
-    [ProducesResponseType(typeof(LookupGroupDto), StatusCodes.Status201Created)]
-    public async Task<AizenApiResponse<LookupGroupDto>> CreateLookupGroup(
-        [FromBody] CreateLookupGroupRequest request, CancellationToken ct)
-    {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new CreateReferenceDataLookupGroupCommand(request, userToken), ct);
         return SetResponse(result);
     }
 
@@ -68,20 +51,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("reference-data/lookup/{groupCode}/items")]
-    [ProducesResponseType(typeof(LookupItemDto), StatusCodes.Status201Created)]
-    public async Task<AizenApiResponse<LookupItemDto>> CreateLookupItem(
-        string groupCode, [FromBody] CreateLookupItemRequest request, CancellationToken ct)
-    {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        request.GroupCode = groupCode;
-        var result = await _cqrs.ProcessAsync(new CreateReferenceDataLookupItemCommand(request, userToken), ct);
-        return SetResponse(result);
-    }
-
-    // GET /reference-data/currencies (canonical) and /reference-data/currency (test alias)
     [HttpGet("reference-data/currencies")]
-    [HttpGet("reference-data/currency")]
     [ProducesResponseType(typeof(CurrencyListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CurrencyListResult>> GetCurrencies(CancellationToken ct)
     {
@@ -99,16 +69,6 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    // GET /reference-data/location (test alias → returns countries as top-level location list)
-    [HttpGet("reference-data/location")]
-    [ProducesResponseType(typeof(CountryListResult), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<CountryListResult>> GetLocations(CancellationToken ct)
-    {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataCountriesQuery(userToken), ct);
-        return SetResponse(result);
-    }
-
     [HttpGet("reference-data/locations/cities")]
     [ProducesResponseType(typeof(CityListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CityListResult>> GetCities(
@@ -120,9 +80,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    // GET /reference-data/measurement-units (canonical) and /reference-data/measurement (test alias)
     [HttpGet("reference-data/measurement-units")]
-    [HttpGet("reference-data/measurement")]
     [ProducesResponseType(typeof(MeasurementUnitListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<MeasurementUnitListResult>> GetMeasurementUnits(
         [FromQuery] string? type, CancellationToken ct)
@@ -133,9 +91,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    // GET /reference-data/system-parameters (canonical) and /reference-data/system-parameter (test alias)
     [HttpGet("reference-data/system-parameters")]
-    [HttpGet("reference-data/system-parameter")]
     [ProducesResponseType(typeof(SystemParameterListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<SystemParameterListResult>> GetSystemParameters(CancellationToken ct)
     {

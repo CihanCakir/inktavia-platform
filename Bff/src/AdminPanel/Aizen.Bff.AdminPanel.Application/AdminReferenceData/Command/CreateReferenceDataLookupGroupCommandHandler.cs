@@ -6,8 +6,7 @@ using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
 namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Command;
 
 [DocumentationInfo("Create lookup group command handler", "Proxies the create-lookup-group request to the ReferenceData module admin endpoint.")]
-public sealed class CreateReferenceDataLookupGroupCommandHandler
-    : AizenCommandHandler<CreateReferenceDataLookupGroupCommand, LookupGroupDto>
+public sealed class CreateReferenceDataLookupGroupCommandHandler : AizenCommandHandler<CreateReferenceDataLookupGroupCommand, LookupGroupDto>
 {
     private readonly IReferenceDataAdminBffRemoteCall _referenceData;
     private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;

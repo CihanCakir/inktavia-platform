@@ -4,7 +4,6 @@ using Aizen.Core.Common.Abstraction.Helpers;
 using Aizen.Core.Domain;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.InfoAccessor.Extensions;
-using Aizen.Core.Infrastructure.Auth.Extension;
 using Aizen.Core.Infrastructure.CQRS.Extension;
 using Aizen.Core.IOC.Extension;
 using Aizen.Core.Messagebus.Extensions;
@@ -57,7 +56,6 @@ public class AizenBffServiceConfiguration : IAizenServiceConfiguration
         services.AddAizenRemoteCall(configuration);
         services.AddAizenInfoAccessor(configuration);
         services.AddAizenValidation(configuration);
-        services.AddAizenKeycloakAuth(configuration);
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
     }

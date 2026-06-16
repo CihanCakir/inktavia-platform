@@ -24,18 +24,6 @@ public sealed class FilesController : AizenWebApiController
         _cqrs = cqrsProcessor;
     }
 
-    [HttpGet("files")]
-    [ProducesResponseType(typeof(List<AdminFileReviewOverviewResponse>), StatusCodes.Status200OK)]
-    public Task<AizenApiResponse<List<AdminFileReviewOverviewResponse>>> ListFiles(
-        [FromQuery] int pageIndex = 0,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
-    {
-        // Stub: file listing is managed via FileStorage module's own admin API.
-        // Returns empty list until a dedicated BFF listing query/remote-call is wired up.
-        return Task.FromResult(SetResponse(new List<AdminFileReviewOverviewResponse>()));
-    }
-
     [HttpGet("files/{fileId:long}")]
     [ProducesResponseType(typeof(AdminFileReviewOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminFileReviewOverviewResponse>> GetFileReviewOverview(

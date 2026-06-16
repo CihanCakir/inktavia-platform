@@ -5,8 +5,6 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
-using Aizen.Modules.Vessel.Abstraction.Response.Media;
-using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -123,34 +121,6 @@ public sealed class VesselsController : AizenWebApiController
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(new GetAdminVesselFormOptionsQuery(userToken), ct);
-        return SetResponse(result);
-    }
-
-    [HttpGet("vessels/{vesselId:long}/media")]
-    [ProducesResponseType(typeof(GetVesselMediaResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetVesselMediaResponse>> GetVesselMedia(
-        long vesselId,
-        [FromQuery] int pageIndex = 0,
-        [FromQuery] int pageSize = 50,
-        CancellationToken ct = default)
-    {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselMediaQuery(vesselId, userToken, pageIndex, pageSize), ct);
-        return SetResponse(result);
-    }
-
-    [HttpGet("vessels/{vesselId:long}/status-history")]
-    [ProducesResponseType(typeof(GetVesselStatusHistoryResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetVesselStatusHistoryResponse>> GetVesselStatusHistory(
-        long vesselId,
-        [FromQuery] int pageIndex = 0,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
-    {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselStatusHistoryQuery(vesselId, userToken, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 }
