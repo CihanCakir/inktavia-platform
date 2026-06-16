@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Api\src\Aizen.Core.Api\Aizen.Core.Api.csproj" />
+    <ProjectReference Include="..\..\..\Auth\src\Aizen.Core.Auth\Aizen.Core.Auth.csproj" />
     <ProjectReference Include="..\..\..\InfoAccessor\src\Aizen.Core.InfoAccessor\Aizen.Core.InfoAccessor.csproj" />
     <ProjectReference Include="..\..\..\IOC\src\Aizen.Core.IOC\Aizen.Core.IOC.csproj" />
     <ProjectReference Include="..\..\..\Messagebus\src\Aizen.Core.Messagebus\Aizen.Core.Messagebus.csproj" />
