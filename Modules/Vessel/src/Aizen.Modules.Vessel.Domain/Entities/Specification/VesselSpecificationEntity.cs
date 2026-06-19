@@ -26,6 +26,12 @@ public sealed class VesselSpecificationEntity : AizenEntityWithAudit
     public string? FuelCapacityUnitCode { get; private set; }
     public decimal? WaterCapacityValue { get; private set; }
     public string? WaterCapacityUnitCode { get; private set; }
+    public string? BuildCountry { get; private set; }
+    public string? SuperstructureMaterial { get; private set; }
+    public decimal? GrossTonnage { get; private set; }
+    public decimal? NetTonnage { get; private set; }
+    public int? PassengerCapacity { get; private set; }
+    public int? CrewCapacity { get; private set; }
 
     public VesselEntity? Vessel { get; private set; }
 

@@ -65,7 +65,16 @@ public static class VesselMappingExtensions
         Status = entity.Status,
         Visibility = entity.Visibility,
         IsArchived = entity.IsArchived,
-        CreateDate = entity.CreateDate
+        CreateDate = entity.CreateDate,
+        OperationalStatus = entity.OperationalStatus,
+        AssetType = entity.AssetType,
+        OwnershipStatus = null, // requires join, populated by query projection
+        OwnerName = null, // requires identity join, populated by BFF
+        LengthMeters = entity.Specification?.LengthValue,
+        GrossTonnage = entity.Specification?.GrossTonnage,
+        Latitude = entity.LocationSnapshots?.FirstOrDefault(l => l.IsCurrent)?.Latitude != null ? (double?)decimal.ToDouble(entity.LocationSnapshots!.First(l => l.IsCurrent).Latitude!.Value) : null,
+        Longitude = entity.LocationSnapshots?.FirstOrDefault(l => l.IsCurrent)?.Longitude != null ? (double?)decimal.ToDouble(entity.LocationSnapshots!.First(l => l.IsCurrent).Longitude!.Value) : null,
+        LastPositionDate = entity.LocationSnapshots?.FirstOrDefault(l => l.IsCurrent)?.CapturedAt
     };
 
     public static VesselOwnerDto ToDto(this VesselOwnerEntity entity) => new()
@@ -104,7 +113,13 @@ public static class VesselMappingExtensions
         FuelCapacityValue = entity.FuelCapacityValue,
         FuelCapacityUnitCode = entity.FuelCapacityUnitCode,
         WaterCapacityValue = entity.WaterCapacityValue,
-        WaterCapacityUnitCode = entity.WaterCapacityUnitCode
+        WaterCapacityUnitCode = entity.WaterCapacityUnitCode,
+        BuildCountry = entity.BuildCountry,
+        SuperstructureMaterial = entity.SuperstructureMaterial,
+        GrossTonnage = entity.GrossTonnage,
+        NetTonnage = entity.NetTonnage,
+        PassengerCapacity = entity.PassengerCapacity,
+        CrewCapacity = entity.CrewCapacity
     };
 
     public static VesselEngineDto ToDto(this VesselEngineEntity entity) => new()
@@ -120,7 +135,13 @@ public static class VesselMappingExtensions
         HorsePower = entity.HorsePower,
         ProductionYear = entity.ProductionYear,
         IsPrimary = entity.IsPrimary,
-        IsActive = entity.IsActive
+        IsActive = entity.IsActive,
+        PropulsionType = entity.PropulsionType,
+        EnginePowerKw = entity.EnginePowerKw,
+        FuelCapacityL = entity.FuelCapacityL,
+        MaxSpeedKnots = entity.MaxSpeedKnots,
+        CruisingSpeedKnots = entity.CruisingSpeedKnots,
+        RangeNm = entity.RangeNm
     };
 
     public static VesselDocumentDto ToDto(this VesselDocumentEntity entity) => new()
@@ -136,7 +157,11 @@ public static class VesselMappingExtensions
         ExpiresAt = entity.ExpiresAt,
         Status = entity.DocumentStatus,
         Notes = entity.Notes,
-        IsActive = entity.IsActive
+        IsActive = entity.IsActive,
+        DocumentCategory = entity.DocumentCategory,
+        IssuingAuthority = entity.IssuingAuthority,
+        ApprovedAt = entity.ApprovedAt,
+        ApprovedByUserId = entity.ApprovedByUserId
     };
 
     public static VesselMediaDto ToDto(this VesselMediaEntity entity) => new()
@@ -150,7 +175,11 @@ public static class VesselMappingExtensions
         SizeInBytesSnapshot = entity.SizeInBytesSnapshot,
         SortOrder = entity.SortOrder,
         IsCover = entity.IsCover,
-        IsActive = entity.IsActive
+        IsActive = entity.IsActive,
+        Title = entity.Title,
+        Description = entity.Description,
+        ThumbnailUrl = entity.ThumbnailUrl,
+        UploadedByUserId = entity.UploadedByUserId
     };
 
     public static VesselLocationSnapshotDto ToDto(this VesselLocationSnapshotEntity entity) => new()

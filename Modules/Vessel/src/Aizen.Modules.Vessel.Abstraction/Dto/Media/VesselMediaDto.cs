@@ -18,5 +18,9 @@ public sealed class VesselMediaDto
     public bool IsActive { get; set; }
     public string? AccessUrl { get; set; }
     public DateTime? AccessUrlExpiresAt { get; set; }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public long? UploadedByUserId { get; set; }
 }
 

@@ -16,6 +16,12 @@ public sealed class VesselEngineEntity : AizenEntityWithAudit
     public int? HorsePower { get; private set; }
     public int? ProductionYear { get; private set; }
     public bool IsPrimary { get; private set; }
+    public string? PropulsionType { get; private set; }
+    public decimal? EnginePowerKw { get; private set; }
+    public decimal? FuelCapacityL { get; private set; }
+    public decimal? MaxSpeedKnots { get; private set; }
+    public decimal? CruisingSpeedKnots { get; private set; }
+    public decimal? RangeNm { get; private set; }
 
     public VesselEntity? Vessel { get; private set; }
 

@@ -20,5 +20,9 @@ public sealed class VesselDocumentDto
     public bool IsActive { get; set; }
     public string? AccessUrl { get; set; }
     public DateTime? AccessUrlExpiresAt { get; set; }
+    public string? DocumentCategory { get; set; }
+    public string? IssuingAuthority { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+    public long? ApprovedByUserId { get; set; }
 }
 

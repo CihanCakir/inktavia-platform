@@ -20,6 +20,12 @@ public sealed class VesselEngineEntityConfiguration : IEntityTypeConfiguration<V
         builder.Property(x => x.HorsePower);
         builder.Property(x => x.ProductionYear);
         builder.Property(x => x.IsPrimary).IsRequired();
+        builder.Property(x => x.PropulsionType).HasMaxLength(100);
+        builder.Property(x => x.EnginePowerKw).HasPrecision(14, 2);
+        builder.Property(x => x.FuelCapacityL).HasPrecision(14, 2);
+        builder.Property(x => x.MaxSpeedKnots).HasPrecision(10, 2);
+        builder.Property(x => x.CruisingSpeedKnots).HasPrecision(10, 2);
+        builder.Property(x => x.RangeNm).HasPrecision(14, 2);
 
         builder.HasIndex(x => new { x.VesselId, x.SerialNumber });
         builder.HasIndex(x => new { x.VesselId, x.IsPrimary });

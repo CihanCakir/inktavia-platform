@@ -39,11 +39,17 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
                 Status = v.Status,
                 Visibility = v.Visibility,
                 IsArchived = v.IsArchived,
-                CreateDate = v.CreateDate
+                CreateDate = v.CreateDate,
+                OperationalStatus = v.OperationalStatus,
+                AssetType = v.AssetType,
+                LengthMeters = v.Specification != null ? v.Specification.LengthValue : null,
+                GrossTonnage = v.Specification != null ? v.Specification.GrossTonnage : null
             },
             predicate: v =>
                 (request.IsArchived == null || v.IsArchived == request.IsArchived) &&
-                (request.SearchTerm == null || v.Name.Contains(request.SearchTerm) || v.VesselCode.Contains(request.SearchTerm)),
+                (request.SearchTerm == null || v.Name.Contains(request.SearchTerm) || v.VesselCode.Contains(request.SearchTerm)) &&
+                (request.AssetTypes == null || request.AssetTypes.Length == 0 || (v.AssetType != null && request.AssetTypes.Contains((int)v.AssetType))) &&
+                (request.OperationalStatuses == null || request.OperationalStatuses.Length == 0 || (v.OperationalStatus != null && request.OperationalStatuses.Contains((int)v.OperationalStatus))),
             orderBy: q => q.OrderByDescending(v => v.CreateDate),
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,

@@ -18,4 +18,13 @@ public sealed class VesselListItemDto
     public VesselVisibility Visibility { get; set; }
     public bool IsArchived { get; set; }
     public DateTime? CreateDate { get; set; }
+    public int? OperationalStatus { get; set; }
+    public int? AssetType { get; set; }
+    public int? OwnershipStatus { get; set; }
+    public string? OwnerName { get; set; }
+    public decimal? LengthMeters { get; set; }
+    public decimal? GrossTonnage { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public DateTime? LastPositionDate { get; set; }
 }

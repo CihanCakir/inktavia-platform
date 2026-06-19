@@ -27,6 +27,8 @@ public sealed class VesselEntity : AizenEntityWithAudit
     public bool IsArchived { get; private set; }
     public DateTime? ArchivedAt { get; private set; }
     public VesselArchiveReason? ArchiveReason { get; private set; }
+    public int? OperationalStatus { get; private set; }
+    public int? AssetType { get; private set; }
 
     private readonly List<VesselOwnerEntity> _owners = new();
     public IReadOnlyCollection<VesselOwnerEntity> Owners => _owners.AsReadOnly();
@@ -145,4 +147,7 @@ public sealed class VesselEntity : AizenEntityWithAudit
     }
 
     public void AddStatusHistory(VesselStatusHistoryEntity entry) => _statusHistory.Add(entry);
+
+    public void UpdateOperationalStatus(int? operationalStatus) => OperationalStatus = operationalStatus;
+    public void UpdateAssetType(int? assetType) => AssetType = assetType;
 }

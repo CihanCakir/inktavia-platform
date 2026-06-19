@@ -15,6 +15,10 @@ public sealed class VesselMediaEntity : AizenEntityWithAudit
     public long? SizeInBytesSnapshot { get; private set; }
     public int SortOrder { get; private set; }
     public bool IsCover { get; private set; }
+    public string? Title { get; private set; }
+    public string? Description { get; private set; }
+    public string? ThumbnailUrl { get; private set; }
+    public long? UploadedByUserId { get; private set; }
 
     public VesselEntity? Vessel { get; private set; }
 

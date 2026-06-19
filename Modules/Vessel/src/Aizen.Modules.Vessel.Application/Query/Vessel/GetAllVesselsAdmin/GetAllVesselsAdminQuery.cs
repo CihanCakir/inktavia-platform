@@ -9,15 +9,21 @@ public sealed class GetAllVesselsAdminQuery : AizenQuery<GetAllVesselsAdminRespo
 {
     public string? SearchTerm { get; }
     public bool? IsArchived { get; }
+    public int[]? AssetTypes { get; }
+    public int[]? OwnershipStatuses { get; }
+    public int[]? OperationalStatuses { get; }
 
     public int PageIndex { get; }
     public int PageSize { get; }
 
-    public GetAllVesselsAdminQuery(int pageIndex = 0, int pageSize = 20, string? searchTerm = null, bool? isArchived = null)
+    public GetAllVesselsAdminQuery(int pageIndex = 0, int pageSize = 20, string? searchTerm = null, bool? isArchived = null, int[]? assetTypes = null, int[]? ownershipStatuses = null, int[]? operationalStatuses = null)
     {
         PageIndex = pageIndex;
         PageSize = pageSize;
         SearchTerm = searchTerm;
         IsArchived = isArchived;
+        AssetTypes = assetTypes;
+        OwnershipStatuses = ownershipStatuses;
+        OperationalStatuses = operationalStatuses;
     }
 }

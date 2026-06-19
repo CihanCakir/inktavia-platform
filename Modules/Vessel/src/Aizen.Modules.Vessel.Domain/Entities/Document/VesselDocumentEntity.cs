@@ -17,6 +17,10 @@ public sealed class VesselDocumentEntity : AizenEntityWithAudit
     public DateTime? ExpiresAt { get; private set; }
     public VesselDocumentStatus DocumentStatus { get; private set; }
     public string? Notes { get; private set; }
+    public string? DocumentCategory { get; private set; }
+    public string? IssuingAuthority { get; private set; }
+    public DateTime? ApprovedAt { get; private set; }
+    public long? ApprovedByUserId { get; private set; }
 
     public VesselEntity? Vessel { get; private set; }
 
@@ -71,5 +75,10 @@ public sealed class VesselDocumentEntity : AizenEntityWithAudit
 
     public void ChangeStatus(VesselDocumentStatus status) => DocumentStatus = status;
     public void Deactivate() => IsActive = false;
-}
 
+    public void Approve(long approvedByUserId)
+    {
+        ApprovedAt = DateTime.UtcNow;
+        ApprovedByUserId = approvedByUserId;
+    }
+}

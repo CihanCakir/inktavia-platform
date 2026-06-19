@@ -5,7 +5,6 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
-using Aizen.Modules.Vessel.Abstraction.Response.Media;
 using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Microsoft.AspNetCore.Authorization;
@@ -28,28 +27,31 @@ public sealed class VesselsController : AizenWebApiController
     }
 
     [HttpGet("vessels")]
-    [ProducesResponseType(typeof(AdminVesselOverviewResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<AdminVesselOverviewResponse>> GetVessels(
+    [ProducesResponseType(typeof(AdminVesselListBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselListBffResponse>> GetVessels(
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? searchTerm = null,
         [FromQuery] bool? isArchived = null,
+        [FromQuery] int[]? assetTypes = null,
+        [FromQuery] int[]? ownershipStatuses = null,
+        [FromQuery] int[]? operationalStatuses = null,
         CancellationToken ct = default)
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselOverviewQuery(userToken, pageIndex, pageSize, searchTerm, isArchived), ct);
+            new GetAdminVesselListBffQuery(userToken, pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses), ct);
         return SetResponse(result);
     }
 
     [HttpGet("vessels/{vesselId:long}/detail")]
-    [ProducesResponseType(typeof(AdminVesselDocumentsResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<AdminVesselDocumentsResponse>> GetVesselDetail(
+    [ProducesResponseType(typeof(AdminVesselDetailBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselDetailBffResponse>> GetVesselDetail(
         long vesselId, CancellationToken ct)
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselDocumentsQuery(vesselId, userToken), ct);
+            new GetAdminVesselDetailBffQuery(vesselId, userToken), ct);
         return SetResponse(result);
     }
 
@@ -107,6 +109,19 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("vessels/{vesselId:long}/documents")]
+    [ProducesResponseType(typeof(AdminVesselDocumentsBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselDocumentsBffResponse>> GetVesselDocuments(
+        long vesselId,
+        [FromQuery] string? statusFilter = null,
+        CancellationToken ct = default)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminVesselDocumentsBffQuery(vesselId, userToken, statusFilter), ct);
+        return SetResponse(result);
+    }
+
     [HttpPut("vessels/{vesselId:long}")]
     [ProducesResponseType(typeof(UpdateVesselResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
@@ -127,16 +142,17 @@ public sealed class VesselsController : AizenWebApiController
     }
 
     [HttpGet("vessels/{vesselId:long}/media")]
-    [ProducesResponseType(typeof(GetVesselMediaResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetVesselMediaResponse>> GetVesselMedia(
+    [ProducesResponseType(typeof(AdminVesselMediaBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselMediaBffResponse>> GetVesselMedia(
         long vesselId,
+        [FromQuery] string? mediaType = null,
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselMediaQuery(vesselId, userToken, pageIndex, pageSize), ct);
+            new GetAdminVesselMediaBffQuery(vesselId, userToken, mediaType, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
