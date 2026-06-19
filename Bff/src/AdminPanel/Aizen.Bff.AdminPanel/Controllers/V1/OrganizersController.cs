@@ -11,7 +11,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Organizers")]
-[Authorize]
+[Authorize(Policy = "AdminPanelAccess")]
 public sealed class OrganizersController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;

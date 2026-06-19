@@ -5,4 +5,4 @@ using MiniUow.Paging;
 namespace Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 
 [DocumentationInfo("Get vessel owners response", "Returns a paged list of vessel owners.")]
-public sealed record GetVesselOwnersResponse(IPaginate<VesselOwnerDto> Owners);
+public sealed record GetVesselOwnersResponse(Paginate<VesselOwnerDto> Owners);

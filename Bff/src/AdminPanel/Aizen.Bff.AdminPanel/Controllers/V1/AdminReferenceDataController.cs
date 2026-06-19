@@ -1,7 +1,12 @@
+using Aizen.Bff.AdminPanel.Application.AdminReferenceData.Command;
 using Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
+using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupItem;
+using Aizen.Modules.ReferenceData.Abstraction.Request.LookupGroup;
+using Aizen.Modules.ReferenceData.Abstraction.Request.LookupItem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +16,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Reference Data")]
-[Authorize]
+[Authorize(Policy = "AdminPanelAccess")]
 public sealed class ReferenceDataController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -23,6 +28,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     }
 
     [HttpGet("reference-data/lookup-groups")]
+    [HttpGet("reference-data/lookup")]
     [ProducesResponseType(typeof(LookupGroupListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupListResult>> GetLookupGroups(CancellationToken ct)
     {
@@ -52,6 +58,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     }
 
     [HttpGet("reference-data/currencies")]
+    [HttpGet("reference-data/currency")]
     [ProducesResponseType(typeof(CurrencyListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CurrencyListResult>> GetCurrencies(CancellationToken ct)
     {
@@ -61,6 +68,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     }
 
     [HttpGet("reference-data/locations/countries")]
+    [HttpGet("reference-data/location")]
     [ProducesResponseType(typeof(CountryListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CountryListResult>> GetCountries(CancellationToken ct)
     {
@@ -81,6 +89,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     }
 
     [HttpGet("reference-data/measurement-units")]
+    [HttpGet("reference-data/measurement")]
     [ProducesResponseType(typeof(MeasurementUnitListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<MeasurementUnitListResult>> GetMeasurementUnits(
         [FromQuery] string? type, CancellationToken ct)
@@ -92,11 +101,34 @@ public sealed class ReferenceDataController : AizenWebApiController
     }
 
     [HttpGet("reference-data/system-parameters")]
+    [HttpGet("reference-data/system-parameter")]
     [ProducesResponseType(typeof(SystemParameterListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<SystemParameterListResult>> GetSystemParameters(CancellationToken ct)
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(new GetReferenceDataSystemParametersQuery(userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("reference-data/lookup")]
+    [HttpPost("reference-data/lookup-groups")]
+    [ProducesResponseType(typeof(LookupGroupDto), StatusCodes.Status201Created)]
+    public async Task<AizenApiResponse<LookupGroupDto>> CreateLookupGroup(
+        [FromBody] CreateLookupGroupRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new CreateLookupGroupCommand(request, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("reference-data/lookup/{groupCode}/items")]
+    [ProducesResponseType(typeof(LookupItemDto), StatusCodes.Status201Created)]
+    public async Task<AizenApiResponse<LookupItemDto>> CreateLookupItem(
+        string groupCode, [FromBody] CreateLookupItemRequest request, CancellationToken ct)
+    {
+        request.GroupCode = groupCode;
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new CreateLookupItemCommand(request, userToken), ct);
         return SetResponse(result);
     }
 }

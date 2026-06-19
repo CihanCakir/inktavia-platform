@@ -46,6 +46,10 @@ namespace Aizen.Core.InfoAccessor.Middlewares
                 await _next(httpContext);
                 return;
             }
+            if (userTokenHeader.ToString().Contains("Bearer "))
+            {
+                userTokenHeader = userTokenHeader.ToString().Replace("Bearer ", "");
+            }
 
             var isTokenValid = TryGetUserInfoFromToken(userTokenHeader.ToString(), out AizenUserInfo userInfo, out string errorMessage);
             if (!isTokenValid)

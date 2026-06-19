@@ -5,13 +5,14 @@ using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Command;
 
-[DocumentationInfo("Create lookup group command handler", "Proxies the create-lookup-group request to the ReferenceData module admin endpoint.")]
-public sealed class CreateReferenceDataLookupGroupCommandHandler : AizenCommandHandler<CreateReferenceDataLookupGroupCommand, LookupGroupDto>
+[DocumentationInfo("Create lookup group command handler", "Forwards the create-lookup-group request to the ReferenceData admin endpoint via the cached Keycloak service token.")]
+public sealed class CreateLookupGroupCommandHandler
+    : AizenCommandHandler<CreateLookupGroupCommand, LookupGroupDto>
 {
     private readonly IReferenceDataAdminBffRemoteCall _referenceData;
     private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public CreateReferenceDataLookupGroupCommandHandler(
+    public CreateLookupGroupCommandHandler(
         IReferenceDataAdminBffRemoteCall referenceData,
         IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
     {
@@ -19,10 +20,9 @@ public sealed class CreateReferenceDataLookupGroupCommandHandler : AizenCommandH
         _serviceTokenProvider = serviceTokenProvider;
     }
 
-    public override async Task<LookupGroupDto?> Handle(
-        CreateReferenceDataLookupGroupCommand request, CancellationToken cancellationToken)
+    public override async Task<LookupGroupDto?> Handle(CreateLookupGroupCommand request, CancellationToken ct)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
+        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(ct);
         var authHeader = $"Bearer {serviceToken}";
 
         var result = await _referenceData.CreateLookupGroup(request.Request, authHeader, request.UserToken);

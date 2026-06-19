@@ -6,6 +6,8 @@ using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupItem;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Measurement;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.SystemParameter;
+using Aizen.Modules.ReferenceData.Abstraction.Request.LookupGroup;
+using Aizen.Modules.ReferenceData.Abstraction.Request.LookupItem;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -25,6 +27,18 @@ public interface IReferenceDataAdminBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/lookup-groups/{groupCode}/items")]
     Task<AizenApiResponse<LookupItemListResult>> GetLookupItemsByGroupCode(
         string groupCode,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/reference-data/lookup-groups")]
+    Task<AizenApiResponse<LookupGroupDto>> CreateLookupGroup(
+        [AizenRemoteCallBody] CreateLookupGroupRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/reference-data/lookup-items")]
+    Task<AizenApiResponse<LookupItemDto>> CreateLookupItem(
+        [AizenRemoteCallBody] CreateLookupItemRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 

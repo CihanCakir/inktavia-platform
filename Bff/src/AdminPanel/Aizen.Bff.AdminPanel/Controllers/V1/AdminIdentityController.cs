@@ -14,7 +14,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Identity")]
-[Authorize]
+[Authorize(Policy = "AdminPanelAccess")]
 public sealed class IdentityController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;

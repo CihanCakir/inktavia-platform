@@ -20,7 +20,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Service Requests")]
-[Authorize]
+[Authorize(Policy = "AdminPanelAccess")]
 public sealed class ServiceRequestsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;

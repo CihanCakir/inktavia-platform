@@ -2,7 +2,9 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
+using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
@@ -76,4 +78,20 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] UpdateVesselStatusRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/vessels/{vesselId}/media")]
+    Task<AizenApiResponse<GetVesselMediaResponse>> GetVesselMedia(
+        long vesselId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        [Refit.Query] int pageIndex = 0,
+        [Refit.Query] int pageSize = 20);
+
+    [AizenRemoteCallGet("/api/v1/vessels/{vesselId}/status-history")]
+    Task<AizenApiResponse<GetVesselStatusHistoryResponse>> GetVesselStatusHistory(
+        long vesselId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        [Refit.Query] int pageIndex = 0,
+        [Refit.Query] int pageSize = 20);
 }

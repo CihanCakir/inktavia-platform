@@ -3,6 +3,8 @@ using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.Cache.Extension;
 using Aizen.Core.Infrastructure.RemoteCall;
+using Aizen.Core.RemoteCall.Extensions;
+using RemoteCallBuilderExtensions = Aizen.Core.RemoteCall.Extensions.BuilderExtensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
@@ -28,36 +30,42 @@ public static class DependencyInjection
         services.AddTransient<IIdentityAdminBffRemoteCall>(provider =>
         {
             var factory = provider.GetRequiredService<IHttpClientFactory>();
-            return RestService.For<IIdentityAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IIdentityAdminBffRemoteCall)));
+            var httpClient = factory.CreateClient(nameof(IIdentityAdminBffRemoteCall));
+            // Prevent identity remote calls from hanging indefinitely on wrong credentials or unreachable service.
+            httpClient.Timeout = TimeSpan.FromSeconds(15);
+            return RestService.For<IIdentityAdminBffRemoteCall>(httpClient, RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 
         services.AddTransient<IVesselAdminBffRemoteCall>(provider =>
         {
             var factory = provider.GetRequiredService<IHttpClientFactory>();
             return RestService.For<IVesselAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IVesselAdminBffRemoteCall)));
+                factory.CreateClient(nameof(IVesselAdminBffRemoteCall)),
+                RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 
         services.AddTransient<IFileStorageAdminBffRemoteCall>(provider =>
         {
             var factory = provider.GetRequiredService<IHttpClientFactory>();
             return RestService.For<IFileStorageAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IFileStorageAdminBffRemoteCall)));
+                factory.CreateClient(nameof(IFileStorageAdminBffRemoteCall)),
+                RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 
         services.AddTransient<IServiceRequestAdminBffRemoteCall>(provider =>
         {
             var factory = provider.GetRequiredService<IHttpClientFactory>();
             return RestService.For<IServiceRequestAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IServiceRequestAdminBffRemoteCall)));
+                factory.CreateClient(nameof(IServiceRequestAdminBffRemoteCall)),
+                RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 
         services.AddTransient<IReferenceDataAdminBffRemoteCall>(provider =>
         {
             var factory = provider.GetRequiredService<IHttpClientFactory>();
             return RestService.For<IReferenceDataAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IReferenceDataAdminBffRemoteCall)));
+                factory.CreateClient(nameof(IReferenceDataAdminBffRemoteCall)),
+                RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 
         return services;

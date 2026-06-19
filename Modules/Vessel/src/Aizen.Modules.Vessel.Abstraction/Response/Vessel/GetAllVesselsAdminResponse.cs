@@ -5,4 +5,4 @@ using MiniUow.Paging;
 namespace Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
 [DocumentationInfo("Get all vessels admin response", "Returns a paged list of all vessels for admin use.")]
-public sealed record GetAllVesselsAdminResponse(IPaginate<VesselListItemDto> Vessels);
+public sealed record GetAllVesselsAdminResponse(Paginate<VesselListItemDto> Vessels);
