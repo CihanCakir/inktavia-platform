@@ -1,5 +1,6 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 
 namespace Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
@@ -13,6 +14,8 @@ public interface IServiceRequestRepository
     Task<IReadOnlyList<ServiceRequestEntity>> GetByOwnerUserIdAsync(long ownerUserId, int skip, int take, CancellationToken ct = default);
     Task<int> CountByOwnerUserIdAsync(long ownerUserId, CancellationToken ct = default);
     Task<IReadOnlyList<ServiceRequestEntity>> GetByVesselIdAsync(long vesselId, CancellationToken ct = default);
+    Task<IReadOnlyList<ServiceRequestEntity>> GetAdminListAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default);
+    Task<int> CountAdminAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task AddAsync(ServiceRequestEntity entity, CancellationToken ct = default);
     void Update(ServiceRequestEntity entity);
 }

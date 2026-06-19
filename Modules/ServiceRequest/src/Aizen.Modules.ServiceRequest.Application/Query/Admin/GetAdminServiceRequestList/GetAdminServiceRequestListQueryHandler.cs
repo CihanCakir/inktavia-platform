@@ -16,21 +16,9 @@ public sealed class GetAdminServiceRequestListQueryHandler : AizenQueryHandler<G
     public override async Task<GetAdminServiceRequestListResponse> Handle(GetAdminServiceRequestListQuery request, CancellationToken cancellationToken)
     {
         var filter = request.Filter;
-        var skip = filter.PageIndex * filter.PageSize;
 
-        IReadOnlyList<Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest.ServiceRequestEntity> items;
-        int total;
-
-        if (filter.OwnerUserId.HasValue)
-        {
-            items = await _repository.GetByOwnerUserIdAsync(filter.OwnerUserId.Value, skip, filter.PageSize, cancellationToken);
-            total = await _repository.CountByOwnerUserIdAsync(filter.OwnerUserId.Value, cancellationToken);
-        }
-        else
-        {
-            items = Array.Empty<Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest.ServiceRequestEntity>();
-            total = 0;
-        }
+        var items = await _repository.GetAdminListAsync(filter, cancellationToken);
+        var total = await _repository.CountAdminAsync(filter, cancellationToken);
 
         var dtos = items.Select(e => e.ToSummaryDto()).ToList();
         return new GetAdminServiceRequestListResponse(dtos, total);

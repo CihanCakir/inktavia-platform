@@ -59,6 +59,9 @@ public sealed class VesselMockDataSeeder
         await SeedOwnersAsync(basePath, ct);
         await SeedSpecificationsAsync(basePath, ct);
         await SeedEnginesAsync(basePath, ct);
+        await SeedMediaAsync(basePath, ct);
+        await SeedDocumentsAsync(basePath, ct);
+        await SeedLocationSnapshotsAsync(basePath, ct);
         await AdvanceSequencesAsync(ct);
 
         _logger.LogInformation("Vessel MockData seeder completed.");
@@ -262,6 +265,172 @@ public sealed class VesselMockDataSeeder
         }
     }
 
+    private async Task SeedMediaAsync(string basePath, CancellationToken ct)
+    {
+        var filePath = Path.Combine(basePath, "vessel-media.json");
+        if (!File.Exists(filePath))
+        {
+            _logger.LogWarning("Vessel media seed file not found: {Path}", filePath);
+            return;
+        }
+
+        await using var stream = File.OpenRead(filePath);
+        var models = await JsonSerializer.DeserializeAsync<List<MockVesselMediaSeedModel>>(stream, JsonOptions, ct) ?? [];
+
+        int inserted = 0, skipped = 0;
+        foreach (var model in models)
+        {
+            if (await _db.VesselMedia.AnyAsync(m => m.Id == model.Id, ct))
+            {
+                skipped++;
+                continue;
+            }
+
+            var media = VesselMediaEntity.Create(
+                vesselId: model.VesselId,
+                mediaType: (VesselMediaType)model.MediaType,
+                fileId: null,
+                originalFileNameSnapshot: model.OriginalFileNameSnapshot,
+                contentTypeSnapshot: model.ContentTypeSnapshot,
+                sizeInBytesSnapshot: model.SizeInBytesSnapshot,
+                sortOrder: model.SortOrder,
+                isCover: model.IsCover);
+
+            media.Id = model.Id;
+            media.CreateDate = DateTime.UtcNow;
+            media.ModifyDate = DateTime.UtcNow;
+            media.IsDeleted = false;
+
+            _db.VesselMedia.Add(media);
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                inserted++;
+                _logger.LogDebug("Seeded vessel media {Id} for vessel {VesselId}.", model.Id, model.VesselId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to seed vessel media {Id}, skipping.", model.Id);
+                _db.ChangeTracker.Clear();
+            }
+        }
+
+        _logger.LogInformation("[VesselDemoSeed] Inserted media: {Inserted}, skipped: {Skipped}", inserted, skipped);
+    }
+
+    private async Task SeedDocumentsAsync(string basePath, CancellationToken ct)
+    {
+        var filePath = Path.Combine(basePath, "vessel-documents.json");
+        if (!File.Exists(filePath))
+        {
+            _logger.LogWarning("Vessel documents seed file not found: {Path}", filePath);
+            return;
+        }
+
+        await using var stream = File.OpenRead(filePath);
+        var models = await JsonSerializer.DeserializeAsync<List<MockVesselDocumentSeedModel>>(stream, JsonOptions, ct) ?? [];
+
+        int inserted = 0, skipped = 0;
+        foreach (var model in models)
+        {
+            if (await _db.VesselDocuments.AnyAsync(d => d.Id == model.Id, ct))
+            {
+                skipped++;
+                continue;
+            }
+
+            var doc = VesselDocumentEntity.Create(
+                vesselId: model.VesselId,
+                documentTypeCode: model.DocumentTypeCode,
+                documentName: model.DocumentName,
+                fileId: null,
+                originalFileNameSnapshot: null,
+                contentTypeSnapshot: null,
+                sizeInBytesSnapshot: null,
+                expiresAt: model.ExpiresAt,
+                notes: model.Notes);
+
+            doc.Id = model.Id;
+            doc.ChangeStatus((VesselDocumentStatus)model.DocumentStatus);
+            doc.CreateDate = DateTime.UtcNow;
+            doc.ModifyDate = DateTime.UtcNow;
+            doc.IsDeleted = false;
+
+            _db.VesselDocuments.Add(doc);
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                inserted++;
+                _logger.LogDebug("Seeded vessel document {Id} for vessel {VesselId}.", model.Id, model.VesselId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to seed vessel document {Id}, skipping.", model.Id);
+                _db.ChangeTracker.Clear();
+            }
+        }
+
+        _logger.LogInformation("[VesselDemoSeed] Inserted documents: {Inserted}, skipped: {Skipped}", inserted, skipped);
+    }
+
+    private async Task SeedLocationSnapshotsAsync(string basePath, CancellationToken ct)
+    {
+        var filePath = Path.Combine(basePath, "vessel-location-snapshots.json");
+        if (!File.Exists(filePath))
+        {
+            _logger.LogWarning("Vessel location snapshots seed file not found: {Path}", filePath);
+            return;
+        }
+
+        await using var stream = File.OpenRead(filePath);
+        var models = await JsonSerializer.DeserializeAsync<List<MockVesselLocationSnapshotSeedModel>>(stream, JsonOptions, ct) ?? [];
+
+        int inserted = 0, skipped = 0;
+        foreach (var model in models)
+        {
+            if (await _db.VesselLocationSnapshots.AnyAsync(l => l.Id == model.Id, ct))
+            {
+                skipped++;
+                continue;
+            }
+
+            var snapshot = VesselLocationSnapshotEntity.Create(
+                vesselId: model.VesselId,
+                countryCode: model.CountryCode,
+                cityCode: model.CityCode,
+                districtCode: null,
+                marinaName: model.MarinaName,
+                latitude: model.Latitude,
+                longitude: model.Longitude,
+                accuracyMeters: model.AccuracyMeters,
+                source: model.Source,
+                capturedAt: model.CapturedAt);
+
+            snapshot.Id = model.Id;
+            snapshot.CreateDate = DateTime.UtcNow;
+            snapshot.ModifyDate = DateTime.UtcNow;
+            snapshot.IsDeleted = false;
+
+            _db.VesselLocationSnapshots.Add(snapshot);
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                inserted++;
+                _logger.LogDebug("Seeded vessel location snapshot {Id} for vessel {VesselId}.", model.Id, model.VesselId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to seed vessel location snapshot {Id}, skipping.", model.Id);
+                _db.ChangeTracker.Clear();
+            }
+        }
+
+        _logger.LogInformation("[VesselDemoSeed] Inserted location snapshots: {Inserted}, skipped: {Skipped}", inserted, skipped);
+    }
+
     private async Task AdvanceSequencesAsync(CancellationToken ct)
     {
         try
@@ -288,6 +457,21 @@ public sealed class VesselMockDataSeeder
                     SELECT pg_get_serial_sequence('vessel.vessel_engines', 'Id') INTO seq_name;
                     IF seq_name IS NOT NULL THEN
                         PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM vessel.vessel_engines), 0)));
+                    END IF;
+
+                    SELECT pg_get_serial_sequence('vessel.vessel_media', 'Id') INTO seq_name;
+                    IF seq_name IS NOT NULL THEN
+                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM vessel.vessel_media), 0)));
+                    END IF;
+
+                    SELECT pg_get_serial_sequence('vessel.vessel_documents', 'Id') INTO seq_name;
+                    IF seq_name IS NOT NULL THEN
+                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM vessel.vessel_documents), 0)));
+                    END IF;
+
+                    SELECT pg_get_serial_sequence('vessel.vessel_location_snapshots', 'Id') INTO seq_name;
+                    IF seq_name IS NOT NULL THEN
+                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM vessel.vessel_location_snapshots), 0)));
                     END IF;
                 END $$;", ct);
         }
@@ -326,4 +510,28 @@ public sealed class VesselMockDataSeeder
         string EngineName, string EngineTypeCode, string FuelTypeCode,
         string? Brand, string? Model, string? SerialNumber,
         int? HorsePower, int? ProductionYear, bool IsPrimary);
+
+    private sealed record MockVesselMediaSeedModel(
+        long Id, long VesselId,
+        int MediaType,
+        string? OriginalFileNameSnapshot,
+        string? ContentTypeSnapshot,
+        long? SizeInBytesSnapshot,
+        int SortOrder,
+        bool IsCover);
+
+    private sealed record MockVesselDocumentSeedModel(
+        long Id, long VesselId,
+        string DocumentTypeCode,
+        string DocumentName,
+        DateTime? ExpiresAt,
+        int DocumentStatus,
+        string? Notes,
+        string? IssuingAuthority);
+
+    private sealed record MockVesselLocationSnapshotSeedModel(
+        long Id, long VesselId,
+        string? CountryCode, string? CityCode, string? MarinaName,
+        decimal? Latitude, decimal? Longitude, decimal? AccuracyMeters,
+        string? Source, DateTime CapturedAt, bool IsCurrent);
 }

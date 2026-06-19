@@ -46,6 +46,19 @@ public sealed class ServiceRequestsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("service-requests/by-vessel/{vesselId:long}/history")]
+    [ProducesResponseType(typeof(ServiceRequestVesselHistoryBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ServiceRequestVesselHistoryBffResponse>> GetServiceHistoryByVessel(
+        long vesselId,
+        [FromQuery] int take = 10,
+        CancellationToken ct = default)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new GetServiceRequestsByVesselHistoryQuery(vesselId, userToken, take), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("service-requests/disputes")]
     [ProducesResponseType(typeof(GetAdminDisputeListResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetAdminDisputeListResponse>> GetDisputes(

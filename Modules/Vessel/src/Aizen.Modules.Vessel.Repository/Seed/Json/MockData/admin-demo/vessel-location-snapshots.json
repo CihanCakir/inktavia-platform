@@ -1,0 +1,6 @@
+[
+  { "id": 26001, "vesselId": 20001, "countryCode": "TR", "cityCode": "ISTANBUL", "marinaName": "Kalamış Marina", "latitude": 40.9693, "longitude": 29.0523, "accuracyMeters": 50.0, "source": "Manual", "capturedAt": "2025-06-01T08:00:00Z", "isCurrent": true },
+  { "id": 26002, "vesselId": 20002, "countryCode": "TR", "cityCode": "MUGLA", "marinaName": "Göcek Marina", "latitude": 36.7530, "longitude": 28.9390, "accuracyMeters": 50.0, "source": "Manual", "capturedAt": "2025-06-05T10:00:00Z", "isCurrent": true },
+  { "id": 26003, "vesselId": 20003, "countryCode": "TR", "cityCode": "ISTANBUL", "marinaName": "Fenerbahçe Marina", "latitude": 40.9782, "longitude": 29.0429, "accuracyMeters": 50.0, "source": "Manual", "capturedAt": "2025-06-10T09:00:00Z", "isCurrent": true },
+  { "id": 26004, "vesselId": 20004, "countryCode": "TR", "cityCode": "IZMIR", "marinaName": "Çeşme Marina", "latitude": 38.3244, "longitude": 26.3011, "accuracyMeters": 50.0, "source": "Manual", "capturedAt": "2025-06-08T11:00:00Z", "isCurrent": true }
+]

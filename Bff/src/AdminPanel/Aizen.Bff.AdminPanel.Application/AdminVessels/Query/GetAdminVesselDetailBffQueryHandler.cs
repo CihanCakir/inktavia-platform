@@ -114,10 +114,12 @@ public sealed class GetAdminVesselDetailBffQueryHandler
             response.Vessel.ServiceHistory = serviceHistoryTask.Result.Body.Items.Select(s => new ServiceHistoryItemBffDto
             {
                 Id = s.Id,
-                Date = s.RequestedStartDate,
-                ServiceType = s.ServiceCategoryCode,
-                Status = s.Status.ToString(),
-                Notes = s.Title
+                Date = s.RequestedStartDate ?? s.CreatedAt,
+                ServiceType = s.ServiceTypeCode ?? s.ServiceCategoryCode,
+                Provider = null, // ProviderName requires Identity/Profile integration — documented as gap
+                Location = s.LocationMarinaName,
+                Notes = s.OwnerNotes ?? s.Title,
+                Status = s.Status.ToString().ToLowerInvariant()
             }).ToList();
         }
         else

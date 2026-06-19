@@ -1,4 +1,5 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
@@ -50,8 +51,64 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
             .OrderByDescending(x => x.CreateDate)
             .ToListAsync(ct);
 
+    public async Task<IReadOnlyList<ServiceRequestEntity>> GetAdminListAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default)
+    {
+        var skip = filter.PageIndex * filter.PageSize;
+        return await BuildAdminQuery(filter)
+            .Include(x => x.Assignment)
+            .OrderByDescending(x => x.ModifyDate ?? x.CreateDate)
+            .Skip(skip)
+            .Take(filter.PageSize)
+            .ToListAsync(ct);
+    }
+
+    public Task<int> CountAdminAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default)
+        => BuildAdminQuery(filter).CountAsync(ct);
+
     public Task AddAsync(ServiceRequestEntity entity, CancellationToken ct = default)
         => _db.ServiceRequests.AddAsync(entity, ct).AsTask();
 
     public void Update(ServiceRequestEntity entity) => _db.ServiceRequests.Update(entity);
+
+    private IQueryable<ServiceRequestEntity> BuildAdminQuery(AdminServiceRequestFilterRequest filter)
+    {
+        var query = _db.ServiceRequests.AsNoTracking().Where(x => !x.IsDeleted);
+
+        if (filter.VesselId.HasValue)
+            query = query.Where(x => x.VesselId == filter.VesselId.Value);
+
+        if (filter.OwnerUserId.HasValue)
+            query = query.Where(x => x.OwnerUserId == filter.OwnerUserId.Value);
+
+        if (filter.ProviderProfileId.HasValue)
+            query = query.Where(x => x.Assignment != null && x.Assignment.ProviderProfileId == filter.ProviderProfileId.Value);
+
+        if (filter.Status.HasValue)
+            query = query.Where(x => x.Status == filter.Status.Value);
+
+        if (filter.Priority.HasValue)
+            query = query.Where(x => x.Priority == filter.Priority.Value);
+
+        if (filter.HasDispute.HasValue)
+            query = query.Where(x => filter.HasDispute.Value ? x.Dispute != null : x.Dispute == null);
+
+        if (!string.IsNullOrWhiteSpace(filter.ServiceCategoryCode))
+            query = query.Where(x => x.ServiceCategoryCode == filter.ServiceCategoryCode.ToUpperInvariant());
+
+        if (filter.CreatedFrom.HasValue)
+            query = query.Where(x => x.CreateDate >= filter.CreatedFrom.Value);
+
+        if (filter.CreatedTo.HasValue)
+            query = query.Where(x => x.CreateDate <= filter.CreatedTo.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var term = filter.SearchTerm.ToLower();
+            query = query.Where(x =>
+                x.Title.ToLower().Contains(term) ||
+                x.RequestCode.ToLower().Contains(term));
+        }
+
+        return query;
+    }
 }
