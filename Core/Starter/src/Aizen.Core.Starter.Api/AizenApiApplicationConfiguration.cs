@@ -18,6 +18,7 @@ public class AizenApiApplicationConfiguration : IAizenApplicationConfiguration
         app.UseSwaggerUI();
         app.UseHttpsRedirection();
         app.UseUserInfoMiddleware();
+        app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
     }
