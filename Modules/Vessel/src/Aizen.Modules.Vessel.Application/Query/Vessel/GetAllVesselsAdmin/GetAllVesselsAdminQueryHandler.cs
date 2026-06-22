@@ -41,7 +41,10 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
                 Slug = v.Slug,
                 VesselTypeCode = v.VesselTypeCode,
                 FlagCountryCode = v.FlagCountryCode,
-                CoverMediaUrl = null,
+                CoverMediaUrl = v.Media
+                    .Where(m => m.IsCover && m.IsActive && !m.IsDeleted)
+                    .Select(m => m.ThumbnailUrl)
+                    .FirstOrDefault(),
                 Status = v.Status,
                 Visibility = v.Visibility,
                 IsArchived = v.IsArchived,

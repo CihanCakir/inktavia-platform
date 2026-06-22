@@ -4,6 +4,7 @@ using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 
@@ -14,6 +15,7 @@ public sealed class GetAdminVesselListBffQueryHandler
     private readonly IVesselAdminBffRemoteCall _vessel;
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
+    private readonly ILogger<GetAdminVesselListBffQueryHandler> _logger;
 
     private static readonly Dictionary<int, string> OperationalStatusLabels = new()
     {
@@ -53,11 +55,13 @@ public sealed class GetAdminVesselListBffQueryHandler
     public GetAdminVesselListBffQueryHandler(
         IVesselAdminBffRemoteCall vessel,
         IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
+        ILogger<GetAdminVesselListBffQueryHandler> logger)
     {
         _vessel = vessel;
         _identity = identity;
         _serviceTokenProvider = serviceTokenProvider;
+        _logger = logger;
     }
 
     public override async Task<AdminVesselListBffResponse?> Handle(
@@ -88,6 +92,11 @@ public sealed class GetAdminVesselListBffQueryHandler
                 return response;
 
             baseItems = page.Items?.Select(v => MapBaseItem(v)).ToList() ?? new();
+
+            var locationCount = baseItems.Count(x => x.LastLocationText != null);
+            var opStatusCount = baseItems.Count(x => x.OperationalStatus.HasValue);
+            _logger.LogDebug("[VesselListBff] location values projected: {Count}", locationCount);
+            _logger.LogDebug("[VesselListBff] operational status values projected: {Count}", opStatusCount);
 
             response.Vessels = new VesselPageBffDto
             {
@@ -144,8 +153,6 @@ public sealed class GetAdminVesselListBffQueryHandler
         item.LastLocationText = ComputeLastLocationText(v.LastLocationMarinaName, v.Latitude, v.Longitude);
 
         // Map status labels from numeric enums.
-        if (v.OperationalStatus.HasValue)
-            OperationalStatusLabels.TryGetValue(v.OperationalStatus.Value, out var opLabel);
         item.OperationalStatusLabel = v.OperationalStatus.HasValue && OperationalStatusLabels.TryGetValue(v.OperationalStatus.Value, out var opLbl) ? opLbl : null;
         item.AssetTypeLabel = v.AssetType.HasValue && AssetTypeLabels.TryGetValue(v.AssetType.Value, out var assetLbl) ? assetLbl : null;
         item.OwnershipStatusLabel = v.OwnershipStatus.HasValue && OwnershipStatusLabels.TryGetValue(v.OwnershipStatus.Value, out var owLbl) ? owLbl : null;
@@ -181,6 +188,8 @@ public sealed class GetAdminVesselListBffQueryHandler
         if (ownerUserIds.Length == 0)
             return;
 
+        _logger.LogDebug("[VesselListBff] ownerUserIds collected: {Count}", ownerUserIds.Length);
+
         try
         {
             var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
@@ -192,7 +201,10 @@ public sealed class GetAdminVesselListBffQueryHandler
             if (profiles == null)
                 return;
 
-            var profileMap = profiles
+            var profileList = profiles.ToList();
+            _logger.LogDebug("[VesselListBff] identity profiles returned: {Count}", profileList.Count);
+
+            var profileMap = profileList
                 .GroupBy(p => p.UserId)
                 .ToDictionary(g => g.Key, g => g.First());
 

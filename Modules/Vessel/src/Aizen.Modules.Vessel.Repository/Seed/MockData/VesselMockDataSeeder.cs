@@ -62,6 +62,7 @@ public sealed class VesselMockDataSeeder
         await SeedMediaAsync(basePath, ct);
         await SeedDocumentsAsync(basePath, ct);
         await SeedLocationSnapshotsAsync(basePath, ct);
+        await UpdateVesselClassificationAsync(basePath, ct);
         await AdvanceSequencesAsync(ct);
 
         _logger.LogInformation("Vessel MockData seeder completed.");
@@ -104,6 +105,8 @@ public sealed class VesselMockDataSeeder
 
             vessel.Id = model.Id;
             vessel.ChangeStatus((VesselStatus)model.Status);
+            vessel.UpdateOperationalStatus(model.OperationalStatus);
+            vessel.UpdateAssetType(model.AssetType);
             vessel.CreateDate = DateTime.UtcNow;
             vessel.ModifyDate = DateTime.UtcNow;
             vessel.IsDeleted = false;
@@ -431,6 +434,58 @@ public sealed class VesselMockDataSeeder
         _logger.LogInformation("[VesselDemoSeed] Inserted location snapshots: {Inserted}, skipped: {Skipped}", inserted, skipped);
     }
 
+    private async Task UpdateVesselClassificationAsync(string basePath, CancellationToken ct)
+    {
+        var filePath = Path.Combine(basePath, "vessels.json");
+        if (!File.Exists(filePath)) return;
+
+        await using var stream = File.OpenRead(filePath);
+        var models = await JsonSerializer.DeserializeAsync<List<MockVesselSeedModel>>(stream, JsonOptions, ct) ?? [];
+
+        int updated = 0;
+        foreach (var model in models)
+        {
+            if (model.AssetType == null && model.OperationalStatus == null)
+                continue;
+
+            var vessel = await _db.Vessels.FindAsync(new object[] { model.Id }, ct);
+            if (vessel == null)
+                continue;
+
+            bool changed = false;
+
+            if (model.AssetType != null && vessel.AssetType != model.AssetType)
+            {
+                vessel.UpdateAssetType(model.AssetType);
+                changed = true;
+            }
+
+            if (model.OperationalStatus != null && vessel.OperationalStatus != model.OperationalStatus)
+            {
+                vessel.UpdateOperationalStatus(model.OperationalStatus);
+                changed = true;
+            }
+
+            if (!changed)
+                continue;
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                updated++;
+                _logger.LogDebug("Updated vessel {Id} classification: AssetType={AssetType}, OperationalStatus={OperationalStatus}.",
+                    model.Id, model.AssetType, model.OperationalStatus);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to update classification for vessel {Id}, skipping.", model.Id);
+                _db.ChangeTracker.Clear();
+            }
+        }
+
+        _logger.LogInformation("[VesselDemoSeed] Updated vessel classification for {Updated} vessels.", updated);
+    }
+
     private async Task AdvanceSequencesAsync(CancellationToken ct)
     {
         try
@@ -487,7 +542,8 @@ public sealed class VesselMockDataSeeder
         long Id, string VesselCode, string Name, string Slug,
         string VesselTypeCode, int Status, int Visibility,
         string? HomeCountryCode, string? HomeCityCode, string? HomeMarinaName,
-        string? FlagCountryCode, string? Description);
+        string? FlagCountryCode, string? Description,
+        int? AssetType, int? OperationalStatus);
 
     private sealed record MockVesselOwnerSeedModel(
         long Id, long VesselId, long UserId, long? UserProfileId,
