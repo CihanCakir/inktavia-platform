@@ -44,6 +44,36 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    // Literal routes must be declared before parameterized routes to avoid ambiguity.
+
+    [HttpGet("vessels/register")]
+    [ProducesResponseType(typeof(AdminVesselRegisterBootstrapBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselRegisterBootstrapBffResponse>> GetVesselRegisterBootstrap(CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new GetAdminVesselRegisterBootstrapQuery(userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("vessels/register")]
+    [ProducesResponseType(typeof(CreateVesselResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CreateVesselResponse>> RegisterVessel(
+        [FromBody] RegisterAdminVesselBffRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new RegisterAdminVesselBffCommand(request, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("vessels/form-options")]
+    [ProducesResponseType(typeof(AdminVesselFormOptionsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselFormOptionsResponse>> GetFormOptions(CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(new GetAdminVesselFormOptionsQuery(userToken), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("vessels/{vesselId:long}/detail")]
     [ProducesResponseType(typeof(AdminVesselDetailBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselDetailBffResponse>> GetVesselDetail(
@@ -129,15 +159,6 @@ public sealed class VesselsController : AizenWebApiController
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(new UpdateVesselCommand(vesselId, request, userToken), ct);
-        return SetResponse(result);
-    }
-
-    [HttpGet("vessels/form-options")]
-    [ProducesResponseType(typeof(AdminVesselFormOptionsResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<AdminVesselFormOptionsResponse>> GetFormOptions(CancellationToken ct)
-    {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminVesselFormOptionsQuery(userToken), ct);
         return SetResponse(result);
     }
 

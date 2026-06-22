@@ -2,7 +2,9 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Model;
+using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
+using Aizen.Modules.Vessel.Application.Command.Vessel;
 using Aizen.Modules.Vessel.Application.Query.Vessel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +40,16 @@ public sealed class VesselAdminController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetAllVesselsAdminResponse>(
             new GetAllVesselsAdminQuery(pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(CreateVesselResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CreateVesselResponse?>> Create(
+        [FromBody] CreateAdminVesselRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<CreateVesselResponse>(new CreateAdminVesselCommand(req), ct);
         return SetResponse(result);
     }
 }

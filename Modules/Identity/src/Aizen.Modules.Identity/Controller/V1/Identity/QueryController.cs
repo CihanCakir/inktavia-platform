@@ -85,6 +85,20 @@ public sealed class QueryController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("admin/users/profiles/bulk")]
+    [Authorize(Roles = RoleNames.Admin)]
+    [ProducesResponseType(typeof(List<UserProfileListItemDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByUserIds(
+        [FromQuery] long[] userIds,
+        CancellationToken ct)
+    {
+        if (userIds == null || userIds.Length == 0)
+            return SetResponse(new List<UserProfileListItemDto>());
+
+        var result = await _sender.ProcessAsync(new GetUserProfilesByUserIdsQuery(userIds), ct);
+        return SetResponse(result?.ToList() ?? new List<UserProfileListItemDto>());
+    }
+
     // Participant
 
     [HttpGet("participant/profile/me")]

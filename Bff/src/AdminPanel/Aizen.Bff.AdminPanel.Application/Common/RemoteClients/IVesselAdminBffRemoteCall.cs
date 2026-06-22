@@ -97,4 +97,10 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] int pageIndex = 0,
         [Refit.Query] int pageSize = 20);
+
+    [AizenRemoteCallPost("/api/v1/admin/vessels")]
+    Task<AizenApiResponse<CreateVesselResponse>> CreateAdminVessel(
+        [AizenRemoteCallBody] CreateAdminVesselRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }

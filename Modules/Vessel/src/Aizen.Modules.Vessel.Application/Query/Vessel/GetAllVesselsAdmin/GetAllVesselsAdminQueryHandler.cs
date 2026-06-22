@@ -21,9 +21,15 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
         _uow = uow;
     }
 
+
+
     public override async Task<GetAllVesselsAdminResponse?> Handle(GetAllVesselsAdminQuery request, CancellationToken cancellationToken)
     {
         var repo = _uow.GetRepository<VesselEntity>();
+
+        // Normalize filter arrays: remove 0 values sent by the UI as "no filter" placeholders.
+        var assetTypes = request.AssetTypes?.Where(x => x != 0).ToArray();
+        var operationalStatuses = request.OperationalStatuses?.Where(x => x != 0).ToArray();
 
         var result = await repo.GetPagedListAsync<VesselListItemDto>(
             selector: v => new VesselListItemDto
@@ -43,13 +49,49 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
                 OperationalStatus = v.OperationalStatus,
                 AssetType = v.AssetType,
                 LengthMeters = v.Specification != null ? v.Specification.LengthValue : null,
-                GrossTonnage = v.Specification != null ? v.Specification.GrossTonnage : null
+                GrossTonnage = v.Specification != null ? v.Specification.GrossTonnage : null,
+
+                // Primary owner identity — enriched by BFF; vessel module provides IDs only.
+                OwnerUserId = v.Owners
+                    .Where(o => o.IsPrimary && o.IsActive)
+                    .Select(o => (long?)o.UserId)
+                    .FirstOrDefault(),
+                OwnerProfileId = v.Owners
+                    .Where(o => o.IsPrimary && o.IsActive)
+                    .Select(o => o.UserProfileId)
+                    .FirstOrDefault(),
+                OwnershipStatus = (int?)v.Owners
+                    .Where(o => o.IsPrimary && o.IsActive)
+                    .Select(o => (int?)o.OwnershipStatus)
+                    .FirstOrDefault(),
+
+                // Latest current location snapshot.
+                Latitude = (double?)v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => l.Latitude)
+                    .FirstOrDefault(),
+                Longitude = (double?)v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => l.Longitude)
+                    .FirstOrDefault(),
+                LastPositionDate = v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => (DateTime?)l.CapturedAt)
+                    .FirstOrDefault(),
+                LastLocationMarinaName = v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => l.MarinaName)
+                    .FirstOrDefault()
             },
             predicate: v =>
                 (request.IsArchived == null || v.IsArchived == request.IsArchived) &&
                 (request.SearchTerm == null || v.Name.Contains(request.SearchTerm) || v.VesselCode.Contains(request.SearchTerm)) &&
-                (request.AssetTypes == null || request.AssetTypes.Length == 0 || (v.AssetType != null && request.AssetTypes.Contains((int)v.AssetType))) &&
-                (request.OperationalStatuses == null || request.OperationalStatuses.Length == 0 || (v.OperationalStatus != null && request.OperationalStatuses.Contains((int)v.OperationalStatus))),
+                (assetTypes == null || assetTypes.Length == 0 || (v.AssetType != null && assetTypes.Contains((int)v.AssetType))) &&
+                (operationalStatuses == null || operationalStatuses.Length == 0 || (v.OperationalStatus != null && operationalStatuses.Contains((int)v.OperationalStatus))),
             orderBy: q => q.OrderByDescending(v => v.CreateDate),
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,

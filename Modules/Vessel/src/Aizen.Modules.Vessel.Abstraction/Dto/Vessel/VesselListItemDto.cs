@@ -22,9 +22,12 @@ public sealed class VesselListItemDto
     public int? AssetType { get; set; }
     public int? OwnershipStatus { get; set; }
     public string? OwnerName { get; set; }
+    public long? OwnerUserId { get; set; }
+    public long? OwnerProfileId { get; set; }
     public decimal? LengthMeters { get; set; }
     public decimal? GrossTonnage { get; set; }
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public DateTime? LastPositionDate { get; set; }
+    public string? LastLocationMarinaName { get; set; }
 }

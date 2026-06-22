@@ -146,6 +146,12 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] ChangePasswordRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/identity/admin/users/profiles/bulk")]
+    Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByUserIds(
+        [Refit.Query] long[] userIds,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }
 
 // Lightweight result wrappers for Identity HTTP responses
