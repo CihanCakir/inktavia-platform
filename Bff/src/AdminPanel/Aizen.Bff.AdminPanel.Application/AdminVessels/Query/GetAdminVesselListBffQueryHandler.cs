@@ -186,42 +186,111 @@ public sealed class GetAdminVesselListBffQueryHandler
             .ToArray();
 
         if (ownerUserIds.Length == 0)
+        {
+            _logger.LogDebug("[VesselListBff] ownerUserIds collected: 0 — skipping Identity enrichment");
             return;
+        }
 
-        _logger.LogDebug("[VesselListBff] ownerUserIds collected: {Count}", ownerUserIds.Length);
+        _logger.LogDebug("[VesselListBff] ownerUserIds collected: {Count} / {Ids}",
+            ownerUserIds.Length,
+            string.Join(",", ownerUserIds));
 
         try
         {
             var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
             var authHeader = $"Bearer {serviceToken}";
 
+            // Primary path: enrich by owner user IDs.
             var profileResult = await _identity.GetUserProfilesByUserIds(ownerUserIds, authHeader, request.UserToken);
-            var profiles = profileResult?.Body as IEnumerable<UserProfileListItemDto>;
 
-            if (profiles == null)
-                return;
+            _logger.LogDebug("[VesselListBff] Identity profile response success: {Success}, profiles returned: {Count}",
+                profileResult?.Header?.IsSuccess,
+                profileResult?.Body?.Count ?? 0);
 
-            var profileList = profiles.ToList();
-            _logger.LogDebug("[VesselListBff] identity profiles returned: {Count}", profileList.Count);
-
-            var profileMap = profileList
-                .GroupBy(p => p.UserId)
-                .ToDictionary(g => g.Key, g => g.First());
-
-            foreach (var item in items)
+            if (profileResult?.Header?.IsSuccess != true)
             {
-                if (item.OwnerUserId is long uid && profileMap.TryGetValue(uid, out var profile))
+                _logger.LogWarning("[VesselListBff] Identity bulk-by-user-ids returned non-success header. IsSuccess={IsSuccess}",
+                    profileResult?.Header?.IsSuccess);
+                response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Identity"));
+                return;
+            }
+
+            var profileList = profileResult.Body ?? new List<UserProfileListItemDto>();
+
+            ApplyOwnerNames(items, profileList);
+
+            // Fallback path: for items still missing ownerName that have an ownerProfileId,
+            // attempt a secondary lookup by profile ID. This covers the seeder-remap scenario
+            // where the user's DB ID differs from the seed ID referenced by vessel owners.
+            var stillMissingItems = items
+                .Where(x => x.OwnerName == null && x.OwnerProfileId.HasValue)
+                .ToList();
+
+            if (stillMissingItems.Count > 0)
+            {
+                var fallbackProfileIds = stillMissingItems
+                    .Select(x => x.OwnerProfileId!.Value)
+                    .Distinct()
+                    .ToArray();
+
+                _logger.LogDebug("[VesselListBff] Falling back to profile-ID lookup for {Count} items / profileIds: {Ids}",
+                    stillMissingItems.Count,
+                    string.Join(",", fallbackProfileIds));
+
+                var fallbackResult = await _identity.GetUserProfilesByProfileIds(fallbackProfileIds, authHeader, request.UserToken);
+
+                _logger.LogDebug("[VesselListBff] Fallback profile-ID response success: {Success}, profiles returned: {Count}",
+                    fallbackResult?.Header?.IsSuccess,
+                    fallbackResult?.Body?.Count ?? 0);
+
+                if (fallbackResult?.Header?.IsSuccess == true && fallbackResult.Body?.Count > 0)
                 {
-                    item.OwnerName = $"{profile.FirstName} {profile.LastName}".Trim();
-                    item.OwnerAvatarUrl = profile.ProfilePhotoUrl;
-                    // Prefer profile ID from Identity if BFF item doesn't have it.
-                    item.OwnerProfileId ??= profile.Id;
+                    // Apply by profile ID for the remaining items.
+                    var fallbackByProfileId = fallbackResult.Body
+                        .GroupBy(p => p.Id)
+                        .ToDictionary(g => g.Key, g => g.First());
+
+                    foreach (var item in stillMissingItems)
+                    {
+                        if (item.OwnerProfileId is long pid && fallbackByProfileId.TryGetValue(pid, out var profile))
+                        {
+                            item.OwnerName = ResolveOwnerDisplayName(profile);
+                            item.OwnerAvatarUrl = profile.ProfilePhotoUrl;
+                        }
+                    }
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "[VesselListBff] Identity owner enrichment failed: {Message}", ex.Message);
             response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Identity"));
         }
+    }
+
+    private static void ApplyOwnerNames(List<VesselListItemBffDto> items, List<UserProfileListItemDto> profiles)
+    {
+        if (profiles.Count == 0) return;
+
+        var profilesByUserId = profiles
+            .Where(p => p.UserId > 0)
+            .GroupBy(p => p.UserId)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        foreach (var item in items)
+        {
+            if (item.OwnerUserId is long uid && profilesByUserId.TryGetValue(uid, out var profile))
+            {
+                item.OwnerName = ResolveOwnerDisplayName(profile);
+                item.OwnerAvatarUrl = profile.ProfilePhotoUrl;
+                item.OwnerProfileId ??= profile.Id;
+            }
+        }
+    }
+
+    private static string? ResolveOwnerDisplayName(UserProfileListItemDto profile)
+    {
+        var fullName = $"{profile.FirstName} {profile.LastName}".Trim();
+        return !string.IsNullOrWhiteSpace(fullName) ? fullName : null;
     }
 }

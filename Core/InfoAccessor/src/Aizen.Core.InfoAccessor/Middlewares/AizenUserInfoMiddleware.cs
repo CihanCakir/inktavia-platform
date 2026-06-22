@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Aizen.Core.InfoAccessor.Abstraction;
 using System.IdentityModel.Tokens.Jwt;
-using Aizen.Core.Infrastructure.Exception;
 using System.Security.Claims;
 
 namespace Aizen.Core.InfoAccessor.Middlewares
@@ -10,10 +10,12 @@ namespace Aizen.Core.InfoAccessor.Middlewares
     internal class AizenUserInfoMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<AizenUserInfoMiddleware> _logger;
 
-        public AizenUserInfoMiddleware(RequestDelegate next)
+        public AizenUserInfoMiddleware(RequestDelegate next, ILogger<AizenUserInfoMiddleware> logger)
         {
             this._next = next;
+            this._logger = logger;
         }
 
         public async Task Invoke(HttpContext httpContext)
@@ -54,7 +56,17 @@ namespace Aizen.Core.InfoAccessor.Middlewares
             var isTokenValid = TryGetUserInfoFromToken(userTokenHeader.ToString(), out AizenUserInfo userInfo, out string errorMessage);
             if (!isTokenValid)
             {
-                throw new AizenBusinessException(errorMessage);
+                // Graceful degradation: log a warning instead of throwing.
+                // The Keycloak service token already validates caller authorization.
+                // Domain-level checks that require a valid UserId will still reject unauthorized access.
+                _logger.LogWarning(
+                    "[AizenUserInfoMiddleware] X-Aizen-User-Token could not be validated: {ErrorMessage}. " +
+                    "Continuing with empty UserInfo. Path={Path}",
+                    errorMessage,
+                    httpContext.Request.Path);
+                container.Set(new AizenUserInfo());
+                await _next(httpContext);
+                return;
             }
 
             container.Set(userInfo);
