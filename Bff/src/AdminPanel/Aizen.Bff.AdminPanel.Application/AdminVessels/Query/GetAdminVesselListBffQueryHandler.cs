@@ -71,11 +71,22 @@ public sealed class GetAdminVesselListBffQueryHandler
 
         List<VesselListItemBffDto> baseItems;
 
+        // Acquire the service token once and reuse it for all internal calls in this request.
+        string authHeader;
         try
         {
             var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            var authHeader = $"Bearer {serviceToken}";
+            authHeader = $"Bearer {serviceToken}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[VesselListBff] Failed to acquire Keycloak service token: {Message}", ex.Message);
+            response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Keycloak"));
+            return response;
+        }
 
+        try
+        {
             var result = await _vessel.GetAdminVesselList(
                 authHeader,
                 request.UserToken,
@@ -95,8 +106,10 @@ public sealed class GetAdminVesselListBffQueryHandler
 
             var locationCount = baseItems.Count(x => x.LastLocationText != null);
             var opStatusCount = baseItems.Count(x => x.OperationalStatus.HasValue);
+            var ownerCount = baseItems.Count(x => x.OwnerUserId.HasValue);
             _logger.LogDebug("[VesselListBff] location values projected: {Count}", locationCount);
             _logger.LogDebug("[VesselListBff] operational status values projected: {Count}", opStatusCount);
+            _logger.LogDebug("[VesselListBff] items with ownerUserId projected: {Count} / {Total}", ownerCount, baseItems.Count);
 
             response.Vessels = new VesselPageBffDto
             {
@@ -110,14 +123,16 @@ public sealed class GetAdminVesselListBffQueryHandler
                 Items = baseItems
             };
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "[VesselListBff] Vessel module call failed: {Message}", ex.Message);
             response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Vessel"));
             return response;
         }
 
         // Bulk owner enrichment — one Identity call for all unique owner IDs on the page.
-        await TryEnrichOwnerNamesAsync(baseItems, request, response, cancellationToken);
+        // Reuses the same service token acquired above.
+        await TryEnrichOwnerNamesAsync(baseItems, authHeader, request.UserToken, response, cancellationToken);
 
         return response;
     }
@@ -174,7 +189,8 @@ public sealed class GetAdminVesselListBffQueryHandler
 
     private async Task TryEnrichOwnerNamesAsync(
         List<VesselListItemBffDto> items,
-        GetAdminVesselListBffQuery request,
+        string authHeader,
+        string userToken,
         AdminVesselListBffResponse response,
         CancellationToken cancellationToken)
     {
@@ -187,7 +203,7 @@ public sealed class GetAdminVesselListBffQueryHandler
 
         if (ownerUserIds.Length == 0)
         {
-            _logger.LogDebug("[VesselListBff] ownerUserIds collected: 0 — skipping Identity enrichment");
+            _logger.LogWarning("[VesselListBff] ownerUserIds collected: 0 — all vessel items have null OwnerUserId. Check Vessel module projection and cache (5-min TTL). Skipping Identity enrichment.");
             return;
         }
 
@@ -197,20 +213,35 @@ public sealed class GetAdminVesselListBffQueryHandler
 
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            var authHeader = $"Bearer {serviceToken}";
-
             // Primary path: enrich by owner user IDs.
-            var profileResult = await _identity.GetUserProfilesByUserIds(ownerUserIds, authHeader, request.UserToken);
+            var profileResult = await _identity.GetUserProfilesByUserIds(ownerUserIds, authHeader, userToken);
 
-            _logger.LogDebug("[VesselListBff] Identity profile response success: {Success}, profiles returned: {Count}",
+            _logger.LogDebug("[VesselListBff] Identity profile response: IsSuccess={Success}, profileCount={Count}, headerNull={HeaderNull}, resultNull={ResultNull}",
                 profileResult?.Header?.IsSuccess,
-                profileResult?.Body?.Count ?? 0);
+                profileResult?.Body?.Count ?? 0,
+                profileResult?.Header is null,
+                profileResult is null);
 
-            if (profileResult?.Header?.IsSuccess != true)
+            // AizenHttpClientHandler rewrites non-2xx to 200 when body contains "errors"/"Message",
+            // which causes Refit to return a non-AizenApiResponse body → Header becomes null.
+            // Treat Header==null as auth/network failure.
+            if (profileResult?.Header is null)
             {
-                _logger.LogWarning("[VesselListBff] Identity bulk-by-user-ids returned non-success header. IsSuccess={IsSuccess}",
-                    profileResult?.Header?.IsSuccess);
+                _logger.LogWarning("[VesselListBff] Identity bulk-by-user-ids returned null Header — likely 401/403 from Identity API. " +
+                    "Ensure the admin-panel-bff Keycloak service account has 'Admin' realm role OR 'identity.admin' client role on identity-api. " +
+                    "Also verify identity-api audience is present in the service token.");
+                response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Identity"));
+
+                // Attempt profile-ID fallback which uses the same auth — only helps if auth is OK but userId remap is the issue.
+                // Skip fallback here since auth itself is likely failing.
+                return;
+            }
+
+            if (profileResult.Header.IsSuccess != true)
+            {
+                _logger.LogWarning("[VesselListBff] Identity bulk-by-user-ids returned IsSuccess=false. ErrorCode={ErrorCode}, ErrorMessage={ErrorMessage}",
+                    profileResult.Header.ErrorCode,
+                    profileResult.Header.ErrorMessage);
                 response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Identity"));
                 return;
             }
@@ -237,7 +268,7 @@ public sealed class GetAdminVesselListBffQueryHandler
                     stillMissingItems.Count,
                     string.Join(",", fallbackProfileIds));
 
-                var fallbackResult = await _identity.GetUserProfilesByProfileIds(fallbackProfileIds, authHeader, request.UserToken);
+                var fallbackResult = await _identity.GetUserProfilesByProfileIds(fallbackProfileIds, authHeader, userToken);
 
                 _logger.LogDebug("[VesselListBff] Fallback profile-ID response success: {Success}, profiles returned: {Count}",
                     fallbackResult?.Header?.IsSuccess,
@@ -245,7 +276,6 @@ public sealed class GetAdminVesselListBffQueryHandler
 
                 if (fallbackResult?.Header?.IsSuccess == true && fallbackResult.Body?.Count > 0)
                 {
-                    // Apply by profile ID for the remaining items.
                     var fallbackByProfileId = fallbackResult.Body
                         .GroupBy(p => p.Id)
                         .ToDictionary(g => g.Key, g => g.First());
