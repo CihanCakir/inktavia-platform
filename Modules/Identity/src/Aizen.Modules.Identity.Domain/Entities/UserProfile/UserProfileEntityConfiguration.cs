@@ -29,9 +29,46 @@ namespace Aizen.Modules.Identity.Domain.Entities
             builder.Property(x => x.ProfilePhotoUrl)
                    .IsRequired(false);
 
+            builder.Property(x => x.CompanyName)
+                   .HasMaxLength(300)
+                   .IsRequired(false);
+
+            builder.Property(x => x.City)
+                   .HasMaxLength(100)
+                   .IsRequired(false);
+
+            builder.Property(x => x.Country)
+                   .HasMaxLength(100)
+                   .IsRequired(false);
+
+            builder.Property(x => x.RejectionCategory)
+                   .HasMaxLength(100)
+                   .IsRequired(false);
+
+            builder.Property(x => x.InternalNote)
+                   .HasMaxLength(2000)
+                   .IsRequired(false);
+
+            builder.Property(x => x.ReviewedBy)
+                   .HasMaxLength(256)
+                   .IsRequired(false);
+
+            builder.Property(x => x.ReviewedAt)
+                   .IsRequired(false);
+
             builder.HasOne(x => x.User)
                    .WithMany(x => x.Profiles)
                    .HasForeignKey(x => x.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.VerificationDocuments)
+                   .WithOne()
+                   .HasForeignKey(x => x.ProfileId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.RiskSignals)
+                   .WithOne()
+                   .HasForeignKey(x => x.ProfileId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }

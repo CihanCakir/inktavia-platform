@@ -34,7 +34,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity
         if (profile.ApprovalStatus == ApprovalStatus.Rejected)
             throw new AizenBusinessException(((int)AizenErrorCode.ProfileAlreadyRejected).ToString());
 
-        profile.Approve();
+        profile.Approve(request.ReviewedBy);
         _profileRepo.UpdateProfileAsync(profile);
 
         var user = await _userManager.FindByIdAsync(request.UserId.ToString())
@@ -53,7 +53,9 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity
             ApprovedAt: profile.ApprovedAt,
             RejectedAt: profile.RejectedAt,
             RejectReason: profile.RejectReason,
-            Message: "Venue profile approved and set as active."
+            Message: "Venue profile approved and set as active.",
+            ReviewedBy: profile.ReviewedBy,
+            ReviewedAt: profile.ReviewedAt?.ToString("O")
         );
         }
     }

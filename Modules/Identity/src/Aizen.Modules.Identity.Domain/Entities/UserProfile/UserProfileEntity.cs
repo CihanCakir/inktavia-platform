@@ -32,7 +32,20 @@ namespace Aizen.Modules.Identity.Domain.Entities
 
 
         public long? PaymentProfileId { get; set; }
-        
+
+        public string? CompanyName { get; private set; }
+        public string? City { get; private set; }
+        public string? Country { get; private set; }
+        public string? RejectionCategory { get; private set; }
+        public string? InternalNote { get; private set; }
+        public string? ReviewedBy { get; private set; }
+        public DateTime? ReviewedAt { get; private set; }
+
+        public virtual ICollection<VerificationDocumentEntity> VerificationDocuments { get; private set; }
+            = new List<VerificationDocumentEntity>();
+
+        public virtual ICollection<RiskSignalEntity> RiskSignals { get; private set; }
+            = new List<RiskSignalEntity>();
 
         // ------------------------
         // Factory Method (Creation)
@@ -65,7 +78,7 @@ namespace Aizen.Modules.Identity.Domain.Entities
 
 
         // ---- Davranışlar ----
-        public void Approve()
+        public void Approve(string? reviewedBy = null)
         {
             if (ApprovalStatus == ApprovalStatus.Approved)
                 return; // idempotent
@@ -75,12 +88,14 @@ namespace Aizen.Modules.Identity.Domain.Entities
 
             ApprovalStatus = ApprovalStatus.Approved;
             ApprovedAt = DateTime.UtcNow;
+            ReviewedBy = reviewedBy;
+            ReviewedAt = DateTime.UtcNow;
             RejectReason = null;
             RejectedAt = null;
             Touch();
         }
 
-        public void Reject(string reason)
+        public void Reject(string reason, string? reasonCategory = null, string? internalNote = null, string? reviewedBy = null)
         {
             if (ApprovalStatus == ApprovalStatus.Rejected)
                 return; // idempotent
@@ -94,7 +109,29 @@ namespace Aizen.Modules.Identity.Domain.Entities
             ApprovalStatus = ApprovalStatus.Rejected;
             RejectedAt = DateTime.UtcNow;
             RejectReason = reason.Trim();
+            RejectionCategory = reasonCategory;
+            InternalNote = internalNote;
+            ReviewedBy = reviewedBy;
+            ReviewedAt = DateTime.UtcNow;
             Touch();
+        }
+
+        public void AddVerificationDocument(VerificationDocumentEntity document)
+        {
+            VerificationDocuments.Add(document);
+        }
+
+        public void SetCompanyName(string? companyName)
+        {
+            CompanyName = companyName;
+            SetModified();
+        }
+
+        public void SetLocation(string? city, string? country)
+        {
+            City = city;
+            Country = country;
+            SetModified();
         }
 
         private void Touch() => ModifyDate = DateTime.UtcNow;

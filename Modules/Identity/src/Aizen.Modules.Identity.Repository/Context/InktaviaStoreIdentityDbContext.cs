@@ -38,6 +38,9 @@ namespace Aizen.Modules.Identity.Repository.Context
 
         public DbSet<UserValidationEntity> UserValidations { get; set; } = null!;
 
+        public DbSet<VerificationDocumentEntity> VerificationDocuments { get; set; } = null!;
+        public DbSet<RiskSignalEntity> RiskSignals { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -52,6 +55,8 @@ namespace Aizen.Modules.Identity.Repository.Context
 
             modelBuilder.ApplyConfiguration(new UserEmailConfirmEntityConfiguration());
             modelBuilder.ApplyConfiguration(new UserValidationEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new VerificationDocumentEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new RiskSignalEntityConfiguration());
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

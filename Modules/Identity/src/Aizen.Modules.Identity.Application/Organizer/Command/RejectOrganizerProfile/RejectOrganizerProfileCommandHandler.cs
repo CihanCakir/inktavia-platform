@@ -42,7 +42,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
                 throw new AizenBusinessException(((int)AizenErrorCode.ProfileAlreadyRejected).ToString());
 
             // 1) Profil reddet
-            profile.Reject(request.Reason ?? "No reason provided");
+            profile.Reject(request.Reason ?? "No reason provided", request.ReasonCategory, request.InternalNote, request.ReviewedBy);
             _profileRepo.UpdateProfileAsync(profile);
 
             return new VenueOrganizationRegistrationResponse(
@@ -55,7 +55,10 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
                 ApprovedAt: profile.ApprovedAt,
                 RejectedAt: profile.RejectedAt,
                 RejectReason: profile.RejectReason,
-                Message: "Organizer profile rejected."
+                Message: "Organizer profile rejected.",
+                ReviewedBy: profile.ReviewedBy,
+                ReviewedAt: profile.ReviewedAt?.ToString("O"),
+                RejectionCategory: profile.RejectionCategory
             );
         }
     }
