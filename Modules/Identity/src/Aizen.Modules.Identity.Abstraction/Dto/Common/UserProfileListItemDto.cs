@@ -10,5 +10,7 @@ public class UserProfileListItemDto
     public string RoleContext { get; set; } = null!;
     public string ApprovalStatus { get; set; } = null!;
     public string Status { get; set; } = null!;
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
     public DateTime? CreateDate { get; set; }
 }

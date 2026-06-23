@@ -71,7 +71,7 @@ public sealed class QueryController : AizenWebApiController
     public async Task<AizenApiResponse<IPaginate<UserProfileListItemDto>>> GetUserProfilesByFilter([FromQuery] GetUserProfilesByFilterRequest req, CancellationToken ct)
     {
         var result = await _sender.ProcessAsync(
-            new GetUserProfilesByFilterQuery(req.FirstName, req.LastName, req.RoleContext, req.ApprovalStatus, req.PageIndex, req.PageSize), ct);
+            new GetUserProfilesByFilterQuery(req.FirstName, req.LastName, req.RoleContext, req.ApprovalStatus, req.Status, req.Email, req.PageIndex, req.PageSize), ct);
         return SetResponse(result);
     }
 

@@ -12,11 +12,12 @@ public sealed class GetAllVesselsAdminQuery : AizenQuery<GetAllVesselsAdminRespo
     public int[]? AssetTypes { get; }
     public int[]? OwnershipStatuses { get; }
     public int[]? OperationalStatuses { get; }
+    public long? OwnerUserId { get; }
 
     public int PageIndex { get; }
     public int PageSize { get; }
 
-    public GetAllVesselsAdminQuery(int pageIndex = 0, int pageSize = 20, string? searchTerm = null, bool? isArchived = null, int[]? assetTypes = null, int[]? ownershipStatuses = null, int[]? operationalStatuses = null)
+    public GetAllVesselsAdminQuery(int pageIndex = 0, int pageSize = 20, string? searchTerm = null, bool? isArchived = null, int[]? assetTypes = null, int[]? ownershipStatuses = null, int[]? operationalStatuses = null, long? ownerUserId = null)
     {
         PageIndex = pageIndex;
         PageSize = pageSize;
@@ -25,5 +26,6 @@ public sealed class GetAllVesselsAdminQuery : AizenQuery<GetAllVesselsAdminRespo
         AssetTypes = assetTypes;
         OwnershipStatuses = ownershipStatuses;
         OperationalStatuses = operationalStatuses;
+        OwnerUserId = ownerUserId;
     }
 }

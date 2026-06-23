@@ -10,15 +10,19 @@ public sealed class GetUserProfilesByFilterQuery : AizenPagedQuery<UserProfileLi
     public string? LastName { get; }
     public string? RoleContext { get; }
     public string? ApprovalStatus { get; }
+    public string? Status { get; }
+    public string? Email { get; }
     public int PageIndex { get; }
     public int PageSize { get; }
 
-    public GetUserProfilesByFilterQuery(string? firstName, string? lastName, string? roleContext, string? approvalStatus, int pageIndex, int pageSize)
+    public GetUserProfilesByFilterQuery(string? firstName, string? lastName, string? roleContext, string? approvalStatus, string? status, string? email, int pageIndex, int pageSize)
     {
         FirstName = firstName;
         LastName = lastName;
         RoleContext = roleContext;
         ApprovalStatus = approvalStatus;
+        Status = status;
+        Email = email;
         PageIndex = pageIndex;
         PageSize = pageSize;
     }

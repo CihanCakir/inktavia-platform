@@ -32,13 +32,17 @@ public sealed class GetUserProfilesByFilterQueryHandler
                 RoleContext = p.RoleContext.ToString(),
                 ApprovalStatus = p.ApprovalStatus.ToString(),
                 Status = p.Status.ToString(),
+                Email = p.User != null ? p.User.Email : null,
+                PhoneNumber = p.User != null ? p.User.PhoneNumber : null,
                 CreateDate = p.CreateDate
             },
             predicate: p => !p.IsDeleted
                 && (request.FirstName == null || p.FirstName.Contains(request.FirstName))
                 && (request.LastName == null || p.LastName.Contains(request.LastName))
                 && (request.RoleContext == null || p.RoleContext.ToString() == request.RoleContext)
-                && (request.ApprovalStatus == null || p.ApprovalStatus.ToString() == request.ApprovalStatus),
+                && (request.ApprovalStatus == null || p.ApprovalStatus.ToString() == request.ApprovalStatus)
+                && (request.Status == null || p.Status.ToString() == request.Status)
+                && (request.Email == null || (p.User != null && p.User.Email != null && p.User.Email.Contains(request.Email))),
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);

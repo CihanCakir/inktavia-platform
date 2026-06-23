@@ -22,6 +22,8 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         [Refit.Query] string? lastName = null,
         [Refit.Query] string? roleContext = null,
         [Refit.Query] string? approvalStatus = null,
+        [Refit.Query] string? status = null,
+        [Refit.Query] string? email = null,
         [Refit.Query] int pageIndex = 0,
         [Refit.Query] int pageSize = 20);
 

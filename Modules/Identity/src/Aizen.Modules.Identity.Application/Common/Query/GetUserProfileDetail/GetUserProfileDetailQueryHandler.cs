@@ -40,6 +40,9 @@ public sealed class GetUserProfileDetailQueryHandler
                 RejectedAt = p.RejectedAt,
                 RejectReason = p.RejectReason,
                 TaxpayerType = p.TaxpayerType.ToString(),
+                Email = p.User != null ? p.User.Email : null,
+                PhoneNumber = p.User != null ? p.User.PhoneNumber : null,
+                EmailConfirmed = p.User != null && p.User.EmailConfirmed,
                 CreateDate = p.CreateDate,
                 ModifyDate = p.ModifyDate
             })

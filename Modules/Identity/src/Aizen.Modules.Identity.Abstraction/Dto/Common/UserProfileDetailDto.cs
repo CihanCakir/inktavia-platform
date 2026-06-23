@@ -18,6 +18,9 @@ public class UserProfileDetailDto
     public DateTime? RejectedAt { get; set; }
     public string? RejectReason { get; set; }
     public string TaxpayerType { get; set; } = null!;
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+    public bool EmailConfirmed { get; set; }
     public DateTime? CreateDate { get; set; }
     public DateTime? ModifyDate { get; set; }
 }

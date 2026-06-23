@@ -22,7 +22,8 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
         [Refit.Query] bool? isArchived = null,
         [Refit.Query] int[]? assetTypes = null,
         [Refit.Query] int[]? ownershipStatuses = null,
-        [Refit.Query] int[]? operationalStatuses = null);
+        [Refit.Query] int[]? operationalStatuses = null,
+        [Refit.Query] long? ownerUserId = null);
 
     [AizenRemoteCallGet("/api/v1/vessels/{vesselId}")]
     Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(

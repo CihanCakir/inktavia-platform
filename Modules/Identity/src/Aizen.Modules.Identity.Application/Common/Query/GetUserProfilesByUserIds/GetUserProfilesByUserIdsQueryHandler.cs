@@ -33,6 +33,8 @@ public sealed class GetUserProfilesByUserIdsQueryHandler
                 RoleContext = p.RoleContext.ToString(),
                 ApprovalStatus = p.ApprovalStatus.ToString(),
                 Status = p.Status.ToString(),
+                Email = p.User != null ? p.User.Email : null,
+                PhoneNumber = p.User != null ? p.User.PhoneNumber : null,
                 CreateDate = p.CreateDate
             },
             predicate: p => !p.IsDeleted && request.UserIds.Contains(p.UserId));

@@ -3,7 +3,6 @@ using Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;

@@ -94,7 +94,8 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
                 (request.IsArchived == null || v.IsArchived == request.IsArchived) &&
                 (request.SearchTerm == null || v.Name.Contains(request.SearchTerm) || v.VesselCode.Contains(request.SearchTerm)) &&
                 (assetTypes == null || assetTypes.Length == 0 || (v.AssetType != null && assetTypes.Contains((int)v.AssetType))) &&
-                (operationalStatuses == null || operationalStatuses.Length == 0 || (v.OperationalStatus != null && operationalStatuses.Contains((int)v.OperationalStatus))),
+                (operationalStatuses == null || operationalStatuses.Length == 0 || (v.OperationalStatus != null && operationalStatuses.Contains((int)v.OperationalStatus))) &&
+                (request.OwnerUserId == null || v.Owners.Any(o => o.UserId == request.OwnerUserId && o.IsActive)),
             orderBy: q => q.OrderByDescending(v => v.CreateDate),
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,

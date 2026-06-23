@@ -52,15 +52,20 @@ public sealed class GetAdminUserListBffQueryHandler
             // Identity SearchProfiles uses 0-based pageIndex; our API uses 1-based page.
             var pageIndex = Math.Max(0, request.Page - 1);
 
-            // Map identityType → roleContext, status → approvalStatus.
-            // Note: search is mapped to firstName for now; email search requires a dedicated Identity endpoint.
+            // Map BFF status to the correct Identity filter:
+            //   Active/Deactivated → approvalStatus filter
+            //   Suspended          → status=Inactive (ProfileStatus enum)
+            var (approvalStatusFilter, profileStatusFilter) = MapStatusFilters(request.Status);
+
             var result = await _identity.SearchProfiles(
                 authHeader,
                 request.UserToken,
                 firstName: request.Search,
                 lastName: null,
                 roleContext: request.IdentityType ?? MapRoleToRoleContext(request.Role),
-                approvalStatus: MapStatusToApprovalStatus(request.Status),
+                approvalStatus: approvalStatusFilter,
+                status: profileStatusFilter,
+                email: request.Search, // also search by email when search term is provided
                 pageIndex: pageIndex,
                 pageSize: request.PageSize);
 
@@ -79,8 +84,8 @@ public sealed class GetAdminUserListBffQueryHandler
                     Id = p.Id.ToString(),
                     FirstName = p.FirstName,
                     LastName = p.LastName,
-                    Email = null, // TODO: Identity profile list does not expose email; needs a dedicated admin endpoint
-                    Phone = null, // TODO: not tracked in UserProfileListItemDto
+                    Email = p.Email,
+                    Phone = p.PhoneNumber,
                     Role = AdminUserBffHelpers.MapRole(p.RoleContext),
                     Status = AdminUserBffHelpers.MapStatus(p.ApprovalStatus, p.Status),
                     IdentityType = p.RoleContext,
@@ -100,12 +105,17 @@ public sealed class GetAdminUserListBffQueryHandler
         return response;
     }
 
-    private static string? MapStatusToApprovalStatus(string? status) => status switch
+    /// <summary>
+    /// Maps the BFF status filter to the appropriate Identity module filter pair.
+    /// Returns (approvalStatus, profileStatus) — at most one will be non-null.
+    /// </summary>
+    private static (string? approvalStatus, string? profileStatus) MapStatusFilters(string? status) => status switch
     {
-        "Pending" => "Pending",
-        "Active" => "Approved",
-        "Deactivated" => "Rejected",
-        _ => null
+        "Pending" => ("Pending", null),
+        "Active" => ("Approved", null),
+        "Deactivated" => ("Rejected", null),
+        "Suspended" => (null, "Inactive"),
+        _ => (null, null)
     };
 
     private static string? MapRoleToRoleContext(string? role) => role switch

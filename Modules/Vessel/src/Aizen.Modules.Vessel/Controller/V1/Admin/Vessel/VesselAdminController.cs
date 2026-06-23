@@ -36,10 +36,11 @@ public sealed class VesselAdminController : AizenWebApiController
         [FromQuery] int[]? assetTypes = null,
         [FromQuery] int[]? ownershipStatuses = null,
         [FromQuery] int[]? operationalStatuses = null,
+        [FromQuery] long? ownerUserId = null,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<GetAllVesselsAdminResponse>(
-            new GetAllVesselsAdminQuery(pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses), ct);
+            new GetAllVesselsAdminQuery(pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses, ownerUserId), ct);
         return SetResponse(result);
     }
 

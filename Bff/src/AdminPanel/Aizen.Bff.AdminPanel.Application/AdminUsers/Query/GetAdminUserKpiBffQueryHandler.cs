@@ -45,17 +45,17 @@ public sealed class GetAdminUserKpiBffQueryHandler
 
         try
         {
-            // Fetch total count and pending count in parallel.
-            // pageSize=1 minimises data transfer while still returning TotalCount.
+            // Three parallel scalar queries — pageSize=1 minimises data transfer while still returning TotalCount.
             var totalTask = _identity.SearchProfiles(authHeader, request.UserToken, pageSize: 1);
             var pendingTask = _identity.SearchProfiles(authHeader, request.UserToken, approvalStatus: "Pending", pageSize: 1);
+            var suspendedTask = _identity.SearchProfiles(authHeader, request.UserToken, status: "Inactive", pageSize: 1);
 
-            await Task.WhenAll(totalTask, pendingTask);
+            await Task.WhenAll(totalTask, pendingTask, suspendedTask);
 
             response.TotalUsers = totalTask.Result?.Body?.TotalCount ?? 0;
             response.PendingVerification = pendingTask.Result?.Body?.TotalCount ?? 0;
-            // ActiveToday: TODO – requires LastLoginAt tracking (not in local DB).
-            // Suspended: TODO – Identity SearchProfiles does not expose a Status (non-approval) filter yet.
+            response.Suspended = suspendedTask.Result?.Body?.TotalCount ?? 0;
+            // ActiveToday: TODO – requires LastLoginAt tracking from Keycloak event sync (not stored locally).
         }
         catch (Exception ex)
         {
