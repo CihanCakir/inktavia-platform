@@ -90,10 +90,19 @@ public sealed class UsersController : AizenWebApiController
     [HttpGet("admin/users/{profileId:long}/activity")]
     [ProducesResponseType(typeof(AdminUserActivityBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserActivityBffResponse>> GetUserActivity(
-        long profileId, CancellationToken ct = default)
+        long profileId,
+        [FromQuery] string? category = null,
+        [FromQuery] string? dateFrom = null,
+        [FromQuery] string? dateTo = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminUserActivityBffQuery(profileId, userToken), ct);
+        DateOnly? from = DateOnly.TryParse(dateFrom, out var df) ? df : null;
+        DateOnly? to = DateOnly.TryParse(dateTo, out var dt) ? dt : null;
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminUserActivityBffQuery(profileId, userToken, category, from, to, page, pageSize), ct);
         return SetResponse(result);
     }
 }

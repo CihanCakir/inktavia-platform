@@ -1,9 +1,11 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.InktaviaStore.Application.Identity;
+using Aizen.Modules.InktaviaStore.Application.Identity.Query.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -76,6 +78,20 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
                 new ApproveVenueProfileCommand(userId, profileId),
                 ct);
 
+            return SetResponse(result);
+        }
+
+        // GET /api/v1/identity/admin/users/{userId}/login-history
+        [HttpGet("admin/users/{userId}/login-history")]
+        [ProducesResponseType(typeof(List<UserLoginHistoryItemDto>), StatusCodes.Status200OK)]
+        public async Task<AizenApiResponse<List<UserLoginHistoryItemDto>>> GetUserLoginHistory(
+            [FromRoute] long userId,
+            [FromQuery] int pageSize = 50,
+            CancellationToken ct = default)
+        {
+            var result = await _sender.ProcessAsync(
+                new GetUserLoginHistoryQuery(userId, pageSize),
+                ct);
             return SetResponse(result);
         }
 

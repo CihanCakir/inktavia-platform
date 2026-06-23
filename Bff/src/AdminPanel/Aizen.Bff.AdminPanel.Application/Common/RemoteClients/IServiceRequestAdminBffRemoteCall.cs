@@ -19,6 +19,7 @@ public interface IServiceRequestAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] string? status = null,
         [Refit.Query] long? vesselId = null,
+        [Refit.Query] long? ownerUserId = null,
         [Refit.Query] int pageIndex = 0,
         [Refit.Query] int pageSize = 20);
 

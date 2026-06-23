@@ -82,6 +82,18 @@ namespace Aizen.Modules.Identity.Repository.Identity
         }
 
         /// <summary>
+        /// Belirtilen günde (UTC) en az bir kez giriş yapmış benzersiz kullanıcı sayısını döner.
+        /// </summary>
+        public async Task<int> GetActiveTodayUserCountAsync(DateTime utcDate)
+        {
+            return await _context.UserDevices
+                .Where(d => d.IsActive && d.LastLoginDate.HasValue && d.LastLoginDate.Value.Date == utcDate.Date)
+                .Select(d => d.UserId)
+                .Distinct()
+                .CountAsync();
+        }
+
+        /// <summary>
         /// Kullanıcının tüm cihazlarını pasif hale getirir.
         /// </summary>
         public async Task RevokeAllDevicesAsync(long userId)

@@ -167,10 +167,32 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         long profileId,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/identity/admin/users/active-today-count")]
+    Task<AizenApiResponse<UserActiveTodayCountDto>> GetActiveTodayUserCount(
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/identity/admin/users/{userId}/login-history")]
+    Task<AizenApiResponse<List<UserLoginHistoryItemDto>>> GetUserLoginHistory(
+        long userId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        [Refit.Query] int pageSize = 50);
 }
 
 // Lightweight result wrappers for Identity HTTP responses
-public sealed class PagedProfileListResult { public List<UserProfileListItemDto>? Items { get; set; } public int TotalCount { get; set; } }
+public sealed class PagedProfileListResult
+{
+    public List<UserProfileListItemDto>? Items { get; set; }
+    public long Count { get; set; }
+    public int From { get; set; }
+    public int Index { get; set; }
+    public int Size { get; set; }
+    public int Pages { get; set; }
+    public bool HasPrevious { get; set; }
+    public bool HasNext { get; set; }
+}
 public sealed class ProfileDetailResult { public UserProfileDetailDto? Profile { get; set; } }
 public sealed class ProfileWithRolesResult { public UserProfileWithRolesDto? Profile { get; set; } }
 public sealed class PagedOrganizerProfileResult { public List<OrganizerProfileListItemDto>? Items { get; set; } public int TotalCount { get; set; } }

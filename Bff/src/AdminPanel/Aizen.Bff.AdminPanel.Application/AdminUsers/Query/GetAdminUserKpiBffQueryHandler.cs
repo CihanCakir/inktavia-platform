@@ -45,17 +45,18 @@ public sealed class GetAdminUserKpiBffQueryHandler
 
         try
         {
-            // Three parallel scalar queries — pageSize=1 minimises data transfer while still returning TotalCount.
+            // Four parallel scalar queries — pageSize=1 minimises data transfer while still returning TotalCount.
             var totalTask = _identity.SearchProfiles(authHeader, request.UserToken, pageSize: 1);
             var pendingTask = _identity.SearchProfiles(authHeader, request.UserToken, approvalStatus: "Pending", pageSize: 1);
             var suspendedTask = _identity.SearchProfiles(authHeader, request.UserToken, status: "Inactive", pageSize: 1);
+            var activeTodayTask = _identity.GetActiveTodayUserCount(authHeader, request.UserToken);
 
-            await Task.WhenAll(totalTask, pendingTask, suspendedTask);
+            await Task.WhenAll(totalTask, pendingTask, suspendedTask, activeTodayTask);
 
-            response.TotalUsers = totalTask.Result?.Body?.TotalCount ?? 0;
-            response.PendingVerification = pendingTask.Result?.Body?.TotalCount ?? 0;
-            response.Suspended = suspendedTask.Result?.Body?.TotalCount ?? 0;
-            // ActiveToday: TODO – requires LastLoginAt tracking from Keycloak event sync (not stored locally).
+            response.TotalUsers = (int)(totalTask.Result?.Body?.Count ?? 0);
+            response.PendingVerification = (int)(pendingTask.Result?.Body?.Count ?? 0);
+            response.Suspended = (int)(suspendedTask.Result?.Body?.Count ?? 0);
+            response.ActiveToday = activeTodayTask.Result?.Body?.Count ?? 0;
         }
         catch (Exception ex)
         {

@@ -7,11 +7,21 @@ namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 [DocumentationInfo("Admin user list BFF response", "Paged user list with UI-ready fields and warnings.")]
 public sealed class AdminUserListBffResponse
 {
-    public List<AdminUserListItemBffDto> Items { get; set; } = new();
-    public int Total { get; set; }
-    public int Page { get; set; }
-    public int PageSize { get; set; }
+    public UserPageBffDto? Users { get; set; }
     public List<AdminBffWarning> Warnings { get; set; } = new();
+}
+
+[DocumentationInfo("User page BFF DTO", "Pagination wrapper for user list BFF response.")]
+public sealed class UserPageBffDto
+{
+    public int From { get; set; }
+    public int Index { get; set; }
+    public int Size { get; set; }
+    public long Count { get; set; }
+    public int Pages { get; set; }
+    public bool HasPrevious { get; set; }
+    public bool HasNext { get; set; }
+    public List<AdminUserListItemBffDto> Items { get; set; } = new();
 }
 
 [DocumentationInfo("Admin user list item BFF DTO", "Single user row for the user management list.")]
@@ -37,9 +47,9 @@ public sealed class AdminUserListItemBffDto
 public sealed class AdminUserKpiBffResponse
 {
     public int TotalUsers { get; set; }
-    public int ActiveToday { get; set; }           // 0 – TODO: requires LastLoginAt tracking
+    public int ActiveToday { get; set; }
     public int PendingVerification { get; set; }
-    public int Suspended { get; set; }             // 0 – TODO: requires Status filter in Identity
+    public int Suspended { get; set; }
     public List<AdminBffWarning> Warnings { get; set; } = new();
 }
 
@@ -139,18 +149,33 @@ public sealed class AdminUserVesselRowBffDto
 
 // ── Activity Tab ──────────────────────────────────────────────────────────────
 
-[DocumentationInfo("Admin user activity BFF response", "Activity timeline events for a specific user.")]
+[DocumentationInfo("Admin user activity BFF response", "Paginated, filterable activity timeline events for a specific user.")]
 public sealed class AdminUserActivityBffResponse
 {
     public List<AdminUserActivityEventBffDto> Items { get; set; } = new();
+    public int Total { get; set; }
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
     public List<AdminBffWarning> Warnings { get; set; } = new();
 }
 
 public sealed class AdminUserActivityEventBffDto
 {
     public string Id { get; set; } = null!;
+    public string Type { get; set; } = null!;          // snake_case event type
+    public string Category { get; set; } = null!;      // vessel | service | identity | system
     public string Icon { get; set; } = null!;
     public string Label { get; set; } = null!;
-    public string Timestamp { get; set; } = null!;
+    public string? Description { get; set; }
+    public string Timestamp { get; set; } = null!;     // ISO 8601 UTC
     public string RelativeTime { get; set; } = null!;
+    public AdminUserActivityMetaBffDto? Meta { get; set; }
+}
+
+public sealed class AdminUserActivityMetaBffDto
+{
+    public string? EntityId { get; set; }
+    public string? EntityName { get; set; }
+    public string? PreviousValue { get; set; }
+    public string? NewValue { get; set; }
 }

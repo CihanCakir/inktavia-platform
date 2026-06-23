@@ -1,8 +1,10 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Model;
+using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
+using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Aizen.Modules.Vessel.Application.Command.Vessel;
 using Aizen.Modules.Vessel.Application.Query.Vessel;
@@ -41,6 +43,29 @@ public sealed class VesselAdminController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetAllVesselsAdminResponse>(
             new GetAllVesselsAdminQuery(pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses, ownerUserId), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("counts-by-owner")]
+    [ProducesResponseType(typeof(List<VesselCountByOwnerDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<VesselCountByOwnerDto>?>> GetCountsByOwner(
+        [FromQuery] long[] userIds,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<List<VesselCountByOwnerDto>>(
+            new GetVesselCountsByOwnerUserIdsQuery(userIds ?? Array.Empty<long>()), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("status-history/by-owner")]
+    [ProducesResponseType(typeof(GetVesselStatusHistoryByOwnerResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetVesselStatusHistoryByOwnerResponse?>> GetStatusHistoryByOwner(
+        [FromQuery] long ownerUserId,
+        [FromQuery] int pageSize = 200,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetVesselStatusHistoryByOwnerResponse>(
+            new GetVesselStatusHistoryByOwnerQuery(ownerUserId, pageSize), ct);
         return SetResponse(result);
     }
 

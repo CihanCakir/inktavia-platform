@@ -85,6 +85,15 @@ public sealed class QueryController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("admin/users/active-today-count")]
+    [Authorize(Roles = RoleNames.Admin + "," + RoleNames.IdentityAdmin)]
+    [ProducesResponseType(typeof(UserActiveTodayCountDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UserActiveTodayCountDto>> GetActiveTodayUserCount(CancellationToken ct)
+    {
+        var result = await _sender.ProcessAsync(new GetActiveTodayUserCountQuery(), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("admin/users/profiles/bulk")]
     [Authorize(Roles = RoleNames.Admin + "," + RoleNames.IdentityAdmin)]
     [ProducesResponseType(typeof(List<UserProfileListItemDto>), StatusCodes.Status200OK)]

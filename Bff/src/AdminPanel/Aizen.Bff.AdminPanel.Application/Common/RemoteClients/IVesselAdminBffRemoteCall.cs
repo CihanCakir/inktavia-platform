@@ -1,11 +1,14 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Refit;
+using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
 using Aizen.Modules.Vessel.Abstraction.Response.Media;
 using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
+using Aizen.Modules.Vessel.Abstraction.Dto.Status;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -98,6 +101,19 @@ public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] int pageIndex = 0,
         [Refit.Query] int pageSize = 20);
+
+    [AizenRemoteCallGet("/api/v1/admin/vessels/counts-by-owner")]
+    Task<AizenApiResponse<List<VesselCountByOwnerDto>>> GetVesselCountsByOwnerUserIds(
+        [Refit.Query(CollectionFormat.Multi)] long[] userIds,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/admin/vessels/status-history/by-owner")]
+    Task<AizenApiResponse<GetVesselStatusHistoryByOwnerResponse>> GetVesselStatusHistoryByOwner(
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        [Refit.Query] long ownerUserId,
+        [Refit.Query] int pageSize = 200);
 
     [AizenRemoteCallPost("/api/v1/admin/vessels")]
     Task<AizenApiResponse<CreateVesselResponse>> CreateAdminVessel(

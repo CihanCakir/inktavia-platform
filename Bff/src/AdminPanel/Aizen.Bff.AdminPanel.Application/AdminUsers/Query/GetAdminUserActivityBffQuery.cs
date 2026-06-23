@@ -3,15 +3,32 @@ using Aizen.Core.CQRS.Message;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 
-[DocumentationInfo("Get admin user activity BFF query", "Returns the activity timeline for a specific user.")]
+[DocumentationInfo("Get admin user activity BFF query", "Returns the paginated, filterable activity timeline for a specific user.")]
 public sealed class GetAdminUserActivityBffQuery : AizenQuery<AdminUserActivityBffResponse>
 {
     public long ProfileId { get; }
     public string UserToken { get; }
+    public string? Category { get; }   // vessel | service | identity | system | null = all
+    public DateOnly? DateFrom { get; }
+    public DateOnly? DateTo { get; }
+    public int Page { get; }
+    public int PageSize { get; }
 
-    public GetAdminUserActivityBffQuery(long profileId, string userToken)
+    public GetAdminUserActivityBffQuery(
+        long profileId,
+        string userToken,
+        string? category = null,
+        DateOnly? dateFrom = null,
+        DateOnly? dateTo = null,
+        int page = 1,
+        int pageSize = 20)
     {
         ProfileId = profileId;
         UserToken = userToken;
+        Category = category?.ToLowerInvariant();
+        DateFrom = dateFrom;
+        DateTo = dateTo;
+        Page = Math.Max(1, page);
+        PageSize = Math.Clamp(pageSize, 1, 100);
     }
 }

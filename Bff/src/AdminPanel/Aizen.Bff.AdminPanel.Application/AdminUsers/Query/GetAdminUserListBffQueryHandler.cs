@@ -7,20 +7,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 
-[DocumentationInfo("Get admin user list BFF query handler", "Fetches paged user profile list from Identity and maps to UI-ready response.")]
+[DocumentationInfo("Get admin user list BFF query handler", "Fetches paged user profile list from Identity, then enriches each row with vessel count via a single bulk Vessel call.")]
 public sealed class GetAdminUserListBffQueryHandler
     : AizenQueryHandler<GetAdminUserListBffQuery, AdminUserListBffResponse>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IVesselAdminBffRemoteCall _vessel;
     private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetAdminUserListBffQueryHandler> _logger;
 
     public GetAdminUserListBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
+        IVesselAdminBffRemoteCall vessel,
         IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetAdminUserListBffQueryHandler> logger)
     {
         _identity = identity;
+        _vessel = vessel;
         _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
@@ -28,11 +31,7 @@ public sealed class GetAdminUserListBffQueryHandler
     public override async Task<AdminUserListBffResponse?> Handle(
         GetAdminUserListBffQuery request, CancellationToken cancellationToken)
     {
-        var response = new AdminUserListBffResponse
-        {
-            Page = request.Page,
-            PageSize = request.PageSize
-        };
+        var response = new AdminUserListBffResponse();
 
         string authHeader;
         try
@@ -52,9 +51,6 @@ public sealed class GetAdminUserListBffQueryHandler
             // Identity SearchProfiles uses 0-based pageIndex; our API uses 1-based page.
             var pageIndex = Math.Max(0, request.Page - 1);
 
-            // Map BFF status to the correct Identity filter:
-            //   Active/Deactivated → approvalStatus filter
-            //   Suspended          → status=Inactive (ProfileStatus enum)
             var (approvalStatusFilter, profileStatusFilter) = MapStatusFilters(request.Status);
 
             var result = await _identity.SearchProfiles(
@@ -65,7 +61,7 @@ public sealed class GetAdminUserListBffQueryHandler
                 roleContext: request.IdentityType ?? MapRoleToRoleContext(request.Role),
                 approvalStatus: approvalStatusFilter,
                 status: profileStatusFilter,
-                email: request.Search, // also search by email when search term is provided
+                email: request.Search,
                 pageIndex: pageIndex,
                 pageSize: request.PageSize);
 
@@ -76,25 +72,39 @@ public sealed class GetAdminUserListBffQueryHandler
                 return response;
             }
 
-            var body = result.Body;
-            response.Total = body?.TotalCount ?? 0;
-            response.Items = (body?.Items ?? new())
-                .Select(p => new AdminUserListItemBffDto
-                {
-                    Id = p.Id.ToString(),
-                    FirstName = p.FirstName,
-                    LastName = p.LastName,
-                    Email = p.Email,
-                    Phone = p.PhoneNumber,
-                    Role = AdminUserBffHelpers.MapRole(p.RoleContext),
-                    Status = AdminUserBffHelpers.MapStatus(p.ApprovalStatus, p.Status),
-                    IdentityType = p.RoleContext,
-                    VesselCount = 0, // TODO: needs batch vessel-count-by-userId endpoint
-                    LastLoginAt = null, // TODO: not tracked locally; requires Keycloak event sync
-                    CreatedAt = p.CreateDate?.ToString("o") ?? string.Empty,
-                    AvatarInitials = AdminUserBffHelpers.ComputeAvatarInitials(p.FirstName, p.LastName)
-                })
-                .ToList();
+            var page = result.Body;
+            var profiles = page?.Items ?? new();
+
+            // Bulk vessel count — single SQL query for all users on this page.
+            var vesselCounts = await FetchVesselCountsAsync(profiles.Select(p => p.UserId).ToArray(), authHeader, request.UserToken, response, cancellationToken);
+
+            response.Users = new UserPageBffDto
+            {
+                From = page?.From ?? 0,
+                Index = page?.Index ?? 0,
+                Size = page?.Size ?? request.PageSize,
+                Count = page?.Count ?? 0,
+                Pages = page?.Pages ?? 0,
+                HasPrevious = page?.HasPrevious ?? false,
+                HasNext = page?.HasNext ?? false,
+                Items = profiles
+                    .Select(p => new AdminUserListItemBffDto
+                    {
+                        Id = p.Id.ToString(),
+                        FirstName = p.FirstName,
+                        LastName = p.LastName,
+                        Email = p.Email,
+                        Phone = p.PhoneNumber,
+                        Role = AdminUserBffHelpers.MapRole(p.RoleContext),
+                        Status = AdminUserBffHelpers.MapStatus(p.ApprovalStatus, p.Status),
+                        IdentityType = p.RoleContext,
+                        VesselCount = vesselCounts.GetValueOrDefault(p.UserId, 0),
+                        LastLoginAt = p.LastLoginAt?.ToString("o"),
+                        CreatedAt = p.CreateDate?.ToString("o") ?? string.Empty,
+                        AvatarInitials = AdminUserBffHelpers.ComputeAvatarInitials(p.FirstName, p.LastName)
+                    })
+                    .ToList()
+            };
         }
         catch (Exception ex)
         {
@@ -105,10 +115,37 @@ public sealed class GetAdminUserListBffQueryHandler
         return response;
     }
 
-    /// <summary>
-    /// Maps the BFF status filter to the appropriate Identity module filter pair.
-    /// Returns (approvalStatus, profileStatus) — at most one will be non-null.
-    /// </summary>
+    private async Task<Dictionary<long, int>> FetchVesselCountsAsync(
+        long[] userIds,
+        string authHeader,
+        string userToken,
+        AdminUserListBffResponse response,
+        CancellationToken cancellationToken)
+    {
+        if (userIds.Length == 0)
+            return new Dictionary<long, int>();
+
+        try
+        {
+            var vesselResult = await _vessel.GetVesselCountsByOwnerUserIds(userIds, authHeader, userToken);
+
+            if (vesselResult?.Header?.IsSuccess != true || vesselResult.Body == null)
+            {
+                _logger.LogWarning("[UserListBff] Vessel counts-by-owner returned non-success.");
+                response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Vessel"));
+                return new Dictionary<long, int>();
+            }
+
+            return vesselResult.Body.ToDictionary(x => x.UserId, x => x.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[UserListBff] Vessel count enrichment failed: {Message}", ex.Message);
+            response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Vessel"));
+            return new Dictionary<long, int>();
+        }
+    }
+
     private static (string? approvalStatus, string? profileStatus) MapStatusFilters(string? status) => status switch
     {
         "Pending" => ("Pending", null),

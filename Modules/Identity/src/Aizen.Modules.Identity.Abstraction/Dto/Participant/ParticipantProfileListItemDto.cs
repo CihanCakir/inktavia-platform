@@ -10,4 +10,5 @@ public class ParticipantProfileListItemDto
     public string ApprovalStatus { get; set; } = null!;
     public string Status { get; set; } = null!;
     public DateTime? CreateDate { get; set; }
+    public DateTime? LastLoginAt { get; set; }
 }
