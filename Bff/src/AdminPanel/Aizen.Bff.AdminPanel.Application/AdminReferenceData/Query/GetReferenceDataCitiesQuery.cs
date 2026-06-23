@@ -5,12 +5,12 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 
 public sealed class GetReferenceDataCitiesQuery : AizenQuery<CityListResult>
 {
-    public long? CountryId { get; }
+    public string CountryCode { get; }
     public string UserToken { get; }
 
-    public GetReferenceDataCitiesQuery(long? countryId, string userToken)
+    public GetReferenceDataCitiesQuery(string countryCode, string userToken)
     {
-        CountryId = countryId;
+        CountryCode = countryCode;
         UserToken = userToken;
     }
 }

@@ -25,6 +25,6 @@ public sealed class GetReferenceDataMeasurementUnitsQueryHandler
 
         var response = await _referenceData.GetMeasurementUnits(
             authHeader, request.UserToken, request.Type);
-        return response.Body ?? new MeasurementUnitListResult();
+        return new MeasurementUnitListResult { Items = response.Body?.ToList() };
     }
 }

@@ -25,6 +25,6 @@ public sealed class GetReferenceDataLookupItemsByGroupCodeQueryHandler
 
         var response = await _referenceData.GetLookupItemsByGroupCode(
             request.GroupCode, authHeader, request.UserToken);
-        return response.Body ?? new LookupItemListResult();
+        return new LookupItemListResult { Items = response.Body?.ToList() };
     }
 }

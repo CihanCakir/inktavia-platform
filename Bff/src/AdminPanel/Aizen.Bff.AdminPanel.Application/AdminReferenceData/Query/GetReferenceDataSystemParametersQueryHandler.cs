@@ -24,6 +24,6 @@ public sealed class GetReferenceDataSystemParametersQueryHandler
         var authHeader = $"Bearer {serviceToken}";
 
         var response = await _referenceData.GetSystemParameters(authHeader, request.UserToken);
-        return response.Body ?? new SystemParameterListResult();
+        return new SystemParameterListResult { Items = response.Body?.ToList() };
     }
 }

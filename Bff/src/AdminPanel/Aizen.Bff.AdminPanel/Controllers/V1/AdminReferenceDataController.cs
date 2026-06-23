@@ -77,14 +77,14 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/locations/cities")]
+    [HttpGet("reference-data/locations/{countryCode}/cities")]
     [ProducesResponseType(typeof(CityListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CityListResult>> GetCities(
-        [FromQuery] long? countryId, CancellationToken ct)
+        [FromRoute] string countryCode, CancellationToken ct)
     {
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetReferenceDataCitiesQuery(countryId, userToken), ct);
+            new GetReferenceDataCitiesQuery(countryCode, userToken), ct);
         return SetResponse(result);
     }
 

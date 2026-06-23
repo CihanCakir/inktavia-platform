@@ -136,7 +136,7 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
         try
         {
             var result = await _referenceData.GetCountries(authHeader, userToken);
-            var countries = result?.Body?.Items;
+            var countries = result?.Body;
 
             if (countries != null && countries.Count > 0)
             {

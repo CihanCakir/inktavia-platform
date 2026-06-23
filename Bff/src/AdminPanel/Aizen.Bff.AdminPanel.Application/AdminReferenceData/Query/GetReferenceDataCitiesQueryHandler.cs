@@ -24,7 +24,7 @@ public sealed class GetReferenceDataCitiesQueryHandler
         var authHeader = $"Bearer {serviceToken}";
 
         var response = await _referenceData.GetCities(
-            authHeader, request.UserToken, request.CountryId);
-        return response.Body ?? new CityListResult();
+            request.CountryCode, authHeader, request.UserToken);
+        return new CityListResult { Items = response.Body?.ToList() };
     }
 }

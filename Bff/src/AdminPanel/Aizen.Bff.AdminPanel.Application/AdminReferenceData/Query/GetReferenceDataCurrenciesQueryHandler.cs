@@ -24,6 +24,6 @@ public sealed class GetReferenceDataCurrenciesQueryHandler
         var authHeader = $"Bearer {serviceToken}";
 
         var response = await _referenceData.GetCurrencies(authHeader, request.UserToken);
-        return response.Body ?? new CurrencyListResult();
+        return new CurrencyListResult { Items = response.Body?.ToList() };
     }
 }

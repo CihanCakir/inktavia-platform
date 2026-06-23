@@ -14,18 +14,18 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("ReferenceData admin BFF remote call", "Defines synchronous BFF-to-ReferenceData calls for lookup, currency, location and measurement data.")]
 public interface IReferenceDataAdminBffRemoteCall : IAizenRemoteCall
 {
-    [AizenRemoteCallGet("/api/v1/lookup-groups")]
-    Task<AizenApiResponse<LookupGroupListResult>> GetLookupGroups(
+    [AizenRemoteCallGet("/api/v1/reference-data/lookup-groups")]
+    Task<AizenApiResponse<IReadOnlyList<LookupGroupDto>>> GetLookupGroups(
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
-    [AizenRemoteCallGet("/api/v1/lookup-groups/tree")]
-    Task<AizenApiResponse<LookupGroupTreeResult>> GetLookupGroupTree(
+    [AizenRemoteCallGet("/api/v1/reference-data/lookup-groups/tree")]
+    Task<AizenApiResponse<IReadOnlyList<LookupGroupTreeDto>>> GetLookupGroupTree(
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
-    [AizenRemoteCallGet("/api/v1/lookup-groups/{groupCode}/items")]
-    Task<AizenApiResponse<LookupItemListResult>> GetLookupItemsByGroupCode(
+    [AizenRemoteCallGet("/api/v1/reference-data/lookup-groups/lookup-items/{groupCode}")]
+    Task<AizenApiResponse<IReadOnlyList<LookupItemDto>>> GetLookupItemsByGroupCode(
         string groupCode,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
@@ -42,36 +42,36 @@ public interface IReferenceDataAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
-    [AizenRemoteCallGet("/api/v1/currencies")]
-    Task<AizenApiResponse<CurrencyListResult>> GetCurrencies(
+    [AizenRemoteCallGet("/api/v1/reference-data/currencies")]
+    Task<AizenApiResponse<IReadOnlyList<CurrencyDto>>> GetCurrencies(
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
-    [AizenRemoteCallGet("/api/v1/currencies/{currencyId}")]
-    Task<AizenApiResponse<CurrencyDetailResult>> GetCurrencyById(
+    [AizenRemoteCallGet("/api/v1/reference-data/currencies/{currencyId}")]
+    Task<AizenApiResponse<CurrencyDto?>> GetCurrencyById(
         long currencyId,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
-    [AizenRemoteCallGet("/api/v1/locations/countries")]
-    Task<AizenApiResponse<CountryListResult>> GetCountries(
+    [AizenRemoteCallGet("/api/v1/reference-data/locations/countries")]
+    Task<AizenApiResponse<IReadOnlyList<CountryDto>>> GetCountries(
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
-    [AizenRemoteCallGet("/api/v1/locations/cities")]
-    Task<AizenApiResponse<CityListResult>> GetCities(
+    [AizenRemoteCallGet("/api/v1/reference-data/locations/{countryCode}/cities")]
+    Task<AizenApiResponse<IReadOnlyList<CityDto>>> GetCities(
+        string countryCode,
         [AizenRemoteCallHeader("Authorization")] string authorization,
-        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
-        [Refit.Query] long? countryId = null);
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
-    [AizenRemoteCallGet("/api/v1/measurement-units")]
-    Task<AizenApiResponse<MeasurementUnitListResult>> GetMeasurementUnits(
+    [AizenRemoteCallGet("/api/v1/reference-data/measurement-units")]
+    Task<AizenApiResponse<IReadOnlyList<MeasurementUnitDto>>> GetMeasurementUnits(
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] string? type = null);
 
-    [AizenRemoteCallGet("/api/v1/system-parameters")]
-    Task<AizenApiResponse<SystemParameterListResult>> GetSystemParameters(
+    [AizenRemoteCallGet("/api/v1/reference-data/system-parameters")]
+    Task<AizenApiResponse<IReadOnlyList<SystemParameterDto>>> GetSystemParameters(
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }

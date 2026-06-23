@@ -24,6 +24,6 @@ public sealed class GetReferenceDataLookupGroupTreeQueryHandler
         var authHeader = $"Bearer {serviceToken}";
 
         var response = await _referenceData.GetLookupGroupTree(authHeader, request.UserToken);
-        return response.Body ?? new LookupGroupTreeResult();
+        return new LookupGroupTreeResult { Items = response.Body?.ToList() };
     }
 }

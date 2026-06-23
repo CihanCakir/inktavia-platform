@@ -24,6 +24,6 @@ public sealed class GetReferenceDataCountriesQueryHandler
         var authHeader = $"Bearer {serviceToken}";
 
         var response = await _referenceData.GetCountries(authHeader, request.UserToken);
-        return response.Body ?? new CountryListResult();
+        return new CountryListResult { Items = response.Body?.ToList() };
     }
 }
