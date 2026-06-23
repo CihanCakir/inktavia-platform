@@ -7,6 +7,7 @@ using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
+using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -149,13 +150,13 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/identity/admin/users/profiles/bulk")]
     Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByUserIds(
-        [Refit.Query] long[] userIds,
+        [Refit.Query(CollectionFormat.Multi)] long[] userIds,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
     [AizenRemoteCallGet("/api/v1/identity/admin/users/profiles/bulk-by-profile-ids")]
     Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByProfileIds(
-        [Refit.Query] long[] profileIds,
+        [Refit.Query(CollectionFormat.Multi)] long[] profileIds,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }
