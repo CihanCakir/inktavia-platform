@@ -159,6 +159,12 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         [Refit.Query(CollectionFormat.Multi)] long[] profileIds,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/identity/profiles/{profileId}")]
+    Task<AizenApiResponse<UserProfileDetailDto>> GetAdminUserProfileDetail(
+        long profileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }
 
 // Lightweight result wrappers for Identity HTTP responses
