@@ -179,6 +179,78 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         [Refit.Query] int pageSize = 50);
+
+    // ── Admin Profile Approval Queue ──────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/identity/organizers/profiles")]
+    Task<AizenApiResponse<OrganizerProfilePagedAdminResult>> GetAdminOrganizerProfilesByStatus(
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        [Refit.Query] string? approvalStatus = null,
+        [Refit.Query] int pageIndex = 0,
+        [Refit.Query] int pageSize = 100);
+
+    [AizenRemoteCallGet("/api/v1/identity/organizers/profiles/{profileId}")]
+    Task<AizenApiResponse<OrganizerProfileDetailDto>> GetAdminOrganizerProfileOnly(
+        long profileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/identity/organizers/profiles/{profileId}/with-user")]
+    Task<AizenApiResponse<OrganizerProfileWithUserDetailDto>> GetAdminOrganizerProfileWithUser(
+        long profileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/identity/venues/profiles")]
+    Task<AizenApiResponse<VenueProfilePagedAdminResult>> GetAdminVenueProfilesByStatus(
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        [Refit.Query] string? approvalStatus = null,
+        [Refit.Query] int pageIndex = 0,
+        [Refit.Query] int pageSize = 100);
+
+    [AizenRemoteCallGet("/api/v1/identity/venues/profiles/{profileId}")]
+    Task<AizenApiResponse<VenueProfileDetailDto>> GetAdminVenueProfileOnly(
+        long profileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/identity/venues/profiles/{profileId}/with-user")]
+    Task<AizenApiResponse<VenueProfileWithUserDetailDto>> GetAdminVenueProfileWithUser(
+        long profileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/identity/admin/organizers/{userId}/profiles/{profileId}/approve")]
+    Task<AizenApiResponse<EmptyResult>> ApproveOrganizerProfileAdmin(
+        long userId,
+        long profileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/identity/admin/organizers/{userId}/profiles/{profileId}/reject")]
+    Task<AizenApiResponse<EmptyResult>> RejectOrganizerProfileAdmin(
+        long userId,
+        long profileId,
+        [AizenRemoteCallBody] RejectProfileRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/identity/admin/venues/{userId}/profiles/{profileId}/approve")]
+    Task<AizenApiResponse<EmptyResult>> ApproveVenueProfileAdmin(
+        long userId,
+        long profileId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/identity/admin/venues/{userId}/profiles/{profileId}/reject")]
+    Task<AizenApiResponse<EmptyResult>> RejectVenueProfileAdmin(
+        long userId,
+        long profileId,
+        [AizenRemoteCallBody] RejectProfileRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }
 
 // Lightweight result wrappers for Identity HTTP responses
@@ -203,3 +275,27 @@ public sealed class VenueProfileResult { public VenueProfileDetailDto? Profile {
 public sealed class PagedParticipantProfileResult { public List<ParticipantProfileListItemDto>? Items { get; set; } public int TotalCount { get; set; } }
 public sealed class ParticipantProfileResult { public ParticipantProfileDetailDto? Profile { get; set; } }
 public sealed class EmptyResult { }
+
+public sealed class OrganizerProfilePagedAdminResult
+{
+    public List<OrganizerProfileListItemDto>? Items { get; set; }
+    public long Count { get; set; }
+    public int From { get; set; }
+    public int Index { get; set; }
+    public int Size { get; set; }
+    public int Pages { get; set; }
+    public bool HasPrevious { get; set; }
+    public bool HasNext { get; set; }
+}
+
+public sealed class VenueProfilePagedAdminResult
+{
+    public List<VenueProfileListItemDto>? Items { get; set; }
+    public long Count { get; set; }
+    public int From { get; set; }
+    public int Index { get; set; }
+    public int Size { get; set; }
+    public int Pages { get; set; }
+    public bool HasPrevious { get; set; }
+    public bool HasNext { get; set; }
+}
