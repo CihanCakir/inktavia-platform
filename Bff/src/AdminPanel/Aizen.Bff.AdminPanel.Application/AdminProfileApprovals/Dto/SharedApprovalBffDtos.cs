@@ -19,6 +19,7 @@ public sealed class ProfileApprovalDocumentBffDto
     public string Type { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string FileId { get; set; } = null!;
+    public string? Url { get; set; }             // signed GET URL (15 min TTL); null if FileStorage unavailable
     public string UploadedAt { get; set; } = null!;
     public string? Format { get; set; }
     public string? Size { get; set; }

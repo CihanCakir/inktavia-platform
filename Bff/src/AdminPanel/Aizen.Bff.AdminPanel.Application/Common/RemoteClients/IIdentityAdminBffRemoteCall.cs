@@ -251,6 +251,24 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] RejectProfileRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    // ── Verification Document Registration ───────────────────────────────────
+
+    [AizenRemoteCallPost("/api/v1/identity/admin/organizers/{userId}/profiles/{profileId}/documents")]
+    Task<AizenApiResponse<RegisterVerificationDocumentResult>> RegisterOrganizerVerificationDocument(
+        long userId,
+        long profileId,
+        [AizenRemoteCallBody] RegisterVerificationDocumentRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/identity/admin/venues/{userId}/profiles/{profileId}/documents")]
+    Task<AizenApiResponse<RegisterVerificationDocumentResult>> RegisterVenueVerificationDocument(
+        long userId,
+        long profileId,
+        [AizenRemoteCallBody] RegisterVerificationDocumentRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }
 
 // Lightweight result wrappers for Identity HTTP responses
@@ -298,4 +316,20 @@ public sealed class VenueProfilePagedAdminResult
     public int Pages { get; set; }
     public bool HasPrevious { get; set; }
     public bool HasNext { get; set; }
+}
+
+public sealed class RegisterVerificationDocumentRequest
+{
+    public string FileId { get; set; } = default!;   // FileStorage FileId (Guid as string)
+    public string DocumentType { get; set; } = default!;
+    public string Name { get; set; } = default!;
+    public string? Format { get; set; }
+    public string? FileSizeDisplay { get; set; }
+    public string? Issuer { get; set; }
+}
+
+public sealed class RegisterVerificationDocumentResult
+{
+    public long DocumentId { get; set; }
+    public string FileId { get; set; } = default!;
 }

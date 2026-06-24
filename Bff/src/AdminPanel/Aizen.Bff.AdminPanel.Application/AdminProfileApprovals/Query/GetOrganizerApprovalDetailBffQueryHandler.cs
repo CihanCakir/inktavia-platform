@@ -3,6 +3,7 @@ using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Microsoft.Extensions.Logging;
 
@@ -13,15 +14,18 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
     : AizenQueryHandler<GetOrganizerApprovalDetailBffQuery, OrganizerApprovalDetailBffResponse>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
     private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetOrganizerApprovalDetailBffQueryHandler> _logger;
 
     public GetOrganizerApprovalDetailBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
+        IFileStorageAdminBffRemoteCall fileStorage,
         IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetOrganizerApprovalDetailBffQueryHandler> logger)
     {
         _identity = identity;
+        _fileStorage = fileStorage;
         _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
@@ -71,7 +75,36 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
             else
                 response.Warnings.Add(AdminBffWarning.CallFailed("Identity.OrganizerWithUser", "Could not fetch user contact info."));
 
-            response.Organizer = MapToDetailDto(detail, withUser);
+            // Enrich documents with signed read URLs from FileStorage (best-effort: failure yields url=null).
+            var signedUrlMap = new Dictionary<long, string?>();
+            if (detail.Documents?.Count > 0)
+            {
+                try
+                {
+                    var urlRequest = new CreateFileReadUrlRemoteCallRequest { ExpiresIn = TimeSpan.FromMinutes(15) };
+                    var urlTasks = detail.Documents
+                        .Select(d => _fileStorage.CreateReadUrl(d.FileId, urlRequest, authHeader, request.UserToken))
+                        .ToList();
+
+                    await Task.WhenAll(urlTasks.Select(t => t.ContinueWith(_ => { }, TaskScheduler.Default)));
+
+                    for (var i = 0; i < detail.Documents.Count; i++)
+                    {
+                        var task = urlTasks[i];
+                        signedUrlMap[detail.Documents[i].FileId] =
+                            task.IsCompletedSuccessfully && task.Result?.Header?.IsSuccess == true
+                                ? task.Result.Body?.AccessUrl?.ReadUrl
+                                : null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "[OrganizerApprovalDetailBff] FileStorage signed URL fetch failed for profile {ProfileId}.", request.ProfileId);
+                    response.Warnings.Add(AdminBffWarning.CallFailed("FileStorage", "Could not fetch signed document URLs."));
+                }
+            }
+
+            response.Organizer = MapToDetailDto(detail, withUser, signedUrlMap);
         }
         catch (Exception ex)
         {
@@ -84,7 +117,8 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
 
     private static OrganizerApprovalDetailBffDto MapToDetailDto(
         OrganizerProfileDetailDto detail,
-        OrganizerProfileWithUserDetailDto? withUser)
+        OrganizerProfileWithUserDetailDto? withUser,
+        Dictionary<long, string?> signedUrlMap)
     {
         var reviewedAt = detail.ApprovalStatus?.ToLowerInvariant() switch
         {
@@ -122,12 +156,29 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
                 PhoneVerified = false,
                 CompanyNameProvided = false,
                 TaxNumberProvided = false,
-                DocumentsUploaded = false,
+                DocumentsUploaded = detail.Documents?.Count > 0,
                 DuplicateAccountFound = false,
                 SuspiciousActivityFound = false
             },
-            Documents = new List<ProfileApprovalDocumentBffDto>(),
-            RiskSignals = new List<ProfileApprovalRiskSignalBffDto>(),
+            Documents = detail.Documents?.Select(d => new ProfileApprovalDocumentBffDto
+            {
+                Id = d.Id.ToString(),
+                Type = d.DocumentType,
+                Name = d.Name,
+                FileId = d.FileId.ToString(),
+                Url = signedUrlMap.GetValueOrDefault(d.FileId),
+                Format = d.Format,
+                Size = d.FileSizeDisplay,
+                Issuer = d.Issuer,
+                MatchScore = d.MatchScore,
+                UploadedAt = d.UploadedAt ?? string.Empty
+            }).ToList() ?? new List<ProfileApprovalDocumentBffDto>(),
+            RiskSignals = detail.RiskSignals?.Select(r => new ProfileApprovalRiskSignalBffDto
+            {
+                Level = r.Severity,
+                Title = r.Title,
+                Description = r.Description
+            }).ToList() ?? new List<ProfileApprovalRiskSignalBffDto>(),
             Activity = new List<ProfileApprovalActivityItemBffDto>(),
             Warnings = new List<AdminBffWarning>()
         };

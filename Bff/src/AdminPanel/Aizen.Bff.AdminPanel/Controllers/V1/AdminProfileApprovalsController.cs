@@ -5,6 +5,7 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
@@ -139,4 +140,105 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
             new RejectVenueProfileBffCommand(userId, profileId, request?.Reason ?? string.Empty, userToken), ct);
         return SetResponse(result);
     }
+
+    // ── Document Upload Flow ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Request a pre-signed PUT URL for uploading an organizer verification document directly to storage.
+    /// The browser uses the returned putUrl to PUT the file. Then call the register document endpoint.
+    /// </summary>
+    [HttpPost("organizers/{userId:long}/profiles/{profileId:long}/documents/upload-url")]
+    [ProducesResponseType(typeof(DocumentUploadUrlBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DocumentUploadUrlBffResponse>> RequestOrganizerDocumentUploadUrl(
+        long userId, long profileId,
+        [FromBody] RequestDocumentUploadUrlRequest request,
+        CancellationToken ct = default)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new RequestOrganizerDocumentUploadUrlCommand(
+                userId, profileId, userToken,
+                request.FileName, request.ContentType, request.FileSizeBytes, request.DocumentType), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Complete the upload session and register an organizer verification document with Identity.
+    /// Call this after the browser has PUT the file to the pre-signed URL.
+    /// </summary>
+    [HttpPost("organizers/{userId:long}/profiles/{profileId:long}/documents")]
+    [ProducesResponseType(typeof(RegisterDocumentBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RegisterDocumentBffResponse>> RegisterOrganizerDocument(
+        long userId, long profileId,
+        [FromBody] RegisterDocumentRequest request,
+        CancellationToken ct = default)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new RegisterOrganizerVerificationDocumentCommand(
+                userId, profileId, userToken,
+                request.FileId, request.UploadSessionCode,
+                request.DocumentType, request.Name,
+                request.Format, request.FileSizeDisplay, request.Issuer), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Request a pre-signed PUT URL for uploading a venue verification document directly to storage.
+    /// </summary>
+    [HttpPost("venues/{userId:long}/profiles/{profileId:long}/documents/upload-url")]
+    [ProducesResponseType(typeof(DocumentUploadUrlBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DocumentUploadUrlBffResponse>> RequestVenueDocumentUploadUrl(
+        long userId, long profileId,
+        [FromBody] RequestDocumentUploadUrlRequest request,
+        CancellationToken ct = default)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new RequestVenueDocumentUploadUrlCommand(
+                userId, profileId, userToken,
+                request.FileName, request.ContentType, request.FileSizeBytes, request.DocumentType), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Complete the upload session and register a venue verification document with Identity.
+    /// </summary>
+    [HttpPost("venues/{userId:long}/profiles/{profileId:long}/documents")]
+    [ProducesResponseType(typeof(RegisterDocumentBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RegisterDocumentBffResponse>> RegisterVenueDocument(
+        long userId, long profileId,
+        [FromBody] RegisterDocumentRequest request,
+        CancellationToken ct = default)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new RegisterVenueVerificationDocumentCommand(
+                userId, profileId, userToken,
+                request.FileId, request.UploadSessionCode,
+                request.DocumentType, request.Name,
+                request.Format, request.FileSizeDisplay, request.Issuer), ct);
+        return SetResponse(result);
+    }
+}
+
+// ── Controller request models ─────────────────────────────────────────────────
+
+public sealed class RequestDocumentUploadUrlRequest
+{
+    [Required] public string FileName { get; set; } = null!;
+    [Required] public string ContentType { get; set; } = null!;
+    [Range(1, 10 * 1024 * 1024)] public long FileSizeBytes { get; set; }
+    [Required] public string DocumentType { get; set; } = null!;
+}
+
+public sealed class RegisterDocumentRequest
+{
+    [Required] public string FileId { get; set; } = null!;           // FileStorage FileId (Guid as string)
+    [Required] public string UploadSessionCode { get; set; } = null!;
+    [Required] public string DocumentType { get; set; } = null!;
+    [Required] public string Name { get; set; } = null!;
+    public string? Format { get; set; }
+    public string? FileSizeDisplay { get; set; }
+    public string? Issuer { get; set; }
 }
