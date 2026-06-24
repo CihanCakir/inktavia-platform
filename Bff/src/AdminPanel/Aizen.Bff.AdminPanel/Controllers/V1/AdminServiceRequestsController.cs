@@ -6,11 +6,16 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Conversation;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -158,6 +163,138 @@ public sealed class ServiceRequestsController : AizenWebApiController
         var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
             new GetAdminServiceRequestTimelineQuery(serviceRequestId, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPatch("service-requests/{serviceRequestId:long}/status")]
+    [ProducesResponseType(typeof(UpdateServiceRequestStatusResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateServiceRequestStatusResponse>> UpdateStatus(
+        long serviceRequestId, [FromBody] UpdateServiceRequestStatusRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new UpdateServiceRequestStatusCommand(serviceRequestId, request, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/{serviceRequestId:long}/assign")]
+    [ProducesResponseType(typeof(AssignProviderResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AssignProviderResponse>> AssignProvider(
+        long serviceRequestId, [FromBody] AssignProviderRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new AssignServiceRequestProviderCommand(serviceRequestId, request, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/{serviceRequestId:long}/complete")]
+    [ProducesResponseType(typeof(CompleteServiceRequestResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CompleteServiceRequestResponse>> Complete(
+        long serviceRequestId, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new CompleteServiceRequestAdminCommand(serviceRequestId, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/{serviceRequestId:long}/dispute")]
+    [ProducesResponseType(typeof(DisputeServiceRequestResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DisputeServiceRequestResponse>> Dispute(
+        long serviceRequestId, [FromBody] DisputeServiceRequestRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new DisputeServiceRequestAdminCommand(serviceRequestId, request, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("service-requests/{serviceRequestId:long}/offers")]
+    [ProducesResponseType(typeof(AdminServiceRequestOffersResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminServiceRequestOffersResponse>> GetOffers(
+        long serviceRequestId, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminServiceRequestOffersQuery(serviceRequestId, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/{serviceRequestId:long}/offers/{offerId:long}/accept")]
+    [ProducesResponseType(typeof(AcceptServiceRequestOfferResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AcceptServiceRequestOfferResponse>> AcceptOffer(
+        long serviceRequestId, long offerId, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new AcceptServiceRequestOfferAdminCommand(serviceRequestId, offerId, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/{serviceRequestId:long}/offers/{offerId:long}/reject")]
+    [ProducesResponseType(typeof(RejectServiceRequestOfferResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RejectServiceRequestOfferResponse>> RejectOffer(
+        long serviceRequestId, long offerId, [FromBody] RejectServiceRequestOfferRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new RejectServiceRequestOfferAdminCommand(serviceRequestId, offerId, request, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("service-requests/{serviceRequestId:long}/work-logs")]
+    [ProducesResponseType(typeof(AdminWorkLogsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminWorkLogsResponse>> GetWorkLogs(
+        long serviceRequestId, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminWorkLogsQuery(serviceRequestId, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/{serviceRequestId:long}/work-logs")]
+    [ProducesResponseType(typeof(AddWorkLogEntryResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AddWorkLogEntryResponse>> AddWorkLogEntry(
+        long serviceRequestId, [FromBody] AddWorkLogEntryRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new AddWorkLogEntryAdminCommand(serviceRequestId, request, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/{serviceRequestId:long}/payment/release")]
+    [ProducesResponseType(typeof(ReleasePaymentResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ReleasePaymentResponse>> ReleasePayment(
+        long serviceRequestId, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new ReleasePaymentAdminCommand(serviceRequestId, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("messages/conversations")]
+    [ProducesResponseType(typeof(AdminConversationsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminConversationsResponse>> GetConversations(
+        [FromQuery] string? filter, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminConversationsQuery(filter, userToken), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("messages/conversations/{conversationId:long}")]
+    [ProducesResponseType(typeof(AdminConversationDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminConversationDetailResponse>> GetConversationDetail(
+        long conversationId, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminConversationDetailQuery(conversationId, userToken), ct);
         return SetResponse(result);
     }
 }

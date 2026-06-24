@@ -2,11 +2,16 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Conversation;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -71,6 +76,85 @@ public interface IServiceRequestAdminBffRemoteCall : IAizenRemoteCall
         long serviceRequestId,
         long disputeId,
         [AizenRemoteCallBody] ResolveServiceRequestDisputeRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPatch("/api/v1/admin/service-requests/{serviceRequestId}/status")]
+    Task<AizenApiResponse<UpdateServiceRequestStatusResponse>> UpdateAdminServiceRequestStatus(
+        long serviceRequestId,
+        [AizenRemoteCallBody] UpdateServiceRequestStatusRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/assign")]
+    Task<AizenApiResponse<AssignProviderResponse>> AssignServiceRequestProvider(
+        long serviceRequestId,
+        [AizenRemoteCallBody] AssignProviderRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/complete")]
+    Task<AizenApiResponse<CompleteServiceRequestResponse>> CompleteServiceRequest(
+        long serviceRequestId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/dispute")]
+    Task<AizenApiResponse<DisputeServiceRequestResponse>> DisputeServiceRequest(
+        long serviceRequestId,
+        [AizenRemoteCallBody] DisputeServiceRequestRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/admin/service-requests/{serviceRequestId}/offers")]
+    Task<AizenApiResponse<GetProviderOffersResponse>> GetAdminServiceRequestOffers(
+        long serviceRequestId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/offers/{offerId}/accept")]
+    Task<AizenApiResponse<AcceptServiceRequestOfferResponse>> AcceptServiceRequestOffer(
+        long serviceRequestId,
+        long offerId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/offers/{offerId}/reject")]
+    Task<AizenApiResponse<RejectServiceRequestOfferResponse>> RejectServiceRequestOffer(
+        long serviceRequestId,
+        long offerId,
+        [AizenRemoteCallBody] RejectServiceRequestOfferRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/admin/service-requests/{serviceRequestId}/work-logs")]
+    Task<AizenApiResponse<GetWorkLogsResponse>> GetAdminWorkLogs(
+        long serviceRequestId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/work-logs")]
+    Task<AizenApiResponse<AddWorkLogEntryResponse>> AddAdminWorkLogEntry(
+        long serviceRequestId,
+        [AizenRemoteCallBody] AddWorkLogEntryRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/payment/release")]
+    Task<AizenApiResponse<ReleasePaymentResponse>> ReleaseServiceRequestPayment(
+        long serviceRequestId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/messages/conversations")]
+    Task<AizenApiResponse<GetConversationListResponse>> GetAdminConversations(
+        [Refit.Query] string? filter,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
+    [AizenRemoteCallGet("/api/v1/messages/conversations/{conversationId}")]
+    Task<AizenApiResponse<GetConversationDetailResponse>> GetAdminConversationDetail(
+        long conversationId,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 }
