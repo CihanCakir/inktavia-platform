@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.ServiceRequest.Repository;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddServiceRequestRepository(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
         services.AddScoped<IServiceRequestOfferRepository, ServiceRequestOfferRepository>();
@@ -22,6 +22,8 @@ public static class DependencyInjection
         services.AddScoped<IServiceRequestWorkLogRepository, ServiceRequestWorkLogRepository>();
         services.AddScoped<IServiceRequestCompletionRepository, ServiceRequestCompletionRepository>();
         services.AddScoped<IServiceRequestDisputeRepository, ServiceRequestDisputeRepository>();
+        services.AddScoped<IWorkPhaseRepository, WorkPhaseRepository>();
+        services.AddScoped<IServiceRequestConversationRepository, ServiceRequestConversationRepository>();
 
         return services;
     }
@@ -37,9 +39,9 @@ public static class DependencyInjection
         services.AddScoped<ServiceRequestMockDataSeeder>(sp =>
         {
             var db = sp.GetRequiredService<ServiceRequestDbContext>();
-            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MockDataSeedOptions>>();
+            var options = sp.GetRequiredService<IOptions<MockDataSeedOptions>>();
             var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ServiceRequestMockDataSeeder>>();
-            var env = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
             return new ServiceRequestMockDataSeeder(db, options, logger, env);
         });
         return services;

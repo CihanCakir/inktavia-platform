@@ -24,5 +24,8 @@ public enum ServiceRequestRealtimeEventType
     DisputeOpened = 60,
     DisputeStatusChanged = 61,
     DisputeResolved = 62,
-    AdminInterventionRequired = 70
+    AdminInterventionRequired = 70,
+    WorkPhaseUpdated = 44,
+    ConversationMessageReceived = 80,
+    PaymentReleased = 90,
 }

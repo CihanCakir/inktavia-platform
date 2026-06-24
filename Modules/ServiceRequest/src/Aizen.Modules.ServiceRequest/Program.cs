@@ -32,7 +32,7 @@ builder.Services.AddAizenCache(builder.Configuration);
 builder.Services.AddAizenMongo(builder.Configuration);
 builder.Services.AddAizenInfoAccessor(builder.Configuration);
 
-builder.Services.AddServiceRequestRepository(builder.Configuration);
+builder.Services.AddServiceRequestRepository();
 builder.Services.AddServiceRequestServices();
 
 builder.Services.AddServiceRequestMockData(builder.Configuration);

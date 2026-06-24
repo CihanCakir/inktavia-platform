@@ -3,8 +3,10 @@ using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Conversation;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
+using Aizen.Modules.ServiceRequest.Domain.Entities.WorkPhase;
 
 namespace Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 
@@ -33,6 +35,13 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public string? CancelReason { get; private set; }
     public long? CancelledByUserId { get; private set; }
 
+    public string? Category { get; private set; }
+    public string? VesselName { get; private set; }
+    public string? RequestedByEmail { get; private set; }
+    public string? AssignedProviderName { get; private set; }
+    public DateTimeOffset? DisputedAt { get; private set; }
+    public string? DisputeReason { get; private set; }
+
     private readonly List<ServiceRequestItemEntity> _items = new();
     public IReadOnlyCollection<ServiceRequestItemEntity> Items => _items.AsReadOnly();
 
@@ -51,6 +60,12 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public ServiceRequestAssignmentEntity? Assignment { get; private set; }
     public ServiceRequestCompletionEntity? Completion { get; private set; }
     public ServiceRequestDisputeEntity? Dispute { get; private set; }
+
+    private readonly List<WorkPhaseEntity> _workPhases = new();
+    public IReadOnlyCollection<WorkPhaseEntity> WorkPhases => _workPhases.AsReadOnly();
+
+    private readonly List<ServiceRequestConversationEntity> _conversations = new();
+    public IReadOnlyCollection<ServiceRequestConversationEntity> Conversations => _conversations.AsReadOnly();
 
     public ServiceRequestEntity() { }
 
@@ -150,4 +165,31 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public void SetAssignment(ServiceRequestAssignmentEntity assignment) => Assignment = assignment;
     public void SetCompletion(ServiceRequestCompletionEntity completion) => Completion = completion;
     public void SetDispute(ServiceRequestDisputeEntity dispute) => Dispute = dispute;
+
+    public void MarkCompleted(DateTimeOffset completedAt)
+    {
+        Status = ServiceRequestStatus.Completed;
+    }
+
+    public void MarkDisputed(string reason, DateTimeOffset disputedAt)
+    {
+        DisputedAt = disputedAt;
+        DisputeReason = reason;
+    }
+
+    public void Assign(long providerId, string providerName)
+    {
+        AssignedProviderName = providerName;
+        Status = ServiceRequestStatus.Assigned;
+    }
+
+    public void ReleasePayment()
+    {
+        Status = ServiceRequestStatus.Closed;
+    }
+
+    public void UpdateCategory(string? category) => Category = category;
+    public void UpdateDenormalized(string? vesselName, string? requestedByEmail) { VesselName = vesselName; RequestedByEmail = requestedByEmail; }
+    public void AddWorkPhase(WorkPhaseEntity phase) => _workPhases.Add(phase);
+    public void AddConversation(ServiceRequestConversationEntity conversation) => _conversations.Add(conversation);
 }

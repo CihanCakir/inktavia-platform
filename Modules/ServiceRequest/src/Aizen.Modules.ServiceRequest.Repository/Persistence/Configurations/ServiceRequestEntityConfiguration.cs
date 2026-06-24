@@ -1,8 +1,10 @@
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Conversation;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Domain.Entities.WorkPhase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -44,5 +46,14 @@ public sealed class ServiceRequestEntityConfiguration : IEntityTypeConfiguration
         builder.HasOne(x => x.Assignment).WithOne().HasForeignKey<ServiceRequestAssignmentEntity>(x => x.ServiceRequestId);
         builder.HasOne(x => x.Completion).WithOne().HasForeignKey<ServiceRequestCompletionEntity>(x => x.ServiceRequestId);
         builder.HasOne(x => x.Dispute).WithOne().HasForeignKey<ServiceRequestDisputeEntity>(x => x.ServiceRequestId);
+
+        builder.Property(x => x.Category).HasMaxLength(100);
+        builder.Property(x => x.VesselName).HasMaxLength(200);
+        builder.Property(x => x.RequestedByEmail).HasMaxLength(300);
+        builder.Property(x => x.AssignedProviderName).HasMaxLength(200);
+        builder.Property(x => x.DisputeReason).HasMaxLength(1000);
+
+        builder.HasMany(x => x.WorkPhases).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.Conversations).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);
     }
 }

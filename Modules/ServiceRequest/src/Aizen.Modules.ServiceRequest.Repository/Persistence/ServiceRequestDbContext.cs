@@ -2,10 +2,12 @@ using Aizen.Core.EFCore;
 using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Conversation;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
+using Aizen.Modules.ServiceRequest.Domain.Entities.WorkPhase;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.ServiceRequest.Repository.Persistence;
@@ -27,6 +29,10 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<ServiceRequestWorkLogEntity> ServiceRequestWorkLogs => Set<ServiceRequestWorkLogEntity>();
     public DbSet<ServiceRequestCompletionEntity> ServiceRequestCompletions => Set<ServiceRequestCompletionEntity>();
     public DbSet<ServiceRequestDisputeEntity> ServiceRequestDisputes => Set<ServiceRequestDisputeEntity>();
+    public DbSet<WorkPhaseEntity> WorkPhases => Set<WorkPhaseEntity>();
+    public DbSet<ServiceRequestConversationEntity> Conversations => Set<ServiceRequestConversationEntity>();
+    public DbSet<ConversationMessageEntity> ConversationMessages => Set<ConversationMessageEntity>();
+    public DbSet<MessageAttachmentEntity> MessageAttachments => Set<MessageAttachmentEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

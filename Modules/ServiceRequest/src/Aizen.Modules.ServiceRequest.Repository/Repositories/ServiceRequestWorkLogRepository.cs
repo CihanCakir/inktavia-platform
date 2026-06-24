@@ -20,6 +20,13 @@ public sealed class ServiceRequestWorkLogRepository : IServiceRequestWorkLogRepo
             .OrderBy(x => x.LoggedAt)
             .ToListAsync(ct);
 
+    public async Task<IReadOnlyList<ServiceRequestWorkLogEntity>> GetByServiceRequestIdAsync(long serviceRequestId, CancellationToken ct = default)
+        => await _db.ServiceRequestWorkLogs
+            .AsNoTracking()
+            .Where(x => x.ServiceRequestId == serviceRequestId && !x.IsDeleted)
+            .OrderBy(x => x.LoggedAt)
+            .ToListAsync(ct);
+
     public Task AddAsync(ServiceRequestWorkLogEntity entity, CancellationToken ct = default)
         => _db.ServiceRequestWorkLogs.AddAsync(entity, ct).AsTask();
 

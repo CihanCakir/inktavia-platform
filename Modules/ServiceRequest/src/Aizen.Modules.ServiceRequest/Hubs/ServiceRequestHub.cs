@@ -59,4 +59,28 @@ public sealed class ServiceRequestHub : DomainHubBase
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, "admin:operations");
     }
+
+    /// <summary>Subscribes to a conversation channel.</summary>
+    public async Task JoinConversationGroup(string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId)) return;
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"conv:{conversationId}");
+    }
+
+    /// <summary>Unsubscribes from a conversation channel.</summary>
+    public async Task LeaveConversationGroup(string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId)) return;
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conv:{conversationId}");
+    }
+}
+
+public static class SrHubEvents
+{
+    public const string WorkLogEntryAdded = "WorkLogEntryAdded";
+    public const string StatusChanged = "StatusChanged";
+    public const string OfferAccepted = "OfferAccepted";
+    public const string DisputeFiled = "DisputeFiled";
+    public const string PaymentReleased = "PaymentReleased";
+    public const string MessageReceived = "MessageReceived";
 }

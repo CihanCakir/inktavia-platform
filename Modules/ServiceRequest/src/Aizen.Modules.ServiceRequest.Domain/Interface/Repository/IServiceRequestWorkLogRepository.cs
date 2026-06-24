@@ -8,6 +8,7 @@ namespace Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 public interface IServiceRequestWorkLogRepository
 {
     Task<IReadOnlyList<ServiceRequestWorkLogEntity>> GetByAssignmentIdAsync(long assignmentId, CancellationToken ct = default);
+    Task<IReadOnlyList<ServiceRequestWorkLogEntity>> GetByServiceRequestIdAsync(long serviceRequestId, CancellationToken ct = default);
     Task AddAsync(ServiceRequestWorkLogEntity entity, CancellationToken ct = default);
     void Update(ServiceRequestWorkLogEntity entity);
 }
