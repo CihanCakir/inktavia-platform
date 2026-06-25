@@ -1,0 +1,80 @@
+using Aizen.Core.CQRS.Abstraction;
+using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Messaging.Abstraction.Enum;
+using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
+using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
+using Aizen.Modules.Messaging.Application.Command.CreateConversation;
+using Aizen.Modules.Messaging.Application.Query.GetConversationByContext;
+using Aizen.Modules.Messaging.Application.Query.GetConversationDetail;
+using Aizen.Modules.Messaging.Application.Query.GetConversationList;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Aizen.Modules.Messaging.Controller.V1.Conversations;
+
+[ApiController]
+[Route("api/v1/conversations")]
+[Tags("Messaging - Conversations")]
+[Authorize]
+[DocumentationInfo("Conversations controller",
+    "Manages conversation creation, listing, and detail retrieval across all context types.")]
+public sealed class ConversationsController : AizenWebApiController
+{
+    private readonly IAizenCQRSProcessor _cqrs;
+
+    public ConversationsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor)
+    {
+        _cqrs = cqrs;
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(GetConversationListResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetConversationListResponse?>> GetList(
+        [FromQuery] ConversationStatus? status,
+        [FromQuery] MessagingContextType? contextType,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetConversationListResponse>(
+            new GetConversationListQuery(status, contextType, skip, take), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("{id:long}")]
+    [ProducesResponseType(typeof(GetConversationDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetConversationDetailResponse?>> GetDetail(
+        [FromRoute] long id, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetConversationDetailResponse>(
+            new GetConversationDetailQuery(id), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("by-context")]
+    [ProducesResponseType(typeof(GetConversationDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetConversationDetailResponse?>> GetByContext(
+        [FromQuery] MessagingContextType contextType,
+        [FromQuery] long contextId,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetConversationDetailResponse>(
+            new GetConversationByContextQuery(contextType, contextId), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(CreateConversationResponse), StatusCodes.Status201Created)]
+    public async Task<AizenApiResponse<CreateConversationResponse?>> Create(
+        [FromBody] CreateConversationRequest request, CancellationToken ct = default)
+    {
+        var participants = request.Participants
+            .Select(p => new ConversationParticipantInput(p.UserId, p.DisplayName, p.Role))
+            .ToList();
+        var command = new CreateConversationCommand(
+            request.ContextType, request.ContextId, request.Title, participants);
+        var result = await _cqrs.ProcessAsync<CreateConversationResponse>(command, ct);
+        return SetResponse(result);
+    }
+}

@@ -1,0 +1,50 @@
+using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
+using Aizen.Modules.Messaging.Domain.Entities.Conversation;
+
+namespace Aizen.Modules.Messaging.Repository.Mapping;
+
+[DocumentationInfo("Messaging mapping extensions", "Extension methods for mapping messaging entities to DTOs.")]
+public static class MessagingMappingExtensions
+{
+    public static ConversationSummaryDto ToSummaryDto(this ConversationEntity entity) => new()
+    {
+        Id          = entity.Id.ToString(),
+        Title       = entity.Title,
+        ContextType = entity.ContextType.ToString(),
+        ContextId   = entity.ContextId.ToString(),
+        Preview     = entity.LastMessagePreview,
+        Timestamp   = entity.LastMessageAt,
+        UnreadCount = entity.UnreadCountByAdmin,
+        Status      = entity.Status.ToString(),
+    };
+
+    public static ChatMessageDto ToDto(this ConversationMessageEntity entity) => new()
+    {
+        Id               = entity.Id.ToString(),
+        SenderUserId     = entity.SenderUserId.ToString(),
+        SenderName       = entity.SenderName,
+        SenderRole       = entity.SenderRole.ToString(),
+        Content          = entity.Content,
+        Type             = entity.Type.ToString(),
+        IsInternalNote   = entity.IsInternalNote,
+        ModerationStatus = entity.ModerationStatus.ToString(),
+        Timestamp        = entity.SentAt,
+        Attachments      = entity.Attachments.Select(a => new AttachmentDto(
+            a.FileStorageId ?? string.Empty,
+            a.FileName,
+            a.FileType
+        )).ToList(),
+    };
+
+    public static ModerationQueueItemDto ToModerationDto(this ConversationMessageEntity entity) => new()
+    {
+        MessageId        = entity.Id.ToString(),
+        ConversationId   = entity.ConversationId.ToString(),
+        SenderName       = entity.SenderName,
+        SenderRole       = entity.SenderRole.ToString(),
+        Content          = entity.Content,
+        ModerationStatus = entity.ModerationStatus.ToString(),
+        ModerationReason = entity.ModerationReason,
+        SentAt           = entity.SentAt,
+    };
+}
