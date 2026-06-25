@@ -1,0 +1,6 @@
+@Aizen.Modules.Messaging_HostAddress = http://localhost:5163
+
+GET {{Aizen.Modules.Messaging_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
