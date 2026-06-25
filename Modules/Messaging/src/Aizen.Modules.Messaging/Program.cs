@@ -6,6 +6,7 @@ using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Realtime.Abstraction.Interfaces;
 using Aizen.Core.Realtime.Extensions;
 using Aizen.Core.Starter;
+using Aizen.Modules.Messaging.Application;
 using Aizen.Modules.Messaging.Application.Realtime;
 using Aizen.Modules.Messaging.Hubs;
 using Aizen.Modules.Messaging.Realtime;
@@ -35,6 +36,14 @@ builder.Services.AddAizenInfoAccessor(builder.Configuration);
 // ── Module services ───────────────────────────────────────────────────────
 builder.Services.AddMessagingRepository();
 builder.Services.AddMessagingServices();
+builder.Services.AddMessagingApplicationServices();
+
+// ── HTTP clients ──────────────────────────────────────────────────────────
+builder.Services.AddHttpClient("anthropic", client =>
+{
+    client.BaseAddress = new Uri("https://api.anthropic.com");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
 
 // ── Realtime (SignalR) ────────────────────────────────────────────────────
 builder.Services.AddScoped<MessagingRealtimePublisher>();

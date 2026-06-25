@@ -32,6 +32,7 @@ public sealed record ChatMessageDto
     public string ModerationStatus          { get; init; } = string.Empty;
     public DateTimeOffset Timestamp         { get; init; }
     public List<AttachmentDto> Attachments  { get; init; } = [];
+    public LocationContentDto? Location     { get; init; }
 }
 
-public sealed record AttachmentDto(string Url, string FileName, string FileType);
+public sealed record AttachmentDto(string Url, string FileName, string FileType, string? ReadUrl = null);

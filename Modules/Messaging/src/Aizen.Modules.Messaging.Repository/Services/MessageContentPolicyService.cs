@@ -1,7 +1,9 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Cache.Abstraction.Common;
+using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Domain.Interface;
-using System.Text.RegularExpressions;
 
 namespace Aizen.Modules.Messaging.Repository.Services;
 
@@ -30,8 +32,16 @@ public sealed class MessageContentPolicyService : IMessageContentPolicy
     public MessageContentPolicyService(IAizenCache cache) => _cache = cache;
 
     public async Task<ContentPolicyResult> EvaluateAsync(
-        string content, long senderUserId, CancellationToken ct = default)
+        string content, long senderUserId, MessageType messageType = MessageType.Text, CancellationToken ct = default)
     {
+        // Location messages carry system-generated JSON — only validate structure
+        if (messageType == MessageType.Location)
+        {
+            try { JsonDocument.Parse(content); }
+            catch { return ContentPolicyResult.Block("Invalid location payload.", "INVALID_LOCATION"); }
+            return ContentPolicyResult.Allow();
+        }
+
         // 1. Content too long
         if (content.Length > 4000)
             return ContentPolicyResult.Block("Message exceeds maximum length of 4000 characters.", "CONTENT_TOO_LONG");

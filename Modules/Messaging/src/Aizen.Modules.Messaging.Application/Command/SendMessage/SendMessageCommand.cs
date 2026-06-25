@@ -14,6 +14,9 @@ public sealed class SendMessageCommand : AizenCommand<SendMessageResponse>
     public string? AttachmentFileStorageId { get; }
     public string? AttachmentFileName      { get; }
     public string? AttachmentFileType      { get; }
+    public string? UploadSessionCode       { get; }
+    public string? Checksum                { get; }
+    public string? LocationJson            { get; }
 
     public SendMessageCommand(
         long conversationId,
@@ -22,7 +25,10 @@ public sealed class SendMessageCommand : AizenCommand<SendMessageResponse>
         bool isInternalNote,
         string? attachmentFileStorageId,
         string? attachmentFileName,
-        string? attachmentFileType)
+        string? attachmentFileType,
+        string? uploadSessionCode = null,
+        string? checksum = null,
+        string? locationJson = null)
     {
         ConversationId          = conversationId;
         Content                 = content;
@@ -31,5 +37,8 @@ public sealed class SendMessageCommand : AizenCommand<SendMessageResponse>
         AttachmentFileStorageId = attachmentFileStorageId;
         AttachmentFileName      = attachmentFileName;
         AttachmentFileType      = attachmentFileType;
+        UploadSessionCode       = uploadSessionCode;
+        Checksum                = checksum;
+        LocationJson            = locationJson;
     }
 }

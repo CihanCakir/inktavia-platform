@@ -7,4 +7,5 @@ public enum MessageType
     StatusChange       = 3,
     InternalNote       = 4,
     MediaAttachment    = 5,
+    Location           = 6,
 }

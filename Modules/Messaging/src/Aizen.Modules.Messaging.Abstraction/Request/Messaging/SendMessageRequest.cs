@@ -9,5 +9,8 @@ public sealed record SendMessageRequest(
     bool IsInternalNote = false,
     string? AttachmentFileStorageId = null,
     string? AttachmentFileName = null,
-    string? AttachmentFileType = null
+    string? AttachmentFileType = null,
+    string? UploadSessionCode = null,
+    string? Checksum = null,
+    string? LocationJson = null
 );

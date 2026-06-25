@@ -13,6 +13,9 @@ public sealed class MessageAttachmentEntity : AizenEntityWithAudit
 
     public MessageAttachmentEntity() { }
 
+    public void SetFileStorageId(string fileStorageId)
+        => FileStorageId = fileStorageId;
+
     public static MessageAttachmentEntity Create(
         long messageId,
         string fileName,

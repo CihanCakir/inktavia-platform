@@ -3,6 +3,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 using Aizen.Modules.Messaging.Application.Command.MarkConversationRead;
+using Aizen.Modules.Messaging.Application.Command.RequestAttachmentUploadUrl;
 using Aizen.Modules.Messaging.Application.Command.SendMessage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,8 +35,32 @@ public sealed class ConversationMessagesController : AizenWebApiController
     {
         var command = new SendMessageCommand(
             conversationId, request.Content, request.Type, request.IsInternalNote,
-            request.AttachmentFileStorageId, request.AttachmentFileName, request.AttachmentFileType);
+            request.AttachmentFileStorageId, request.AttachmentFileName, request.AttachmentFileType,
+            request.UploadSessionCode, request.Checksum, request.LocationJson);
         var result = await _cqrs.ProcessAsync<SendMessageResponse>(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Request a presigned S3 upload URL for a conversation attachment.
+    /// Client uploads directly to S3, then calls SendMessage with UploadSessionCode.
+    /// POST /api/v1/conversations/{conversationId}/messages/attachment-upload-url
+    /// </summary>
+    [HttpPost("attachment-upload-url")]
+    [ProducesResponseType(typeof(RequestAttachmentUploadUrlResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RequestAttachmentUploadUrlResponse?>> GetAttachmentUploadUrl(
+        [FromRoute] long conversationId,
+        [FromBody] AttachmentUploadUrlRequest request,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<RequestAttachmentUploadUrlResponse>(
+            new RequestAttachmentUploadUrlCommand
+            {
+                ConversationId = conversationId,
+                FileName       = request.FileName,
+                ContentType    = request.ContentType,
+                SizeInBytes    = request.SizeInBytes
+            }, ct);
         return SetResponse(result);
     }
 

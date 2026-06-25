@@ -1,3 +1,5 @@
+using Aizen.Modules.Messaging.Abstraction.Enum;
+
 namespace Aizen.Modules.Messaging.Domain.Interface;
 
 [DocumentationInfo("Message content policy interface",
@@ -8,7 +10,7 @@ public interface IMessageContentPolicy
     /// Evaluates content against all active policy rules.
     /// Returns (isAllowed, reason). If isAllowed=false, reason explains the violation.
     /// </summary>
-    Task<ContentPolicyResult> EvaluateAsync(string content, long senderUserId, CancellationToken ct = default);
+    Task<ContentPolicyResult> EvaluateAsync(string content, long senderUserId, MessageType messageType = MessageType.Text, CancellationToken ct = default);
 }
 
 public sealed record ContentPolicyResult(

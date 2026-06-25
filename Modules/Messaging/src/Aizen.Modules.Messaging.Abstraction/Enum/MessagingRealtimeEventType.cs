@@ -9,4 +9,5 @@ public enum MessagingRealtimeEventType
     ParticipantJoined         = 5,
     ParticipantLeft           = 6,
     UnreadCountUpdated        = 7,
+    AttachmentReady           = 8,
 }

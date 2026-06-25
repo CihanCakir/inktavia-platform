@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 using Aizen.Modules.Messaging.Domain.Entities.Conversation;
 
@@ -34,7 +36,25 @@ public static class MessagingMappingExtensions
             a.FileName,
             a.FileType
         )).ToList(),
+        Location         = entity.Type == MessageType.Location
+            ? ParseLocation(entity.Content)
+            : null,
     };
+
+    private static LocationContentDto? ParseLocation(string json)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(json).RootElement;
+            return new LocationContentDto(
+                doc.GetProperty("lat").GetDouble(),
+                doc.GetProperty("lng").GetDouble(),
+                doc.TryGetProperty("label", out var label) ? label.GetString() ?? string.Empty : string.Empty,
+                doc.TryGetProperty("accuracy", out var acc) ? acc.GetDouble() : null
+            );
+        }
+        catch { return null; }
+    }
 
     public static ModerationQueueItemDto ToModerationDto(this ConversationMessageEntity entity) => new()
     {
