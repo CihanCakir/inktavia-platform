@@ -31,7 +31,7 @@ public sealed class GetAdminServiceRequestListQueryHandler
             var authHeader = $"Bearer {serviceToken}";
 
             var result = await _serviceRequest.GetAdminServiceRequestList(
-                authHeader, request.UserToken, request.Status, request.VesselId, request.PageIndex, request.PageSize);
+                authHeader, request.UserToken, request.Status, request.VesselId, null, request.PageIndex, request.PageSize);
 
             if (result?.Body?.Items != null)
             {

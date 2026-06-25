@@ -1,12 +1,14 @@
+using Aizen.Bff.AdminPanel.Application.Common.Http;
 using Aizen.Bff.AdminPanel.Application.Common.Options;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.Cache.Extension;
-using Aizen.Core.Infrastructure.RemoteCall;
+using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Core.RemoteCall.Extensions;
 using RemoteCallBuilderExtensions = Aizen.Core.RemoteCall.Extensions.BuilderExtensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application;
@@ -26,6 +28,8 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddScoped<IAdminPanelBffKeycloakServiceTokenProvider, AdminPanelBffKeycloakServiceTokenProvider>();
+
+        services.AddTransient<AuthorizationForwardingHandler>();
 
         services.AddTransient<IIdentityAdminBffRemoteCall>(provider =>
         {
@@ -54,9 +58,18 @@ public static class DependencyInjection
 
         services.AddTransient<IServiceRequestAdminBffRemoteCall>(provider =>
         {
-            var factory = provider.GetRequiredService<IHttpClientFactory>();
+            var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
+            remoteCallConfigs.TryGetValue(nameof(IServiceRequestAdminBffRemoteCall), out var srConfig);
+
+            var forwardingHandler = provider.GetRequiredService<AuthorizationForwardingHandler>();
+            forwardingHandler.InnerHandler = new HttpClientHandler();
+
+            var httpClient = new HttpClient(forwardingHandler);
+            if (srConfig?.BaseUrl is not null)
+                httpClient.BaseAddress = new Uri(srConfig.BaseUrl);
+
             return RestService.For<IServiceRequestAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IServiceRequestAdminBffRemoteCall)),
+                httpClient,
                 RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 

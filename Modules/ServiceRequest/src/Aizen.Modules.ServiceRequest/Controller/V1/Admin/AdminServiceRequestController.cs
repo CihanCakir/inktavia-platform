@@ -138,6 +138,18 @@ public sealed class AdminServiceRequestController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpPatch("{serviceRequestId:long}/work-logs/phases/{phaseNumber:int}")]
+    [ProducesResponseType(typeof(UpdateWorkPhaseResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<AizenApiResponse<UpdateWorkPhaseResponse?>> UpdateWorkPhase(
+        [FromRoute] long serviceRequestId, [FromRoute] int phaseNumber,
+        [FromBody] UpdateWorkPhaseRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<UpdateWorkPhaseResponse>(
+            new UpdateWorkPhaseCommand(serviceRequestId, phaseNumber, req), ct);
+        return SetResponse(result);
+    }
+
     [HttpPost("{serviceRequestId:long}/payment/release")]
     [ProducesResponseType(typeof(ReleasePaymentResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ReleasePaymentResponse?>> ReleasePayment(

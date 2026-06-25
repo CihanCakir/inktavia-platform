@@ -17,6 +17,11 @@ public sealed class WorkPhaseRepository : IWorkPhaseRepository
             .OrderBy(x => x.DisplayOrder)
             .ToListAsync(ct);
 
+    public async Task<WorkPhaseEntity?> GetByPhaseNumberAsync(long serviceRequestId, int phaseNumber, CancellationToken ct = default)
+        => await _db.WorkPhases
+            .Where(x => x.ServiceRequestId == serviceRequestId && x.PhaseNumber == phaseNumber && !x.IsDeleted)
+            .FirstOrDefaultAsync(ct);
+
     public Task AddAsync(WorkPhaseEntity entity, CancellationToken ct = default)
         => _db.WorkPhases.AddAsync(entity, ct).AsTask();
 

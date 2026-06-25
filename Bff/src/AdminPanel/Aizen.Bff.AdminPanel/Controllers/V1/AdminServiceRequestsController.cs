@@ -265,6 +265,17 @@ public sealed class ServiceRequestsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpPatch("service-requests/{serviceRequestId:long}/work-logs/phases/{phaseNumber:int}")]
+    [ProducesResponseType(typeof(UpdateWorkPhaseResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateWorkPhaseResponse>> UpdateWorkPhase(
+        long serviceRequestId, int phaseNumber, [FromBody] UpdateWorkPhaseRequest request, CancellationToken ct)
+    {
+        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
+        var result = await _cqrs.ProcessAsync(
+            new UpdateWorkPhaseAdminCommand(serviceRequestId, phaseNumber, request, userToken), ct);
+        return SetResponse(result);
+    }
+
     [HttpPost("service-requests/{serviceRequestId:long}/payment/release")]
     [ProducesResponseType(typeof(ReleasePaymentResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ReleasePaymentResponse>> ReleasePayment(

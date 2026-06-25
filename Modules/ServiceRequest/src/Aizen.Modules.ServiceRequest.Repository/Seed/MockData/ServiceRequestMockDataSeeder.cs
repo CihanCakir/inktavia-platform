@@ -8,6 +8,7 @@ using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
+using Aizen.Modules.ServiceRequest.Domain.Entities.WorkPhase;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -67,6 +68,7 @@ public sealed class ServiceRequestMockDataSeeder
         await SeedOffersAsync(basePath, ct);
         await SeedOfferItemsAsync(basePath, ct);
         await SeedAssignmentsAsync(basePath, ct);
+        await SeedWorkPhasesAsync(basePath, ct);
         await SeedWorkLogsAsync(basePath, ct);
         await SeedCompletionsAsync(basePath, ct);
         await SeedDisputesAsync(basePath, ct);
@@ -292,6 +294,34 @@ public sealed class ServiceRequestMockDataSeeder
         }
     }
 
+    private async Task SeedWorkPhasesAsync(string basePath, CancellationToken ct)
+    {
+        var filePath = Path.Combine(basePath, "work-phases.json");
+        if (!File.Exists(filePath)) { _logger.LogWarning("File not found: {Path}", filePath); return; }
+
+        await using var stream = File.OpenRead(filePath);
+        var models = await JsonSerializer.DeserializeAsync<List<MockWorkPhaseModel>>(stream, JsonOptions, ct) ?? [];
+
+        foreach (var model in models)
+        {
+            if (await _db.WorkPhases.AnyAsync(p => p.Id == model.Id, ct)) continue;
+
+            var entity = WorkPhaseEntity.Create(
+                serviceRequestId: model.ServiceRequestId,
+                phaseNumber: model.PhaseNumber,
+                title: model.Title,
+                displayOrder: model.DisplayOrder);
+
+            entity.Id = model.Id;
+            entity.UpdateProgress(model.ProgressPercent, model.Status);
+            entity.CreateDate = DateTime.UtcNow;
+            entity.ModifyDate = DateTime.UtcNow;
+            entity.IsDeleted = false;
+
+            await SaveEntityAsync(entity, _db.WorkPhases, ct, $"work phase {model.Id}");
+        }
+    }
+
     private async Task SeedWorkLogsAsync(string basePath, CancellationToken ct)
     {
         var filePath = Path.Combine(basePath, "service-request-worklogs.json");
@@ -449,7 +479,7 @@ public sealed class ServiceRequestMockDataSeeder
                     FOREACH tbl_name IN ARRAY ARRAY[
                         'servicerequests', 'servicerequestitems', 'servicerequestoffers',
                         'servicerequestofferitems', 'servicerequestassignments',
-                        'servicerequestworklogs', 'servicerequestcompletions',
+                        'workphases', 'servicerequestworklogs', 'servicerequestcompletions',
                         'servicerequestdisputes', 'servicerequestmessages',
                         'servicerequeststatushistories'
                     ] LOOP
@@ -517,6 +547,11 @@ public sealed class ServiceRequestMockDataSeeder
         int Status,
         DateTime? ScheduledStartDate, DateTime? ScheduledEndDate,
         DateTime? ActualStartDate, DateTime? ActualEndDate);
+
+    private sealed record MockWorkPhaseModel(
+        long Id, long ServiceRequestId,
+        int PhaseNumber, string Title,
+        int ProgressPercent, string Status, int DisplayOrder);
 
     private sealed record MockWorkLogModel(
         long Id, long ServiceRequestId, long ServiceRequestAssignmentId,

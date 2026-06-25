@@ -140,6 +140,14 @@ public interface IServiceRequestAdminBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallHeader("Authorization")] string authorization,
         [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
 
+    [AizenRemoteCallPatch("/api/v1/admin/service-requests/{serviceRequestId}/work-logs/phases/{phaseNumber}")]
+    Task<AizenApiResponse<UpdateWorkPhaseResponse>> UpdateAdminWorkPhase(
+        long serviceRequestId,
+        int phaseNumber,
+        [AizenRemoteCallBody] UpdateWorkPhaseRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+
     [AizenRemoteCallPost("/api/v1/admin/service-requests/{serviceRequestId}/payment/release")]
     Task<AizenApiResponse<ReleasePaymentResponse>> ReleaseServiceRequestPayment(
         long serviceRequestId,
