@@ -16,6 +16,7 @@
     <ProjectReference Include="../../../../Core/Validation/src/Aizen.Core.Validation/Aizen.Core.Validation.csproj" />
     <ProjectReference Include="../Aizen.Modules.Messaging.Repository/Aizen.Modules.Messaging.Repository.csproj" />
     <ProjectReference Include="../../../../Core/Realtime/src/Aizen.Core.Realtime.Abstraction/Aizen.Core.Realtime.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Messaging.Abstraction/Aizen.Modules.Messaging.Abstraction.csproj" />
   </ItemGroup>
 
 </Project>

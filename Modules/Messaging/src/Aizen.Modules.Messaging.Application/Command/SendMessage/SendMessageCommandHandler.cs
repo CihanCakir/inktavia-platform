@@ -148,6 +148,32 @@ public sealed class SendMessageCommandHandler
             }, CancellationToken.None);
         }
 
+        // Publish integration event for Notification module consumers
+        if (!request.IsInternalNote)
+        {
+            var recipientIds = conversation.Participants
+                .Where(p => p.UserId != currentUserId)
+                .Select(p => p.UserId)
+                .ToList();
+
+            if (recipientIds.Count > 0)
+            {
+                var publisher = _serviceProvider.GetRequiredService<Aizen.Core.Messagebus.Abstraction.Senders.IAizenMessagePublisher>();
+                await publisher.PublishAsync(new Aizen.Modules.Messaging.Abstraction.Message.MessagingMessageSentMessage
+                {
+                    ConversationId    = conversation.Id,
+                    ConversationTitle = conversation.Title,
+                    SenderUserId      = currentUserId,
+                    SenderName        = participant.DisplayName,
+                    ContextType       = conversation.ContextType,
+                    ContextId         = conversation.ContextId,
+                    RecipientUserIds  = recipientIds,
+                    IsInternalNote    = request.IsInternalNote,
+                    SentAt            = message.SentAt,
+                }, cancellationToken);
+            }
+        }
+
         return new SendMessageResponse(message.ToDto());
     }
 }

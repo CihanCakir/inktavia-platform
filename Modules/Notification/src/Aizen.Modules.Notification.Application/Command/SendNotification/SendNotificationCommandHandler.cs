@@ -1,0 +1,74 @@
+using Aizen.Core.CQRS.Handler;
+using Aizen.Modules.Notification.Domain.Entities;
+using Aizen.Modules.Notification.Domain.Interface.Repository;
+using Aizen.Modules.Notification.Domain.Interface.Service;
+using Microsoft.Extensions.Logging;
+
+namespace Aizen.Modules.Notification.Application.Command.SendNotification;
+
+public sealed class SendNotificationCommandHandler
+    : AizenCommandHandler<SendNotificationCommand, SendNotificationCommandResponse>
+{
+    private readonly INotificationRepository         _notificationRepository;
+    private readonly INotificationTemplateRepository _templateRepository;
+    private readonly INotificationDispatcher         _dispatcher;
+    private readonly ITemplateInterpolator           _interpolator;
+    private readonly ILogger<SendNotificationCommandHandler> _logger;
+
+    public SendNotificationCommandHandler(
+        INotificationRepository notificationRepository,
+        INotificationTemplateRepository templateRepository,
+        INotificationDispatcher dispatcher,
+        ITemplateInterpolator interpolator,
+        ILogger<SendNotificationCommandHandler> logger)
+    {
+        _notificationRepository = notificationRepository;
+        _templateRepository     = templateRepository;
+        _dispatcher             = dispatcher;
+        _interpolator           = interpolator;
+        _logger                 = logger;
+    }
+
+    public override async Task<SendNotificationCommandResponse?> Handle(
+        SendNotificationCommand request, CancellationToken cancellationToken)
+    {
+        var template = await _templateRepository
+            .GetActiveByTypeAndChannelAsync(request.Type, request.Channel, cancellationToken);
+
+        if (template is null)
+        {
+            _logger.LogWarning(
+                "No active notification template found for Type={Type} Channel={Channel}. Skipping.",
+                request.Type, request.Channel);
+            return new SendNotificationCommandResponse { NotificationId = 0, Dispatched = false };
+        }
+
+        var title = _interpolator.Interpolate(template.TitleTemplate, request.Variables);
+        var body  = _interpolator.Interpolate(template.BodyTemplate,  request.Variables);
+
+        var entity = NotificationEntity.Create(
+            request.RecipientUserId, request.Type, request.Channel,
+            template.TemplateCode, title, body, request.MetadataJson);
+
+        await _notificationRepository.AddAsync(entity, cancellationToken);
+
+        try
+        {
+            await _dispatcher.DispatchAsync(entity, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Dispatch failed for NotificationId={Id} Channel={Channel}",
+                entity.Id, request.Channel);
+            entity.MarkAsFailed();
+            await _notificationRepository.UpdateAsync(entity, cancellationToken);
+        }
+
+        return new SendNotificationCommandResponse
+        {
+            NotificationId = entity.Id,
+            Dispatched     = entity.Status == Abstraction.Enum.NotificationStatus.Sent,
+        };
+    }
+}

@@ -1,41 +1,38 @@
-var builder = WebApplication.CreateBuilder(args);
+using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.UnitOfWork.Extension;
+using Aizen.Core.Starter;
+using Aizen.Modules.Notification.Application;
+using Aizen.Modules.Notification.Application.Services;
+using Aizen.Modules.Notification.Hubs;
+using Aizen.Modules.Notification.Repository;
+using Aizen.Modules.Notification.Repository.Persistence;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
+{
+    Name        = "Notification",
+    Type        = AppType.Operation,
+    TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler }
+}, args);
+
+// ── Database ───────────────────────────────────────────────────────────────────
+builder.Services.AddAizenUnitOfWork<NotificationDbContext>(builder.Configuration, "Notification", options =>
+{
+    options.UseMigration      = true;
+    options.MigrationAssembly = "Aizen.Modules.Notification.Repository";
+});
+
+// ── Repository / Application ───────────────────────────────────────────────────
+builder.Services.AddNotificationRepository();
+builder.Services.AddNotificationApplicationServices();
+
+// ── SignalR ────────────────────────────────────────────────────────────────────
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IInAppNotificationPusher, NotificationHubPusher>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapHub<NotificationHub>("/hubs/notification");
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+await app.SeedNotificationAsync();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
