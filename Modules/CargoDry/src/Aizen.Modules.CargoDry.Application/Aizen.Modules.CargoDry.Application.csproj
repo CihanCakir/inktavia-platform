@@ -1,9 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.CargoDry.Domain/Aizen.Modules.CargoDry.Domain.csproj" />
+    <ProjectReference Include="../Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.CargoDry.Repository/Aizen.Modules.CargoDry.Repository.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.*" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
+    <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="StackExchange.Redis" Version="2.*" />
+  </ItemGroup>
 </Project>

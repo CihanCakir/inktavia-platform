@@ -1,41 +1,57 @@
-var builder = WebApplication.CreateBuilder(args);
+using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.UnitOfWork.Extension;
+using Aizen.Core.Starter;
+using Aizen.Modules.CargoDry.Application;
+using Aizen.Modules.CargoDry.Repository;
+using Aizen.Modules.CargoDry.Repository.Persistence;
+using Microsoft.AspNetCore.RateLimiting;
+using StackExchange.Redis;
+using System.Threading.RateLimiting;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
+{
+    Name        = "CargoDry",
+    Type        = AppType.Operation,
+    TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler },
+}, args);
+
+// ── Database ──────────────────────────────────────────────────────────────────
+builder.Services.AddAizenUnitOfWork<CargoDryDbContext>(builder.Configuration, "CargoDry", options =>
+{
+    options.UseMigration      = true;
+    options.MigrationAssembly = "Aizen.Modules.CargoDry.Repository";
+    options.UseLazyLoadingProxies = false;
+});
+
+// ── Repository + Application ──────────────────────────────────────────────────
+builder.Services.AddCargoDryRepository();
+builder.Services.AddCargoDryApplication();
+
+// ── Redis (IConnectionMultiplexer for ActivationTokenService JTI store) ───────
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+    ConnectionMultiplexer.Connect(
+        builder.Configuration["DistributedCache:Configuration"]
+            ?? "localhost:6379"));
+
+// ── Rate Limiting (10 req/min/IP on /validate) ────────────────────────────────
+builder.Services.AddRateLimiter(opts =>
+{
+    opts.AddSlidingWindowLimiter("validate-ip", limiter =>
+    {
+        limiter.PermitLimit          = 10;
+        limiter.Window               = TimeSpan.FromMinutes(1);
+        limiter.SegmentsPerWindow    = 6;
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiter.QueueLimit           = 0;
+    });
+    opts.RejectionStatusCode = 429;
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.UseRateLimiter();
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// ── Seed ──────────────────────────────────────────────────────────────────────
+await app.SeedCargoDryAsync();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

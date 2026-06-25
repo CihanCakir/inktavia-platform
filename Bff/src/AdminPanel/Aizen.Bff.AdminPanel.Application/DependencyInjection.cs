@@ -81,6 +81,40 @@ public static class DependencyInjection
                 RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 
+        services.AddTransient<IAdminCargoDryBffRemoteCall>(provider =>
+        {
+            var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
+            remoteCallConfigs.TryGetValue(nameof(IAdminCargoDryBffRemoteCall), out var cargoDryConfig);
+
+            var forwardingHandler = provider.GetRequiredService<AuthorizationForwardingHandler>();
+            forwardingHandler.InnerHandler = new HttpClientHandler();
+
+            var httpClient = new HttpClient(forwardingHandler);
+            if (cargoDryConfig?.BaseUrl is not null)
+                httpClient.BaseAddress = new Uri(cargoDryConfig.BaseUrl);
+
+            return RestService.For<IAdminCargoDryBffRemoteCall>(
+                httpClient,
+                RemoteCallBuilderExtensions.AizenRefitSettings);
+        });
+
+        services.AddTransient<INotificationBffRemoteCall>(provider =>
+        {
+            var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
+            remoteCallConfigs.TryGetValue(nameof(INotificationBffRemoteCall), out var notifConfig);
+
+            var forwardingHandler = provider.GetRequiredService<AuthorizationForwardingHandler>();
+            forwardingHandler.InnerHandler = new HttpClientHandler();
+
+            var httpClient = new HttpClient(forwardingHandler);
+            if (notifConfig?.BaseUrl is not null)
+                httpClient.BaseAddress = new Uri(notifConfig.BaseUrl);
+
+            return RestService.For<INotificationBffRemoteCall>(
+                httpClient,
+                RemoteCallBuilderExtensions.AizenRefitSettings);
+        });
+
         return services;
     }
 }

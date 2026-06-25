@@ -21,6 +21,8 @@ public enum NotificationType
     CargoDryKitActivated         = 300,
     CargoDryKitExpiringReminder  = 301,
     CargoDryKitExpired           = 302,
+    CargoDryKitRenewed           = 303,
+    CargoDryKitRevoked           = 304,
     ProfileApprovalDecision      = 400,
     AdminBroadcast               = 900,
 }

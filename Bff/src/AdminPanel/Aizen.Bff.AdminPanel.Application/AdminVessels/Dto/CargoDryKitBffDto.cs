@@ -2,14 +2,69 @@ using Aizen.Bff.AdminPanel.Application.Common;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 
-[DocumentationInfo("CargoDry kit BFF DTO", "Null-safe CargoDry kit activation data for vessel detail.")]
+[DocumentationInfo("CargoDry kit BFF DTO", "Full CargoDry kit data for the admin panel and vessel detail aggregation.")]
 public sealed class CargoDryKitBffDto
 {
-    public string? KitCode { get; set; }
-    public string? ProductName { get; set; }
-    public DateTime? ActivatedDate { get; set; }
-    public DateTime? ExpiryDate { get; set; }
-    public int? DaysUntilExpiry { get; set; }
-    public double? EfficiencyPercent { get; set; }
-    public string? Status { get; set; }
+    public long    Id                { get; init; }
+    public string  SerialNumber      { get; init; } = default!;
+    public string  KitCode           { get; init; } = default!;
+    public string  ProductCode       { get; init; } = default!;
+    public string  ProductName       { get; init; } = default!;
+    public string  BatchCode         { get; init; } = default!;
+    public string  Status            { get; init; } = default!;
+    public long?   OwnerUserId       { get; init; }
+    public string? OwnerDisplayName  { get; init; }
+    public long?   VesselId          { get; init; }
+    public string? VesselName        { get; init; }
+    public string? ActivatedDate     { get; init; }  // ISO string, formatted by UI
+    public string? ExpiryDate        { get; init; }
+    public double  EfficiencyPercent { get; init; }
+    public int     DaysUntilExpiry   { get; init; }
+    public int     RenewalCount      { get; init; }
+    public string  ManufacturedAt    { get; init; } = default!;
+}
+
+[DocumentationInfo("CargoDry kit list BFF DTO", "Paginated admin kit list response.")]
+public sealed class CargoDryKitListBffDto
+{
+    public List<CargoDryKitBffDto> Items    { get; init; } = [];
+    public int                     Total    { get; init; }
+    public int                     Page     { get; init; }
+    public int                     PageSize { get; init; }
+}
+
+[DocumentationInfo("CargoDry stats BFF DTO", "Aggregated kit statistics for the admin dashboard.")]
+public sealed class CargoDryStatsBffDto
+{
+    public int    TotalKits          { get; init; }
+    public int    AvailableKits      { get; init; }
+    public int    ActiveKits         { get; init; }
+    public int    ExpiringKits       { get; init; }
+    public int    ExpiredKits        { get; init; }
+    public int    RevokedKits        { get; init; }
+    public int    TodayActivations   { get; init; }
+    public int    TotalBatches       { get; init; }
+    public double RenewalRatePercent { get; init; }
+}
+
+[DocumentationInfo("CargoDry validation BFF DTO", "QR / serial validation result returned to the onboarding flow.")]
+public sealed class CargoDryValidationBffDto
+{
+    public bool    IsValid         { get; init; }
+    public string? InvalidReason   { get; init; }
+    public string? ProductName     { get; init; }
+    public string? ProductCode     { get; init; }
+    public int     ValidityDays    { get; init; }
+    public bool    HasSmartDevice  { get; init; }
+    public string? ActivationToken { get; init; }
+    public string? TokenExpiresAt  { get; init; }
+}
+
+[DocumentationInfo("Generate batch BFF result DTO", "Returned after admin generates a new kit batch.")]
+public sealed class GenerateBatchBffResultDto
+{
+    public string BatchCode      { get; init; } = default!;
+    public int    GeneratedCount { get; init; }
+    public string QrZipFileUrl   { get; init; } = default!;
+    public string ExcelFileUrl   { get; init; } = default!;
 }

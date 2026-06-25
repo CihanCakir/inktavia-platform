@@ -86,7 +86,22 @@ public sealed class NotificationTemplateSeed
         NotificationTemplateEntity.Create("CD_KIT_ACTIVATED_INAPP", "Kit Activated (In-App)",
             NotificationType.CargoDryKitActivated, NotificationChannel.InApp,
             "CargoDry Kit Activated",
-            "Your CargoDry kit {{kitCode}} has been successfully activated."),
+            "Your CargoDry kit {{kitCode}} ({{productName}}) has been successfully activated. Valid until {{expiryDate}}."),
+
+        NotificationTemplateEntity.Create("CD_KIT_EXPIRED_INAPP", "Kit Expired (In-App)",
+            NotificationType.CargoDryKitExpired, NotificationChannel.InApp,
+            "CargoDry Kit Expired",
+            "Your CargoDry kit {{kitCode}} has expired."),
+
+        NotificationTemplateEntity.Create("CD_KIT_RENEWED_INAPP", "Kit Renewed (In-App)",
+            NotificationType.CargoDryKitRenewed, NotificationChannel.InApp,
+            "CargoDry Kit Renewed",
+            "Kit {{kitCode}} renewed ({{renewalType}}). New expiry: {{newExpiryDate}}."),
+
+        NotificationTemplateEntity.Create("CD_KIT_REVOKED_INAPP", "Kit Revoked (In-App)",
+            NotificationType.CargoDryKitRevoked, NotificationChannel.InApp,
+            "CargoDry Kit Revoked",
+            "Kit {{kitCode}} has been revoked. Reason: {{reason}}."),
 
         NotificationTemplateEntity.Create("PROFILE_APPROVAL_DECISION_INAPP", "Profile Approval Decision (In-App)",
             NotificationType.ProfileApprovalDecision, NotificationChannel.InApp,
