@@ -1,18 +1,23 @@
 using Aizen.Core.Domain;
+using Aizen.Modules.CargoDry.Abstraction.Model;
 
 namespace Aizen.Modules.CargoDry.Domain.Entities;
 
-public sealed class CargoDryProductEntity : AizenEntity
+[DocumentationInfo("CargoDry Product entity",
+    "Defines a moisture protection kit product variant (e.g., Standard-90, Premium-180). " +
+    "Product catalog is managed by admin. ValidityDays drives kit expiry calculation on activation.")]
+public sealed class CargoDryProductEntity : AizenEntityWithAudit
 {
-    public string  ProductCode   { get; private set; } = default!;
-    public string  Name          { get; private set; } = default!;
-    public string  Description   { get; private set; } = default!;
-    public int     ValidityDays  { get; private set; }
-    public bool    HasSmartDevice{ get; private set; }
-    public decimal RetailPrice   { get; private set; }
-    public string  CurrencyCode  { get; private set; } = default!;
-    public bool    IsActive      { get; private set; }
-    public DateTimeOffset CreatedAt { get; private set; }
+    public string  ProductCode    { get; private set; } = default!;
+    public string  Name           { get; private set; } = default!;
+    public string  Description    { get; private set; } = default!;
+    public int     ValidityDays   { get; private set; }
+    public bool    HasSmartDevice { get; private set; }
+    public decimal RetailPrice    { get; private set; }
+    public string  CurrencyCode   { get; private set; } = default!;
+
+    // IsActive inherited from AizenEntityWithAudit — do NOT redeclare
+    // CreateDate inherited from AizenEntityWithAudit — do NOT redeclare
 
     private CargoDryProductEntity() { }
 
@@ -30,7 +35,6 @@ public sealed class CargoDryProductEntity : AizenEntity
             CurrencyCode   = currencyCode.ToUpperInvariant(),
             HasSmartDevice = hasSmartDevice,
             IsActive       = true,
-            CreatedAt      = DateTimeOffset.UtcNow,
         };
 
     public void SetActive(bool active) => IsActive = active;

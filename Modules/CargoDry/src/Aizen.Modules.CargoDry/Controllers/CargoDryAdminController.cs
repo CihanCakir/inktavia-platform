@@ -5,6 +5,7 @@ using Aizen.Modules.CargoDry.Application.Commands.RenewKit;
 using Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
 using Aizen.Modules.CargoDry.Application.Queries.GetAdminKitList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProductList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryStats;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryUsageReport;
 using MediatR;
@@ -134,6 +135,13 @@ public sealed class CargoDryAdminController : ControllerBase
         }
 
         return Ok(result.Report);
+    }
+
+    [HttpGet("products")]
+    public async Task<IActionResult> GetProducts(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetCargoDryProductListQuery(), ct);
+        return Ok(result);
     }
 
     [HttpGet("analytics")]

@@ -77,7 +77,7 @@ public sealed class GetCargoDryUsageReportQueryHandler
                 TotalKits     = allKits.Count(k => k.BatchCode == b.BatchCode),
                 ActivatedKits = allKits.Count(k => k.BatchCode == b.BatchCode && k.Status != CargoDryKitStatus.Available),
                 ExpiredKits   = allKits.Count(k => k.BatchCode == b.BatchCode && k.Status == CargoDryKitStatus.Expired),
-                CreatedAt     = b.CreatedAt,
+                CreatedAt     = b.CreateDate.HasValue ? new DateTimeOffset(b.CreateDate.Value, TimeSpan.Zero) : DateTimeOffset.MinValue,
             })
             .OrderByDescending(r => r.CreatedAt)
             .ToList();

@@ -14,12 +14,12 @@ public sealed class CargoDryBatchEntityConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(x => x.BatchCode).IsUnique();
         builder.Property(x => x.ProductCode).HasMaxLength(50).IsRequired();
         builder.Property(x => x.KitCount).IsRequired();
-        builder.Property(x => x.IsRevoked).IsRequired();
+        builder.Property(x => x.IsRevoked).IsRequired().HasDefaultValue(false);
         builder.Property(x => x.RevokeReason).HasMaxLength(500);
         builder.Property(x => x.QrZipFileRef).HasMaxLength(500);
         builder.Property(x => x.ExcelFileRef).HasMaxLength(500);
-        builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.RevokedAt);
         builder.Property(x => x.CreatedByAdminId).IsRequired();
+        // CreateDate / ModifyDate: from AizenEntityWithAudit — DO NOT re-map
     }
 }

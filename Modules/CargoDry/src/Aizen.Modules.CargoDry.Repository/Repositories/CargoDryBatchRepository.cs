@@ -14,14 +14,14 @@ public sealed class CargoDryBatchRepository : ICargoDryBatchRepository
         => _db.Batches.FirstOrDefaultAsync(x => x.BatchCode == batchCode, ct);
 
     public Task<List<CargoDryBatchEntity>> GetAllAsync(CancellationToken ct)
-        => _db.Batches.OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
+        => _db.Batches.OrderByDescending(x => x.CreateDate).ToListAsync(ct);
 
     public Task<List<CargoDryBatchEntity>> GetAllForReportAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct)
         => _db.Batches
             .AsNoTracking()
-            .Where(b => b.CreatedAt >= from && b.CreatedAt <= to)
-            .OrderByDescending(b => b.CreatedAt)
+            .Where(b => b.CreateDate >= from.UtcDateTime && b.CreateDate <= to.UtcDateTime)
+            .OrderByDescending(b => b.CreateDate)
             .ToListAsync(ct);
 
     public async Task AddAsync(CargoDryBatchEntity entity, CancellationToken ct)

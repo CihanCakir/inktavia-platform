@@ -15,6 +15,7 @@ public static class DependencyInjection
 
         services.AddHostedService<KitExpiryReminderJob>();
         services.AddHostedService<KitExpiredMarkingJob>();
+        services.AddHostedService<DailySnapshotJob>();
 
         return services;
     }

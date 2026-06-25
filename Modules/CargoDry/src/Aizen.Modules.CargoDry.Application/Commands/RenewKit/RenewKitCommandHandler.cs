@@ -1,9 +1,12 @@
+using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Message;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.RenewKit;
 
@@ -12,15 +15,18 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
     private readonly ICargoDryKitRepository     _kits;
     private readonly ICargoDryProductRepository _products;
     private readonly IAizenMessagePublisher     _publisher;
+    private readonly IAizenDistributedCache     _cache;
 
     public RenewKitCommandHandler(
         ICargoDryKitRepository kits,
         ICargoDryProductRepository products,
-        IAizenMessagePublisher publisher)
+        IAizenMessagePublisher publisher,
+        IAizenDistributedCache cache)
     {
         _kits      = kits;
         _products  = products;
         _publisher = publisher;
+        _cache     = cache;
     }
 
     public override async Task<CargoDryKitDto?> Handle(RenewKitCommand request, CancellationToken ct)
@@ -38,6 +44,9 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
             request.Type, request.PaymentRef, request.AdminUserId);
 
         await _kits.SaveChangesAsync(ct);
+
+        await _cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);
+        await _cache.RemoveAsync<GetCargoDryAnalyticsResponse>("cargodry:analytics:snapshot", ct);
 
         await _publisher.PublishAsync(new CargoDryKitRenewedMessage
         {

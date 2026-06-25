@@ -8,4 +8,7 @@
     <ProjectReference Include="../../../../Core/Domain/src/Aizen.Core.Domain/Aizen.Core.Domain.csproj" />
     <ProjectReference Include="../Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Bson" Version="2.*" />
+  </ItemGroup>
 </Project>

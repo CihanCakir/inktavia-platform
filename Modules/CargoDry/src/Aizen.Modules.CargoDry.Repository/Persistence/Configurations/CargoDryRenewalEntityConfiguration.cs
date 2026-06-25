@@ -15,9 +15,9 @@ public sealed class CargoDryRenewalEntityConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.RenewedAt).IsRequired();
         builder.Property(x => x.NewExpiresAt).IsRequired();
         builder.Property(x => x.AddedDays).IsRequired();
-        builder.Property(x => x.RenewalType).IsRequired();
+        builder.Property(x => x.RenewalType).HasConversion<int>().IsRequired();
         builder.Property(x => x.PaymentRef).HasMaxLength(200);
-        builder.Property(x => x.AdminUserId);
         builder.HasIndex(x => x.KitId);
+        builder.HasIndex(x => x.OwnerUserId);
     }
 }

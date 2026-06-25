@@ -1,31 +1,43 @@
+using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Abstraction.Message;
-using Aizen.Modules.CargoDry.Domain.Entities;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
+using Aizen.Modules.CargoDry.Domain.MongoDocuments;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.ActivateKit;
 
 public sealed class ActivateKitCommandHandler
     : AizenCommandHandler<ActivateKitCommand, CargoDryKitDto>
 {
-    private readonly IActivationTokenService    _tokenService;
-    private readonly ICargoDryKitRepository     _kits;
-    private readonly ICargoDryProductRepository _products;
-    private readonly IAizenMessagePublisher     _publisher;
+    private readonly IActivationTokenService          _tokenService;
+    private readonly ICargoDryKitRepository           _kits;
+    private readonly ICargoDryProductRepository       _products;
+    private readonly IAizenMessagePublisher           _publisher;
+    private readonly ICargoDryActivationLogRepository _activationLogs;
+    private readonly IAizenDistributedCache           _cache;
+    private readonly ILogger<ActivateKitCommandHandler> _logger;
 
     public ActivateKitCommandHandler(
         IActivationTokenService tokenService,
         ICargoDryKitRepository kits,
         ICargoDryProductRepository products,
-        IAizenMessagePublisher publisher)
+        IAizenMessagePublisher publisher,
+        ICargoDryActivationLogRepository activationLogs,
+        IAizenDistributedCache cache,
+        ILogger<ActivateKitCommandHandler> logger)
     {
-        _tokenService = tokenService;
-        _kits         = kits;
-        _products     = products;
-        _publisher    = publisher;
+        _tokenService   = tokenService;
+        _kits           = kits;
+        _products       = products;
+        _publisher      = publisher;
+        _activationLogs = activationLogs;
+        _cache          = cache;
+        _logger         = logger;
     }
 
     public override async Task<CargoDryKitDto?> Handle(ActivateKitCommand request, CancellationToken ct)
@@ -44,12 +56,34 @@ public sealed class ActivateKitCommandHandler
 
         kit.Activate(request.UserId, request.VesselId, product.ValidityDays);
 
-        var log = CargoDryActivationLogEntity.Create(
-            kit.Id, request.UserId, request.VesselId,
-            request.Method, request.Source,
-            request.DeviceInfo, request.IpAddress);
-
         await _kits.SaveChangesAsync(ct);
+
+        await _cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);
+        await _cache.RemoveAsync<GetCargoDryAnalyticsResponse>("cargodry:analytics:snapshot", ct);
+
+        var logDoc = new CargoDryActivationLogDocument
+        {
+            KitId            = kit.Id,
+            SerialNumber     = kit.SerialNumber,
+            KitCode          = kit.KitCode,
+            ProductCode      = kit.ProductCode,
+            BatchCode        = kit.BatchCode,
+            EventType        = "Activated",
+            OwnerUserId      = request.UserId,
+            VesselId         = request.VesselId,
+            ActivationMethod = request.Method.ToString(),
+            ActivationSource = request.Source.ToString(),
+            DeviceInfo       = request.DeviceInfo,
+            IpAddress        = request.IpAddress,
+            ExpiresAt        = kit.ExpiresAt,
+            OccurredAt       = DateTimeOffset.UtcNow,
+            DateKey          = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd"),
+        };
+
+        _ = _activationLogs.InsertAsync(logDoc, ct)
+            .ContinueWith(
+                t => _logger.LogError(t.Exception, "Failed to write activation log for Kit {KitId}", kit.Id),
+                TaskContinuationOptions.OnlyOnFaulted);
 
         await _publisher.PublishAsync(new CargoDryKitActivatedMessage
         {

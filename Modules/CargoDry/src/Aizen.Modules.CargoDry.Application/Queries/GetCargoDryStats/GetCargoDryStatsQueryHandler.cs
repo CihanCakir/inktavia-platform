@@ -1,3 +1,5 @@
+using Aizen.Core.Cache.Abstraction;
+using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
@@ -7,22 +9,34 @@ namespace Aizen.Modules.CargoDry.Application.Queries.GetCargoDryStats;
 public sealed class GetCargoDryStatsQueryHandler
     : AizenQueryHandler<GetCargoDryStatsQuery, CargoDryStatsDto>
 {
+    private const string CacheKey = "cargodry:stats:global";
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(2);
+
     private readonly ICargoDryKitRepository   _kits;
     private readonly ICargoDryBatchRepository _batches;
+    private readonly IAizenDistributedCache   _cache;
 
-    public GetCargoDryStatsQueryHandler(ICargoDryKitRepository kits, ICargoDryBatchRepository batches)
+    public GetCargoDryStatsQueryHandler(
+        ICargoDryKitRepository kits,
+        ICargoDryBatchRepository batches,
+        IAizenDistributedCache cache)
     {
         _kits    = kits;
         _batches = batches;
+        _cache   = cache;
     }
 
-    public override async Task<CargoDryStatsDto> Handle(GetCargoDryStatsQuery request, CancellationToken ct)
+    public override async Task<CargoDryStatsDto> Handle(
+        GetCargoDryStatsQuery request, CancellationToken ct)
     {
-        var stats   = await _kits.GetStatsAsync(ct);
-        var batches = await _batches.GetAllAsync(ct);
-        var activeBatchCount = batches.Count(b => !b.IsRevoked);
+        var (hit, cached) = await _cache.TryGetAsync<CargoDryStatsDto>(CacheKey, ct);
+        if (hit) return cached;
 
-        return new CargoDryStatsDto
+        var stats         = await _kits.GetStatsAsync(ct);
+        var batches       = await _batches.GetAllAsync(ct);
+        var activeBatches = batches.Count(b => !b.IsRevoked);
+
+        var result = new CargoDryStatsDto
         {
             TotalKits          = stats.Total,
             AvailableKits      = stats.Available,
@@ -31,8 +45,13 @@ public sealed class GetCargoDryStatsQueryHandler
             ExpiredKits        = stats.Expired,
             RevokedKits        = stats.Revoked,
             TodayActivations   = stats.TodayActivations,
-            TotalBatches       = activeBatchCount,
+            TotalBatches       = activeBatches,
             RenewalRatePercent = 0,
         };
+
+        await _cache.SetAsync(result, CacheKey,
+            new AizenCacheOptions { AbsoluteExpirationRelativeToNow = CacheTtl }, ct);
+
+        return result;
     }
 }

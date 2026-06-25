@@ -1,0 +1,44 @@
+{
+  "ConnectionStrings": {
+    "CargoDry": "Host=localhost;Port=5432;Database=aizen_cargodry;Username=postgres;Password=postgres;Pooling=true;MinPoolSize=1;MaxPoolSize=10",
+    "Redis": "localhost:6379,abortConnect=false,connectTimeout=3000",
+    "CargoDryMongo": "mongodb://localhost:27017"
+  },
+  "CargoDry": {
+    "ActivationTokenSecret": "local-dev-secret-must-be-at-least-32-chars!!",
+    "ActivationTokenTtlMinutes": 5,
+    "BatchKeys": {
+      "__comment": "Add dev batch keys here in format: BatchCode: Base64Key",
+      "202506-STAN-DEV1": "ZGV2LWJhdGNoLWtleS1mb3ItbG9jYWwtZGV2ZWxvcG1lbnQ="
+    },
+    "RateLimiting": {
+      "ValidateEndpoint": {
+        "PermitLimit": 100,
+        "WindowSeconds": 60
+      }
+    }
+  },
+  "RabbitMq": {
+    "Host": "localhost",
+    "VirtualHost": "/",
+    "Username": "guest",
+    "Password": "guest",
+    "Port": 5672
+  },
+  "MongoDb": {
+    "DatabaseName": "aizen_cargodry"
+  },
+  "DistributedCache": {
+    "Configuration": "localhost:6379,abortConnect=false"
+  },
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning",
+        "MongoDB.Driver": "Warning"
+      }
+    }
+  }
+}

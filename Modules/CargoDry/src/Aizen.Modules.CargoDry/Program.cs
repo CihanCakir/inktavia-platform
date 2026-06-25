@@ -1,3 +1,4 @@
+using Aizen.Core.Cache.Extension;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Starter;
@@ -5,6 +6,7 @@ using Aizen.Modules.CargoDry.Application;
 using Aizen.Modules.CargoDry.Repository;
 using Aizen.Modules.CargoDry.Repository.Persistence;
 using Microsoft.AspNetCore.RateLimiting;
+using MongoDB.Driver;
 using StackExchange.Redis;
 using System.Threading.RateLimiting;
 
@@ -15,7 +17,9 @@ var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
     TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler },
 }, args);
 
-// ── Database ──────────────────────────────────────────────────────────────────
+// ── Configuration (loaded by AizenApplicationBuilder from Configuration/{env}.json) ──────
+
+// ── PostgreSQL ────────────────────────────────────────────────────────────────
 builder.Services.AddAizenUnitOfWork<CargoDryDbContext>(builder.Configuration, "CargoDry", options =>
 {
     options.UseMigration      = true;
@@ -23,26 +27,44 @@ builder.Services.AddAizenUnitOfWork<CargoDryDbContext>(builder.Configuration, "C
     options.UseLazyLoadingProxies = false;
 });
 
-// ── Repository + Application ──────────────────────────────────────────────────
-builder.Services.AddCargoDryRepository();
+// ── MongoDB ───────────────────────────────────────────────────────────────────
+builder.Services.AddSingleton<IMongoClient>(_ =>
+    new MongoClient(builder.Configuration.GetConnectionString("CargoDryMongo")));
+
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var dbName = builder.Configuration["MongoDb:DatabaseName"] ?? "aizen_cargodry";
+    return client.GetDatabase(dbName);
+});
+
+// ── Repository (PostgreSQL + MongoDB) ─────────────────────────────────────────
+builder.Services.AddCargoDryRepository(builder.Configuration);
+
+// ── Application (CQRS handlers + jobs + services) ─────────────────────────────
 builder.Services.AddCargoDryApplication();
 
-// ── Redis (IConnectionMultiplexer for ActivationTokenService JTI store) ───────
+// ── Redis Cache (IAizenDistributedCache — required by cacheable handlers) ─────
+builder.Services.AddAizenCache(builder.Configuration);
+
+// ── Redis Connection (for ActivationTokenService JTI store) ──────────────────
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(
         builder.Configuration["DistributedCache:Configuration"]
             ?? "localhost:6379"));
 
-// ── Rate Limiting (10 req/min/IP on /validate) ────────────────────────────────
+// ── IP Rate Limiting ──────────────────────────────────────────────────────────
+var rateLimitConfig = builder.Configuration.GetSection("CargoDry:RateLimiting:ValidateEndpoint");
 builder.Services.AddRateLimiter(opts =>
 {
     opts.AddSlidingWindowLimiter("validate-ip", limiter =>
     {
-        limiter.PermitLimit          = 10;
-        limiter.Window               = TimeSpan.FromMinutes(1);
-        limiter.SegmentsPerWindow    = 6;
+        limiter.PermitLimit         = rateLimitConfig.GetValue<int>("PermitLimit", 10);
+        limiter.Window              = TimeSpan.FromSeconds(
+            rateLimitConfig.GetValue<int>("WindowSeconds", 60));
+        limiter.SegmentsPerWindow   = 6;
         limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        limiter.QueueLimit           = 0;
+        limiter.QueueLimit          = 0;
     });
     opts.RejectionStatusCode = 429;
 });
@@ -51,7 +73,7 @@ var app = builder.Build();
 
 app.UseRateLimiter();
 
-// ── Seed ──────────────────────────────────────────────────────────────────────
+// ── Seed + MongoDB Index Bootstrap ────────────────────────────────────────────
 await app.SeedCargoDryAsync();
 
 app.Run();

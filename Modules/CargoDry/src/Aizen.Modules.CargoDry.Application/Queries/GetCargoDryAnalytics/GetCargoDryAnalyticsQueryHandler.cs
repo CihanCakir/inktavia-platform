@@ -1,3 +1,5 @@
+using Aizen.Core.Cache.Abstraction;
+using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
@@ -8,33 +10,40 @@ namespace Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
 public sealed class GetCargoDryAnalyticsQueryHandler
     : AizenQueryHandler<GetCargoDryAnalyticsQuery, GetCargoDryAnalyticsResponse>
 {
+    private const string CacheKey = "cargodry:analytics:snapshot";
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
+
     private readonly ICargoDryKitRepository     _kits;
     private readonly ICargoDryProductRepository _products;
+    private readonly IAizenDistributedCache     _cache;
 
     public GetCargoDryAnalyticsQueryHandler(
         ICargoDryKitRepository kits,
-        ICargoDryProductRepository products)
+        ICargoDryProductRepository products,
+        IAizenDistributedCache cache)
     {
         _kits     = kits;
         _products = products;
+        _cache    = cache;
     }
 
     public override async Task<GetCargoDryAnalyticsResponse> Handle(
         GetCargoDryAnalyticsQuery request, CancellationToken ct)
     {
+        var (hit, cached) = await _cache.TryGetAsync<GetCargoDryAnalyticsResponse>(CacheKey, ct);
+        if (hit) return cached;
+
         var allKits  = await _kits.GetAllAsync(ct);
         var allProd  = await _products.GetAllActiveAsync(ct);
         var prodMap  = allProd.ToDictionary(p => p.ProductCode);
         var now      = DateTimeOffset.UtcNow;
 
-        // ── Status Distribution ───────────────────────────────────────────────
         var statusDist = allKits
             .GroupBy(k => k.Status.ToString())
             .ToDictionary(g => g.Key, g => g.Count());
 
-        // ── Daily Activations — last 30 days ──────────────────────────────────
         var thirtyAgo = now.AddDays(-30);
-        var daily = allKits
+        var daily     = allKits
             .Where(k => k.ActivatedAt >= thirtyAgo)
             .GroupBy(k => DateOnly.FromDateTime(k.ActivatedAt!.Value.UtcDateTime))
             .Select(g => new CargoDryDailyActivationPoint
@@ -46,9 +55,8 @@ public sealed class GetCargoDryAnalyticsQueryHandler
             .OrderBy(p => p.Date)
             .ToList();
 
-        // ── Efficiency Buckets (Activated kits only) ──────────────────────────
         var activeKits = allKits.Where(k => k.Status == CargoDryKitStatus.Activated).ToList();
-        var buckets = new Dictionary<string, int>
+        var buckets    = new Dictionary<string, int>
         {
             ["0–25%"]   = 0,
             ["25–50%"]  = 0,
@@ -62,7 +70,6 @@ public sealed class GetCargoDryAnalyticsQueryHandler
             buckets[key]++;
         }
 
-        // ── Product Mix ───────────────────────────────────────────────────────
         var productMix = allKits
             .GroupBy(k => k.ProductCode)
             .Select(g => new CargoDryProductMixRow
@@ -75,11 +82,7 @@ public sealed class GetCargoDryAnalyticsQueryHandler
             .OrderByDescending(r => r.TotalKits)
             .ToList();
 
-        // ── KPI Snapshot ──────────────────────────────────────────────────────
-        double avgEff = activeKits.Count > 0
-            ? activeKits.Average(k => k.EfficiencyPercent)
-            : 0d;
-
+        double avgEff      = activeKits.Count > 0 ? activeKits.Average(k => k.EfficiencyPercent) : 0d;
         var activatedTotal = allKits.Count(k => k.Status != CargoDryKitStatus.Available);
         var renewed        = allKits.Count(k => k.RenewalCount > 0);
         var expiring30     = allKits.Count(k =>
@@ -87,7 +90,7 @@ public sealed class GetCargoDryAnalyticsQueryHandler
             k.ExpiresAt.HasValue &&
             k.ExpiresAt.Value <= now.AddDays(30));
 
-        var dto = new CargoDryAnalyticsDto
+        var analytics = new CargoDryAnalyticsDto
         {
             StatusDistribution  = statusDist,
             DailyActivations    = daily,
@@ -103,6 +106,11 @@ public sealed class GetCargoDryAnalyticsQueryHandler
             ComputedAt          = now,
         };
 
-        return new GetCargoDryAnalyticsResponse { Analytics = dto };
+        var response = new GetCargoDryAnalyticsResponse { Analytics = analytics };
+
+        await _cache.SetAsync(response, CacheKey,
+            new AizenCacheOptions { AbsoluteExpirationRelativeToNow = CacheTtl }, ct);
+
+        return response;
     }
 }

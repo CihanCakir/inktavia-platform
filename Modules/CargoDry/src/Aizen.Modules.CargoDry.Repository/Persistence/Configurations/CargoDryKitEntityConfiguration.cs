@@ -20,9 +20,7 @@ public sealed class CargoDryKitEntityConfiguration : IEntityTypeConfiguration<Ca
         builder.Property(x => x.QrPayload).HasMaxLength(1000).IsRequired();
         builder.Property(x => x.ProductCode).HasMaxLength(50).IsRequired();
         builder.Property(x => x.BatchCode).HasMaxLength(30).IsRequired();
-        builder.Property(x => x.Status).IsRequired();
-        builder.Property(x => x.OwnerUserId);
-        builder.Property(x => x.VesselId);
+        builder.Property(x => x.Status).HasConversion<int>().IsRequired();
         builder.Property(x => x.ManufacturedAt).IsRequired();
         builder.Property(x => x.ActivatedAt);
         builder.Property(x => x.ExpiresAt);
@@ -30,6 +28,7 @@ public sealed class CargoDryKitEntityConfiguration : IEntityTypeConfiguration<Ca
         builder.Property(x => x.RevokeReason).HasMaxLength(500);
         builder.Property(x => x.RevokedAt);
 
+        // CRITICAL: Computed properties — NOT mapped to database
         builder.Ignore(x => x.EfficiencyPercent);
         builder.Ignore(x => x.DaysUntilExpiry);
 
@@ -37,5 +36,6 @@ public sealed class CargoDryKitEntityConfiguration : IEntityTypeConfiguration<Ca
         builder.HasIndex(x => new { x.VesselId, x.Status });
         builder.HasIndex(x => new { x.BatchCode, x.Status });
         builder.HasIndex(x => x.ExpiresAt);
+        // CreateDate / ModifyDate: from AizenEntityWithAudit
     }
 }

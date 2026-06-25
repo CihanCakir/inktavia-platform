@@ -10,4 +10,7 @@
     <ProjectReference Include="../Aizen.Modules.CargoDry.Domain/Aizen.Modules.CargoDry.Domain.csproj" />
     <ProjectReference Include="../Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.*" />
+  </ItemGroup>
 </Project>

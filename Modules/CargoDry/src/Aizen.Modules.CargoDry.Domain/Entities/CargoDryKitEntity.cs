@@ -1,24 +1,29 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Abstraction.Model;
 
 namespace Aizen.Modules.CargoDry.Domain.Entities;
 
-public sealed class CargoDryKitEntity : AizenEntity
+[DocumentationInfo("CargoDry Kit entity",
+    "The digital twin of a physical moisture protection kit. " +
+    "Status transitions are enforced through domain methods only. " +
+    "EfficiencyPercent and DaysUntilExpiry are computed properties — NOT mapped to the database.")]
+public sealed class CargoDryKitEntity : AizenEntityWithAudit
 {
-    public string            SerialNumber      { get; private set; } = default!;
-    public string            KitCode           { get; private set; } = default!;
-    public string            QrPayload         { get; private set; } = default!;
-    public string            ProductCode       { get; private set; } = default!;
-    public string            BatchCode         { get; private set; } = default!;
-    public CargoDryKitStatus Status            { get; private set; }
-    public long?             OwnerUserId       { get; private set; }
-    public long?             VesselId          { get; private set; }
-    public DateTimeOffset    ManufacturedAt    { get; private set; }
-    public DateTimeOffset?   ActivatedAt       { get; private set; }
-    public DateTimeOffset?   ExpiresAt         { get; private set; }
-    public int               RenewalCount      { get; private set; }
-    public string?           RevokeReason      { get; private set; }
-    public DateTimeOffset?   RevokedAt         { get; private set; }
+    public string            SerialNumber   { get; private set; } = default!;
+    public string            KitCode        { get; private set; } = default!;
+    public string            QrPayload      { get; private set; } = default!;
+    public string            ProductCode    { get; private set; } = default!;
+    public string            BatchCode      { get; private set; } = default!;
+    public CargoDryKitStatus Status         { get; private set; }
+    public long?             OwnerUserId    { get; private set; }
+    public long?             VesselId       { get; private set; }
+    public DateTimeOffset    ManufacturedAt { get; private set; }
+    public DateTimeOffset?   ActivatedAt    { get; private set; }
+    public DateTimeOffset?   ExpiresAt      { get; private set; }
+    public int               RenewalCount   { get; private set; }
+    public string?           RevokeReason   { get; private set; }
+    public DateTimeOffset?   RevokedAt      { get; private set; }
 
     private CargoDryKitEntity() { }
 
@@ -34,6 +39,7 @@ public sealed class CargoDryKitEntity : AizenEntity
             BatchCode      = batchCode,
             Status         = CargoDryKitStatus.Available,
             ManufacturedAt = DateTimeOffset.UtcNow,
+            IsActive       = true,
         };
 
     public void Activate(long userId, long vesselId, int validityDays)
@@ -79,11 +85,9 @@ public sealed class CargoDryKitEntity : AizenEntity
     public void Transfer(long newUserId, long newVesselId)
     {
         if (Status != CargoDryKitStatus.Activated)
-            throw new InvalidOperationException($"Only active kits can be transferred.");
-
+            throw new InvalidOperationException("Only active kits can be transferred.");
         OwnerUserId = newUserId;
         VesselId    = newVesselId;
-        Status      = CargoDryKitStatus.Activated;
     }
 
     public double EfficiencyPercent
