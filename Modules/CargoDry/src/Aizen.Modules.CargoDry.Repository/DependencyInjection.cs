@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MongoDB.Driver;
 
 namespace Aizen.Modules.CargoDry.Repository;
 
@@ -20,20 +19,14 @@ public static class DependencyInjection
         services.AddScoped<ICargoDryKitRepository,     CargoDryKitRepository>();
         services.AddScoped<ICargoDryBatchRepository,   CargoDryBatchRepository>();
         services.AddScoped<CargoDryProductSeed>();
+        services.AddScoped<CargoDryBatchMockSeed>();
 
         // ── MongoDB ────────────────────────────────────────────────────────────
-        services.AddSingleton<IMongoClient>(_ =>
-            new MongoClient(configuration.GetConnectionString("CargoDryMongo")));
-
-        services.AddScoped<IMongoDatabase>(sp =>
-        {
-            var client = sp.GetRequiredService<IMongoClient>();
-            var dbName = configuration["MongoDb:DatabaseName"] ?? "aizen_cargodry";
-            return client.GetDatabase(dbName);
-        });
-
+        // IMongoClient and IMongoDatabase are NOT registered here.
+        // AddAizenMongo() in Program.cs auto-discovers CargoDryMongoDbContext.
         services.AddScoped<ICargoDryActivationLogRepository, CargoDryActivationLogRepository>();
         services.AddScoped<ICargoDrySnapshotRepository,      CargoDrySnapshotRepository>();
+        services.AddScoped<CargoDryMongoIndexInitializer>();
 
         return services;
     }
@@ -45,10 +38,13 @@ public static class DependencyInjection
         var db      = scope.ServiceProvider.GetRequiredService<CargoDryDbContext>();
         var pending = await db.Database.GetPendingMigrationsAsync(ct);
         if (pending.Any()) await db.Database.MigrateAsync(ct);
-        var seeder  = scope.ServiceProvider.GetRequiredService<CargoDryProductSeed>();
-        await seeder.SeedAsync(ct);
+        var productSeeder = scope.ServiceProvider.GetRequiredService<CargoDryProductSeed>();
+        await productSeeder.SeedAsync(ct);
 
-        var mongoDb = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
-        await MongoIndexBootstrap.EnsureIndexesAsync(mongoDb, ct);
+        var batchSeeder = scope.ServiceProvider.GetRequiredService<CargoDryBatchMockSeed>();
+        await batchSeeder.SeedAsync(ct);
+
+        var mongoIndexer = scope.ServiceProvider.GetRequiredService<CargoDryMongoIndexInitializer>();
+        await mongoIndexer.InitializeAsync(ct);
     }
 }

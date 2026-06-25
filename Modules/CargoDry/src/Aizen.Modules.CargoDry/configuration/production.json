@@ -1,8 +1,13 @@
 {
   "ConnectionStrings": {
     "CargoDry": "#{ConnectionStrings_CargoDry}#",
-    "Redis": "#{ConnectionStrings_Redis}#",
-    "CargoDryMongo": "#{ConnectionStrings_CargoDryMongo}#"
+    "Redis": "#{ConnectionStrings_Redis}#"
+  },
+  "DatabaseSettings": {
+    "CargoDryMongo": {
+      "Type": "Mongo",
+      "ConnectionString": "#{DatabaseSettings_CargoDryMongo_ConnectionString}#"
+    }
   },
   "CargoDry": {
     "ActivationTokenSecret": "#{CargoDry_ActivationTokenSecret}#",
@@ -21,9 +26,6 @@
     "Username": "#{RabbitMq_Username}#",
     "Password": "#{RabbitMq_Password}#",
     "Port": 5672
-  },
-  "MongoDb": {
-    "DatabaseName": "#{MongoDb_DatabaseName}#"
   },
   "DistributedCache": {
     "Configuration": "#{ConnectionStrings_Redis}#"

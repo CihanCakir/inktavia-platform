@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
 
-public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitCommand, bool>
+public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitCommand, RevokeKitResponse>
 {
     private readonly ICargoDryKitRepository           _kits;
     private readonly IAizenMessagePublisher           _publisher;
@@ -31,7 +31,7 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
         _logger         = logger;
     }
 
-    public override async Task<bool> Handle(RevokeKitCommand request, CancellationToken ct)
+    public override async Task<RevokeKitResponse> Handle(RevokeKitCommand request, CancellationToken ct)
     {
         var kit = await _kits.GetByIdAsync(request.KitId, ct)
             ?? throw new InvalidOperationException($"Kit {request.KitId} not found");
@@ -70,6 +70,14 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
             Reason      = request.Reason,
         }, ct);
 
-        return true;
+        return new RevokeKitResponse
+        {
+            KitId        = kit.Id,
+            KitCode      = kit.KitCode,
+            SerialNumber = kit.SerialNumber,
+            Status       = kit.Status.ToString(),
+            Reason       = request.Reason,
+            RevokedAt    = DateTimeOffset.UtcNow,
+        };
     }
 }

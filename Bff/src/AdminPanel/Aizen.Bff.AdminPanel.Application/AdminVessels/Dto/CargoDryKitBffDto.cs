@@ -68,3 +68,51 @@ public sealed class GenerateBatchBffResultDto
     public string QrZipFileUrl   { get; init; } = default!;
     public string ExcelFileUrl   { get; init; } = default!;
 }
+
+/// <summary>Returned by revoke endpoint after REV-E (replaces bool)</summary>
+public sealed class RevokeKitBffResponse
+{
+    public long   KitId        { get; init; }
+    public string KitCode      { get; init; } = default!;
+    public string SerialNumber { get; init; } = default!;
+    public string Status       { get; init; } = default!;
+    public string Reason       { get; init; } = default!;
+    public string RevokedAt    { get; init; } = default!;
+}
+
+/// <summary>Product catalog item — GET /admin/products</summary>
+public sealed class CargoDryProductBffDto
+{
+    public long    Id             { get; init; }
+    public string  ProductCode    { get; init; } = default!;
+    public string  Name           { get; init; } = default!;
+    public string? Description    { get; init; }
+    public int     ValidityDays   { get; init; }
+    public bool    HasSmartDevice { get; init; }
+    public decimal RetailPrice    { get; init; }
+    public string  CurrencyCode   { get; init; } = default!;
+    public bool    IsActive       { get; init; }
+}
+
+/// <summary>Batch summary for batch history list</summary>
+public sealed class CargoDryBatchBffDto
+{
+    public long    Id               { get; init; }
+    public string  BatchCode        { get; init; } = default!;
+    public string  ProductCode      { get; init; } = default!;
+    public string  ProductName      { get; init; } = default!;
+    public int     TotalKits        { get; init; }
+    public string  GeneratedAt      { get; init; } = default!;
+    public bool    IsRevoked        { get; init; }
+    public string? QrZipFileRef     { get; init; }
+    public string? ExcelFileRef     { get; init; }
+    public long    CreatedByAdminId { get; init; }
+}
+
+public sealed class CargoDryBatchListBffDto
+{
+    public List<CargoDryBatchBffDto> Items    { get; init; } = [];
+    public int                       Total    { get; init; }
+    public int                       Page     { get; init; }
+    public int                       PageSize { get; init; }
+}

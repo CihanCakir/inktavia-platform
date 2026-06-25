@@ -15,63 +15,243 @@
   "ssoSessionMaxLifespan": 36000,
   "roles": {
     "realm": [
-      { "name": "mobile_user", "description": "Standard mobile application user" },
-      { "name": "customer_user", "description": "Customer panel user" },
-      { "name": "admin_user", "description": "Administrator with full access" },
-      { "name": "identity_read", "description": "Read access to Identity API" },
-      { "name": "identity_write", "description": "Write access to Identity API" },
-      { "name": "profile_read", "description": "Read access to Profile API" },
-      { "name": "profile_write", "description": "Write access to Profile API" },
-      { "name": "payment_read", "description": "Read access to Payment API" },
-      { "name": "payment_write", "description": "Write access to Payment API" },
-      { "name": "vessel_read", "description": "Read access to Vessel API" },
-      { "name": "vessel_write", "description": "Write access to Vessel API" },
-      { "name": "file_storage_read", "description": "Read access to FileStorage API" },
-      { "name": "file_storage_write", "description": "Write access to FileStorage API" },
-      { "name": "service_request_read", "description": "Read access to ServiceRequest API" },
-      { "name": "service_request_write", "description": "Write access to ServiceRequest API" },
-      { "name": "reference_data_read", "description": "Read access to ReferenceData API" },
-      { "name": "reference_data_write", "description": "Write access to ReferenceData API" }
+      {
+        "name": "mobile_user",
+        "description": "Standard mobile application user"
+      },
+      {
+        "name": "customer_user",
+        "description": "Customer panel user"
+      },
+      {
+        "name": "admin_user",
+        "description": "Administrator with full access"
+      },
+      {
+        "name": "identity_read",
+        "description": "Read access to Identity API"
+      },
+      {
+        "name": "identity_write",
+        "description": "Write access to Identity API"
+      },
+      {
+        "name": "profile_read",
+        "description": "Read access to Profile API"
+      },
+      {
+        "name": "profile_write",
+        "description": "Write access to Profile API"
+      },
+      {
+        "name": "payment_read",
+        "description": "Read access to Payment API"
+      },
+      {
+        "name": "payment_write",
+        "description": "Write access to Payment API"
+      },
+      {
+        "name": "vessel_read",
+        "description": "Read access to Vessel API"
+      },
+      {
+        "name": "vessel_write",
+        "description": "Write access to Vessel API"
+      },
+      {
+        "name": "file_storage_read",
+        "description": "Read access to FileStorage API"
+      },
+      {
+        "name": "file_storage_write",
+        "description": "Write access to FileStorage API"
+      },
+      {
+        "name": "service_request_read",
+        "description": "Read access to ServiceRequest API"
+      },
+      {
+        "name": "service_request_write",
+        "description": "Write access to ServiceRequest API"
+      },
+      {
+        "name": "reference_data_read",
+        "description": "Read access to ReferenceData API"
+      },
+      {
+        "name": "reference_data_write",
+        "description": "Write access to ReferenceData API"
+      }
     ],
     "client": {
       "identity-api": [
-        { "name": "identity.auth", "description": "Authenticate / token-exchange operations" },
-        { "name": "identity.read", "description": "Read identity data" },
-        { "name": "identity.write", "description": "Write / mutate identity data" },
-        { "name": "identity.admin", "description": "Full administrative access to Identity API" },
-        { "name": "identity.profile.read", "description": "Read user profile data" },
-        { "name": "identity.profile.approve", "description": "Approve pending user profiles" },
-        { "name": "identity.profile.reject", "description": "Reject pending user profiles" }
+        {
+          "name": "identity.auth",
+          "description": "Authenticate / token-exchange operations"
+        },
+        {
+          "name": "identity.read",
+          "description": "Read identity data"
+        },
+        {
+          "name": "identity.write",
+          "description": "Write / mutate identity data"
+        },
+        {
+          "name": "identity.admin",
+          "description": "Full administrative access to Identity API"
+        },
+        {
+          "name": "identity.profile.read",
+          "description": "Read user profile data"
+        },
+        {
+          "name": "identity.profile.approve",
+          "description": "Approve pending user profiles"
+        },
+        {
+          "name": "identity.profile.reject",
+          "description": "Reject pending user profiles"
+        }
       ],
       "reference-data-api": [
-        { "name": "reference-data.read", "description": "Read reference data" },
-        { "name": "reference-data.write", "description": "Write reference data" },
-        { "name": "reference-data.lookup.manage", "description": "Manage lookup tables" },
-        { "name": "reference-data.location.read", "description": "Read location reference data" },
-        { "name": "reference-data.currency.manage", "description": "Manage currency data" }
+        {
+          "name": "reference-data.read",
+          "description": "Read reference data"
+        },
+        {
+          "name": "reference-data.write",
+          "description": "Write reference data"
+        },
+        {
+          "name": "reference-data.lookup.manage",
+          "description": "Manage lookup tables"
+        },
+        {
+          "name": "reference-data.location.read",
+          "description": "Read location reference data"
+        },
+        {
+          "name": "reference-data.currency.manage",
+          "description": "Manage currency data"
+        }
       ],
       "vessel-api": [
-        { "name": "vessel.read", "description": "Read vessel data" },
-        { "name": "vessel.write", "description": "Write / mutate vessel data" },
-        { "name": "vessel.admin", "description": "Full administrative access to Vessel API" },
-        { "name": "vessel.document.manage", "description": "Manage vessel documents" },
-        { "name": "vessel.ownership.manage", "description": "Manage vessel ownership records" }
+        {
+          "name": "vessel.read",
+          "description": "Read vessel data"
+        },
+        {
+          "name": "vessel.write",
+          "description": "Write / mutate vessel data"
+        },
+        {
+          "name": "vessel.admin",
+          "description": "Full administrative access to Vessel API"
+        },
+        {
+          "name": "vessel.document.manage",
+          "description": "Manage vessel documents"
+        },
+        {
+          "name": "vessel.ownership.manage",
+          "description": "Manage vessel ownership records"
+        }
       ],
       "file-storage-api": [
-        { "name": "file.read", "description": "Read file metadata" },
-        { "name": "file.write", "description": "Upload / write files" },
-        { "name": "file.delete", "description": "Delete files" },
-        { "name": "file.read-url.create", "description": "Generate pre-signed read URLs" },
-        { "name": "file.upload-url.create", "description": "Generate pre-signed upload URLs" },
-        { "name": "file.visibility.manage", "description": "Manage public/private access policy" }
+        {
+          "name": "file.read",
+          "description": "Read file metadata"
+        },
+        {
+          "name": "file.write",
+          "description": "Upload / write files"
+        },
+        {
+          "name": "file.delete",
+          "description": "Delete files"
+        },
+        {
+          "name": "file.read-url.create",
+          "description": "Generate pre-signed read URLs"
+        },
+        {
+          "name": "file.upload-url.create",
+          "description": "Generate pre-signed upload URLs"
+        },
+        {
+          "name": "file.visibility.manage",
+          "description": "Manage public/private access policy"
+        }
       ],
       "service-request-api": [
-        { "name": "service-request.read", "description": "Read service requests" },
-        { "name": "service-request.write", "description": "Create / update service requests" },
-        { "name": "service-request.admin", "description": "Full administrative access to ServiceRequest API" },
-        { "name": "service-request.assignment.manage", "description": "Manage assignment of service requests" },
-        { "name": "service-request.dispute.manage", "description": "Manage service request disputes" },
-        { "name": "service-request.completion.manage", "description": "Manage service request completion flow" }
+        {
+          "name": "service-request.read",
+          "description": "Read service requests"
+        },
+        {
+          "name": "service-request.write",
+          "description": "Create / update service requests"
+        },
+        {
+          "name": "service-request.admin",
+          "description": "Full administrative access to ServiceRequest API"
+        },
+        {
+          "name": "service-request.assignment.manage",
+          "description": "Manage assignment of service requests"
+        },
+        {
+          "name": "service-request.dispute.manage",
+          "description": "Manage service request disputes"
+        },
+        {
+          "name": "service-request.completion.manage",
+          "description": "Manage service request completion flow"
+        }
+      ],
+      "cargodry-api": [
+        {
+          "name": "cargodry.read",
+          "description": "Read CargoDry kits and activation data"
+        },
+        {
+          "name": "cargodry.write",
+          "description": "Create and update CargoDry kits"
+        },
+        {
+          "name": "cargodry.admin",
+          "description": "Full CargoDry administration access"
+        }
+      ],
+      "messaging-api": [
+        {
+          "name": "messaging.read",
+          "description": "Read messages and threads"
+        },
+        {
+          "name": "messaging.write",
+          "description": "Send and manage messages"
+        },
+        {
+          "name": "messaging.admin",
+          "description": "Full messaging administration access"
+        }
+      ],
+      "notification-api": [
+        {
+          "name": "notification.read",
+          "description": "Read notification templates and history"
+        },
+        {
+          "name": "notification.write",
+          "description": "Create and send notifications"
+        },
+        {
+          "name": "notification.admin",
+          "description": "Full notification administration access"
+        }
       ]
     }
   },
@@ -168,7 +348,9 @@
         "com.inktavia.mobile://auth/callback",
         "http://localhost:19006/auth/callback"
       ],
-      "webOrigins": ["+"],
+      "webOrigins": [
+        "+"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
@@ -237,6 +419,45 @@
             "included.client.audience": "reference-data-api",
             "id.token.claim": "false",
             "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-cargodry-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "cargodry-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-messaging-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "messaging-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-notification-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "notification-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
           }
         }
       ]
@@ -338,6 +559,45 @@
             "included.client.audience": "reference-data-api",
             "id.token.claim": "false",
             "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-cargodry-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "cargodry-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-messaging-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "messaging-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-notification-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "notification-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
           }
         }
       ]
@@ -442,8 +702,80 @@
             "userinfo.token.claim": "false",
             "introspection.token.claim": "true"
           }
+        },
+        {
+          "name": "audience-cargodry-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "cargodry-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-messaging-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "messaging-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-notification-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "notification-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
         }
       ]
+    },
+    {
+      "clientId": "cargodry-api",
+      "name": "CargoDry API",
+      "description": "Resource server for CargoDry API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "messaging-api",
+      "name": "Messaging API",
+      "description": "Resource server for Messaging API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "notification-api",
+      "name": "Notification API",
+      "description": "Resource server for Notification API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
     }
   ],
   "users": [
@@ -471,7 +803,19 @@
         "service_request_read",
         "service_request_write",
         "reference_data_read"
-      ]
+      ],
+      "clientRoles": {
+        "cargodry-api": [
+          "cargodry.read"
+        ],
+        "messaging-api": [
+          "messaging.read",
+          "messaging.write"
+        ],
+        "notification-api": [
+          "notification.read"
+        ]
+      }
     },
     {
       "username": "customer.user@inktavia.com",
@@ -497,7 +841,19 @@
         "service_request_read",
         "service_request_write",
         "reference_data_read"
-      ]
+      ],
+      "clientRoles": {
+        "cargodry-api": [
+          "cargodry.read"
+        ],
+        "messaging-api": [
+          "messaging.read",
+          "messaging.write"
+        ],
+        "notification-api": [
+          "notification.read"
+        ]
+      }
     },
     {
       "username": "admin.user@inktavia.com",
@@ -529,7 +885,24 @@
         "service_request_write",
         "reference_data_read",
         "reference_data_write"
-      ]
+      ],
+      "clientRoles": {
+        "cargodry-api": [
+          "cargodry.read",
+          "cargodry.write",
+          "cargodry.admin"
+        ],
+        "messaging-api": [
+          "messaging.read",
+          "messaging.write",
+          "messaging.admin"
+        ],
+        "notification-api": [
+          "notification.read",
+          "notification.write",
+          "notification.admin"
+        ]
+      }
     },
     {
       "username": "service-account-admin-panel-bff",
@@ -574,8 +947,24 @@
           "service-request.assignment.manage",
           "service-request.dispute.manage",
           "service-request.completion.manage"
+        ],
+        "cargodry-api": [
+          "cargodry.read",
+          "cargodry.write",
+          "cargodry.admin"
+        ],
+        "messaging-api": [
+          "messaging.read",
+          "messaging.write",
+          "messaging.admin"
+        ],
+        "notification-api": [
+          "notification.read",
+          "notification.write",
+          "notification.admin"
         ]
-      }
+      },
+      "realmRoles": []
     }
   ]
 }

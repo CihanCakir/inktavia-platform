@@ -1,18 +1,21 @@
-using MongoDB.Bson.Serialization.Attributes;
+using Aizen.Core.Data.Mongo.Attributes;
+using Aizen.Core.Data.Mongo.Document;
 
 namespace Aizen.Modules.CargoDry.Domain.MongoDocuments;
 
 /// <summary>
 /// Daily aggregated analytics snapshot computed by DailySnapshotJob.
 /// One document per calendar date. Upserted daily at 00:05 UTC.
+/// DateKey is the business unique key (unique index enforced).
+/// Id is a standard ObjectId (from AizenDocumentBase).
 /// </summary>
-public sealed class CargoDryKitUsageSnapshotDocument
+[AizenCollectionInfo(CollectionName = "cargodry_usage_snapshots")]
+public sealed class CargoDryKitUsageSnapshotDocument : AizenDocumentBase
 {
-    [BsonId]
-    [BsonRepresentation(MongoDB.Bson.BsonType.String)]
-    public string Id { get; set; } = default!;   // DateKey: "2026-06-25"
+    // AizenDocumentBase provides Id (ObjectId) and IsDeleted.
+    // DateKey is the business key — unique index defined in CargoDryMongoIndexInitializer.
 
-    public string DateKey       { get; set; } = default!;
+    public string DateKey        { get; set; } = default!;
     public DateTimeOffset ComputedAt { get; set; }
 
     public int Activations  { get; set; }

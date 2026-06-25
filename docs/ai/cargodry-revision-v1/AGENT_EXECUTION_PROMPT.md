@@ -84,6 +84,20 @@ Changes:
 
 ---
 
+### REV-E — Response Model Standardization (run after REV-D)
+**File:** `PROMPT_REV_E_RESPONSE_MODELS.md`
+
+Changes:
+- `RevokeKitCommand<bool>` → `RevokeKitCommand<RevokeKitResponse>` (create `RevokeKitResponse` DTO)
+- `GetMyKitsQuery<List<CargoDryKitDto>>` → `GetMyKitsQuery<GetMyKitsResponse>` (create `GetMyKitsResponse` with aggregate counters)
+- Update both handlers to return the new response types
+- Update controller endpoints accordingly
+- Verify zero `AizenCommand<bool>` or `AizenQuery<List<` patterns remain
+
+**Estimated files changed:** 6 files (2 new, 4 modified)
+
+---
+
 ## Final Verification
 
 After all 4 prompts are complete:

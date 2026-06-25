@@ -1,4 +1,5 @@
 using Aizen.Core.Cache.Extension;
+using Aizen.Core.Data.Mongo.Extensions;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Starter;
@@ -6,7 +7,6 @@ using Aizen.Modules.CargoDry.Application;
 using Aizen.Modules.CargoDry.Repository;
 using Aizen.Modules.CargoDry.Repository.Persistence;
 using Microsoft.AspNetCore.RateLimiting;
-using MongoDB.Driver;
 using StackExchange.Redis;
 using System.Threading.RateLimiting;
 
@@ -28,15 +28,7 @@ builder.Services.AddAizenUnitOfWork<CargoDryDbContext>(builder.Configuration, "C
 });
 
 // ── MongoDB ───────────────────────────────────────────────────────────────────
-builder.Services.AddSingleton<IMongoClient>(_ =>
-    new MongoClient(builder.Configuration.GetConnectionString("CargoDryMongo")));
-
-builder.Services.AddScoped<IMongoDatabase>(sp =>
-{
-    var client = sp.GetRequiredService<IMongoClient>();
-    var dbName = builder.Configuration["MongoDb:DatabaseName"] ?? "aizen_cargodry";
-    return client.GetDatabase(dbName);
-});
+builder.Services.AddAizenMongo(builder.Configuration);
 
 // ── Repository (PostgreSQL + MongoDB) ─────────────────────────────────────────
 builder.Services.AddCargoDryRepository(builder.Configuration);

@@ -65,11 +65,42 @@ public sealed class AdminCargoDryController : AizenWebApiController
 
     /// <summary>POST /api/v1/admin-panel/cargodry/kits/{id}/revoke</summary>
     [HttpPost("kits/{id:long}/revoke")]
-    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<bool>> RevokeKit(
+    [ProducesResponseType(typeof(RevokeKitBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RevokeKitBffResponse>> RevokeKit(
         long id, [FromBody] RevokeKitBffRequest request, CancellationToken ct)
     {
         var result = await _cargoDry.RevokeKitAsync(id, request, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/products</summary>
+    [HttpGet("products")]
+    [ProducesResponseType(typeof(List<CargoDryProductBffDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CargoDryProductBffDto>>> GetProducts(CancellationToken ct)
+    {
+        var result = await _cargoDry.GetProductsAsync(ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/batches</summary>
+    [HttpGet("batches")]
+    [ProducesResponseType(typeof(CargoDryBatchListBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryBatchListBffDto>> GetBatches(
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cargoDry.GetBatchesAsync(page, pageSize, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/kits/{id}/renew</summary>
+    [HttpPost("kits/{id:long}/renew")]
+    [ProducesResponseType(typeof(CargoDryKitBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryKitBffDto>> RenewKit(
+        long id, [FromBody] RenewKitBffRequest request, CancellationToken ct)
+    {
+        var result = await _cargoDry.RenewKitAsync(id, request, ct);
         return SetResponse(result);
     }
 

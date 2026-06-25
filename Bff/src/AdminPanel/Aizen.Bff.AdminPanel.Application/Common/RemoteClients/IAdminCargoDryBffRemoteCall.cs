@@ -28,9 +28,24 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         CancellationToken ct = default);
 
     [Post("/api/v1/cargodry/admin/kits/{id}/revoke")]
-    Task<bool> RevokeKitAsync(
+    Task<RevokeKitBffResponse> RevokeKitAsync(
         long id,
         [Body] RevokeKitBffRequest request,
+        CancellationToken ct = default);
+
+    [Get("/api/v1/cargodry/admin/products")]
+    Task<List<CargoDryProductBffDto>> GetProductsAsync(CancellationToken ct = default);
+
+    [Get("/api/v1/cargodry/admin/batches")]
+    Task<CargoDryBatchListBffDto> GetBatchesAsync(
+        [Query] int page     = 1,
+        [Query] int pageSize = 25,
+        CancellationToken ct = default);
+
+    [Post("/api/v1/cargodry/admin/kits/{id}/renew")]
+    Task<CargoDryKitBffDto> RenewKitAsync(
+        long id,
+        [Body] RenewKitBffRequest request,
         CancellationToken ct = default);
 
     [Post("/api/v1/cargodry/admin/kits/{id}/extend")]
@@ -88,6 +103,12 @@ public sealed class RevokeKitBffRequest
 public sealed class ExtendKitBffRequest
 {
     public int AddedDays { get; init; }
+}
+
+public sealed class RenewKitBffRequest
+{
+    public int     AddedDays  { get; init; }
+    public string? PaymentRef { get; init; }
 }
 
 public sealed class ValidateKitBffRequest

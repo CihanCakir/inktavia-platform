@@ -18,6 +18,7 @@
     <ProjectReference Include="../../../../Modules/ServiceRequest/src/Aizen.Modules.ServiceRequest.Abstraction/Aizen.Modules.ServiceRequest.Abstraction.csproj" />
     <ProjectReference Include="../../../../Modules/ReferenceData/src/Aizen.Modules.ReferenceData.Abstraction/Aizen.Modules.ReferenceData.Abstraction.csproj" />
     <ProjectReference Include="../../../../Modules/Notification/src/Aizen.Modules.Notification.Abstraction/Aizen.Modules.Notification.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/Messaging/src/Aizen.Modules.Messaging.Abstraction/Aizen.Modules.Messaging.Abstraction.csproj" />
     <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache.Abstraction/Aizen.Core.Cache.Abstraction.csproj" />
     <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache/Aizen.Core.Cache.csproj" />
   </ItemGroup>

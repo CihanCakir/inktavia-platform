@@ -5,6 +5,7 @@ using Aizen.Modules.CargoDry.Application.Commands.RenewKit;
 using Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
 using Aizen.Modules.CargoDry.Application.Queries.GetAdminKitList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryBatchList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProductList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryStats;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryUsageReport;
@@ -144,6 +145,33 @@ public sealed class CargoDryAdminController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("batches")]
+    public async Task<IActionResult> GetBatches(
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(
+            new GetCargoDryBatchListQuery { Page = page, PageSize = pageSize }, ct);
+        return Ok(result);
+    }
+
+    [HttpPost("kits/{id:long}/renew")]
+    public async Task<IActionResult> RenewKit(
+        long id, [FromBody] RenewKitRequest request, CancellationToken ct)
+    {
+        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
+        var result  = await _sender.Send(new RenewKitCommand
+        {
+            KitId       = id,
+            AddedDays   = request.AddedDays,
+            PaymentRef  = request.PaymentRef,
+            Type        = RenewalType.AdminExtension,
+            AdminUserId = adminId,
+        }, ct);
+        return Ok(result);
+    }
+
     [HttpGet("analytics")]
     public async Task<IActionResult> GetAnalytics(CancellationToken ct)
     {
@@ -176,4 +204,10 @@ public sealed class RevokeKitRequest
 public sealed class ExtendKitRequest
 {
     public int AddedDays { get; init; }
+}
+
+public sealed class RenewKitRequest
+{
+    public int     AddedDays  { get; init; }
+    public string? PaymentRef { get; init; }
 }

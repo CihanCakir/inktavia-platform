@@ -20,16 +20,6 @@ public sealed class AdminInactiveModulesController : AizenWebApiController
     public AdminInactiveModulesController(IHttpContextAccessor httpContextAccessor)
         : base(httpContextAccessor) { }
 
-    // ─── Notification templates ───────────────────────────────────────────────
-
-    [HttpGet("notification-templates")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult GetNotificationTemplates() => NotImplementedEnvelope("Notification");
-
-    [HttpPost("notification-templates")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult CreateNotificationTemplate() => NotImplementedEnvelope("Notification");
-
     // ─── Payment ─────────────────────────────────────────────────────────────
 
     [HttpGet("payments/transactions")]

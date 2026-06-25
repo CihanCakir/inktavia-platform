@@ -6,9 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../Core/Domain/src/Aizen.Core.Domain/Aizen.Core.Domain.csproj" />
+    <ProjectReference Include="../../../../Core/Data/src/Aizen.Core.Data.Mongo/Aizen.Core.Data.Mongo.csproj" />
     <ProjectReference Include="../Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MongoDB.Bson" Version="2.*" />
   </ItemGroup>
 </Project>

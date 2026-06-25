@@ -115,6 +115,38 @@ public static class DependencyInjection
                 RemoteCallBuilderExtensions.AizenRefitSettings);
         });
 
+        services.AddTransient<IAdminMessagingBffRemoteCall>(provider =>
+        {
+            var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
+            remoteCallConfigs.TryGetValue(nameof(IAdminMessagingBffRemoteCall), out var messagingConfig);
+
+            var forwardingHandler = provider.GetRequiredService<AuthorizationForwardingHandler>();
+            forwardingHandler.InnerHandler = new HttpClientHandler();
+
+            var httpClient = new HttpClient(forwardingHandler);
+            if (messagingConfig?.BaseUrl is not null)
+                httpClient.BaseAddress = new Uri(messagingConfig.BaseUrl);
+
+            return RestService.For<IAdminMessagingBffRemoteCall>(
+                httpClient,
+                RemoteCallBuilderExtensions.AizenRefitSettings);
+        });
+
+        services.AddTransient<INotificationAdminBffRemoteCall>(provider =>
+        {
+            var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
+            // Key matches docker-compose: RemoteCalls__IAdminNotificationBffRemoteCall__BaseUrl
+            remoteCallConfigs.TryGetValue("IAdminNotificationBffRemoteCall", out var notifAdminConfig);
+
+            var httpClient = new HttpClient();
+            if (notifAdminConfig?.BaseUrl is not null)
+                httpClient.BaseAddress = new Uri(notifAdminConfig.BaseUrl);
+
+            return RestService.For<INotificationAdminBffRemoteCall>(
+                httpClient,
+                RemoteCallBuilderExtensions.AizenRefitSettings);
+        });
+
         return services;
     }
 }
