@@ -44,7 +44,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity
             if (string.IsNullOrWhiteSpace(request.Reason))
                 throw new AizenBusinessException("Reject reason must be provided.");
 
-            profile.Reject(request.Reason);
+            profile.Reject(request.Reason, request.ReasonCategory, request.InternalNote, request.ReviewedBy);
             _profileRepo.UpdateProfileAsync(profile);
 
             return new VenueOrganizationRegistrationResponse(
@@ -57,7 +57,10 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity
                 ApprovedAt: profile.ApprovedAt,
                 RejectedAt: profile.RejectedAt,
                 RejectReason: profile.RejectReason,
-                Message: "Venue profile rejected."
+                Message: "Venue profile rejected.",
+                ReviewedBy: profile.ReviewedBy,
+                ReviewedAt: profile.ReviewedAt?.ToString("O"),
+                RejectionCategory: profile.RejectionCategory
             );
         }
     }

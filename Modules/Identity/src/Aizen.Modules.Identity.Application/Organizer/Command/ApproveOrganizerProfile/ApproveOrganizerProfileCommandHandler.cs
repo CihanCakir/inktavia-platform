@@ -35,7 +35,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
                 throw new AizenBusinessException(((int)AizenErrorCode.ProfileAlreadyRejected).ToString());
 
             // 1) Profil onayla
-            profile.Approve();
+            profile.Approve(request.ReviewedBy);
             _profileRepo.UpdateProfileAsync(profile);
 
             // 2) Kullanıcı aktif profilini bu profile set et
@@ -55,7 +55,9 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
                 ApprovedAt: profile.ApprovedAt,
                 RejectedAt: profile.RejectedAt,
                 RejectReason: profile.RejectReason,
-                Message: "Organizer profile approved and set as active."
+                Message: "Organizer profile approved and set as active.",
+                ReviewedBy: profile.ReviewedBy,
+                ReviewedAt: profile.ReviewedAt?.ToString("O")
             );
         }
     }

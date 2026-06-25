@@ -1,0 +1,34 @@
+{
+  "packageName": "vessel-list-final-enrichment-fix-copilot-package",
+  "project": "Inktavia Marine OS",
+  "target": "AdminPanel BFF + Vessel Module + Identity Bulk Owner Enrichment",
+  "language": "en",
+  "createdFor": "Fix final backend/BFF gaps in Vessel list response",
+  "entrypoint": "RUN_THIS_FIRST_SINGLE_PROMPT.md",
+  "sourceRules": [
+    "Current source code is the source of truth.",
+    "All business IDs are long / long?, not Guid.",
+    "BFF performs cross-module enrichment; Vessel module only exposes vessel-owned fields and owner IDs.",
+    "No frontend code changes are allowed in this package.",
+    "No N+1 Identity calls are allowed."
+  ],
+  "expectedReports": [
+    "docs/reports/vessel-list-final-enrichment-fix-report.md",
+    "docs/reports/vessel-owner-identity-bulk-runtime-validation-report.md",
+    "docs/reports/vessel-operational-asset-status-fix-report.md",
+    "docs/reports/vessel-location-seed-coverage-fix-report.md",
+    "docs/reports/vessel-thumbnail-covermedia-gap-report.md",
+    "docs/reports/vessel-list-final-smoke-test-report.md"
+  ],
+  "aiPrompts": [
+    "ai/vessel-list-final-enrichment-fix/00_MASTER_PROMPT.md",
+    "ai/vessel-list-final-enrichment-fix/01_READ_REPORTS_AND_CONFIRM_CURRENT_RESPONSE.md",
+    "ai/vessel-list-final-enrichment-fix/02_FIX_OWNER_IDENTITY_BULK_ENRICHMENT.md",
+    "ai/vessel-list-final-enrichment-fix/03_FIX_OPERATIONAL_ASSET_STATUS_FIELDS.md",
+    "ai/vessel-list-final-enrichment-fix/04_FIX_LOCATION_SEED_COVERAGE_AND_MAPPING.md",
+    "ai/vessel-list-final-enrichment-fix/05_AUDIT_THUMBNAIL_COVER_MEDIA_BEHAVIOR.md",
+    "ai/vessel-list-final-enrichment-fix/06_ENSURE_SERIALIZATION_AND_ROUTE_OUTPUT.md",
+    "ai/vessel-list-final-enrichment-fix/07_ADD_RUNTIME_DIAGNOSTICS.md",
+    "ai/vessel-list-final-enrichment-fix/08_BUILD_SMOKE_TEST_AND_REPORTS.md"
+  ]
+}

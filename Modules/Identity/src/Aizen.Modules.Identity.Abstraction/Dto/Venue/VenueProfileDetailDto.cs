@@ -1,3 +1,5 @@
+using Aizen.Modules.Identity.Abstraction.Dto.Common;
+
 namespace Aizen.Modules.Identity.Abstraction.Dto.Venue;
 
 public class VenueProfileDetailDto
@@ -19,4 +21,15 @@ public class VenueProfileDetailDto
     public string? RejectReason { get; set; }
     public DateTime? CreateDate { get; set; }
     public DateTime? ModifyDate { get; set; }
+    public string? VenueName { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? City { get; set; }
+    public string? Country { get; set; }
+    public string? ReviewedBy { get; set; }
+    public string? ReviewedAt { get; set; }
+    public string? RejectionCategory { get; set; }
+    public string RiskLevel { get; set; } = "L";
+    public List<VerificationDocumentDto> Documents { get; set; } = new();
+    public List<RiskSignalDto> RiskSignals { get; set; } = new();
 }

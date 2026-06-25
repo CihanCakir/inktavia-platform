@@ -31,6 +31,12 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("ApprovedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("ContentTypeSnapshot")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -49,6 +55,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     b.Property<long?>("DeletedBy")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("DocumentCategory")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("DocumentName")
                         .IsRequired()
@@ -74,6 +84,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("IssuingAuthority")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
@@ -132,6 +146,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<long?>("CreateUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<decimal?>("CruisingSpeedKnots")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -143,10 +161,18 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<decimal?>("EnginePowerKw")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
+
                     b.Property<string>("EngineTypeCode")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<decimal?>("FuelCapacityL")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
 
                     b.Property<string>("FuelTypeCode")
                         .IsRequired()
@@ -165,6 +191,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
 
+                    b.Property<decimal?>("MaxSpeedKnots")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.Property<string>("Model")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -181,9 +211,17 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<int?>("ProductionYear")
                         .HasColumnType("integer");
 
+                    b.Property<string>("PropulsionType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<Guid?>("PublicId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
+
+                    b.Property<decimal?>("RangeNm")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
 
                     b.Property<string>("SerialNumber")
                         .HasMaxLength(100)
@@ -214,6 +252,9 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("AssetType")
+                        .HasColumnType("integer");
 
                     b.Property<string>("CallSign")
                         .HasMaxLength(20)
@@ -289,6 +330,9 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int?>("OperationalStatus")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("PublicId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
@@ -324,9 +368,13 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssetType");
+
                     b.HasIndex("ImoNumber");
 
                     b.HasIndex("MmsiNumber");
+
+                    b.HasIndex("OperationalStatus");
 
                     b.HasIndex("RegistrationNumber");
 
@@ -460,6 +508,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<long?>("DeletedBy")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<Guid?>("FileId")
                         .HasColumnType("uuid");
 
@@ -497,6 +549,17 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<long?>("UploadedByUserId")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("VesselId")
                         .HasColumnType("bigint");
@@ -617,6 +680,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("BuildCountry")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<int?>("CabinCount")
                         .HasColumnType("integer");
 
@@ -628,6 +695,9 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
 
                     b.Property<long?>("CreateUserId")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("CrewCapacity")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -648,6 +718,10 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<decimal?>("FuelCapacityValue")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
+
+                    b.Property<decimal?>("GrossTonnage")
                         .HasPrecision(14, 2)
                         .HasColumnType("numeric(14,2)");
 
@@ -682,12 +756,23 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<long?>("ModifyUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<decimal?>("NetTonnage")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
+
+                    b.Property<int?>("PassengerCapacity")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("ProductionYear")
                         .HasColumnType("integer");
 
                     b.Property<Guid?>("PublicId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("SuperstructureMaterial")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<long>("VesselId")
                         .HasColumnType("bigint");

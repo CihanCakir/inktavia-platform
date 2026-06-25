@@ -30,6 +30,12 @@ public sealed class VesselSpecificationEntityConfiguration : IEntityTypeConfigur
         builder.Property(x => x.FuelCapacityUnitCode).HasMaxLength(50);
         builder.Property(x => x.WaterCapacityValue).HasPrecision(14, 2);
         builder.Property(x => x.WaterCapacityUnitCode).HasMaxLength(50);
+        builder.Property(x => x.BuildCountry).HasMaxLength(100);
+        builder.Property(x => x.SuperstructureMaterial).HasMaxLength(200);
+        builder.Property(x => x.GrossTonnage).HasPrecision(14, 2);
+        builder.Property(x => x.NetTonnage).HasPrecision(14, 2);
+        builder.Property(x => x.PassengerCapacity);
+        builder.Property(x => x.CrewCapacity);
 
         builder.HasIndex(x => x.VesselId).IsUnique();
 

@@ -1,0 +1,998 @@
+{
+  "info": {
+    "_postman_id": "e5f6a7b8-c9d0-1234-ef01-345678901234",
+    "name": "ServiceRequest Module - Controller API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Auth Setup",
+      "item": [
+        {
+          "name": "Get Mobile Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const r = pm.response.json();",
+                  "pm.environment.set(\"mobile_access_token\", r.access_token);",
+                  "pm.environment.set(\"active_access_token\", r.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{mobile_client_id}}" },
+                { "key": "username", "value": "{{mobile_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": { "raw": "{{keycloak_token_url}}", "host": ["{{keycloak_token_url}}"] }
+          }
+        },
+        {
+          "name": "Get Admin Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const r = pm.response.json();",
+                  "pm.environment.set(\"admin_access_token\", r.access_token);",
+                  "pm.environment.set(\"active_access_token\", r.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{admin_panel_client_id}}" },
+                { "key": "username", "value": "{{admin_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": { "raw": "{{keycloak_token_url}}", "host": ["{{keycloak_token_url}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Service Request - CRUD",
+      "item": [
+        {
+          "name": "Create Service Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.serviceRequestId) pm.environment.set(\"serviceRequestId\", r.id || r.serviceRequestId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vesselId\": \"{{vesselId}}\",\n  \"title\": \"Engine Maintenance Required\",\n  \"description\": \"Main engine requires overhaul after 10000 hours\",\n  \"serviceType\": \"EngineMaintenance\",\n  \"requiredPort\": \"Istanbul Haydarpasa\",\n  \"scheduledAt\": \"2025-03-01T08:00:00Z\",\n  \"budgetMin\": 5000.00,\n  \"budgetMax\": 15000.00,\n  \"currencyId\": \"{{currencyId}}\",\n  \"attachments\": []\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests"]
+            }
+          }
+        },
+        {
+          "name": "Update Service Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Engine Maintenance Required - Updated\",\n  \"description\": \"Updated description\",\n  \"scheduledAt\": \"2025-03-15T08:00:00Z\",\n  \"budgetMin\": 8000,\n  \"budgetMax\": 20000\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Service Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Has id\", function () { const r = pm.response.json(); pm.expect(r.id).to.exist; });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get My Service Requests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/my?status=&pageIndex=0&pageSize=20",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "my"],
+              "query": [
+                { "key": "status", "value": "" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Publish Service Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/publish",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "publish"]
+            }
+          }
+        },
+        {
+          "name": "Add Attachment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileId\": \"{{fileId}}\",\n  \"description\": \"Engine diagnostic report\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/attachments",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "attachments"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Service Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Requirements changed\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/cancel",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Offers",
+      "item": [
+        {
+          "name": "Create Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.offerId) pm.environment.set(\"serviceRequestOfferId\", r.id || r.offerId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerProfileId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"offeredPrice\": 12500.00,\n  \"currency\": \"USD\",\n  \"estimatedDays\": 7,\n  \"notes\": \"We can complete in 7 working days\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/offers",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "offers"]
+            }
+          }
+        },
+        {
+          "name": "Update Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offeredPrice\": 11500,\n  \"estimatedDays\": 6,\n  \"notes\": \"Revised offer\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/offers/{{serviceRequestOfferId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "offers", "{{serviceRequestOfferId}}"]
+            }
+          }
+        },
+        {
+          "name": "Accept Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Accepted, please confirm start date\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/offers/{{serviceRequestOfferId}}/accept",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "offers", "{{serviceRequestOfferId}}", "accept"]
+            }
+          }
+        },
+        {
+          "name": "Reject Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Price too high\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/offers/{{serviceRequestOfferId}}/reject",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "offers", "{{serviceRequestOfferId}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Withdraw Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"No longer available\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/offers/{{serviceRequestOfferId}}/withdraw",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "offers", "{{serviceRequestOfferId}}", "withdraw"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Assignment",
+      "item": [
+        {
+          "name": "Create Assignment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.assignmentId) pm.environment.set(\"assignmentId\", r.id || r.assignmentId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": \"{{serviceRequestOfferId}}\",\n  \"scheduledStartAt\": \"2025-03-01T08:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/assignment",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "assignment"]
+            }
+          }
+        },
+        {
+          "name": "Accept Assignment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/assignment/{{assignmentId}}/accept",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "assignment", "{{assignmentId}}", "accept"]
+            }
+          }
+        },
+        {
+          "name": "Reject Assignment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Cannot accommodate this schedule\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/assignment/{{assignmentId}}/reject",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "assignment", "{{assignmentId}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Start Assignment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/assignment/{{assignmentId}}/start",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "assignment", "{{assignmentId}}", "start"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Messages",
+      "item": [
+        {
+          "name": "Send Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.messageId) pm.environment.set(\"messageId\", r.id || r.messageId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Can you provide more details about the engine model?\",\n  \"attachmentFileIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/messages",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Get Messages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/messages?skip=0&take=50",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "messages"],
+              "query": [
+                { "key": "skip", "value": "0" },
+                { "key": "take", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Messages Read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageIds\": [\"{{messageId}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/messages/mark-read",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "messages", "mark-read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Work Logs",
+      "item": [
+        {
+          "name": "Add Work Log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.workLogId) pm.environment.set(\"workLogId\", r.id || r.workLogId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workDate\": \"2025-03-01T00:00:00Z\",\n  \"hoursWorked\": 8.5,\n  \"description\": \"Completed engine disassembly\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/work-logs/assignment/{{assignmentId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "work-logs", "assignment", "{{assignmentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Work Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/work-logs/assignment/{{assignmentId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "work-logs", "assignment", "{{assignmentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Completion",
+      "item": [
+        {
+          "name": "Submit Completion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.completionId) pm.environment.set(\"completionId\", r.id || r.completionId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"summary\": \"Engine overhaul completed successfully\",\n  \"completedAt\": \"2025-03-08T17:00:00Z\",\n  \"fileIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/completion/{{assignmentId}}",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "completion", "{{assignmentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Approve Completion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Excellent work\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/completion/approve",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "completion", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Completion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"One issue remaining\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/completion/reject",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "completion", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Dispute",
+      "item": [
+        {
+          "name": "Open Dispute",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.disputeId) pm.environment.set(\"disputeId\", r.id || r.disputeId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"ServiceQualityIssue\",\n  \"description\": \"Work not completed to specification\",\n  \"evidenceFileIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/dispute",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "dispute"]
+            }
+          }
+        },
+        {
+          "name": "Change Dispute Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"UnderReview\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/dispute/{{disputeId}}/status",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "dispute", "{{disputeId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Resolve Dispute",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"PartialRefund\",\n  \"notes\": \"Both parties agreed to 20% refund\"\n}"
+            },
+            "url": {
+              "raw": "{{service_request_api_base_url}}/service-requests/{{serviceRequestId}}/dispute/{{disputeId}}/resolve",
+              "host": ["{{service_request_api_base_url}}"],
+              "path": ["service-requests", "{{serviceRequestId}}", "dispute", "{{disputeId}}", "resolve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Admin",
+      "item": [
+        {
+          "name": "Admin List Service Requests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/admin/service-requests?pageIndex=0&pageSize=20",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "admin", "service-requests"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin List Disputes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/admin/service-requests/disputes?pageIndex=0&pageSize=20",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "admin", "service-requests", "disputes"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin Get Service Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{service_request_api_root_url}}/api/v1/admin/service-requests/{{serviceRequestId}}",
+              "host": ["{{service_request_api_root_url}}"],
+              "path": ["api", "v1", "admin", "service-requests", "{{serviceRequestId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -18,10 +18,24 @@ public sealed class S3ObjectStorageProvider : IObjectStorageProvider
     {
         _options = options.Value;
         _logger = logger;
-        _client = new AmazonS3Client(
-            _options.AccessKey,
-            _options.SecretKey,
-            Amazon.RegionEndpoint.GetBySystemName(_options.Region));
+
+        if (_options.Provider.Equals("MinIO", StringComparison.OrdinalIgnoreCase))
+        {
+            var config = new AmazonS3Config
+            {
+                ServiceURL = _options.ServiceUrl,
+                ForcePathStyle = true,
+                UseHttp = _options.UseHttp
+            };
+            _client = new AmazonS3Client(_options.AccessKey, _options.SecretKey, config);
+        }
+        else
+        {
+            _client = new AmazonS3Client(
+                _options.AccessKey,
+                _options.SecretKey,
+                Amazon.RegionEndpoint.GetBySystemName(_options.Region));
+        }
     }
 
     public Task<string> GenerateUploadUrlAsync(string bucketName, string objectKey, string contentType, TimeSpan expiresIn, CancellationToken cancellationToken = default)

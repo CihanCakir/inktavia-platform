@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Text;
 using Aizen.Core.RemoteCall.Abstraction;
 using Microsoft.Extensions.Options;
 
@@ -49,11 +51,19 @@ internal class AizenHttpClientHandler : HttpClientHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var resStr = request.Content != null ? await request.Content.ReadAsStringAsync() : "";
         var response = await base.SendAsync(request, cancellationToken);
-        var reqStr = await response.Content.ReadAsStringAsync();
 
-        if (reqStr.Contains("errors") || reqStr.Contains("Message"))
+        // Read the response body once; then restore the content so downstream (Refit) can read it again.
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        var mediaType = response.Content.Headers.ContentType?.MediaType ?? "application/json";
+        var charset  = response.Content.Headers.ContentType?.CharSet ?? "utf-8";
+        var encoding = Encoding.GetEncoding(charset);
+
+        response.Content = new StringContent(responseBody, encoding, mediaType);
+
+        // Legacy compatibility: promote non-2xx responses that carry an Aizen envelope body
+        // to 200 so Refit can deserialize them as typed AizenApiResponse<T>.
+        if (responseBody.Contains("errors") || responseBody.Contains("Message"))
         {
             response.StatusCode = System.Net.HttpStatusCode.OK;
         }

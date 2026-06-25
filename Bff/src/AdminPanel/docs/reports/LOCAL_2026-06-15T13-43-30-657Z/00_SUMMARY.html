@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BFF Test Report — LOCAL_2026-06-15T13-43-30-657Z</title>
+  <style>
+    :root {
+      --bg: #121413;
+      --surface: #1e201e;
+      --surface2: #2a2c2a;
+      --gold: #e9c349;
+      --green: #4caf7a;
+      --red: #e05c5c;
+      --blue: #5ca8e0;
+      --text: #e8e8e4;
+      --muted: #888;
+      --border: rgba(233,195,73,0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 14px; padding: 32px; }
+    h1 { color: var(--gold); font-size: 24px; font-weight: 700; }
+    h2 { color: var(--gold); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin: 32px 0 12px; }
+    .meta { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .kpi-value { font-size: 32px; font-weight: 700; }
+    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 4px; }
+    .kpi-value.gold  { color: var(--gold); }
+    .kpi-value.green { color: var(--green); }
+    .kpi-value.red   { color: var(--red); }
+    .progress-bar { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; margin-top: 12px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--gold); border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+    th { background: var(--surface2); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    tr.row-fail td { background: rgba(224,92,92,0.04); }
+    tr.row-fail:hover td { background: rgba(224,92,92,0.08); }
+    .center { text-align: center; }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+    .badge.pass { background: rgba(76,175,122,0.15); color: var(--green); border: 1px solid rgba(76,175,122,0.3); }
+    .badge.fail { background: rgba(224,92,92,0.15); color: var(--red);   border: 1px solid rgba(224,92,92,0.3); }
+    .method { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+    .method-get    { background: rgba(76,175,122,0.15); color: var(--green); }
+    .method-post   { background: rgba(92,168,224,0.15); color: var(--blue); }
+    .method-put    { background: rgba(233,195,73,0.15);  color: var(--gold); }
+    .method-patch  { background: rgba(233,195,73,0.10);  color: var(--gold); }
+    .method-delete { background: rgba(224,92,92,0.15);  color: var(--red); }
+    .http-2xx  { color: var(--green); font-weight: 700; }
+    .http-4xx  { color: var(--gold);  font-weight: 700; }
+    .http-5xx  { color: var(--red);   font-weight: 700; }
+    .http-null { color: var(--muted); font-weight: 700; }
+    .url-cell span { display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; font-size: 12px; color: var(--muted); }
+    .suite-col { font-size: 11px; color: var(--muted); }
+    .detail-row td { background: var(--surface2) !important; cursor: default; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 16px 0; }
+    .detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
+    .detail-label.mt { margin-top: 16px; }
+    .detail-sub { font-size: 12px; color: var(--text); margin-bottom: 4px; }
+    .code-block { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; color: var(--text); margin-top: 6px; }
+    .error-text { color: var(--red); font-size: 12px; margin: 8px 0; }
+    .failure-reason { color: var(--red); font-size: 12px; padding: 8px 12px; background: rgba(224,92,92,0.08); border-radius: 6px; margin-top: 12px; }
+    .filter-bar { display: flex; gap: 12px; margin-bottom: 16px; }
+    .filter-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+    .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: 700; }
+    tr[onclick] { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Inktavia BFF Test Report</h1>
+  <p class="meta">Run ID: <strong>LOCAL_2026-06-15T13-43-30-657Z</strong> &nbsp;|&nbsp; Environment: <strong>LOCAL</strong> &nbsp;|&nbsp; Started: 6/15/2026, 4:43:31 PM</p>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-value gold">52</div>
+      <div class="kpi-label">Total Tests</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value green">20</div>
+      <div class="kpi-label">Passed</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:38%;background:var(--green)"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value red">32</div>
+      <div class="kpi-label">Failed</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:62%;background:var(--red)"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value red">38%</div>
+      <div class="kpi-label">Pass Rate</div>
+    </div>
+  </div>
+
+  <h2>Suite Summary</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Suite</th><th>Status</th><th class="center">Total</th>
+        <th class="center">Passed</th><th class="center">Failed</th><th class="center">Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>cargoDry.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">2</td>
+      <td class="center green">0</td>
+      <td class="center red">2</td>
+      <td class="center">0s</td>
+    </tr>
+
+    <tr>
+      <td>identity.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">10</td>
+      <td class="center green">2</td>
+      <td class="center red">8</td>
+      <td class="center">65s</td>
+    </tr>
+
+    <tr>
+      <td>notification.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">3</td>
+      <td class="center green">1</td>
+      <td class="center red">2</td>
+      <td class="center">0s</td>
+    </tr>
+
+    <tr>
+      <td>payment.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">4</td>
+      <td class="center green">1</td>
+      <td class="center red">3</td>
+      <td class="center">0s</td>
+    </tr>
+
+    <tr>
+      <td>referenceData.lookupGroup.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">4</td>
+      <td class="center green">2</td>
+      <td class="center red">2</td>
+      <td class="center">0s</td>
+    </tr>
+
+    <tr>
+      <td>referenceData.lookupItem.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">8</td>
+      <td class="center green">2</td>
+      <td class="center red">6</td>
+      <td class="center">0s</td>
+    </tr>
+
+    <tr>
+      <td>reporting.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">5</td>
+      <td class="center green">1</td>
+      <td class="center red">4</td>
+      <td class="center">0s</td>
+    </tr>
+
+    <tr>
+      <td>serviceRequest.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">8</td>
+      <td class="center green">6</td>
+      <td class="center red">2</td>
+      <td class="center">0s</td>
+    </tr>
+
+    <tr>
+      <td>vessel.api</td>
+      <td><span class="badge fail">FAIL</span></td>
+      <td class="center">8</td>
+      <td class="center green">5</td>
+      <td class="center red">3</td>
+      <td class="center">0s</td>
+    </tr></tbody>
+  </table>
+
+  <h2>Test Results (click to expand)</h2>
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterResults('all')">All</button>
+    <button class="filter-btn" onclick="filterResults('fail')">Failed Only</button>
+    <button class="filter-btn" onclick="filterResults('pass')">Passed Only</button>
+  </div>
+  <table id="results-table">
+    <thead>
+      <tr>
+        <th>Status</th><th>Method</th><th>Endpoint</th>
+        <th class="center">Got</th><th class="center">Expected</th>
+        <th class="center">Duration</th><th>Suite</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr class="row-fail" onclick="toggleDetail('be9d8d3b-1191-4810-a45e-b2bd24a8bfed')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/cargodry/kits">/api/v1/admin-panel/cargodry/kits</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">15ms</td>
+      <td class="suite-col">cargoDry.api</td>
+    </tr>
+    <tr id="detail-be9d8d3b-1191-4810-a45e-b2bd24a8bfed" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/cargodry/kits</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>CargoDryListResponse { items: CargoDryKitDto[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('71c80424-03e4-4f09-974d-85c8cf1f2693')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/cargodry/kits/activate">/api/v1/admin-panel/cargodry/kits/activate</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">cargoDry.api</td>
+    </tr>
+    <tr id="detail-71c80424-03e4-4f09-974d-85c8cf1f2693" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/cargodry/kits/activate</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;qrCode&quot;: &quot;TEST-QR-CODE-BFF-SUITE-00001&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>CargoDryActivationResultDto</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('ea2b5174-64d0-4f4e-a9d4-13ccf68798c9')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/auth/login/username">/api/v1/admin-panel/auth/login/username</span></td>
+      <td class="center"><span class="http-2xx">200</span></td>
+      <td class="center">200</td>
+      <td class="center">1100ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-ea2b5174-64d0-4f4e-a9d4-13ccf68798c9" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/auth/login/username</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;username&quot;: &quot;admin@inktavia.local&quot;,
+  &quot;pin&quot;: &quot;Admin!123&quot;,
+  &quot;deviceId&quot;: &quot;bff-test-suite-device-00000001&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>{ token: BffTokenDto, profile: BffProfileDto, agreement: BffAgreementDto }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-2xx">200</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: true,
+    &quot;errorCode&quot;: 0
+  },
+  &quot;body&quot;: {
+    &quot;token&quot;: {
+      &quot;accessToken&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiIyM2I5NDNiNS02YWIzLTRkNDktYTc5Ny1lYjU1Nzc2NDYxYWEiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMyIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEyLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.15mdVWH8vr6jKiTA0MsZ3goCv2XQKX71Gr9v5eO6-34&quot;,
+      &quot;accessTokenExpiredDate&quot;: &quot;2026-07-15T23:43:32.17916Z&quot;,
+      &quot;refreshToken&quot;: &quot;DYe+gFI/PLdYE6tllxYtQTK/KK7/CT51gjxaplW3Uqc=&quot;,
+      &quot;refreshTokenExpiredDate&quot;: &quot;2026-06-22T13:43:32.179161Z&quot;
+    },
+    &quot;profile&quot;: {
+      &quot;userId&quot;: 1,
+      &quot;email&quot;: &quot;admin@inktavia.local&quot;,
+      &quot;name&quot;: &quot;System&quot;,
+      &quot;surname&quot;: &quot;Admin&quot;
+    },
+    &quot;agreement&quot;: {
+      &quot;agreementId&quot;: 0,
+      &quot;agreementApproved&quot;: false
+    }
+  }
+}</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('04dd0fbc-fae3-476d-85fc-ce8b49f16847')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/auth/login/username">/api/v1/admin-panel/auth/login/username</span></td>
+      <td class="center"><span class="http-null">N/A</span></td>
+      <td class="center">401</td>
+      <td class="center">25054ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-04dd0fbc-fae3-476d-85fc-ce8b49f16847" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/auth/login/username</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;username&quot;: &quot;admin@inktavia.local&quot;,
+  &quot;pin&quot;: &quot;WRONG_PIN_12345&quot;,
+  &quot;deviceId&quot;: &quot;bff-test-suite-device-00000001&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 401</p>
+            <p class="detail-sub">Shape: <em>{ message: string }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-null">N/A</span></p>
+            <p class="error-text">Error: timeout of 25000ms exceeded (ECONNABORTED)</p>
+            <pre class="code-block">null</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Network error: ECONNABORTED — timeout of 25000ms exceeded</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('4521764c-44a3-4d3c-99ea-3306edbda0a7')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/auth/login/phone">/api/v1/admin-panel/auth/login/phone</span></td>
+      <td class="center"><span class="http-2xx">200</span></td>
+      <td class="center">401</td>
+      <td class="center">23497ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-4521764c-44a3-4d3c-99ea-3306edbda0a7" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/auth/login/phone</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;phoneNumber&quot;: &quot;+905000000000&quot;,
+  &quot;password&quot;: &quot;WRONG_PASS&quot;,
+  &quot;deviceId&quot;: &quot;bff-test-suite-device-00000001&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 401</p>
+            <p class="detail-sub">Shape: <em>{ message: string }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-2xx">200</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: true,
+    &quot;errorCode&quot;: 0
+  }
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 401, got 200. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:true,&quot;errorCode&quot;:0}}</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('ba2094a3-8499-48d5-a2bf-dabb9af6096d')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/auth/otp/send">/api/v1/admin-panel/auth/otp/send</span></td>
+      <td class="center"><span class="http-4xx">400</span></td>
+      <td class="center">400</td>
+      <td class="center">31ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-ba2094a3-8499-48d5-a2bf-dabb9af6096d" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/auth/otp/send</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;phoneNumber&quot;: &quot;&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 400</p>
+            <p class="detail-sub">Shape: <em>{ message: string }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">400</span></p>
+            
+            <pre class="code-block">{
+  &quot;errors&quot;: {
+    &quot;phoneNumber&quot;: [
+      &quot;The PhoneNumber field is required.&quot;,
+      &quot;The PhoneNumber field is not a valid phone number.&quot;
+    ]
+  },
+  &quot;type&quot;: &quot;https://tools.ietf.org/html/rfc9110#section-15.5.1&quot;,
+  &quot;title&quot;: &quot;One or more validation errors occurred.&quot;,
+  &quot;status&quot;: 400,
+  &quot;traceId&quot;: &quot;00-712a0a7bf2f0b99a27b976bd0ffbecfd-3346acaabfa4d5f9-00&quot;
+}</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('7a0ed097-acf0-47f2-b5b4-184c58a633f5')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/auth/refresh">/api/v1/admin-panel/auth/refresh</span></td>
+      <td class="center"><span class="http-2xx">200</span></td>
+      <td class="center">401</td>
+      <td class="center">15499ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-7a0ed097-acf0-47f2-b5b4-184c58a633f5" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/auth/refresh</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;refreshToken&quot;: &quot;invalid-refresh-token-bff-test-suite&quot;,
+  &quot;deviceId&quot;: &quot;bff-test-suite-device-00000001&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 401</p>
+            <p class="detail-sub">Shape: <em>{ message: string }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-2xx">200</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: true,
+    &quot;errorCode&quot;: 0
+  }
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 401, got 200. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:true,&quot;errorCode&quot;:0}}</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('7dd7f8e1-401d-448d-a482-688b5f443741')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/identity/organizers/profiles">/api/v1/admin-panel/identity/organizers/profiles</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">12ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-7dd7f8e1-401d-448d-a482-688b5f443741" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/identity/organizers/profiles</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ProfileListResponse&lt;OrganizerProfile&gt;</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('8a357bbb-a349-49d5-b532-a0b864db7e49')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/identity/organizers/profiles/00000000-0000-0000-0000-000000000001">/api/v1/admin-panel/identity/organizers/profiles/00000000-0000-0000-0000-000000000001</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">404</td>
+      <td class="center">5ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-8a357bbb-a349-49d5-b532-a0b864db7e49" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/identity/organizers/profiles/00000000-0000-0000-0000-000000000001</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 404, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('3c55389e-a2c2-489e-aa1a-c49035259628')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/identity/venues/profiles">/api/v1/admin-panel/identity/venues/profiles</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">4ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-3c55389e-a2c2-489e-aa1a-c49035259628" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/identity/venues/profiles</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ProfileListResponse&lt;VenueProfile&gt;</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('dd54ddfd-3019-45cf-8840-0fc732105bef')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/identity/participant/profiles">/api/v1/admin-panel/identity/participant/profiles</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">5ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-dd54ddfd-3019-45cf-8840-0fc732105bef" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/identity/participant/profiles</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ProfileListResponse&lt;ParticipantProfile&gt;</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('66a7a300-d191-4d82-bda8-31c52ea2f455')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/dashboard/overview">/api/v1/admin-panel/dashboard/overview</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">5ms</td>
+      <td class="suite-col">identity.api</td>
+    </tr>
+    <tr id="detail-66a7a300-d191-4d82-bda8-31c52ea2f455" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/dashboard/overview</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>DashboardOverview { totalUsers, totalVessels, activeServiceRequests }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('375b579c-4b64-497a-8afb-6a538a47bbc0')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/notification-templates">/api/v1/admin-panel/notification-templates</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">17ms</td>
+      <td class="suite-col">notification.api</td>
+    </tr>
+    <tr id="detail-375b579c-4b64-497a-8afb-6a538a47bbc0" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/notification-templates</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>NotificationTemplateListResponse</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('789f0a48-6bba-48ba-bf90-418b35906373')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/notification-templates/00000000-0000-0000-0000-000000000001">/api/v1/admin-panel/notification-templates/00000000-0000-0000-0000-000000000001</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">1ms</td>
+      <td class="suite-col">notification.api</td>
+    </tr>
+    <tr id="detail-789f0a48-6bba-48ba-bf90-418b35906373" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/notification-templates/00000000-0000-0000-0000-000000000001</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('3b8be3ba-bd9b-43ec-80eb-48bbe48eadce')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/notification-templates">/api/v1/admin-panel/notification-templates</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">201</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">notification.api</td>
+    </tr>
+    <tr id="detail-3b8be3ba-bd9b-43ec-80eb-48bbe48eadce" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/notification-templates</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;name&quot;: &quot;[TEST] BFF Test Notification Template&quot;,
+  &quot;subject&quot;: &quot;[TEST] BFF Test Subject&quot;,
+  &quot;body&quot;: &quot;Auto-generated by BFF test suite. Safe to delete.&quot;,
+  &quot;channel&quot;: &quot;EMAIL&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 201</p>
+            <p class="detail-sub">Shape: <em>NotificationTemplate</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 201, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('85c9a1dd-b76d-46a6-ac6c-daf2398b7968')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/payments/transactions">/api/v1/admin-panel/payments/transactions</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">46ms</td>
+      <td class="suite-col">payment.api</td>
+    </tr>
+    <tr id="detail-85c9a1dd-b76d-46a6-ac6c-daf2398b7968" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/payments/transactions</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>{ items: TransactionDto[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('cae1ea71-e022-40fa-b1ad-ce4a70e55679')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/payments/transactions/kpi">/api/v1/admin-panel/payments/transactions/kpi</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">25ms</td>
+      <td class="suite-col">payment.api</td>
+    </tr>
+    <tr id="detail-cae1ea71-e022-40fa-b1ad-ce4a70e55679" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/payments/transactions/kpi</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>TransactionKpiDto</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('c1da6d6b-5271-4c1e-9642-5e794e1c2ecc')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/payments/commissions">/api/v1/admin-panel/payments/commissions</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">payment.api</td>
+    </tr>
+    <tr id="detail-c1da6d6b-5271-4c1e-9642-5e794e1c2ecc" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/payments/commissions</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>{ items: CommissionDto[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('170f7411-2d7f-4153-84be-fa65db578088')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/payments/transactions/00000000-0000-0000-0000-000000000001">/api/v1/admin-panel/payments/transactions/00000000-0000-0000-0000-000000000001</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">payment.api</td>
+    </tr>
+    <tr id="detail-170f7411-2d7f-4153-84be-fa65db578088" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/payments/transactions/00000000-0000-0000-0000-000000000001</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('38aa582f-0854-4d83-ba9a-84bc383d072f')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup">/api/v1/admin-panel/reference-data/lookup</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">15ms</td>
+      <td class="suite-col">referenceData.lookupGroup.api</td>
+    </tr>
+    <tr id="detail-38aa582f-0854-4d83-ba9a-84bc383d072f" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>LookupGroupListResponse { items: LookupGroup[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('5179e36e-0d68-4a5d-b563-747bd2967b9d')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001">/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">9ms</td>
+      <td class="suite-col">referenceData.lookupGroup.api</td>
+    </tr>
+    <tr id="detail-5179e36e-0d68-4a5d-b563-747bd2967b9d" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails | { message: string }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('85539909-a94a-4c7e-ae28-17a8cec621f9')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup">/api/v1/admin-panel/reference-data/lookup</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">201</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">referenceData.lookupGroup.api</td>
+    </tr>
+    <tr id="detail-85539909-a94a-4c7e-ae28-17a8cec621f9" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;displayName&quot;: &quot;[TEST] BFF Test Suite Group&quot;,
+  &quot;iconSymbol&quot;: &quot;category&quot;,
+  &quot;description&quot;: &quot;Auto-generated by BFF test suite. Safe to delete.&quot;,
+  &quot;parentId&quot;: null,
+  &quot;sortOrder&quot;: 999,
+  &quot;accessClearance&quot;: &quot;standard&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 201</p>
+            <p class="detail-sub">Shape: <em>LookupGroup</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 201, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('97ce2a03-0b1b-4c84-aef3-b5f76cd6ba91')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-put">PUT</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000002">/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000002</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">referenceData.lookupGroup.api</td>
+    </tr>
+    <tr id="detail-97ce2a03-0b1b-4c84-aef3-b5f76cd6ba91" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000002</p>
+            <p class="detail-sub">Method: PUT</p>
+            <pre class="code-block">{
+  &quot;displayName&quot;: &quot;[TEST] Updated Group&quot;,
+  &quot;sortOrder&quot;: 1
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('195f057f-b95b-4385-a4d3-bde2f03d942a')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items">/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">46ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-195f057f-b95b-4385-a4d3-bde2f03d942a" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>LookupItemListResponse { items: LookupItem[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('e9e9efa8-c3c3-4208-af8b-773edbc8c8f1')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items">/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items</span></td>
+      <td class="center"><span class="http-4xx">405</span></td>
+      <td class="center">201</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-e9e9efa8-c3c3-4208-af8b-773edbc8c8f1" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;code&quot;: &quot;TEST-BFF-99&quot;,
+  &quot;sortOrder&quot;: 999,
+  &quot;names&quot;: {
+    &quot;en&quot;: &quot;[TEST] Test Item EN&quot;,
+    &quot;tr&quot;: &quot;[TEST] Test Item TR&quot;
+  },
+  &quot;isEnabled&quot;: true
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 201</p>
+            <p class="detail-sub">Shape: <em>LookupItem</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">405</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 201, got 405. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('0f680703-476b-4dd1-a6ac-b2f15fc70de5')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-put">PUT</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000002">/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000002</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">1ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-0f680703-476b-4dd1-a6ac-b2f15fc70de5" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000002</p>
+            <p class="detail-sub">Method: PUT</p>
+            <pre class="code-block">{
+  &quot;code&quot;: &quot;UPDATED-TEST&quot;,
+  &quot;sortOrder&quot;: 1
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('1b38fb94-066d-407d-8daf-2ac41b51b2b2')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-delete">DELETE</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000003">/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000003</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">1ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-1b38fb94-066d-407d-8daf-2ac41b51b2b2" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000003</p>
+            <p class="detail-sub">Method: DELETE</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('e6f9df3f-dc2c-4069-8afe-e2069de65d4f')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/currency">/api/v1/admin-panel/reference-data/currency</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">1ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-e6f9df3f-dc2c-4069-8afe-e2069de65d4f" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/currency</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ReferenceOption[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('4d08aa6a-ed4e-4fcf-8ca1-8926b97d19ff')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/location">/api/v1/admin-panel/reference-data/location</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-4d08aa6a-ed4e-4fcf-8ca1-8926b97d19ff" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/location</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ReferenceOption[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('7e79d6de-72fa-482f-9cf7-ab3dbd2a2e20')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/measurement">/api/v1/admin-panel/reference-data/measurement</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">25ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-7e79d6de-72fa-482f-9cf7-ab3dbd2a2e20" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/measurement</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ReferenceOption[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('d7c263b6-a0bf-421a-8152-8c9def54f770')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reference-data/system-parameter">/api/v1/admin-panel/reference-data/system-parameter</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">referenceData.lookupItem.api</td>
+    </tr>
+    <tr id="detail-d7c263b6-a0bf-421a-8152-8c9def54f770" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reference-data/system-parameter</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ReferenceOption[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('b0979f5d-166c-4ca0-813b-e6e5d069e00c')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reports">/api/v1/admin-panel/reports</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">19ms</td>
+      <td class="suite-col">reporting.api</td>
+    </tr>
+    <tr id="detail-b0979f5d-166c-4ca0-813b-e6e5d069e00c" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reports</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ReportDto[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('f10e1d67-d010-4b0a-a85c-524aca4c33f2')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/reports/kpi">/api/v1/admin-panel/reports/kpi</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">reporting.api</td>
+    </tr>
+    <tr id="detail-f10e1d67-d010-4b0a-a85c-524aca4c33f2" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/reports/kpi</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ReportKpiDto</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('82551ba1-e37c-4ab8-bbec-593ad377434b')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/analytics/dashboard">/api/v1/admin-panel/analytics/dashboard</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">1ms</td>
+      <td class="suite-col">reporting.api</td>
+    </tr>
+    <tr id="detail-82551ba1-e37c-4ab8-bbec-593ad377434b" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/analytics/dashboard</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>AnalyticsDashboardDto</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('f65710c0-2870-4632-bb7a-6167df5cb06d')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/files">/api/v1/admin-panel/files</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">reporting.api</td>
+    </tr>
+    <tr id="detail-f65710c0-2870-4632-bb7a-6167df5cb06d" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/files</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>FileListResponse { items: FileMetadata[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('42b56c8e-4a3e-4505-bafe-5bb22ceec216')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/files/00000000-0000-0000-0000-000000000001/metadata">/api/v1/admin-panel/files/00000000-0000-0000-0000-000000000001/metadata</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">reporting.api</td>
+    </tr>
+    <tr id="detail-42b56c8e-4a3e-4505-bafe-5bb22ceec216" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/files/00000000-0000-0000-0000-000000000001/metadata</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('010b2f7b-bda9-4a39-9b46-e99d7746106f')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests">/api/v1/admin-panel/service-requests</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">43ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-010b2f7b-bda9-4a39-9b46-e99d7746106f" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ServiceRequestListResponse { items: ServiceRequestDto[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('61b88a22-e1ea-4b93-9a6c-de217ac0841e')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests">/api/v1/admin-panel/service-requests</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">10ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-61b88a22-e1ea-4b93-9a6c-de217ac0841e" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>ServiceRequestListResponse { items: ServiceRequestDto[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('0b02b7d2-cc1e-4a2b-a353-052ef9603f0c')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001">/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">8ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-0b02b7d2-cc1e-4a2b-a353-052ef9603f0c" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('1d146d17-56b6-4617-a33e-3f42155e301f')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/timeline">/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/timeline</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">7ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-1d146d17-56b6-4617-a33e-3f42155e301f" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/timeline</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ServiceRequestTimeline</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('645471ce-553e-4fdb-8616-cace9ea75b0c')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-patch">PATCH</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/status">/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/status</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">23ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-645471ce-553e-4fdb-8616-cace9ea75b0c" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/status</p>
+            <p class="detail-sub">Method: PATCH</p>
+            <pre class="code-block">{
+  &quot;status&quot;: &quot;IN_PROGRESS&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('6501b75d-b13a-46f3-9bd8-5bdab505c757')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/assign">/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/assign</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">5ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-6501b75d-b13a-46f3-9bd8-5bdab505c757" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/assign</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;providerId&quot;: &quot;00000000-0000-0000-0000-000000000002&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('ced1005e-713d-43bb-ac8a-bc14e6b1cb35')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/complete">/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/complete</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">4ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-ced1005e-713d-43bb-ac8a-bc14e6b1cb35" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/complete</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('d08b1df0-d69a-430c-b04f-929d70073362')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-post">POST</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/dispute">/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/dispute</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">serviceRequest.api</td>
+    </tr>
+    <tr id="detail-d08b1df0-d69a-430c-b04f-929d70073362" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/service-requests/00000000-0000-0000-0000-000000000001/dispute</p>
+            <p class="detail-sub">Method: POST</p>
+            <pre class="code-block">{
+  &quot;reason&quot;: &quot;[TEST] BFF test suite dispute reason&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('9c362ce4-4d54-4a2a-8864-61b9d9162cc6')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels">/api/v1/admin-panel/vessels</span></td>
+      <td class="center"><span class="http-5xx">500</span></td>
+      <td class="center">200</td>
+      <td class="center">19ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-9c362ce4-4d54-4a2a-8864-61b9d9162cc6" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>VesselListResponse { items: VesselDto[], total: number }</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-5xx">500</span></p>
+            
+            <pre class="code-block">{
+  &quot;header&quot;: {
+    &quot;isSuccess&quot;: false,
+    &quot;errorCode&quot;: 911,
+    &quot;errorMessage&quot;: &quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).&quot;,
+    &quot;errorDetails&quot;: &quot;   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.&lt;&gt;c__DisplayClass0_0.&lt;&lt;HandleAsync&gt;g__Handle|0&gt;d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.&lt;Invoke&gt;g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)&quot;
+  },
+  &quot;body&quot;: null
+}</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 500. Body: {&quot;header&quot;:{&quot;isSuccess&quot;:false,&quot;errorCode&quot;:911,&quot;errorMessage&quot;:&quot;No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action&lt;AuthenticationOptions&gt; configureOptions).</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('24682c5d-64aa-4a3f-836c-1c70070f0e0e')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001">/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">4ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-24682c5d-64aa-4a3f-836c-1c70070f0e0e" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('47706f60-8193-4c3e-9cc8-48c61fb0468f')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/documents">/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/documents</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-47706f60-8193-4c3e-9cc8-48c61fb0468f" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/documents</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>VesselDocumentDto[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('21c7ef5d-7c0a-43a2-81de-5349e0960be3')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/media">/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/media</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">4ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-21c7ef5d-7c0a-43a2-81de-5349e0960be3" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/media</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>VesselMediaDto[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="row-fail" onclick="toggleDetail('4933f6f3-33e5-49d0-8e60-fc7dca2f2d5c')">
+      <td><span class="badge fail">FAIL</span></td>
+      <td><code class="method method-get">GET</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/status-history">/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/status-history</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">200</td>
+      <td class="center">21ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-4933f6f3-33e5-49d0-8e60-fc7dca2f2d5c" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/status-history</p>
+            <p class="detail-sub">Method: GET</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 200</p>
+            <p class="detail-sub">Shape: <em>VesselStatusHistoryDto[]</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        <p class="failure-reason">⚠ Expected HTTP 200, got 404. Body: &quot;&quot;</p>
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('cf9c86f4-598d-45a1-8370-da6b33efa71e')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-patch">PATCH</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/status">/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/status</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-cf9c86f4-598d-45a1-8370-da6b33efa71e" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/status</p>
+            <p class="detail-sub">Method: PATCH</p>
+            <pre class="code-block">{
+  &quot;status&quot;: &quot;ACTIVE&quot;
+}</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('3039ccce-3029-45d9-8e10-fa2b2424e1be')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-patch">PATCH</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/archive">/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/archive</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">2ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-3039ccce-3029-45d9-8e10-fa2b2424e1be" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/archive</p>
+            <p class="detail-sub">Method: PATCH</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr>
+
+    <tr class="" onclick="toggleDetail('8d55ff8c-7509-4ebc-bda9-ba101cf1141d')">
+      <td><span class="badge pass">PASS</span></td>
+      <td><code class="method method-patch">PATCH</code></td>
+      <td class="url-cell"><span title="http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/restore">/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/restore</span></td>
+      <td class="center"><span class="http-4xx">404</span></td>
+      <td class="center">404</td>
+      <td class="center">3ms</td>
+      <td class="suite-col">vessel.api</td>
+    </tr>
+    <tr id="detail-8d55ff8c-7509-4ebc-bda9-ba101cf1141d" class="detail-row" style="display:none">
+      <td colspan="7">
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">REQUEST SENT</p>
+            <p class="detail-sub">URL: http://localhost:17001/api/v1/admin-panel/vessels/00000000-0000-0000-0000-000000000001/restore</p>
+            <p class="detail-sub">Method: PATCH</p>
+            <pre class="code-block">null</pre>
+            <p class="detail-label mt">REQUEST HEADERS</p>
+            <pre class="code-block">{
+  &quot;Content-Type&quot;: &quot;application/json&quot;,
+  &quot;X-Client-Type&quot;: &quot;AdminWeb&quot;,
+  &quot;Authorization&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;,
+  &quot;X-Aizen-User-Token&quot;: &quot;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o&quot;
+}</pre>
+          </div>
+          <div>
+            <p class="detail-label">EXPECTED</p>
+            <p class="detail-sub">Status: 404</p>
+            <p class="detail-sub">Shape: <em>ProblemDetails</em></p>
+            <p class="detail-label mt">ACTUAL RESPONSE</p>
+            <p class="detail-sub">Status: <span class="http-4xx">404</span></p>
+            
+            <pre class="code-block">&quot;&quot;</pre>
+          </div>
+        </div>
+        
+      </td>
+    </tr></tbody>
+  </table>
+
+  <script>
+    function toggleDetail(id) {
+      const el = document.getElementById('detail-' + id);
+      if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+    }
+    function filterResults(filter) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      const rows = document.querySelectorAll('#results-table tbody tr:not(.detail-row)');
+      rows.forEach(row => {
+        const isFail = row.classList.contains('row-fail');
+        if (filter === 'all') row.style.display = '';
+        else if (filter === 'fail') row.style.display = isFail ? '' : 'none';
+        else if (filter === 'pass') row.style.display = !isFail ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

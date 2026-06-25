@@ -1,0 +1,14 @@
+[
+  { "id": 24001, "vesselId": 20001, "mediaType": 1, "originalFileNameSnapshot": "blue-octopus-hero.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 1254400, "sortOrder": 1, "isCover": true },
+  { "id": 24002, "vesselId": 20001, "mediaType": 1, "originalFileNameSnapshot": "blue-octopus-deck.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 987136, "sortOrder": 2, "isCover": false },
+  { "id": 24003, "vesselId": 20001, "mediaType": 2, "originalFileNameSnapshot": "blue-octopus-walkthrough.mp4", "contentTypeSnapshot": "video/mp4", "sizeInBytesSnapshot": 52428800, "sortOrder": 3, "isCover": false },
+  { "id": 24004, "vesselId": 20002, "mediaType": 1, "originalFileNameSnapshot": "golden-tide-hero.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 1342177, "sortOrder": 1, "isCover": true },
+  { "id": 24005, "vesselId": 20002, "mediaType": 1, "originalFileNameSnapshot": "golden-tide-sails.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 876544, "sortOrder": 2, "isCover": false },
+  { "id": 24006, "vesselId": 20002, "mediaType": 2, "originalFileNameSnapshot": "golden-tide-sailing.mp4", "contentTypeSnapshot": "video/mp4", "sizeInBytesSnapshot": 68157440, "sortOrder": 3, "isCover": false },
+  { "id": 24007, "vesselId": 20003, "mediaType": 1, "originalFileNameSnapshot": "marmara-pearl-hero.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 1198080, "sortOrder": 1, "isCover": true },
+  { "id": 24008, "vesselId": 20003, "mediaType": 1, "originalFileNameSnapshot": "marmara-pearl-cabin.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 934912, "sortOrder": 2, "isCover": false },
+  { "id": 24009, "vesselId": 20003, "mediaType": 2, "originalFileNameSnapshot": "marmara-pearl-tour.mp4", "contentTypeSnapshot": "video/mp4", "sizeInBytesSnapshot": 83886080, "sortOrder": 3, "isCover": false },
+  { "id": 24010, "vesselId": 20005, "mediaType": 1, "originalFileNameSnapshot": "cargodry-demo-hero.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 1105920, "sortOrder": 1, "isCover": true },
+  { "id": 24011, "vesselId": 20005, "mediaType": 1, "originalFileNameSnapshot": "cargodry-demo-interior.jpg", "contentTypeSnapshot": "image/jpeg", "sizeInBytesSnapshot": 819200, "sortOrder": 2, "isCover": false },
+  { "id": 24012, "vesselId": 20005, "mediaType": 2, "originalFileNameSnapshot": "cargodry-demo-system.mp4", "contentTypeSnapshot": "video/mp4", "sizeInBytesSnapshot": 41943040, "sortOrder": 3, "isCover": false }
+]

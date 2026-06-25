@@ -1,0 +1,1039 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Identity Module - Controller API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Auth Setup",
+      "item": [
+        {
+          "name": "Get Mobile Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password", "type": "text" },
+                { "key": "client_id", "value": "{{mobile_client_id}}", "type": "text" },
+                { "key": "username", "value": "{{mobile_username}}", "type": "text" },
+                { "key": "password", "value": "{{default_password}}", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": ["{{keycloak_token_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set('mobile_access_token', r.access_token);",
+                  "pm.environment.set('active_access_token', r.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Admin Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password", "type": "text" },
+                { "key": "client_id", "value": "{{admin_panel_client_id}}", "type": "text" },
+                { "key": "username", "value": "{{admin_username}}", "type": "text" },
+                { "key": "password", "value": "{{default_password}}", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": ["{{keycloak_token_url}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set('admin_access_token', r.access_token);",
+                  "pm.environment.set('active_access_token', r.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set Active - Mobile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{identity_api_base_url}}/health",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('active_access_token', pm.environment.get('mobile_access_token'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set Active - Admin",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{identity_api_base_url}}/health",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('active_access_token', pm.environment.get('admin_access_token'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Identity Login - Phone",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+905301234567\",\n  \"password\": \"{{default_password}}\",\n  \"deviceId\": \"test-device-001\",\n  \"notificationToken\": \"fcm-test\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/login/phone",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "login", "phone"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set('identityAccessToken', r.identityAccessToken || r.accessToken || '');",
+                  "pm.environment.set('X-Aizen-User-Token', r.xAizenUserToken || r.userToken || '');",
+                  "pm.environment.set('identityRefreshToken', r.refreshToken || '');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Auth - Authorization",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+905301234567\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/otp/send",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "otp", "send"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has body', () => pm.response.to.have.jsonBody());",
+                  "const r = pm.response.json();",
+                  "if (r.validationGuid) pm.environment.set('otpValidationGuid', r.validationGuid);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+905301234567\",\n  \"otp\": \"123456\",\n  \"validationGuid\": \"{{otpValidationGuid}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/otp/check",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "otp", "check"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+905301234567\",\n  \"otp\": \"123456\",\n  \"validationGuid\": \"{{otpValidationGuid}}\",\n  \"deviceId\": \"test-device-001\",\n  \"notificationToken\": \"fcm\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/login/otp",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "login", "otp"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('identityAccessToken', r.identityAccessToken || r.accessToken || '');",
+                  "pm.environment.set('X-Aizen-User-Token', r.xAizenUserToken || r.userToken || '');",
+                  "pm.environment.set('identityRefreshToken', r.refreshToken || '');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with Phone",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+905301234567\",\n  \"password\": \"{{default_password}}\",\n  \"deviceId\": \"test-device-001\",\n  \"notificationToken\": \"fcm\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/login/phone",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "login", "phone"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.environment.set('identityAccessToken', r.identityAccessToken || r.accessToken || '');",
+                  "pm.environment.set('X-Aizen-User-Token', r.xAizenUserToken || r.userToken || '');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with Username",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"pin\": \"1234\",\n  \"deviceId\": \"test-device-001\",\n  \"notificationToken\": \"fcm\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/login/username",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "login", "username"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{identityRefreshToken}}\",\n  \"deviceId\": \"test-device-001\",\n  \"accessToken\": \"{{identityAccessToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/refresh",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "refresh"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Password123!\",\n  \"newPassword\": \"NewPassword456!\",\n  \"newPasswordConfirm\": \"NewPassword456!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/auth/password/change",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["auth", "password", "change"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Registration",
+      "item": [
+        {
+          "name": "Register Participant",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"participant@test.com\",\n  \"phone\": \"+905301234567\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"kvkkAccepted\": true,\n  \"deviceId\": \"test-device-001\",\n  \"deviceType\": \"Android\",\n  \"notificationToken\": \"fcm\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/participant/register",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "participant", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 201', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const r = pm.response.json();",
+                  "if (r.profileId || r.id) pm.environment.set('participantProfileId', r.profileId || r.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register Organizer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"organizer@company.com\",\n  \"companyName\": \"Test Company\",\n  \"taxNo\": \"1234567890\",\n  \"phone\": \"+905301234568\",\n  \"password\": \"Password123!\",\n  \"ownerFirstName\": \"John\",\n  \"ownerLastName\": \"Doe\",\n  \"kvkkAccepted\": true,\n  \"deviceId\": \"test-device-002\",\n  \"deviceType\": \"iOS\",\n  \"notificationToken\": \"apns\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/organizers/register",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "organizers", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 201', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register Venue",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"venueName\": \"Test Marina\",\n  \"address\": \"Test Address\",\n  \"email\": \"venue@harbor.com\",\n  \"phone\": \"+905301234569\",\n  \"password\": \"Password123!\",\n  \"ownerFirstName\": \"Jane\",\n  \"ownerLastName\": \"Smith\",\n  \"kvkkAccepted\": true,\n  \"deviceId\": \"test-device-003\",\n  \"deviceType\": \"Android\",\n  \"notificationToken\": \"fcm2\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/venues/register",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "venues", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 201', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Profile - Update",
+      "item": [
+        {
+          "name": "Update Participant Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Updated\",\n  \"gender\": \"Male\",\n  \"birthDate\": \"1990-01-15T00:00:00Z\",\n  \"bio\": \"Test bio\",\n  \"profilePhotoUrl\": \"https://example.com/photo.jpg\",\n  \"nationalityId\": \"{{lookupItemId}}\",\n  \"allowPush\": true,\n  \"allowSms\": false,\n  \"allowEmail\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/participant/profile",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "participant", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Organizer Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ownerFirstName\": \"John\",\n  \"ownerLastName\": \"Updated\",\n  \"bio\": \"Marine services\",\n  \"profilePhotoUrl\": \"https://example.com/org-photo.jpg\",\n  \"nationalityId\": \"{{lookupItemId}}\",\n  \"taxpayerType\": \"Individual\",\n  \"allowPush\": true,\n  \"allowSms\": true,\n  \"allowEmail\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/organizers/profile",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "organizers", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Venue Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "X-Aizen-User-Token", "value": "{{X-Aizen-User-Token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ownerFirstName\": \"Jane\",\n  \"ownerLastName\": \"Updated\",\n  \"bio\": \"Marina venue\",\n  \"profilePhotoUrl\": \"https://example.com/venue-photo.jpg\",\n  \"nationalityId\": \"{{lookupItemId}}\",\n  \"taxpayerType\": \"Corporate\",\n  \"allowPush\": true,\n  \"allowSms\": true,\n  \"allowEmail\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/venues/profile",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "venues", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Admin - Profile Management",
+      "item": [
+        {
+          "name": "Approve Organizer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/admin/organizers/{{profileUserId}}/profiles/{{organizerProfileId}}/approve",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "admin", "organizers", "{{profileUserId}}", "profiles", "{{organizerProfileId}}", "approve"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject Organizer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Insufficient documentation\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/admin/organizers/{{profileUserId}}/profiles/{{organizerProfileId}}/reject",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "admin", "organizers", "{{profileUserId}}", "profiles", "{{organizerProfileId}}", "reject"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve Venue Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/admin/venues/{{profileUserId}}/profiles/{{venueProfileId}}/approve",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "admin", "venues", "{{profileUserId}}", "profiles", "{{venueProfileId}}", "approve"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject Venue Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Documents not verified\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/admin/venues/{{profileUserId}}/profiles/{{venueProfileId}}/reject",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "admin", "venues", "{{profileUserId}}", "profiles", "{{venueProfileId}}", "reject"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Query - Profiles",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/profile/me",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "profile", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has body', () => pm.response.to.have.jsonBody());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Participant Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/participant/profile/me",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "participant", "profile", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Venue Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/venues/profile/me",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "venues", "profile", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Organizer Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/organizers/profile/me",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "organizers", "profile", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/profiles/{{profileId}}",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "profiles", "{{profileId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile With Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/profiles/{{profileId}}/with-roles",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "profiles", "{{profileId}}", "with-roles"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/profiles?firstName=&lastName=&roleContext=&approvalStatus=&pageIndex=0&pageSize=20",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "profiles"],
+              "query": [
+                { "key": "firstName", "value": "" },
+                { "key": "lastName", "value": "" },
+                { "key": "roleContext", "value": "" },
+                { "key": "approvalStatus", "value": "" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has items array', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r).to.have.property('items');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/profiles/list?firstName=&lastName=",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "profiles", "list"],
+              "query": [
+                { "key": "firstName", "value": "" },
+                { "key": "lastName", "value": "" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Participant Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/participant/profiles?firstName=&lastName=&approvalStatus=&pageIndex=0&pageSize=20",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "participant", "profiles"],
+              "query": [
+                { "key": "firstName", "value": "" },
+                { "key": "lastName", "value": "" },
+                { "key": "approvalStatus", "value": "" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Venue Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/venues/profiles?pageIndex=0&pageSize=20",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "venues", "profiles"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Organizer Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{identity_api_base_url}}/identity/organizers/profiles?pageIndex=0&pageSize=20",
+              "host": ["{{identity_api_base_url}}"],
+              "path": ["identity", "organizers", "profiles"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

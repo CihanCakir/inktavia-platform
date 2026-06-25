@@ -1,0 +1,22 @@
+[
+  { "id": 40001, "serviceRequestId": 30001, "itemType": 1, "title": "Motor Bakımı ve Antifreeze", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 3500.00, "sortOrder": 1 },
+  { "id": 40002, "serviceRequestId": 30001, "itemType": 2, "title": "Kışlık Tekne Örtüsü", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 1200.00, "sortOrder": 2 },
+  { "id": 40003, "serviceRequestId": 30002, "itemType": 4, "title": "Motor Arıza Tespiti", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 800.00, "sortOrder": 1 },
+  { "id": 40004, "serviceRequestId": 30002, "itemType": 5, "title": "Titreşim Damperi Değişimi", "quantity": 2, "unitCode": "ADET", "estimatedUnitPrice": 650.00, "sortOrder": 2 },
+  { "id": 40005, "serviceRequestId": 30003, "itemType": 5, "title": "Elektrik Panosu Tamiri", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 2200.00, "sortOrder": 1 },
+  { "id": 40006, "serviceRequestId": 30003, "itemType": 2, "title": "Sigorta ve Kablo Malzemeleri", "quantity": 1, "unitCode": "TAKIM", "estimatedUnitPrice": 450.00, "sortOrder": 2 },
+  { "id": 40007, "serviceRequestId": 30004, "itemType": 1, "title": "Tekne Altı Temizliği", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 1500.00, "sortOrder": 1 },
+  { "id": 40008, "serviceRequestId": 30004, "itemType": 2, "title": "Antifouling Boya Uygulaması", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 2800.00, "sortOrder": 2 },
+  { "id": 40009, "serviceRequestId": 30005, "itemType": 3, "title": "CargoDry Nem Sensörü Montajı", "quantity": 3, "unitCode": "ADET", "estimatedUnitPrice": 890.00, "sortOrder": 1 },
+  { "id": 40010, "serviceRequestId": 30005, "itemType": 1, "title": "Nem Ölçüm ve Raporlama", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 500.00, "sortOrder": 2 },
+  { "id": 40011, "serviceRequestId": 30006, "itemType": 6, "title": "Sintine Pompası Acil Servis", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 2500.00, "sortOrder": 1 },
+  { "id": 40012, "serviceRequestId": 30006, "itemType": 2, "title": "Yedek Pompa", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 3200.00, "sortOrder": 2 },
+  { "id": 40013, "serviceRequestId": 30007, "itemType": 1, "title": "Yıllık Motor Bakımı", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 2800.00, "sortOrder": 1 },
+  { "id": 40014, "serviceRequestId": 30007, "itemType": 2, "title": "Filtre Seti", "quantity": 1, "unitCode": "TAKIM", "estimatedUnitPrice": 680.00, "sortOrder": 2 },
+  { "id": 40015, "serviceRequestId": 30009, "itemType": 1, "title": "İlkbahar Motor Servisi", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 3000.00, "sortOrder": 1 },
+  { "id": 40016, "serviceRequestId": 30009, "itemType": 2, "title": "Yağ ve Filtre Seti", "quantity": 1, "unitCode": "TAKIM", "estimatedUnitPrice": 750.00, "sortOrder": 2 },
+  { "id": 40017, "serviceRequestId": 30011, "itemType": 5, "title": "Teak Güverte Tamiri (Kıç)", "quantity": 12, "unitCode": "M2", "estimatedUnitPrice": 450.00, "sortOrder": 1 },
+  { "id": 40018, "serviceRequestId": 30011, "itemType": 2, "title": "Dolgu Malzemesi ve Bağlantı", "quantity": 1, "unitCode": "TAKIM", "estimatedUnitPrice": 1200.00, "sortOrder": 2 },
+  { "id": 40019, "serviceRequestId": 30012, "itemType": 1, "title": "Kabin Nem Analizi", "quantity": 1, "unitCode": "ADET", "estimatedUnitPrice": 600.00, "sortOrder": 1 },
+  { "id": 40020, "serviceRequestId": 30012, "itemType": 3, "title": "Nem Giderici Sistem Montajı", "quantity": 2, "unitCode": "ADET", "estimatedUnitPrice": 1800.00, "sortOrder": 2 }
+]

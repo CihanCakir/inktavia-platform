@@ -1,0 +1,41 @@
+{
+  "packageName": "admin-panel-bff-postman-collection-copilot-package",
+  "version": "1.0.0",
+  "createdFor": "Inktavia Marine OS AdminPanel BFF",
+  "language": "English",
+  "primaryObjective": "Generate Postman collection, environment, documentation, and validation report for AdminPanel BFF using docs/admin-web-client/admin-panel-bff-endpoint-catalog.md and the final Identity-only browser auth + BFF-side Keycloak service-token architecture.",
+  "targetRepositoryPaths": [
+    "docs/admin-web-client/admin-panel-bff-endpoint-catalog.md",
+    "Bff/src/AdminPanel/Aizen.Bff.AdminPanel",
+    "Bff/src/AdminPanel/Aizen.Bff.AdminPanel.Application"
+  ],
+  "expectedOutputs": [
+    "docs/postman/admin-panel-bff/Inktavia_AdminPanel_BFF.postman_collection.json",
+    "docs/postman/admin-panel-bff/Inktavia_AdminPanel_BFF_Local.postman_environment.json",
+    "docs/postman/admin-panel-bff/README.md",
+    "docs/reports/admin-panel-bff-postman-generation-report.md",
+    "docs/reports/admin-panel-bff-postman-endpoint-coverage-report.md",
+    "docs/reports/admin-panel-bff-postman-auth-model-report.md"
+  ],
+  "mandatoryReferences": [
+    "reference/BFF_POSTMAN_TARGET_MODEL.md",
+    "reference/FINAL_AUTH_AND_TOKEN_MODEL.md",
+    "reference/ENDPOINT_CATALOG_READING_RULES.md",
+    "reference/POSTMAN_FOLDER_STRUCTURE.md",
+    "reference/POSTMAN_VARIABLES_AND_ENVIRONMENT.md",
+    "reference/REQUEST_BODY_AND_TEST_SCRIPT_RULES.md",
+    "reference/KEYCLOAK_SERVICE_TOKEN_VALIDATION_FOLDER.md",
+    "reference/OUTPUT_AND_REPORTING_REQUIREMENTS.md"
+  ],
+  "stepPrompts": [
+    "ai/admin-panel-bff-postman-collection/00_MASTER_PROMPT.md",
+    "ai/admin-panel-bff-postman-collection/01_READ_ENDPOINT_CATALOG_AND_SCAN_CONTROLLERS.md",
+    "ai/admin-panel-bff-postman-collection/02_CREATE_POSTMAN_ENVIRONMENT.md",
+    "ai/admin-panel-bff-postman-collection/03_CREATE_AUTH_SETUP_FOLDER.md",
+    "ai/admin-panel-bff-postman-collection/04_CREATE_CONTROLLER_FOLDERS_AND_REQUESTS.md",
+    "ai/admin-panel-bff-postman-collection/05_ADD_TEST_SCRIPTS_AND_VARIABLE_CAPTURE.md",
+    "ai/admin-panel-bff-postman-collection/06_ADD_KEYCLOAK_SERVICE_TOKEN_VALIDATION_FOLDER.md",
+    "ai/admin-panel-bff-postman-collection/07_GENERATE_DOCS_AND_REPORTS.md",
+    "ai/admin-panel-bff-postman-collection/08_VALIDATE_POSTMAN_JSON_AND_FINALIZE.md"
+  ]
+}

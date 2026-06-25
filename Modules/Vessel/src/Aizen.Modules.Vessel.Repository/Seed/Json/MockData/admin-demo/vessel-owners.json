@@ -1,0 +1,10 @@
+[
+  { "id": 21001, "vesselId": 20001, "userId": 10003, "userProfileId": 11003, "role": 1, "ownershipStatus": 2, "isPrimary": true },
+  { "id": 21002, "vesselId": 20002, "userId": 10004, "userProfileId": 11004, "role": 1, "ownershipStatus": 2, "isPrimary": true },
+  { "id": 21003, "vesselId": 20003, "userId": 10007, "userProfileId": 11007, "role": 1, "ownershipStatus": 2, "isPrimary": true },
+  { "id": 21004, "vesselId": 20004, "userId": 10008, "userProfileId": 11008, "role": 1, "ownershipStatus": 2, "isPrimary": true },
+  { "id": 21005, "vesselId": 20005, "userId": 10003, "userProfileId": 11003, "role": 1, "ownershipStatus": 2, "isPrimary": true },
+  { "id": 21006, "vesselId": 20006, "userId": 10004, "userProfileId": 11004, "role": 1, "ownershipStatus": 2, "isPrimary": true },
+  { "id": 21007, "vesselId": 20007, "userId": 10007, "userProfileId": 11007, "role": 1, "ownershipStatus": 2, "isPrimary": true },
+  { "id": 21008, "vesselId": 20008, "userId": 10008, "userProfileId": 11008, "role": 1, "ownershipStatus": 2, "isPrimary": true }
+]

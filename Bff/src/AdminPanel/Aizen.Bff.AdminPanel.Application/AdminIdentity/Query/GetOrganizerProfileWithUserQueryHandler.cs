@@ -1,0 +1,28 @@
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Core.CQRS.Handler;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
+
+namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
+
+[DocumentationInfo("GetOrganizerProfileWithUser query handler", "Returns organizer profile with linked user details from the Identity module.")]
+public sealed class GetOrganizerProfileWithUserQueryHandler : AizenQueryHandler<GetOrganizerProfileWithUserQuery, OrganizerProfileWithUserResult>
+{
+    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
+    public GetOrganizerProfileWithUserQueryHandler(
+        IIdentityAdminBffRemoteCall identity,
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    {
+        _identity = identity;
+        _serviceTokenProvider = serviceTokenProvider;
+    }
+
+    public override async Task<OrganizerProfileWithUserResult?> Handle(GetOrganizerProfileWithUserQuery request, CancellationToken ct)
+    {
+        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(ct);
+        var authHeader = $"Bearer {serviceToken}";
+
+        var r = await _identity.GetOrganizerProfileWithUser(request.ProfileId, authHeader, request.UserToken);
+        return r.Body;
+    }
+}

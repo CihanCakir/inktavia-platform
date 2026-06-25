@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Domain;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
@@ -21,6 +22,9 @@ public sealed class GetParticipantProfileListQueryHandler
     {
         var repo = _uow.GetRepository<UserProfileEntity>();
 
+        // EF Core cannot translate enum.ToString() inside WHERE — parse values before the lambda.
+        ApprovalStatus? approvalFilter = Enum.TryParse<ApprovalStatus>(request.ApprovalStatus, out var a) ? a : null;
+
         var queryable = await repo.GetAllAsync<ParticipantProfileListItemDto>(
             selector: p => new ParticipantProfileListItemDto
             {
@@ -36,7 +40,7 @@ public sealed class GetParticipantProfileListQueryHandler
             predicate: p => p.RoleContext == WorkshopRoleContext.Participant && !p.IsDeleted
                 && (request.FirstName == null || p.FirstName.Contains(request.FirstName))
                 && (request.LastName == null || p.LastName.Contains(request.LastName))
-                && (request.ApprovalStatus == null || p.ApprovalStatus.ToString() == request.ApprovalStatus));
+                && (approvalFilter == null || p.ApprovalStatus == approvalFilter));
 
         return queryable.ToList();
     }

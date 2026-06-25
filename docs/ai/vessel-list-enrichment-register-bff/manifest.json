@@ -1,0 +1,32 @@
+{
+  "packageName": "vessel-list-enrichment-register-bff-copilot-package",
+  "version": "1.0.0",
+  "createdFor": "Inktavia Marine OS AdminPanel BFF + Vessel Module",
+  "purpose": "Fix Vessel list enrichment gaps and implement the missing Vessel Register page bootstrap/create endpoints for React Admin Web.",
+  "primaryPrompt": "RUN_THIS_FIRST_SINGLE_PROMPT.md",
+  "scope": [
+    "AdminPanel BFF Vessel list enrichment",
+    "Identity/Profile bulk owner enrichment",
+    "Vessel latest location mapping",
+    "Operational/status/asset/ownership label mapping",
+    "Vessel Register page bootstrap endpoint",
+    "Vessel Register create endpoint wiring if missing",
+    "Smoke tests and final gap reports"
+  ],
+  "nonGoals": [
+    "Do not rewrite frontend components unless only a route/proxy mismatch must be documented.",
+    "Do not change auth/token architecture.",
+    "Do not introduce Guid IDs for entities that use long IDs.",
+    "Do not implement CargoDry or Payment features.",
+    "Do not remove existing Vessel endpoints."
+  ],
+  "expectedReports": [
+    "docs/reports/vessel-list-enrichment-audit-report.md",
+    "docs/reports/vessel-owner-identity-bulk-enrichment-report.md",
+    "docs/reports/vessel-location-status-mapping-report.md",
+    "docs/reports/vessel-register-bootstrap-endpoint-report.md",
+    "docs/reports/vessel-register-create-endpoint-report.md",
+    "docs/reports/vessel-list-register-smoke-test-report.md",
+    "docs/reports/vessel-list-register-final-gap-report.md"
+  ]
+}

@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Domain;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
@@ -22,6 +23,9 @@ public sealed class GetOrganizerProfilesByFilterQueryHandler
     {
         var repo = _uow.GetRepository<UserProfileEntity>();
 
+        // EF Core cannot translate enum.ToString() inside WHERE — parse values before the lambda.
+        ApprovalStatus? approvalFilter = Enum.TryParse<ApprovalStatus>(request.ApprovalStatus, out var a) ? a : null;
+
         return await repo.GetPagedListAsync<OrganizerProfileListItemDto>(
             selector: p => new OrganizerProfileListItemDto
             {
@@ -33,12 +37,17 @@ public sealed class GetOrganizerProfilesByFilterQueryHandler
                 TaxpayerType = p.TaxpayerType.ToString(),
                 ApprovalStatus = p.ApprovalStatus.ToString(),
                 Status = p.Status.ToString(),
-                CreateDate = p.CreateDate
+                CreateDate = p.CreateDate,
+                LastLoginAt = p.User != null && p.User.UserLoginTokens != null
+                    ? p.User.UserLoginTokens
+                        .Where(t => !t.IsRevoked)
+                        .Max(t => (DateTime?)(t.ModifyDate ?? t.CreateDate))
+                    : null
             },
             predicate: p => p.RoleContext == WorkshopRoleContext.Organizer && !p.IsDeleted
                 && (request.FirstName == null || p.FirstName.Contains(request.FirstName))
                 && (request.LastName == null || p.LastName.Contains(request.LastName))
-                && (request.ApprovalStatus == null || p.ApprovalStatus.ToString() == request.ApprovalStatus),
+                && (approvalFilter == null || p.ApprovalStatus == approvalFilter),
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);

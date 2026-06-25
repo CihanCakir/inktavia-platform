@@ -1,0 +1,998 @@
+{
+  "info": {
+    "_postman_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+    "name": "Vessel Module - Controller API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Auth Setup",
+      "item": [
+        {
+          "name": "Get Mobile Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set(\"mobile_access_token\", r.access_token);",
+                  "pm.environment.set(\"active_access_token\", r.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{mobile_client_id}}" },
+                { "key": "username", "value": "{{mobile_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": { "raw": "{{keycloak_token_url}}" }
+          }
+        },
+        {
+          "name": "Get Admin Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set(\"admin_access_token\", r.access_token);",
+                  "pm.environment.set(\"active_access_token\", r.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{admin_panel_client_id}}" },
+                { "key": "username", "value": "{{admin_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": { "raw": "{{keycloak_token_url}}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Vessel - CRUD",
+      "item": [
+        {
+          "name": "Create Vessel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.vesselId) pm.environment.set(\"vesselId\", r.id || r.vesselId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"MV Test Vessel\",\n  \"vesselType\": \"CargoShip\",\n  \"flag\": \"TR\",\n  \"imo\": \"IMO9876543\",\n  \"mmsi\": \"271001234\",\n  \"callSign\": \"TCTEST\",\n  \"buildYear\": 2015\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels" }
+          }
+        },
+        {
+          "name": "Get Vessel By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });",
+                  "pm.test(\"Has vessel data\", () => { const r = pm.response.json(); pm.expect(r).to.have.property(\"id\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}" }
+          }
+        },
+        {
+          "name": "Get Vessel By Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/code/TCTEST" }
+          }
+        },
+        {
+          "name": "Get My Vessels",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });",
+                  "pm.test(\"Has items\", () => { const r = pm.response.json(); pm.expect(r).to.have.property(\"items\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/current-user?pageIndex=0&pageSize=20" }
+          }
+        },
+        {
+          "name": "Update Vessel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"MV Test Vessel Updated\",\n  \"flag\": \"TR\",\n  \"callSign\": \"TCTEST2\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}" }
+          }
+        },
+        {
+          "name": "Update Vessel Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"status\": \"InService\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/status" }
+          }
+        },
+        {
+          "name": "Update Vessel Visibility",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "\"Public\""
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/visibility" }
+          }
+        },
+        {
+          "name": "Archive Vessel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"reason\": \"Testing archive feature\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/archive" }
+          }
+        },
+        {
+          "name": "Restore Vessel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/restore" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Vessel - Location",
+      "item": [
+        {
+          "name": "Get Current Location",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 404\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 404]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/location/current" }
+          }
+        },
+        {
+          "name": "Update Vessel Location",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"latitude\": 41.0082,\n  \"longitude\": 28.9784,\n  \"heading\": 245.5,\n  \"speedKnots\": 12.3,\n  \"portId\": null\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/location" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Vessel - Engines",
+      "item": [
+        {
+          "name": "Get Engines",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/engines?pageIndex=0&pageSize=20" }
+          }
+        },
+        {
+          "name": "Add Engine",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.engineId) pm.environment.set(\"engineId\", r.id || r.engineId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"engineType\": \"MainEngine\",\n  \"makeModel\": \"MAN B&W 6S60MC-C\",\n  \"powerKw\": 8580,\n  \"fuelType\": \"HFO\",\n  \"manufacturedYear\": 2015\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/engines" }
+          }
+        },
+        {
+          "name": "Update Engine",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"engineType\": \"MainEngine\",\n  \"makeModel\": \"MAN B&W 6S60MC-C Updated\",\n  \"powerKw\": 9000,\n  \"fuelType\": \"MDO\",\n  \"manufacturedYear\": 2015\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/engines/{{engineId}}" }
+          }
+        },
+        {
+          "name": "Set Primary Engine",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/engines/{{engineId}}/set-primary" }
+          }
+        },
+        {
+          "name": "Delete Engine",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 204\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/engines/{{engineId}}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Vessel - Media",
+      "item": [
+        {
+          "name": "Get Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/media?pageIndex=0&pageSize=20&includeAccessUrls=false" }
+          }
+        },
+        {
+          "name": "Add Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.mediaId) pm.environment.set(\"mediaId\", r.id || r.mediaId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"fileId\": \"{{fileId}}\",\n  \"caption\": \"Vessel starboard view\",\n  \"sortOrder\": 1\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/media" }
+          }
+        },
+        {
+          "name": "Update Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"caption\": \"Updated caption\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/media/{{mediaId}}" }
+          }
+        },
+        {
+          "name": "Set Cover Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/media/{{mediaId}}/set-cover" }
+          }
+        },
+        {
+          "name": "Update Sort Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "2"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/media/{{mediaId}}/sort-order" }
+          }
+        },
+        {
+          "name": "Delete Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 204\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/media/{{mediaId}}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Vessel - Ownership",
+      "item": [
+        {
+          "name": "Get Owners",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/owners?pageIndex=0&pageSize=20" }
+          }
+        },
+        {
+          "name": "Add Owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.ownerId) pm.environment.set(\"vesselOwnerId\", r.id || r.ownerId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"userId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"role\": \"Captain\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/owners" }
+          }
+        },
+        {
+          "name": "Update Owner Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"role\": \"Officer\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/owners/{{vesselOwnerId}}/role" }
+          }
+        },
+        {
+          "name": "Set Primary Owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/owners/{{vesselOwnerId}}/set-primary" }
+          }
+        },
+        {
+          "name": "Remove Owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 204\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/owners/{{vesselOwnerId}}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Vessel - Status History",
+      "item": [
+        {
+          "name": "Get Status History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/status-history?pageIndex=0&pageSize=20" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Vessel - Specification",
+      "item": [
+        {
+          "name": "Get Specification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 404\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 404]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/specification" }
+          }
+        },
+        {
+          "name": "Upsert Specification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"lengthOverall\": 185.5,\n  \"beam\": 28.4,\n  \"draft\": 11.2,\n  \"grossTonnage\": 21450,\n  \"netTonnage\": 9870,\n  \"deadweightTonnage\": 28000,\n  \"hullMaterial\": \"Steel\",\n  \"propulsionType\": \"MotorVessel\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/specification" }
+          }
+        },
+        {
+          "name": "Delete Specification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 204\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/specification" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Vessel - Documents",
+      "item": [
+        {
+          "name": "Get Documents",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/documents?pageIndex=0&pageSize=20" }
+          }
+        },
+        {
+          "name": "Add Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const r = pm.response.json();",
+                  "if (r.id || r.documentId) pm.environment.set(\"vesselDocumentId\", r.id || r.documentId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"fileId\": \"{{fileId}}\",\n  \"documentType\": \"SafetyManagementCertificate\",\n  \"title\": \"ISM Safety Certificate\",\n  \"issuedAt\": \"2023-06-15T00:00:00Z\",\n  \"expiresAt\": \"2028-06-14T00:00:00Z\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/documents" }
+          }
+        },
+        {
+          "name": "Update Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"title\": \"Updated ISM Certificate\",\n  \"issuedAt\": \"2023-06-15T00:00:00Z\",\n  \"expiresAt\": \"2029-06-14T00:00:00Z\"\n}"
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/documents/{{vesselDocumentId}}" }
+          }
+        },
+        {
+          "name": "Update Document Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "\"Verified\""
+            },
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/documents/{{vesselDocumentId}}/status" }
+          }
+        },
+        {
+          "name": "Delete Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 or 204\", () => { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_base_url}}/vessels/{{vesselId}}/documents/{{vesselDocumentId}}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Admin - Vessels",
+      "item": [
+        {
+          "name": "Admin List Vessels",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": { "raw": "{{vessel_api_root_url}}/api/v1/admin/vessels?pageIndex=0&pageSize=20&searchTerm=&isArchived=false" }
+          }
+        }
+      ]
+    }
+  ]
+}

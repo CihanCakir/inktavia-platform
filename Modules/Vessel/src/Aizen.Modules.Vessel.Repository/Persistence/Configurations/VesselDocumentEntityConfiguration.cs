@@ -20,6 +20,10 @@ public sealed class VesselDocumentEntityConfiguration : IEntityTypeConfiguration
         builder.Property(x => x.DocumentStatus).IsRequired();
         builder.Property(x => x.ExpiresAt);
         builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.Property(x => x.DocumentCategory).HasMaxLength(200);
+        builder.Property(x => x.IssuingAuthority).HasMaxLength(300);
+        builder.Property(x => x.ApprovedAt);
+        builder.Property(x => x.ApprovedByUserId);
 
         builder.HasIndex(x => new { x.VesselId, x.DocumentTypeCode });
         builder.HasIndex(x => x.ExpiresAt);

@@ -7,6 +7,7 @@ using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Aizen.Modules.Vessel.Abstraction.Response.Engine;
+using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Application.Query.Engine;
 
@@ -46,7 +47,7 @@ public sealed class GetVesselEnginesQueryHandler : AizenQueryHandler<GetVesselEn
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
 
-        return new GetVesselEnginesResponse(result);
+        return new GetVesselEnginesResponse((Paginate<VesselEngineDto>)result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

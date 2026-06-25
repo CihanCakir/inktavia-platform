@@ -12,10 +12,13 @@ namespace Aizen.Modules.Identity.Abstraction.Response
     WorkshopRoleContext Context,
     long UserId,
     long ProfileId,
-    ApprovalStatus NewStatus,     // <-- eklendi
+    ApprovalStatus NewStatus,
     DateTime? ApprovedAt,
     DateTime? RejectedAt,
     string? RejectReason,
-    string? Message
+    string? Message,
+    string? ReviewedBy = null,
+    string? ReviewedAt = null,
+    string? RejectionCategory = null
 );
 }

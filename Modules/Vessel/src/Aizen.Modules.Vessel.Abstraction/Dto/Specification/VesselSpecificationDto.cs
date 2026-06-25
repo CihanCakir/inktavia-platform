@@ -26,4 +26,10 @@ public sealed class VesselSpecificationDto
     public string? FuelCapacityUnitCode { get; set; }
     public decimal? WaterCapacityValue { get; set; }
     public string? WaterCapacityUnitCode { get; set; }
+    public string? BuildCountry { get; set; }
+    public string? SuperstructureMaterial { get; set; }
+    public decimal? GrossTonnage { get; set; }
+    public decimal? NetTonnage { get; set; }
+    public int? PassengerCapacity { get; set; }
+    public int? CrewCapacity { get; set; }
 }

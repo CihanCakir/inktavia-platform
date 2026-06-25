@@ -1,0 +1,276 @@
+{
+  "suite": "referenceData.lookupItem.api",
+  "environment": "LOCAL",
+  "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+  "startedAt": "2026-06-15T13:43:31.093Z",
+  "finishedAt": "2026-06-15T13:43:31.203Z",
+  "totalTests": 8,
+  "passed": 2,
+  "failed": 6,
+  "results": [
+    {
+      "id": "195f057f-b95b-4385-a4d3-bde2f03d942a",
+      "suite": "referenceData.lookupItem.api",
+      "name": "GET /reference-data/lookup/:groupId/items — should return item list",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.159Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "LookupItemListResponse { items: LookupItem[], total: number }",
+      "actualStatusCode": 500,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": false,
+          "errorCode": 911,
+          "errorMessage": "No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions).",
+          "errorDetails": "   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.<>c__DisplayClass0_0.<<HandleAsync>g__Handle|0>d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)"
+        },
+        "body": null
+      },
+      "actualResponseHeaders": {
+        "content-type": "application/json",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel",
+        "cache-control": "no-cache,no-store",
+        "expires": "-1",
+        "pragma": "no-cache",
+        "transfer-encoding": "chunked"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 46,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 500. Body: {\"header\":{\"isSuccess\":false,\"errorCode\":911,\"errorMessage\":\"No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions)."
+    },
+    {
+      "id": "e9e9efa8-c3c3-4208-af8b-773edbc8c8f1",
+      "suite": "referenceData.lookupItem.api",
+      "name": "POST /reference-data/lookup/:groupId/items — should attempt to create an item",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.166Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup/00000000-0000-0000-0000-000000000001/items",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "code": "TEST-BFF-99",
+        "sortOrder": 999,
+        "names": {
+          "en": "[TEST] Test Item EN",
+          "tr": "[TEST] Test Item TR"
+        },
+        "isEnabled": true
+      },
+      "expectedStatusCode": 201,
+      "expectedShape": "LookupItem",
+      "actualStatusCode": 405,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel",
+        "allow": "GET"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 3,
+      "passed": false,
+      "failureReason": "Expected HTTP 201, got 405. Body: \"\""
+    },
+    {
+      "id": "0f680703-476b-4dd1-a6ac-b2f15fc70de5",
+      "suite": "referenceData.lookupItem.api",
+      "name": "PUT /reference-data/lookup/items/:id — should return 404 for unknown item",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.168Z",
+      "method": "PUT",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000002",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "code": "UPDATED-TEST",
+        "sortOrder": 1
+      },
+      "expectedStatusCode": 404,
+      "expectedShape": "ProblemDetails",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 1,
+      "passed": true,
+      "failureReason": null
+    },
+    {
+      "id": "1b38fb94-066d-407d-8daf-2ac41b51b2b2",
+      "suite": "referenceData.lookupItem.api",
+      "name": "DELETE /reference-data/lookup/items/:id — should return 404 for unknown item",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.169Z",
+      "method": "DELETE",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/lookup/items/00000000-0000-0000-0000-000000000003",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 404,
+      "expectedShape": "ProblemDetails",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 1,
+      "passed": true,
+      "failureReason": null
+    },
+    {
+      "id": "e6f9df3f-dc2c-4069-8afe-e2069de65d4f",
+      "suite": "referenceData.lookupItem.api",
+      "name": "GET /reference-data/currency — should return currency list",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.171Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/currency",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ReferenceOption[]",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 1,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "4d08aa6a-ed4e-4fcf-8ca1-8926b97d19ff",
+      "suite": "referenceData.lookupItem.api",
+      "name": "GET /reference-data/location — should return location list",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.173Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/location",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ReferenceOption[]",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 2,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "7e79d6de-72fa-482f-9cf7-ab3dbd2a2e20",
+      "suite": "referenceData.lookupItem.api",
+      "name": "GET /reference-data/measurement — should return measurement list",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.199Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/measurement",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ReferenceOption[]",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 25,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "d7c263b6-a0bf-421a-8152-8c9def54f770",
+      "suite": "referenceData.lookupItem.api",
+      "name": "GET /reference-data/system-parameter — should return system parameters",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.202Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reference-data/system-parameter",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ReferenceOption[]",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 3,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    }
+  ]
+}

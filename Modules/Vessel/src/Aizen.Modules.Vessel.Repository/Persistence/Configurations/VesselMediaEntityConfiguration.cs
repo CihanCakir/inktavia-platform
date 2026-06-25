@@ -18,6 +18,10 @@ public sealed class VesselMediaEntityConfiguration : IEntityTypeConfiguration<Ve
         builder.Property(x => x.SizeInBytesSnapshot);
         builder.Property(x => x.SortOrder).IsRequired();
         builder.Property(x => x.IsCover).IsRequired();
+        builder.Property(x => x.Title).HasMaxLength(300);
+        builder.Property(x => x.Description).HasMaxLength(1000);
+        builder.Property(x => x.ThumbnailUrl).HasMaxLength(1000);
+        builder.Property(x => x.UploadedByUserId);
 
         builder.HasIndex(x => new { x.VesselId, x.SortOrder });
         builder.HasIndex(x => new { x.VesselId, x.IsCover });

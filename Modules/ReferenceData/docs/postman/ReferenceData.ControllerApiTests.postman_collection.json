@@ -1,0 +1,1096 @@
+{
+  "info": {
+    "_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "ReferenceData Module - Controller API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 - Auth Setup",
+      "item": [
+        {
+          "name": "Get Admin Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.environment.set(\"admin_access_token\", r.access_token);",
+                  "pm.environment.set(\"active_access_token\", r.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{admin_panel_client_id}}" },
+                { "key": "username", "value": "{{admin_username}}" },
+                { "key": "password", "value": "{{default_password}}" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_token_url}}",
+              "host": ["{{keycloak_token_url}}"]
+            }
+          }
+        },
+        {
+          "name": "Set Active - Admin",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"active_access_token\", pm.environment.get(\"admin_access_token\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/health",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Lookup",
+      "item": [
+        {
+          "name": "Get All Lookup Groups",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has items\", () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/lookup-groups?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["lookup-groups"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get Lookup Groups Tree",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Has body\", () => {",
+                  "  pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/lookup-groups/tree?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["lookup-groups", "tree"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get Lookup Group By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/lookup-groups/{{lookupGroupId}}",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["lookup-groups", "{{lookupGroupId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Lookup Items By Group Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "if (r && r.length > 0 && r[0].id) pm.environment.set(\"lookupItemId\", r[0].id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/lookup-groups/lookup-items/VESSEL_TYPES?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["lookup-groups", "lookup-items", "VESSEL_TYPES"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Currency",
+      "item": [
+        {
+          "name": "Get All Currencies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Array response\", () => {",
+                  "  pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});",
+                  "const r = pm.response.json();",
+                  "if (r && r.length > 0) pm.environment.set(\"currencyId\", r[0].id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/currencies?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["currencies"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get Base Currency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/currencies/base",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["currencies", "base"]
+            }
+          }
+        },
+        {
+          "name": "Get Currency By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/currencies/{{currencyId}}",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["currencies", "{{currencyId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Location",
+      "item": [
+        {
+          "name": "Get Countries",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Array response\", () => {",
+                  "  pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/locations/countries?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["locations", "countries"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get Country By Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/locations/countries/TR",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["locations", "countries", "TR"]
+            }
+          }
+        },
+        {
+          "name": "Get Cities",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/locations/TR/cities?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["locations", "TR", "cities"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get City By Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/locations/TR/cities/IST",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["locations", "TR", "cities", "IST"]
+            }
+          }
+        },
+        {
+          "name": "Get Districts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/locations/TR/cities/IST/districts?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["locations", "TR", "cities", "IST", "districts"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get Neighborhoods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/locations/TR/cities/IST/districts/KADIKOY/neighborhoods?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["locations", "TR", "cities", "IST", "districts", "KADIKOY", "neighborhoods"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Measurement",
+      "item": [
+        {
+          "name": "Get All Measurement Units",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/measurement-units?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["measurement-units"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get Measurement Units By Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/measurement-units/by-type/Length?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["measurement-units", "by-type", "Length"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get Measurement Unit By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/measurement-units/{{measurementUnitId}}",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["measurement-units", "{{measurementUnitId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Exchange Rate",
+      "item": [
+        {
+          "name": "Get Exchange Rate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/exchange-rates?fromCurrencyCode=USD&toCurrencyCode=EUR",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["exchange-rates"],
+              "query": [
+                { "key": "fromCurrencyCode", "value": "USD" },
+                { "key": "toCurrencyCode", "value": "EUR" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Exchange Rates By Currency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/exchange-rates/by-currency/USD",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["exchange-rates", "by-currency", "USD"]
+            }
+          }
+        },
+        {
+          "name": "Get Exchange Rate History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/exchange-rates/history?fromCurrencyCode=USD&toCurrencyCode=EUR&startDate=2025-01-01&endDate=2025-01-31",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["exchange-rates", "history"],
+              "query": [
+                { "key": "fromCurrencyCode", "value": "USD" },
+                { "key": "toCurrencyCode", "value": "EUR" },
+                { "key": "startDate", "value": "2025-01-01" },
+                { "key": "endDate", "value": "2025-01-31" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - System Parameters",
+      "item": [
+        {
+          "name": "Get All System Parameters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/system-parameters?onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["system-parameters"],
+              "query": [{ "key": "onlyActive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Get System Parameter By Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/system-parameters/MAX_FILE_SIZE_MB",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["system-parameters", "MAX_FILE_SIZE_MB"]
+            }
+          }
+        },
+        {
+          "name": "Get System Parameters By Prefix",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reference_data_api_base_url}}/system-parameters/by-prefix?prefix=FILE_&onlyActive=true",
+              "host": ["{{reference_data_api_base_url}}"],
+              "path": ["system-parameters", "by-prefix"],
+              "query": [
+                { "key": "prefix", "value": "FILE_" },
+                { "key": "onlyActive", "value": "true" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Admin - Lookup",
+      "item": [
+        {
+          "name": "Create Lookup Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const r = pm.response.json();",
+                  "if (r.id) pm.environment.set(\"lookupGroupId\", r.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test Vessel Categories\",\"code\":\"TEST_VESSEL_CATS\",\"description\":\"Test group\",\"parentGroupId\":null,\"sortOrder\":99,\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/lookup-groups",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "lookup-groups"]
+            }
+          }
+        },
+        {
+          "name": "Update Lookup Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Updated Test Categories\",\"code\":\"TEST_VESSEL_CATS\",\"description\":\"Updated\",\"sortOrder\":99,\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/lookup-groups/{{lookupGroupId}}",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "lookup-groups", "{{lookupGroupId}}"]
+            }
+          }
+        },
+        {
+          "name": "Activate Lookup Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/lookup-groups/{{lookupGroupId}}/activate",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "lookup-groups", "{{lookupGroupId}}", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Lookup Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/lookup-groups/{{lookupGroupId}}/deactivate",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "lookup-groups", "{{lookupGroupId}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "Create Lookup Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const r = pm.response.json();",
+                  "if (r.id) pm.environment.set(\"lookupItemId\", r.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"groupId\":\"{{lookupGroupId}}\",\"name\":\"Cargo Ship\",\"code\":\"CARGO_SHIP\",\"description\":\"Cargo vessels\",\"iconKey\":\"cargo-ship\",\"colorCode\":\"#4A90E2\",\"sortOrder\":1,\"isDefault\":false,\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/lookup-items",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "lookup-items"]
+            }
+          }
+        },
+        {
+          "name": "Update Lookup Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Cargo Ship Updated\",\"description\":\"Updated cargo vessels\",\"iconKey\":\"cargo-ship\",\"colorCode\":\"#5B9BD5\",\"sortOrder\":1,\"isDefault\":false,\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/lookup-items/{{lookupItemId}}",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "lookup-items", "{{lookupItemId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Admin - Currency",
+      "item": [
+        {
+          "name": "Create Currency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const r = pm.response.json();",
+                  "if (r.id) pm.environment.set(\"currencyId\", r.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"code\":\"EUR\",\"name\":\"Euro\",\"symbol\":\"€\",\"decimalPlaces\":2,\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/currencies",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "currencies"]
+            }
+          }
+        },
+        {
+          "name": "Update Currency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Euro Updated\",\"symbol\":\"€\",\"decimalPlaces\":2,\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/currencies/{{currencyId}}",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "currencies", "{{currencyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Set Base Currency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/currencies/{{currencyId}}/set-base",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "currencies", "{{currencyId}}", "set-base"]
+            }
+          }
+        },
+        {
+          "name": "Activate Currency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" }
+            ],
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/currencies/{{currencyId}}/activate",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "currencies", "{{currencyId}}", "activate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Admin - Location",
+      "item": [
+        {
+          "name": "Create Country",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"code\":\"TR\",\"name\":\"Turkey\",\"defaultCurrencyCode\":\"TRY\",\"phoneCode\":\"+90\",\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/locations/countries",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "locations", "countries"]
+            }
+          }
+        },
+        {
+          "name": "Create City",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"countryCode\":\"TR\",\"cityCode\":\"IST\",\"name\":\"Istanbul\",\"latitude\":41.0082,\"longitude\":28.9784,\"isCoastalCity\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/locations/cities",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "locations", "cities"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Admin - System Parameters",
+      "item": [
+        {
+          "name": "Create System Parameter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200 or 201\", () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"key\":\"MAX_FILE_SIZE_MB\",\"value\":\"50\",\"valueType\":\"Integer\",\"description\":\"Maximum file upload size in MB\",\"isEncrypted\":false}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/system-parameters",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "system-parameters"]
+            }
+          }
+        },
+        {
+          "name": "Update System Parameter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{active_access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"value\":\"100\",\"description\":\"Updated max file size\",\"isActive\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{reference_data_api_root_url}}/api/v1/admin/reference-data/system-parameters/MAX_FILE_SIZE_MB",
+              "host": ["{{reference_data_api_root_url}}"],
+              "path": ["api", "v1", "admin", "reference-data", "system-parameters", "MAX_FILE_SIZE_MB"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

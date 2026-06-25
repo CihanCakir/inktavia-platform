@@ -1,0 +1,740 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Admin Panel BFF — Controller API Tests",
+    "description": "Per-endpoint tests for every Admin Panel BFF controller action. Requires the 'Admin Panel BFF - Local' environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Setup",
+      "item": [
+        {
+          "name": "Get Admin Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.environment.set('admin_token', json.access_token);",
+                  "pm.test('Token acquired', function() {",
+                  "  pm.expect(json.access_token).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{keycloak_client_id}}" },
+                { "key": "client_secret", "value": "{{keycloak_client_secret}}" },
+                { "key": "username", "value": "{{admin_username}}" },
+                { "key": "password", "value": "{{admin_password}}" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token",
+              "host": ["{{keycloak_url}}"],
+              "path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET Dashboard Overview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/dashboard/overview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "dashboard", "overview"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identity",
+      "item": [
+        {
+          "name": "GET Profiles (all)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/profiles?pageIndex=0&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "profiles"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Profiles (Organizer, Pending)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/profiles?roleContext=Organizer&approvalStatus=Pending&pageIndex=0&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "profiles"],
+              "query": [
+                { "key": "roleContext", "value": "Organizer" },
+                { "key": "approvalStatus", "value": "Pending" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Profile Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/profiles/{{sample_profile_id}}?roleContext=General",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "profiles", "{{sample_profile_id}}"],
+              "query": [
+                { "key": "roleContext", "value": "General" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Approve Organizer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/organizers/{{sample_user_id}}/profiles/{{sample_profile_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "organizers", "{{sample_user_id}}", "profiles", "{{sample_profile_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "POST Reject Organizer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Incomplete documentation provided\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/organizers/{{sample_user_id}}/profiles/{{sample_profile_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "organizers", "{{sample_user_id}}", "profiles", "{{sample_profile_id}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "POST Approve Venue Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/venues/{{sample_user_id}}/profiles/{{sample_profile_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "venues", "{{sample_user_id}}", "profiles", "{{sample_profile_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "POST Reject Venue Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Venue does not meet safety requirements\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/identity/venues/{{sample_user_id}}/profiles/{{sample_profile_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "identity", "venues", "{{sample_user_id}}", "profiles", "{{sample_profile_id}}", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vessels",
+      "item": [
+        {
+          "name": "GET Vessels (all)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels?pageIndex=0&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Vessels (archived only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels?isArchived=true&pageIndex=0&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels"],
+              "query": [
+                { "key": "isArchived", "value": "true" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Vessel Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{sample_vessel_id}}/detail",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{sample_vessel_id}}", "detail"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Archive Vessel",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Vessel failed safety inspection\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{sample_vessel_id}}/archive",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{sample_vessel_id}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Restore Vessel",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{sample_vessel_id}}/restore",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{sample_vessel_id}}", "restore"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Update Vessel Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{sample_vessel_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{sample_vessel_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Vessel Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/vessels/{{sample_vessel_id}}/documents/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "vessels", "{{sample_vessel_id}}", "documents", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service Requests",
+      "item": [
+        {
+          "name": "GET Service Requests (all)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests?pageIndex=0&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Service Requests (by status)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests?status=Active&pageIndex=0&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests"],
+              "query": [
+                { "key": "status", "value": "Active" },
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Disputes (all)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/disputes?pageIndex=0&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "disputes"],
+              "query": [
+                { "key": "pageIndex", "value": "0" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Service Request Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{sample_service_request_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{sample_service_request_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Cancel Service Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Cancelled by admin due to policy violation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{sample_service_request_id}}/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{sample_service_request_id}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Approve Completion",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"All deliverables verified by admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{sample_service_request_id}}/completion/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{sample_service_request_id}}", "completion", "approve"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Reject Completion",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Work does not meet agreed standards\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{sample_service_request_id}}/completion/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{sample_service_request_id}}", "completion", "reject"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Change Dispute Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"UnderReview\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{sample_service_request_id}}/disputes/{{sample_dispute_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{sample_service_request_id}}", "disputes", "{{sample_dispute_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Resolve Dispute",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"Evidence reviewed. Service provider fulfilled obligations.\",\n  \"favoredParty\": \"ServiceProvider\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/service-requests/{{sample_service_request_id}}/disputes/{{sample_dispute_id}}/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "service-requests", "{{sample_service_request_id}}", "disputes", "{{sample_dispute_id}}", "resolve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "GET File Metadata",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/files/{{sample_file_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "files", "{{sample_file_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Bulk Generate Read URLs",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileIds\": [\"{{sample_file_id}}\"],\n  \"expiresInMinutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/files/bulk-read-urls",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "files", "bulk-read-urls"]
+            }
+          }
+        },
+        {
+          "name": "DELETE File",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/files/{{sample_file_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "files", "{{sample_file_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reference Data",
+      "item": [
+        {
+          "name": "GET Lookup Groups",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/lookup-groups",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "lookup-groups"]
+            }
+          }
+        },
+        {
+          "name": "GET Lookup Tree",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/lookup-tree",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "lookup-tree"]
+            }
+          }
+        },
+        {
+          "name": "GET Lookup Items by Group Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/lookup/VESSEL_TYPE/items",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "lookup", "VESSEL_TYPE", "items"]
+            }
+          }
+        },
+        {
+          "name": "GET Currencies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/currencies",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "currencies"]
+            }
+          }
+        },
+        {
+          "name": "GET Countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/locations/countries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "locations", "countries"]
+            }
+          }
+        },
+        {
+          "name": "GET Cities (all)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/locations/cities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "locations", "cities"]
+            }
+          }
+        },
+        {
+          "name": "GET Cities (by country)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/locations/cities?countryId=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "locations", "cities"],
+              "query": [
+                { "key": "countryId", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Measurement Units",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/measurement-units",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "measurement-units"]
+            }
+          }
+        },
+        {
+          "name": "GET System Parameters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin-panel/reference-data/system-parameters",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin-panel", "reference-data", "system-parameters"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5200" },
+    { "key": "keycloak_url", "value": "http://localhost:8080" },
+    { "key": "keycloak_realm", "value": "inktavia" },
+    { "key": "keycloak_client_id", "value": "inktavia-api" },
+    { "key": "keycloak_client_secret", "value": "" },
+    { "key": "admin_username", "value": "admin@inktavia.com" },
+    { "key": "admin_password", "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "sample_profile_id", "value": "00000000-0000-0000-0000-000000000001" },
+    { "key": "sample_user_id", "value": "1" },
+    { "key": "sample_vessel_id", "value": "1" },
+    { "key": "sample_service_request_id", "value": "1" },
+    { "key": "sample_dispute_id", "value": "1" },
+    { "key": "sample_file_id", "value": "00000000-0000-0000-0000-000000000002" }
+  ]
+}

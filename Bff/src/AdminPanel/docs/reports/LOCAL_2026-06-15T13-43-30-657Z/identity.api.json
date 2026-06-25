@@ -1,0 +1,433 @@
+{
+  "suite": "identity.api",
+  "environment": "LOCAL",
+  "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+  "startedAt": "2026-06-15T13:43:31.117Z",
+  "finishedAt": "2026-06-15T13:44:36.352Z",
+  "totalTests": 10,
+  "passed": 2,
+  "failed": 8,
+  "results": [
+    {
+      "id": "ea2b5174-64d0-4f4e-a9d4-13ccf68798c9",
+      "suite": "identity.api",
+      "name": "POST /auth/login/username — should return tokens with valid credentials",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:32.220Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/auth/login/username",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "username": "admin@inktavia.local",
+        "pin": "Admin!123",
+        "deviceId": "bff-test-suite-device-00000001"
+      },
+      "expectedStatusCode": 200,
+      "expectedShape": "{ token: BffTokenDto, profile: BffProfileDto, agreement: BffAgreementDto }",
+      "actualStatusCode": 200,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": true,
+          "errorCode": 0
+        },
+        "body": {
+          "token": {
+            "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiIyM2I5NDNiNS02YWIzLTRkNDktYTc5Ny1lYjU1Nzc2NDYxYWEiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMyIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEyLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.15mdVWH8vr6jKiTA0MsZ3goCv2XQKX71Gr9v5eO6-34",
+            "accessTokenExpiredDate": "2026-07-15T23:43:32.17916Z",
+            "refreshToken": "DYe+gFI/PLdYE6tllxYtQTK/KK7/CT51gjxaplW3Uqc=",
+            "refreshTokenExpiredDate": "2026-06-22T13:43:32.179161Z"
+          },
+          "profile": {
+            "userId": 1,
+            "email": "admin@inktavia.local",
+            "name": "System",
+            "surname": "Admin"
+          },
+          "agreement": {
+            "agreementId": 0,
+            "agreementApproved": false
+          }
+        }
+      },
+      "actualResponseHeaders": {
+        "content-length": "876",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 15 Jun 2026 13:43:31 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 1100,
+      "passed": true,
+      "failureReason": null
+    },
+    {
+      "id": "04dd0fbc-fae3-476d-85fc-ce8b49f16847",
+      "suite": "identity.api",
+      "name": "POST /auth/login/username — should return 400/401 with wrong password",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:57.275Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/auth/login/username",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "username": "admin@inktavia.local",
+        "pin": "WRONG_PIN_12345",
+        "deviceId": "bff-test-suite-device-00000001"
+      },
+      "expectedStatusCode": 401,
+      "expectedShape": "{ message: string }",
+      "actualStatusCode": null,
+      "actualResponseBody": null,
+      "actualResponseHeaders": {},
+      "actualError": "timeout of 25000ms exceeded",
+      "axiosErrorCode": "ECONNABORTED",
+      "durationMs": 25054,
+      "passed": false,
+      "failureReason": "Network error: ECONNABORTED — timeout of 25000ms exceeded"
+    },
+    {
+      "id": "4521764c-44a3-4d3c-99ea-3306edbda0a7",
+      "suite": "identity.api",
+      "name": "POST /auth/login/phone — should return 400/401 with bad phone credentials",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:20.776Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/auth/login/phone",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "phoneNumber": "+905000000000",
+        "password": "WRONG_PASS",
+        "deviceId": "bff-test-suite-device-00000001"
+      },
+      "expectedStatusCode": 401,
+      "expectedShape": "{ message: string }",
+      "actualStatusCode": 200,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": true,
+          "errorCode": 0
+        }
+      },
+      "actualResponseHeaders": {
+        "content-length": "43",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 15 Jun 2026 13:44:20 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 23497,
+      "passed": false,
+      "failureReason": "Expected HTTP 401, got 200. Body: {\"header\":{\"isSuccess\":true,\"errorCode\":0}}"
+    },
+    {
+      "id": "ba2094a3-8499-48d5-a2bf-dabb9af6096d",
+      "suite": "identity.api",
+      "name": "POST /auth/otp/send — should return 400/422 for missing phone",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:20.812Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/auth/otp/send",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "phoneNumber": ""
+      },
+      "expectedStatusCode": 400,
+      "expectedShape": "{ message: string }",
+      "actualStatusCode": 400,
+      "actualResponseBody": {
+        "errors": {
+          "phoneNumber": [
+            "The PhoneNumber field is required.",
+            "The PhoneNumber field is not a valid phone number."
+          ]
+        },
+        "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+        "title": "One or more validation errors occurred.",
+        "status": 400,
+        "traceId": "00-712a0a7bf2f0b99a27b976bd0ffbecfd-3346acaabfa4d5f9-00"
+      },
+      "actualResponseHeaders": {
+        "content-length": "309",
+        "content-type": "application/problem+json; charset=utf-8",
+        "date": "Mon, 15 Jun 2026 13:44:20 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 31,
+      "passed": true,
+      "failureReason": null
+    },
+    {
+      "id": "7a0ed097-acf0-47f2-b5b4-184c58a633f5",
+      "suite": "identity.api",
+      "name": "POST /auth/refresh — should return 400/401 for invalid refresh token",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:36.311Z",
+      "method": "POST",
+      "url": "http://localhost:17001/api/v1/admin-panel/auth/refresh",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": {
+        "refreshToken": "invalid-refresh-token-bff-test-suite",
+        "deviceId": "bff-test-suite-device-00000001"
+      },
+      "expectedStatusCode": 401,
+      "expectedShape": "{ message: string }",
+      "actualStatusCode": 200,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": true,
+          "errorCode": 0
+        }
+      },
+      "actualResponseHeaders": {
+        "content-length": "43",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 15 Jun 2026 13:44:35 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 15499,
+      "passed": false,
+      "failureReason": "Expected HTTP 401, got 200. Body: {\"header\":{\"isSuccess\":true,\"errorCode\":0}}"
+    },
+    {
+      "id": "7dd7f8e1-401d-448d-a482-688b5f443741",
+      "suite": "identity.api",
+      "name": "GET /identity/organizers/profiles — should return paginated organizer profiles",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:36.328Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/identity/organizers/profiles",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ProfileListResponse<OrganizerProfile>",
+      "actualStatusCode": 500,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": false,
+          "errorCode": 911,
+          "errorMessage": "No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions).",
+          "errorDetails": "   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.<>c__DisplayClass0_0.<<HandleAsync>g__Handle|0>d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)"
+        },
+        "body": null
+      },
+      "actualResponseHeaders": {
+        "content-type": "application/json",
+        "date": "Mon, 15 Jun 2026 13:44:35 GMT",
+        "server": "Kestrel",
+        "cache-control": "no-cache,no-store",
+        "expires": "-1",
+        "pragma": "no-cache",
+        "transfer-encoding": "chunked"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 12,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 500. Body: {\"header\":{\"isSuccess\":false,\"errorCode\":911,\"errorMessage\":\"No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions)."
+    },
+    {
+      "id": "8a357bbb-a349-49d5-b532-a0b864db7e49",
+      "suite": "identity.api",
+      "name": "GET /identity/organizers/profiles/:id — should return 404 for unknown organizer",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:36.333Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/identity/organizers/profiles/00000000-0000-0000-0000-000000000001",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 404,
+      "expectedShape": "ProblemDetails",
+      "actualStatusCode": 500,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": false,
+          "errorCode": 911,
+          "errorMessage": "No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions).",
+          "errorDetails": "   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.<>c__DisplayClass0_0.<<HandleAsync>g__Handle|0>d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)"
+        },
+        "body": null
+      },
+      "actualResponseHeaders": {
+        "content-type": "application/json",
+        "date": "Mon, 15 Jun 2026 13:44:35 GMT",
+        "server": "Kestrel",
+        "cache-control": "no-cache,no-store",
+        "expires": "-1",
+        "pragma": "no-cache",
+        "transfer-encoding": "chunked"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 5,
+      "passed": false,
+      "failureReason": "Expected HTTP 404, got 500. Body: {\"header\":{\"isSuccess\":false,\"errorCode\":911,\"errorMessage\":\"No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions)."
+    },
+    {
+      "id": "3c55389e-a2c2-489e-aa1a-c49035259628",
+      "suite": "identity.api",
+      "name": "GET /identity/venues/profiles — should return paginated venue profiles",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:36.339Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/identity/venues/profiles",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ProfileListResponse<VenueProfile>",
+      "actualStatusCode": 500,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": false,
+          "errorCode": 911,
+          "errorMessage": "No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions).",
+          "errorDetails": "   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.<>c__DisplayClass0_0.<<HandleAsync>g__Handle|0>d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)"
+        },
+        "body": null
+      },
+      "actualResponseHeaders": {
+        "content-type": "application/json",
+        "date": "Mon, 15 Jun 2026 13:44:35 GMT",
+        "server": "Kestrel",
+        "cache-control": "no-cache,no-store",
+        "expires": "-1",
+        "pragma": "no-cache",
+        "transfer-encoding": "chunked"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 4,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 500. Body: {\"header\":{\"isSuccess\":false,\"errorCode\":911,\"errorMessage\":\"No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions)."
+    },
+    {
+      "id": "dd54ddfd-3019-45cf-8840-0fc732105bef",
+      "suite": "identity.api",
+      "name": "GET /identity/participant/profiles — should return paginated participant profiles",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:36.345Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/identity/participant/profiles",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ProfileListResponse<ParticipantProfile>",
+      "actualStatusCode": 500,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": false,
+          "errorCode": 911,
+          "errorMessage": "No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions).",
+          "errorDetails": "   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.<>c__DisplayClass0_0.<<HandleAsync>g__Handle|0>d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)"
+        },
+        "body": null
+      },
+      "actualResponseHeaders": {
+        "content-type": "application/json",
+        "date": "Mon, 15 Jun 2026 13:44:35 GMT",
+        "server": "Kestrel",
+        "cache-control": "no-cache,no-store",
+        "expires": "-1",
+        "pragma": "no-cache",
+        "transfer-encoding": "chunked"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 5,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 500. Body: {\"header\":{\"isSuccess\":false,\"errorCode\":911,\"errorMessage\":\"No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions)."
+    },
+    {
+      "id": "66a7a300-d191-4d82-bda8-31c52ea2f455",
+      "suite": "identity.api",
+      "name": "GET /dashboard/overview — should return dashboard overview",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:44:36.351Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/dashboard/overview",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "DashboardOverview { totalUsers, totalVessels, activeServiceRequests }",
+      "actualStatusCode": 500,
+      "actualResponseBody": {
+        "header": {
+          "isSuccess": false,
+          "errorCode": 911,
+          "errorMessage": "No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions).",
+          "errorDetails": "   at Microsoft.AspNetCore.Authentication.AuthenticationService.ChallengeAsync(HttpContext context, String scheme, AuthenticationProperties properties)\n   at Microsoft.AspNetCore.Authorization.Policy.AuthorizationMiddlewareResultHandler.<>c__DisplayClass0_0.<<HandleAsync>g__Handle|0>d.MoveNext()\n--- End of stack trace from previous location ---\n   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)\n   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)\n   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)\n   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)"
+        },
+        "body": null
+      },
+      "actualResponseHeaders": {
+        "content-type": "application/json",
+        "date": "Mon, 15 Jun 2026 13:44:35 GMT",
+        "server": "Kestrel",
+        "cache-control": "no-cache,no-store",
+        "expires": "-1",
+        "pragma": "no-cache",
+        "transfer-encoding": "chunked"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 5,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 500. Body: {\"header\":{\"isSuccess\":false,\"errorCode\":911,\"errorMessage\":\"No authenticationScheme was specified, and there was no DefaultChallengeScheme found. The default schemes can be set using either AddAuthentication(string defaultScheme) or AddAuthentication(Action<AuthenticationOptions> configureOptions)."
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "suite": "reporting.api",
+  "environment": "LOCAL",
+  "runId": "LOCAL_2026-06-15T13-43-30-657Z",
+  "startedAt": "2026-06-15T13:43:31.108Z",
+  "finishedAt": "2026-06-15T13:43:31.143Z",
+  "totalTests": 5,
+  "passed": 1,
+  "failed": 4,
+  "results": [
+    {
+      "id": "b0979f5d-166c-4ca0-813b-e6e5d069e00c",
+      "suite": "reporting.api",
+      "name": "GET /reports — should return list or 404",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.129Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reports",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ReportDto[]",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 19,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "f10e1d67-d010-4b0a-a85c-524aca4c33f2",
+      "suite": "reporting.api",
+      "name": "GET /reports/kpi — should return KPIs or 404",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.133Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/reports/kpi",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "ReportKpiDto",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 3,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "82551ba1-e37c-4ab8-bbec-593ad377434b",
+      "suite": "reporting.api",
+      "name": "GET /analytics/dashboard — should return analytics data or 404",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.135Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/analytics/dashboard",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "AnalyticsDashboardDto",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 1,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "f65710c0-2870-4632-bb7a-6167df5cb06d",
+      "suite": "reporting.api",
+      "name": "GET /files — should return file list",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.137Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/files",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 200,
+      "expectedShape": "FileListResponse { items: FileMetadata[], total: number }",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 2,
+      "passed": false,
+      "failureReason": "Expected HTTP 200, got 404. Body: \"\""
+    },
+    {
+      "id": "42b56c8e-4a3e-4505-bafe-5bb22ceec216",
+      "suite": "reporting.api",
+      "name": "GET /files/:id/metadata — should return 404 for unknown file",
+      "environment": "LOCAL",
+      "timestamp": "2026-06-15T13:43:31.141Z",
+      "method": "GET",
+      "url": "http://localhost:17001/api/v1/admin-panel/files/00000000-0000-0000-0000-000000000001/metadata",
+      "requestHeaders": {
+        "Content-Type": "application/json",
+        "X-Client-Type": "AdminWeb",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o",
+        "X-Aizen-User-Token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBpbmt0YXZpYS5sb2NhbCIsIlVzZXJJZCI6IjEiLCJqdGkiOiJjOTU2YmQxYi0xMTEyLTQ0MmQtYTc2Ni1kYTVlNzQwYmJiOGQiLCJWZXJzaW9uIjoiVjEiLCJSZWZyZXNoVG9rZW5FeHBpcmUiOiIyMi4wNi4yMDI2IDEzOjQzOjMwIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIkFkbWluIiwiUGFydGljaXBhbnQiXSwiZXhwIjoxNzg0MTU5MDEwLCJpc3MiOiJhcHAuaW5rdGF2aWEuY29tIiwiYXVkIjoid3d3Lmlua3RhdmlhLmNvbSJ9.tkhsbbBrz1skeWU9tSfGW8V9ZRPEexON7sLh4nW6g3o"
+      },
+      "requestBody": null,
+      "expectedStatusCode": 404,
+      "expectedShape": "ProblemDetails",
+      "actualStatusCode": 404,
+      "actualResponseBody": "",
+      "actualResponseHeaders": {
+        "content-length": "0",
+        "date": "Mon, 15 Jun 2026 13:43:30 GMT",
+        "server": "Kestrel"
+      },
+      "actualError": null,
+      "axiosErrorCode": null,
+      "durationMs": 3,
+      "passed": true,
+      "failureReason": null
+    }
+  ]
+}

@@ -30,6 +30,8 @@ public sealed class VesselEntityConfiguration : IEntityTypeConfiguration<VesselE
         builder.Property(x => x.IsArchived).IsRequired();
         builder.Property(x => x.ArchiveReason);
         builder.Property(x => x.ArchivedAt);
+        builder.Property(x => x.OperationalStatus);
+        builder.Property(x => x.AssetType);
 
         builder.HasIndex(x => x.VesselCode).IsUnique();
         builder.HasIndex(x => x.Slug).IsUnique();
@@ -37,5 +39,7 @@ public sealed class VesselEntityConfiguration : IEntityTypeConfiguration<VesselE
         builder.HasIndex(x => x.MmsiNumber);
         builder.HasIndex(x => x.ImoNumber);
         builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.OperationalStatus);
+        builder.HasIndex(x => x.AssetType);
     }
 }

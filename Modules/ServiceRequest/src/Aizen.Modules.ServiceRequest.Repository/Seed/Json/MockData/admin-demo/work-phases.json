@@ -1,0 +1,17 @@
+[
+  { "id": 9501, "serviceRequestId": 9001, "phaseNumber": 1, "title": "Diagnostics", "progressPercent": 100, "status": "Completed", "displayOrder": 1 },
+  { "id": 9502, "serviceRequestId": 9001, "phaseNumber": 2, "title": "Disassembly & Inspection", "progressPercent": 100, "status": "Completed", "displayOrder": 2 },
+  { "id": 9503, "serviceRequestId": 9001, "phaseNumber": 3, "title": "Component Replacement", "progressPercent": 60, "status": "In Progress", "displayOrder": 3 },
+  { "id": 9504, "serviceRequestId": 9001, "phaseNumber": 4, "title": "System Testing", "progressPercent": 0, "status": "Upcoming", "displayOrder": 4 },
+  { "id": 9505, "serviceRequestId": 9001, "phaseNumber": 5, "title": "Final Handover", "progressPercent": 0, "status": "Upcoming", "displayOrder": 5 },
+  { "id": 9511, "serviceRequestId": 9004, "phaseNumber": 1, "title": "Surface Assessment", "progressPercent": 100, "status": "Completed", "displayOrder": 1 },
+  { "id": 9512, "serviceRequestId": 9004, "phaseNumber": 2, "title": "Hull Cleaning & Prep", "progressPercent": 45, "status": "In Progress", "displayOrder": 2 },
+  { "id": 9513, "serviceRequestId": 9004, "phaseNumber": 3, "title": "Anti-Fouling Coating", "progressPercent": 0, "status": "Upcoming", "displayOrder": 3 },
+  { "id": 9514, "serviceRequestId": 9004, "phaseNumber": 4, "title": "Quality Inspection", "progressPercent": 0, "status": "Upcoming", "displayOrder": 4 },
+  { "id": 9521, "serviceRequestId": 9006, "phaseNumber": 1, "title": "Diagnostics", "progressPercent": 100, "status": "Completed", "displayOrder": 1 },
+  { "id": 9522, "serviceRequestId": 9006, "phaseNumber": 2, "title": "Overhaul Work", "progressPercent": 100, "status": "Completed", "displayOrder": 2 },
+  { "id": 9523, "serviceRequestId": 9006, "phaseNumber": 3, "title": "Final Sign-Off", "progressPercent": 80, "status": "In Progress", "displayOrder": 3 },
+  { "id": 9531, "serviceRequestId": 9010, "phaseNumber": 1, "title": "Initial Assessment", "progressPercent": 0, "status": "Upcoming", "displayOrder": 1 },
+  { "id": 9532, "serviceRequestId": 9010, "phaseNumber": 2, "title": "Repair & Replacement", "progressPercent": 0, "status": "Upcoming", "displayOrder": 2 },
+  { "id": 9533, "serviceRequestId": 9010, "phaseNumber": 3, "title": "Final Testing", "progressPercent": 0, "status": "Upcoming", "displayOrder": 3 }
+]

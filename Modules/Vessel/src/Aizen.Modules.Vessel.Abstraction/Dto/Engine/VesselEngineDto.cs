@@ -17,4 +17,10 @@ public sealed class VesselEngineDto
     public int? ProductionYear { get; set; }
     public bool IsPrimary { get; set; }
     public bool IsActive { get; set; }
+    public string? PropulsionType { get; set; }
+    public decimal? EnginePowerKw { get; set; }
+    public decimal? FuelCapacityL { get; set; }
+    public decimal? MaxSpeedKnots { get; set; }
+    public decimal? CruisingSpeedKnots { get; set; }
+    public decimal? RangeNm { get; set; }
 }

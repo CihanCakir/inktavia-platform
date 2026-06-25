@@ -44,16 +44,8 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                 table: "vessel_documents",
                 newName: "OriginalFileNameSnapshot");
 
-            migrationBuilder.AlterColumn<Guid>(
-                name: "FileId",
-                schema: "vessel",
-                table: "vessel_media",
-                type: "uuid",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "character varying(500)",
-                oldMaxLength: 500,
-                oldNullable: true);
+            migrationBuilder.Sql(
+                @"ALTER TABLE vessel.vessel_media ALTER COLUMN ""FileId"" TYPE uuid USING ""FileId""::uuid");
 
             migrationBuilder.AddColumn<string>(
                 name: "ContentTypeSnapshot",
@@ -70,16 +62,8 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                 type: "bigint",
                 nullable: true);
 
-            migrationBuilder.AlterColumn<Guid>(
-                name: "FileId",
-                schema: "vessel",
-                table: "vessel_documents",
-                type: "uuid",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "character varying(500)",
-                oldMaxLength: 500,
-                oldNullable: true);
+            migrationBuilder.Sql(
+                @"ALTER TABLE vessel.vessel_documents ALTER COLUMN ""FileId"" TYPE uuid USING ""FileId""::uuid");
 
             migrationBuilder.AddColumn<long>(
                 name: "SizeInBytesSnapshot",

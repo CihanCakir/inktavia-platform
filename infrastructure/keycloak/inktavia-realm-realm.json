@@ -23,8 +23,57 @@
       { "name": "profile_read", "description": "Read access to Profile API" },
       { "name": "profile_write", "description": "Write access to Profile API" },
       { "name": "payment_read", "description": "Read access to Payment API" },
-      { "name": "payment_write", "description": "Write access to Payment API" }
-    ]
+      { "name": "payment_write", "description": "Write access to Payment API" },
+      { "name": "vessel_read", "description": "Read access to Vessel API" },
+      { "name": "vessel_write", "description": "Write access to Vessel API" },
+      { "name": "file_storage_read", "description": "Read access to FileStorage API" },
+      { "name": "file_storage_write", "description": "Write access to FileStorage API" },
+      { "name": "service_request_read", "description": "Read access to ServiceRequest API" },
+      { "name": "service_request_write", "description": "Write access to ServiceRequest API" },
+      { "name": "reference_data_read", "description": "Read access to ReferenceData API" },
+      { "name": "reference_data_write", "description": "Write access to ReferenceData API" }
+    ],
+    "client": {
+      "identity-api": [
+        { "name": "identity.auth", "description": "Authenticate / token-exchange operations" },
+        { "name": "identity.read", "description": "Read identity data" },
+        { "name": "identity.write", "description": "Write / mutate identity data" },
+        { "name": "identity.admin", "description": "Full administrative access to Identity API" },
+        { "name": "identity.profile.read", "description": "Read user profile data" },
+        { "name": "identity.profile.approve", "description": "Approve pending user profiles" },
+        { "name": "identity.profile.reject", "description": "Reject pending user profiles" }
+      ],
+      "reference-data-api": [
+        { "name": "reference-data.read", "description": "Read reference data" },
+        { "name": "reference-data.write", "description": "Write reference data" },
+        { "name": "reference-data.lookup.manage", "description": "Manage lookup tables" },
+        { "name": "reference-data.location.read", "description": "Read location reference data" },
+        { "name": "reference-data.currency.manage", "description": "Manage currency data" }
+      ],
+      "vessel-api": [
+        { "name": "vessel.read", "description": "Read vessel data" },
+        { "name": "vessel.write", "description": "Write / mutate vessel data" },
+        { "name": "vessel.admin", "description": "Full administrative access to Vessel API" },
+        { "name": "vessel.document.manage", "description": "Manage vessel documents" },
+        { "name": "vessel.ownership.manage", "description": "Manage vessel ownership records" }
+      ],
+      "file-storage-api": [
+        { "name": "file.read", "description": "Read file metadata" },
+        { "name": "file.write", "description": "Upload / write files" },
+        { "name": "file.delete", "description": "Delete files" },
+        { "name": "file.read-url.create", "description": "Generate pre-signed read URLs" },
+        { "name": "file.upload-url.create", "description": "Generate pre-signed upload URLs" },
+        { "name": "file.visibility.manage", "description": "Manage public/private access policy" }
+      ],
+      "service-request-api": [
+        { "name": "service-request.read", "description": "Read service requests" },
+        { "name": "service-request.write", "description": "Create / update service requests" },
+        { "name": "service-request.admin", "description": "Full administrative access to ServiceRequest API" },
+        { "name": "service-request.assignment.manage", "description": "Manage assignment of service requests" },
+        { "name": "service-request.dispute.manage", "description": "Manage service request disputes" },
+        { "name": "service-request.completion.manage", "description": "Manage service request completion flow" }
+      ]
+    }
   },
   "clients": [
     {
@@ -53,6 +102,50 @@
       "clientId": "profile-api",
       "name": "Profile API",
       "description": "Resource server for Profile API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "vessel-api",
+      "name": "Vessel API",
+      "description": "Resource server for Vessel API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "file-storage-api",
+      "name": "FileStorage API",
+      "description": "Resource server for FileStorage API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "service-request-api",
+      "name": "ServiceRequest API",
+      "description": "Resource server for ServiceRequest API audience validation",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "reference-data-api",
+      "name": "ReferenceData API",
+      "description": "Resource server for ReferenceData API audience validation",
       "enabled": true,
       "publicClient": false,
       "standardFlowEnabled": false,
@@ -98,6 +191,50 @@
           "consentRequired": false,
           "config": {
             "included.client.audience": "profile-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-vessel-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "vessel-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-file-storage-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "file-storage-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-service-request-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "service-request-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-reference-data-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "reference-data-api",
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
@@ -158,16 +295,60 @@
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
+        },
+        {
+          "name": "audience-vessel-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "vessel-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-file-storage-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "file-storage-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-service-request-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "service-request-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-reference-data-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "reference-data-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
         }
       ]
     },
     {
       "clientId": "admin-panel",
       "name": "Admin Panel",
-      "description": "Admin panel login client with full access",
-      "enabled": true,
+      "description": "DEPRECATED — React/Admin Web no longer uses Keycloak tokens directly. The BFF (admin-panel-bff) now handles all server-side token acquisition. Kept for reference only.",
+      "enabled": false,
       "publicClient": true,
-      "standardFlowEnabled": true,
+      "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
@@ -181,7 +362,21 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
-      },
+      }
+    },
+    {
+      "clientId": "admin-panel-bff",
+      "name": "AdminPanel BFF",
+      "description": "Confidential BFF client. Uses client_credentials. Inject real secret via KeycloakServiceToken__ClientSecret env var. LOCAL-DEV placeholder only.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "local-dev-only-change-me",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "authorizationServicesEnabled": false,
       "protocolMappers": [
         {
           "name": "audience-identity-api",
@@ -191,29 +386,61 @@
           "config": {
             "included.client.audience": "identity-api",
             "id.token.claim": "false",
-            "access.token.claim": "true"
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
           }
         },
         {
-          "name": "audience-profile-api",
+          "name": "audience-reference-data-api",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.client.audience": "profile-api",
+            "included.client.audience": "reference-data-api",
             "id.token.claim": "false",
-            "access.token.claim": "true"
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
           }
         },
         {
-          "name": "audience-payment-api",
+          "name": "audience-vessel-api",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.client.audience": "payment-api",
+            "included.client.audience": "vessel-api",
             "id.token.claim": "false",
-            "access.token.claim": "true"
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-file-storage-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "file-storage-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-service-request-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "service-request-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
           }
         }
       ]
@@ -237,7 +464,13 @@
       "realmRoles": [
         "mobile_user",
         "profile_read",
-        "profile_write"
+        "profile_write",
+        "vessel_read",
+        "file_storage_read",
+        "file_storage_write",
+        "service_request_read",
+        "service_request_write",
+        "reference_data_read"
       ]
     },
     {
@@ -257,7 +490,13 @@
       "realmRoles": [
         "customer_user",
         "profile_read",
-        "payment_read"
+        "payment_read",
+        "vessel_read",
+        "file_storage_read",
+        "file_storage_write",
+        "service_request_read",
+        "service_request_write",
+        "reference_data_read"
       ]
     },
     {
@@ -281,8 +520,62 @@
         "profile_read",
         "profile_write",
         "payment_read",
-        "payment_write"
+        "payment_write",
+        "vessel_read",
+        "vessel_write",
+        "file_storage_read",
+        "file_storage_write",
+        "service_request_read",
+        "service_request_write",
+        "reference_data_read",
+        "reference_data_write"
       ]
+    },
+    {
+      "username": "service-account-admin-panel-bff",
+      "enabled": true,
+      "serviceAccountClientId": "admin-panel-bff",
+      "clientRoles": {
+        "identity-api": [
+          "identity.auth",
+          "identity.read",
+          "identity.write",
+          "identity.admin",
+          "identity.profile.read",
+          "identity.profile.approve",
+          "identity.profile.reject"
+        ],
+        "reference-data-api": [
+          "reference-data.read",
+          "reference-data.write",
+          "reference-data.lookup.manage",
+          "reference-data.location.read",
+          "reference-data.currency.manage"
+        ],
+        "vessel-api": [
+          "vessel.read",
+          "vessel.write",
+          "vessel.admin",
+          "vessel.document.manage",
+          "vessel.ownership.manage"
+        ],
+        "file-storage-api": [
+          "file.read",
+          "file.write",
+          "file.delete",
+          "file.read-url.create",
+          "file.upload-url.create",
+          "file.visibility.manage"
+        ],
+        "service-request-api": [
+          "service-request.read",
+          "service-request.write",
+          "service-request.admin",
+          "service-request.assignment.manage",
+          "service-request.dispute.manage",
+          "service-request.completion.manage"
+        ]
+      }
     }
   ]
 }

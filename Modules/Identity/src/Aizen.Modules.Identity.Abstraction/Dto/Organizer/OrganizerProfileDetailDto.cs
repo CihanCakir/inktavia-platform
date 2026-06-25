@@ -1,3 +1,5 @@
+using Aizen.Modules.Identity.Abstraction.Dto.Common;
+
 namespace Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 
 public class OrganizerProfileDetailDto
@@ -19,4 +21,15 @@ public class OrganizerProfileDetailDto
     public string? RejectReason { get; set; }
     public DateTime? CreateDate { get; set; }
     public DateTime? ModifyDate { get; set; }
+    public string? OrganizationName { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? City { get; set; }
+    public string? Country { get; set; }
+    public string? ReviewedBy { get; set; }
+    public string? ReviewedAt { get; set; }
+    public string? RejectionCategory { get; set; }
+    public string RiskLevel { get; set; } = "L";
+    public List<VerificationDocumentDto> Documents { get; set; } = new();
+    public List<RiskSignalDto> RiskSignals { get; set; } = new();
 }

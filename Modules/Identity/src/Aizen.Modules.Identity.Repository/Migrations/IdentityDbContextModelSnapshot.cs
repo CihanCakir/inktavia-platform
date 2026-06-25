@@ -25,6 +25,81 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.RiskSignalEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("DetectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("SignalCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("RiskSignals", (string)null);
+                });
+
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.RoleEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -872,6 +947,18 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.Property<DateTime?>("BirthDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -893,6 +980,10 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.Property<string>("Gender")
                         .HasColumnType("text");
+
+                    b.Property<string>("InternalNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -931,6 +1022,17 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.Property<DateTime?>("RejectedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RejectionCategory")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<int>("RoleContext")
                         .HasColumnType("integer");
@@ -1054,6 +1156,95 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.ToTable("user_validations", (string)null);
                 });
 
+            modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.VerificationDocumentEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<long>("FileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileSizeDisplay")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Format")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Issuer")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("MatchScore")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<long>("ProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("UploadedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("VerificationDocuments", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<long>", b =>
                 {
                     b.Property<int>("Id")
@@ -1140,6 +1331,15 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.RiskSignalEntity", b =>
+                {
+                    b.HasOne("Aizen.Modules.Identity.Domain.Entities.UserProfileEntity", null)
+                        .WithMany("RiskSignals")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.RoleEntity", b =>
@@ -1297,6 +1497,15 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.Navigation("UserProfile");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.VerificationDocumentEntity", b =>
+                {
+                    b.HasOne("Aizen.Modules.Identity.Domain.Entities.UserProfileEntity", null)
+                        .WithMany("VerificationDocuments")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<long>", b =>
                 {
                     b.HasOne("Aizen.Modules.Identity.Domain.Entities.RoleEntity", null)
@@ -1365,6 +1574,13 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.Navigation("UserPasswordHistories");
 
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserProfileEntity", b =>
+                {
+                    b.Navigation("RiskSignals");
+
+                    b.Navigation("VerificationDocuments");
                 });
 #pragma warning restore 612, 618
         }

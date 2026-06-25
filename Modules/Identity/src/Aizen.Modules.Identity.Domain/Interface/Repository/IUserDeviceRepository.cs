@@ -49,5 +49,11 @@ namespace Aizen.Modules.Identity.Domain.Interface
         /// Yeni blok kaydı oluşturur
         /// </summary>
         Task AddDeviceBlockAsync(UserDeviceBlockEntity entity);
+
+        /// <summary>
+        /// Belirtilen günde (UTC) en az bir kez giriş yapmış benzersiz kullanıcı sayısını döner.
+        /// </summary>
+        Task<int> GetActiveTodayUserCountAsync(DateTime utcDate);
+
     }
 }

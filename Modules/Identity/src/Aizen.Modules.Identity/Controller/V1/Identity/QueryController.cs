@@ -71,7 +71,7 @@ public sealed class QueryController : AizenWebApiController
     public async Task<AizenApiResponse<IPaginate<UserProfileListItemDto>>> GetUserProfilesByFilter([FromQuery] GetUserProfilesByFilterRequest req, CancellationToken ct)
     {
         var result = await _sender.ProcessAsync(
-            new GetUserProfilesByFilterQuery(req.FirstName, req.LastName, req.RoleContext, req.ApprovalStatus, req.PageIndex, req.PageSize), ct);
+            new GetUserProfilesByFilterQuery(req.FirstName, req.LastName, req.RoleContext, req.ApprovalStatus, req.Status, req.Email, req.PageIndex, req.PageSize), ct);
         return SetResponse(result);
     }
 
@@ -83,6 +83,43 @@ public sealed class QueryController : AizenWebApiController
         var result = await _sender.ProcessAsync(
             new GetUserProfileListQuery(req.FirstName, req.LastName, req.RoleContext, req.ApprovalStatus), ct);
         return SetResponse(result);
+    }
+
+    [HttpGet("admin/users/active-today-count")]
+    [Authorize(Roles = RoleNames.Admin + "," + RoleNames.IdentityAdmin)]
+    [ProducesResponseType(typeof(UserActiveTodayCountDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UserActiveTodayCountDto>> GetActiveTodayUserCount(CancellationToken ct)
+    {
+        var result = await _sender.ProcessAsync(new GetActiveTodayUserCountQuery(), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("admin/users/profiles/bulk")]
+    [Authorize(Roles = RoleNames.Admin + "," + RoleNames.IdentityAdmin)]
+    [ProducesResponseType(typeof(List<UserProfileListItemDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByUserIds(
+        [FromQuery] long[] userIds,
+        CancellationToken ct)
+    {
+        if (userIds == null || userIds.Length == 0)
+            return SetResponse(new List<UserProfileListItemDto>());
+
+        var result = await _sender.ProcessAsync(new GetUserProfilesByUserIdsQuery(userIds), ct);
+        return SetResponse(result?.ToList() ?? new List<UserProfileListItemDto>());
+    }
+
+    [HttpGet("admin/users/profiles/bulk-by-profile-ids")]
+    [Authorize(Roles = RoleNames.Admin + "," + RoleNames.IdentityAdmin)]
+    [ProducesResponseType(typeof(List<UserProfileListItemDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByProfileIds(
+        [FromQuery] long[] profileIds,
+        CancellationToken ct)
+    {
+        if (profileIds == null || profileIds.Length == 0)
+            return SetResponse(new List<UserProfileListItemDto>());
+
+        var result = await _sender.ProcessAsync(new GetUserProfilesByProfileIdsQuery(profileIds), ct);
+        return SetResponse(result?.ToList() ?? new List<UserProfileListItemDto>());
     }
 
     // Participant

@@ -7,6 +7,7 @@ using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
+using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Application.Query.Vessel;
 
@@ -20,9 +21,15 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
         _uow = uow;
     }
 
+
+
     public override async Task<GetAllVesselsAdminResponse?> Handle(GetAllVesselsAdminQuery request, CancellationToken cancellationToken)
     {
         var repo = _uow.GetRepository<VesselEntity>();
+
+        // Normalize filter arrays: remove 0 values sent by the UI as "no filter" placeholders.
+        var assetTypes = request.AssetTypes?.Where(x => x != 0).ToArray();
+        var operationalStatuses = request.OperationalStatuses?.Where(x => x != 0).ToArray();
 
         var result = await repo.GetPagedListAsync<VesselListItemDto>(
             selector: v => new VesselListItemDto
@@ -34,21 +41,67 @@ public sealed class GetAllVesselsAdminQueryHandler : AizenQueryHandler<GetAllVes
                 Slug = v.Slug,
                 VesselTypeCode = v.VesselTypeCode,
                 FlagCountryCode = v.FlagCountryCode,
-                CoverMediaUrl = null,
+                CoverMediaUrl = v.Media
+                    .Where(m => m.IsCover && m.IsActive && !m.IsDeleted)
+                    .Select(m => m.ThumbnailUrl)
+                    .FirstOrDefault(),
                 Status = v.Status,
                 Visibility = v.Visibility,
                 IsArchived = v.IsArchived,
-                CreateDate = v.CreateDate
+                CreateDate = v.CreateDate,
+                OperationalStatus = v.OperationalStatus,
+                AssetType = v.AssetType,
+                LengthMeters = v.Specification != null ? v.Specification.LengthValue : null,
+                GrossTonnage = v.Specification != null ? v.Specification.GrossTonnage : null,
+
+                // Primary owner identity — enriched by BFF; vessel module provides IDs only.
+                OwnerUserId = v.Owners
+                    .Where(o => o.IsPrimary && o.IsActive)
+                    .Select(o => (long?)o.UserId)
+                    .FirstOrDefault(),
+                OwnerProfileId = v.Owners
+                    .Where(o => o.IsPrimary && o.IsActive)
+                    .Select(o => o.UserProfileId)
+                    .FirstOrDefault(),
+                OwnershipStatus = (int?)v.Owners
+                    .Where(o => o.IsPrimary && o.IsActive)
+                    .Select(o => (int?)o.OwnershipStatus)
+                    .FirstOrDefault(),
+
+                // Latest current location snapshot.
+                Latitude = (double?)v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => l.Latitude)
+                    .FirstOrDefault(),
+                Longitude = (double?)v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => l.Longitude)
+                    .FirstOrDefault(),
+                LastPositionDate = v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => (DateTime?)l.CapturedAt)
+                    .FirstOrDefault(),
+                LastLocationMarinaName = v.LocationSnapshots
+                    .Where(l => l.IsCurrent && l.IsActive)
+                    .OrderByDescending(l => l.CapturedAt)
+                    .Select(l => l.MarinaName)
+                    .FirstOrDefault()
             },
             predicate: v =>
                 (request.IsArchived == null || v.IsArchived == request.IsArchived) &&
-                (request.SearchTerm == null || v.Name.Contains(request.SearchTerm) || v.VesselCode.Contains(request.SearchTerm)),
+                (request.SearchTerm == null || v.Name.Contains(request.SearchTerm) || v.VesselCode.Contains(request.SearchTerm)) &&
+                (assetTypes == null || assetTypes.Length == 0 || (v.AssetType != null && assetTypes.Contains((int)v.AssetType))) &&
+                (operationalStatuses == null || operationalStatuses.Length == 0 || (v.OperationalStatus != null && operationalStatuses.Contains((int)v.OperationalStatus))) &&
+                (request.OwnerUserId == null || v.Owners.Any(o => o.UserId == request.OwnerUserId && o.IsActive)),
             orderBy: q => q.OrderByDescending(v => v.CreateDate),
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
 
-        return new GetAllVesselsAdminResponse(result);
+        return new GetAllVesselsAdminResponse((Paginate<VesselListItemDto>)result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

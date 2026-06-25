@@ -9,6 +9,7 @@ using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Aizen.Modules.Vessel.Abstraction.Response.Media;
+using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Application.Query.Media;
 
@@ -73,7 +74,7 @@ public sealed class GetVesselMediaQueryHandler : AizenQueryHandler<GetVesselMedi
             }
         }
 
-        return new GetVesselMediaResponse(result);
+        return new GetVesselMediaResponse((Paginate<VesselMediaDto>)result);
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;
