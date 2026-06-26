@@ -143,7 +143,8 @@ services:
       RemoteCalls__IReferenceDataAdminBffRemoteCall__BaseUrl: http://reference-data-api:8080
       RemoteCalls__IAdminCargoDryBffRemoteCall__BaseUrl: http://cargodry-api:8080
       RemoteCalls__IAdminMessagingBffRemoteCall__BaseUrl: http://messaging-api:8080
-      RemoteCalls__IAdminNotificationBffRemoteCall__BaseUrl: http://notification-api:8080
+      RemoteCalls__INotificationBffRemoteCall__BaseUrl: http://notification-api:8080
+      RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl: http://notification-api:8080
     ports:
       - "${BFF_ADMINPANEL_PORT:-17001}:8080"
     networks: [aizen]

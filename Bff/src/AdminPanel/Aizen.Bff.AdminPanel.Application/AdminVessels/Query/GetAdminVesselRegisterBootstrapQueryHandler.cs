@@ -105,13 +105,6 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
         return response;
     }
 
-        catch (Exception)
-        {
-            response.Warnings.Add(AdminBffWarning.CallFailed("ServiceToken", "Could not acquire Keycloak service token."));
-            return null;
-        }
-    }
-
     private async Task TryLoadCountriesAsync(
         AdminVesselRegisterBootstrapBffResponse response,
         CancellationToken ct)
