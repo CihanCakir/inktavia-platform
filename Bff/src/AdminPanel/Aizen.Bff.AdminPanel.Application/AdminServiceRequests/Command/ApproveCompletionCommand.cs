@@ -8,11 +8,9 @@ public sealed class ApproveCompletionCommand : AizenCommand<ApproveServiceReques
 {
     public long ServiceRequestId { get; }
     public ApproveServiceRequestCompletionRequest Payload { get; }
-    public string UserToken { get; }
-    public ApproveCompletionCommand(long serviceRequestId, ApproveServiceRequestCompletionRequest payload, string userToken)
+    public ApproveCompletionCommand(long serviceRequestId, ApproveServiceRequestCompletionRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         Payload = payload;
-        UserToken = userToken;
     }
 }

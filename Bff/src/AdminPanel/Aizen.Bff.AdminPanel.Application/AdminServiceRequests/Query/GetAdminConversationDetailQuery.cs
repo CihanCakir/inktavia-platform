@@ -6,11 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetAdminConversationDetailQuery : AizenQuery<AdminConversationDetailResponse>
 {
     public long ConversationId { get; }
-    public string UserToken { get; }
 
-    public GetAdminConversationDetailQuery(long conversationId, string userToken)
+    public GetAdminConversationDetailQuery(long conversationId)
     {
         ConversationId = conversationId;
-        UserToken = userToken;
     }
 }

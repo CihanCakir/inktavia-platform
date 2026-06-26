@@ -2,7 +2,6 @@ using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 
@@ -11,13 +10,10 @@ public sealed class GetAdminVesselOverviewQueryHandler
     : AizenQueryHandler<GetAdminVesselOverviewQuery, AdminVesselOverviewResponse>
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public GetAdminVesselOverviewQueryHandler(IVesselAdminBffRemoteCall vessel,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    public GetAdminVesselOverviewQueryHandler(IVesselAdminBffRemoteCall vessel)
     {
         _vessel = vessel;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminVesselOverviewResponse?> Handle(
@@ -27,12 +23,8 @@ public sealed class GetAdminVesselOverviewQueryHandler
 
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
 
         var result = await _vessel.GetAdminVesselList(
-                authHeader,
-                request.UserToken,
                 request.PageIndex,
                 request.PageSize,
                 request.SearchTerm,

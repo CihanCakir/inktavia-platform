@@ -12,5 +12,4 @@ public sealed class CreateNotificationTemplateCommand : AizenCommand<AdminBffCom
     public NotificationChannel Channel       { get; init; }
     public string              TitleTemplate { get; init; } = default!;
     public string              BodyTemplate  { get; init; } = default!;
-    public string              UserToken     { get; init; } = default!;
 }

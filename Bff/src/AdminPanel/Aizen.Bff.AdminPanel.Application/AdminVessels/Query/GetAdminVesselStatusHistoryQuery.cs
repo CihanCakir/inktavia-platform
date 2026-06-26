@@ -7,14 +7,12 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselStatusHistoryQuery : AizenQuery<GetVesselStatusHistoryResponse>
 {
     public long VesselId { get; }
-    public string UserToken { get; }
     public int PageIndex { get; }
     public int PageSize { get; }
 
-    public GetAdminVesselStatusHistoryQuery(long vesselId, string userToken, int pageIndex = 0, int pageSize = 20)
+    public GetAdminVesselStatusHistoryQuery(long vesselId, int pageIndex = 0, int pageSize = 20)
     {
         VesselId = vesselId;
-        UserToken = userToken;
         PageIndex = pageIndex;
         PageSize = pageSize;
     }

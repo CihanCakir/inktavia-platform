@@ -8,12 +8,10 @@ public sealed class AssignServiceRequestProviderCommand : AizenCommand<AssignPro
 {
     public long ServiceRequestId { get; }
     public AssignProviderRequest Payload { get; }
-    public string UserToken { get; }
 
-    public AssignServiceRequestProviderCommand(long serviceRequestId, AssignProviderRequest payload, string userToken)
+    public AssignServiceRequestProviderCommand(long serviceRequestId, AssignProviderRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         Payload = payload;
-        UserToken = userToken;
     }
 }

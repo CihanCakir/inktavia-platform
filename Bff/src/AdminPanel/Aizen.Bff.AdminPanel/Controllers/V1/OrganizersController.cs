@@ -29,8 +29,7 @@ public sealed class OrganizersController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new SearchOrganizerProfilesQuery(userToken, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(new SearchOrganizerProfilesQuery(pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -39,8 +38,7 @@ public sealed class OrganizersController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileByIdQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileByIdQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -49,8 +47,7 @@ public sealed class OrganizersController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerProfileWithUserResult>> GetProfileWithUser(
         Guid profileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileWithUserQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileWithUserQuery(profileId), ct);
         return SetResponse(result);
     }
 }

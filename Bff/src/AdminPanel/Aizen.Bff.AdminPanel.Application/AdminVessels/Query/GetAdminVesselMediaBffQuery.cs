@@ -7,15 +7,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselMediaBffQuery : AizenQuery<AdminVesselMediaBffResponse>
 {
     public long VesselId { get; }
-    public string UserToken { get; }
     public string? MediaType { get; }
     public int PageIndex { get; }
     public int PageSize { get; }
 
-    public GetAdminVesselMediaBffQuery(long vesselId, string userToken, string? mediaType, int pageIndex, int pageSize)
+    public GetAdminVesselMediaBffQuery(long vesselId, string? mediaType, int pageIndex, int pageSize)
     {
         VesselId = vesselId;
-        UserToken = userToken;
         MediaType = mediaType;
         PageIndex = pageIndex;
         PageSize = pageSize;

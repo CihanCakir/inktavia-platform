@@ -9,12 +9,10 @@ public sealed class ChangeDisputeStatusCommand : AizenCommand<AdminBffCommandRes
     public long ServiceRequestId { get; }
     public long DisputeId { get; }
     public ChangeServiceRequestDisputeStatusRequest Payload { get; }
-    public string UserToken { get; }
-    public ChangeDisputeStatusCommand(long serviceRequestId, long disputeId, ChangeServiceRequestDisputeStatusRequest payload, string userToken)
+    public ChangeDisputeStatusCommand(long serviceRequestId, long disputeId, ChangeServiceRequestDisputeStatusRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         DisputeId = disputeId;
         Payload = payload;
-        UserToken = userToken;
     }
 }

@@ -27,13 +27,6 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    private string GetUserToken()
-    {
-        var raw = HttpContext.Request.Headers.Authorization.ToString();
-        return raw.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-            ? raw["Bearer ".Length..]
-            : raw;
-    }
 
     /// <summary>GET api/v1/admin-panel/notification-templates</summary>
     [HttpGet]
@@ -41,7 +34,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
     public async Task<AizenApiResponse<List<NotificationTemplateDto>>> GetAll(CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync<List<NotificationTemplateDto>>(
-            new GetAdminNotificationTemplatesQuery(GetUserToken()), ct);
+            new GetAdminNotificationTemplatesQuery(), ct);
         return SetResponse(result);
     }
 
@@ -52,7 +45,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
         string code, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync<NotificationTemplateDto>(
-            new GetAdminNotificationTemplateByCodeQuery(code, GetUserToken()), ct);
+            new GetAdminNotificationTemplateByCodeQuery(code), ct);
         return SetResponse(result);
     }
 
@@ -69,8 +62,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
             Type          = body.Type,
             Channel       = body.Channel,
             TitleTemplate = body.TitleTemplate,
-            BodyTemplate  = body.BodyTemplate,
-            UserToken     = GetUserToken()
+            BodyTemplate  = body.BodyTemplate
         }, ct);
         return Ok();
     }
@@ -88,8 +80,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
             Code          = code,
             Name          = body.Name,
             TitleTemplate = body.TitleTemplate,
-            BodyTemplate  = body.BodyTemplate,
-            UserToken     = GetUserToken()
+            BodyTemplate  = body.BodyTemplate
         }, ct);
         return NoContent();
     }
@@ -101,8 +92,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
     {
         await _cqrs.ProcessAsync<AdminBffCommandResultDto>(new ToggleNotificationTemplateCommand
         {
-            Code      = code,
-            UserToken = GetUserToken()
+            Code      = code
         }, ct);
         return NoContent();
     }

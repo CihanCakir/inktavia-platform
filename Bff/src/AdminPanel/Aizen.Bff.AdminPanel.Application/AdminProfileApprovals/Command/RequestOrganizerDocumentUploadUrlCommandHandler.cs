@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -12,16 +11,13 @@ public sealed class RequestOrganizerDocumentUploadUrlCommandHandler
     : AizenCommandHandler<RequestOrganizerDocumentUploadUrlCommand, DocumentUploadUrlBffResponse>
 {
     private readonly IFileStorageAdminBffRemoteCall _fileStorage;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<RequestOrganizerDocumentUploadUrlCommandHandler> _logger;
 
     public RequestOrganizerDocumentUploadUrlCommandHandler(
         IFileStorageAdminBffRemoteCall fileStorage,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<RequestOrganizerDocumentUploadUrlCommandHandler> logger)
     {
         _fileStorage = fileStorage;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -30,11 +26,8 @@ public sealed class RequestOrganizerDocumentUploadUrlCommandHandler
     {
         var response = new DocumentUploadUrlBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -51,7 +44,7 @@ public sealed class RequestOrganizerDocumentUploadUrlCommandHandler
             OwnerModule = "Identity"
         };
 
-        var result = await _fileStorage.CreateDocumentUploadSession(uploadRequest, authHeader, request.UserToken);
+        var result = await _fileStorage.CreateDocumentUploadSession(uploadRequest);
 
         if (result?.Header?.IsSuccess != true || result.Body == null)
         {

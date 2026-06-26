@@ -9,5 +9,4 @@ public sealed class UpdateNotificationTemplateCommand : AizenCommand<AdminBffCom
     public string Name          { get; init; } = default!;
     public string TitleTemplate { get; init; } = default!;
     public string BodyTemplate  { get; init; } = default!;
-    public string UserToken     { get; init; } = default!;
 }

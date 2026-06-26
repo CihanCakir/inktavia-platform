@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -13,20 +12,17 @@ public sealed class GetAdminVesselDetailBffQueryHandler
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly IAdminCargoDryBffRemoteCall _cargoDry;
     private readonly ILogger<GetAdminVesselDetailBffQueryHandler> _logger;
 
     public GetAdminVesselDetailBffQueryHandler(
         IVesselAdminBffRemoteCall vessel,
         IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         IAdminCargoDryBffRemoteCall cargoDry,
         ILogger<GetAdminVesselDetailBffQueryHandler> logger)
     {
         _vessel = vessel;
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
         _cargoDry = cargoDry;
         _logger = logger;
     }
@@ -36,12 +32,9 @@ public sealed class GetAdminVesselDetailBffQueryHandler
     {
         var response = new AdminVesselDetailBffResponse();
 
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
-
-        var vesselTask = _vessel.GetVesselById(request.VesselId, authHeader, request.UserToken);
+        var vesselTask = _vessel.GetVesselById(request.VesselId);
         var serviceHistoryTask = _serviceRequest.GetAdminServiceRequestList(
-            authHeader, request.UserToken, vesselId: request.VesselId, pageIndex: 0, pageSize: 10);
+vesselId: request.VesselId, pageIndex: 0, pageSize: 10);
 
         await Task.WhenAll(
             vesselTask.ContinueWith(_ => { }),

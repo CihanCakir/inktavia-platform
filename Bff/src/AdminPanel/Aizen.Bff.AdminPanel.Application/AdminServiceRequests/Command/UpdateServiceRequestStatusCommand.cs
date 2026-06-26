@@ -8,12 +8,10 @@ public sealed class UpdateServiceRequestStatusCommand : AizenCommand<UpdateServi
 {
     public long ServiceRequestId { get; }
     public UpdateServiceRequestStatusRequest Payload { get; }
-    public string UserToken { get; }
 
-    public UpdateServiceRequestStatusCommand(long serviceRequestId, UpdateServiceRequestStatusRequest payload, string userToken)
+    public UpdateServiceRequestStatusCommand(long serviceRequestId, UpdateServiceRequestStatusRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         Payload = payload;
-        UserToken = userToken;
     }
 }

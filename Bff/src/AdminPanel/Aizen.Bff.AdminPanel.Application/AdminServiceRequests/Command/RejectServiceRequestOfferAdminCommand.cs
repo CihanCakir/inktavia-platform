@@ -9,13 +9,11 @@ public sealed class RejectServiceRequestOfferAdminCommand : AizenCommand<RejectS
     public long ServiceRequestId { get; }
     public long OfferId { get; }
     public RejectServiceRequestOfferRequest Payload { get; }
-    public string UserToken { get; }
 
-    public RejectServiceRequestOfferAdminCommand(long serviceRequestId, long offerId, RejectServiceRequestOfferRequest payload, string userToken)
+    public RejectServiceRequestOfferAdminCommand(long serviceRequestId, long offerId, RejectServiceRequestOfferRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         OfferId = offerId;
         Payload = payload;
-        UserToken = userToken;
     }
 }

@@ -26,8 +26,7 @@ public sealed class DashboardController : AizenWebApiController
     [ProducesResponseType(typeof(AdminDashboardOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminDashboardOverviewResponse>> GetDashboardOverview(CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminDashboardOverviewQuery(userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminDashboardOverviewQuery(), ct);
         return SetResponse(result);
     }
 }

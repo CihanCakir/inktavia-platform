@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
@@ -15,18 +14,15 @@ public sealed class GetVenueApprovalDetailBffQueryHandler
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IFileStorageAdminBffRemoteCall _fileStorage;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetVenueApprovalDetailBffQueryHandler> _logger;
 
     public GetVenueApprovalDetailBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
         IFileStorageAdminBffRemoteCall fileStorage,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetVenueApprovalDetailBffQueryHandler> logger)
     {
         _identity = identity;
         _fileStorage = fileStorage;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -35,11 +31,8 @@ public sealed class GetVenueApprovalDetailBffQueryHandler
     {
         var response = new VenueApprovalDetailBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -52,9 +45,9 @@ public sealed class GetVenueApprovalDetailBffQueryHandler
         {
             // Fetch detail-only (for RejectReason) and with-user (for Email/Phone) in parallel.
             var detailTask = _identity.GetAdminVenueProfileOnly(
-                request.ProfileId, authHeader, request.UserToken);
+                request.ProfileId);
             var withUserTask = _identity.GetAdminVenueProfileWithUser(
-                request.ProfileId, authHeader, request.UserToken);
+                request.ProfileId);
 
             await Task.WhenAll(detailTask, withUserTask);
 
@@ -83,7 +76,7 @@ public sealed class GetVenueApprovalDetailBffQueryHandler
                 {
                     var urlRequest = new CreateFileReadUrlRemoteCallRequest { ExpiresIn = TimeSpan.FromMinutes(15) };
                     var urlTasks = detail.Documents
-                        .Select(d => _fileStorage.CreateReadUrl(d.FileId, urlRequest, authHeader, request.UserToken))
+                        .Select(d => _fileStorage.CreateReadUrl(d.FileId, urlRequest))
                         .ToList();
 
                     await Task.WhenAll(urlTasks.Select(t => t.ContinueWith(_ => { }, TaskScheduler.Default)));

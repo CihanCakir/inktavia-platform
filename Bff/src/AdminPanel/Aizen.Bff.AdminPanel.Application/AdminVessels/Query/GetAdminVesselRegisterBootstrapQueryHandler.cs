@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
@@ -12,7 +11,6 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IReferenceDataAdminBffRemoteCall _referenceData;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     // Static enum-backed option lists.
     private static readonly List<ValueLabelBffDto> AssetTypes = new()
@@ -74,12 +72,10 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
 
     public GetAdminVesselRegisterBootstrapQueryHandler(
         IIdentityAdminBffRemoteCall identity,
-        IReferenceDataAdminBffRemoteCall referenceData,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IReferenceDataAdminBffRemoteCall referenceData)
     {
         _identity = identity;
         _referenceData = referenceData;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminVesselRegisterBootstrapBffResponse?> Handle(
@@ -102,25 +98,13 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
             }
         };
 
-        var serviceToken = await TryGetServiceTokenAsync(response, cancellationToken);
-        if (serviceToken == null)
-            return response;
-
-        var authHeader = $"Bearer {serviceToken}";
-
         await Task.WhenAll(
-            TryLoadCountriesAsync(response, authHeader, request.UserToken, cancellationToken),
-            TryLoadOwnerCandidatesAsync(response, authHeader, request.UserToken, cancellationToken));
+            TryLoadCountriesAsync(response, cancellationToken),
+            TryLoadOwnerCandidatesAsync(response, cancellationToken));
 
         return response;
     }
 
-    private async Task<string?> TryGetServiceTokenAsync(AdminVesselRegisterBootstrapBffResponse response, CancellationToken ct)
-    {
-        try
-        {
-            return await _serviceTokenProvider.GetAccessTokenAsync(ct);
-        }
         catch (Exception)
         {
             response.Warnings.Add(AdminBffWarning.CallFailed("ServiceToken", "Could not acquire Keycloak service token."));
@@ -130,12 +114,11 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
 
     private async Task TryLoadCountriesAsync(
         AdminVesselRegisterBootstrapBffResponse response,
-        string authHeader, string userToken,
         CancellationToken ct)
     {
         try
         {
-            var result = await _referenceData.GetCountries(authHeader, userToken);
+            var result = await _referenceData.GetCountries();
             var countries = result?.Body;
 
             if (countries != null && countries.Count > 0)
@@ -158,12 +141,11 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
 
     private async Task TryLoadOwnerCandidatesAsync(
         AdminVesselRegisterBootstrapBffResponse response,
-        string authHeader, string userToken,
         CancellationToken ct)
     {
         try
         {
-            var result = await _identity.SearchProfiles(authHeader, userToken, pageIndex: 0, pageSize: 100);
+            var result = await _identity.SearchProfiles(pageIndex: 0, pageSize: 100);
             var profiles = result?.Body?.Items;
 
             if (profiles != null && profiles.Count > 0)

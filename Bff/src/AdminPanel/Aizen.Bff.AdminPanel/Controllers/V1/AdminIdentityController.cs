@@ -34,9 +34,8 @@ public sealed class IdentityController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminProfilesQuery(userToken, roleContext, approvalStatus, pageIndex, pageSize), ct);
+            new GetAdminProfilesQuery(roleContext, approvalStatus, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -47,9 +46,8 @@ public sealed class IdentityController : AizenWebApiController
         [FromQuery] string roleContext = "General",
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminProfileDetailQuery(profileId, userToken, roleContext), ct);
+            new GetAdminProfileDetailQuery(profileId, roleContext), ct);
         return SetResponse(result);
     }
 
@@ -58,9 +56,8 @@ public sealed class IdentityController : AizenWebApiController
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> ApproveOrganizerProfile(
         long userId, Guid profileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ApproveOrganizerProfileCommand(userId, profileId, userToken), ct);
+            new ApproveOrganizerProfileCommand(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -69,9 +66,8 @@ public sealed class IdentityController : AizenWebApiController
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> RejectOrganizerProfile(
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectOrganizerProfileCommand(userId, profileId, request.Reason, userToken), ct);
+            new RejectOrganizerProfileCommand(userId, profileId, request.Reason), ct);
         return SetResponse(result);
     }
 
@@ -80,9 +76,8 @@ public sealed class IdentityController : AizenWebApiController
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> ApproveVenueProfile(
         long userId, Guid profileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ApproveVenueProfileCommand(userId, profileId, userToken), ct);
+            new ApproveVenueProfileCommand(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -91,9 +86,8 @@ public sealed class IdentityController : AizenWebApiController
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> RejectVenueProfile(
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectVenueProfileCommand(userId, profileId, request.Reason, userToken), ct);
+            new RejectVenueProfileCommand(userId, profileId, request.Reason), ct);
         return SetResponse(result);
     }
 
@@ -102,8 +96,7 @@ public sealed class IdentityController : AizenWebApiController
     public async Task<AizenApiResponse<ProfileWithRolesResult>> GetProfileWithRoles(
         Guid profileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetProfileWithRolesQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetProfileWithRolesQuery(profileId), ct);
         return SetResponse(result);
     }
 }

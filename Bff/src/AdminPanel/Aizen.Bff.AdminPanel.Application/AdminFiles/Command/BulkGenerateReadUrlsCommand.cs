@@ -7,11 +7,9 @@ public sealed class BulkGenerateReadUrlsCommand : AizenCommand<List<FileAccessUr
 {
     public List<long> FileIds { get; }
     public int ExpiresInMinutes { get; }
-    public string UserToken { get; }
-    public BulkGenerateReadUrlsCommand(List<long> fileIds, int expiresInMinutes, string userToken)
+    public BulkGenerateReadUrlsCommand(List<long> fileIds, int expiresInMinutes)
     {
         FileIds = fileIds;
         ExpiresInMinutes = expiresInMinutes;
-        UserToken = userToken;
     }
 }

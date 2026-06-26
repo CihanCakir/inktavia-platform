@@ -5,38 +5,28 @@ using Aizen.Modules.Notification.Abstraction.Enum;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
-[DocumentationInfo("Notification admin BFF remote call", "Defines synchronous BFF-to-Notification calls for managing notification templates.")]
+[DocumentationInfo("Notification admin BFF remote call",
+    "Defines synchronous BFF-to-Notification calls for managing notification templates. " +
+    "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
 public interface INotificationAdminBffRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/notification/admin/notification-templates")]
-    Task<AizenApiResponse<List<NotificationTemplateDto>>> GetNotificationTemplates(
-        [AizenRemoteCallHeader("Authorization")] string authorization,
-        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+    Task<AizenApiResponse<List<NotificationTemplateDto>>> GetNotificationTemplates();
 
     [AizenRemoteCallGet("/api/v1/notification/admin/notification-templates/{code}")]
-    Task<AizenApiResponse<NotificationTemplateDto>> GetNotificationTemplateByCode(
-        string code,
-        [AizenRemoteCallHeader("Authorization")] string authorization,
-        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+    Task<AizenApiResponse<NotificationTemplateDto>> GetNotificationTemplateByCode(string code);
 
     [AizenRemoteCallPost("/api/v1/notification/admin/notification-templates")]
     Task<AizenApiResponse<object>> CreateNotificationTemplate(
-        [AizenRemoteCallBody] CreateNotificationTemplateRemoteRequest body,
-        [AizenRemoteCallHeader("Authorization")] string authorization,
-        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+        [AizenRemoteCallBody] CreateNotificationTemplateRemoteRequest body);
 
     [AizenRemoteCallPut("/api/v1/notification/admin/notification-templates/{code}")]
     Task<AizenApiResponse<object>> UpdateNotificationTemplate(
         string code,
-        [AizenRemoteCallBody] UpdateNotificationTemplateRemoteRequest body,
-        [AizenRemoteCallHeader("Authorization")] string authorization,
-        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+        [AizenRemoteCallBody] UpdateNotificationTemplateRemoteRequest body);
 
     [AizenRemoteCallPatch("/api/v1/notification/admin/notification-templates/{code}/toggle")]
-    Task<AizenApiResponse<object>> ToggleNotificationTemplate(
-        string code,
-        [AizenRemoteCallHeader("Authorization")] string authorization,
-        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken);
+    Task<AizenApiResponse<object>> ToggleNotificationTemplate(string code);
 }
 
 public sealed class CreateNotificationTemplateRemoteRequest

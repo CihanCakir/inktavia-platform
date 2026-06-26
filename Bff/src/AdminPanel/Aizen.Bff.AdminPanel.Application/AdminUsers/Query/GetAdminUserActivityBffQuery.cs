@@ -7,7 +7,6 @@ namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 public sealed class GetAdminUserActivityBffQuery : AizenQuery<AdminUserActivityBffResponse>
 {
     public long ProfileId { get; }
-    public string UserToken { get; }
     public string? Category { get; }   // vessel | service | identity | system | null = all
     public DateOnly? DateFrom { get; }
     public DateOnly? DateTo { get; }
@@ -16,7 +15,6 @@ public sealed class GetAdminUserActivityBffQuery : AizenQuery<AdminUserActivityB
 
     public GetAdminUserActivityBffQuery(
         long profileId,
-        string userToken,
         string? category = null,
         DateOnly? dateFrom = null,
         DateOnly? dateTo = null,
@@ -24,7 +22,6 @@ public sealed class GetAdminUserActivityBffQuery : AizenQuery<AdminUserActivityB
         int pageSize = 20)
     {
         ProfileId = profileId;
-        UserToken = userToken;
         Category = category?.ToLowerInvariant();
         DateFrom = dateFrom;
         DateTo = dateTo;

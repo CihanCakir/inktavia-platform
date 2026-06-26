@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
@@ -11,13 +10,10 @@ public sealed class GetAdminServiceRequestOffersQueryHandler
     : AizenQueryHandler<GetAdminServiceRequestOffersQuery, AdminServiceRequestOffersResponse>
 {
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public GetAdminServiceRequestOffersQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    public GetAdminServiceRequestOffersQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminServiceRequestOffersResponse?> Handle(
@@ -27,11 +23,9 @@ public sealed class GetAdminServiceRequestOffersQueryHandler
 
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            var authHeader = $"Bearer {serviceToken}";
 
             var result = await _serviceRequest.GetAdminServiceRequestOffers(
-                request.ServiceRequestId, authHeader, request.UserToken);
+                request.ServiceRequestId);
             response.Offers = result.Body;
         }
         catch

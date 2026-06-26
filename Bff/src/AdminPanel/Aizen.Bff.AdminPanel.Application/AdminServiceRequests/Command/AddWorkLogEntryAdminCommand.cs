@@ -8,12 +8,10 @@ public sealed class AddWorkLogEntryAdminCommand : AizenCommand<AddWorkLogEntryRe
 {
     public long ServiceRequestId { get; }
     public AddWorkLogEntryRequest Payload { get; }
-    public string UserToken { get; }
 
-    public AddWorkLogEntryAdminCommand(long serviceRequestId, AddWorkLogEntryRequest payload, string userToken)
+    public AddWorkLogEntryAdminCommand(long serviceRequestId, AddWorkLogEntryRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         Payload = payload;
-        UserToken = userToken;
     }
 }

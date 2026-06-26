@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -13,18 +12,15 @@ public sealed class GetAdminUserListBffQueryHandler
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetAdminUserListBffQueryHandler> _logger;
 
     public GetAdminUserListBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
         IVesselAdminBffRemoteCall vessel,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetAdminUserListBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -33,11 +29,8 @@ public sealed class GetAdminUserListBffQueryHandler
     {
         var response = new AdminUserListBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -54,8 +47,6 @@ public sealed class GetAdminUserListBffQueryHandler
             var (approvalStatusFilter, profileStatusFilter) = MapStatusFilters(request.Status);
 
             var result = await _identity.SearchProfiles(
-                authHeader,
-                request.UserToken,
                 firstName: request.Search,
                 lastName: null,
                 roleContext: request.IdentityType ?? MapRoleToRoleContext(request.Role),
@@ -76,7 +67,7 @@ public sealed class GetAdminUserListBffQueryHandler
             var profiles = page?.Items ?? new();
 
             // Bulk vessel count — single SQL query for all users on this page.
-            var vesselCounts = await FetchVesselCountsAsync(profiles.Select(p => p.UserId).ToArray(), authHeader, request.UserToken, response, cancellationToken);
+            var vesselCounts = await FetchVesselCountsAsync(profiles.Select(p => p.UserId).ToArray(), response, cancellationToken);
 
             response.Users = new UserPageBffDto
             {
@@ -117,8 +108,6 @@ public sealed class GetAdminUserListBffQueryHandler
 
     private async Task<Dictionary<long, int>> FetchVesselCountsAsync(
         long[] userIds,
-        string authHeader,
-        string userToken,
         AdminUserListBffResponse response,
         CancellationToken cancellationToken)
     {
@@ -127,7 +116,7 @@ public sealed class GetAdminUserListBffQueryHandler
 
         try
         {
-            var vesselResult = await _vessel.GetVesselCountsByOwnerUserIds(userIds, authHeader, userToken);
+            var vesselResult = await _vessel.GetVesselCountsByOwnerUserIds(userIds);
 
             if (vesselResult?.Header?.IsSuccess != true || vesselResult.Body == null)
             {

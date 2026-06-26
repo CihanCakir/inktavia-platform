@@ -7,12 +7,10 @@ public sealed class AcceptServiceRequestOfferAdminCommand : AizenCommand<AcceptS
 {
     public long ServiceRequestId { get; }
     public long OfferId { get; }
-    public string UserToken { get; }
 
-    public AcceptServiceRequestOfferAdminCommand(long serviceRequestId, long offerId, string userToken)
+    public AcceptServiceRequestOfferAdminCommand(long serviceRequestId, long offerId)
     {
         ServiceRequestId = serviceRequestId;
         OfferId = offerId;
-        UserToken = userToken;
     }
 }

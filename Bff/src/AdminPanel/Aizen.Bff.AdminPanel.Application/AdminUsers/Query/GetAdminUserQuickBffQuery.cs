@@ -7,11 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 public sealed class GetAdminUserQuickBffQuery : AizenQuery<AdminUserQuickBffResponse>
 {
     public long ProfileId { get; }
-    public string UserToken { get; }
 
-    public GetAdminUserQuickBffQuery(long profileId, string userToken)
+    public GetAdminUserQuickBffQuery(long profileId)
     {
         ProfileId = profileId;
-        UserToken = userToken;
     }
 }

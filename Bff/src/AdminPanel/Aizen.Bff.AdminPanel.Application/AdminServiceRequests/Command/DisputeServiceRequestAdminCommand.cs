@@ -8,12 +8,10 @@ public sealed class DisputeServiceRequestAdminCommand : AizenCommand<DisputeServ
 {
     public long ServiceRequestId { get; }
     public DisputeServiceRequestRequest Payload { get; }
-    public string UserToken { get; }
 
-    public DisputeServiceRequestAdminCommand(long serviceRequestId, DisputeServiceRequestRequest payload, string userToken)
+    public DisputeServiceRequestAdminCommand(long serviceRequestId, DisputeServiceRequestRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         Payload = payload;
-        UserToken = userToken;
     }
 }

@@ -8,12 +8,10 @@ public sealed class ApproveOrganizerProfileBffCommand : AizenCommand<ProfileAppr
 {
     public long UserId { get; }
     public long ProfileId { get; }
-    public string UserToken { get; }
 
-    public ApproveOrganizerProfileBffCommand(long userId, long profileId, string userToken)
+    public ApproveOrganizerProfileBffCommand(long userId, long profileId)
     {
         UserId = userId;
         ProfileId = profileId;
-        UserToken = userToken;
     }
 }

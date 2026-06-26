@@ -1,7 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Command;
 
@@ -10,26 +9,19 @@ public sealed class ApproveVenueProfileCommandHandler
     : AizenCommandHandler<ApproveVenueProfileCommand, AdminBffCommandResultDto>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public ApproveVenueProfileCommandHandler(IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    public ApproveVenueProfileCommandHandler(IIdentityAdminBffRemoteCall identity)
     {
         _identity = identity;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminBffCommandResultDto?> Handle(
         ApproveVenueProfileCommand request, CancellationToken cancellationToken)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
 
         var result = await _identity.ApproveVenueProfile(
             request.UserId,
-            request.ProfileId,
-            authHeader,
-            request.UserToken);
+            request.ProfileId);
 
         return result.Header.IsSuccess
             ? AdminBffCommandResultDto.Ok()

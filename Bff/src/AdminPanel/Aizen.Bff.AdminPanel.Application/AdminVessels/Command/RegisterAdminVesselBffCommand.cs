@@ -33,11 +33,9 @@ public sealed class RegisterAdminVesselBffRequest
 public sealed class RegisterAdminVesselBffCommand : AizenCommand<CreateVesselResponse>
 {
     public RegisterAdminVesselBffRequest Payload { get; }
-    public string UserToken { get; }
 
-    public RegisterAdminVesselBffCommand(RegisterAdminVesselBffRequest payload, string userToken)
+    public RegisterAdminVesselBffCommand(RegisterAdminVesselBffRequest payload)
     {
         Payload = payload;
-        UserToken = userToken;
     }
 }

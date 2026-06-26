@@ -8,12 +8,10 @@ public sealed class RejectOrganizerProfileCommand : AizenCommand<AdminBffCommand
     public long UserId { get; }
     public Guid ProfileId { get; }
     public string Reason { get; }
-    public string UserToken { get; }
-    public RejectOrganizerProfileCommand(long userId, Guid profileId, string reason, string userToken)
+    public RejectOrganizerProfileCommand(long userId, Guid profileId, string reason)
     {
         UserId = userId;
         ProfileId = profileId;
         Reason = reason;
-        UserToken = userToken;
     }
 }

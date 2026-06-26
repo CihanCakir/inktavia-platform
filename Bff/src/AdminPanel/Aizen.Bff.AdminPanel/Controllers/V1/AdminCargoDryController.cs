@@ -4,7 +4,6 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryUsageRepor
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
@@ -19,36 +18,17 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class AdminCargoDryController : AizenWebApiController
 {
-    private readonly IAdminCargoDryBffRemoteCall                _cargoDry;
-    private readonly IAizenCQRSProcessor                        _cqrs;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
+    private readonly IAdminCargoDryBffRemoteCall _cargoDry;
+    private readonly IAizenCQRSProcessor         _cqrs;
 
     public AdminCargoDryController(
         IHttpContextAccessor httpContextAccessor,
         IAdminCargoDryBffRemoteCall cargoDry,
-        IAizenCQRSProcessor cqrs,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor)
     {
-        _cargoDry             = cargoDry;
-        _cqrs                 = cqrs;
-        _serviceTokenProvider = serviceTokenProvider;
-    }
-
-    // ── Auth helpers ──────────────────────────────────────────────────────────
-
-    private string GetUserToken()
-    {
-        var raw = HttpContext.Request.Headers.Authorization.ToString();
-        return raw.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-            ? raw["Bearer ".Length..]
-            : raw;
-    }
-
-    private async Task<(string bearer, string userToken)> GetAuthAsync(CancellationToken ct)
-    {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(ct);
-        return ($"Bearer {serviceToken}", GetUserToken());
+        _cargoDry = cargoDry;
+        _cqrs     = cqrs;
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/kits</summary>
@@ -61,8 +41,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
         [FromQuery] int     pageSize = 25,
         CancellationToken ct = default)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.GetKitsAsync(status, search, null, page, pageSize, bearer, userToken, ct);
+        var result = await _cargoDry.GetKitsAsync(status, search, null, page, pageSize, ct);
         return SetResponse(result);
     }
 
@@ -71,8 +50,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
     [ProducesResponseType(typeof(CargoDryStatsBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryStatsBffDto>> GetStats(CancellationToken ct)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.GetStatsAsync(bearer, userToken, ct);
+        var result = await _cargoDry.GetStatsAsync(ct);
         return SetResponse(result);
     }
 
@@ -82,8 +60,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
     public async Task<AizenApiResponse<GenerateBatchBffResultDto>> GenerateBatch(
         [FromBody] GenerateBatchBffRequest request, CancellationToken ct)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.GenerateBatchAsync(request, bearer, userToken, ct);
+        var result = await _cargoDry.GenerateBatchAsync(request, ct);
         return SetResponse(result);
     }
 
@@ -93,8 +70,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
     public async Task<AizenApiResponse<RevokeKitBffResponse>> RevokeKit(
         long id, [FromBody] RevokeKitBffRequest request, CancellationToken ct)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.RevokeKitAsync(id, request, bearer, userToken, ct);
+        var result = await _cargoDry.RevokeKitAsync(id, request, ct);
         return SetResponse(result);
     }
 
@@ -103,8 +79,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
     [ProducesResponseType(typeof(List<CargoDryProductBffDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<List<CargoDryProductBffDto>>> GetProducts(CancellationToken ct)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.GetProductsAsync(bearer, userToken, ct);
+        var result = await _cargoDry.GetProductsAsync(ct);
         return SetResponse(result);
     }
 
@@ -116,8 +91,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.GetBatchesAsync(page, pageSize, bearer, userToken, ct);
+        var result = await _cargoDry.GetBatchesAsync(page, pageSize, ct);
         return SetResponse(result);
     }
 
@@ -127,8 +101,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
     public async Task<AizenApiResponse<CargoDryKitBffDto>> RenewKit(
         long id, [FromBody] RenewKitBffRequest request, CancellationToken ct)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.RenewKitAsync(id, request, bearer, userToken, ct);
+        var result = await _cargoDry.RenewKitAsync(id, request, ct);
         return SetResponse(result);
     }
 
@@ -138,8 +111,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
     public async Task<AizenApiResponse<CargoDryKitBffDto>> ExtendKit(
         long id, [FromBody] ExtendKitBffRequest request, CancellationToken ct)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var result = await _cargoDry.ExtendKitAsync(id, request, bearer, userToken, ct);
+        var result = await _cargoDry.ExtendKitAsync(id, request, ct);
         return SetResponse(result);
     }
 
@@ -164,8 +136,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
         [FromQuery] DateTimeOffset? dateTo   = null,
         CancellationToken ct = default)
     {
-        var (bearer, userToken) = await GetAuthAsync(ct);
-        var upstream    = await _cargoDry.ExportUsageReportAsync(format, dateFrom, dateTo, bearer, userToken, ct);
+        var upstream    = await _cargoDry.ExportUsageReportAsync(format, dateFrom, dateTo, ct);
         var bytes       = await upstream.Content.ReadAsByteArrayAsync(ct);
         var contentType = upstream.Content.Headers.ContentType?.ToString() ?? "text/csv";
         return File(bytes, contentType, $"cargodry-kit-usage-{DateTimeOffset.UtcNow:yyyyMMdd}.{format}");

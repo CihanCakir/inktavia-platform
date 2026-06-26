@@ -7,10 +7,8 @@ namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
 public sealed class ChangePasswordCommand : AizenCommand<ChangePasswordDto>
 {
     public ChangePasswordRequest Request { get; }
-    public string UserToken { get; }
-    public ChangePasswordCommand(ChangePasswordRequest request, string userToken)
+    public ChangePasswordCommand(ChangePasswordRequest request)
     {
         Request = request;
-        UserToken = userToken;
     }
 }

@@ -6,11 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataLookupItemsByGroupCodeQuery : AizenQuery<LookupItemListResult>
 {
     public string GroupCode { get; }
-    public string UserToken { get; }
 
-    public GetReferenceDataLookupItemsByGroupCodeQuery(string groupCode, string userToken)
+    public GetReferenceDataLookupItemsByGroupCodeQuery(string groupCode)
     {
         GroupCode = groupCode;
-        UserToken = userToken;
     }
 }

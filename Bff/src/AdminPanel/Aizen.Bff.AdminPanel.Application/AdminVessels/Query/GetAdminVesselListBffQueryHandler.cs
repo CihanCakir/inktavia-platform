@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
@@ -14,7 +13,6 @@ public sealed class GetAdminVesselListBffQueryHandler
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
     private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetAdminVesselListBffQueryHandler> _logger;
 
     private static readonly Dictionary<int, string> OperationalStatusLabels = new()
@@ -55,12 +53,10 @@ public sealed class GetAdminVesselListBffQueryHandler
     public GetAdminVesselListBffQueryHandler(
         IVesselAdminBffRemoteCall vessel,
         IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetAdminVesselListBffQueryHandler> logger)
     {
         _vessel = vessel;
         _identity = identity;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -72,11 +68,8 @@ public sealed class GetAdminVesselListBffQueryHandler
         List<VesselListItemBffDto> baseItems;
 
         // Acquire the service token once and reuse it for all internal calls in this request.
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -88,8 +81,6 @@ public sealed class GetAdminVesselListBffQueryHandler
         try
         {
             var result = await _vessel.GetAdminVesselList(
-                authHeader,
-                request.UserToken,
                 request.PageIndex,
                 request.PageSize,
                 request.SearchTerm,
@@ -132,7 +123,7 @@ public sealed class GetAdminVesselListBffQueryHandler
 
         // Bulk owner enrichment — one Identity call for all unique owner IDs on the page.
         // Reuses the same service token acquired above.
-        await TryEnrichOwnerNamesAsync(baseItems, authHeader, request.UserToken, response, cancellationToken);
+        await TryEnrichOwnerNamesAsync(baseItems, response, cancellationToken);
 
         return response;
     }
@@ -189,8 +180,6 @@ public sealed class GetAdminVesselListBffQueryHandler
 
     private async Task TryEnrichOwnerNamesAsync(
         List<VesselListItemBffDto> items,
-        string authHeader,
-        string userToken,
         AdminVesselListBffResponse response,
         CancellationToken cancellationToken)
     {
@@ -214,7 +203,7 @@ public sealed class GetAdminVesselListBffQueryHandler
         try
         {
             // Primary path: enrich by owner user IDs.
-            var profileResult = await _identity.GetUserProfilesByUserIds(ownerUserIds, authHeader, userToken);
+            var profileResult = await _identity.GetUserProfilesByUserIds(ownerUserIds);
 
             _logger.LogDebug("[VesselListBff] Identity profile response: IsSuccess={Success}, profileCount={Count}, headerNull={HeaderNull}, resultNull={ResultNull}",
                 profileResult?.Header?.IsSuccess,
@@ -268,7 +257,7 @@ public sealed class GetAdminVesselListBffQueryHandler
                     stillMissingItems.Count,
                     string.Join(",", fallbackProfileIds));
 
-                var fallbackResult = await _identity.GetUserProfilesByProfileIds(fallbackProfileIds, authHeader, userToken);
+                var fallbackResult = await _identity.GetUserProfilesByProfileIds(fallbackProfileIds);
 
                 _logger.LogDebug("[VesselListBff] Fallback profile-ID response success: {Success}, profiles returned: {Count}",
                     fallbackResult?.Header?.IsSuccess,

@@ -5,9 +5,7 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 
 public sealed class GetAdminServiceRequestFilterOptionsQuery : AizenQuery<AdminServiceRequestFilterOptionsResponse>
 {
-    public string UserToken { get; }
-    public GetAdminServiceRequestFilterOptionsQuery(string userToken)
+    public GetAdminServiceRequestFilterOptionsQuery()
     {
-        UserToken = userToken;
     }
 }

@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Identity.Abstraction.Request;
@@ -13,16 +12,13 @@ public sealed class RejectVenueProfileBffCommandHandler
     : AizenCommandHandler<RejectVenueProfileBffCommand, ProfileApprovalDecisionBffResponse>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<RejectVenueProfileBffCommandHandler> _logger;
 
     public RejectVenueProfileBffCommandHandler(
         IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<RejectVenueProfileBffCommandHandler> logger)
     {
         _identity = identity;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -41,11 +37,8 @@ public sealed class RejectVenueProfileBffCommandHandler
             return response;
         }
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -57,9 +50,7 @@ public sealed class RejectVenueProfileBffCommandHandler
         var result = await _identity.RejectVenueProfileAdmin(
             request.UserId,
             request.ProfileId,
-            new RejectProfileRequest { Reason = trimmedReason },
-            authHeader,
-            request.UserToken);
+            new RejectProfileRequest { Reason = trimmedReason });
 
         if (result?.Header?.IsSuccess != true)
         {

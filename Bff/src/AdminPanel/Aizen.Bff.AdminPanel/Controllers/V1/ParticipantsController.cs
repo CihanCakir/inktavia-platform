@@ -29,8 +29,7 @@ public sealed class ParticipantsController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new SearchParticipantProfilesQuery(userToken, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(new SearchParticipantProfilesQuery(pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -39,8 +38,7 @@ public sealed class ParticipantsController : AizenWebApiController
     public async Task<AizenApiResponse<ParticipantProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetParticipantProfileByIdQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetParticipantProfileByIdQuery(profileId), ct);
         return SetResponse(result);
     }
 }

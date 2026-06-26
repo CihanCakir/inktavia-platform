@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -13,18 +12,15 @@ public sealed class RegisterOrganizerVerificationDocumentCommandHandler
 {
     private readonly IFileStorageAdminBffRemoteCall _fileStorage;
     private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<RegisterOrganizerVerificationDocumentCommandHandler> _logger;
 
     public RegisterOrganizerVerificationDocumentCommandHandler(
         IFileStorageAdminBffRemoteCall fileStorage,
         IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<RegisterOrganizerVerificationDocumentCommandHandler> logger)
     {
         _fileStorage = fileStorage;
         _identity = identity;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -33,11 +29,8 @@ public sealed class RegisterOrganizerVerificationDocumentCommandHandler
     {
         var response = new RegisterDocumentBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -49,9 +42,7 @@ public sealed class RegisterOrganizerVerificationDocumentCommandHandler
         // Step 1: Complete the upload session to confirm file physically exists in storage.
         var completeResult = await _fileStorage.CompleteDocumentUploadSession(
             request.UploadSessionCode,
-            new CompleteDocumentUploadSessionRequest(),
-            authHeader,
-            request.UserToken);
+            new CompleteDocumentUploadSessionRequest());
 
         if (completeResult?.Header?.IsSuccess != true)
         {
@@ -73,9 +64,7 @@ public sealed class RegisterOrganizerVerificationDocumentCommandHandler
                 Format = request.Format,
                 FileSizeDisplay = request.FileSizeDisplay,
                 Issuer = request.Issuer
-            },
-            authHeader,
-            request.UserToken);
+            });
 
         if (identityResult?.Header?.IsSuccess != true || identityResult.Body == null)
         {

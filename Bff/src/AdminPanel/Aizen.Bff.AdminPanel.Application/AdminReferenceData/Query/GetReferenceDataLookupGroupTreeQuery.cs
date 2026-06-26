@@ -5,10 +5,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 
 public sealed class GetReferenceDataLookupGroupTreeQuery : AizenQuery<LookupGroupTreeResult>
 {
-    public string UserToken { get; }
 
-    public GetReferenceDataLookupGroupTreeQuery(string userToken)
+    public GetReferenceDataLookupGroupTreeQuery()
     {
-        UserToken = userToken;
     }
 }

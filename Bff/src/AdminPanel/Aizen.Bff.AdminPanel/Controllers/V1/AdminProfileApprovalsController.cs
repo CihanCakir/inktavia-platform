@@ -41,10 +41,9 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         [FromQuery] string? riskLevel = null,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
             new GetProfileApprovalQueueBffQuery(
-                userToken, pageIndex, pageSize, searchTerm, profileType,
+                pageIndex, pageSize, searchTerm, profileType,
                 status, submittedFrom, submittedTo, riskLevel), ct);
         return SetResponse(result);
     }
@@ -58,9 +57,8 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerApprovalDetailBffResponse>> GetOrganizerDetail(
         long userId, long profileId, CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetOrganizerApprovalDetailBffQuery(userId, profileId, userToken), ct);
+            new GetOrganizerApprovalDetailBffQuery(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -73,9 +71,8 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
     public async Task<AizenApiResponse<VenueApprovalDetailBffResponse>> GetVenueDetail(
         long userId, long profileId, CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetVenueApprovalDetailBffQuery(userId, profileId, userToken), ct);
+            new GetVenueApprovalDetailBffQuery(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -87,9 +84,8 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
     public async Task<AizenApiResponse<ProfileApprovalDecisionBffResponse>> ApproveOrganizer(
         long userId, long profileId, CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ApproveOrganizerProfileBffCommand(userId, profileId, userToken), ct);
+            new ApproveOrganizerProfileBffCommand(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -104,9 +100,8 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         [FromBody] RejectProfileApprovalBffRequest request,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectOrganizerProfileBffCommand(userId, profileId, request?.Reason ?? string.Empty, userToken), ct);
+            new RejectOrganizerProfileBffCommand(userId, profileId, request?.Reason ?? string.Empty), ct);
         return SetResponse(result);
     }
 
@@ -118,9 +113,8 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
     public async Task<AizenApiResponse<ProfileApprovalDecisionBffResponse>> ApproveVenue(
         long userId, long profileId, CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ApproveVenueProfileBffCommand(userId, profileId, userToken), ct);
+            new ApproveVenueProfileBffCommand(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -135,9 +129,8 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         [FromBody] RejectProfileApprovalBffRequest request,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectVenueProfileBffCommand(userId, profileId, request?.Reason ?? string.Empty, userToken), ct);
+            new RejectVenueProfileBffCommand(userId, profileId, request?.Reason ?? string.Empty), ct);
         return SetResponse(result);
     }
 
@@ -154,10 +147,9 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         [FromBody] RequestDocumentUploadUrlRequest request,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
             new RequestOrganizerDocumentUploadUrlCommand(
-                userId, profileId, userToken,
+                userId, profileId,
                 request.FileName, request.ContentType, request.FileSizeBytes, request.DocumentType), ct);
         return SetResponse(result);
     }
@@ -173,10 +165,9 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         [FromBody] RegisterDocumentRequest request,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
             new RegisterOrganizerVerificationDocumentCommand(
-                userId, profileId, userToken,
+                userId, profileId,
                 request.FileId, request.UploadSessionCode,
                 request.DocumentType, request.Name,
                 request.Format, request.FileSizeDisplay, request.Issuer), ct);
@@ -193,10 +184,9 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         [FromBody] RequestDocumentUploadUrlRequest request,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
             new RequestVenueDocumentUploadUrlCommand(
-                userId, profileId, userToken,
+                userId, profileId,
                 request.FileName, request.ContentType, request.FileSizeBytes, request.DocumentType), ct);
         return SetResponse(result);
     }
@@ -211,10 +201,9 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         [FromBody] RegisterDocumentRequest request,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
             new RegisterVenueVerificationDocumentCommand(
-                userId, profileId, userToken,
+                userId, profileId,
                 request.FileId, request.UploadSessionCode,
                 request.DocumentType, request.Name,
                 request.Format, request.FileSizeDisplay, request.Issuer), ct);

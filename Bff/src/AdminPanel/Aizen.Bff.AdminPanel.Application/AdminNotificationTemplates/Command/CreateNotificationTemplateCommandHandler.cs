@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminNotificationTemplates.Command;
@@ -10,20 +9,16 @@ public sealed class CreateNotificationTemplateCommandHandler
     : AizenCommandHandler<CreateNotificationTemplateCommand, AdminBffCommandResultDto>
 {
     private readonly INotificationAdminBffRemoteCall _notification;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     public CreateNotificationTemplateCommandHandler(
-        INotificationAdminBffRemoteCall notification,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        INotificationAdminBffRemoteCall notification)
     {
         _notification        = notification;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminBffCommandResultDto?> Handle(
         CreateNotificationTemplateCommand request, CancellationToken cancellationToken)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
         await _notification.CreateNotificationTemplate(
             new CreateNotificationTemplateRemoteRequest
             {
@@ -33,9 +28,7 @@ public sealed class CreateNotificationTemplateCommandHandler
                 Channel       = request.Channel,
                 TitleTemplate = request.TitleTemplate,
                 BodyTemplate  = request.BodyTemplate,
-            },
-            $"Bearer {serviceToken}",
-            request.UserToken);
+            });
 
         return AdminBffCommandResultDto.Ok();
     }

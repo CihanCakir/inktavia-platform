@@ -6,11 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetAdminServiceRequestOffersQuery : AizenQuery<AdminServiceRequestOffersResponse>
 {
     public long ServiceRequestId { get; }
-    public string UserToken { get; }
 
-    public GetAdminServiceRequestOffersQuery(long serviceRequestId, string userToken)
+    public GetAdminServiceRequestOffersQuery(long serviceRequestId)
     {
         ServiceRequestId = serviceRequestId;
-        UserToken = userToken;
     }
 }

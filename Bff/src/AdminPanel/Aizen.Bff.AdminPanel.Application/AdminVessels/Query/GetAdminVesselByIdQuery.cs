@@ -6,10 +6,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselByIdQuery : AizenQuery<GetVesselDetailResponse>
 {
     public long VesselId { get; }
-    public string UserToken { get; }
-    public GetAdminVesselByIdQuery(long vesselId, string userToken)
+    public GetAdminVesselByIdQuery(long vesselId)
     {
         VesselId = vesselId;
-        UserToken = userToken;
     }
 }

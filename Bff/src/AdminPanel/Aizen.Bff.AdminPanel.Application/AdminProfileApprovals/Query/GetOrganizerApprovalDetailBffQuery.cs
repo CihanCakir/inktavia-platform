@@ -8,12 +8,10 @@ public sealed class GetOrganizerApprovalDetailBffQuery : AizenQuery<OrganizerApp
 {
     public long UserId { get; }
     public long ProfileId { get; }
-    public string UserToken { get; }
 
-    public GetOrganizerApprovalDetailBffQuery(long userId, long profileId, string userToken)
+    public GetOrganizerApprovalDetailBffQuery(long userId, long profileId)
     {
         UserId = userId;
         ProfileId = profileId;
-        UserToken = userToken;
     }
 }

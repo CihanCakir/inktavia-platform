@@ -6,10 +6,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Command;
 public sealed class RestoreVesselCommand : AizenCommand<RestoreVesselResponse>
 {
     public long VesselId { get; }
-    public string UserToken { get; }
-    public RestoreVesselCommand(long vesselId, string userToken)
+    public RestoreVesselCommand(long vesselId)
     {
         VesselId = vesselId;
-        UserToken = userToken;
     }
 }

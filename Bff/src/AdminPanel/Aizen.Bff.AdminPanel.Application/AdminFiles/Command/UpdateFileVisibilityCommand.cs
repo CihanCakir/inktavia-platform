@@ -7,11 +7,9 @@ public sealed class UpdateFileVisibilityCommand : AizenCommand<EmptyResult>
 {
     public long FileId { get; }
     public string Visibility { get; }
-    public string UserToken { get; }
-    public UpdateFileVisibilityCommand(long fileId, string visibility, string userToken)
+    public UpdateFileVisibilityCommand(long fileId, string visibility)
     {
         FileId = fileId;
         Visibility = visibility;
-        UserToken = userToken;
     }
 }

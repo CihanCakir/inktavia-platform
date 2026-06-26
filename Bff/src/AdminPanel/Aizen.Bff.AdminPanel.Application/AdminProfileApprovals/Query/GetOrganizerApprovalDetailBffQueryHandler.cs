@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
@@ -15,18 +14,15 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IFileStorageAdminBffRemoteCall _fileStorage;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetOrganizerApprovalDetailBffQueryHandler> _logger;
 
     public GetOrganizerApprovalDetailBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
         IFileStorageAdminBffRemoteCall fileStorage,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetOrganizerApprovalDetailBffQueryHandler> logger)
     {
         _identity = identity;
         _fileStorage = fileStorage;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -35,11 +31,8 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
     {
         var response = new OrganizerApprovalDetailBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -52,9 +45,9 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
         {
             // Fetch detail-only (for RejectReason) and with-user (for Email/Phone) in parallel.
             var detailTask = _identity.GetAdminOrganizerProfileOnly(
-                request.ProfileId, authHeader, request.UserToken);
+                request.ProfileId);
             var withUserTask = _identity.GetAdminOrganizerProfileWithUser(
-                request.ProfileId, authHeader, request.UserToken);
+                request.ProfileId);
 
             await Task.WhenAll(detailTask, withUserTask);
 
@@ -83,7 +76,7 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
                 {
                     var urlRequest = new CreateFileReadUrlRemoteCallRequest { ExpiresIn = TimeSpan.FromMinutes(15) };
                     var urlTasks = detail.Documents
-                        .Select(d => _fileStorage.CreateReadUrl(d.FileId, urlRequest, authHeader, request.UserToken))
+                        .Select(d => _fileStorage.CreateReadUrl(d.FileId, urlRequest))
                         .ToList();
 
                     await Task.WhenAll(urlTasks.Select(t => t.ContinueWith(_ => { }, TaskScheduler.Default)));

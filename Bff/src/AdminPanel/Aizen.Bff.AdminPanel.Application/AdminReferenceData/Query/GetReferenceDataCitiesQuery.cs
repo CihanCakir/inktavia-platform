@@ -6,11 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataCitiesQuery : AizenQuery<CityListResult>
 {
     public string CountryCode { get; }
-    public string UserToken { get; }
 
-    public GetReferenceDataCitiesQuery(string countryCode, string userToken)
+    public GetReferenceDataCitiesQuery(string countryCode)
     {
         CountryCode = countryCode;
-        UserToken = userToken;
     }
 }
