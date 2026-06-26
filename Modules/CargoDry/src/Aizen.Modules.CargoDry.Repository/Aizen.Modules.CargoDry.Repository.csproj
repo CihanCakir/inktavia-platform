@@ -12,6 +12,6 @@
     <ProjectReference Include="../Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.*" />
+    <PackageReference Include="MongoDB.Driver" Version="2.27.0" />
   </ItemGroup>
 </Project>

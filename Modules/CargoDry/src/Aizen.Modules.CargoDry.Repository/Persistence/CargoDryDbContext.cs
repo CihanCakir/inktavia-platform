@@ -1,9 +1,12 @@
+using Aizen.Core.EFCore;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.CargoDry.Repository.Persistence;
 
-public sealed class CargoDryDbContext : DbContext
+[Abstraction.Model.DocumentationInfo("CargoDry EF DbContext",
+    "EF Core context for the CargoDry module PostgreSQL schema.")]
+public sealed class CargoDryDbContext : AizenDbContext
 {
     public CargoDryDbContext(DbContextOptions<CargoDryDbContext> options) : base(options) { }
 
@@ -11,19 +14,25 @@ public sealed class CargoDryDbContext : DbContext
     public DbSet<CargoDryBatchEntity>    Batches   => Set<CargoDryBatchEntity>();
     public DbSet<CargoDryKitEntity>      Kits      => Set<CargoDryKitEntity>();
     public DbSet<CargoDryRenewalEntity>  Renewals  => Set<CargoDryRenewalEntity>();
-    // ActivationLogs removed — moved to MongoDB
+    // ActivationLogs — moved to MongoDB (CargoDryMongoDbContext)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema("cargodry");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CargoDryDbContext).Assembly);
-        base.OnModelCreating(modelBuilder);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         NormalizeDateTimeProperties();
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override int SaveChanges()
+    {
+        NormalizeDateTimeProperties();
+        return base.SaveChanges();
     }
 
     private void NormalizeDateTimeProperties()

@@ -37,7 +37,7 @@ public sealed class GetCargoDryBatchListQueryHandler
                 ProductCode      = b.ProductCode,
                 ProductName      = prods.TryGetValue(b.ProductCode, out var p) ? p.Name : b.ProductCode,
                 TotalKits        = b.KitCount,
-                GeneratedAt      = b.CreateDate.ToString("O"),
+                GeneratedAt      = b.CreateDate?.ToString("O") ?? string.Empty,
                 IsRevoked        = b.IsRevoked,
                 QrZipFileRef     = b.QrZipFileRef,
                 ExcelFileRef     = b.ExcelFileRef,

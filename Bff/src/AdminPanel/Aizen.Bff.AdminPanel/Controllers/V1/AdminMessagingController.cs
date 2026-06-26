@@ -1,4 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
@@ -14,14 +15,33 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class AdminMessagingController : AizenWebApiController
 {
-    private readonly IAdminMessagingBffRemoteCall _messaging;
+    private readonly IAdminMessagingBffRemoteCall               _messaging;
+    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     public AdminMessagingController(
         IHttpContextAccessor httpContextAccessor,
-        IAdminMessagingBffRemoteCall messaging)
+        IAdminMessagingBffRemoteCall messaging,
+        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
         : base(httpContextAccessor)
     {
-        _messaging = messaging;
+        _messaging            = messaging;
+        _serviceTokenProvider = serviceTokenProvider;
+    }
+
+    // ── Auth helpers ──────────────────────────────────────────────────────────
+
+    private string GetUserToken()
+    {
+        var raw = HttpContext.Request.Headers.Authorization.ToString();
+        return raw.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? raw["Bearer ".Length..]
+            : raw;
+    }
+
+    private async Task<(string bearer, string userToken)> GetAuthAsync(CancellationToken ct)
+    {
+        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(ct);
+        return ($"Bearer {serviceToken}", GetUserToken());
     }
 
     // ─── Conversations ────────────────────────────────────────────────────────
@@ -36,7 +56,8 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromQuery] int     take        = 20,
         CancellationToken ct            = default)
     {
-        var result = await _messaging.GetConversationsAsync(status, contextType, skip, take, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        var result = await _messaging.GetConversationsAsync(status, contextType, skip, take, bearer, userToken, ct);
         return SetResponse(result);
     }
 
@@ -47,7 +68,8 @@ public sealed class AdminMessagingController : AizenWebApiController
         long id,
         CancellationToken ct = default)
     {
-        var result = await _messaging.GetConversationAsync(id, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        var result = await _messaging.GetConversationAsync(id, bearer, userToken, ct);
         return SetResponse(result);
     }
 
@@ -61,7 +83,8 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromBody] SendMessageRequest body,
         CancellationToken ct = default)
     {
-        var result = await _messaging.SendMessageAsync(id, body, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        var result = await _messaging.SendMessageAsync(id, body, bearer, userToken, ct);
         return SetResponse(result);
     }
 
@@ -70,7 +93,8 @@ public sealed class AdminMessagingController : AizenWebApiController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> MarkRead(long id, CancellationToken ct = default)
     {
-        await _messaging.MarkReadAsync(id, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        await _messaging.MarkReadAsync(id, bearer, userToken, ct);
         return NoContent();
     }
 
@@ -82,7 +106,8 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromBody] AttachmentUploadUrlRequest body,
         CancellationToken ct = default)
     {
-        var result = await _messaging.GetAttachmentUploadUrlAsync(id, body, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        var result = await _messaging.GetAttachmentUploadUrlAsync(id, body, bearer, userToken, ct);
         return SetResponse(result);
     }
 
@@ -96,7 +121,8 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromQuery] int take = 20,
         CancellationToken ct = default)
     {
-        var result = await _messaging.GetModerationQueueAsync(skip, take, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        var result = await _messaging.GetModerationQueueAsync(skip, take, bearer, userToken, ct);
         return SetResponse(result);
     }
 
@@ -108,7 +134,8 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromBody] ModerateMessageRequest body,
         CancellationToken ct = default)
     {
-        await _messaging.ModerateMessageAsync(id, body, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        await _messaging.ModerateMessageAsync(id, body, bearer, userToken, ct);
         return NoContent();
     }
 
@@ -120,7 +147,8 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromBody] FlagConversationRequest body,
         CancellationToken ct = default)
     {
-        await _messaging.FlagConversationAsync(id, body, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        await _messaging.FlagConversationAsync(id, body, bearer, userToken, ct);
         return NoContent();
     }
 
@@ -137,8 +165,9 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromQuery] string? to   = null,
         CancellationToken ct     = default)
     {
-        var providerTask = _messaging.GetProviderResponseTimeAsync(from, to, ct);
-        var channelTask  = _messaging.GetChannelUsageAsync(from, to, ct);
+        var (bearer, userToken) = await GetAuthAsync(ct);
+        var providerTask = _messaging.GetProviderResponseTimeAsync(from, to, bearer, userToken, ct);
+        var channelTask  = _messaging.GetChannelUsageAsync(from, to, bearer, userToken, ct);
 
         await Task.WhenAll(providerTask, channelTask);
 

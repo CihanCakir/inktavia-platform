@@ -5,84 +5,96 @@ using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
-[DocumentationInfo("Admin messaging BFF remote call", "Refit interface for BFF-to-Messaging module communication. Auth forwarded via AuthorizationForwardingHandler.")]
+[DocumentationInfo("Admin messaging BFF remote call",
+    "Defines BFF-to-Messaging module calls. All endpoints require explicit Authorization (service token) " +
+    "and X-Aizen-User-Token (caller's JWT) headers.")]
 public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
 {
     // ─── Conversations ────────────────────────────────────────────────────────
 
-    /// <summary>GET /api/v1/conversations</summary>
-    [Get("/api/v1/conversations")]
+    [AizenRemoteCallGet("/api/v1/conversations")]
     Task<GetConversationListResponse> GetConversationsAsync(
-        [Query] string? status      = null,
-        [Query] string? contextType = null,
-        [Query] int     skip        = 0,
-        [Query] int     take        = 20,
-        CancellationToken ct        = default);
+        [Query] string? status,
+        [Query] string? contextType,
+        [Query] int     skip,
+        [Query] int     take,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        CancellationToken ct = default);
 
-    /// <summary>GET /api/v1/conversations/{id}</summary>
-    [Get("/api/v1/conversations/{id}")]
+    [AizenRemoteCallGet("/api/v1/conversations/{id}")]
     Task<GetConversationDetailResponse> GetConversationAsync(
         long id,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
     // ─── Messages ─────────────────────────────────────────────────────────────
 
-    /// <summary>POST /api/v1/conversations/{conversationId}/messages</summary>
-    [Post("/api/v1/conversations/{conversationId}/messages")]
+    [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages")]
     Task<SendMessageResponse> SendMessageAsync(
         long conversationId,
-        [Body] SendMessageRequest body,
+        [AizenRemoteCallBody]                         SendMessageRequest body,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    /// <summary>PATCH /api/v1/conversations/{conversationId}/messages/mark-read</summary>
-    [Patch("/api/v1/conversations/{conversationId}/messages/mark-read")]
+    [AizenRemoteCallPatch("/api/v1/conversations/{conversationId}/messages/mark-read")]
     Task MarkReadAsync(
         long conversationId,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    /// <summary>POST /api/v1/conversations/{conversationId}/messages/attachment-upload-url</summary>
-    [Post("/api/v1/conversations/{conversationId}/messages/attachment-upload-url")]
+    [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages/attachment-upload-url")]
     Task<object> GetAttachmentUploadUrlAsync(
         long conversationId,
-        [Body] AttachmentUploadUrlRequest body,
+        [AizenRemoteCallBody]                         AttachmentUploadUrlRequest body,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
     // ─── Moderation ───────────────────────────────────────────────────────────
 
-    /// <summary>GET /api/v1/moderation/queue</summary>
-    [Get("/api/v1/moderation/queue")]
+    [AizenRemoteCallGet("/api/v1/moderation/queue")]
     Task<GetModerationQueueResponse> GetModerationQueueAsync(
-        [Query] int skip = 0,
-        [Query] int take = 20,
+        [Query] int skip,
+        [Query] int take,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    /// <summary>PATCH /api/v1/moderation/messages/{messageId}</summary>
-    [Patch("/api/v1/moderation/messages/{messageId}")]
+    [AizenRemoteCallPatch("/api/v1/moderation/messages/{messageId}")]
     Task ModerateMessageAsync(
         long messageId,
-        [Body] ModerateMessageRequest body,
+        [AizenRemoteCallBody]                         ModerateMessageRequest body,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    /// <summary>PATCH /api/v1/moderation/conversations/{conversationId}/flag</summary>
-    [Patch("/api/v1/moderation/conversations/{conversationId}/flag")]
+    [AizenRemoteCallPatch("/api/v1/moderation/conversations/{conversationId}/flag")]
     Task FlagConversationAsync(
         long conversationId,
-        [Body] FlagConversationRequest body,
+        [AizenRemoteCallBody]                         FlagConversationRequest body,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
     // ─── Reporting ────────────────────────────────────────────────────────────
 
-    /// <summary>GET /api/v1/reporting/messaging/provider-response-time</summary>
-    [Get("/api/v1/reporting/messaging/provider-response-time")]
+    [AizenRemoteCallGet("/api/v1/reporting/messaging/provider-response-time")]
     Task<object> GetProviderResponseTimeAsync(
-        [Query] string? from = null,
-        [Query] string? to   = null,
+        [Query] string? from,
+        [Query] string? to,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    /// <summary>GET /api/v1/reporting/messaging/channel-usage</summary>
-    [Get("/api/v1/reporting/messaging/channel-usage")]
+    [AizenRemoteCallGet("/api/v1/reporting/messaging/channel-usage")]
     Task<object> GetChannelUsageAsync(
-        [Query] string? from = null,
-        [Query] string? to   = null,
+        [Query] string? from,
+        [Query] string? to,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 }

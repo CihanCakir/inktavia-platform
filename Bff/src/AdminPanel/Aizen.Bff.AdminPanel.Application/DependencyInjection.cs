@@ -86,10 +86,9 @@ public static class DependencyInjection
             var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
             remoteCallConfigs.TryGetValue(nameof(IAdminCargoDryBffRemoteCall), out var cargoDryConfig);
 
-            var forwardingHandler = provider.GetRequiredService<AuthorizationForwardingHandler>();
-            forwardingHandler.InnerHandler = new HttpClientHandler();
-
-            var httpClient = new HttpClient(forwardingHandler);
+            // Auth is passed explicitly per-method (Authorization + X-Aizen-User-Token headers).
+            // AuthorizationForwardingHandler is NOT used here.
+            var httpClient = new HttpClient();
             if (cargoDryConfig?.BaseUrl is not null)
                 httpClient.BaseAddress = new Uri(cargoDryConfig.BaseUrl);
 
@@ -120,10 +119,9 @@ public static class DependencyInjection
             var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
             remoteCallConfigs.TryGetValue(nameof(IAdminMessagingBffRemoteCall), out var messagingConfig);
 
-            var forwardingHandler = provider.GetRequiredService<AuthorizationForwardingHandler>();
-            forwardingHandler.InnerHandler = new HttpClientHandler();
-
-            var httpClient = new HttpClient(forwardingHandler);
+            // Auth is passed explicitly per-method (Authorization + X-Aizen-User-Token headers).
+            // AuthorizationForwardingHandler is NOT used here.
+            var httpClient = new HttpClient();
             if (messagingConfig?.BaseUrl is not null)
                 httpClient.BaseAddress = new Uri(messagingConfig.BaseUrl);
 

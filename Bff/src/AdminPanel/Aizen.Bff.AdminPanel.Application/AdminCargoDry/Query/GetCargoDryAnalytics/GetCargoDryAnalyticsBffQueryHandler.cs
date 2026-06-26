@@ -48,7 +48,7 @@ public sealed class GetCargoDryAnalyticsBffQueryHandler
             DailyActivations = raw.DailyActivations
                 .Select(d => new CargoDryDailyActivationBffDto
                 {
-                    Date        = d.Date.ToString("yyyy-MM-dd"),
+                    Date        = d.Date,
                     Activations = d.Activations,
                     Renewals    = d.Renewals,
                 })

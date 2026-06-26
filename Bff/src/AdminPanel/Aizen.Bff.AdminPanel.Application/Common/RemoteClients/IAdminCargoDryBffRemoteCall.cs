@@ -1,125 +1,114 @@
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 using Aizen.Core.RemoteCall.Abstraction;
 using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
-[DocumentationInfo("CargoDry admin BFF remote call", "Defines synchronous BFF-to-CargoDry calls for admin kit management and the public onboarding flow.")]
+[DocumentationInfo("CargoDry admin BFF remote call",
+    "Defines BFF-to-CargoDry calls. Admin endpoints require explicit Authorization (service token) " +
+    "and X-Aizen-User-Token (caller's JWT) headers. Public onboarding endpoints have no auth requirement.")]
 public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
 {
-    // ── Admin Kit Management ─────────────────────────────────────────────────
+    // ── Admin Kit Management ──────────────────────────────────────────────────
 
-    [Get("/api/v1/cargodry/admin/kits")]
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/kits")]
     Task<CargoDryKitListBffDto> GetKitsAsync(
-        [Query] string? status   = null,
-        [Query] string? search   = null,
-        [Query] long?   vesselId = null,
-        [Query] int     page     = 1,
-        [Query] int     pageSize = 25,
+        [Query] string? status,
+        [Query] string? search,
+        [Query] long?   vesselId,
+        [Query] int     page,
+        [Query] int     pageSize,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    [Get("/api/v1/cargodry/admin/stats")]
-    Task<CargoDryStatsBffDto> GetStatsAsync(CancellationToken ct = default);
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/stats")]
+    Task<CargoDryStatsBffDto> GetStatsAsync(
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        CancellationToken ct = default);
 
-    [Post("/api/v1/cargodry/admin/batches/generate")]
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/batches/generate")]
     Task<GenerateBatchBffResultDto> GenerateBatchAsync(
-        [Body] GenerateBatchBffRequest request,
+        [AizenRemoteCallBody]                         GenerateBatchBffRequest request,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    [Post("/api/v1/cargodry/admin/kits/{id}/revoke")]
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/kits/{id}/revoke")]
     Task<RevokeKitBffResponse> RevokeKitAsync(
         long id,
-        [Body] RevokeKitBffRequest request,
+        [AizenRemoteCallBody]                         RevokeKitBffRequest request,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    [Get("/api/v1/cargodry/admin/products")]
-    Task<List<CargoDryProductBffDto>> GetProductsAsync(CancellationToken ct = default);
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/products")]
+    Task<List<CargoDryProductBffDto>> GetProductsAsync(
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        CancellationToken ct = default);
 
-    [Get("/api/v1/cargodry/admin/batches")]
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/batches")]
     Task<CargoDryBatchListBffDto> GetBatchesAsync(
-        [Query] int page     = 1,
-        [Query] int pageSize = 25,
+        [Query] int page,
+        [Query] int pageSize,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    [Post("/api/v1/cargodry/admin/kits/{id}/renew")]
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/kits/{id}/renew")]
     Task<CargoDryKitBffDto> RenewKitAsync(
         long id,
-        [Body] RenewKitBffRequest request,
+        [AizenRemoteCallBody]                         RenewKitBffRequest request,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    [Post("/api/v1/cargodry/admin/kits/{id}/extend")]
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/kits/{id}/extend")]
     Task<CargoDryKitBffDto> ExtendKitAsync(
         long id,
-        [Body] ExtendKitBffRequest request,
+        [AizenRemoteCallBody]                         ExtendKitBffRequest request,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
-
-    // ── Onboarding (Public + User) ────────────────────────────────────────────
 
     // ── Reporting & Analytics ─────────────────────────────────────────────────
 
-    [Get("/api/v1/cargodry/admin/reports/usage")]
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/reports/usage")]
     Task<CargoDryKitUsageReportBffDto> GetUsageReportAsync(
-        [Query] DateTimeOffset? dateFrom = null,
-        [Query] DateTimeOffset? dateTo   = null,
+        [Query] DateTimeOffset? dateFrom,
+        [Query] DateTimeOffset? dateTo,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    [Get("/api/v1/cargodry/admin/reports/usage/export")]
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/reports/usage/export")]
     Task<HttpResponseMessage> ExportUsageReportAsync(
-        [Query] string format,
-        [Query] DateTimeOffset? dateFrom = null,
-        [Query] DateTimeOffset? dateTo   = null,
+        [Query] string          format,
+        [Query] DateTimeOffset? dateFrom,
+        [Query] DateTimeOffset? dateTo,
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
         CancellationToken ct = default);
 
-    [Get("/api/v1/cargodry/admin/analytics")]
-    Task<CargoDryAnalyticsBffDto> GetAnalyticsAsync(CancellationToken ct = default);
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/analytics")]
+    Task<CargoDryAnalyticsRawBffDto> GetAnalyticsAsync(
+        [AizenRemoteCallHeader("Authorization")]       string authorization,
+        [AizenRemoteCallHeader("X-Aizen-User-Token")] string userToken,
+        CancellationToken ct = default);
 
-    // ── Onboarding (Public + User) ────────────────────────────────────────────
+    // ── Onboarding (Public — no auth headers required) ───────────────────────
 
-    [Post("/api/v1/cargodry/public/validate")]
+    [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]
     Task<CargoDryValidationBffDto> ValidateKitAsync(
-        [Body] ValidateKitBffRequest request,
+        [AizenRemoteCallBody] ValidateKitBffRequest request,
         CancellationToken ct = default);
 
-    [Post("/api/v1/cargodry/kits/activate")]
+    [AizenRemoteCallPost("/api/v1/cargodry/kits/activate")]
     Task<CargoDryKitBffDto> ActivateKitAsync(
-        [Body] ActivateKitBffRequest request,
+        [AizenRemoteCallBody] ActivateKitBffRequest request,
         CancellationToken ct = default);
-}
-
-// ── Request DTOs ─────────────────────────────────────────────────────────────
-
-public sealed class GenerateBatchBffRequest
-{
-    public string ProductCode { get; init; } = default!;
-    public int    Count       { get; init; }
-}
-
-public sealed class RevokeKitBffRequest
-{
-    public string Reason { get; init; } = default!;
-}
-
-public sealed class ExtendKitBffRequest
-{
-    public int AddedDays { get; init; }
-}
-
-public sealed class RenewKitBffRequest
-{
-    public int     AddedDays  { get; init; }
-    public string? PaymentRef { get; init; }
-}
-
-public sealed class ValidateKitBffRequest
-{
-    public string  SerialNumber { get; init; } = default!;
-    public string  BatchCode    { get; init; } = default!;
-    public string? Signature    { get; init; }
-}
-
-public sealed class ActivateKitBffRequest
-{
-    public string ActivationToken { get; init; } = default!;
-    public long   VesselId        { get; init; }
 }
