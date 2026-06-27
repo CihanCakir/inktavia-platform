@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Aizen.Bff.AdminPanel.Application.Common;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
@@ -16,8 +17,16 @@ public sealed class CargoDryKitBffDto
     public string? OwnerDisplayName  { get; init; }
     public long?   VesselId          { get; init; }
     public string? VesselName        { get; init; }
-    public string? ActivatedDate     { get; init; }  // ISO string, formatted by UI
+
+    // Backend sends "activatedAt" / "expiresAt" (Newtonsoft camelCase of ActivatedAt/ExpiresAt).
+    // STJ [JsonPropertyName] maps the Refit deserialization key without affecting
+    // the Newtonsoft serialization key sent to the frontend (still "activatedDate"/"expiryDate").
+    [JsonPropertyName("activatedAt")]
+    public string? ActivatedDate     { get; init; }
+
+    [JsonPropertyName("expiresAt")]
     public string? ExpiryDate        { get; init; }
+
     public double  EfficiencyPercent { get; init; }
     public int     DaysUntilExpiry   { get; init; }
     public int     RenewalCount      { get; init; }

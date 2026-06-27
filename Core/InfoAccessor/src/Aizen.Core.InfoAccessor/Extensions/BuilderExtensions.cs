@@ -19,6 +19,12 @@ public static class BuilderExtensions
         services.AddScoped<IAizenInfoContainer, AizenInfoContainer>();
         services.AddScoped<IAizenInfoAccessor, AizenInfoAccessor>();
 
+        // Forward all sub-accessor interfaces to the same scoped AizenInfoAccessor instance
+        // so that consumers can inject IAizenUserInfoAccessor directly without going through
+        // IAizenInfoAccessor.UserInfoAccessor.
+        services.AddScoped<IAizenUserInfoAccessor>(sp =>
+            sp.GetRequiredService<IAizenInfoAccessor>().UserInfoAccessor);
+
         // Injects Identity token roles (from X-Aizen-User-Token / AizenUserInfo) into the
         // ClaimsPrincipal after Keycloak service token authentication completes so that
         // [Authorize(Roles = ...)] can see application-level roles on internal module APIs.

@@ -1,46 +1,39 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
+using Aizen.Core.Scheduler;
+using Aizen.Core.Scheduler.Abstraction;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Message;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Aizen.Modules.CargoDry.Domain.MongoDocuments;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.CargoDry.Application.Jobs;
 
-public sealed class KitExpiredMarkingJob : BackgroundService
+/// <summary>
+/// Runs every hour. Finds activated kits whose ExpiresAt has passed and marks them as Expired,
+/// writes an activation log entry, and publishes a CargoDryKitExpiredMessage for notifications.
+/// </summary>
+public sealed class KitExpiredMarkingJob : AizenRecurringJob
 {
-    private readonly IServiceScopeFactory       _scopeFactory;
-    private readonly ILogger<KitExpiredMarkingJob> _logger;
+    public KitExpiredMarkingJob(
+        IAizenSchedulerLogger logger,
+        IServiceProvider      serviceProvider)
+        : base(logger, serviceProvider) { }
 
-    public KitExpiredMarkingJob(IServiceScopeFactory sf, ILogger<KitExpiredMarkingJob> logger)
-    {
-        _scopeFactory = sf;
-        _logger       = logger;
-    }
+    public override bool   IsActive       => true;
+    public override string CronExpression => "0 * * * *"; // every hour at :00
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
-        while (await timer.WaitForNextTickAsync(stoppingToken))
-        {
-            try { await RunAsync(stoppingToken); }
-            catch (Exception ex) { _logger.LogError(ex, "KitExpiredMarkingJob failed"); }
-        }
-    }
-
-    private async Task RunAsync(CancellationToken ct)
-    {
-        using var scope    = _scopeFactory.CreateScope();
+        using var scope    = ServiceProvider.CreateScope();
         var kits           = scope.ServiceProvider.GetRequiredService<ICargoDryKitRepository>();
         var publisher      = scope.ServiceProvider.GetRequiredService<IAizenMessagePublisher>();
         var activationLogs = scope.ServiceProvider.GetRequiredService<ICargoDryActivationLogRepository>();
         var cache          = scope.ServiceProvider.GetRequiredService<IAizenDistributedCache>();
 
-        var expired = await kits.GetExpiredUnmarkedAsync(ct);
-        _logger.LogInformation("KitExpiredMarkingJob: marking {Count} kits as expired", expired.Count);
+        var expired = await kits.GetExpiredUnmarkedAsync(cancellationToken);
+        Logger.WriteConsole($"KitExpiredMarkingJob: marking {expired.Count} kits as expired");
 
         foreach (var kit in expired)
         {
@@ -60,9 +53,9 @@ public sealed class KitExpiredMarkingJob : BackgroundService
                 DateKey      = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd"),
             };
 
-            _ = activationLogs.InsertAsync(logDoc, ct)
+            _ = activationLogs.InsertAsync(logDoc, cancellationToken)
                 .ContinueWith(
-                    t => _logger.LogError(t.Exception, "Failed to write expiry log for Kit {KitId}", kit.Id),
+                    t => Logger.WriteConsole($"Failed to write expiry log for Kit {kit.Id}: {t.Exception?.Message}"),
                     TaskContinuationOptions.OnlyOnFaulted);
 
             await publisher.PublishAsync(new CargoDryKitExpiredMessage
@@ -71,12 +64,12 @@ public sealed class KitExpiredMarkingJob : BackgroundService
                 KitCode     = kit.KitCode,
                 OwnerUserId = kit.OwnerUserId!.Value,
                 VesselId    = kit.VesselId!.Value,
-            }, ct);
+            }, cancellationToken);
         }
 
-        await kits.SaveChangesAsync(ct);
+        await kits.SaveChangesAsync(cancellationToken);
 
         if (expired.Count > 0)
-            await cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);
+            await cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", cancellationToken);
     }
 }

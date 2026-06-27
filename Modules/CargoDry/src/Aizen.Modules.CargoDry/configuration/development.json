@@ -28,6 +28,20 @@
   "DistributedCache": {
     "Configuration": "dev-redis.inktavia.internal:6379,password=#{Redis_Password}#,abortConnect=false"
   },
+  "DatabaseSettings": {
+    "CargoDryScheduler": {
+      "Type": "PostgreSQL",
+      "ConnectionString": "Host=dev-pg.inktavia.internal;Port=5432;Database=aizen_cargodry;Username=cargodry_svc;Password=#{CargoDry_PgPassword}#;Pooling=true;MinPoolSize=2;MaxPoolSize=20;SslMode=Require"
+    }
+  },
+  "Scheduler": {
+    "StorageType": "PostgreSQL",
+    "RetryAttempts": 3,
+    "UseFilter": true,
+    "RouteUrl": "/hangfire",
+    "DatabaseKey": "CargoDryScheduler",
+    "SchemaName": "cargodry-scheduler"
+  },
   "Serilog": {
     "MinimumLevel": {
       "Default": "Information",

@@ -31,6 +31,20 @@
   "DistributedCache": {
     "Configuration": "localhost:6379,abortConnect=false"
   },
+  "DatabaseSettings": {
+    "CargoDryScheduler": {
+      "Type": "PostgreSQL",
+      "ConnectionString": "Host=localhost;Port=5432;Database=aizen_cargodry;Username=postgres;Password=postgres"
+    }
+  },
+  "Scheduler": {
+    "StorageType": "PostgreSQL",
+    "RetryAttempts": 3,
+    "UseFilter": true,
+    "RouteUrl": "/hangfire",
+    "DatabaseKey": "CargoDryScheduler",
+    "SchemaName": "cargodry-scheduler"
+  },
   "Serilog": {
     "MinimumLevel": {
       "Default": "Debug",

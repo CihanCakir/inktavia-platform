@@ -6,6 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/Scheduler/src/Aizen.Core.Scheduler/Aizen.Core.Scheduler.csproj" />
+    <ProjectReference Include="../../../../Core/Scheduler/src/Aizen.Core.Scheduler.Abstraction/Aizen.Core.Scheduler.Abstraction.csproj" />
     <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
     <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache.Abstraction/Aizen.Core.Cache.Abstraction.csproj" />
     <ProjectReference Include="../Aizen.Modules.CargoDry.Domain/Aizen.Modules.CargoDry.Domain.csproj" />

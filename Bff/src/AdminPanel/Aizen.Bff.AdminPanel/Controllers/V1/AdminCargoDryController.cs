@@ -1,13 +1,19 @@
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ExtendKit;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.GenerateCargoDryBatch;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RenewKit;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeKit;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.ExportCargoDryUsageReport;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryAnalytics;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryBatchList;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitList;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryProducts;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryStats;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryUsageReport;
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
-using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
@@ -18,17 +24,14 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class AdminCargoDryController : AizenWebApiController
 {
-    private readonly IAdminCargoDryBffRemoteCall _cargoDry;
-    private readonly IAizenCQRSProcessor         _cqrs;
+    private readonly IAizenCQRSProcessor _cqrs;
 
     public AdminCargoDryController(
         IHttpContextAccessor httpContextAccessor,
-        IAdminCargoDryBffRemoteCall cargoDry,
-        IAizenCQRSProcessor cqrs)
+        IAizenCQRSProcessor  cqrs)
         : base(httpContextAccessor)
     {
-        _cargoDry = cargoDry;
-        _cqrs     = cqrs;
+        _cqrs = cqrs;
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/kits</summary>
@@ -41,8 +44,16 @@ public sealed class AdminCargoDryController : AizenWebApiController
         [FromQuery] int     pageSize = 25,
         CancellationToken ct = default)
     {
-        var result = await _cargoDry.GetKitsAsync(status, search, null, page, pageSize, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryKitListBffQuery
+            {
+                Status   = status,
+                Search   = search,
+                Page     = page,
+                PageSize = pageSize,
+            }, ct);
+
+        return SetResponse(result?.KitList);
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/stats</summary>
@@ -50,28 +61,30 @@ public sealed class AdminCargoDryController : AizenWebApiController
     [ProducesResponseType(typeof(CargoDryStatsBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryStatsBffDto>> GetStats(CancellationToken ct)
     {
-        var result = await _cargoDry.GetStatsAsync(ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetCargoDryStatsBffQuery(), ct);
+        return SetResponse(result?.Stats);
     }
 
     /// <summary>POST /api/v1/admin-panel/cargodry/batches/generate</summary>
     [HttpPost("batches/generate")]
     [ProducesResponseType(typeof(GenerateBatchBffResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GenerateBatchBffResultDto>> GenerateBatch(
-        [FromBody] GenerateBatchBffRequest request, CancellationToken ct)
+        [FromBody] GenerateCargoDryBatchBffCommand command, CancellationToken ct)
     {
-        var result = await _cargoDry.GenerateBatchAsync(request, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST /api/v1/admin-panel/cargodry/kits/{id}/revoke</summary>
     [HttpPost("kits/{id:long}/revoke")]
     [ProducesResponseType(typeof(RevokeKitBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<RevokeKitBffResponse>> RevokeKit(
-        long id, [FromBody] RevokeKitBffRequest request, CancellationToken ct)
+        long id, [FromBody] RevokeKitBodyRequest body, CancellationToken ct)
     {
-        var result = await _cargoDry.RevokeKitAsync(id, request, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new RevokeKitBffCommand { KitId = id, Reason = body.Reason }, ct);
+
+        return SetResponse(result?.Result);
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/products</summary>
@@ -79,8 +92,8 @@ public sealed class AdminCargoDryController : AizenWebApiController
     [ProducesResponseType(typeof(List<CargoDryProductBffDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<List<CargoDryProductBffDto>>> GetProducts(CancellationToken ct)
     {
-        var result = await _cargoDry.GetProductsAsync(ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetCargoDryProductsBffQuery(), ct);
+        return SetResponse(result?.Products);
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/batches</summary>
@@ -91,28 +104,39 @@ public sealed class AdminCargoDryController : AizenWebApiController
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
-        var result = await _cargoDry.GetBatchesAsync(page, pageSize, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryBatchListBffQuery { Page = page, PageSize = pageSize }, ct);
+
+        return SetResponse(result?.BatchList);
     }
 
     /// <summary>POST /api/v1/admin-panel/cargodry/kits/{id}/renew</summary>
     [HttpPost("kits/{id:long}/renew")]
     [ProducesResponseType(typeof(CargoDryKitBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryKitBffDto>> RenewKit(
-        long id, [FromBody] RenewKitBffRequest request, CancellationToken ct)
+        long id, [FromBody] RenewKitBodyRequest body, CancellationToken ct)
     {
-        var result = await _cargoDry.RenewKitAsync(id, request, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new RenewKitBffCommand
+            {
+                KitId      = id,
+                AddedDays  = body.AddedDays,
+                PaymentRef = body.PaymentRef,
+            }, ct);
+
+        return SetResponse(result?.Kit);
     }
 
     /// <summary>POST /api/v1/admin-panel/cargodry/kits/{id}/extend</summary>
     [HttpPost("kits/{id:long}/extend")]
     [ProducesResponseType(typeof(CargoDryKitBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryKitBffDto>> ExtendKit(
-        long id, [FromBody] ExtendKitBffRequest request, CancellationToken ct)
+        long id, [FromBody] ExtendKitBodyRequest body, CancellationToken ct)
     {
-        var result = await _cargoDry.ExtendKitAsync(id, request, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new ExtendKitBffCommand { KitId = id, AddedDays = body.AddedDays }, ct);
+
+        return SetResponse(result?.Kit);
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/reports/usage</summary>
@@ -125,6 +149,7 @@ public sealed class AdminCargoDryController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync(
             new GetCargoDryUsageReportBffQuery { DateFrom = dateFrom, DateTo = dateTo }, ct);
+
         return SetResponse(result?.Report);
     }
 
@@ -136,10 +161,17 @@ public sealed class AdminCargoDryController : AizenWebApiController
         [FromQuery] DateTimeOffset? dateTo   = null,
         CancellationToken ct = default)
     {
-        var upstream    = await _cargoDry.ExportUsageReportAsync(format, dateFrom, dateTo, ct);
-        var bytes       = await upstream.Content.ReadAsByteArrayAsync(ct);
-        var contentType = upstream.Content.Headers.ContentType?.ToString() ?? "text/csv";
-        return File(bytes, contentType, $"cargodry-kit-usage-{DateTimeOffset.UtcNow:yyyyMMdd}.{format}");
+        var result = await _cqrs.ProcessAsync(
+            new ExportCargoDryUsageReportBffQuery
+            {
+                Format   = format,
+                DateFrom = dateFrom,
+                DateTo   = dateTo,
+            }, ct);
+
+        if (result is null) return BadRequest();
+
+        return File(result.Bytes, result.ContentType, result.FileName);
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/analytics</summary>
@@ -151,3 +183,9 @@ public sealed class AdminCargoDryController : AizenWebApiController
         return SetResponse(result?.Analytics);
     }
 }
+
+// ── Inline body request records (replaces CargoDry-specific request DTOs in controller layer) ──
+
+public sealed record RevokeKitBodyRequest(string Reason);
+public sealed record RenewKitBodyRequest(int AddedDays, string? PaymentRef);
+public sealed record ExtendKitBodyRequest(int AddedDays);

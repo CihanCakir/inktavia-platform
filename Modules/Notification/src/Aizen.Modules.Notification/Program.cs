@@ -17,8 +17,9 @@ var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 // ── Database ───────────────────────────────────────────────────────────────────
 builder.Services.AddAizenUnitOfWork<NotificationDbContext>(builder.Configuration, "Notification", options =>
 {
-    options.UseMigration      = true;
-    options.MigrationAssembly = "Aizen.Modules.Notification.Repository";
+    options.UseMigration           = true;
+    options.MigrationAssembly      = "Aizen.Modules.Notification.Repository";
+    options.UseLazyLoadingProxies  = false;
 });
 
 // ── Repository / Application ───────────────────────────────────────────────────

@@ -74,9 +74,12 @@ public sealed class CargoDryKitRepository : ICargoDryKitRepository
 
     public async Task<CargoDryStatsProjection> GetStatsAsync(CancellationToken ct)
     {
-        var in30Days = DateTimeOffset.UtcNow.AddDays(30);
-        var todayStart = DateTimeOffset.UtcNow.Date;
-        var todayEnd = todayStart.AddDays(1);
+        var utcNow     = DateTimeOffset.UtcNow;
+        var in30Days   = utcNow.AddDays(30);
+        // .Date returns DateTime (Kind=Unspecified) which Npgsql rejects with non-UTC offset.
+        // Explicitly force UTC offset=0.
+        var todayStart = new DateTimeOffset(utcNow.Date, TimeSpan.Zero);
+        var todayEnd   = todayStart.AddDays(1);
 
         return new CargoDryStatsProjection
         {

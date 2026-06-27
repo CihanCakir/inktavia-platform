@@ -1,5 +1,4 @@
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
-using Aizen.Modules.CargoDry.Application.Jobs;
 using Aizen.Modules.CargoDry.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,9 +12,8 @@ public static class DependencyInjection
         services.AddScoped<IActivationTokenService, ActivationTokenService>();
         services.AddScoped<IBatchKeyVaultService,   BatchKeyVaultService>();
 
-        services.AddHostedService<KitExpiryReminderJob>();
-        services.AddHostedService<KitExpiredMarkingJob>();
-        services.AddHostedService<DailySnapshotJob>();
+        // Recurring jobs are registered via AddAizenRecurringJob() in Program.cs
+        // which auto-discovers IAizenRecurringJob implementations through assembly scanning.
 
         return services;
     }

@@ -7,7 +7,19 @@
     "CargoDryMongo": {
       "Type": "Mongo",
       "ConnectionString": "#{DatabaseSettings_CargoDryMongo_ConnectionString}#"
+    },
+    "CargoDryScheduler": {
+      "Type": "PostgreSQL",
+      "ConnectionString": "#{DatabaseSettings_CargoDryScheduler_ConnectionString}#"
     }
+  },
+  "Scheduler": {
+    "StorageType": "PostgreSQL",
+    "RetryAttempts": 3,
+    "UseFilter": true,
+    "RouteUrl": "/hangfire",
+    "DatabaseKey": "CargoDryScheduler",
+    "SchemaName": "cargodry-scheduler"
   },
   "CargoDry": {
     "ActivationTokenSecret": "#{CargoDry_ActivationTokenSecret}#",

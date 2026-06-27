@@ -1,10 +1,10 @@
 using Aizen.Core.Cache.Abstraction;
+using Aizen.Core.Scheduler;
+using Aizen.Core.Scheduler.Abstraction;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Aizen.Modules.CargoDry.Domain.MongoDocuments;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.CargoDry.Application.Jobs;
 
@@ -12,45 +12,29 @@ namespace Aizen.Modules.CargoDry.Application.Jobs;
 /// Runs daily at 00:05 UTC. Reads the previous day's activation log documents from MongoDB,
 /// aggregates them into a CargoDryKitUsageSnapshotDocument, and upserts into the snapshots collection.
 /// </summary>
-public sealed class DailySnapshotJob : BackgroundService
+public sealed class DailySnapshotJob : AizenRecurringJob
 {
-    private readonly IServiceScopeFactory      _scopeFactory;
-    private readonly ILogger<DailySnapshotJob> _logger;
+    public DailySnapshotJob(
+        IAizenSchedulerLogger logger,
+        IServiceProvider      serviceProvider)
+        : base(logger, serviceProvider) { }
 
-    public DailySnapshotJob(IServiceScopeFactory sf, ILogger<DailySnapshotJob> logger)
+    public override bool   IsActive       => true;
+    public override string CronExpression => "5 0 * * *"; // 00:05 UTC every day
+
+    protected override async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        _scopeFactory = sf;
-        _logger       = logger;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            var now      = DateTimeOffset.UtcNow;
-            var next0005 = now.Date.AddDays(now.Hour >= 0 && now.Minute >= 5 ? 1 : 0).AddMinutes(5);
-            var delay    = next0005 - now;
-            await Task.Delay(delay, stoppingToken);
-
-            _logger.LogInformation("DailySnapshotJob starting at {Time}", DateTimeOffset.UtcNow);
-            try { await RunAsync(stoppingToken); }
-            catch (Exception ex) { _logger.LogError(ex, "DailySnapshotJob failed"); }
-        }
-    }
-
-    private async Task RunAsync(CancellationToken ct)
-    {
-        using var scope  = _scopeFactory.CreateScope();
+        using var scope  = ServiceProvider.CreateScope();
         var logRepo      = scope.ServiceProvider.GetRequiredService<ICargoDryActivationLogRepository>();
         var snapshotRepo = scope.ServiceProvider.GetRequiredService<ICargoDrySnapshotRepository>();
         var cache        = scope.ServiceProvider.GetRequiredService<IAizenDistributedCache>();
 
         var dateKey = DateTimeOffset.UtcNow.AddDays(-1).ToString("yyyy-MM-dd");
-        var logs    = await logRepo.GetByDateRangeAsync(dateKey, dateKey, null, ct);
+        var logs    = await logRepo.GetByDateRangeAsync(dateKey, dateKey, null, cancellationToken);
 
         if (logs.Count == 0)
         {
-            _logger.LogInformation("DailySnapshotJob: no logs for {DateKey}", dateKey);
+            Logger.WriteConsole($"DailySnapshotJob: no logs for {dateKey}");
             return;
         }
 
@@ -86,9 +70,9 @@ public sealed class DailySnapshotJob : BackgroundService
             ],
         };
 
-        await snapshotRepo.UpsertAsync(snapshot, ct);
-        await cache.RemoveAsync<GetCargoDryAnalyticsResponse>("cargodry:analytics:snapshot", ct);
+        await snapshotRepo.UpsertAsync(snapshot, cancellationToken);
+        await cache.RemoveAsync<GetCargoDryAnalyticsResponse>("cargodry:analytics:snapshot", cancellationToken);
 
-        _logger.LogInformation("DailySnapshotJob: upserted snapshot for {DateKey} ({Count} log entries)", dateKey, logs.Count);
+        Logger.WriteConsole($"DailySnapshotJob: upserted snapshot for {dateKey} ({logs.Count} log entries)");
     }
 }

@@ -33,7 +33,10 @@ builder.Services.AddAizenMongo(builder.Configuration);
 // ── Repository (PostgreSQL + MongoDB) ─────────────────────────────────────────
 builder.Services.AddCargoDryRepository(builder.Configuration);
 
-// ── Application (CQRS handlers + jobs + services) ─────────────────────────────
+// ── Application (CQRS handlers + services) ────────────────────────────────────
+// Note: AddAizenRecurringJob + AddAizenBackgroundJob are registered automatically
+// by AizenOperationServiceConfiguration when AppType.Scheduler is in TypeInclude.
+// Scheduler storage type and options are read from appsettings.json "Scheduler" section.
 builder.Services.AddCargoDryApplication();
 
 // ── Redis Cache (IAizenDistributedCache — required by cacheable handlers) ─────
@@ -51,12 +54,12 @@ builder.Services.AddRateLimiter(opts =>
 {
     opts.AddSlidingWindowLimiter("validate-ip", limiter =>
     {
-        limiter.PermitLimit         = rateLimitConfig.GetValue<int>("PermitLimit", 10);
-        limiter.Window              = TimeSpan.FromSeconds(
+        limiter.PermitLimit          = rateLimitConfig.GetValue<int>("PermitLimit", 10);
+        limiter.Window               = TimeSpan.FromSeconds(
             rateLimitConfig.GetValue<int>("WindowSeconds", 60));
-        limiter.SegmentsPerWindow   = 6;
+        limiter.SegmentsPerWindow    = 6;
         limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        limiter.QueueLimit          = 0;
+        limiter.QueueLimit           = 0;
     });
     opts.RejectionStatusCode = 429;
 });
@@ -66,6 +69,8 @@ var app = builder.Build();
 app.UseRateLimiter();
 
 // ── Seed + MongoDB Index Bootstrap ────────────────────────────────────────────
+// Note: UseAizenRecurringJob + UseAizenBackgroundJob are called automatically
+// by AizenOperationApplicationConfiguration when AppType.Scheduler is in TypeInclude.
 await app.SeedCargoDryAsync();
 
 app.Run();
