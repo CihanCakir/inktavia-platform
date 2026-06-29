@@ -29,7 +29,7 @@ public sealed class GetCargoDryProductListQueryHandler
         var (hit, cached) = await _cache.TryGetAsync<List<CargoDryProductDto>>(CacheKey, ct);
         if (hit) return cached;
 
-        var products = await _products.GetAllActiveAsync(ct);
+        var products = await _products.GetAllAsync(ct);
         var result   = products.Select(p => new CargoDryProductDto
         {
             Id             = p.Id,

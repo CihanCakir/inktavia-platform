@@ -46,7 +46,9 @@ public sealed class GetCargoDryStatsQueryHandler
             RevokedKits        = stats.Revoked,
             TodayActivations   = stats.TodayActivations,
             TotalBatches       = activeBatches,
-            RenewalRatePercent = 0,
+            RenewalRatePercent = stats.Total > 0
+                ? Math.Round(stats.WithRenewals / (double)stats.Total * 100, 1)
+                : 0,
         };
 
         await _cache.SetAsync(result, CacheKey,

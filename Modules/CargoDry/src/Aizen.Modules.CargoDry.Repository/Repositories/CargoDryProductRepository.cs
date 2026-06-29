@@ -16,6 +16,9 @@ public sealed class CargoDryProductRepository : ICargoDryProductRepository
     public Task<List<CargoDryProductEntity>> GetAllActiveAsync(CancellationToken ct)
         => _db.Products.Where(x => x.IsActive).ToListAsync(ct);
 
+    public Task<List<CargoDryProductEntity>> GetAllAsync(CancellationToken ct)
+        => _db.Products.OrderBy(x => x.ProductCode).ToListAsync(ct);
+
     public async Task AddAsync(CargoDryProductEntity entity, CancellationToken ct)
     {
         await _db.Products.AddAsync(entity, ct);

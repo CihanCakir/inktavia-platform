@@ -12,7 +12,7 @@ public interface ICargoDryKitRepository
     Task<List<CargoDryKitEntity>> GetExpiringAsync(int withinDays, CancellationToken ct = default);
     Task<List<CargoDryKitEntity>> GetExpiredUnmarkedAsync(CancellationToken ct = default);
     Task<(List<CargoDryKitEntity> Items, int Total)> GetPagedAsync(
-        CargoDryKitStatus? status, string? search, long? vesselId, int skip, int take, CancellationToken ct = default);
+        CargoDryKitStatus? status, string? search, long? vesselId, string? batchCode, int skip, int take, CancellationToken ct = default);
     Task<List<CargoDryKitEntity>> GetAllAsync(CancellationToken ct = default);
     Task<List<CargoDryKitEntity>> GetAllForReportAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
@@ -31,4 +31,5 @@ public sealed class CargoDryStatsProjection
     public int Expired { get; init; }
     public int Revoked { get; init; }
     public int TodayActivations { get; init; }
+    public int WithRenewals { get; init; }
 }

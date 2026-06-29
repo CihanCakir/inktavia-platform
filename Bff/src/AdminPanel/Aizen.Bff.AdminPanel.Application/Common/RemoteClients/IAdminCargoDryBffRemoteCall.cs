@@ -19,6 +19,7 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [Query] string? status,
         [Query] string? search,
         [Query] long?   vesselId,
+        [Query] string? batchCode,
         [Query] int     page,
         [Query] int     pageSize,
         CancellationToken ct = default);
@@ -46,6 +47,11 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
     Task<CargoDryBatchListBffDto> GetBatchesAsync(
         [Query] int page,
         [Query] int pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/batches/{batchCode}")]
+    Task<CargoDryBatchBffDto> GetBatchByCodeAsync(
+        string batchCode,
         CancellationToken ct = default);
 
     [AizenRemoteCallPost("/api/v1/cargodry/admin/kits/{id}/renew")]

@@ -5,6 +5,7 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeKit;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.ExportCargoDryUsageReport;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryAnalytics;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryBatchByCode;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryBatchList;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitList;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryProducts;
@@ -38,19 +39,23 @@ public sealed class AdminCargoDryController : AizenWebApiController
     [HttpGet("kits")]
     [ProducesResponseType(typeof(CargoDryKitListBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryKitListBffDto>> GetKits(
-        [FromQuery] string? status   = null,
-        [FromQuery] string? search   = null,
-        [FromQuery] int     page     = 1,
-        [FromQuery] int     pageSize = 25,
+        [FromQuery] string? status    = null,
+        [FromQuery] string? search    = null,
+        [FromQuery] long?   vesselId  = null,
+        [FromQuery] string? batchCode = null,
+        [FromQuery] int     page      = 1,
+        [FromQuery] int     pageSize  = 25,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
             new GetCargoDryKitListBffQuery
             {
-                Status   = status,
-                Search   = search,
-                Page     = page,
-                PageSize = pageSize,
+                Status    = status,
+                Search    = search,
+                VesselId  = vesselId,
+                BatchCode = batchCode,
+                Page      = page,
+                PageSize  = pageSize,
             }, ct);
 
         return SetResponse(result?.KitList);
@@ -172,6 +177,19 @@ public sealed class AdminCargoDryController : AizenWebApiController
         if (result is null) return BadRequest();
 
         return File(result.Bytes, result.ContentType, result.FileName);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/batches/{batchCode}</summary>
+    [HttpGet("batches/{batchCode}")]
+    [ProducesResponseType(typeof(CargoDryBatchBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBatchByCode(string batchCode, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryBatchByCodeBffQuery { BatchCode = batchCode }, ct);
+
+        if (result?.Batch is null) return NotFound();
+        return Ok(SetResponse(result.Batch));
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/analytics</summary>

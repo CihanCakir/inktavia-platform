@@ -54,7 +54,7 @@ vesselId: request.VesselId, pageIndex: 0, pageSize: 10);
         List<CargoDryKitBffDto> cargoDryKits = [];
         try
         {
-            var kitsResult = await _cargoDry.GetKitsAsync(status: null, search: null, vesselId: request.VesselId, page: 0, pageSize: 100, ct: cancellationToken);
+            var kitsResult = await _cargoDry.GetKitsAsync(status: null, search: null, vesselId: request.VesselId, batchCode: null, page: 0, pageSize: 100, ct: cancellationToken);
             cargoDryKits = kitsResult?.Items ?? [];
         }
         catch (Exception ex)

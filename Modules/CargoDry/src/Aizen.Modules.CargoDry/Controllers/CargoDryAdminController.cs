@@ -5,6 +5,7 @@ using Aizen.Modules.CargoDry.Application.Commands.RenewKit;
 using Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
 using Aizen.Modules.CargoDry.Application.Queries.GetAdminKitList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryBatchByCode;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryBatchList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProductList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryStats;
@@ -33,18 +34,20 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> GetKits(
         [FromQuery] CargoDryKitStatus? status,
         [FromQuery] string? search,
-        [FromQuery] long?   vesselId = null,
-        [FromQuery] int     page     = 1,
-        [FromQuery] int     pageSize = 25,
+        [FromQuery] long?   vesselId  = null,
+        [FromQuery] string? batchCode = null,
+        [FromQuery] int     page      = 1,
+        [FromQuery] int     pageSize  = 25,
         CancellationToken ct = default)
     {
         var result = await _sender.Send(new GetAdminKitListQuery
         {
-            Status   = status,
-            Search   = search,
-            VesselId = vesselId,
-            Page     = page,
-            PageSize = pageSize,
+            Status    = status,
+            Search    = search,
+            VesselId  = vesselId,
+            BatchCode = batchCode,
+            Page      = page,
+            PageSize  = pageSize,
         }, ct);
         return Ok(result);
     }
@@ -169,6 +172,14 @@ public sealed class CargoDryAdminController : ControllerBase
             Type        = RenewalType.AdminExtension,
             AdminUserId = adminId,
         }, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("batches/{batchCode}")]
+    public async Task<IActionResult> GetBatchByCode(string batchCode, CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetCargoDryBatchByCodeQuery { BatchCode = batchCode }, ct);
+        if (result is null) return NotFound();
         return Ok(result);
     }
 

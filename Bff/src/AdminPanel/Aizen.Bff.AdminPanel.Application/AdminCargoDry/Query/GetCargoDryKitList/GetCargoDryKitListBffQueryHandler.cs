@@ -19,6 +19,7 @@ public sealed class GetCargoDryKitListBffQueryHandler
             request.Status,
             request.Search,
             request.VesselId,
+            request.BatchCode,
             request.Page,
             request.PageSize,
             ct);
