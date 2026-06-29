@@ -57,6 +57,19 @@ public sealed class RenewKitBffRequest
     public string? PaymentRef { get; init; }
 }
 
+[DocumentationInfo("Revoke batch BFF request", "Admin request to revoke a CargoDry batch and cascade-revoke its Available kits.")]
+public sealed class RevokeBatchBffRequest
+{
+    public string Reason { get; init; } = default!;
+}
+
+[DocumentationInfo("Transfer kit BFF request", "Admin request to transfer an Activated kit to a new owner and vessel.")]
+public sealed class TransferKitBffRequest
+{
+    public long NewUserId   { get; init; }
+    public long NewVesselId { get; init; }
+}
+
 // ── Onboarding Request DTOs ───────────────────────────────────────────────────
 
 [DocumentationInfo("Validate kit BFF request", "Public request to validate a CargoDry kit serial/QR before activation.")]

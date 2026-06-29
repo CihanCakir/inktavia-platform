@@ -3,7 +3,9 @@ using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Application.Commands.CreateCargoDryProduct;
 using Aizen.Modules.CargoDry.Application.Commands.GenerateBatch;
 using Aizen.Modules.CargoDry.Application.Commands.RenewKit;
+using Aizen.Modules.CargoDry.Application.Commands.RevokeBatch;
 using Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
+using Aizen.Modules.CargoDry.Application.Commands.TransferKit;
 using Aizen.Modules.CargoDry.Application.Commands.UpdateCargoDryProduct;
 using Aizen.Modules.CargoDry.Application.Queries.GetAdminKitList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
@@ -83,6 +85,21 @@ public sealed class CargoDryAdminController : ControllerBase
             System.Text.Encoding.UTF8.GetBytes(csv),
             "text/csv",
             $"cargodry-kits-{DateTimeOffset.UtcNow:yyyyMMdd}.csv");
+    }
+
+    [HttpPost("kits/{id:long}/transfer")]
+    public async Task<IActionResult> TransferKit(
+        long id, [FromBody] TransferKitRequest request, CancellationToken ct)
+    {
+        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
+        var result = await _sender.Send(new TransferCargoDryKitCommand
+        {
+            KitId       = id,
+            NewUserId   = request.NewUserId,
+            NewVesselId = request.NewVesselId,
+            AdminId     = adminId,
+        }, ct);
+        return Ok(result);
     }
 
     [HttpPost("kits/{id:long}/revoke")]
@@ -250,6 +267,20 @@ public sealed class CargoDryAdminController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("batches/{batchCode}/revoke")]
+    public async Task<IActionResult> RevokeBatch(
+        string batchCode, [FromBody] RevokeBatchRequest request, CancellationToken ct)
+    {
+        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
+        var result = await _sender.Send(new RevokeCargoDryBatchCommand
+        {
+            BatchCode = batchCode,
+            Reason    = request.Reason,
+            AdminId   = adminId,
+        }, ct);
+        return Ok(result);
+    }
+
     [HttpPost("batches/generate")]
     public async Task<IActionResult> GenerateBatch(
         [FromBody] GenerateBatchRequest request, CancellationToken ct)
@@ -394,6 +425,17 @@ public sealed class UpdateProductRequest
 public sealed class RevokeKitRequest
 {
     public string Reason { get; init; } = default!;
+}
+
+public sealed class RevokeBatchRequest
+{
+    public string Reason { get; init; } = default!;
+}
+
+public sealed class TransferKitRequest
+{
+    public long NewUserId   { get; init; }
+    public long NewVesselId { get; init; }
 }
 
 public sealed class ExtendKitRequest

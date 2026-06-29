@@ -24,6 +24,9 @@ public sealed class CargoDryBatchRepository : ICargoDryBatchRepository
             .OrderByDescending(b => b.CreateDate)
             .ToListAsync(ct);
 
+    public Task<int> CountActiveBatchesAsync(CancellationToken ct)
+        => _db.Batches.CountAsync(b => !b.IsRevoked, ct);
+
     public async Task AddAsync(CargoDryBatchEntity entity, CancellationToken ct)
     {
         await _db.Batches.AddAsync(entity, ct);

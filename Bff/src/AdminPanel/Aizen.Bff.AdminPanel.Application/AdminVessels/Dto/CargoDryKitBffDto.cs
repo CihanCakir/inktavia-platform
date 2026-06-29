@@ -89,6 +89,27 @@ public sealed class RevokeKitBffResponse
     public string RevokedAt    { get; init; } = default!;
 }
 
+/// <summary>Response from POST /admin/batches/{batchCode}/revoke</summary>
+public sealed class RevokeBatchBffResponse
+{
+    public long   BatchId                  { get; init; }
+    public string BatchCode                { get; init; } = default!;
+    public string Reason                   { get; init; } = default!;
+    public int    AvailableKitsAlsoRevoked { get; init; }
+    public string RevokedAt                { get; init; } = default!;
+}
+
+/// <summary>Response from POST /admin/kits/{id}/transfer</summary>
+public sealed class TransferKitBffResponse
+{
+    public long   KitId         { get; init; }
+    public string KitCode       { get; init; } = default!;
+    public string SerialNumber  { get; init; } = default!;
+    public long   NewUserId     { get; init; }
+    public long   NewVesselId   { get; init; }
+    public string TransferredAt { get; init; } = default!;
+}
+
 /// <summary>Product catalog item — GET /admin/products and GET /admin/products/{code}</summary>
 public sealed class CargoDryProductBffDto
 {

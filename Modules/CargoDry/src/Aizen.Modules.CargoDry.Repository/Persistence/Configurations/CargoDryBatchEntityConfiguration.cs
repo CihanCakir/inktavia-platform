@@ -23,6 +23,9 @@ public sealed class CargoDryBatchEntityConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.BatchLabel).HasMaxLength(200);
         builder.Property(x => x.WarehouseCode).HasMaxLength(50);
         builder.Property(x => x.ProductionNotes).HasMaxLength(2000);
+        // Indexes for stats queries and filtering
+        builder.HasIndex(x => x.ProductCode);
+        builder.HasIndex(x => x.IsRevoked);
         // CreateDate / ModifyDate: from AizenEntityWithAudit — DO NOT re-map
     }
 }

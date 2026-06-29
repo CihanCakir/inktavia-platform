@@ -2,7 +2,9 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CreateCargoDryProdu
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ExtendKit;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.GenerateCargoDryBatch;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RenewKit;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeBatch;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeKit;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.TransferKit;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.UpdateCargoDryProduct;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.ExportCargoDryBatches;
@@ -93,6 +95,23 @@ public sealed class AdminCargoDryController : AizenWebApiController
     }
 
     // ── Kit Actions ───────────────────────────────────────────────────────────
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/kits/{id}/transfer</summary>
+    [HttpPost("kits/{id:long}/transfer")]
+    [ProducesResponseType(typeof(TransferKitBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<TransferKitBffResponse>> TransferKit(
+        long id, [FromBody] TransferKitBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new TransferCargoDryKitBffCommand
+            {
+                KitId       = id,
+                NewUserId   = body.NewUserId,
+                NewVesselId = body.NewVesselId,
+            }, ct);
+
+        return SetResponse(result?.Result);
+    }
 
     /// <summary>POST /api/v1/admin-panel/cargodry/kits/{id}/revoke</summary>
     [HttpPost("kits/{id:long}/revoke")]
@@ -264,6 +283,18 @@ public sealed class AdminCargoDryController : AizenWebApiController
         return Ok(SetResponse(result.Batch));
     }
 
+    /// <summary>POST /api/v1/admin-panel/cargodry/batches/{batchCode}/revoke</summary>
+    [HttpPost("batches/{batchCode}/revoke")]
+    [ProducesResponseType(typeof(RevokeBatchBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RevokeBatchBffResponse>> RevokeBatch(
+        string batchCode, [FromBody] RevokeBatchBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RevokeCargoDryBatchBffCommand { BatchCode = batchCode, Reason = body.Reason }, ct);
+
+        return SetResponse(result?.Result);
+    }
+
     /// <summary>POST /api/v1/admin-panel/cargodry/batches/generate</summary>
     [HttpPost("batches/generate")]
     [ProducesResponseType(typeof(GenerateBatchBffResultDto), StatusCodes.Status200OK)]
@@ -326,6 +357,8 @@ public sealed class AdminCargoDryController : AizenWebApiController
 // ── Inline body request records ───────────────────────────────────────────────
 
 public sealed record RevokeKitBodyRequest(string Reason);
+public sealed record RevokeBatchBodyRequest(string Reason);
+public sealed record TransferKitBodyRequest(long NewUserId, long NewVesselId);
 public sealed record RenewKitBodyRequest(int AddedDays, string? PaymentRef);
 public sealed record ExtendKitBodyRequest(int AddedDays);
 

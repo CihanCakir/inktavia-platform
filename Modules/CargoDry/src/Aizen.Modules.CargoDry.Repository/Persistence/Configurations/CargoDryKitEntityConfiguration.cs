@@ -35,7 +35,9 @@ public sealed class CargoDryKitEntityConfiguration : IEntityTypeConfiguration<Ca
         builder.HasIndex(x => new { x.OwnerUserId, x.Status });
         builder.HasIndex(x => new { x.VesselId, x.Status });
         builder.HasIndex(x => new { x.BatchCode, x.Status });
+        builder.HasIndex(x => new { x.ProductCode, x.Status });
         builder.HasIndex(x => x.ExpiresAt);
+        builder.HasIndex(x => x.ActivatedAt);
         // CreateDate / ModifyDate: from AizenEntityWithAudit
     }
 }

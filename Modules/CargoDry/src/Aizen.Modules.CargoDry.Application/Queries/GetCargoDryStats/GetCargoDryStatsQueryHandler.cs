@@ -33,8 +33,7 @@ public sealed class GetCargoDryStatsQueryHandler
         if (hit) return cached;
 
         var stats         = await _kits.GetStatsAsync(ct);
-        var batches       = await _batches.GetAllAsync(ct);
-        var activeBatches = batches.Count(b => !b.IsRevoked);
+        var activeBatches = await _batches.CountActiveBatchesAsync(ct);
 
         var result = new CargoDryStatsDto
         {

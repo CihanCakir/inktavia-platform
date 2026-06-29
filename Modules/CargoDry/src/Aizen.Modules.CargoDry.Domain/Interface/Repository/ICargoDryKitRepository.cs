@@ -17,9 +17,37 @@ public interface ICargoDryKitRepository
     Task<List<CargoDryKitEntity>> GetAllForReportAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
     Task<CargoDryStatsProjection> GetStatsAsync(CancellationToken ct = default);
+    /// <summary>
+    /// Returns all Available (un-activated) kits belonging to the given batch.
+    /// Used by batch revoke to cascade-revoke un-used kits.
+    /// </summary>
+    Task<List<CargoDryKitEntity>> GetAvailableByBatchCodeAsync(string batchCode, CancellationToken ct = default);
+
+    /// <summary>
+    /// SQL-level aggregation of kit statistics for a single product.
+    /// Use in place of <c>GetAllAsync</c> when only per-product counts are needed.
+    /// </summary>
+    Task<CargoDryProductKitStatsProjection> GetKitStatsByProductCodeAsync(
+        string productCode, CancellationToken ct = default);
+
     Task AddAsync(CargoDryKitEntity entity, CancellationToken ct = default);
     Task AddRangeAsync(IEnumerable<CargoDryKitEntity> entities, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
+}
+
+/// <summary>
+/// Per-product kit stats computed at SQL level — avoids full-table materialisation.
+/// </summary>
+public sealed class CargoDryProductKitStatsProjection
+{
+    public int    TotalKits            { get; init; }
+    public int    ActiveKits           { get; init; }
+    public int    ExpiredKits          { get; init; }
+    public int    RevokedKits          { get; init; }
+    public int    RenewedKits          { get; init; }
+    public int    ExpiringIn30Days     { get; init; }
+    public double AvgEfficiencyPercent { get; init; }
+    public double RenewalRatePercent   { get; init; }
 }
 
 public sealed class CargoDryStatsProjection

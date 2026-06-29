@@ -100,6 +100,69 @@ public sealed class CargoDryKitRepository : ICargoDryKitRepository
         };
     }
 
+    public async Task<CargoDryProductKitStatsProjection> GetKitStatsByProductCodeAsync(
+        string productCode, CancellationToken ct)
+    {
+        var utcNow   = DateTimeOffset.UtcNow;
+        var in30Days = utcNow.AddDays(30);
+
+        var q = _db.Kits.AsNoTracking().Where(k => k.ProductCode == productCode);
+
+        var total        = await q.CountAsync(ct);
+        var active       = await q.CountAsync(k => k.Status == CargoDryKitStatus.Activated, ct);
+        var expired      = await q.CountAsync(k => k.Status == CargoDryKitStatus.Expired, ct);
+        var revoked      = await q.CountAsync(k => k.Status == CargoDryKitStatus.Revoked, ct);
+        var renewed      = await q.CountAsync(k => k.RenewalCount > 0, ct);
+        var expIn30      = await q.CountAsync(k =>
+            k.Status == CargoDryKitStatus.Activated &&
+            k.ExpiresAt.HasValue && k.ExpiresAt.Value <= in30Days, ct);
+
+        // AvgEfficiency: computed from ActivatedAt/ExpiresAt — fetch only active kits' date pair.
+        double avgEff = 0d;
+        if (active > 0)
+        {
+            var activeDates = await q
+                .Where(k => k.Status == CargoDryKitStatus.Activated && k.ActivatedAt.HasValue && k.ExpiresAt.HasValue)
+                .Select(k => new { k.ActivatedAt, k.ExpiresAt })
+                .ToListAsync(ct);
+
+            if (activeDates.Count > 0)
+            {
+                var effSum = activeDates.Sum(d =>
+                {
+                    var total2 = (d.ExpiresAt!.Value - d.ActivatedAt!.Value).TotalDays;
+                    if (total2 <= 0) return 0d;
+                    var remaining = (d.ExpiresAt.Value - utcNow).TotalDays;
+                    return Math.Max(0, Math.Min(100, (1 - remaining / total2) * 100));
+                });
+                avgEff = Math.Round(effSum / activeDates.Count, 1);
+            }
+        }
+
+        // RenewalRate = renewed / ever-activated kits * 100
+        var activated = await q.CountAsync(k => k.Status != CargoDryKitStatus.Available, ct);
+        var renewalRate = activated > 0
+            ? Math.Round(renewed / (double)activated * 100d, 1)
+            : 0d;
+
+        return new CargoDryProductKitStatsProjection
+        {
+            TotalKits            = total,
+            ActiveKits           = active,
+            ExpiredKits          = expired,
+            RevokedKits          = revoked,
+            RenewedKits          = renewed,
+            ExpiringIn30Days     = expIn30,
+            AvgEfficiencyPercent = avgEff,
+            RenewalRatePercent   = renewalRate,
+        };
+    }
+
+    public Task<List<CargoDryKitEntity>> GetAvailableByBatchCodeAsync(string batchCode, CancellationToken ct)
+        => _db.Kits
+            .Where(x => x.BatchCode == batchCode && x.Status == CargoDryKitStatus.Available)
+            .ToListAsync(ct);
+
     public async Task AddAsync(CargoDryKitEntity entity, CancellationToken ct)
     {
         await _db.Kits.AddAsync(entity, ct);

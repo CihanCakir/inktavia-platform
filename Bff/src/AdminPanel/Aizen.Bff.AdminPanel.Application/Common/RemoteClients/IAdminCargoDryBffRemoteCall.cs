@@ -39,6 +39,18 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] RevokeKitBffRequest request,
         CancellationToken ct = default);
 
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/batches/{batchCode}/revoke")]
+    Task<RevokeBatchBffResponse> RevokeBatchAsync(
+        string batchCode,
+        [AizenRemoteCallBody] RevokeBatchBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/kits/{id}/transfer")]
+    Task<TransferKitBffResponse> TransferKitAsync(
+        long id,
+        [AizenRemoteCallBody] TransferKitBffRequest request,
+        CancellationToken ct = default);
+
     [AizenRemoteCallGet("/api/v1/cargodry/admin/products")]
     Task<List<CargoDryProductBffDto>> GetProductsAsync(
         CancellationToken ct = default);
