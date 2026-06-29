@@ -19,8 +19,11 @@ public sealed class GenerateCargoDryBatchBffCommandHandler
         var result = await _remote.GenerateBatchAsync(
             new GenerateBatchBffRequest
             {
-                ProductCode = request.ProductCode,
-                Count       = request.Count,
+                ProductCode     = request.ProductCode,
+                Count           = request.Count,
+                BatchLabel      = request.BatchLabel,
+                WarehouseCode   = request.WarehouseCode,
+                ProductionNotes = request.ProductionNotes,
             }, ct);
 
         return new GenerateCargoDryBatchBffResponse { Result = result };

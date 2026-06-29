@@ -5,8 +5,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.GenerateCargoDr
 
 public sealed class GenerateCargoDryBatchBffCommand : AizenCommand<GenerateCargoDryBatchBffResponse>
 {
-    public string ProductCode { get; init; } = default!;
-    public int    Count       { get; init; }
+    public string  ProductCode     { get; init; } = default!;
+    public int     Count           { get; init; }
+    public string? BatchLabel      { get; init; }
+    public string? WarehouseCode   { get; init; }
+    public string? ProductionNotes { get; init; }
 }
 
 public sealed class GenerateCargoDryBatchBffResponse

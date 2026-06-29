@@ -18,6 +18,7 @@ public sealed class CargoDryProductEntityConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.Description).HasMaxLength(1000);
         builder.Property(x => x.ValidityDays).IsRequired();
         builder.Property(x => x.HasSmartDevice).IsRequired().HasDefaultValue(false);
+        builder.Property(x => x.DeviceType).HasMaxLength(100);
         builder.Property(x => x.RetailPrice).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(x => x.CurrencyCode).HasMaxLength(10).IsRequired();
         // IsActive: mapped by AizenEntityWithAudit base configuration

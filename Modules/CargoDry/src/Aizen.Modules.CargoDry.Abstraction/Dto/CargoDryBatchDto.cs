@@ -12,6 +12,8 @@ public sealed class CargoDryBatchDto
     public string? QrZipFileRef     { get; init; }
     public string? ExcelFileRef     { get; init; }
     public long    CreatedByAdminId { get; init; }
+    public string? BatchLabel       { get; init; }
+    public string? WarehouseCode    { get; init; }
 }
 
 public sealed class CargoDryBatchListDto

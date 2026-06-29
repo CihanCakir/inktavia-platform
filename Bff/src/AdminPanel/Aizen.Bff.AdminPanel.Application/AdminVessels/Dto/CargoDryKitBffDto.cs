@@ -89,7 +89,7 @@ public sealed class RevokeKitBffResponse
     public string RevokedAt    { get; init; } = default!;
 }
 
-/// <summary>Product catalog item — GET /admin/products</summary>
+/// <summary>Product catalog item — GET /admin/products and GET /admin/products/{code}</summary>
 public sealed class CargoDryProductBffDto
 {
     public long    Id             { get; init; }
@@ -98,9 +98,30 @@ public sealed class CargoDryProductBffDto
     public string? Description    { get; init; }
     public int     ValidityDays   { get; init; }
     public bool    HasSmartDevice { get; init; }
+    public string? DeviceType     { get; init; }
     public decimal RetailPrice    { get; init; }
     public string  CurrencyCode   { get; init; } = default!;
     public bool    IsActive       { get; init; }
+    public string? CreatedAt      { get; init; }
+
+    /// <summary>
+    /// Operational kit statistics — populated only for product detail (GET /{code}).
+    /// Null in list responses.
+    /// </summary>
+    public CargoDryProductKitStatsBffDto? KitStats { get; init; }
+}
+
+/// <summary>Live kit statistics for a single product. Displayed in the Product Specs drawer.</summary>
+public sealed class CargoDryProductKitStatsBffDto
+{
+    public int    TotalKitsIssued  { get; init; }
+    public int    ActiveKits       { get; init; }
+    public int    ExpiredKits      { get; init; }
+    public int    RevokedKits      { get; init; }
+    public int    RenewedKits      { get; init; }
+    public double AvgEfficiencyPct { get; init; }
+    public double RenewalRatePct   { get; init; }
+    public int    ExpiringIn30Days { get; init; }
 }
 
 /// <summary>Batch summary for batch history list</summary>
@@ -116,6 +137,8 @@ public sealed class CargoDryBatchBffDto
     public string? QrZipFileRef     { get; init; }
     public string? ExcelFileRef     { get; init; }
     public long    CreatedByAdminId { get; init; }
+    public string? BatchLabel       { get; init; }
+    public string? WarehouseCode    { get; init; }
 }
 
 public sealed class CargoDryBatchListBffDto

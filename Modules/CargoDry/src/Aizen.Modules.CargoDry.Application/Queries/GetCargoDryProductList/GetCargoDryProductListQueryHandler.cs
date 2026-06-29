@@ -38,9 +38,11 @@ public sealed class GetCargoDryProductListQueryHandler
             Description    = p.Description,
             ValidityDays   = p.ValidityDays,
             HasSmartDevice = p.HasSmartDevice,
+            DeviceType     = p.DeviceType,
             RetailPrice    = p.RetailPrice,
             CurrencyCode   = p.CurrencyCode,
             IsActive       = p.IsActive,
+            CreatedAt      = p.CreateDate?.ToString("O"),
         }).ToList();
 
         await _cache.SetAsync(result, CacheKey,

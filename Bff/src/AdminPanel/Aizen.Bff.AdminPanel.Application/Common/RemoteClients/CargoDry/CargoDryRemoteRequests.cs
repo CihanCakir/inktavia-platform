@@ -5,8 +5,37 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 [DocumentationInfo("Generate batch BFF request", "Admin request to generate a new CargoDry kit batch.")]
 public sealed class GenerateBatchBffRequest
 {
-    public string ProductCode { get; init; } = default!;
-    public int    Count       { get; init; }
+    public string  ProductCode     { get; init; } = default!;
+    public int     Count           { get; init; }
+    public string? BatchLabel      { get; init; }
+    public string? WarehouseCode   { get; init; }
+    public string? ProductionNotes { get; init; }
+}
+
+[DocumentationInfo("Create product BFF request", "Admin request to register a new CargoDry product in the catalog.")]
+public sealed class CreateProductBffRequest
+{
+    public string  ProductCode    { get; init; } = default!;
+    public string  Name           { get; init; } = default!;
+    public string  Description    { get; init; } = default!;
+    public int     ValidityDays   { get; init; }
+    public decimal RetailPrice    { get; init; }
+    public string  CurrencyCode   { get; init; } = default!;
+    public bool    HasSmartDevice { get; init; }
+    public string? DeviceType     { get; init; }
+}
+
+[DocumentationInfo("Update product BFF request", "Admin request to update an existing CargoDry product.")]
+public sealed class UpdateProductBffRequest
+{
+    public string  Name           { get; init; } = default!;
+    public string  Description    { get; init; } = default!;
+    public int     ValidityDays   { get; init; }
+    public decimal RetailPrice    { get; init; }
+    public string  CurrencyCode   { get; init; } = default!;
+    public bool    HasSmartDevice { get; init; }
+    public string? DeviceType     { get; init; }
+    public bool    IsActive       { get; init; }
 }
 
 [DocumentationInfo("Revoke kit BFF request", "Admin request to revoke a CargoDry kit with a reason.")]

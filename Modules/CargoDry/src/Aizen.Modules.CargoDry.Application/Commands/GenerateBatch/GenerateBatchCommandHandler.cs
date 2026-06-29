@@ -43,7 +43,11 @@ public sealed class GenerateBatchCommandHandler
 
         await _keyVault.CreateKeyAsync(batchCode, ct);
 
-        var batch = CargoDryBatchEntity.Create(batchCode, product.ProductCode, request.Count, request.AdminUserId);
+        var batch = CargoDryBatchEntity.Create(
+            batchCode, product.ProductCode, request.Count, request.AdminUserId,
+            batchLabel:      request.BatchLabel,
+            warehouseCode:   request.WarehouseCode,
+            productionNotes: request.ProductionNotes);
         await _batches.AddAsync(batch, ct);
 
         var kits = new List<CargoDryKitEntity>(request.Count);

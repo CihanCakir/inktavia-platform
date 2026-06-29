@@ -13,6 +13,8 @@ public sealed class CargoDryProductEntity : AizenEntityWithAudit
     public string  Description    { get; private set; } = default!;
     public int     ValidityDays   { get; private set; }
     public bool    HasSmartDevice { get; private set; }
+    /// <summary>Optional device variant identifier (e.g. "AQUASENSE-V5"). Required when HasSmartDevice is true.</summary>
+    public string? DeviceType     { get; private set; }
     public decimal RetailPrice    { get; private set; }
     public string  CurrencyCode   { get; private set; } = default!;
 
@@ -24,7 +26,7 @@ public sealed class CargoDryProductEntity : AizenEntityWithAudit
     public static CargoDryProductEntity Create(
         string productCode, string name, string description,
         int validityDays, decimal retailPrice, string currencyCode,
-        bool hasSmartDevice = false)
+        bool hasSmartDevice = false, string? deviceType = null)
         => new()
         {
             ProductCode    = productCode.ToUpperInvariant(),
@@ -34,9 +36,26 @@ public sealed class CargoDryProductEntity : AizenEntityWithAudit
             RetailPrice    = retailPrice,
             CurrencyCode   = currencyCode.ToUpperInvariant(),
             HasSmartDevice = hasSmartDevice,
+            DeviceType     = deviceType,
             IsActive       = true,
         };
 
     public void SetActive(bool active) => IsActive = active;
+    public void Activate()   => IsActive = true;
+    public void Deactivate() => IsActive = false;
     public void UpdatePrice(decimal price) => RetailPrice = price;
+
+    public void Update(
+        string name, string description, int validityDays,
+        decimal retailPrice, string currencyCode,
+        bool hasSmartDevice, string? deviceType)
+    {
+        Name           = name;
+        Description    = description;
+        ValidityDays   = validityDays;
+        RetailPrice    = retailPrice;
+        CurrencyCode   = currencyCode.ToUpperInvariant();
+        HasSmartDevice = hasSmartDevice;
+        DeviceType     = deviceType;
+    }
 }

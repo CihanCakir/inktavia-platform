@@ -43,6 +43,22 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
     Task<List<CargoDryProductBffDto>> GetProductsAsync(
         CancellationToken ct = default);
 
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/products/{productCode}")]
+    Task<CargoDryProductBffDto?> GetProductDetailAsync(
+        string productCode,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/products")]
+    Task<CargoDryProductBffDto> CreateProductAsync(
+        [AizenRemoteCallBody] CreateProductBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/cargodry/admin/products/{productCode}")]
+    Task<CargoDryProductBffDto> UpdateProductAsync(
+        string productCode,
+        [AizenRemoteCallBody] UpdateProductBffRequest request,
+        CancellationToken ct = default);
+
     [AizenRemoteCallGet("/api/v1/cargodry/admin/batches")]
     Task<CargoDryBatchListBffDto> GetBatchesAsync(
         [Query] int page,
@@ -64,6 +80,30 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
     Task<CargoDryKitBffDto> ExtendKitAsync(
         long id,
         [AizenRemoteCallBody] ExtendKitBffRequest request,
+        CancellationToken ct = default);
+
+    // ── Stats Comparison & Warehouses ────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/stats/comparison")]
+    Task<CargoDryStatsComparisonBffDto> GetStatsComparisonAsync(
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/warehouses")]
+    Task<List<CargoDryWarehouseOptionBffDto>> GetWarehousesAsync(
+        CancellationToken ct = default);
+
+    // ── CSV Exports ───────────────────────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/kits/export")]
+    Task<HttpResponseMessage> ExportKitsAsync(
+        [Query] string? status    = null,
+        [Query] string? search    = null,
+        [Query] long?   vesselId  = null,
+        [Query] string? batchCode = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/batches/export")]
+    Task<HttpResponseMessage> ExportBatchesAsync(
         CancellationToken ct = default);
 
     // ── Reporting & Analytics ─────────────────────────────────────────────────

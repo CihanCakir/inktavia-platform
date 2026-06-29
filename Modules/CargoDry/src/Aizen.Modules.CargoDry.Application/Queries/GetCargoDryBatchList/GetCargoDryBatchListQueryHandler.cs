@@ -42,6 +42,8 @@ public sealed class GetCargoDryBatchListQueryHandler
                 QrZipFileRef     = b.QrZipFileRef,
                 ExcelFileRef     = b.ExcelFileRef,
                 CreatedByAdminId = b.CreatedByAdminId,
+                BatchLabel       = b.BatchLabel,
+                WarehouseCode    = b.WarehouseCode,
             }).ToList(),
             Total    = all.Count,
             Page     = request.Page,

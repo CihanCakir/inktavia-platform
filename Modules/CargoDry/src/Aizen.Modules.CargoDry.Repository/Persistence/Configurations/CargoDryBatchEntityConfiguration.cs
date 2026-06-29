@@ -20,6 +20,9 @@ public sealed class CargoDryBatchEntityConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.ExcelFileRef).HasMaxLength(500);
         builder.Property(x => x.RevokedAt);
         builder.Property(x => x.CreatedByAdminId).IsRequired();
+        builder.Property(x => x.BatchLabel).HasMaxLength(200);
+        builder.Property(x => x.WarehouseCode).HasMaxLength(50);
+        builder.Property(x => x.ProductionNotes).HasMaxLength(2000);
         // CreateDate / ModifyDate: from AizenEntityWithAudit — DO NOT re-map
     }
 }
