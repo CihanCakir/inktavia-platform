@@ -40,13 +40,14 @@ public sealed class ServiceRequestsController : AizenWebApiController
     [ProducesResponseType(typeof(AdminServiceRequestListResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminServiceRequestListResponse>> GetServiceRequests(
         [FromQuery] string? status,
-        [FromQuery] long? vesselId,
-        [FromQuery] int pageIndex = 0,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] long?   vesselId,
+        [FromQuery] long?   ownerUserId = null,
+        [FromQuery] int     pageIndex   = 0,
+        [FromQuery] int     pageSize    = 20,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestListQuery(status, vesselId, pageIndex, pageSize), ct);
+            new GetAdminServiceRequestListQuery(status, vesselId, ownerUserId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 

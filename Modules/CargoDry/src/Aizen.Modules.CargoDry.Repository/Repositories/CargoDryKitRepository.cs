@@ -49,12 +49,13 @@ public sealed class CargoDryKitRepository : ICargoDryKitRepository
             .ToListAsync(ct);
 
     public async Task<(List<CargoDryKitEntity> Items, int Total)> GetPagedAsync(
-        CargoDryKitStatus? status, string? search, long? vesselId, string? batchCode, int skip, int take, CancellationToken ct)
+        CargoDryKitStatus? status, string? search, long? vesselId, long? ownerUserId, string? batchCode, int skip, int take, CancellationToken ct)
     {
         var q = _db.Kits.AsQueryable();
         if (status.HasValue)                        q = q.Where(x => x.Status == status.Value);
         if (!string.IsNullOrWhiteSpace(search))     q = q.Where(x => x.SerialNumber.Contains(search) || x.KitCode.Contains(search));
         if (vesselId.HasValue)                      q = q.Where(x => x.VesselId == vesselId.Value);
+        if (ownerUserId.HasValue)                   q = q.Where(x => x.OwnerUserId == ownerUserId.Value);
         if (!string.IsNullOrWhiteSpace(batchCode))  q = q.Where(x => x.BatchCode == batchCode);
         var total = await q.CountAsync(ct);
         var items = await q.OrderByDescending(x => x.ManufacturedAt).Skip(skip).Take(take).ToListAsync(ct);

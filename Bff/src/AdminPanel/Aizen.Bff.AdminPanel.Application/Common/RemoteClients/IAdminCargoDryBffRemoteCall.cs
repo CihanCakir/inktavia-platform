@@ -19,6 +19,7 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [Query] string? status,
         [Query] string? search,
         [Query] long?   vesselId,
+        [Query] long?   ownerUserId,
         [Query] string? batchCode,
         [Query] int     page,
         [Query] int     pageSize,

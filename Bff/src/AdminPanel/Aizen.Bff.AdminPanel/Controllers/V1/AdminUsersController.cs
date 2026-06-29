@@ -1,3 +1,4 @@
+using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 using Aizen.Core.CQRS.Abstraction;
@@ -97,6 +98,20 @@ public sealed class UsersController : AizenWebApiController
         DateOnly? to = DateOnly.TryParse(dateTo, out var dt) ? dt : null;
         var result = await _cqrs.ProcessAsync(
             new GetAdminUserActivityBffQuery(profileId, category, from, to, page, pageSize), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("admin/users/{profileId:long}/service-requests")]
+    [ProducesResponseType(typeof(AdminServiceRequestListResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminServiceRequestListResponse>> GetUserServiceRequests(
+        long profileId,
+        [FromQuery] string? status   = null,
+        [FromQuery] int     page     = 1,
+        [FromQuery] int     pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminUserServiceRequestsBffQuery(profileId, status, page, pageSize), ct);
         return SetResponse(result);
     }
 }

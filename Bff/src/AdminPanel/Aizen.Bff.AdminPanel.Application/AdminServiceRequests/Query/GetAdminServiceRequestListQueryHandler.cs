@@ -25,7 +25,7 @@ public sealed class GetAdminServiceRequestListQueryHandler
         {
 
             var result = await _serviceRequest.GetAdminServiceRequestList(
-request.Status, request.VesselId, null, request.PageIndex, request.PageSize);
+                request.Status, request.VesselId, request.OwnerUserId, request.PageIndex, request.PageSize);
 
             if (result?.Body?.Items != null)
             {

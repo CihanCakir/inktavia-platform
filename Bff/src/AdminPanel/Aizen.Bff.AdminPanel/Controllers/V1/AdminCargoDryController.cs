@@ -50,23 +50,25 @@ public sealed class AdminCargoDryController : AizenWebApiController
     [HttpGet("kits")]
     [ProducesResponseType(typeof(CargoDryKitListBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryKitListBffDto>> GetKits(
-        [FromQuery] string? status    = null,
-        [FromQuery] string? search    = null,
-        [FromQuery] long?   vesselId  = null,
-        [FromQuery] string? batchCode = null,
-        [FromQuery] int     page      = 1,
-        [FromQuery] int     pageSize  = 25,
+        [FromQuery] string? status      = null,
+        [FromQuery] string? search      = null,
+        [FromQuery] long?   vesselId    = null,
+        [FromQuery] long?   ownerUserId = null,
+        [FromQuery] string? batchCode   = null,
+        [FromQuery] int     page        = 1,
+        [FromQuery] int     pageSize    = 25,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
             new GetCargoDryKitListBffQuery
             {
-                Status    = status,
-                Search    = search,
-                VesselId  = vesselId,
-                BatchCode = batchCode,
-                Page      = page,
-                PageSize  = pageSize,
+                Status      = status,
+                Search      = search,
+                VesselId    = vesselId,
+                OwnerUserId = ownerUserId,
+                BatchCode   = batchCode,
+                Page        = page,
+                PageSize    = pageSize,
             }, ct);
 
         return SetResponse(result?.KitList);
