@@ -38,6 +38,29 @@ public interface IPaymentTransactionRepository
         int maxBatch = 500,
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Returns PendingIntent transactions whose age is strictly between
+    /// <paramref name="olderThan"/> and <paramref name="youngerThan"/>.
+    /// Used by PaymentWebhookRetryJob to find transactions that should have received a
+    /// gateway webhook but did not — without overlapping the EscrowTimeoutJob window.
+    /// </summary>
+    Task<List<PaymentTransactionEntity>> GetPendingIntentInRangeAsync(
+        TimeSpan olderThan,
+        TimeSpan youngerThan,
+        int maxBatch = 100,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns Captured transactions for a specific <paramref name="contextType"/> that are
+    /// older than <paramref name="olderThan"/>. Used by PaymentAutoReleaseEligibilityJob
+    /// to detect stuck escrow that the SR module never resolved.
+    /// </summary>
+    Task<List<PaymentTransactionEntity>> GetCapturedOlderThanAsync(
+        TransactionContextType contextType,
+        TimeSpan olderThan,
+        int maxBatch = 100,
+        CancellationToken ct = default);
+
     // ── Refund record queries ─────────────────────────────────────────────────
 
     /// <summary>

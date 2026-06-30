@@ -611,7 +611,7 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                 table: "invoice_headers",
                 column: "InvoiceNumber",
                 unique: true,
-                filter: "invoice_number IS NOT NULL");
+                filter: "\"InvoiceNumber\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_invoice_headers_InvoiceType",
@@ -624,14 +624,14 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                 schema: "payment",
                 table: "invoice_headers",
                 column: "OriginalInvoiceId",
-                filter: "original_invoice_id IS NOT NULL");
+                filter: "\"OriginalInvoiceId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_invoice_headers_PaymentTransactionId",
                 schema: "payment",
                 table: "invoice_headers",
                 column: "PaymentTransactionId",
-                filter: "payment_transaction_id IS NOT NULL");
+                filter: "\"PaymentTransactionId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_invoice_headers_Status",

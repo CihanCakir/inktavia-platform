@@ -13,7 +13,7 @@ public sealed class InvoiceHeaderConfiguration : IEntityTypeConfiguration<Invoic
 
         // ── Identity ──────────────────────────────────────────────────────────
         b.Property(x => x.InvoiceNumber).HasMaxLength(30);
-        b.HasIndex(x => x.InvoiceNumber).IsUnique().HasFilter("invoice_number IS NOT NULL");
+        b.HasIndex(x => x.InvoiceNumber).IsUnique().HasFilter("\"InvoiceNumber\" IS NOT NULL");
 
         b.Property(x => x.InvoiceType).HasConversion<int>().IsRequired();
         b.Property(x => x.CommercialModel).HasConversion<int>().IsRequired();
@@ -101,8 +101,8 @@ public sealed class InvoiceHeaderConfiguration : IEntityTypeConfiguration<Invoic
         b.HasIndex(x => x.Status);
         b.HasIndex(x => x.InvoiceType);
         b.HasIndex(x => x.BuyerUserId);
-        b.HasIndex(x => x.PaymentTransactionId).HasFilter("payment_transaction_id IS NOT NULL");
-        b.HasIndex(x => x.OriginalInvoiceId).HasFilter("original_invoice_id IS NOT NULL");
+        b.HasIndex(x => x.PaymentTransactionId).HasFilter("\"PaymentTransactionId\" IS NOT NULL");
+        b.HasIndex(x => x.OriginalInvoiceId).HasFilter("\"OriginalInvoiceId\" IS NOT NULL");
         b.HasIndex(x => new { x.Status, x.DueDateUtc });   // InvoiceOverdueCheckJob
     }
 }

@@ -338,15 +338,15 @@ namespace Aizen.Modules.Payment.Repository.Migrations
 
                     b.HasIndex("InvoiceNumber")
                         .IsUnique()
-                        .HasFilter("invoice_number IS NOT NULL");
+                        .HasFilter("\"InvoiceNumber\" IS NOT NULL");
 
                     b.HasIndex("InvoiceType");
 
                     b.HasIndex("OriginalInvoiceId")
-                        .HasFilter("original_invoice_id IS NOT NULL");
+                        .HasFilter("\"OriginalInvoiceId\" IS NOT NULL");
 
                     b.HasIndex("PaymentTransactionId")
-                        .HasFilter("payment_transaction_id IS NOT NULL");
+                        .HasFilter("\"PaymentTransactionId\" IS NOT NULL");
 
                     b.HasIndex("Status");
 

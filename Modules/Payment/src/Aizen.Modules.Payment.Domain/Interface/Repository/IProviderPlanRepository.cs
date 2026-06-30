@@ -12,6 +12,27 @@ public interface IProviderPlanRepository
 
     // Subscriptions
     Task<ProviderPlanSubscriptionEntity?> GetActiveSubscriptionAsync(long providerProfileId, DateTime atUtc, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns a subscription linked to a specific payment transaction.
+    /// Used by ProviderSubscriptionPaymentSucceededConsumer for idempotent retry handling.
+    /// </summary>
+    Task<ProviderPlanSubscriptionEntity?> GetSubscriptionByTransactionIdAsync(long transactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns Active subscriptions whose SubscriptionPeriodEnd has already passed.
+    /// Used by SubscriptionRenewalJob to transition them to PastDue or Expired.
+    /// </summary>
+    Task<List<ProviderPlanSubscriptionEntity>> GetExpiredActiveSubscriptionsAsync(
+        int batchSize, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns PastDue subscriptions for monitoring and re-notification.
+    /// Used by SubscriptionRenewalJob to republish SubscriptionPaymentFailedMessage.
+    /// </summary>
+    Task<List<ProviderPlanSubscriptionEntity>> GetPastDueSubscriptionsAsync(
+        int batchSize, CancellationToken ct = default);
+
     Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct = default);
     void UpdateSubscription(ProviderPlanSubscriptionEntity entity);
 

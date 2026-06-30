@@ -61,11 +61,27 @@ public interface IInvoiceRepository
         long transactionId, CancellationToken ct = default);
 
     /// <summary>
+    /// All Sent invoices (any type) whose DueDateUtc has passed.
+    /// Used by InvoiceOverdueMarkingJob to batch-transition Sent → Overdue.
+    /// Capped at <paramref name="batchSize"/> to avoid long-running transactions.
+    /// </summary>
+    Task<List<InvoiceHeaderEntity>> GetSentOverdueAsync(
+        DateTime dueBefore, int batchSize, CancellationToken ct = default);
+
+    /// <summary>
     /// Sent subscription invoices whose DueAt has passed.
-    /// Used by InvoiceOverdueCheckJob.
+    /// Kept for backwards compatibility; prefer GetSentOverdueAsync for new job code.
     /// </summary>
     Task<List<InvoiceHeaderEntity>> GetSentSubscriptionOverdueAsync(
         DateTime dueBefore, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns true if a non-deleted invoice already exists for the given source.
+    /// Used by SubscriptionInvoiceGenerationJob and consumer idempotency checks.
+    /// Example: ExistsForSourceAsync(InvoiceSourceType.Subscription, subscriptionId)
+    /// </summary>
+    Task<bool> ExistsForSourceAsync(
+        InvoiceSourceType sourceType, long sourceId, CancellationToken ct = default);
 
     // ── Mutations ─────────────────────────────────────────────────────────────
 

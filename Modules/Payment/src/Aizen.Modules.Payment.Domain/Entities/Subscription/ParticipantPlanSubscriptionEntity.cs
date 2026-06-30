@@ -55,6 +55,8 @@ public sealed class ParticipantPlanSubscriptionEntity : AizenEntityWithAudit
         CancellationReason = reason;
     }
 
+    public void MarkPastDue() => Status = SubscriptionStatus.PastDue;
+
     public void MarkExpired() => Status = SubscriptionStatus.Expired;
 
     public bool IsCurrentlyActive(DateTime utcNow) =>

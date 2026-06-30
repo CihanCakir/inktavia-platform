@@ -31,6 +31,27 @@ public sealed class ProviderPlanRepository : IProviderPlanRepository
             x.SubscriptionPeriodStart <= atUtc &&
             x.SubscriptionPeriodEnd >= atUtc, ct);
 
+    public Task<ProviderPlanSubscriptionEntity?> GetSubscriptionByTransactionIdAsync(long transactionId, CancellationToken ct)
+        => _db.ProviderSubscriptions.FirstOrDefaultAsync(
+            x => x.PaymentTransactionId == transactionId, ct);
+
+    public Task<List<ProviderPlanSubscriptionEntity>> GetExpiredActiveSubscriptionsAsync(
+        int batchSize, CancellationToken ct)
+        => _db.ProviderSubscriptions
+            .Where(x => x.Status == SubscriptionStatus.Active
+                     && x.SubscriptionPeriodEnd < DateTime.UtcNow)
+            .OrderBy(x => x.SubscriptionPeriodEnd)
+            .Take(batchSize)
+            .ToListAsync(ct);
+
+    public Task<List<ProviderPlanSubscriptionEntity>> GetPastDueSubscriptionsAsync(
+        int batchSize, CancellationToken ct)
+        => _db.ProviderSubscriptions
+            .Where(x => x.Status == SubscriptionStatus.PastDue)
+            .OrderBy(x => x.CreateDate)
+            .Take(batchSize)
+            .ToListAsync(ct);
+
     public Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct)
         => _db.ProviderSubscriptions.AddAsync(entity, ct).AsTask();
 

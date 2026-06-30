@@ -1,4 +1,6 @@
 using Aizen.Modules.Payment.Abstraction.Interface;
+using Aizen.Modules.Payment.Application.Gateway.Apple;
+using Aizen.Modules.Payment.Application.Gateway.Google;
 using Aizen.Modules.Payment.Application.Gateway.Iyzico;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.ReferenceData.Domain.Interface.Service;
@@ -45,6 +47,12 @@ public static class DependencyInjection
 
         // ── Invoice number generator ──────────────────────────────────────────
         services.AddScoped<InvoiceNumberService>();
+
+        // ── IAP gateway stubs (Phase 2C: replace with real implementations) ──
+        // Apple App Store and Google Play Billing gateway clients are registered
+        // as NotImplemented stubs. Phase 2C will swap these for real HTTP clients.
+        services.AddScoped<IAppleAppStoreGatewayClient, AppleAppStoreGatewayNotImplementedStub>();
+        services.AddScoped<IGooglePlayGatewayClient, GooglePlayGatewayNotImplementedStub>();
 
         // NOTE: Message consumers (ServiceRequestCompletedConsumer, ServiceRequestCancelledConsumer)
         // are registered in Aizen.Modules.Payment (web host) DI, not here.

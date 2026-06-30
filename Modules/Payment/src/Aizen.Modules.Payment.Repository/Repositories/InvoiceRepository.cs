@@ -115,6 +115,18 @@ public sealed class InvoiceRepository : IInvoiceRepository
             .OrderBy(x => x.CreateDate)
             .ToListAsync(ct);
 
+    public Task<List<InvoiceHeaderEntity>> GetSentOverdueAsync(
+        DateTime dueBefore, int batchSize, CancellationToken ct = default)
+        => _db.InvoiceHeaders
+            .Where(x =>
+                x.Status == InvoiceStatus.Sent &&
+                x.DueDateUtc.HasValue &&
+                x.DueDateUtc.Value < dueBefore &&
+                !x.IsDeleted)
+            .OrderBy(x => x.DueDateUtc)
+            .Take(batchSize)
+            .ToListAsync(ct);
+
     public Task<List<InvoiceHeaderEntity>> GetSentSubscriptionOverdueAsync(
         DateTime dueBefore, CancellationToken ct = default)
         => _db.InvoiceHeaders
@@ -125,6 +137,11 @@ public sealed class InvoiceRepository : IInvoiceRepository
                 x.DueDateUtc.Value < dueBefore &&
                 !x.IsDeleted)
             .ToListAsync(ct);
+
+    public Task<bool> ExistsForSourceAsync(
+        InvoiceSourceType sourceType, long sourceId, CancellationToken ct = default)
+        => _db.InvoiceHeaders
+            .AnyAsync(x => x.SourceType == sourceType && x.SourceId == sourceId && !x.IsDeleted, ct);
 
     // ── Mutations ─────────────────────────────────────────────────────────────
 

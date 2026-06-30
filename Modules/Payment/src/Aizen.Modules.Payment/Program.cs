@@ -5,6 +5,7 @@ using Aizen.Core.Starter;
 using Aizen.Modules.Payment.Application;
 using Aizen.Modules.Payment.Consumers.CargoDry;
 using Aizen.Modules.Payment.Consumers.ServiceRequest;
+using Aizen.Modules.Payment.Consumers.Subscription;
 using Aizen.Modules.Payment.Repository;
 using Aizen.Modules.Payment.Repository.Persistence;
 using Aizen.Core.Common.Extension;
@@ -40,15 +41,6 @@ builder.Services.AddPaymentRepository(builder.Configuration);
 // Scheduler storage type + schema are read from the "Scheduler" appsettings section.
 builder.Services.AddPaymentApplication(builder.Configuration);
 
-// ── Message consumers (host layer — inlined business logic, no nested command dispatch) ──
-// AppType.Worker auto-wires RabbitMQ consumers; explicit AddScoped ensures DI resolution.
-builder.Services.AddScoped<ServiceRequestCompletedConsumer>();
-builder.Services.AddScoped<ServiceRequestCancelledConsumer>();
-builder.Services.AddScoped<CargoDryKitRenewalPaymentConsumer>();
-
-// NOTE: Jobs (PaymentEscrowTimeoutJob, PaymentReminderJob, PayoutProcessingJob,
-// StaleEscrowCleanupJob) are in Aizen.Modules.Payment/Jobs/ and auto-discovered
-// by AizenApplicationBuilder when AppType.Scheduler is in TypeInclude.
 
 // ── Redis Cache (IAizenDistributedCache — required by cacheable query handlers) ──
 builder.Services.AddAizenCache(builder.Configuration);

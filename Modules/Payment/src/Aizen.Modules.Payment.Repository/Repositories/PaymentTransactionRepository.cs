@@ -68,6 +68,34 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
             .ToListAsync(ct);
     }
 
+    public Task<List<PaymentTransactionEntity>> GetPendingIntentInRangeAsync(
+        TimeSpan olderThan, TimeSpan youngerThan, int maxBatch, CancellationToken ct)
+    {
+        var now      = DateTime.UtcNow;
+        var ceiling  = now - olderThan;   // must be at least this old
+        var floor    = now - youngerThan; // must be no older than this
+        return _db.Transactions
+            .Where(x => x.Status == PaymentTransactionStatus.PendingIntent
+                     && x.CreateDate <= ceiling
+                     && x.CreateDate > floor)
+            .OrderBy(x => x.CreateDate)
+            .Take(maxBatch)
+            .ToListAsync(ct);
+    }
+
+    public Task<List<PaymentTransactionEntity>> GetCapturedOlderThanAsync(
+        TransactionContextType contextType, TimeSpan olderThan, int maxBatch, CancellationToken ct)
+    {
+        var cutoff = DateTime.UtcNow - olderThan;
+        return _db.Transactions
+            .Where(x => x.Status == PaymentTransactionStatus.Captured
+                     && x.ContextType == contextType
+                     && x.CreateDate <= cutoff)
+            .OrderBy(x => x.CreateDate)
+            .Take(maxBatch)
+            .ToListAsync(ct);
+    }
+
     // ── Refund record queries ─────────────────────────────────────────────────
 
     public Task<List<TransactionRefundRecord>> GetRefundRecordsAsync(long transactionId, CancellationToken ct)
