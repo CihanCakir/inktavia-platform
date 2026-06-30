@@ -43,6 +43,9 @@ public static class DependencyInjection
         // ── Commission calculator ─────────────────────────────────────────────
         services.AddScoped<CommissionCalculationService>();
 
+        // ── Invoice number generator ──────────────────────────────────────────
+        services.AddScoped<InvoiceNumberService>();
+
         // NOTE: Message consumers (ServiceRequestCompletedConsumer, ServiceRequestCancelledConsumer)
         // are registered in Aizen.Modules.Payment (web host) DI, not here.
         // Consumers must live in the host project — they inline business logic and must NOT

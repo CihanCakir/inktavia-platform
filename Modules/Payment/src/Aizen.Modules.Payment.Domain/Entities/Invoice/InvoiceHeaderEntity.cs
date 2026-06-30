@@ -288,6 +288,30 @@ public sealed class InvoiceHeaderEntity : AizenEntityWithAudit
 
     // ── Mutation helpers ──────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Adds a line item to this draft invoice.
+    /// Must only be called while Status == Draft; lines are immutable after Issue.
+    /// </summary>
+    public void AddLine(InvoiceLineEntity line)
+    {
+        if (Status != InvoiceStatus.Draft)
+            throw new InvalidOperationException(
+                $"Invoice {Id} is not in Draft status. Lines cannot be modified after Issue.");
+        _lines.Add(line);
+    }
+
+    /// <summary>
+    /// Adds a tax breakdown row to this draft invoice.
+    /// Must only be called while Status == Draft.
+    /// </summary>
+    public void AddTaxBreakdown(InvoiceTaxBreakdownEntity breakdown)
+    {
+        if (Status != InvoiceStatus.Draft)
+            throw new InvalidOperationException(
+                $"Invoice {Id} is not in Draft status. Tax breakdowns cannot be modified after Issue.");
+        _taxBreakdowns.Add(breakdown);
+    }
+
     public void SetPdfRef(string pdfFileRef)          => PdfFileRef = pdfFileRef;
     public void UpdateNotes(string? notes)             => Notes      = notes;
 

@@ -187,5 +187,54 @@
       { "Language": "TR", "Description": "Katılımcı planı bulunamadı veya aktif değil." },
       { "Language": "EN", "Description": "Participant plan not found or is not active." }
     ]
+  },
+  {
+    "ErrorCode": 5028,
+    "Errors": [
+      { "Language": "TR", "Description": "Fatura bulunamadı." },
+      { "Language": "EN", "Description": "Invoice not found." }
+    ]
+  },
+  {
+    "ErrorCode": 5029,
+    "Errors": [
+      { "Language": "TR", "Description": "Fatura bu operasyon için geçerli bir durumda değil." },
+      { "Language": "EN", "Description": "Invoice is not in a valid state for this operation." }
+    ]
+  },
+  {
+    "ErrorCode": 5030,
+    "Errors": [
+      { "Language": "TR", "Description": "Fatura zaten yayımlandı; değişiklikler kredi notu ile yapılmalıdır." },
+      { "Language": "EN", "Description": "Invoice has already been issued; corrections must be made via a credit note." }
+    ]
+  },
+  {
+    "ErrorCode": 5031,
+    "Errors": [
+      { "Language": "TR", "Description": "Fatura en az bir satır kalemi içermelidir." },
+      { "Language": "EN", "Description": "Invoice must contain at least one line item." }
+    ]
+  },
+  {
+    "ErrorCode": 5032,
+    "Errors": [
+      { "Language": "TR", "Description": "Fatura zaten iptal edildi." },
+      { "Language": "EN", "Description": "Invoice has already been cancelled." }
+    ]
+  },
+  {
+    "ErrorCode": 5033,
+    "Errors": [
+      { "Language": "TR", "Description": "Fatura numarası üretiminde eşzamanlılık çakışması; lütfen tekrar deneyin." },
+      { "Language": "EN", "Description": "Invoice number generation concurrency conflict; please retry the operation." }
+    ]
+  },
+  {
+    "ErrorCode": 5034,
+    "Errors": [
+      { "Language": "TR", "Description": "Fatura bu durumdan arşivlenemez." },
+      { "Language": "EN", "Description": "Invoice cannot be archived from its current state." }
+    ]
   }
 ]

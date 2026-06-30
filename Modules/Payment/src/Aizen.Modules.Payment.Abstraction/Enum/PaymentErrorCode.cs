@@ -35,4 +35,13 @@ public enum PaymentErrorCode
     SubscriptionNotFound                 = 5025,
     ProviderPlanNotFound                 = 5026,
     ParticipantPlanNotFound              = 5027,
+
+    // ── Invoice ───────────────────────────────────────────────────────────────
+    InvoiceNotFound                      = 5028,
+    InvoiceInvalidStateTransition        = 5029,
+    InvoiceAlreadyIssued                 = 5030,
+    InvoiceLinesRequired                 = 5031,
+    InvoiceAlreadyCancelled              = 5032,
+    InvoiceNumberConcurrencyExceeded     = 5033,
+    InvoiceCannotBeArchived              = 5034,
 }
