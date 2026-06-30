@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.Payment.Repository.Persistence;
 
-[Aizen.Modules.Payment.Abstraction.DocumentationInfo("Payment EF DbContext",
+[DocumentationInfo("Payment EF DbContext",
     "EF Core context for the Payment module PostgreSQL schema (payment.*).")]
 public sealed class PaymentDbContext : AizenDbContext
 {

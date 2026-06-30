@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.CapturePayment;
 
@@ -10,7 +11,7 @@ namespace Aizen.Modules.Payment.Application.Commands.CapturePayment;
 /// looks up the transaction by GatewayReference.
 /// When called via admin (manual gateway), TransactionId can be provided directly.
 /// </summary>
-public sealed class CapturePaymentCommand : AizenCommand<bool>
+public sealed class CapturePaymentCommand : AizenCommand<CapturePaymentResult>
 {
     /// <summary>Optional — when null, transaction is looked up by GatewayReference.</summary>
     public long?  TransactionId    { get; init; }

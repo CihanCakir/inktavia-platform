@@ -1,5 +1,4 @@
 using Aizen.Core.CQRS.Handler;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Message;

@@ -1,5 +1,4 @@
 using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Documents;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;

@@ -1,14 +1,2 @@
-namespace Aizen.Bff.AdminPanel.Application.Common;
-
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-public sealed class DocumentationInfoAttribute : Attribute
-{
-    public string Summary { get; }
-    public string? Remarks { get; }
-
-    public DocumentationInfoAttribute(string summary, string? remarks = null)
-    {
-        Summary = summary;
-        Remarks = remarks;
-    }
-}
+// MOVED: DocumentationInfoAttribute is now defined in Aizen.Core.Common.Abstraction.
+// See Core/Common/src/Aizen.Core.Common.Abstraction/Attributes/DocumentationInfoAttribute.cs

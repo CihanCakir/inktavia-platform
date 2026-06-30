@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.Access;
 using Aizen.Modules.FileStorage.Abstraction.Request.File;
 using Aizen.Modules.FileStorage.Application.Commands.CreateReadUrl;

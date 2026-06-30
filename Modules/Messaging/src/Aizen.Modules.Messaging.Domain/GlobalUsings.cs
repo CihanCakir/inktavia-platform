@@ -1,1 +1,1 @@
-global using Aizen.Modules.Messaging.Abstraction.Model;
+global using Aizen.Core.Common.Abstraction;

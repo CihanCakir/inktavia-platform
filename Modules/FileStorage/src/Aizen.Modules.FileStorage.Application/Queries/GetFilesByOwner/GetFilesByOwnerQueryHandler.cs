@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Application.Mapping;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 

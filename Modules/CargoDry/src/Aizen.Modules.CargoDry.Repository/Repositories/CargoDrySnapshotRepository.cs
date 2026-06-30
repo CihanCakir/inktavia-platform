@@ -1,4 +1,3 @@
-using Aizen.Modules.CargoDry.Abstraction.Model;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Aizen.Modules.CargoDry.Domain.MongoDocuments;
 using Aizen.Modules.CargoDry.Repository.Persistence;

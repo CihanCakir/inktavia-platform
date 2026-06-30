@@ -9,4 +9,8 @@
     <ProjectReference Include="../../../../Core/Data/src/Aizen.Core.Data.Mongo/Aizen.Core.Data.Mongo.csproj" />
     <ProjectReference Include="../Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

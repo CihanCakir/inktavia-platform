@@ -9,6 +9,8 @@
     <ProjectReference Include="../../../../Core/UnitOfWork/src/Aizen.Core.UnitOfWork/Aizen.Core.UnitOfWork.csproj" />
     <ProjectReference Include="../Aizen.Modules.Payment.Application/Aizen.Modules.Payment.Application.csproj" />
     <ProjectReference Include="../Aizen.Modules.Payment.Repository/Aizen.Modules.Payment.Repository.csproj" />
+    <!-- CargoDry.Abstraction — required for CargoDryKitRenewalPaymentConsumer (inbound message type) -->
+    <ProjectReference Include="../../../../Modules/CargoDry/src/Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
@@ -16,15 +18,16 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  
   <ItemGroup>
-    <Content Update="Configuration\local.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="Configuration\development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="Configuration\production.json">
+    <Content Update="Resource\**" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resource\aizen_error_messages.json" />
+  </ItemGroup>
+
+
 </Project>

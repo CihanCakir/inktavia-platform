@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.ReinstateCancelledTransaction;
 
@@ -10,7 +11,7 @@ namespace Aizen.Modules.Payment.Application.Commands.ReinstateCancelledTransacti
 /// resets the transaction state. The original CancelledAt / CancellationReason
 /// are preserved for audit purposes.
 /// </summary>
-public sealed class ReinstateCancelledTransactionCommand : AizenCommand<bool>
+public sealed class ReinstateCancelledTransactionCommand : AizenCommand<ReinstateCancelledTransactionResult>
 {
     public required long   TransactionId { get; init; }
     public required string AdminNote     { get; init; }

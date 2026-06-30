@@ -1,12 +1,11 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
-using PaymentRoot = Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Model;
+using PaymentRoot = Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.RemoteCall;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;

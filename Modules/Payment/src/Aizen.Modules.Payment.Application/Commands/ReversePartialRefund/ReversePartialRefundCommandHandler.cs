@@ -1,48 +1,55 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
+using Aizen.Core.UnitOfWork.Abstraction;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.Extensions.Logging;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.ReversePartialRefund;
 
+[DocumentationInfo("Reverse partial refund command handler",
+    "Marks a Processed refund record as Reversed, reduces TotalRefundedAmount on the parent transaction, and publishes PartialRefundReversedMessage.")]
 public sealed class ReversePartialRefundCommandHandler
-    : AizenCommandHandler<ReversePartialRefundCommand, bool>
+    : AizenCommandHandler<ReversePartialRefundCommand, ReversePartialRefundResult>
 {
-    private readonly IPaymentTransactionRepository             _transactions;
-    private readonly IAizenMessagePublisher                    _publisher;
+    private readonly IPaymentTransactionRepository              _transactions;
+    private readonly IAizenMessagePublisher                     _publisher;
     private readonly ILogger<ReversePartialRefundCommandHandler> _logger;
 
     public ReversePartialRefundCommandHandler(
-        IPaymentTransactionRepository transactions,
-        IAizenMessagePublisher publisher,
-        ILogger<ReversePartialRefundCommandHandler> logger)
+        IAizenUnitOfWork<PaymentDbContext>             unitOfWork,
+        IPaymentTransactionRepository                  transactions,
+        IAizenMessagePublisher                         publisher,
+        ILogger<ReversePartialRefundCommandHandler>    logger)
     {
         _transactions = transactions;
         _publisher    = publisher;
         _logger       = logger;
     }
 
-    public override async Task<bool> Handle(ReversePartialRefundCommand request, CancellationToken ct)
+    public override async Task<ReversePartialRefundResult?> Handle(
+        ReversePartialRefundCommand request, CancellationToken ct)
     {
         // Fetch the refund record first to get the parent transaction ID
         var refundRecord = await _transactions.GetRefundRecordByIdAsync(request.RefundRecordId, ct)
-            ?? throw new InvalidOperationException(
-                $"RefundRecord {request.RefundRecordId} not found.");
+            ?? throw new AizenBusinessException((int)PaymentErrorCode.RefundRecordNotFound);
 
         // Load the parent transaction with full refund records for domain method guards
         var tx = await _transactions.GetByIdWithRefundsAsync(refundRecord.PaymentTransactionId, ct)
-            ?? throw new InvalidOperationException(
-                $"Transaction {refundRecord.PaymentTransactionId} not found.");
+            ?? throw new AizenBusinessException((int)PaymentErrorCode.TransactionNotFound);
 
         var reversedAmount = refundRecord.Amount;
 
         // Domain method: marks record as Reversed, subtracts from TotalRefundedAmount, recalculates Status
-        // Throws if record.Status != Processed
+        // Throws AizenBusinessException if record.Status != Processed
         tx.ReverseRefund(refundRecord, request.ReversalReason, request.AdminNote);
 
         _transactions.Update(tx);
-        await _transactions.SaveChangesAsync(ct);
+        // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
         _ = _publisher.PublishAsync(new PartialRefundReversedMessage
         {
@@ -68,6 +75,10 @@ public sealed class ReversePartialRefundCommandHandler
             "Refund reversed. RefundRecordId={RId} Amount={Amount} TransactionId={TxId} NewTxStatus={Status}",
             refundRecord.Id, reversedAmount, tx.Id, tx.Status);
 
-        return true;
+        return new ReversePartialRefundResult(
+            refundRecord.Id,
+            refundRecord.RefundCode,
+            reversedAmount,
+            refundRecord.ReversedAt!.Value);
     }
 }

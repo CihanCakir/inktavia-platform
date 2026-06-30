@@ -24,4 +24,8 @@
     <PackageReference Include="FluentValidation" Version="11.*" />
     <PackageReference Include="StackExchange.Redis" Version="2.*" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

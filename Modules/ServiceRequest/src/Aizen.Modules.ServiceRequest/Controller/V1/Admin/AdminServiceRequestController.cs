@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;

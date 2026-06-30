@@ -2,7 +2,6 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Vessel.Abstraction.Message;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;

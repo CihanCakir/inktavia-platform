@@ -1,6 +1,5 @@
 using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Ownership;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;

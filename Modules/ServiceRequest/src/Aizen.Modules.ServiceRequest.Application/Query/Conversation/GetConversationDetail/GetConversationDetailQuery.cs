@@ -1,5 +1,4 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Conversation;
 
 namespace Aizen.Modules.ServiceRequest.Application.Query.Conversation;

@@ -19,4 +19,9 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.*" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+    <Using Include="Aizen.Modules.Payment.Abstraction.Model" />
+  </ItemGroup>
 </Project>

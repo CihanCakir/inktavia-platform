@@ -16,4 +16,8 @@
     <ProjectReference Include="../../../Identity/src/Aizen.Modules.Identity.Abstraction/Aizen.Modules.Identity.Abstraction.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

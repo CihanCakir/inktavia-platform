@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.UpdateFileVisibility;
 

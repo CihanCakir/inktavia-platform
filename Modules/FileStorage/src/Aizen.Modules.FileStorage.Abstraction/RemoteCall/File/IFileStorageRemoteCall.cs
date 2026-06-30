@@ -1,5 +1,4 @@
 using Aizen.Core.RemoteCall.Abstraction;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Responses;
 

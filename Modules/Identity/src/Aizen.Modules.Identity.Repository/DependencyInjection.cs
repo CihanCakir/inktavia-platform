@@ -1,4 +1,3 @@
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Domain.Interface;
 using Aizen.Modules.Identity.Domain.Interface.Repository;
 using Aizen.Modules.Identity.Domain.Interface.Service;

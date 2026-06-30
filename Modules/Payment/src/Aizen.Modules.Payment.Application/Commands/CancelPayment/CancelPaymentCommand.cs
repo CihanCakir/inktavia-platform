@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.CancelPayment;
 
@@ -9,7 +10,7 @@ namespace Aizen.Modules.Payment.Application.Commands.CancelPayment;
 ///
 /// For Captured transactions a full refund should be issued via RefundPaymentCommand.
 /// </summary>
-public sealed class CancelPaymentCommand : AizenCommand<bool>
+public sealed class CancelPaymentCommand : AizenCommand<CancelPaymentResult>
 {
     public required long               TransactionId      { get; init; }
     public required CancellationReason CancellationReason { get; init; }

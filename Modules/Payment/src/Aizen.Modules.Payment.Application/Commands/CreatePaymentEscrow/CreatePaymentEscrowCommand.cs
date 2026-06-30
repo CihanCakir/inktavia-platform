@@ -2,6 +2,7 @@ using Aizen.Core.CQRS.Message;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Model;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.CreatePaymentEscrow;
 
@@ -26,12 +27,3 @@ public sealed class CreatePaymentEscrowCommand : AizenCommand<CreatePaymentEscro
     /// <summary>true = hold until SR completion; false = immediate settle.</summary>
     public bool EscrowRequired { get; init; } = true;
 }
-
-public sealed record CreatePaymentEscrowResult(
-    long TransactionId,
-    string TransactionCode,
-    string GatewayReference,
-    decimal CommissionRate,
-    decimal CommissionAmount,
-    decimal NetPayoutAmount
-);

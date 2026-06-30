@@ -1,5 +1,4 @@
 using Aizen.Modules.Payment.Abstraction.Enum;
-using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 using Aizen.Modules.Payment.Application.Commands.CreatePaymentEscrow;
 using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;

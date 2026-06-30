@@ -8,6 +8,7 @@ using Aizen.Modules.CargoDry.Abstraction.Message;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
+using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction.RemoteCall;

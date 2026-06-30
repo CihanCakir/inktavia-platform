@@ -3,7 +3,6 @@ using Aizen.Modules.ReferenceData.Abstraction.Dto.Currency;
 using Aizen.Modules.ReferenceData.Domain.Interface.Service;
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Abstraction.Handler;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 
 namespace Aizen.Modules.ReferenceData.Application.Currency.Queries;
 

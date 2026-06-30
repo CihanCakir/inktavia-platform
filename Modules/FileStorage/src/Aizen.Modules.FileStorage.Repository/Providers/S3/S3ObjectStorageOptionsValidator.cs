@@ -1,4 +1,3 @@
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.FileStorage.Repository.Providers.S3;

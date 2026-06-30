@@ -4,7 +4,6 @@ using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request.Common;
 using Aizen.Modules.Identity.Abstraction.Request.Organizer;
 using Aizen.Modules.Identity.Abstraction.Request.Participant;

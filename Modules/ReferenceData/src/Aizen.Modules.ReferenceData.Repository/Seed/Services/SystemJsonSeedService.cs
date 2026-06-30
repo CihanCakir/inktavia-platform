@@ -1,5 +1,4 @@
 using Aizen.Modules.ReferenceData.Abstraction.Enum;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Domain.Entities.System;
 using Aizen.Modules.ReferenceData.Domain.Entities.SystemParameter;
 using Aizen.Modules.ReferenceData.Domain.Interface;

@@ -14,4 +14,9 @@
     <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Common/src/Aizen.Core.Common.Abstraction/Aizen.Core.Common.Abstraction.csproj" />
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

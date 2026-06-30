@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.SystemParameter;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Application.SystemParameter.Queries;
 using Microsoft.AspNetCore.Mvc;
 

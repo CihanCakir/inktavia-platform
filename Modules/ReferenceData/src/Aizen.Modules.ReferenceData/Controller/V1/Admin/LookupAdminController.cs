@@ -2,7 +2,6 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupItem;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Abstraction.Request.LookupGroup;
 using Aizen.Modules.ReferenceData.Abstraction.Request.LookupItem;
 using Aizen.Modules.ReferenceData.Application.Lookup.Commands;

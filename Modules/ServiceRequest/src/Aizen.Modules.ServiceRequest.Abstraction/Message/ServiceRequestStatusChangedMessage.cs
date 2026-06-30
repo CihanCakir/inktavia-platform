@@ -1,6 +1,5 @@
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Message;
 

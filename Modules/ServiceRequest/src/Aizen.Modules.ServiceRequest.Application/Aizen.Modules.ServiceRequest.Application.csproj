@@ -20,4 +20,8 @@
     <ProjectReference Include="../../../Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

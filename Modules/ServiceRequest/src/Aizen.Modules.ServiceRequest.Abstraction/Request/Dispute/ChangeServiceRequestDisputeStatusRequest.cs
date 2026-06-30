@@ -1,5 +1,4 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
 

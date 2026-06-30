@@ -1,5 +1,4 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 

@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Message;
 

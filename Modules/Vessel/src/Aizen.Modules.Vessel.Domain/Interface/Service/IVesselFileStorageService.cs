@@ -1,6 +1,5 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
-using Aizen.Modules.Vessel.Abstraction.Model;
 
 namespace Aizen.Modules.Vessel.Domain.Interface.Service;
 

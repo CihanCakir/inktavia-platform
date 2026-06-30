@@ -1,5 +1,4 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;

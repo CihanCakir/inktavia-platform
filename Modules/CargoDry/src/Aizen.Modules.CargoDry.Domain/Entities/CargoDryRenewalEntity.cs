@@ -1,6 +1,5 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
-using Aizen.Modules.CargoDry.Abstraction.Model;
 
 namespace Aizen.Modules.CargoDry.Domain.Entities;
 

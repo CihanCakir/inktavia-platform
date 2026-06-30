@@ -1,5 +1,4 @@
 using Aizen.Core.Validation;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using FluentValidation;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.CreateUploadSession;

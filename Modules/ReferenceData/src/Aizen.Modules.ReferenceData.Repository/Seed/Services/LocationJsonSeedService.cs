@@ -1,4 +1,3 @@
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Domain.Documents.Location;
 using Aizen.Modules.ReferenceData.Domain.Interface;
 using Aizen.Modules.ReferenceData.Repository.Seed.Models.Location;

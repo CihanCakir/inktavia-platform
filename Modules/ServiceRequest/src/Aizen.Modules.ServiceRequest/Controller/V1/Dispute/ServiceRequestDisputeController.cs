@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Application.Command.Dispute;

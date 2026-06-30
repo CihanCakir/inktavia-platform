@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Processing;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.Processing;
 using Aizen.Modules.FileStorage.Application.Commands.StartFileProcessing;
 using Aizen.Modules.FileStorage.Application.Commands.UpdateFileProcessingResult;

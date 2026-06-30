@@ -1,6 +1,5 @@
 using Amazon.S3;
 using Amazon.S3.Model;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

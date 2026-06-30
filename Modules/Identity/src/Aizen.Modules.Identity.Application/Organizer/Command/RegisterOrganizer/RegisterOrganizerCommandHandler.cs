@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Enum;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Domain.Interface.Service;
 using Aizen.Modules.Identity.Domain.Service;
 using Aizen.Modules.Identity.Repository.Context;

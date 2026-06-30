@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 
@@ -19,7 +20,8 @@ public sealed class ResolveCommissionRateQueryHandler
         var rate = await _rules.ResolveRateAsync(
             request.ProviderProfileId, request.ProviderPlanId, request.CategoryCode, atUtc, ct);
 
-        if (rate is null) return null;
+        if (rate is null)
+            throw new AizenBusinessException((int)PaymentErrorCode.CommissionRuleNotFound);
 
         // Determine which level of the chain resolved it (for admin display)
         string source;

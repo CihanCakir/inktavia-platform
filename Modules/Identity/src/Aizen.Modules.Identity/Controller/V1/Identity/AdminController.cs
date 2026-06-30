@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.InktaviaStore.Application.Identity;

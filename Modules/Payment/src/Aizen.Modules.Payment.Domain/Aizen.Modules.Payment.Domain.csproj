@@ -8,4 +8,8 @@
     <ProjectReference Include="../../../../Core/Domain/src/Aizen.Core.Domain/Aizen.Core.Domain.csproj" />
     <ProjectReference Include="../Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

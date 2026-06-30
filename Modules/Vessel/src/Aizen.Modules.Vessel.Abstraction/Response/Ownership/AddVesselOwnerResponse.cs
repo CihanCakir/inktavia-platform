@@ -1,5 +1,4 @@
 using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
-using Aizen.Modules.Vessel.Abstraction.Model;
 
 namespace Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 

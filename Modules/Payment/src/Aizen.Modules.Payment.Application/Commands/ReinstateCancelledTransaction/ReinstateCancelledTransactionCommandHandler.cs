@@ -1,38 +1,46 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
+using Aizen.Core.UnitOfWork.Abstraction;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.Extensions.Logging;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.ReinstateCancelledTransaction;
 
+[DocumentationInfo("Reinstate cancelled transaction command handler",
+    "Restores a Cancelled transaction back to PendingIntent. Domain method throws if Status != Cancelled. Publishes PaymentCancellationReinstatedMessage.")]
 public sealed class ReinstateCancelledTransactionCommandHandler
-    : AizenCommandHandler<ReinstateCancelledTransactionCommand, bool>
+    : AizenCommandHandler<ReinstateCancelledTransactionCommand, ReinstateCancelledTransactionResult>
 {
-    private readonly IPaymentTransactionRepository                      _transactions;
-    private readonly IAizenMessagePublisher                             _publisher;
+    private readonly IPaymentTransactionRepository                       _transactions;
+    private readonly IAizenMessagePublisher                              _publisher;
     private readonly ILogger<ReinstateCancelledTransactionCommandHandler> _logger;
 
     public ReinstateCancelledTransactionCommandHandler(
-        IPaymentTransactionRepository transactions,
-        IAizenMessagePublisher publisher,
-        ILogger<ReinstateCancelledTransactionCommandHandler> logger)
+        IAizenUnitOfWork<PaymentDbContext>                    unitOfWork,
+        IPaymentTransactionRepository                         transactions,
+        IAizenMessagePublisher                                publisher,
+        ILogger<ReinstateCancelledTransactionCommandHandler>  logger)
     {
         _transactions = transactions;
         _publisher    = publisher;
         _logger       = logger;
     }
 
-    public override async Task<bool> Handle(
+    public override async Task<ReinstateCancelledTransactionResult?> Handle(
         ReinstateCancelledTransactionCommand request, CancellationToken ct)
     {
         var tx = await _transactions.GetByIdAsync(request.TransactionId, ct)
-            ?? throw new InvalidOperationException($"Transaction {request.TransactionId} not found.");
+            ?? throw new AizenBusinessException((int)PaymentErrorCode.TransactionNotFound);
 
-        // Domain method throws if Status != Cancelled
+        // Domain method throws AizenBusinessException if Status != Cancelled
         tx.ReinstateCancellation(request.AdminNote);
         _transactions.Update(tx);
-        await _transactions.SaveChangesAsync(ct);
+        // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
         _ = _publisher.PublishAsync(new PaymentCancellationReinstatedMessage
         {
@@ -57,6 +65,9 @@ public sealed class ReinstateCancelledTransactionCommandHandler
             "Transaction cancellation reinstated. Id={Id} Note={Note}",
             tx.Id, request.AdminNote);
 
-        return true;
+        return new ReinstateCancelledTransactionResult(
+            tx.Id,
+            tx.TransactionCode,
+            tx.ReinstatedAt!.Value);
     }
 }

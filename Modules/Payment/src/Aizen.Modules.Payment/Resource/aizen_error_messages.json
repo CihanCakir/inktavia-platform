@@ -1,0 +1,191 @@
+[
+  {
+    "ErrorCode": 5001,
+    "Errors": [
+      { "Language": "TR", "Description": "İşlem bulunamadı." },
+      { "Language": "EN", "Description": "Transaction not found." }
+    ]
+  },
+  {
+    "ErrorCode": 5002,
+    "Errors": [
+      { "Language": "TR", "Description": "İşlem bu operasyon için geçerli bir durumda değil." },
+      { "Language": "EN", "Description": "Transaction is not in a valid state for this operation." }
+    ]
+  },
+  {
+    "ErrorCode": 5003,
+    "Errors": [
+      { "Language": "TR", "Description": "İade tutarı sıfırdan büyük olmalıdır." },
+      { "Language": "EN", "Description": "Refund amount must be greater than zero." }
+    ]
+  },
+  {
+    "ErrorCode": 5004,
+    "Errors": [
+      { "Language": "TR", "Description": "İade tutarı, iade edilebilir maksimum tutarı aşıyor." },
+      { "Language": "EN", "Description": "Refund amount exceeds the maximum refundable amount." }
+    ]
+  },
+  {
+    "ErrorCode": 5005,
+    "Errors": [
+      { "Language": "TR", "Description": "Bu bağlam için komisyon kuralı bulunamadı." },
+      { "Language": "EN", "Description": "No commission rule found for this context." }
+    ]
+  },
+  {
+    "ErrorCode": 5006,
+    "Errors": [
+      { "Language": "TR", "Description": "Ödeme çıktısı kaydı bulunamadı." },
+      { "Language": "EN", "Description": "Payout record not found." }
+    ]
+  },
+  {
+    "ErrorCode": 5007,
+    "Errors": [
+      { "Language": "TR", "Description": "Ödeme ağ geçidi işlemi başlatılamadı." },
+      { "Language": "EN", "Description": "Payment gateway initiation failed." }
+    ]
+  },
+  {
+    "ErrorCode": 5008,
+    "Errors": [
+      { "Language": "TR", "Description": "Alt üye işyeri kaydı başarısız." },
+      { "Language": "EN", "Description": "Sub-merchant registration failed." }
+    ]
+  },
+  {
+    "ErrorCode": 5009,
+    "Errors": [
+      { "Language": "TR", "Description": "Aynı idempotency anahtarıyla farklı parametrelerle bir işlem zaten mevcut." },
+      { "Language": "EN", "Description": "A transaction with the same idempotency key already exists with different parameters." }
+    ]
+  },
+  {
+    "ErrorCode": 5010,
+    "Errors": [
+      { "Language": "TR", "Description": "İşlem zaten yakalandı." },
+      { "Language": "EN", "Description": "Transaction has already been captured." }
+    ]
+  },
+  {
+    "ErrorCode": 5011,
+    "Errors": [
+      { "Language": "TR", "Description": "İşlem zaten iptal edildi." },
+      { "Language": "EN", "Description": "Transaction has already been cancelled." }
+    ]
+  },
+  {
+    "ErrorCode": 5012,
+    "Errors": [
+      { "Language": "TR", "Description": "İade kaydı bulunamadı." },
+      { "Language": "EN", "Description": "Refund record not found." }
+    ]
+  },
+  {
+    "ErrorCode": 5013,
+    "Errors": [
+      { "Language": "TR", "Description": "Escrow serbest bırakma başarısız: işlem escrow durumunda değil." },
+      { "Language": "EN", "Description": "Escrow release failed: transaction is not in escrow state." }
+    ]
+  },
+  {
+    "ErrorCode": 5014,
+    "Errors": [
+      { "Language": "TR", "Description": "Sağlayıcı ödeme profili bulunamadı." },
+      { "Language": "EN", "Description": "Provider payment profile not found." }
+    ]
+  },
+  {
+    "ErrorCode": 5015,
+    "Errors": [
+      { "Language": "TR", "Description": "Bu sağlayıcı için zaten bir ödeme profili mevcut." },
+      { "Language": "EN", "Description": "A payment profile already exists for this provider." }
+    ]
+  },
+  {
+    "ErrorCode": 5016,
+    "Errors": [
+      { "Language": "TR", "Description": "İşlem zaten aktif durumda, tekrar aktif edilemez." },
+      { "Language": "EN", "Description": "Transaction is already in active state and cannot be reinstated." }
+    ]
+  },
+  {
+    "ErrorCode": 5017,
+    "Errors": [
+      { "Language": "TR", "Description": "İade kaydı ters çevrme işlemi başarısız: kayıt ters çevrilebilir durumda değil." },
+      { "Language": "EN", "Description": "Refund record reversal failed: record is not in a reversible state." }
+    ]
+  },
+  {
+    "ErrorCode": 5018,
+    "Errors": [
+      { "Language": "TR", "Description": "Komisyon oranı yüzde elli güvenlik sınırını aşıyor." },
+      { "Language": "EN", "Description": "Commission rate exceeds the 50% safety threshold." }
+    ]
+  },
+  {
+    "ErrorCode": 5019,
+    "Errors": [
+      { "Language": "TR", "Description": "Net ödeme tutarı minimum eşiğin altında." },
+      { "Language": "EN", "Description": "Net payout amount is below the minimum threshold." }
+    ]
+  },
+  {
+    "ErrorCode": 5020,
+    "Errors": [
+      { "Language": "TR", "Description": "İade kaydı bu işlem için geçerli bir durumda değil." },
+      { "Language": "EN", "Description": "Refund record is not in a valid state for this operation." }
+    ]
+  },
+  {
+    "ErrorCode": 5021,
+    "Errors": [
+      { "Language": "TR", "Description": "İskonto tutarı brüt tutara eşit veya fazla olamaz; ücretsiz işlemler için ödeme akışı kullanılmaz." },
+      { "Language": "EN", "Description": "Discount amount cannot equal or exceed the gross amount; free transactions do not go through the payment flow." }
+    ]
+  },
+  {
+    "ErrorCode": 5022,
+    "Errors": [
+      { "Language": "TR", "Description": "Çözümlenen komisyon oranı negatif; komisyon kuralı verisi kontrol edilmeli." },
+      { "Language": "EN", "Description": "Resolved commission rate is negative; commission rule data must be reviewed." }
+    ]
+  },
+  {
+    "ErrorCode": 5023,
+    "Errors": [
+      { "Language": "TR", "Description": "Yapılandırılmış anahtar için kayıtlı ödeme ağ geçidi sağlayıcısı bulunamadı." },
+      { "Language": "EN", "Description": "No payment gateway provider is registered for the configured key." }
+    ]
+  },
+  {
+    "ErrorCode": 5024,
+    "Errors": [
+      { "Language": "TR", "Description": "Bu profil için zaten aktif bir abonelik mevcut." },
+      { "Language": "EN", "Description": "An active subscription already exists for this profile." }
+    ]
+  },
+  {
+    "ErrorCode": 5025,
+    "Errors": [
+      { "Language": "TR", "Description": "Abonelik kaydı bulunamadı." },
+      { "Language": "EN", "Description": "Subscription record not found." }
+    ]
+  },
+  {
+    "ErrorCode": 5026,
+    "Errors": [
+      { "Language": "TR", "Description": "Sağlayıcı planı bulunamadı veya aktif değil." },
+      { "Language": "EN", "Description": "Provider plan not found or is not active." }
+    ]
+  },
+  {
+    "ErrorCode": 5027,
+    "Errors": [
+      { "Language": "TR", "Description": "Katılımcı planı bulunamadı veya aktif değil." },
+      { "Language": "EN", "Description": "Participant plan not found or is not active." }
+    ]
+  }
+]

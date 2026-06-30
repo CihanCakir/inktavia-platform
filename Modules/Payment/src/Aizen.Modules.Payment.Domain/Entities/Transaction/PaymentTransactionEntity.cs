@@ -1,4 +1,5 @@
 using Aizen.Core.Domain;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
 
@@ -162,8 +163,7 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void Capture(string? gatewayReference)
     {
         if (Status != PaymentTransactionStatus.PendingIntent)
-            throw new InvalidOperationException(
-                $"Cannot capture transaction {Id} with status {Status}. Expected PendingIntent.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         Status           = PaymentTransactionStatus.Captured;
         GatewayReference = gatewayReference;
@@ -176,8 +176,7 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void Release(string? adminNote = null)
     {
         if (Status != PaymentTransactionStatus.Captured)
-            throw new InvalidOperationException(
-                $"Cannot release transaction {Id} with status {Status}. Expected Captured.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         Status     = PaymentTransactionStatus.Released;
         ReleasedAt = DateTime.UtcNow;
@@ -195,10 +194,7 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void Cancel(CancellationReason reason, string? adminNote = null)
     {
         if (Status != PaymentTransactionStatus.PendingIntent)
-            throw new InvalidOperationException(
-                $"Cannot cancel transaction {Id} with status {Status}. " +
-                $"Only PendingIntent can be cancelled without a gateway refund. " +
-                $"For captured funds, use ApplyRefund() with RefundType.Full.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         Status             = PaymentTransactionStatus.Cancelled;
         CancelledAt        = DateTime.UtcNow;
@@ -219,8 +215,7 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void ReinstateCancellation(string adminNote)
     {
         if (Status != PaymentTransactionStatus.Cancelled)
-            throw new InvalidOperationException(
-                $"Cannot reinstate transaction {Id} with status {Status}. Expected Cancelled.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         if (string.IsNullOrWhiteSpace(adminNote))
             throw new ArgumentException("Admin note is required when reinstating a cancelled transaction.", nameof(adminNote));
@@ -244,14 +239,10 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void ApplyRefund(TransactionRefundRecord refundRecord)
     {
         if (refundRecord.PaymentTransactionId != Id)
-            throw new InvalidOperationException(
-                $"RefundRecord {refundRecord.Id} (tx={refundRecord.PaymentTransactionId}) " +
-                $"does not belong to transaction {Id}.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         if (refundRecord.Status != TransactionRefundStatus.Processed)
-            throw new InvalidOperationException(
-                $"Cannot apply refund record {refundRecord.Id} with status {refundRecord.Status}. " +
-                $"Only Processed records can be applied.");
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundRecordInvalidState);
 
         var validStatuses = new[]
         {
@@ -261,14 +252,10 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
         };
 
         if (!validStatuses.Contains(Status))
-            throw new InvalidOperationException(
-                $"Cannot refund transaction {Id} with status {Status}. " +
-                $"Expected Captured, Released, or PartiallyRefunded.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         if (refundRecord.Amount > RemainingRefundableAmount + 0.001m) // tolerance for decimal precision
-            throw new InvalidOperationException(
-                $"Refund amount {refundRecord.Amount:F2} {CurrencyCode} exceeds remaining refundable " +
-                $"amount {RemainingRefundableAmount:F2} {CurrencyCode} on transaction {Id}.");
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundAmountExceedsMaximum);
 
         if (!_refundRecords.Any(r => r.Id == refundRecord.Id && r.Id != 0))
             _refundRecords.Add(refundRecord);
@@ -303,8 +290,7 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
         string? adminNote = null)
     {
         if (refundRecord.PaymentTransactionId != Id)
-            throw new InvalidOperationException(
-                $"RefundRecord {refundRecord.Id} does not belong to transaction {Id}.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         // Delegate state change to the record — throws if not Processed
         refundRecord.Reverse(reversalReason, adminNote);
@@ -326,8 +312,7 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void Dispute()
     {
         if (Status != PaymentTransactionStatus.Captured && Status != PaymentTransactionStatus.Released)
-            throw new InvalidOperationException(
-                $"Cannot dispute transaction {Id} with status {Status}. Expected Captured or Released.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         Status     = PaymentTransactionStatus.Disputed;
         DisputedAt = DateTime.UtcNow;
@@ -340,8 +325,7 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void ResolveDispute(string resolution)
     {
         if (Status != PaymentTransactionStatus.Disputed)
-            throw new InvalidOperationException(
-                $"Cannot resolve dispute on transaction {Id} with status {Status}.");
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
 
         DisputeResolution = resolution;
         Status = ReleasedAt.HasValue

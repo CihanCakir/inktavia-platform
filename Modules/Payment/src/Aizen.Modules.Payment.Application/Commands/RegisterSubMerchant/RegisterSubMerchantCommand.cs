@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.RegisterSubMerchant;
 
@@ -24,9 +25,3 @@ public sealed class RegisterSubMerchantCommand : AizenCommand<RegisterSubMerchan
     public          string? ContactSurname   { get; init; }
     public          string  Address          { get; init; } = "N/A";
 }
-
-public sealed record RegisterSubMerchantResult(
-    long   ProviderProfileId,
-    string SubMerchantKey,
-    string GatewayProvider
-);

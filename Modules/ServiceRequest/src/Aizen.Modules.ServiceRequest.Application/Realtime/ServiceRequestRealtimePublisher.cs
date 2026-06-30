@@ -2,7 +2,6 @@ using System.Text.Json;
 using Aizen.Core.Realtime.Abstraction.Interfaces;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Application.Realtime;
 

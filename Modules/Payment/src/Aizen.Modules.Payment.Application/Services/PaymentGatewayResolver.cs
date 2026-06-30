@@ -1,3 +1,5 @@
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -28,9 +30,7 @@ public sealed class PaymentGatewayResolver
 
         var gateway = _provider.GetKeyedService<IPaymentGatewayProvider>(activeKey);
         if (gateway is null)
-            throw new InvalidOperationException(
-                $"No IPaymentGatewayProvider registered with key '{activeKey}'. " +
-                $"Register one via services.AddKeyedScoped<IPaymentGatewayProvider, TImpl>(\"{activeKey}\").");
+            throw new AizenBusinessException((int)PaymentErrorCode.GatewayProviderNotFound);
 
         _logger.LogDebug("Resolved payment gateway: {Key}", activeKey);
         return gateway;

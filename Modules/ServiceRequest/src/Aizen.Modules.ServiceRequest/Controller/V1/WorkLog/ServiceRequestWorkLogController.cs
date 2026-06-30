@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog;
 using Aizen.Modules.ServiceRequest.Application.Command.WorkLog;

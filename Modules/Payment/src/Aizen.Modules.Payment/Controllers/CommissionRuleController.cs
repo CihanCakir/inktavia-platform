@@ -30,7 +30,6 @@ public sealed class CommissionRuleController : ControllerBase
             ProviderPlanId    = providerPlanId,
             CategoryCode      = categoryCode,
         }, ct);
-        if (result is null) return NotFound("No commission rule configured.");
         return Ok(result);
     }
 }

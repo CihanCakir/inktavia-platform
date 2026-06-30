@@ -1,5 +1,4 @@
 using Aizen.Modules.Payment.Abstraction.Enum;
-using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction.Requests;
 using Aizen.Modules.Payment.Application.Commands.CancelPayment;
 using Aizen.Modules.Payment.Application.Commands.CapturePayment;

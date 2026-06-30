@@ -1,4 +1,3 @@
-using Aizen.Modules.CargoDry.Abstraction.Model;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.RevokeBatch;
 

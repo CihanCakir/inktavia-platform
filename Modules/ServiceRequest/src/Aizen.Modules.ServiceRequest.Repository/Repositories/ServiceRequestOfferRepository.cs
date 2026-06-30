@@ -1,4 +1,3 @@
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;

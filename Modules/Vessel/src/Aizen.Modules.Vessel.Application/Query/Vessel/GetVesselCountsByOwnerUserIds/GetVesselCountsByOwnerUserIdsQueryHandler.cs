@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Microsoft.EntityFrameworkCore;
 

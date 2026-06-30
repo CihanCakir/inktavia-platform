@@ -1,6 +1,5 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.Processing;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.Processing;
 using Aizen.Modules.FileStorage.Domain.Entities.Processing;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;

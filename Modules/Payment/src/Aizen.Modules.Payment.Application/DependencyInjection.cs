@@ -34,7 +34,7 @@ public static class DependencyInjection
         services.AddKeyedScoped<IPaymentGatewayProvider, ManualPaymentGatewayProvider>("manual");
         services.AddKeyedScoped<IPaymentGatewayProvider, IyzicoMarketplacePaymentGatewayProvider>("iyzico");
 
-        // Direct registration for PaymentWebhookController injection
+        // Direct registration — required by ProcessIyzicoWebhookCommandHandler
         services.AddScoped<IyzicoMarketplacePaymentGatewayProvider>();
 
         // ── Gateway resolver ──────────────────────────────────────────────────
@@ -43,13 +43,16 @@ public static class DependencyInjection
         // ── Commission calculator ─────────────────────────────────────────────
         services.AddScoped<CommissionCalculationService>();
 
-        // ── Message consumers ─────────────────────────────────────────────────
-        // Registered here so AizenApplicationBuilder's consumer discovery
-        // (AppType.Worker) can resolve them from DI.
-        services.AddScoped<Consumers.ServiceRequestCompletedConsumer>();
-        services.AddScoped<Consumers.ServiceRequestCancelledConsumer>();
+        // NOTE: Message consumers (ServiceRequestCompletedConsumer, ServiceRequestCancelledConsumer)
+        // are registered in Aizen.Modules.Payment (web host) DI, not here.
+        // Consumers must live in the host project — they inline business logic and must NOT
+        // dispatch nested CQRS commands via ISender.
 
-        // CQRS handlers and recurring jobs are auto-discovered by AizenApplicationBuilder
+        // NOTE: Recurring jobs (PaymentEscrowTimeoutJob, PaymentReminderJob, PayoutProcessingJob,
+        // StaleEscrowCleanupJob) are now in Aizen.Modules.Payment/Jobs/ and auto-discovered
+        // by AizenApplicationBuilder via host assembly scanning.
+
+        // CQRS handlers are auto-discovered by AizenApplicationBuilder
         // via assembly scanning when AppType.Scheduler is included in AizenAppInfo.TypeInclude.
         return services;
     }

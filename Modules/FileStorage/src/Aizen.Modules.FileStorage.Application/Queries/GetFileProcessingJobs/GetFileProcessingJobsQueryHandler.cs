@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Processing;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
 namespace Aizen.Modules.FileStorage.Application.Queries.GetFileProcessingJobs;

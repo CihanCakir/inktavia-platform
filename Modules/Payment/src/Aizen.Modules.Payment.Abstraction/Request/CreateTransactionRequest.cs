@@ -1,4 +1,5 @@
 using Aizen.Modules.Payment.Abstraction;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Model;
 
 namespace Aizen.Modules.Payment.Abstraction

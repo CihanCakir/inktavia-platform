@@ -5,7 +5,6 @@ using System.Text.Json;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Modules.Identity.Abstraction.Dto;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Interface.Repository;
 using Microsoft.AspNetCore.Http;

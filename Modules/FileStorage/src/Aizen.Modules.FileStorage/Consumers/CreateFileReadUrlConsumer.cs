@@ -3,7 +3,6 @@ using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Application.Queries.GetFileAccessUrl;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Microsoft.Extensions.DependencyInjection;

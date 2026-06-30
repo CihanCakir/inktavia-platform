@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.CargoDry.Repository.Persistence;
 
-[Abstraction.Model.DocumentationInfo("CargoDry EF DbContext",
+[DocumentationInfo("CargoDry EF DbContext",
     "EF Core context for the CargoDry module PostgreSQL schema.")]
 public sealed class CargoDryDbContext : AizenDbContext
 {

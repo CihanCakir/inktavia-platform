@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Status;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Repository.Persistence;

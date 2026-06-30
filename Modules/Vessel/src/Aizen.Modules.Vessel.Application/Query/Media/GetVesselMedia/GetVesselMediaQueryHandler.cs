@@ -4,7 +4,6 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Media;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Repository.Persistence;

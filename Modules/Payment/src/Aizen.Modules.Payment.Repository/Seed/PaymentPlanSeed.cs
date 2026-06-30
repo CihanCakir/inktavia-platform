@@ -25,8 +25,12 @@ public sealed class PaymentPlanSeed
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
+        // Phase 1: persist plans first so EF assigns real PKs before commission rules reference them
         await SeedProviderPlansAsync(ct);
         await SeedParticipantPlansAsync(ct);
+        await _db.SaveChangesAsync(ct);
+
+        // Phase 2: commission rules — plan PKs are now available in DB
         await SeedCommissionRulesAsync(ct);
         await _db.SaveChangesAsync(ct);
     }
@@ -81,25 +85,25 @@ public sealed class PaymentPlanSeed
 
     // ── Commission Rules ──────────────────────────────────────────────────────
     // Precedence chain: ProviderOverride > Plan > Category > Global
-    // Plan IDs are resolved after plan seed — set via separate migration or admin panel.
-    // MVP: seed Global + Category rules only. Plan-level rules are linked post-seed by admin.
+    // Called AFTER SeedProviderPlansAsync + SaveChangesAsync so plan PKs are available.
     private async Task SeedCommissionRulesAsync(CancellationToken ct)
     {
-        var now = DateTime.UtcNow;
-
-        // Global default: 15%
+        // ── Global fallback: 15% ──────────────────────────────────────────────
         if (!await _db.CommissionRules.AnyAsync(x => x.RuleType == CommissionRuleType.Global, ct))
         {
-            await _db.CommissionRules.AddAsync(CommissionRuleEntity.CreateGlobal(0.15m), ct);
+            await _db.CommissionRules.AddAsync(CommissionRuleEntity.CreateGlobal(0.15m,
+                notes: "MVP global fallback — applies when no Plan/Category/Override rule matches"), ct);
             _logger.LogInformation("Seeding global commission rule: 15%");
         }
 
-        // Category overrides — MVP defaults
+        // ── Category overrides ────────────────────────────────────────────────
+        // These complement Plan rules — Category beats Global but loses to Plan/Override.
         var categoryRules = new[]
         {
             ("ENGINE_MAINTENANCE", 0.12m),
             ("ANTIFOULING",        0.10m),
             ("GENERAL_CLEANING",   0.18m),
+            ("CARGODRY_RENEWAL",   0.05m),  // CargoDry renewals collected by platform — low rate
         };
 
         foreach (var (code, rate) in categoryRules)
@@ -108,15 +112,47 @@ public sealed class PaymentPlanSeed
                     x => x.RuleType == CommissionRuleType.Category && x.CategoryCode == code, ct))
             {
                 await _db.CommissionRules.AddAsync(
-                    CommissionRuleEntity.CreateForCategory(code, rate), ct);
+                    CommissionRuleEntity.CreateForCategory(code, rate,
+                        notes: $"MVP category default for {code}"), ct);
                 _logger.LogInformation("Seeding category commission rule: {Code} = {Rate:P0}", code, rate);
             }
         }
 
-        // Note: Plan-level commission rules (FREE=18%, STANDARD=12%, PREMIUM_PARTNER=8%)
-        // are NOT seeded here because they require ProviderPlanEntity.Id foreign keys.
-        // These must be created via the Admin Panel → Commission Rules screen after first run,
-        // or added via a separate migration once plan IDs are known.
-        // They will be resolved from the precedence chain — Global fallback applies until set.
+        // ── Plan-level rules ──────────────────────────────────────────────────
+        // Resolved from DB now that Phase 1 SaveChanges has run and PKs are assigned.
+        // FREE plan pays higher commission (platform subsidises free tier).
+        // PREMIUM_PARTNER pays lowest (loyalty reward for paid tier).
+        var planRates = new Dictionary<string, decimal>
+        {
+            { "FREE",            0.18m },
+            { "STANDARD",        0.12m },
+            { "PREMIUM_PARTNER", 0.08m },
+        };
+
+        foreach (var (planCode, rate) in planRates)
+        {
+            var plan = await _db.ProviderPlans
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.PlanCode == planCode, ct);
+
+            if (plan is null)
+            {
+                _logger.LogWarning(
+                    "SeedCommissionRules: ProviderPlan '{Code}' not found — skipping plan-level rule.", planCode);
+                continue;
+            }
+
+            var alreadyExists = await _db.CommissionRules.AnyAsync(
+                x => x.RuleType == CommissionRuleType.Plan && x.ProviderPlanId == plan.Id, ct);
+
+            if (!alreadyExists)
+            {
+                await _db.CommissionRules.AddAsync(
+                    CommissionRuleEntity.CreateForPlan(plan.Id, rate,
+                        notes: $"Plan-level commission for {planCode} tier"), ct);
+                _logger.LogInformation(
+                    "Seeding plan commission rule: {Code} (Id={Id}) = {Rate:P0}", planCode, plan.Id, rate);
+            }
+        }
     }
 }

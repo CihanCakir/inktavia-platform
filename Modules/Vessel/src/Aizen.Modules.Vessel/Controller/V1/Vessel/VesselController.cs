@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Aizen.Modules.Vessel.Application.Command.Vessel;

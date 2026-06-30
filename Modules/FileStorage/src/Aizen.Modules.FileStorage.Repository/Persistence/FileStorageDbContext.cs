@@ -1,5 +1,4 @@
 using Aizen.Core.EFCore;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Entities.Access;
 using Aizen.Modules.FileStorage.Domain.Entities.File;
 using Aizen.Modules.FileStorage.Domain.Entities.Processing;

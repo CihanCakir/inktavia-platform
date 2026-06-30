@@ -1,5 +1,4 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity

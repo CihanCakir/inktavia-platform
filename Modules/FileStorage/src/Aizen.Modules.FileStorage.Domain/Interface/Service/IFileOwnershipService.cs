@@ -1,5 +1,4 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.Access;
 
 namespace Aizen.Modules.FileStorage.Domain.Interface.Service;

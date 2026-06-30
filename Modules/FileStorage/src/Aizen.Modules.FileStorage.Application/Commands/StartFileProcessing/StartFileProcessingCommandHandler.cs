@@ -2,7 +2,6 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Processing;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 

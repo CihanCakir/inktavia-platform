@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Interface.Repository;
 

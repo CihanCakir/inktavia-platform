@@ -15,4 +15,8 @@
     <Content Include="Seed\Json\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

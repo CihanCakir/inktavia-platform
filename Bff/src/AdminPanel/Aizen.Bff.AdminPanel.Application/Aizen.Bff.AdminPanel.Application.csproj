@@ -23,4 +23,9 @@
     <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache/Aizen.Core.Cache.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Common/src/Aizen.Core.Common.Abstraction/Aizen.Core.Common.Abstraction.csproj" />
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

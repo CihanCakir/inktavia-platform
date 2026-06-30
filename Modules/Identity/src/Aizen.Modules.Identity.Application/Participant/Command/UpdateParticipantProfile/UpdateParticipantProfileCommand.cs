@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Identity.Abstraction.Model;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity
 {

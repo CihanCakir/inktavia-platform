@@ -3,7 +3,6 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Payment.Abstraction.RemoteCall;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;

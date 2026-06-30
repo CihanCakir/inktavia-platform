@@ -1,3 +1,5 @@
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Aizen.Modules.ReferenceData.Domain.Interface.Service;
 using Microsoft.Extensions.Logging;
@@ -80,9 +82,7 @@ public sealed class CommissionCalculationService
                 $"discountAmount must be >= 0. Received: {discountAmount}");
 
         if (discountAmount >= grossAmount)
-            throw new InvalidOperationException(
-                $"discountAmount ({discountAmount}) cannot equal or exceed grossAmount ({grossAmount}). " +
-                $"A 100% discount makes the transaction free — no payment or commission applies.");
+            throw new AizenBusinessException((int)PaymentErrorCode.CommissionDiscountExceedsGross);
 
         // ── Resolve commission rate via precedence chain ───────────────────────
         var atUtc = DateTime.UtcNow;
@@ -95,10 +95,7 @@ public sealed class CommissionCalculationService
                 "Ensure a Global commission rule is seeded in the database.",
                 providerProfileId, providerPlanId, categoryCode);
 
-            throw new InvalidOperationException(
-                "No commission rule found. At minimum, a Global commission rule must be seeded " +
-                "(CommissionRuleType.Global with EffectiveTo = null). " +
-                $"Context: ProviderProfileId={providerProfileId}, ProviderPlanId={providerPlanId}, CategoryCode={categoryCode}");
+            throw new AizenBusinessException((int)PaymentErrorCode.CommissionRuleNotFound);
         }
 
         // ── Circuit breaker: rate sanity ──────────────────────────────────────
@@ -109,14 +106,13 @@ public sealed class CommissionCalculationService
                 "This is likely a data entry error. Blocking calculation.",
                 rate, MaxSafeCommissionRate);
 
-            throw new InvalidOperationException(
-                $"Commission rate {rate:P2} exceeds the safety threshold of {MaxSafeCommissionRate:P2}. " +
-                $"Check the CommissionRule data.");
+            throw new AizenBusinessException((int)PaymentErrorCode.CommissionRateExceedsThreshold);
         }
 
         if (rate < 0m)
-            throw new InvalidOperationException(
-                $"Commission rate must not be negative. Rate resolved: {rate}");
+            throw new AizenBusinessException((int)PaymentErrorCode.CommissionRateInvalid);
+
+        var effectiveRate = rate.Value;
 
         // ── Read VatRate from system parameter ─────────────────────────────────
         var vatRate = await _systemParams.GetDecimalAsync(VatRateParamKey, ct)
@@ -138,7 +134,7 @@ public sealed class CommissionCalculationService
         //   netPayoutAmount  = grossAmount - commissionAmount - vatOnCommission - discountAmount
         //
         var commissionBase   = grossAmount - discountAmount;
-        var commissionAmount = Math.Round(commissionBase * rate,         4, MidpointRounding.AwayFromZero);
+        var commissionAmount = Math.Round(commissionBase * effectiveRate,         4, MidpointRounding.AwayFromZero);
         var vatOnCommission  = Math.Round(commissionAmount * vatRate,    4, MidpointRounding.AwayFromZero);
         var netPayoutAmount  = grossAmount - commissionAmount - vatOnCommission - discountAmount;
 
@@ -152,16 +148,12 @@ public sealed class CommissionCalculationService
                 "NetPayout={Net}",
                 grossAmount, discountAmount, rate, commissionAmount, vatRate, vatOnCommission, netPayoutAmount);
 
-            throw new InvalidOperationException(
-                $"Commission calculation produced a non-positive net payout ({netPayoutAmount:F4} {nameof(netPayoutAmount)}). " +
-                $"Gross={grossAmount}, Discount={discountAmount}, Rate={rate:P2}, Commission={commissionAmount}, " +
-                $"VAT={vatOnCommission}, Net={netPayoutAmount}. " +
-                $"Review commission rules and discount amounts.");
+            throw new AizenBusinessException((int)PaymentErrorCode.NetPayoutBelowMinimumThreshold);
         }
 
         // ── Resolve which precedence tier was matched ──────────────────────────
         //    (used for audit / logging only — does not affect calculation)
-        var appliedTier = ResolveAppliedTier(providerProfileId, providerPlanId, categoryCode, rate);
+        var appliedTier = ResolveAppliedTier(providerProfileId, providerPlanId, categoryCode, effectiveRate);
 
         _logger.LogInformation(
             "Commission calculated. " +
@@ -176,7 +168,7 @@ public sealed class CommissionCalculationService
             GrossAmount:      grossAmount,
             DiscountAmount:   discountAmount,
             CommissionBase:   commissionBase,
-            CommissionRate:   rate,
+            CommissionRate:   effectiveRate,
             CommissionAmount: commissionAmount,
             VatRate:          vatRate,
             VatOnCommission:  vatOnCommission,

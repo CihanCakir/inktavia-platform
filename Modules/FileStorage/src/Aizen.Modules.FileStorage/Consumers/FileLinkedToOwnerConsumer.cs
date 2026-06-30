@@ -1,7 +1,6 @@
 using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

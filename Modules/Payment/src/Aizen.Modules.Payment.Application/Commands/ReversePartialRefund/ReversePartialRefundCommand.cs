@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.ReversePartialRefund;
 
@@ -14,7 +15,7 @@ namespace Aizen.Modules.Payment.Application.Commands.ReversePartialRefund;
 ///   - Transaction.TotalRefundedAmount is reduced by the refund amount
 ///   - Transaction.Status is recalculated (PartiallyRefunded | Captured | Released)
 /// </summary>
-public sealed class ReversePartialRefundCommand : AizenCommand<bool>
+public sealed class ReversePartialRefundCommand : AizenCommand<ReversePartialRefundResult>
 {
     public required long   RefundRecordId  { get; init; }
     public required string ReversalReason  { get; init; }

@@ -1,10 +1,15 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Payment.Abstraction;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Application.Gateway.Iyzico;
 using Aizen.Modules.Payment.Application.Gateway.Iyzico.Models;
 using Aizen.Modules.Payment.Domain.Entities.PaymentProfile;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.Extensions.Logging;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.RegisterSubMerchant;
 
@@ -13,14 +18,15 @@ namespace Aizen.Modules.Payment.Application.Commands.RegisterSubMerchant;
 public sealed class RegisterSubMerchantCommandHandler
     : AizenCommandHandler<RegisterSubMerchantCommand, RegisterSubMerchantResult>
 {
-    private readonly IProviderPaymentProfileRepository _profiles;
-    private readonly IyzicoHttpClient                  _iyzicoClient;
+    private readonly IProviderPaymentProfileRepository          _profiles;
+    private readonly IyzicoHttpClient                           _iyzicoClient;
     private readonly ILogger<RegisterSubMerchantCommandHandler> _logger;
 
     public RegisterSubMerchantCommandHandler(
-        IProviderPaymentProfileRepository profiles,
-        IyzicoHttpClient iyzicoClient,
-        ILogger<RegisterSubMerchantCommandHandler> logger)
+        IAizenUnitOfWork<PaymentDbContext>               unitOfWork,
+        IProviderPaymentProfileRepository                profiles,
+        IyzicoHttpClient                                 iyzicoClient,
+        ILogger<RegisterSubMerchantCommandHandler>       logger)
     {
         _profiles     = profiles;
         _iyzicoClient = iyzicoClient;
@@ -67,12 +73,10 @@ public sealed class RegisterSubMerchantCommandHandler
 
         if (response is null || !response.IsSuccess || string.IsNullOrEmpty(response.SubMerchantKey))
         {
-            var msg = response?.ErrorMessage ?? "Iyzico sub-merchant API returned null.";
             _logger.LogError(
                 "Iyzico sub-merchant creation failed. ProviderProfileId={Id} Error={Error} Code={Code}",
-                request.ProviderProfileId, msg, response?.ErrorCode);
-            throw new InvalidOperationException(
-                $"Failed to register sub-merchant with Iyzico: [{response?.ErrorCode}] {msg}");
+                request.ProviderProfileId, response?.ErrorMessage, response?.ErrorCode);
+            throw new AizenBusinessException((int)PaymentErrorCode.SubMerchantRegistrationFailed);
         }
 
         _logger.LogInformation(
@@ -90,7 +94,7 @@ public sealed class RegisterSubMerchantCommandHandler
 
             profile.RegisterSubMerchant(response.SubMerchantKey, null);
             await _profiles.AddAsync(profile, ct);
-            await _profiles.SaveChangesAsync(ct);
+            // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
             return new RegisterSubMerchantResult(
                 request.ProviderProfileId,
@@ -101,7 +105,7 @@ public sealed class RegisterSubMerchantCommandHandler
         {
             existing.RegisterSubMerchant(response.SubMerchantKey, null);
             _profiles.Update(existing);
-            await _profiles.SaveChangesAsync(ct);
+            // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
             return new RegisterSubMerchantResult(
                 request.ProviderProfileId,

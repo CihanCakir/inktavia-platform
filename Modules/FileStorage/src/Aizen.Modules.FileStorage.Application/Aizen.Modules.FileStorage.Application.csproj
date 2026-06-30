@@ -17,4 +17,8 @@
     <ProjectReference Include="../Aizen.Modules.FileStorage.Repository/Aizen.Modules.FileStorage.Repository.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

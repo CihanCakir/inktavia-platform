@@ -1,5 +1,4 @@
 using Aizen.Core.Domain;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 
 namespace Aizen.Modules.FileStorage.Domain.Entities.File;
 

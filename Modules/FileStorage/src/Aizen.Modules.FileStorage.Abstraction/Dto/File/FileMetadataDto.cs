@@ -1,6 +1,5 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 
 namespace Aizen.Modules.FileStorage.Abstraction.Dto.File;
 

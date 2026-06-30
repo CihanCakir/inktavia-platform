@@ -1,6 +1,5 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.UploadSession;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.UploadSession;
 using Aizen.Modules.FileStorage.Domain.Entities.File;
 using Aizen.Modules.FileStorage.Domain.Entities.UploadSession;

@@ -1,4 +1,5 @@
 using Aizen.Core.Domain;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
 
@@ -89,8 +90,7 @@ public sealed class TransactionRefundRecord : AizenEntityWithAudit
     public void MarkProcessed(string? gatewayRefundReference, string? adminNote = null)
     {
         if (Status != TransactionRefundStatus.Pending)
-            throw new InvalidOperationException(
-                $"Cannot process refund record {Id} with status {Status}.");
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundRecordInvalidState);
 
         Status                = TransactionRefundStatus.Processed;
         GatewayRefundReference = gatewayRefundReference;
@@ -104,8 +104,7 @@ public sealed class TransactionRefundRecord : AizenEntityWithAudit
     public void MarkFailed(string reason)
     {
         if (Status != TransactionRefundStatus.Pending)
-            throw new InvalidOperationException(
-                $"Cannot fail refund record {Id} with status {Status}.");
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundRecordInvalidState);
 
         Status        = TransactionRefundStatus.Failed;
         FailureReason = reason;
@@ -121,8 +120,7 @@ public sealed class TransactionRefundRecord : AizenEntityWithAudit
     public void Reverse(string reversalReason, string? adminNote = null)
     {
         if (Status != TransactionRefundStatus.Processed)
-            throw new InvalidOperationException(
-                $"Cannot reverse refund record {Id} with status {Status}. Only Processed refunds can be reversed.");
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundReversalInvalidState);
 
         Status             = TransactionRefundStatus.Reversed;
         ReversedAt         = DateTime.UtcNow;

@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Media;
 using Aizen.Modules.Vessel.Abstraction.Response.Media;
 using Aizen.Modules.Vessel.Application.Command.Media;

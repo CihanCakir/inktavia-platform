@@ -1,4 +1,3 @@
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Entities.Access;
 
 namespace Aizen.Modules.FileStorage.Domain.Interface.Repository;

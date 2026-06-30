@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.ExchangeRate;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Abstraction.Request.ExchangeRate;
 using Aizen.Modules.ReferenceData.Application.ExchangeRate.Commands;
 using Microsoft.AspNetCore.Authorization;

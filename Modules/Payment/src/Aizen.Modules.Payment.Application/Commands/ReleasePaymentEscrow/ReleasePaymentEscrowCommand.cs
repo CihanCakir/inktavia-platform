@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
 
@@ -13,9 +14,3 @@ public sealed class ReleasePaymentEscrowCommand : AizenCommand<ReleasePaymentEsc
     public required long   ApprovedByUserId { get; init; }
     public string?         AdminNote        { get; init; }
 }
-
-public sealed record ReleasePaymentEscrowResult(
-    long   PayoutRecordId,
-    string GatewayPayoutId,
-    decimal ProviderNetAmount
-);

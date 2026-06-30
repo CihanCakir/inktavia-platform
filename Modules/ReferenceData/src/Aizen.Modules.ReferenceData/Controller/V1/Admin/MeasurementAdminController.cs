@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Measurement;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Abstraction.Request.Measurement;
 using Aizen.Modules.ReferenceData.Application.Measurement.Commands;
 using Microsoft.AspNetCore.Authorization;

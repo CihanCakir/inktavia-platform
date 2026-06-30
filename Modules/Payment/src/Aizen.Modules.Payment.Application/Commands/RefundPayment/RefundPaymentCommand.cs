@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.RefundPayment;
 
@@ -21,10 +22,3 @@ public sealed class RefundPaymentCommand : AizenCommand<RefundPaymentResult>
     public required RefundType   RefundType    { get; init; }
     public          string?      AdminNote     { get; init; }
 }
-
-public sealed record RefundPaymentResult(
-    long    RefundRecordId,
-    string  RefundCode,
-    string  GatewayRefundReference,
-    decimal RefundedAmount
-);

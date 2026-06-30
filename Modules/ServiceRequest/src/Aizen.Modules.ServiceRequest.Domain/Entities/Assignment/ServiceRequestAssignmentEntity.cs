@@ -1,5 +1,4 @@
 using Aizen.Core.Domain;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
 

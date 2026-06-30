@@ -3,7 +3,6 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.LinkFileToOwner;

@@ -1,26 +1,32 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
-using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.Extensions.Logging;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.CreatePaymentEscrow;
 
+[DocumentationInfo("Create payment escrow command handler",
+    "Initiates a gateway checkout and persists a PendingIntent transaction. Idempotent via IdempotencyKey.")]
 public sealed class CreatePaymentEscrowCommandHandler
     : AizenCommandHandler<CreatePaymentEscrowCommand, CreatePaymentEscrowResult>
 {
-    private readonly IPaymentTransactionRepository _transactions;
-    private readonly CommissionCalculationService  _commission;
-    private readonly PaymentGatewayResolver        _gatewayResolver;
+    private readonly IPaymentTransactionRepository             _transactions;
+    private readonly CommissionCalculationService              _commission;
+    private readonly PaymentGatewayResolver                    _gatewayResolver;
     private readonly ILogger<CreatePaymentEscrowCommandHandler> _logger;
 
     public CreatePaymentEscrowCommandHandler(
-        IPaymentTransactionRepository transactions,
-        CommissionCalculationService commission,
-        PaymentGatewayResolver gatewayResolver,
-        ILogger<CreatePaymentEscrowCommandHandler> logger)
+        IAizenUnitOfWork<PaymentDbContext>              unitOfWork,
+        IPaymentTransactionRepository                   transactions,
+        CommissionCalculationService                    commission,
+        PaymentGatewayResolver                         gatewayResolver,
+        ILogger<CreatePaymentEscrowCommandHandler>      logger)
     {
         _transactions    = transactions;
         _commission      = commission;
@@ -72,8 +78,7 @@ public sealed class CreatePaymentEscrowCommandHandler
         }, ct);
 
         if (!initResult.IsSuccess)
-            throw new InvalidOperationException(
-                $"Gateway checkout initiation failed: {initResult.ErrorMessage}");
+            throw new AizenBusinessException((int)PaymentErrorCode.GatewayInitiationFailed);
 
         var transaction = PaymentTransactionEntity.Create(
             transactionCode:        transactionCode,
@@ -98,7 +103,7 @@ public sealed class CreatePaymentEscrowCommandHandler
         transaction.Capture(initResult.GatewayReference);
 
         await _transactions.AddAsync(transaction, ct);
-        await _transactions.SaveChangesAsync(ct);
+        // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
         _logger.LogInformation(
             "Escrow created. TransactionCode={Code} GrossAmount={Amount} Commission={Commission} Net={Net}",

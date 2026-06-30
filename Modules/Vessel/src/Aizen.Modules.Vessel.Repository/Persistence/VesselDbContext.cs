@@ -1,5 +1,4 @@
 using Aizen.Core.EFCore;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Microsoft.EntityFrameworkCore;
 

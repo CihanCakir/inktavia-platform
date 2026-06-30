@@ -1,7 +1,6 @@
 using Aizen.Core.Api.Middleware;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Interface;
 using Aizen.Modules.Identity.Domain.Interface.Repository;

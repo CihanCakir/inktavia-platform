@@ -1,6 +1,5 @@
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 
 namespace Aizen.Modules.FileStorage.Abstraction.Message;
 

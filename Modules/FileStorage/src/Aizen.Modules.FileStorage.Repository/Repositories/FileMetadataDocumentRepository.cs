@@ -1,4 +1,3 @@
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Documents;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Aizen.Modules.FileStorage.Repository.Mongo;

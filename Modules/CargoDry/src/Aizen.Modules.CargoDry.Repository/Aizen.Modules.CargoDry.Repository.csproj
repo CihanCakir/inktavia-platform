@@ -14,4 +14,8 @@
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="2.27.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

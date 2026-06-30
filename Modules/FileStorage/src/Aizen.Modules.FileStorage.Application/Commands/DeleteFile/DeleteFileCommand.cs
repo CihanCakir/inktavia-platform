@@ -1,5 +1,4 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.File;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.DeleteFile;

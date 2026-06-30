@@ -3,7 +3,6 @@ using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 
 namespace Aizen.Modules.Vessel.Repository.Service.FileStorage;
