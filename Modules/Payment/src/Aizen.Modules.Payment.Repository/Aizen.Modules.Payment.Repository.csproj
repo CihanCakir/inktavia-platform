@@ -11,6 +11,9 @@
     <ProjectReference Include="../Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+  </ItemGroup>
+  <ItemGroup>
     <Using Include="Aizen.Core.Common.Abstraction" />
   </ItemGroup>
 </Project>

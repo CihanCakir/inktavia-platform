@@ -20,6 +20,9 @@ public static class DependencyInjection
         services.AddScoped<IParticipantPlanRepository,       ParticipantPlanRepository>();
         services.AddScoped<IPayoutRecordRepository,          PayoutRecordRepository>();
         services.AddScoped<IProviderPaymentProfileRepository, ProviderPaymentProfileRepository>();
+        // ── Invoice subsystem ─────────────────────────────────────────────────
+        services.AddScoped<IInvoiceRepository,               InvoiceRepository>();
+        services.AddScoped<IInvoiceNumberSequenceRepository, InvoiceNumberSequenceRepository>();
         services.AddScoped<PaymentPlanSeed>();
 
         return services;

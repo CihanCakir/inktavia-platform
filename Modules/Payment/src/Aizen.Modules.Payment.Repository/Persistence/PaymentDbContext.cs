@@ -1,5 +1,6 @@
 using Aizen.Core.EFCore;
 using Aizen.Modules.Payment.Domain.Entities.Commission;
+using Aizen.Modules.Payment.Domain.Entities.Invoice;
 using Aizen.Modules.Payment.Domain.Entities.PaymentProfile;
 using Aizen.Modules.Payment.Domain.Entities.Payout;
 using Aizen.Modules.Payment.Domain.Entities.Plan;
@@ -24,6 +25,14 @@ public sealed class PaymentDbContext : AizenDbContext
     public DbSet<ParticipantPlanSubscriptionEntity> ParticipantSubscriptions => Set<ParticipantPlanSubscriptionEntity>();
     public DbSet<PayoutRecordEntity>              PayoutRecords         => Set<PayoutRecordEntity>();
     public DbSet<ProviderPaymentProfileEntity>    PaymentProfiles       => Set<ProviderPaymentProfileEntity>();
+
+    // ── Invoice subsystem ─────────────────────────────────────────────────────
+    public DbSet<InvoiceHeaderEntity>                InvoiceHeaders           => Set<InvoiceHeaderEntity>();
+    public DbSet<InvoiceLineEntity>                  InvoiceLines             => Set<InvoiceLineEntity>();
+    public DbSet<InvoiceTaxBreakdownEntity>          InvoiceTaxBreakdowns     => Set<InvoiceTaxBreakdownEntity>();
+    public DbSet<InvoiceStatusHistoryEntity>         InvoiceStatusHistories   => Set<InvoiceStatusHistoryEntity>();
+    public DbSet<InvoiceNumberSequenceEntity>        InvoiceNumberSequences   => Set<InvoiceNumberSequenceEntity>();
+    public DbSet<InvoiceExternalIntegrationEntity>   InvoiceExternalIntegrations => Set<InvoiceExternalIntegrationEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
