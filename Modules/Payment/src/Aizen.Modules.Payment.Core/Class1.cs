@@ -1,6 +1,1 @@
-﻿namespace Aizen.Modules.Payment.Core;
-
-public class Class1
-{
-
-}
+﻿// placeholder — intentionally empty

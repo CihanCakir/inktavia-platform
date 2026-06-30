@@ -42,6 +42,13 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public DateTimeOffset? DisputedAt { get; private set; }
     public string? DisputeReason { get; private set; }
 
+    /// <summary>
+    /// Payment module transaction ID created when offer is accepted (escrow held).
+    /// Populated by AcceptServiceRequestOfferCommandHandler via IPaymentModuleRemoteCall.
+    /// Required by ReleasePaymentCommandHandler to release escrow.
+    /// </summary>
+    public long? PaymentTransactionId { get; private set; }
+
     private readonly List<ServiceRequestItemEntity> _items = new();
     public IReadOnlyCollection<ServiceRequestItemEntity> Items => _items.AsReadOnly();
 
@@ -181,6 +188,15 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     {
         AssignedProviderName = providerName;
         Status = ServiceRequestStatus.Assigned;
+    }
+
+    /// <summary>
+    /// Stores the Payment module transaction ID after escrow is created.
+    /// Called immediately after IPaymentModuleRemoteCall.CreateEscrowAsync succeeds.
+    /// </summary>
+    public void SetPaymentTransaction(long transactionId)
+    {
+        PaymentTransactionId = transactionId;
     }
 
     public void ReleasePayment()

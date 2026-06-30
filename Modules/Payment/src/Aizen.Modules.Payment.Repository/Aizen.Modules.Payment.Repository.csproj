@@ -1,9 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/EFCore/src/Aizen.Core.EFCore/Aizen.Core.EFCore.csproj" />
+    <ProjectReference Include="../../../../Core/Data/src/Aizen.Core.Data.Postgresql/Aizen.Core.Data.Postgresql.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Payment.Domain/Aizen.Modules.Payment.Domain.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
+  </ItemGroup>
 </Project>

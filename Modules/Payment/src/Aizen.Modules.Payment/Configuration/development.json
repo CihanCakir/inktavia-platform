@@ -1,0 +1,57 @@
+{
+  "ConnectionStrings": {
+    "Payment": "Host=dev-pg.inktavia.internal;Port=5432;Database=aizen_payment;Username=payment_svc;Password=#{Payment_PgPassword}#;Pooling=true;MinPoolSize=2;MaxPoolSize=20;SslMode=Require"
+  },
+  "Payment": {
+    "GatewayActive": "manual",
+    "EscrowTimeoutHours": 2,
+    "EscrowTimeoutBatch": 200,
+    "ReminderWindowsHours": [ 1, 24 ],
+    "ReminderBatch": 500,
+    "StaleCleanupDays": 7,
+    "StaleCleanupBatch": 500,
+    "PayoutAutoRetryHours": 48,
+    "PayoutBatch": 200
+  },
+  "Iyzico": {
+    "ApiKey": "#{Iyzico_ApiKey}#",
+    "SecretKey": "#{Iyzico_SecretKey}#",
+    "BaseUrl": "https://sandbox-api.iyzipay.com",
+    "WebhookSecret": "#{Iyzico_WebhookSecret}#",
+    "CallbackUrl": "https://dev.inktavia.com/payment/callback",
+    "Locale": "tr"
+  },
+  "RabbitMq": {
+    "Host": "dev-rabbitmq.inktavia.internal",
+    "VirtualHost": "inktavia-dev",
+    "Username": "payment_svc",
+    "Password": "#{RabbitMq_Payment_Password}#",
+    "Port": 5672
+  },
+  "DistributedCache": {
+    "Configuration": "dev-redis.inktavia.internal:6379,password=#{Redis_Password}#,abortConnect=false"
+  },
+  "DatabaseSettings": {
+    "PaymentScheduler": {
+      "Type": "PostgreSQL",
+      "ConnectionString": "Host=dev-pg.inktavia.internal;Port=5432;Database=aizen_payment;Username=payment_svc;Password=#{Payment_PgPassword}#;Pooling=true;MinPoolSize=2;MaxPoolSize=20;SslMode=Require"
+    }
+  },
+  "Scheduler": {
+    "StorageType": "PostgreSQL",
+    "RetryAttempts": 3,
+    "UseFilter": true,
+    "RouteUrl": "/hangfire",
+    "DatabaseKey": "PaymentScheduler",
+    "SchemaName": "payment-scheduler"
+  },
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning"
+      }
+    }
+  }
+}

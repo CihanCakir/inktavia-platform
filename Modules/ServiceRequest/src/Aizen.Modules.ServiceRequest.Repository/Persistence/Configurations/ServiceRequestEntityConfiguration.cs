@@ -52,6 +52,7 @@ public sealed class ServiceRequestEntityConfiguration : IEntityTypeConfiguration
         builder.Property(x => x.RequestedByEmail).HasMaxLength(300);
         builder.Property(x => x.AssignedProviderName).HasMaxLength(200);
         builder.Property(x => x.DisputeReason).HasMaxLength(1000);
+        builder.Property(x => x.PaymentTransactionId); // nullable long — set after escrow creation
 
         builder.HasMany(x => x.WorkPhases).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(x => x.Conversations).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);

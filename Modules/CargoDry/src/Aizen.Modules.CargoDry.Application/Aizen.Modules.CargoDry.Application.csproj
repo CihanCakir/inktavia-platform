@@ -13,6 +13,10 @@
     <ProjectReference Include="../Aizen.Modules.CargoDry.Domain/Aizen.Modules.CargoDry.Domain.csproj" />
     <ProjectReference Include="../Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
     <ProjectReference Include="../Aizen.Modules.CargoDry.Repository/Aizen.Modules.CargoDry.Repository.csproj" />
+    <!-- Payment.Abstraction — used for IPaymentModuleRemoteCall (CargoDry renewal escrow trigger) -->
+    <ProjectReference Include="../../../Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
+    <!-- InfoAccessor — used to forward caller JWT to Payment module -->
+    <ProjectReference Include="../../../../Core/InfoAccessor/src/Aizen.Core.InfoAccessor.Abstraction/Aizen.Core.InfoAccessor.Abstraction.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="QRCoder" Version="1.*" />

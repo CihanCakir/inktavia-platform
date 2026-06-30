@@ -1,59 +1,50 @@
-using Aizen.Modules.Payment.Extensions;
-using Aizen.Modules.Payment.Services;
-using Microsoft.OpenApi.Models;
+using Aizen.Core.Cache.Extension;
+using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.UnitOfWork.Extension;
+using Aizen.Core.Starter;
+using Aizen.Modules.Payment.Application;
+using Aizen.Modules.Payment.Repository;
+using Aizen.Modules.Payment.Repository.Persistence;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddKeycloakAuthentication(builder.Configuration);
-builder.Services.AddInktaviaAuthorizationPolicies();
-
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Payment API", Version = "v1" });
+    Name        = "Payment",
+    Type        = AppType.Operation,
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter your Keycloak access token. Example: Bearer {access_token}"
-    });
+    // Worker    → enables AizenBaseMessageConsumer auto-registration + RabbitMQ consumer wiring
+    // Scheduler → enables AizenRecurringJob auto-discovery via Hangfire; reads "Scheduler" config section
+    TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler },
+}, args);
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+// ── Configuration ──────────────────────────────────────────────────────────────
+// Loaded automatically by AizenApplicationBuilder from Configuration/{env}.json.
+// Environments: local | development | production (set via ASPNETCORE_ENVIRONMENT)
+
+// ── PostgreSQL ─────────────────────────────────────────────────────────────────
+builder.Services.AddAizenUnitOfWork<PaymentDbContext>(builder.Configuration, "Payment", options =>
+{
+    options.UseMigration          = true;
+    options.MigrationAssembly     = "Aizen.Modules.Payment.Repository";
+    options.UseLazyLoadingProxies = false;
 });
+
+// ── Repository ─────────────────────────────────────────────────────────────────
+builder.Services.AddPaymentRepository(builder.Configuration);
+
+// ── Application (CQRS + Gateway + Commission + Consumers + Jobs) ───────────────
+// AddAizenRecurringJob + AddAizenBackgroundJob are auto-registered by
+// AizenOperationServiceConfiguration when AppType.Scheduler is in TypeInclude.
+// Scheduler storage type + schema are read from the "Scheduler" appsettings section.
+builder.Services.AddPaymentApplication(builder.Configuration);
+
+// ── Redis Cache (IAizenDistributedCache — required by cacheable query handlers) ──
+builder.Services.AddAizenCache(builder.Configuration);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
+// ── Seed: subscription plans + commission rules ────────────────────────────────
+// UseAizenRecurringJob + UseAizenBackgroundJob are called automatically by
+// AizenOperationApplicationConfiguration when AppType.Scheduler is in TypeInclude.
+await app.SeedPaymentAsync();
 
 app.Run();
-

@@ -1,0 +1,23 @@
+using Aizen.Modules.Payment.Domain.Entities.Commission;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Aizen.Modules.Payment.Repository.Persistence.Configurations;
+
+public sealed class CommissionRuleConfiguration : IEntityTypeConfiguration<CommissionRuleEntity>
+{
+    public void Configure(EntityTypeBuilder<CommissionRuleEntity> b)
+    {
+        b.ToTable("commission_rules");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.RuleType).HasConversion<int>().IsRequired();
+        b.Property(x => x.CategoryCode).HasMaxLength(100);
+        b.Property(x => x.ProviderPlanId);
+        b.Property(x => x.ProviderProfileId);
+        b.Property(x => x.CommissionRate).HasColumnType("numeric(6,4)").IsRequired();
+        b.Property(x => x.EffectiveFrom).IsRequired();
+        b.Property(x => x.EffectiveTo);
+        b.Property(x => x.Notes).HasMaxLength(500);
+        b.HasIndex(x => x.RuleType);
+    }
+}

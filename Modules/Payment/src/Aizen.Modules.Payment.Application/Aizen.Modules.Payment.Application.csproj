@@ -1,9 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache.Abstraction/Aizen.Core.Cache.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Scheduler/src/Aizen.Core.Scheduler/Aizen.Core.Scheduler.csproj" />
+    <ProjectReference Include="../../../../Core/Scheduler/src/Aizen.Core.Scheduler.Abstraction/Aizen.Core.Scheduler.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Payment.Domain/Aizen.Modules.Payment.Domain.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Payment.Repository/Aizen.Modules.Payment.Repository.csproj" />
+    <!-- ReferenceData.Domain only (interface layer) — used for ISystemParameterReferenceService (VatRate, CommissionRate params) -->
+    <ProjectReference Include="../../../../Modules/ReferenceData/src/Aizen.Modules.ReferenceData.Domain/Aizen.Modules.ReferenceData.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.*" />
+  </ItemGroup>
 </Project>
