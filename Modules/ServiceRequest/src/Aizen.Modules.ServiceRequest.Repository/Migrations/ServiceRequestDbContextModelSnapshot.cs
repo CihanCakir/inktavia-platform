@@ -866,6 +866,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.Property<long>("OwnerUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("PaymentTransactionId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
 

@@ -19,7 +19,7 @@ namespace Aizen.Modules.Payment.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/payment/subscriptions")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "payment.admin")]
 public sealed class SubscriptionController : ControllerBase
 {
     private readonly ISender _sender;

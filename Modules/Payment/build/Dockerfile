@@ -4,17 +4,18 @@ WORKDIR /app
 EXPOSE 8080
 
 # Build stage
-# Build context is ./Modules/Payment (set in docker-compose.yaml)
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY . .
-RUN dotnet restore "src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj"
-RUN dotnet build "src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj" -c Release -o /app/build
+COPY ./Core ./Core
+COPY ./Modules ./Modules
+
+RUN dotnet restore "Modules/Payment/src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj"
+RUN dotnet build "Modules/Payment/src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj" -c Release -o /app/build
 
 # Publish stage
 FROM build AS publish
-RUN dotnet publish "src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj" -c Release -o /app/publish
+RUN dotnet publish "Modules/Payment/src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj" -c Release -o /app/publish
 
 # Final stage
 FROM base AS final

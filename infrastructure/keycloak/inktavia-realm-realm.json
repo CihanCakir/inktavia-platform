@@ -252,6 +252,20 @@
           "name": "notification.admin",
           "description": "Full notification administration access"
         }
+      ],
+      "payment-api": [
+        {
+          "name": "payment.read",
+          "description": "Read payment transactions and invoices"
+        },
+        {
+          "name": "payment.write",
+          "description": "Create and update payment records"
+        },
+        {
+          "name": "payment.admin",
+          "description": "Full administrative access to Payment API"
+        }
       ]
     }
   },
@@ -741,6 +755,19 @@
             "userinfo.token.claim": "false",
             "introspection.token.claim": "true"
           }
+        },
+        {
+          "name": "audience-payment-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "payment-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
         }
       ]
     },
@@ -962,6 +989,11 @@
           "notification.read",
           "notification.write",
           "notification.admin"
+        ],
+        "payment-api": [
+          "payment.read",
+          "payment.write",
+          "payment.admin"
         ]
       },
       "realmRoles": []

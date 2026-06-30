@@ -60,7 +60,7 @@ public sealed class PaymentWebhookController : ControllerBase
     /// GatewayReference is set to a deterministic manual key for audit trail purposes.
     /// </summary>
     [HttpPost("manual/{transactionId:long}/capture")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "payment.admin")]
     public async Task<IActionResult> ManualCapture(
         long transactionId,
         [FromQuery] decimal paidAmount = 0m,

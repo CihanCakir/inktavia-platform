@@ -125,6 +125,7 @@ services:
       - cargodry-api
       - messaging-api
       - notification-api
+      - payment-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -136,6 +137,7 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: bff-adminpanel
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      KeycloakServiceToken__ClientSecret: ${KEYCLOAK_BFF_CLIENT_SECRET:-local-dev-only-change-me}
       RemoteCalls__IIdentityAdminBffRemoteCall__BaseUrl: http://identity-api:8080
       RemoteCalls__IVesselAdminBffRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__IFileStorageAdminBffRemoteCall__BaseUrl: http://file-storage-api:8080
@@ -145,6 +147,7 @@ services:
       RemoteCalls__IAdminMessagingBffRemoteCall__BaseUrl: http://messaging-api:8080
       RemoteCalls__INotificationBffRemoteCall__BaseUrl: http://notification-api:8080
       RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl: http://notification-api:8080
+      RemoteCalls__IAdminPaymentBffRemoteCall__BaseUrl: http://payment-api:8080
     ports:
       - "${BFF_ADMINPANEL_PORT:-17001}:8080"
     networks: [aizen]
@@ -434,6 +437,48 @@ services:
       ElasticApm__Enabled: "false"
     ports:
       - "7110:8080"
+    networks: [aizen]
+
+  payment-api:
+    build:
+      context: .
+      dockerfile: ./Modules/Payment/build/Dockerfile
+    container_name: payment-api
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      DatabaseSettings__Payment__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__PaymentScheduler__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DistributedCache__InstanceName: "Payment:"
+      DistributedCache__Configuration: redis:6379,abortConnect=False,defaultDatabase=14
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      MessageBroker__QueueSettings__VirtualHost: ${RABBITMQ_VHOST:-/}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: payment-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      Iyzico__ApiKey: ${IYZICO_API_KEY:-sandbox_api_key_placeholder}
+      Iyzico__SecretKey: ${IYZICO_SECRET_KEY:-sandbox_secret_key_placeholder}
+      Iyzico__BaseUrl: ${IYZICO_BASE_URL:-https://sandbox-api.iyzipay.com}
+      Iyzico__WebhookSecret: ${IYZICO_WEBHOOK_SECRET:-}
+      Iyzico__CallbackUrl: ${IYZICO_CALLBACK_URL:-http://localhost:3000/payment/callback}
+      Scheduler__StorageType: PostgreSQL
+      Scheduler__RetryAttempts: 3
+      Scheduler__UseFilter: "true"
+      Scheduler__RouteUrl: /hangfire
+      Scheduler__DatabaseKey: PaymentScheduler
+      Scheduler__SchemaName: payment-scheduler
+      ElasticApm__Enabled: "false"
+    ports:
+      - "${PAYMENT_API_PORT:-7102}:8080"
     networks: [aizen]
 
   # Load testing - k6

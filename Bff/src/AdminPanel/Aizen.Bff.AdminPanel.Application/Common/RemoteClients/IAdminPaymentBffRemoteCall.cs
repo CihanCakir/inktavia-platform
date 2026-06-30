@@ -188,4 +188,52 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         [Query] int page     = 1,
         [Query] int pageSize = 25,
         CancellationToken ct = default);
+
+    // ─── Dashboard (gap report) ───────────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/dashboard/kpis")]
+    Task<PaymentDashboardKpisBffDto> GetDashboardKpisAsync(
+        CancellationToken ct = default);
+
+    // ─── Transaction Stats (gap report) ──────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/transactions/stats")]
+    Task<PaymentTransactionStatsBffDto> GetTransactionStatsAsync(
+        CancellationToken ct = default);
+
+    // ─── Extended Payout management (gap report) ──────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/payouts")]
+    Task<PaymentPayoutListBffResult> GetPayoutsPagedAsync(
+        [Query] string? status   = null,
+        [Query] int     page     = 1,
+        [Query] int     pageSize = 25,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/payouts/{id}")]
+    Task<PaymentPayoutBffDto?> GetPayoutDetailAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/payouts/stats")]
+    Task<PaymentPayoutStatsBffDto> GetPayoutStatsAsync(
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/payouts/{id}/hold")]
+    Task<MarkPayoutCompleteResult> HoldPayoutAsync(
+        long id,
+        [AizenRemoteCallBody] HoldPayoutRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/payouts/{id}/approve-manual")]
+    Task<MarkPayoutCompleteResult> ApproveManualPayoutAsync(
+        long id,
+        [AizenRemoteCallBody] ApproveManualPayoutRequest body,
+        CancellationToken ct = default);
+
+    // ─── Subscription Stats (gap report) ─────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/subscriptions/stats")]
+    Task<SubscriptionStatsBffDto> GetSubscriptionStatsAsync(
+        CancellationToken ct = default);
 }

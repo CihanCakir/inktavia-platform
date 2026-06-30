@@ -276,6 +276,19 @@
         "CargoDry"
       ],
       "stopAll": true
+    },
+      {
+      "name": "Selected Only",
+      "configurations": [
+        "AdminPanel BFF",
+        "Identity",
+        "Payment",
+        "Vessel",
+        "ServiceRequest",
+        "Messaging",
+        "CargoDry"
+      ],
+      "stopAll": true
     }
   ]
 }

@@ -1,5 +1,41 @@
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ApproveManualPayout;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CancelInvoice;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CancelParticipantSubscription;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CancelPaymentTransaction;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CancelProviderSubscription;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CapturePayment;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateInvoiceDraft;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreatePaymentEscrow;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.HoldPayout;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.IssueInvoice;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.MarkPayoutComplete;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.RefundPayment;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ReinstatePayment;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ReleasePaymentEscrow;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ReversePartialRefund;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.SubscribeParticipant;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.SubscribeProvider;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
-using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetInvoiceDetail;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetInvoiceFull;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetInvoicesByBuyer;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetInvoicesPaged;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetParticipantPlans;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetParticipantSubscription;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPaymentDashboardKpis;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPaymentRefundHistory;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPaymentTransactionDetail;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPaymentTransactions;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPaymentTransactionStats;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPayoutDetail;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPayoutList;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPayoutStats;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPendingPayouts;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderPlans;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderSubscription;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionStats;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.ResolveCommissionRate;
+using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
@@ -18,17 +54,39 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class AdminPaymentController : AizenWebApiController
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
+    private readonly IAizenCQRSProcessor _cqrs;
 
     public AdminPaymentController(
-        IHttpContextAccessor      httpContextAccessor,
-        IAdminPaymentBffRemoteCall payment)
+        IHttpContextAccessor  httpContextAccessor,
+        IAizenCQRSProcessor   cqrs)
         : base(httpContextAccessor)
     {
-        _payment = payment;
+        _cqrs = cqrs;
+    }
+
+    // ─── Dashboard (gap report) ───────────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/dashboard/kpis</summary>
+    [HttpGet("dashboard/kpis")]
+    [ProducesResponseType(typeof(PaymentDashboardKpisBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PaymentDashboardKpisBffDto>> GetDashboardKpis(
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetPaymentDashboardKpisBffQuery(), ct);
+        return SetResponse(result?.Kpis);
     }
 
     // ─── Transactions — read ──────────────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/transactions/stats</summary>
+    [HttpGet("transactions/stats")]
+    [ProducesResponseType(typeof(PaymentTransactionStatsBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PaymentTransactionStatsBffDto>> GetTransactionStats(
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetPaymentTransactionStatsBffQuery(), ct);
+        return SetResponse(result?.Stats);
+    }
 
     /// <summary>GET api/v1/admin-panel/payment/transactions — paged list with optional filters</summary>
     [HttpGet("transactions")]
@@ -44,9 +102,18 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromQuery] int                       pageSize = 25,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetTransactionsAsync(
-            status, type, gateway, fromDate, toDate, search, page, pageSize, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetPaymentTransactionsBffQuery
+        {
+            Status   = status,
+            Type     = type,
+            Gateway  = gateway,
+            FromDate = fromDate,
+            ToDate   = toDate,
+            Search   = search,
+            Page     = page,
+            PageSize = pageSize,
+        }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/transactions/{id}</summary>
@@ -56,8 +123,19 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetTransactionAsync(id, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetPaymentTransactionDetailBffQuery { Id = id }, ct);
+        return SetResponse(result?.Transaction);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/transactions/{id}/refund-history</summary>
+    [HttpGet("admin/transactions/{id:long}/refund-history")]
+    [ProducesResponseType(typeof(List<TransactionRefundRecordBffDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<TransactionRefundRecordBffDto>>> GetRefundHistory(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetPaymentRefundHistoryBffQuery { TransactionId = id }, ct);
+        return SetResponse(result?.Records);
     }
 
     // ─── Transactions — admin operations ─────────────────────────────────────
@@ -69,8 +147,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] CreateEscrowRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.CreateEscrowAsync(body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new CreatePaymentEscrowBffCommand { Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/admin/transactions/{id}/capture</summary>
@@ -81,8 +159,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] CapturePaymentRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.CaptureAsync(id, body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new CapturePaymentBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/admin/transactions/{id}/release</summary>
@@ -93,8 +171,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] ReleaseEscrowRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.ReleaseEscrowAsync(id, body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new ReleasePaymentEscrowBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/admin/transactions/{id}/refund</summary>
@@ -105,8 +183,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] RefundPaymentRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.RefundAsync(id, body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new RefundPaymentBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/admin/transactions/{id}/cancel</summary>
@@ -117,8 +195,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] CancelPaymentRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.CancelTransactionAsync(id, body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new CancelPaymentTransactionBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/admin/transactions/{id}/reinstate</summary>
@@ -129,8 +207,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] ReinstatePaymentRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.ReinstateAsync(id, body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new ReinstatePaymentBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/admin/refund-records/{refundRecordId}/reverse</summary>
@@ -141,22 +219,47 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] ReverseRefundRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.ReverseRefundAsync(refundRecordId, body, ct);
-        return SetResponse(result);
-    }
-
-    /// <summary>GET api/v1/admin-panel/payment/admin/transactions/{id}/refund-history</summary>
-    [HttpGet("admin/transactions/{id:long}/refund-history")]
-    [ProducesResponseType(typeof(List<TransactionRefundRecordBffDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<List<TransactionRefundRecordBffDto>>> GetRefundHistory(
-        long id,
-        CancellationToken ct = default)
-    {
-        var result = await _payment.GetRefundHistoryAsync(id, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new ReversePartialRefundBffCommand { RefundRecordId = refundRecordId, Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     // ─── Payouts ──────────────────────────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/payouts/stats</summary>
+    [HttpGet("payouts/stats")]
+    [ProducesResponseType(typeof(PaymentPayoutStatsBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PaymentPayoutStatsBffDto>> GetPayoutStats(
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetPayoutStatsBffQuery(), ct);
+        return SetResponse(result?.Stats);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/payouts — full paged payout list with status filter</summary>
+    [HttpGet("payouts")]
+    [ProducesResponseType(typeof(PaymentPayoutListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PaymentPayoutListBffResult>> GetPayouts(
+        [FromQuery] string? status   = null,
+        [FromQuery] int     page     = 1,
+        [FromQuery] int     pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetPayoutListBffQuery { Status = status, Page = page, PageSize = pageSize }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/payouts/{id}</summary>
+    [HttpGet("payouts/{id:long}")]
+    [ProducesResponseType(typeof(PaymentPayoutBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PaymentPayoutBffDto?>> GetPayoutDetail(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetPayoutDetailBffQuery { Id = id }, ct);
+        return SetResponse(result?.Payout);
+    }
 
     /// <summary>GET api/v1/admin-panel/payment/payouts/pending</summary>
     [HttpGet("payouts/pending")]
@@ -164,8 +267,8 @@ public sealed class AdminPaymentController : AizenWebApiController
     public async Task<AizenApiResponse<List<PendingPayoutBffDto>>> GetPendingPayouts(
         CancellationToken ct = default)
     {
-        var result = await _payment.GetPendingPayoutsAsync(ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetPendingPayoutsBffQuery(), ct);
+        return SetResponse(result?.Payouts);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/payouts/{id}/complete</summary>
@@ -176,11 +279,45 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] MarkPayoutCompleteRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.MarkPayoutCompleteAsync(id, body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new MarkPayoutCompleteBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/payouts/{id}/hold</summary>
+    [HttpPost("payouts/{id:long}/hold")]
+    [ProducesResponseType(typeof(MarkPayoutCompleteResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkPayoutCompleteResult>> HoldPayout(
+        long id,
+        [FromBody] HoldPayoutRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new HoldPayoutBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/payouts/{id}/approve-manual</summary>
+    [HttpPost("payouts/{id:long}/approve-manual")]
+    [ProducesResponseType(typeof(MarkPayoutCompleteResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkPayoutCompleteResult>> ApproveManualPayout(
+        long id,
+        [FromBody] ApproveManualPayoutRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ApproveManualPayoutBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     // ─── Subscriptions ────────────────────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/subscriptions/stats</summary>
+    [HttpGet("subscriptions/stats")]
+    [ProducesResponseType(typeof(SubscriptionStatsBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SubscriptionStatsBffDto>> GetSubscriptionStats(
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetSubscriptionStatsBffQuery(), ct);
+        return SetResponse(result?.Stats);
+    }
 
     /// <summary>POST api/v1/admin-panel/payment/subscriptions/provider</summary>
     [HttpPost("subscriptions/provider")]
@@ -189,8 +326,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] SubscribeProviderPlanRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.SubscribeProviderAsync(body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new SubscribeProviderBffCommand { Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/subscriptions/provider/{providerProfileId}</summary>
@@ -200,8 +337,9 @@ public sealed class AdminPaymentController : AizenWebApiController
         long providerProfileId,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetProviderSubscriptionAsync(providerProfileId, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new GetProviderSubscriptionBffQuery { ProviderProfileId = providerProfileId }, ct);
+        return SetResponse(result?.Subscription);
     }
 
     /// <summary>DELETE api/v1/admin-panel/payment/subscriptions/provider/{providerProfileId}</summary>
@@ -212,8 +350,9 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromQuery] string? reason = null,
         CancellationToken ct = default)
     {
-        var result = await _payment.CancelProviderSubscriptionAsync(providerProfileId, reason, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new CancelProviderSubscriptionBffCommand { ProviderProfileId = providerProfileId, Reason = reason }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/subscriptions/participant</summary>
@@ -223,8 +362,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] SubscribeParticipantPlanRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.SubscribeParticipantAsync(body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new SubscribeParticipantBffCommand { Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/subscriptions/participant/{participantProfileId}</summary>
@@ -234,8 +373,9 @@ public sealed class AdminPaymentController : AizenWebApiController
         long participantProfileId,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetParticipantSubscriptionAsync(participantProfileId, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new GetParticipantSubscriptionBffQuery { ParticipantProfileId = participantProfileId }, ct);
+        return SetResponse(result?.Subscription);
     }
 
     /// <summary>DELETE api/v1/admin-panel/payment/subscriptions/participant/{participantProfileId}</summary>
@@ -246,8 +386,9 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromQuery] string? reason = null,
         CancellationToken ct = default)
     {
-        var result = await _payment.CancelParticipantSubscriptionAsync(participantProfileId, reason, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new CancelParticipantSubscriptionBffCommand { ParticipantProfileId = participantProfileId, Reason = reason }, ct);
+        return SetResponse(result?.Result);
     }
 
     // ─── Plans ────────────────────────────────────────────────────────────────
@@ -259,8 +400,8 @@ public sealed class AdminPaymentController : AizenWebApiController
     public async Task<AizenApiResponse<List<ProviderPlanBffDto>>> GetProviderPlans(
         CancellationToken ct = default)
     {
-        var result = await _payment.GetProviderPlansAsync(ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetProviderPlansBffQuery(), ct);
+        return SetResponse(result?.Plans);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/participant-plans</summary>
@@ -270,8 +411,8 @@ public sealed class AdminPaymentController : AizenWebApiController
     public async Task<AizenApiResponse<List<ParticipantPlanBffDto>>> GetParticipantPlans(
         CancellationToken ct = default)
     {
-        var result = await _payment.GetParticipantPlansAsync(ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetParticipantPlansBffQuery(), ct);
+        return SetResponse(result?.Plans);
     }
 
     // ─── Commission ───────────────────────────────────────────────────────────
@@ -285,9 +426,13 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromQuery] string? categoryCode      = null,
         CancellationToken ct = default)
     {
-        var result = await _payment.ResolveCommissionRateAsync(
-            providerProfileId, providerPlanId, categoryCode, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new ResolveCommissionRateBffQuery
+        {
+            ProviderProfileId = providerProfileId,
+            ProviderPlanId    = providerPlanId,
+            CategoryCode      = categoryCode,
+        }, ct);
+        return SetResponse(result?.Rate);
     }
 
     // ─── Invoices ─────────────────────────────────────────────────────────────
@@ -299,8 +444,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromBody] CreateInvoiceDraftRequest body,
         CancellationToken ct = default)
     {
-        var result = await _payment.CreateInvoiceDraftAsync(body, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new CreateInvoiceDraftBffCommand { Body = body }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/invoices — paged invoice list</summary>
@@ -312,8 +457,9 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromQuery] string? status   = null,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetInvoicesPagedAsync(page, pageSize, status, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new GetInvoicesPagedBffQuery { Page = page, PageSize = pageSize, Status = status }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/invoices/{id} — header-only</summary>
@@ -323,8 +469,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetInvoiceAsync(id, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetInvoiceDetailBffQuery { Id = id }, ct);
+        return SetResponse(result?.Invoice);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/invoices/{id}/full — with line items + tax breakdowns</summary>
@@ -334,8 +480,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetInvoiceFullAsync(id, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new GetInvoiceFullBffQuery { Id = id }, ct);
+        return SetResponse(result?.Invoice);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/invoices/{id}/issue</summary>
@@ -345,8 +491,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id,
         CancellationToken ct = default)
     {
-        var result = await _payment.IssueInvoiceAsync(id, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new IssueInvoiceBffCommand { Id = id }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>DELETE api/v1/admin-panel/payment/invoices/{id} — cancel draft</summary>
@@ -356,8 +502,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id,
         CancellationToken ct = default)
     {
-        var result = await _payment.CancelInvoiceAsync(id, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(new CancelInvoiceBffCommand { Id = id }, ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>GET api/v1/admin-panel/payment/invoices/buyer/{buyerId}</summary>
@@ -369,7 +515,8 @@ public sealed class AdminPaymentController : AizenWebApiController
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
-        var result = await _payment.GetInvoicesByBuyerAsync(buyerId, page, pageSize, ct);
-        return SetResponse(result);
+        var result = await _cqrs.ProcessAsync(
+            new GetInvoicesByBuyerBffQuery { BuyerId = buyerId, Page = page, PageSize = pageSize }, ct);
+        return SetResponse(result?.Result);
     }
 }
