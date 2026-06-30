@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Aizen.Modules.Payment.Repository.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20260630114045_InitialCreate")]
+    [Migration("20260630141614_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

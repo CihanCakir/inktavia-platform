@@ -110,6 +110,8 @@ namespace Aizen.Core.Scheduler.Extensions
                         }, new PostgreSqlStorageOptions
                         {
                             SchemaName = options.SchemaName,
+                            DistributedLockTimeout = TimeSpan.FromMinutes(1),
+                            InvisibilityTimeout = TimeSpan.FromMinutes(5),
                         });
                         config.UseHeartbeatPage(checkInterval: TimeSpan.FromSeconds(_heartbeatInterval));
                     });
