@@ -92,7 +92,9 @@ public sealed class PaymentPlanSeed
         if (!await _db.CommissionRules.AnyAsync(x => x.RuleType == CommissionRuleType.Global, ct))
         {
             await _db.CommissionRules.AddAsync(CommissionRuleEntity.CreateGlobal(0.15m,
-                notes: "MVP global fallback — applies when no Plan/Category/Override rule matches"), ct);
+                DateTime.UtcNow, null, CommissionRulePriority.Standard,
+                notes: "MVP global fallback — applies when no Plan/Category/Override rule matches",
+                ruleCode: null), ct);
             _logger.LogInformation("Seeding global commission rule: 15%");
         }
 
@@ -113,7 +115,9 @@ public sealed class PaymentPlanSeed
             {
                 await _db.CommissionRules.AddAsync(
                     CommissionRuleEntity.CreateForCategory(code, rate,
-                        notes: $"MVP category default for {code}"), ct);
+                        DateTime.UtcNow, null, CommissionRulePriority.Standard,
+                        notes: $"MVP category default for {code}",
+                        ruleCode: null), ct);
                 _logger.LogInformation("Seeding category commission rule: {Code} = {Rate:P0}", code, rate);
             }
         }
@@ -149,7 +153,9 @@ public sealed class PaymentPlanSeed
             {
                 await _db.CommissionRules.AddAsync(
                     CommissionRuleEntity.CreateForPlan(plan.Id, rate,
-                        notes: $"Plan-level commission for {planCode} tier"), ct);
+                        DateTime.UtcNow, null, CommissionRulePriority.Standard,
+                        notes: $"Plan-level commission for {planCode} tier",
+                        ruleCode: null), ct);
                 _logger.LogInformation(
                     "Seeding plan commission rule: {Code} (Id={Id}) = {Rate:P0}", planCode, plan.Id, rate);
             }

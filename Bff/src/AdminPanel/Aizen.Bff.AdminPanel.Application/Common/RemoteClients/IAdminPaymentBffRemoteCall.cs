@@ -148,6 +148,42 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         [Query] string? categoryCode      = null,
         CancellationToken ct = default);
 
+    // ─── Commission Rules — CRUD ──────────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/commission/rules")]
+    Task<CommissionRuleListBffResult> GetCommissionRulesPagedAsync(
+        [Query] string? ruleType  = null,
+        [Query] string? status    = null,
+        [Query] string? priority  = null,
+        [Query] int     page      = 1,
+        [Query] int     pageSize  = 20,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/commission/rules/{id}")]
+    Task<CommissionRuleBffDto?> GetCommissionRuleByIdAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/commission/rules/stats")]
+    Task<CommissionRuleStatsBffDto> GetCommissionRuleStatsAsync(
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/commission/rules")]
+    Task<CommissionRuleCreateBffResult> CreateCommissionRuleAsync(
+        [AizenRemoteCallBody] CreateCommissionRuleBffRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/commission/rules/{id}")]
+    Task<CommissionRuleMutateBffResult> UpdateCommissionRuleAsync(
+        long id,
+        [AizenRemoteCallBody] UpdateCommissionRuleBffRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallDelete("/api/v1/payment/commission/rules/{id}")]
+    Task<CommissionRuleMutateBffResult> DeactivateCommissionRuleAsync(
+        long id,
+        CancellationToken ct = default);
+
     // ─── Invoices ─────────────────────────────────────────────────────────────
 
     [AizenRemoteCallPost("/api/v1/payment/invoices")]

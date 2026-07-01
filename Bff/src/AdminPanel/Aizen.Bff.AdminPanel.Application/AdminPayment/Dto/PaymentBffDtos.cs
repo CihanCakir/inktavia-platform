@@ -14,10 +14,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
 public sealed record PaymentTransactionBffDto(
     long                     TransactionId,
     string                   TransactionCode,
-    TransactionType          TransactionType,
-    PaymentTransactionStatus Status,
+    string                   TransactionType,   // string, not enum — BFF JSON serializer lacks StringEnumConverter
+    string                   Status,            // string, not enum — BFF JSON serializer lacks StringEnumConverter
     // ── Transaction context (what triggered this payment) ────────────────────
-    TransactionContextType   ContextType,
+    string                   ContextType,       // string, not enum — BFF JSON serializer lacks StringEnumConverter
     long                     ContextId,
     long?                    ContextSubId,
     // ── Parties ───────────────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ public sealed record TransactionRefundRecordBffDto(
     string                  RefundCode,
     RefundType              RefundType,
     RefundReason            Reason,
-    TransactionRefundStatus Status,
+    string                  Status,   // string, not enum — BFF JSON serializer lacks StringEnumConverter
     decimal                 Amount,
     string                  CurrencyCode,
     string?                 GatewayRefundReference,

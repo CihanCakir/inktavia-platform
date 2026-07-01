@@ -34,6 +34,12 @@ using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPendingPayouts;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderPlans;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderSubscription;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionStats;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.DeactivateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRuleDetail;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRulesList;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRuleStats;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.ResolveCommissionRate;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -433,6 +439,85 @@ public sealed class AdminPaymentController : AizenWebApiController
             CategoryCode      = categoryCode,
         }, ct);
         return SetResponse(result?.Rate);
+    }
+
+    // ─── Commission Rules — CRUD ──────────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/commission/rules/stats — KPI strip</summary>
+    [HttpGet("commission/rules/stats")]
+    [ProducesResponseType(typeof(CommissionRuleStatsBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CommissionRuleStatsBffDto?>> GetCommissionRuleStats(
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetCommissionRuleStatsBffQuery(), ct);
+        return SetResponse(result?.Stats);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/commission/rules — paged list with filters</summary>
+    [HttpGet("commission/rules")]
+    [ProducesResponseType(typeof(CommissionRuleListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CommissionRuleListBffResult>> GetCommissionRules(
+        [FromQuery] string? ruleType  = null,
+        [FromQuery] string? status    = null,
+        [FromQuery] string? priority  = null,
+        [FromQuery] int     page      = 1,
+        [FromQuery] int     pageSize  = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetCommissionRulesListBffQuery
+        {
+            RuleType = ruleType,
+            Status   = status,
+            Priority = priority,
+            Page     = page,
+            PageSize = pageSize,
+        }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/commission/rules/{id}</summary>
+    [HttpGet("commission/rules/{id:long}")]
+    [ProducesResponseType(typeof(CommissionRuleBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CommissionRuleBffDto?>> GetCommissionRuleById(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetCommissionRuleDetailBffQuery { Id = id }, ct);
+        return SetResponse(result?.Rule);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/commission/rules — create new rule</summary>
+    [HttpPost("commission/rules")]
+    [ProducesResponseType(typeof(CommissionRuleCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CommissionRuleCreateBffResult>> CreateCommissionRule(
+        [FromBody] CreateCommissionRuleBffRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new CreateCommissionRuleBffCommand { Body = body }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>PUT api/v1/admin-panel/payment/commission/rules/{id} — update mutable fields</summary>
+    [HttpPut("commission/rules/{id:long}")]
+    [ProducesResponseType(typeof(CommissionRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CommissionRuleMutateBffResult>> UpdateCommissionRule(
+        long id,
+        [FromBody] UpdateCommissionRuleBffRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new UpdateCommissionRuleBffCommand { Id = id, Body = body }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>DELETE api/v1/admin-panel/payment/commission/rules/{id} — soft deactivate</summary>
+    [HttpDelete("commission/rules/{id:long}")]
+    [ProducesResponseType(typeof(CommissionRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CommissionRuleMutateBffResult>> DeactivateCommissionRule(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new DeactivateCommissionRuleBffCommand { Id = id }, ct);
+        return SetResponse(result?.Result);
     }
 
     // ─── Invoices ─────────────────────────────────────────────────────────────

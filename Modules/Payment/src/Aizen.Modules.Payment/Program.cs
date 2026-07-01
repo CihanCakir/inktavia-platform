@@ -11,9 +11,6 @@ var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
     Name        = "Payment",
     Type        = AppType.Operation,
-
-    // Worker    → enables AizenBaseMessageConsumer auto-registration + RabbitMQ consumer wiring
-    // Scheduler → enables AizenRecurringJob auto-discovery via Hangfire; reads "Scheduler" config section
     TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler },
 }, args);
 

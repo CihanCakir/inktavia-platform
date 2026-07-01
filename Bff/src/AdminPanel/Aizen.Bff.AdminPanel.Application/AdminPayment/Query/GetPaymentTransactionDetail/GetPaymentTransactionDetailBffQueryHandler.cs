@@ -53,7 +53,7 @@ public sealed class GetPaymentTransactionDetailBffQueryHandler
         //    ServiceRequest call is only needed when ContextType == ServiceRequest.
         var identityTask = _identity.GetUserProfilesByProfileIds(profileIds.ToArray());
 
-        var isServiceRequestContext = tx.ContextType == TransactionContextType.ServiceRequest;
+        var isServiceRequestContext = tx.ContextType == nameof(TransactionContextType.ServiceRequest);
         var srTask = isServiceRequestContext
             ? _serviceRequest.GetAdminServiceRequestDetail(tx.ContextId)
             : Task.FromResult<AizenApiResponse<GetServiceRequestDetailResponse>?>(null);

@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Modules.Payment.Controllers;
 
 [ApiController]
-[Authorize(Roles = "payment.admin")]
+[Authorize(Roles = "Admin")]
 [Route("api/v1/payment/admin")]
 public sealed class PaymentAdminController : ControllerBase
 {

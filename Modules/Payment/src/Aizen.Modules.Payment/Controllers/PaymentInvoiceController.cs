@@ -25,7 +25,7 @@ namespace Aizen.Modules.Payment.Controllers;
 ///  GET    /api/v1/payment/invoices/buyer/{buyerId}   → Paged list scoped to buyer
 /// </summary>
 [ApiController]
-[Authorize(Roles = "payment.admin")]
+[Authorize(Roles = "Admin")]
 [Route("api/v1/payment/invoices")]
 public sealed class PaymentInvoiceController : ControllerBase
 {
