@@ -36,6 +36,10 @@ public enum PaymentErrorCode
     ProviderPlanNotFound                 = 5026,
     ParticipantPlanNotFound              = 5027,
 
+    // ── Payout admin operations ───────────────────────────────────────────────
+    PayoutInvalidStateForHold            = 5035,
+    PayoutInvalidStateForApproval        = 5036,
+
     // ── Invoice ───────────────────────────────────────────────────────────────
     InvoiceNotFound                      = 5028,
     InvoiceInvalidStateTransition        = 5029,

@@ -52,6 +52,38 @@ public sealed class ProviderPlanRepository : IProviderPlanRepository
             .Take(batchSize)
             .ToListAsync(ct);
 
+    public Task<int> CountActiveSubscriptionsAsync(DateTime utcNow, CancellationToken ct)
+        => _db.ProviderSubscriptions.CountAsync(x =>
+            x.Status == SubscriptionStatus.Active &&
+            x.SubscriptionPeriodStart <= utcNow &&
+            x.SubscriptionPeriodEnd   >= utcNow, ct);
+
+    public Task<int> CountExpiringSoonAsync(DateTime utcNow, int withinDays, CancellationToken ct)
+    {
+        var threshold = utcNow.AddDays(withinDays);
+        return _db.ProviderSubscriptions.CountAsync(x =>
+            x.Status == SubscriptionStatus.Active &&
+            x.SubscriptionPeriodEnd >= utcNow &&
+            x.SubscriptionPeriodEnd <= threshold, ct);
+    }
+
+    public Task<int> CountPastDueThisMonthAsync(DateTime monthStart, DateTime monthEnd, CancellationToken ct)
+        => _db.ProviderSubscriptions.CountAsync(x =>
+            x.Status == SubscriptionStatus.PastDue &&
+            x.CreateDate >= monthStart &&
+            x.CreateDate <  monthEnd, ct);
+
+    public async Task<decimal> SumActiveMrrAsync(DateTime utcNow, CancellationToken ct)
+    {
+        var amounts = await _db.ProviderSubscriptions
+            .Where(x => x.Status == SubscriptionStatus.Active &&
+                        x.SubscriptionPeriodStart <= utcNow &&
+                        x.SubscriptionPeriodEnd   >= utcNow)
+            .Select(x => x.PaidAmount)
+            .ToListAsync(ct);
+        return amounts.Sum();
+    }
+
     public Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct)
         => _db.ProviderSubscriptions.AddAsync(entity, ct).AsTask();
 

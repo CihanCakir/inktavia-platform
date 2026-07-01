@@ -8,6 +8,9 @@ using Aizen.Modules.Payment.Application.Commands.ReinstateCancelledTransaction;
 using Aizen.Modules.Payment.Application.Commands.ReversePartialRefund;
 using Aizen.Modules.Payment.Application.Queries.GetTransactionRefundHistory;
 using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
+using Aizen.Modules.Payment.Application.Queries.GetPaymentDashboardKpis;
+using Aizen.Modules.Payment.Application.Queries.GetPaymentTransactionStats;
+using Aizen.Modules.Payment.Application.Queries.GetSubscriptionStats;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -119,6 +122,32 @@ public sealed class PaymentAdminController : ControllerBase
     {
         var result = await _sender.Send(
             new GetTransactionRefundHistoryQuery { TransactionId = id }, ct);
+        return Ok(result);
+    }
+
+    // ── Dashboard KPI stats ───────────────────────────────────────────────────
+
+    /// <summary>Returns KPI strip for the payment admin dashboard (gross volume, commission, escrow, pending counts).</summary>
+    [HttpGet("dashboard/kpis")]
+    public async Task<IActionResult> GetDashboardKpis(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetPaymentDashboardKpisQuery(), ct);
+        return Ok(result);
+    }
+
+    /// <summary>Returns transaction ledger KPI cards (NetLiquidity, PendingClearances, OperationalBurn, FleetRoi).</summary>
+    [HttpGet("transactions/stats")]
+    public async Task<IActionResult> GetTransactionStats(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetPaymentTransactionStatsQuery(), ct);
+        return Ok(result);
+    }
+
+    /// <summary>Returns subscription KPI strip (active counts, MRR, failed renewals, expiring soon).</summary>
+    [HttpGet("subscriptions/stats")]
+    public async Task<IActionResult> GetSubscriptionStats(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetSubscriptionStatsQuery(), ct);
         return Ok(result);
     }
 

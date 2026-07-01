@@ -19,6 +19,7 @@ public sealed class GetPaymentTransactionQueryHandler
 
         return new PaymentTransactionDto(
             tx.Id, tx.TransactionCode, tx.TransactionType, tx.Status,
+            tx.ContextType, tx.ContextId, tx.ContextSubId,
             tx.PayerProfileId, tx.RecipientProfileId,
             tx.GrossAmount, tx.CommissionAmount, tx.CommissionRateSnapshot,
             tx.VatOnCommission, tx.NetPayoutAmount, tx.DiscountAmount,

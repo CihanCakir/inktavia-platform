@@ -7,4 +7,5 @@ public enum PayoutStatus
     Completed  = 3,
     Failed     = 4,
     Cancelled  = 5,
+    OnHold     = 6,
 }

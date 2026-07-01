@@ -236,5 +236,19 @@
       { "Language": "TR", "Description": "Fatura bu durumdan arşivlenemez." },
       { "Language": "EN", "Description": "Invoice cannot be archived from its current state." }
     ]
+  },
+  {
+    "ErrorCode": 5035,
+    "Errors": [
+      { "Language": "TR", "Description": "Ödeme kaydı bekleme durumunda değil; bekletmeye alınamaz." },
+      { "Language": "EN", "Description": "Payout record is not in a holdable state; only Pending or Processing payouts can be held." }
+    ]
+  },
+  {
+    "ErrorCode": 5036,
+    "Errors": [
+      { "Language": "TR", "Description": "Ödeme kaydı bekletme durumunda değil; manuel onay uygulanamaz." },
+      { "Language": "EN", "Description": "Payout record is not on hold; manual approval can only be applied to OnHold payouts." }
+    ]
   }
 ]

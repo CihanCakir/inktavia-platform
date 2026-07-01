@@ -1,5 +1,6 @@
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
 
@@ -8,15 +9,21 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
 /// <summary>
 /// BFF-side mirror of PaymentTransactionDto (Application layer).
 /// Fields match the JSON serialized by PaymentTransactionController.GetById → return Ok(result).
-/// BFF enriches PayerDisplayName and RecipientDisplayName from Identity bulk call.
+/// BFF enriches identity display names and optionally SR context from cross-module calls.
 /// </summary>
 public sealed record PaymentTransactionBffDto(
     long                     TransactionId,
     string                   TransactionCode,
     TransactionType          TransactionType,
     PaymentTransactionStatus Status,
+    // ── Transaction context (what triggered this payment) ────────────────────
+    TransactionContextType   ContextType,
+    long                     ContextId,
+    long?                    ContextSubId,
+    // ── Parties ───────────────────────────────────────────────────────────────
     long                     PayerProfileId,
     long?                    RecipientProfileId,
+    // ── Amounts ───────────────────────────────────────────────────────────────
     decimal                  GrossAmount,
     decimal                  CommissionAmount,
     decimal                  CommissionRateSnapshot,
@@ -36,10 +43,21 @@ public sealed record PaymentTransactionBffDto(
     DateTime?                CreateDate
 )
 {
+    // ── Identity enrichment (BFF resolves from Identity module) ───────────────
     /// <summary>Display name of the payer — resolved from Identity module by BFF.</summary>
     public string? PayerDisplayName     { get; init; }
-    /// <summary>Display name of the recipient — resolved from Identity module by BFF. Null for participant-initiated payments.</summary>
+    /// <summary>Display name of the recipient — resolved from Identity module by BFF.</summary>
     public string? RecipientDisplayName { get; init; }
+
+    // ── ServiceRequest enrichment (BFF resolves when ContextType == ServiceRequest) ──
+    /// <summary>ServiceRequest code (e.g. "SR-20241215-0042") — null when ContextType ≠ ServiceRequest.</summary>
+    public string?              ServiceRequestCode   { get; init; }
+    /// <summary>ServiceRequest title — null when ContextType ≠ ServiceRequest.</summary>
+    public string?              ServiceRequestTitle  { get; init; }
+    /// <summary>ServiceRequest status — null when ContextType ≠ ServiceRequest.</summary>
+    public ServiceRequestStatus? ServiceRequestStatus { get; init; }
+    /// <summary>VesselId linked to the ServiceRequest — null when ContextType ≠ ServiceRequest.</summary>
+    public long?                ServiceRequestVesselId { get; init; }
 }
 
 /// <summary>Paged transaction list response.</summary>

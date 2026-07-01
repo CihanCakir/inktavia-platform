@@ -33,6 +33,18 @@ public interface IProviderPlanRepository
     Task<List<ProviderPlanSubscriptionEntity>> GetPastDueSubscriptionsAsync(
         int batchSize, CancellationToken ct = default);
 
+    /// <summary>Returns the count of Active provider subscriptions still within their period.</summary>
+    Task<int> CountActiveSubscriptionsAsync(DateTime utcNow, CancellationToken ct = default);
+
+    /// <summary>Returns the count of Active subscriptions ending within <paramref name="withinDays"/> days.</summary>
+    Task<int> CountExpiringSoonAsync(DateTime utcNow, int withinDays, CancellationToken ct = default);
+
+    /// <summary>Returns the count of PastDue subscriptions created within the given month range.</summary>
+    Task<int> CountPastDueThisMonthAsync(DateTime monthStart, DateTime monthEnd, CancellationToken ct = default);
+
+    /// <summary>Returns total PaidAmount for Active subscriptions (MRR approximation).</summary>
+    Task<decimal> SumActiveMrrAsync(DateTime utcNow, CancellationToken ct = default);
+
     Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct = default);
     void UpdateSubscription(ProviderPlanSubscriptionEntity entity);
 

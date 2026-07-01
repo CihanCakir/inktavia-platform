@@ -17,6 +17,8 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
     public string?      GatewayPayoutId         { get; private set; }  // Iyzico transfer reference
     public DateTime     RequestedAt             { get; private set; }
     public DateTime?    ProcessedAt             { get; private set; }
+    public DateTime?    HeldAt                  { get; private set; }
+    public string?      HoldReason              { get; private set; }
     public string?      FailureReason           { get; private set; }
     public string?      AdminNote               { get; private set; }
 
@@ -55,4 +57,27 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
     }
 
     public void MarkProcessing() => Status = PayoutStatus.Processing;
+
+    /// <summary>
+    /// Puts a Pending or Processing payout on administrative hold.
+    /// Use ApproveManualPayout() to release from hold.
+    /// </summary>
+    public void Hold(string reason, string? adminNote = null)
+    {
+        Status     = PayoutStatus.OnHold;
+        HoldReason = reason;
+        HeldAt     = DateTime.UtcNow;
+        AdminNote  = adminNote;
+    }
+
+    /// <summary>
+    /// Releases a held payout and marks it as completed via manual disbursement.
+    /// </summary>
+    public void ApproveManualPayout(string gatewayPayoutId, string? adminNote = null)
+    {
+        Status          = PayoutStatus.Completed;
+        GatewayPayoutId = gatewayPayoutId;
+        ProcessedAt     = DateTime.UtcNow;
+        AdminNote       = adminNote ?? AdminNote;
+    }
 }
