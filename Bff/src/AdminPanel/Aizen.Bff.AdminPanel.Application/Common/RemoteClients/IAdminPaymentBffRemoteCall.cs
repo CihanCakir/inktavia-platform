@@ -277,4 +277,39 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/payment/admin/subscriptions/stats")]
     Task<SubscriptionStatsBffDto> GetSubscriptionStatsAsync(
         CancellationToken ct = default);
+
+    // ─── Plans — CRUD ─────────────────────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/provider-plans/{id}")]
+    Task<ProviderPlanBffDto?> GetProviderPlanByIdAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/provider-plans")]
+    Task<PlanMutateBffResult> CreateProviderPlanAsync(
+        [AizenRemoteCallBody] CreateProviderPlanBffRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/provider-plans/{id}")]
+    Task<PlanMutateBffResult> UpdateProviderPlanAsync(
+        long id,
+        [AizenRemoteCallBody] UpdateProviderPlanBffRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/participant-plans/{id}")]
+    Task<ParticipantPlanBffDto?> GetParticipantPlanByIdAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/participant-plans")]
+    Task<PlanMutateBffResult> CreateParticipantPlanAsync(
+        [AizenRemoteCallBody] CreateParticipantPlanBffRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/participant-plans/{id}")]
+    Task<PlanMutateBffResult> UpdateParticipantPlanAsync(
+        long id,
+        [AizenRemoteCallBody] UpdateParticipantPlanBffRequest body,
+        CancellationToken ct = default);
+
 }

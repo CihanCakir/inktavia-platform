@@ -52,6 +52,12 @@ using Aizen.Modules.Payment.Abstraction.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateParticipantPlan;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateProviderPlan;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateParticipantPlan;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateProviderPlan;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetParticipantPlanById;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderPlanById;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
@@ -616,4 +622,99 @@ public sealed class AdminPaymentController : AizenWebApiController
             new GetInvoicesByBuyerBffQuery { BuyerId = buyerId, Page = page, PageSize = pageSize }, ct);
         return SetResponse(result?.Result);
     }
+
+    // ─── Provider Plans — CRUD ────────────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/provider-plans/{id}</summary>
+    [HttpGet("provider-plans/{id:long}")]
+    [ProducesResponseType(typeof(ProviderPlanBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderPlanBffDto?>> GetProviderPlanById(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetProviderPlanByIdBffQuery { Id = id }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/provider-plans</summary>
+    [HttpPost("provider-plans")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> CreateProviderPlan(
+        [FromBody] CreateProviderPlanBffCommand command,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>PUT api/v1/admin-panel/payment/provider-plans/{id}</summary>
+    [HttpPut("provider-plans/{id:long}")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> UpdateProviderPlan(
+        long id,
+        [FromBody] UpdateProviderPlanBffCommand command,
+        CancellationToken ct = default)
+    {
+        var enriched = new UpdateProviderPlanBffCommand
+        {
+            Id               = id,
+            Name             = command.Name,
+            Description      = command.Description,
+            MonthlyPriceTRY  = command.MonthlyPriceTRY,
+            MaxActiveOffers  = command.MaxActiveOffers,
+            HasPriorityBoost = command.HasPriorityBoost,
+            HasFullAnalytics = command.HasFullAnalytics,
+            SortOrder        = command.SortOrder,
+        };
+        var result = await _cqrs.ProcessAsync(enriched, ct);
+        return SetResponse(result);
+    }
+
+    // ─── Participant Plans — CRUD ─────────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/participant-plans/{id}</summary>
+    [HttpGet("participant-plans/{id:long}")]
+    [ProducesResponseType(typeof(ParticipantPlanBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ParticipantPlanBffDto?>> GetParticipantPlanById(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetParticipantPlanByIdBffQuery { Id = id }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/participant-plans</summary>
+    [HttpPost("participant-plans")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> CreateParticipantPlan(
+        [FromBody] CreateParticipantPlanBffCommand command,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>PUT api/v1/admin-panel/payment/participant-plans/{id}</summary>
+    [HttpPut("participant-plans/{id:long}")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> UpdateParticipantPlan(
+        long id,
+        [FromBody] UpdateParticipantPlanBffCommand command,
+        CancellationToken ct = default)
+    {
+        var enriched = new UpdateParticipantPlanBffCommand
+        {
+            Id                    = id,
+            Name                  = command.Name,
+            Description           = command.Description,
+            MonthlyPriceTRY       = command.MonthlyPriceTRY,
+            ServiceDiscountRate   = command.ServiceDiscountRate,
+            CargoDryDiscountRate  = command.CargoDryDiscountRate,
+            InkCoinEarnMultiplier = command.InkCoinEarnMultiplier,
+            SortOrder             = command.SortOrder,
+        };
+        var result = await _cqrs.ProcessAsync(enriched, ct);
+        return SetResponse(result);
+    }
+
 }

@@ -16,8 +16,9 @@ public sealed class GetProviderPlansQueryHandler
     {
         var plans = await _plans.GetAllActiveAsync(ct);
         return plans.Select(p => new ProviderPlanDto(
-            p.Id, p.PlanCode, p.Name, p.MonthlyPriceTRY,
+            p.Id, p.PlanCode, p.Name, p.Description,
+            p.MonthlyPriceTRY, p.AnnualPriceTRY, p.TrialDays, p.BadgeLabel,
             p.MaxActiveOffers, p.HasPriorityBoost, p.HasFullAnalytics,
-            p.IsFree, p.SortOrder)).ToList();
+            p.IsFree, p.SortOrder, p.ValidFrom, p.ValidTo, p.FeatureItems)).ToList();
     }
 }

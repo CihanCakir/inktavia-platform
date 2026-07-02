@@ -43,11 +43,11 @@ public sealed class PaymentPlanSeed
         var plans = new[]
         {
             // FREE: ₺0/month, limited to 5 active offers at a time
-            ProviderPlanEntity.Create("FREE", "Free", null, 0m, 5, false, false, 1),
+            ProviderPlanEntity.Create("FREE", "Free", null, 0m, null, null, null, 5, false, false, 1),
             // STANDARD: ₺499/month, unlimited offers
-            ProviderPlanEntity.Create("STANDARD", "Standard", null, 499m, null, false, true, 2),
+            ProviderPlanEntity.Create("STANDARD", "Standard", null, 499m, null, null, null, null, false, true, 2),
             // PREMIUM_PARTNER: ₺999/month, priority boost, unlimited offers
-            ProviderPlanEntity.Create("PREMIUM_PARTNER", "Premium Partner", null, 999m, null, true, true, 3),
+            ProviderPlanEntity.Create("PREMIUM_PARTNER", "Premium Partner", null, 999m, null, null, null, null, true, true, 3),
         };
 
         foreach (var plan in plans)
@@ -66,11 +66,11 @@ public sealed class PaymentPlanSeed
         var plans = new[]
         {
             // BASIC: ₺0/month, no discounts, 1.0x InkCoin earn
-            ParticipantPlanEntity.Create("BASIC", "Basic", null, 0m, 0m, 0m, 1.0m, 1),
+            ParticipantPlanEntity.Create("BASIC", "Basic", null, 0m, null, null, null, 0m, 0m, 1.0m, 1),
             // GOLD: ₺199/month, 5% service discount, 10% CargoDry discount, 1.5x earn
-            ParticipantPlanEntity.Create("GOLD", "Gold", null, 199m, 0.05m, 0.10m, 1.5m, 2),
+            ParticipantPlanEntity.Create("GOLD", "Gold", null, 199m, null, null, null, 0.05m, 0.10m, 1.5m, 2),
             // PLATINUM: ₺399/month, 10% service discount, 20% CargoDry discount, 2.0x earn
-            ParticipantPlanEntity.Create("PLATINUM", "Platinum", null, 399m, 0.10m, 0.20m, 2.0m, 3),
+            ParticipantPlanEntity.Create("PLATINUM", "Platinum", null, 399m, null, null, null, 0.10m, 0.20m, 2.0m, 3),
         };
 
         foreach (var plan in plans)

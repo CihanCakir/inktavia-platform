@@ -113,17 +113,27 @@ public sealed record PendingPayoutBffDto(
 
 // ─── Plans ────────────────────────────────────────────────────────────────────
 
+/// <summary>BFF-side mirror of PlanFeatureItem value object.</summary>
+public sealed record PlanFeatureItemBffDto(string Text, bool IsHighlighted = false);
+
 /// <summary>BFF-side mirror of ProviderPlanDto (Application layer).</summary>
 public sealed record ProviderPlanBffDto(
     long    Id,
     string  PlanCode,
     string  Name,
+    string? Description,
     decimal MonthlyPriceTRY,
+    decimal? AnnualPriceTRY,
+    int?    TrialDays,
+    string? BadgeLabel,
     int?    MaxActiveOffers,
     bool    HasPriorityBoost,
     bool    HasFullAnalytics,
     bool    IsFree,
-    int     SortOrder
+    int     SortOrder,
+    DateTime? ValidFrom,
+    DateTime? ValidTo,
+    List<PlanFeatureItemBffDto> FeatureItems
 );
 
 /// <summary>BFF-side mirror of ParticipantPlanDto (Application layer).</summary>
@@ -131,11 +141,19 @@ public sealed record ParticipantPlanBffDto(
     long    Id,
     string  PlanCode,
     string  Name,
+    string? Description,
     decimal MonthlyPriceTRY,
+    decimal? AnnualPriceTRY,
+    int?    TrialDays,
+    string? BadgeLabel,
     decimal ServiceDiscountRate,
     decimal CargoDryDiscountRate,
     decimal InkCoinEarnMultiplier,
-    int     SortOrder
+    bool    IsFree,
+    int     SortOrder,
+    DateTime? ValidFrom,
+    DateTime? ValidTo,
+    List<PlanFeatureItemBffDto> FeatureItems
 );
 
 // ─── Commission ───────────────────────────────────────────────────────────────
@@ -222,4 +240,79 @@ public sealed record SubscriptionStatsBffDto(
     decimal MonthlyRecurringRevenue,
     int     FailedRenewalsThisMonth,
     int     ExpiringSoonCount
+);
+
+// ─── Plan CRUD (request/result DTOs) ──────────────────────────────────────────
+
+/// <summary>Shared result for create/update plan operations.</summary>
+public sealed record PlanMutateBffResult(long Id, string PlanCode);
+
+/// <summary>Request body for creating a provider plan.</summary>
+public sealed record CreateProviderPlanBffRequest(
+    string  PlanCode,
+    string  Name,
+    string? Description,
+    decimal MonthlyPriceTRY,
+    decimal? AnnualPriceTRY,
+    int?    TrialDays,
+    string? BadgeLabel,
+    int?    MaxActiveOffers,
+    bool    HasPriorityBoost,
+    bool    HasFullAnalytics,
+    int     SortOrder,
+    DateTime? ValidFrom,
+    DateTime? ValidTo,
+    List<PlanFeatureItemBffDto> FeatureItems
+);
+
+/// <summary>Request body for updating a provider plan (PlanCode immutable).</summary>
+public sealed record UpdateProviderPlanBffRequest(
+    string  Name,
+    string? Description,
+    decimal MonthlyPriceTRY,
+    decimal? AnnualPriceTRY,
+    int?    TrialDays,
+    string? BadgeLabel,
+    int?    MaxActiveOffers,
+    bool    HasPriorityBoost,
+    bool    HasFullAnalytics,
+    int     SortOrder,
+    DateTime? ValidFrom,
+    DateTime? ValidTo,
+    List<PlanFeatureItemBffDto> FeatureItems
+);
+
+/// <summary>Request body for creating a participant plan.</summary>
+public sealed record CreateParticipantPlanBffRequest(
+    string  PlanCode,
+    string  Name,
+    string? Description,
+    decimal MonthlyPriceTRY,
+    decimal? AnnualPriceTRY,
+    int?    TrialDays,
+    string? BadgeLabel,
+    decimal ServiceDiscountRate,
+    decimal CargoDryDiscountRate,
+    decimal InkCoinEarnMultiplier,
+    int     SortOrder,
+    DateTime? ValidFrom,
+    DateTime? ValidTo,
+    List<PlanFeatureItemBffDto> FeatureItems
+);
+
+/// <summary>Request body for updating a participant plan (PlanCode immutable).</summary>
+public sealed record UpdateParticipantPlanBffRequest(
+    string  Name,
+    string? Description,
+    decimal MonthlyPriceTRY,
+    decimal? AnnualPriceTRY,
+    int?    TrialDays,
+    string? BadgeLabel,
+    decimal ServiceDiscountRate,
+    decimal CargoDryDiscountRate,
+    decimal InkCoinEarnMultiplier,
+    int     SortOrder,
+    DateTime? ValidFrom,
+    DateTime? ValidTo,
+    List<PlanFeatureItemBffDto> FeatureItems
 );
