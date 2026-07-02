@@ -118,6 +118,16 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
         Status   = CommissionRuleStatus.Inactive;
     }
 
+    /// <summary>
+    /// Re-activates an Inactive rule. Status is re-derived from EffectiveFrom/EffectiveTo dates.
+    /// Expired rules cannot be reactivated; the caller should extend EffectiveTo first via Update().
+    /// </summary>
+    public void Reactivate()
+    {
+        IsActive = true;
+        Status   = DeriveStatus(EffectiveFrom, EffectiveTo);
+    }
+
     public void IncrementAppliedCount() => ResolvedAppliedCount++;
 
     public bool IsEffective(DateTime atUtc) =>

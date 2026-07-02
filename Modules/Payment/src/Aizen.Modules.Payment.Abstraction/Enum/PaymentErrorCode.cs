@@ -36,6 +36,8 @@ public enum PaymentErrorCode
     ProviderPlanNotFound                 = 5026,
     ParticipantPlanNotFound              = 5027,
 
+    CommissionRuleNotInactive            = 5037,   // Reactivate attempted on non-Inactive rule
+
     // ── Payout admin operations ───────────────────────────────────────────────
     PayoutInvalidStateForHold            = 5035,
     PayoutInvalidStateForApproval        = 5036,

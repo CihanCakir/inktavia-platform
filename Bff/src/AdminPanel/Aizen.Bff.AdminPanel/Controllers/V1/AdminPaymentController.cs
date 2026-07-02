@@ -36,6 +36,7 @@ using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderSubscriptio
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionStats;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.DeactivateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ReactivateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRuleDetail;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRulesList;
@@ -517,6 +518,17 @@ public sealed class AdminPaymentController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(new DeactivateCommissionRuleBffCommand { Id = id }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/commission/rules/{id}/reactivate — re-activate an Inactive rule</summary>
+    [HttpPost("commission/rules/{id:long}/reactivate")]
+    [ProducesResponseType(typeof(CommissionRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CommissionRuleMutateBffResult>> ReactivateCommissionRule(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ReactivateCommissionRuleBffCommand { Id = id }, ct);
         return SetResponse(result?.Result);
     }
 

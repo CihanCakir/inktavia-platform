@@ -1,6 +1,7 @@
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Application.Commands.CreateCommissionRule;
 using Aizen.Modules.Payment.Application.Commands.DeactivateCommissionRule;
+using Aizen.Modules.Payment.Application.Commands.ReactivateCommissionRule;
 using Aizen.Modules.Payment.Application.Commands.UpdateCommissionRule;
 using Aizen.Modules.Payment.Application.Queries.GetCommissionRuleById;
 using Aizen.Modules.Payment.Application.Queries.GetCommissionRulesList;
@@ -129,6 +130,19 @@ public sealed class CommissionRuleController : ControllerBase
         CancellationToken ct = default)
     {
         var result = await _sender.Send(new DeactivateCommissionRuleCommand { Id = id }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Admin re-activates an Inactive commission rule.
+    /// Status is re-derived from effective dates (Active, Scheduled, or Expired).
+    /// </summary>
+    [HttpPost("rules/{id:long}/reactivate")]
+    public async Task<IActionResult> Reactivate(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new ReactivateCommissionRuleCommand { Id = id }, ct);
         return Ok(result);
     }
 }

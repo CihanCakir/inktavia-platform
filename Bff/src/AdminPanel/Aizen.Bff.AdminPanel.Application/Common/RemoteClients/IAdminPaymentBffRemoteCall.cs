@@ -184,6 +184,11 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         long id,
         CancellationToken ct = default);
 
+    [AizenRemoteCallPost("/api/v1/payment/commission/rules/{id}/reactivate")]
+    Task<CommissionRuleMutateBffResult> ReactivateCommissionRuleAsync(
+        long id,
+        CancellationToken ct = default);
+
     // ─── Invoices ─────────────────────────────────────────────────────────────
 
     [AizenRemoteCallPost("/api/v1/payment/invoices")]

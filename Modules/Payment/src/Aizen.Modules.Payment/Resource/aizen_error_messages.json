@@ -250,5 +250,12 @@
       { "Language": "TR", "Description": "Ödeme kaydı bekletme durumunda değil; manuel onay uygulanamaz." },
       { "Language": "EN", "Description": "Payout record is not on hold; manual approval can only be applied to OnHold payouts." }
     ]
+  },
+  {
+    "ErrorCode": 5037,
+    "Errors": [
+      { "Language": "TR", "Description": "Komisyon kuralı zaten aktif veya başka bir durumda; yalnızca Inactive kurallar yeniden aktif edilebilir." },
+      { "Language": "EN", "Description": "Commission rule is not inactive; only rules with status Inactive can be reactivated." }
+    ]
   }
 ]
