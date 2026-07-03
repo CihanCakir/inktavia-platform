@@ -58,6 +58,8 @@ public sealed record PaymentTransactionBffDto(
     public ServiceRequestStatus? ServiceRequestStatus { get; init; }
     /// <summary>VesselId linked to the ServiceRequest — null when ContextType ≠ ServiceRequest.</summary>
     public long?                ServiceRequestVesselId { get; init; }
+    /// <summary>ServiceRequest Id — null when ContextType ≠ ServiceRequest.</summary>
+    public long?                ServiceRequestId { get; init; }
 }
 
 /// <summary>Paged transaction list response.</summary>

@@ -14,6 +14,14 @@ public sealed class CargoDryProductDto
     public bool    IsActive       { get; init; }
     public string? CreatedAt      { get; init; }
 
+    // ── Commercial pricing (Phase 0, July 2026) ───────────────────────────────
+    /// <summary>Price charged to a reselling provider. Null = not configured for resale.</summary>
+    public decimal? WholesalePrice         { get; init; }
+    /// <summary>Reference price for consignment settlement. Null = use RetailPrice as fallback.</summary>
+    public decimal? ConsignmentPrice       { get; init; }
+    /// <summary>Provider share rate for attributed/consignment sales. Range 0.00–1.00. Null = no commission.</summary>
+    public decimal? ProviderCommissionRate { get; init; }
+
     /// <summary>
     /// Operational kit statistics for this product.
     /// Populated only by the product detail endpoint — null in list responses.

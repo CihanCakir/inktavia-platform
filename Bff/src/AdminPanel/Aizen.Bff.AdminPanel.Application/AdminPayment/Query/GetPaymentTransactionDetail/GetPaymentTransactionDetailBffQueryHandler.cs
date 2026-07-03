@@ -88,6 +88,7 @@ public sealed class GetPaymentTransactionDetailBffQueryHandler
         string?               srTitle    = null;
         ServiceRequestStatus? srStatus   = null;
         long?                 srVesselId = null;
+        long?                 srId       = null;
 
         if (isServiceRequestContext)
         {
@@ -101,6 +102,7 @@ public sealed class GetPaymentTransactionDetailBffQueryHandler
                     srTitle    = sr.Title;
                     srStatus   = sr.Status;
                     srVesselId = sr.VesselId;
+                    srId       = sr.Id;
                 }
                 else
                 {
@@ -124,10 +126,11 @@ public sealed class GetPaymentTransactionDetailBffQueryHandler
             RecipientDisplayName   = tx.RecipientProfileId.HasValue
                 ? ResolveDisplayName(profileMap, tx.RecipientProfileId.Value)
                 : null,
-            ServiceRequestCode     = srCode,
+            ServiceRequestCode     = srCode, 
             ServiceRequestTitle    = srTitle,
             ServiceRequestStatus   = srStatus,
             ServiceRequestVesselId = srVesselId,
+            ServiceRequestId       = srId,
         };
 
         return new GetPaymentTransactionDetailBffResponse { Transaction = enriched };

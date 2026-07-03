@@ -21,4 +21,18 @@ public sealed class CargoDryKitDto
     public int               DaysUntilExpiry   { get; init; }
     public int               RenewalCount      { get; init; }
     public DateTimeOffset    ManufacturedAt    { get; init; }
+
+    // ── Commercial foundation (Phase 0, July 2026) ────────────────────────────
+    /// <summary>Provider that sold or attributed this kit. Null = no attribution.</summary>
+    public long?                    ProviderProfileId    { get; init; }
+    /// <summary>Sales channel. Null = CommercialReviewRequired (Decision N18).</summary>
+    public SalesChannel?            SalesChannel         { get; init; }
+    /// <summary>Commercial model for revenue recognition. Null until attributed.</summary>
+    public CargoDryCommercialModel? CommercialModel      { get; init; }
+    /// <summary>Current physical/logical location in the inventory chain.</summary>
+    public StockLocationType        StockLocationType    { get; init; }
+    /// <summary>Cross-module Payment invoice reference (Id only, no EF FK).</summary>
+    public long?                    InvoiceId            { get; init; }
+    /// <summary>Cross-module Payment transaction reference (Id only, no EF FK).</summary>
+    public long?                    PaymentTransactionId { get; init; }
 }

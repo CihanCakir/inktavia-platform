@@ -29,18 +29,22 @@ public sealed class GetCargoDryProductDetailQueryHandler
 
         return new CargoDryProductDto
         {
-            Id             = p.Id,
-            ProductCode    = p.ProductCode,
-            Name           = p.Name,
-            Description    = p.Description,
-            ValidityDays   = p.ValidityDays,
-            HasSmartDevice = p.HasSmartDevice,
-            DeviceType     = p.DeviceType,
-            RetailPrice    = p.RetailPrice,
-            CurrencyCode   = p.CurrencyCode,
-            IsActive       = p.IsActive,
-            CreatedAt      = p.CreateDate?.ToString("O"),
-            KitStats       = new CargoDryProductKitStatsDto
+            Id                     = p.Id,
+            ProductCode            = p.ProductCode,
+            Name                   = p.Name,
+            Description            = p.Description,
+            ValidityDays           = p.ValidityDays,
+            HasSmartDevice         = p.HasSmartDevice,
+            DeviceType             = p.DeviceType,
+            RetailPrice            = p.RetailPrice,
+            CurrencyCode           = p.CurrencyCode,
+            IsActive               = p.IsActive,
+            CreatedAt              = p.CreateDate?.ToString("O"),
+            // Phase 0 commercial pricing
+            WholesalePrice         = p.WholesalePrice,
+            ConsignmentPrice       = p.ConsignmentPrice,
+            ProviderCommissionRate = p.ProviderCommissionRate,
+            KitStats               = new CargoDryProductKitStatsDto
             {
                 TotalKitsIssued  = s.TotalKits,
                 ActiveKits       = s.ActiveKits,

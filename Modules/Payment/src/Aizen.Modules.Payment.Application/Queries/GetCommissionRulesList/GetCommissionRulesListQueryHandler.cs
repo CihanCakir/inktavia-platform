@@ -29,7 +29,8 @@ public sealed class GetCommissionRulesListQueryHandler
             r.Id, r.RuleCode, r.RuleType, r.CategoryCode, r.ProviderPlanId,
             r.ProviderProfileId, r.CommissionRate, r.EffectiveFrom, r.EffectiveTo,
             r.Notes, r.Status, r.Priority, r.ResolvedAppliedCount, r.IsActive,
-            r.CreateUserId, r.CreateDate, r.ModifyUserId, r.ModifyDate
+            r.CreateUserId, r.CreateDate, r.ModifyUserId, r.ModifyDate,
+            r.ContextType, r.ProductCode, r.SalesChannel
         )).ToList();
 
         return new CommissionRuleListResult(dtos, total, request.Page, request.PageSize);

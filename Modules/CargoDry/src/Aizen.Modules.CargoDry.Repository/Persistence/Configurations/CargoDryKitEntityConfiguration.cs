@@ -1,3 +1,4 @@
+using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -32,12 +33,25 @@ public sealed class CargoDryKitEntityConfiguration : IEntityTypeConfiguration<Ca
         builder.Ignore(x => x.EfficiencyPercent);
         builder.Ignore(x => x.DaysUntilExpiry);
 
+        // ── Commercial foundation (Phase 0, July 2026) ────────────────────────
+        builder.Property(x => x.ProviderProfileId);
+        builder.Property(x => x.SalesChannel).HasConversion<int>();         // null = unattributed
+        builder.Property(x => x.CommercialModel).HasConversion<int>();      // null until attributed
+        builder.Property(x => x.StockLocationType).HasConversion<int>()
+            .IsRequired()
+            .HasDefaultValue(StockLocationType.PlatformWarehouse);
+        builder.Property(x => x.InvoiceId);                                 // cross-module, no FK
+        builder.Property(x => x.PaymentTransactionId);                      // cross-module, no FK
+
         builder.HasIndex(x => new { x.OwnerUserId, x.Status });
         builder.HasIndex(x => new { x.VesselId, x.Status });
         builder.HasIndex(x => new { x.BatchCode, x.Status });
         builder.HasIndex(x => new { x.ProductCode, x.Status });
         builder.HasIndex(x => x.ExpiresAt);
         builder.HasIndex(x => x.ActivatedAt);
+        // Phase 0 indexes for provider attribution and commercial reporting
+        builder.HasIndex(x => x.ProviderProfileId);
+        builder.HasIndex(x => new { x.SalesChannel, x.Status });
         // CreateDate / ModifyDate: from AizenEntityWithAudit
     }
 }

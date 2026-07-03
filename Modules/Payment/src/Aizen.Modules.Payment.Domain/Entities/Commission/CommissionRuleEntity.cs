@@ -7,6 +7,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Commission;
 [DocumentationInfo("Commission rule entity",
     "Data-driven commission rate. Resolution precedence: ProviderOverride > Plan > Category > Global. " +
     "Extended with RuleCode, Status, Priority, ResolvedAppliedCount for admin panel management. " +
+    "Phase 0 (July 2026): Added ContextType, ProductCode, SalesChannel for CargoDry channel-specific rates. " +
     "Audit fields (CreateUserId, ModifyUserId, CreateDate, ModifyDate) are provided by AizenEntityWithAudit.")]
 public sealed class CommissionRuleEntity : AizenEntityWithAudit
 {
@@ -27,6 +28,26 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
     public CommissionRulePriority Priority             { get; private set; }
     /// <summary>Incremented each time this rule is returned by ResolveRateAsync.</summary>
     public long                   ResolvedAppliedCount { get; private set; }
+
+    // ── CargoDry targeting dimensions (Phase 0, July 2026) ───────────────────
+    /// <summary>
+    /// Narrows this rule to a specific transaction context.
+    /// Null = applies to all contexts.
+    /// Use TransactionContextType.CargoDry to scope to CargoDry kit sales.
+    /// </summary>
+    public TransactionContextType? ContextType  { get; private set; }
+
+    /// <summary>
+    /// CargoDry product code this rule applies to.
+    /// Null = applies to all products within the context.
+    /// </summary>
+    public string?                 ProductCode  { get; private set; }
+
+    /// <summary>
+    /// CargoDry sales channel this rule applies to.
+    /// Null = applies to all channels within the context.
+    /// </summary>
+    public SalesChannel?           SalesChannel { get; private set; }
 
     private CommissionRuleEntity() { }
 

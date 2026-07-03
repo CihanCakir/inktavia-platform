@@ -6,9 +6,12 @@ namespace Aizen.Modules.CargoDry.Domain.Entities;
 [DocumentationInfo("CargoDry Kit entity",
     "The digital twin of a physical moisture protection kit. " +
     "Status transitions are enforced through domain methods only. " +
-    "EfficiencyPercent and DaysUntilExpiry are computed properties — NOT mapped to the database.")]
+    "EfficiencyPercent and DaysUntilExpiry are computed properties — NOT mapped to the database. " +
+    "Phase 0 (July 2026): Added commercial foundation fields — SalesChannel, CommercialModel, " +
+    "ProviderProfileId, StockLocationType, InvoiceId, PaymentTransactionId.")]
 public sealed class CargoDryKitEntity : AizenEntityWithAudit
 {
+    // ── Core identity ──────────────────────────────────────────────────────────
     public string            SerialNumber   { get; private set; } = default!;
     public string            KitCode        { get; private set; } = default!;
     public string            QrPayload      { get; private set; } = default!;
@@ -24,34 +27,88 @@ public sealed class CargoDryKitEntity : AizenEntityWithAudit
     public string?           RevokeReason   { get; private set; }
     public DateTimeOffset?   RevokedAt      { get; private set; }
 
+    // ── Commercial foundation (Phase 0, July 2026) ────────────────────────────
+    /// <summary>
+    /// Which provider sold or facilitated this kit sale.
+    /// Null = no provider attribution (DirectSale or unattributed).
+    /// Retained on renewal for analytics (Decision N12).
+    /// </summary>
+    public long?                    ProviderProfileId { get; private set; }
+
+    /// <summary>
+    /// How this kit reached the end user.
+    /// Null = not yet determined; triggers CommercialReviewRequired on activation (Decision N18).
+    /// Default after batch generation: stays null until batch is allocated.
+    /// </summary>
+    public SalesChannel?            SalesChannel      { get; private set; }
+
+    /// <summary>
+    /// Commercial model that applies to this kit's revenue recognition.
+    /// PrincipalSale = Inktavia earns directly; MarketplaceCommission = provider earns payout.
+    /// </summary>
+    public CargoDryCommercialModel? CommercialModel   { get; private set; }
+
+    /// <summary>
+    /// Physical/logical location of the kit in the inventory chain.
+    /// PlatformWarehouse = default after generation.
+    /// ProviderWarehouse = after batch allocation to provider.
+    /// Activated = after kit is activated on a vessel.
+    /// </summary>
+    public StockLocationType        StockLocationType { get; private set; } = StockLocationType.PlatformWarehouse;
+
+    /// <summary>
+    /// Cross-module reference to InvoiceHeaderEntity in the Payment module.
+    /// No EF FK constraint — referenced by Id only.
+    /// Set when the kit purchase invoice is issued.
+    /// </summary>
+    public long? InvoiceId            { get; private set; }
+
+    /// <summary>
+    /// Cross-module reference to PaymentTransactionEntity in the Payment module.
+    /// No EF FK constraint — referenced by Id only.
+    /// </summary>
+    public long? PaymentTransactionId { get; private set; }
+
     private CargoDryKitEntity() { }
 
+    // ── Factory ────────────────────────────────────────────────────────────────
     public static CargoDryKitEntity Create(
         string serialNumber, string kitCode, string qrPayload,
         string productCode, string batchCode)
         => new()
         {
-            SerialNumber   = serialNumber,
-            KitCode        = kitCode,
-            QrPayload      = qrPayload,
-            ProductCode    = productCode,
-            BatchCode      = batchCode,
-            Status         = CargoDryKitStatus.Available,
-            ManufacturedAt = DateTimeOffset.UtcNow,
-            IsActive       = true,
+            SerialNumber      = serialNumber,
+            KitCode           = kitCode,
+            QrPayload         = qrPayload,
+            ProductCode       = productCode,
+            BatchCode         = batchCode,
+            Status            = CargoDryKitStatus.Available,
+            StockLocationType = StockLocationType.PlatformWarehouse,
+            ManufacturedAt    = DateTimeOffset.UtcNow,
+            IsActive          = true,
         };
 
+    // ── Lifecycle methods ──────────────────────────────────────────────────────
     public void Activate(long userId, long vesselId, int validityDays)
     {
-        if (Status != CargoDryKitStatus.Available)
+        if (Status != CargoDryKitStatus.Available && Status != CargoDryKitStatus.CommercialReviewRequired)
             throw new InvalidOperationException(
                 $"Kit {SerialNumber} cannot be activated — current status: {Status}");
 
-        Status      = CargoDryKitStatus.Activated;
-        OwnerUserId = userId;
-        VesselId    = vesselId;
-        ActivatedAt = DateTimeOffset.UtcNow;
-        ExpiresAt   = DateTimeOffset.UtcNow.AddDays(validityDays);
+        // Decision N18/N19: if SalesChannel is not set, mark for commercial review
+        // and do NOT complete activation — caller must handle this return path.
+        if (SalesChannel == null)
+        {
+            Status = CargoDryKitStatus.CommercialReviewRequired;
+            return;
+        }
+
+        Status            = CargoDryKitStatus.Activated;
+        StockLocationType = StockLocationType.Activated;
+        OwnerUserId       = userId;
+        VesselId          = vesselId;
+        ActivatedAt       = DateTimeOffset.UtcNow;
+        ExpiresAt         = DateTimeOffset.UtcNow.AddDays(validityDays);
     }
 
     public void Renew(int additionalDays, string paymentRef)
@@ -65,6 +122,7 @@ public sealed class CargoDryKitEntity : AizenEntityWithAudit
         ExpiresAt     = baseDate.AddDays(additionalDays);
         Status        = CargoDryKitStatus.Activated;
         RenewalCount += 1;
+        // Decision N10/N12: renewal does not change ProviderProfileId or SalesChannel
         _ = paymentRef;
     }
 
@@ -89,6 +147,61 @@ public sealed class CargoDryKitEntity : AizenEntityWithAudit
         VesselId    = newVesselId;
     }
 
+    // ── Commercial assignment methods (Phase 0) ────────────────────────────────
+
+    /// <summary>
+    /// Assign this kit to a provider with a specific commercial model.
+    /// Called when a batch is allocated to a provider (Phase 1 AllocateBatchToProviderCommand).
+    /// </summary>
+    public void AssignToProvider(long providerProfileId, SalesChannel channel, CargoDryCommercialModel model)
+    {
+        ProviderProfileId = providerProfileId;
+        SalesChannel      = channel;
+        CommercialModel   = model;
+        StockLocationType = StockLocationType.ProviderWarehouse;
+    }
+
+    /// <summary>
+    /// Sets SalesChannel for direct platform sales (no provider).
+    /// </summary>
+    public void MarkAsDirectSale()
+    {
+        SalesChannel    = Aizen.Modules.CargoDry.Abstraction.Enum.SalesChannel.DirectSale;
+        CommercialModel = CargoDryCommercialModel.PrincipalSale;
+    }
+
+    /// <summary>
+    /// Links this kit to its payment transaction and invoice (cross-module, Id-only references).
+    /// </summary>
+    public void LinkPayment(long transactionId, long invoiceId)
+    {
+        PaymentTransactionId = transactionId;
+        InvoiceId            = invoiceId;
+    }
+
+    /// <summary>
+    /// Admin resolves commercial attribution after CommercialReviewRequired status.
+    /// Completes the activation that was deferred.
+    /// </summary>
+    public void ResolveCommercialAttribution(
+        SalesChannel channel, CargoDryCommercialModel model, long? providerProfileId,
+        long userId, long vesselId, int validityDays)
+    {
+        if (Status != CargoDryKitStatus.CommercialReviewRequired)
+            throw new InvalidOperationException($"Kit {SerialNumber} is not in CommercialReviewRequired status.");
+
+        SalesChannel      = channel;
+        CommercialModel   = model;
+        ProviderProfileId = providerProfileId;
+        Status            = CargoDryKitStatus.Activated;
+        StockLocationType = StockLocationType.Activated;
+        OwnerUserId       = userId;
+        VesselId          = vesselId;
+        ActivatedAt       ??= DateTimeOffset.UtcNow;
+        ExpiresAt         = DateTimeOffset.UtcNow.AddDays(validityDays);
+    }
+
+    // ── Computed properties (NOT mapped to DB) ─────────────────────────────────
     public double EfficiencyPercent
     {
         get

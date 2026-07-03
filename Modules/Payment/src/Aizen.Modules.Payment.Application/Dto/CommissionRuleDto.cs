@@ -6,26 +6,31 @@ namespace Aizen.Modules.Payment.Application.Dto;
 /// Application-layer DTO for commission rule admin management.
 /// All enum fields are passed as their C# enum types — the Payment module API uses StringEnumConverter,
 /// so they serialize as strings to any upstream caller.
+/// Phase 0 (July 2026): Added ContextType, ProductCode, SalesChannel for CargoDry channel-specific rates.
 /// </summary>
 public sealed record CommissionRuleDto(
-    long                   Id,
-    string?                RuleCode,
-    CommissionRuleType     RuleType,
-    string?                CategoryCode,
-    long?                  ProviderPlanId,
-    long?                  ProviderProfileId,
-    decimal                CommissionRate,
-    DateTime               EffectiveFrom,
-    DateTime?              EffectiveTo,
-    string?                Notes,
-    CommissionRuleStatus   Status,
-    CommissionRulePriority Priority,
-    long                   ResolvedAppliedCount,
-    bool                   IsActive,
-    long?                  CreateUserId,
-    DateTime?              CreateDate,
-    long?                  ModifyUserId,
-    DateTime?              ModifyDate
+    long                    Id,
+    string?                 RuleCode,
+    CommissionRuleType      RuleType,
+    string?                 CategoryCode,
+    long?                   ProviderPlanId,
+    long?                   ProviderProfileId,
+    decimal                 CommissionRate,
+    DateTime                EffectiveFrom,
+    DateTime?               EffectiveTo,
+    string?                 Notes,
+    CommissionRuleStatus    Status,
+    CommissionRulePriority  Priority,
+    long                    ResolvedAppliedCount,
+    bool                    IsActive,
+    long?                   CreateUserId,
+    DateTime?               CreateDate,
+    long?                   ModifyUserId,
+    DateTime?               ModifyDate,
+    // ── Phase 0: CargoDry targeting dimensions ──────────────────────────────
+    TransactionContextType? ContextType,   // null = all contexts
+    string?                 ProductCode,   // null = all products
+    SalesChannel?           SalesChannel   // null = all channels
 );
 
 /// <summary>Paged commission rules list response.</summary>

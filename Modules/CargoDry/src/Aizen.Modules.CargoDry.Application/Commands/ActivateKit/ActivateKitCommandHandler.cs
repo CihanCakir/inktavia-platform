@@ -100,21 +100,28 @@ public sealed class ActivateKitCommandHandler
 
         return new CargoDryKitDto
         {
-            Id                = kit.Id,
-            SerialNumber      = kit.SerialNumber,
-            KitCode           = kit.KitCode,
-            ProductCode       = kit.ProductCode,
-            ProductName       = product.Name,
-            BatchCode         = kit.BatchCode,
-            Status            = kit.Status,
-            OwnerUserId       = kit.OwnerUserId,
-            VesselId          = kit.VesselId,
-            ActivatedAt       = kit.ActivatedAt,
-            ExpiresAt         = kit.ExpiresAt,
-            EfficiencyPercent = kit.EfficiencyPercent,
-            DaysUntilExpiry   = kit.DaysUntilExpiry,
-            RenewalCount      = kit.RenewalCount,
-            ManufacturedAt    = kit.ManufacturedAt,
+            Id                   = kit.Id,
+            SerialNumber         = kit.SerialNumber,
+            KitCode              = kit.KitCode,
+            ProductCode          = kit.ProductCode,
+            ProductName          = product.Name,
+            BatchCode            = kit.BatchCode,
+            Status               = kit.Status,
+            OwnerUserId          = kit.OwnerUserId,
+            VesselId             = kit.VesselId,
+            ActivatedAt          = kit.ActivatedAt,
+            ExpiresAt            = kit.ExpiresAt,
+            EfficiencyPercent    = kit.EfficiencyPercent,
+            DaysUntilExpiry      = kit.DaysUntilExpiry,
+            RenewalCount         = kit.RenewalCount,
+            ManufacturedAt       = kit.ManufacturedAt,
+            // Phase 0 commercial fields
+            ProviderProfileId    = kit.ProviderProfileId,
+            SalesChannel         = kit.SalesChannel,
+            CommercialModel      = kit.CommercialModel,
+            StockLocationType    = kit.StockLocationType,
+            InvoiceId            = kit.InvoiceId,
+            PaymentTransactionId = kit.PaymentTransactionId,
         };
     }
 }

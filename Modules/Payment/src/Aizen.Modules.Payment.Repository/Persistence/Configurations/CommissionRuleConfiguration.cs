@@ -27,9 +27,15 @@ public sealed class CommissionRuleConfiguration : IEntityTypeConfiguration<Commi
         b.Property(x => x.Priority).HasConversion<int>().IsRequired();
         b.Property(x => x.ResolvedAppliedCount).IsRequired().HasDefaultValue(0L);
 
+        // ── CargoDry targeting dimensions (Phase 0, July 2026) ─────────────
+        b.Property(x => x.ContextType).HasConversion<int>();     // null = all contexts
+        b.Property(x => x.ProductCode).HasMaxLength(50);         // null = all products
+        b.Property(x => x.SalesChannel).HasConversion<int>();    // null = all channels
+
         // ── Indexes ─────────────────────────────────────────────────────────
         b.HasIndex(x => x.RuleType);
         b.HasIndex(x => x.Status);
         b.HasIndex(x => x.RuleCode).IsUnique().HasFilter("\"RuleCode\" IS NOT NULL");
+        b.HasIndex(x => new { x.ContextType, x.SalesChannel, x.Status });  // Phase 0: channel rule resolution queries
     }
 }

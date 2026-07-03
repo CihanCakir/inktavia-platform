@@ -32,17 +32,21 @@ public sealed class GetCargoDryProductListQueryHandler
         var products = await _products.GetAllAsync(ct);
         var result   = products.Select(p => new CargoDryProductDto
         {
-            Id             = p.Id,
-            ProductCode    = p.ProductCode,
-            Name           = p.Name,
-            Description    = p.Description,
-            ValidityDays   = p.ValidityDays,
-            HasSmartDevice = p.HasSmartDevice,
-            DeviceType     = p.DeviceType,
-            RetailPrice    = p.RetailPrice,
-            CurrencyCode   = p.CurrencyCode,
-            IsActive       = p.IsActive,
-            CreatedAt      = p.CreateDate?.ToString("O"),
+            Id                     = p.Id,
+            ProductCode            = p.ProductCode,
+            Name                   = p.Name,
+            Description            = p.Description,
+            ValidityDays           = p.ValidityDays,
+            HasSmartDevice         = p.HasSmartDevice,
+            DeviceType             = p.DeviceType,
+            RetailPrice            = p.RetailPrice,
+            CurrencyCode           = p.CurrencyCode,
+            IsActive               = p.IsActive,
+            CreatedAt              = p.CreateDate?.ToString("O"),
+            // Phase 0 commercial pricing
+            WholesalePrice         = p.WholesalePrice,
+            ConsignmentPrice       = p.ConsignmentPrice,
+            ProviderCommissionRate = p.ProviderCommissionRate,
         }).ToList();
 
         await _cache.SetAsync(result, CacheKey,

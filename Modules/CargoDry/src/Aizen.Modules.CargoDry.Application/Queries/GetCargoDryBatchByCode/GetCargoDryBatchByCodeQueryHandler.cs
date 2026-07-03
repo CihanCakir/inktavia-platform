@@ -28,16 +28,20 @@ public sealed class GetCargoDryBatchByCodeQueryHandler
 
         return new CargoDryBatchDto
         {
-            Id               = batch.Id,
-            BatchCode        = batch.BatchCode,
-            ProductCode      = batch.ProductCode,
-            ProductName      = prods.TryGetValue(batch.ProductCode, out var p) ? p.Name : batch.ProductCode,
-            TotalKits        = batch.KitCount,
-            GeneratedAt      = batch.CreateDate?.ToString("O") ?? string.Empty,
-            IsRevoked        = batch.IsRevoked,
-            QrZipFileRef     = batch.QrZipFileRef,
-            ExcelFileRef     = batch.ExcelFileRef,
-            CreatedByAdminId = batch.CreatedByAdminId,
+            Id                        = batch.Id,
+            BatchCode                 = batch.BatchCode,
+            ProductCode               = batch.ProductCode,
+            ProductName               = prods.TryGetValue(batch.ProductCode, out var p) ? p.Name : batch.ProductCode,
+            TotalKits                 = batch.KitCount,
+            GeneratedAt               = batch.CreateDate?.ToString("O") ?? string.Empty,
+            IsRevoked                 = batch.IsRevoked,
+            QrZipFileRef              = batch.QrZipFileRef,
+            ExcelFileRef              = batch.ExcelFileRef,
+            CreatedByAdminId          = batch.CreatedByAdminId,
+            // Phase 0 commercial fields
+            AssignedProviderProfileId = batch.AssignedProviderProfileId,
+            CommercialModel           = batch.CommercialModel,
+            ConsignmentAgreementId    = batch.ConsignmentAgreementId,
         };
     }
 }
