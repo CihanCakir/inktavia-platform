@@ -196,6 +196,54 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] ConsignmentAgreementReasonBffRequest request,
         CancellationToken ct = default);
 
+    // ── Provider Inventory ───────────────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/inventory")]
+    Task<CargoDryProviderInventoryPagedBffDto> GetInventoryListAsync(
+        [Query] long?   providerProfileId,
+        [Query] string? productCode,
+        [Query] int?    commercialModel,
+        [Query] int?    salesChannel,
+        [Query] bool?   hasAvailableStock,
+        [Query] string? search,
+        [Query] int     page,
+        [Query] int     pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/inventory/provider/{providerProfileId}")]
+    Task<CargoDryProviderInventoryDetailBffDto> GetInventoryDetailAsync(
+        long providerProfileId,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/inventory/movements")]
+    Task<CargoDryInventoryMovementPagedBffDto> GetInventoryMovementsAsync(
+        [Query] long?   providerProfileId,
+        [Query] string? productCode,
+        [Query] string? batchCode,
+        [Query] int?    movementType,
+        [Query] DateTime? dateFrom,
+        [Query] DateTime? dateTo,
+        [Query] int     page,
+        [Query] int     pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/inventory/preview")]
+    Task<BatchAllocationPreviewBffDto> GetAllocationPreviewAsync(
+        [Query] string batchCode,
+        [Query] long   providerProfileId,
+        [Query] int    commercialModel,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/inventory/allocate")]
+    Task<AllocateBatchToProviderBffResultDto> AllocateBatchToProviderAsync(
+        [AizenRemoteCallBody] AllocateBatchToProviderBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/inventory/adjust")]
+    Task<CargoDryProviderInventoryBffDto> AdjustProviderInventoryAsync(
+        [AizenRemoteCallBody] AdjustProviderInventoryBffRequest request,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

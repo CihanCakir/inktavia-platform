@@ -109,6 +109,32 @@ public sealed class ConsignmentAgreementReasonBffRequest
     public string Reason { get; init; } = default!;
 }
 
+// ── Provider Inventory Request DTOs ──────────────────────────────────────────
+
+[DocumentationInfo("Allocate batch to provider BFF request",
+    "Admin request to allocate a batch and all its available kits to a provider. Phase 2.")]
+public sealed class AllocateBatchToProviderBffRequest
+{
+    public string                  BatchCode              { get; init; } = default!;
+    public long                    ProviderProfileId      { get; init; }
+    public int                     CommercialModel        { get; init; }
+    public int                     SalesChannel           { get; init; }
+    public long?                   ConsignmentAgreementId { get; init; }
+    public long?                   WarehouseId            { get; init; }
+    public string?                 Note                   { get; init; }
+}
+
+[DocumentationInfo("Adjust provider inventory BFF request",
+    "Admin request for manual stock correction on a provider inventory record. Phase 2.")]
+public sealed class AdjustProviderInventoryBffRequest
+{
+    public long    ProviderProfileId  { get; init; }
+    public string  ProductCode        { get; init; } = default!;
+    public string? BatchCode          { get; init; }
+    public int     AdjustmentQuantity { get; init; }
+    public string  Reason             { get; init; } = default!;
+}
+
 // ── Onboarding Request DTOs ───────────────────────────────────────────────────
 
 [DocumentationInfo("Validate kit BFF request", "Public request to validate a CargoDry kit serial/QR before activation.")]

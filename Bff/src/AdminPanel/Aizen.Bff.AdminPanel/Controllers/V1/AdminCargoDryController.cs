@@ -1,4 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsignmentAgreement;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.AdjustProviderInventory;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.AllocateBatchToProvider;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CreateCargoDryProduct;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CreateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ExtendKit;
@@ -13,6 +15,10 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.UpdateCargoDryProdu
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.UpdateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetActiveConsignmentAgreementForProvider;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryAllocationPreview;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryInventoryDetail;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryInventoryList;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryInventoryMovements;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetConsignmentAgreementByCode;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetConsignmentAgreementById;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetConsignmentAgreementsPaged;
@@ -525,6 +531,141 @@ public sealed class AdminCargoDryController : AizenWebApiController
 
         return SetResponse(result?.Agreement);
     }
+
+    // ── Provider Inventory ────────────────────────────────────────────────────
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/inventory</summary>
+    [HttpGet("inventory")]
+    [ProducesResponseType(typeof(CargoDryProviderInventoryPagedBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProviderInventoryPagedBffDto>> GetInventoryList(
+        [FromQuery] long?   providerProfileId = null,
+        [FromQuery] string? productCode       = null,
+        [FromQuery] int?    commercialModel   = null,
+        [FromQuery] int?    salesChannel      = null,
+        [FromQuery] bool?   hasAvailableStock = null,
+        [FromQuery] string? search            = null,
+        [FromQuery] int     page              = 1,
+        [FromQuery] int     pageSize          = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryInventoryListBffQuery
+            {
+                ProviderProfileId = providerProfileId,
+                ProductCode       = productCode,
+                CommercialModel   = commercialModel,
+                SalesChannel      = salesChannel,
+                HasAvailableStock = hasAvailableStock,
+                Search            = search,
+                Page              = page,
+                PageSize          = pageSize,
+            }, ct);
+
+        return SetResponse(result?.PagedResult);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/inventory/provider/{providerProfileId}</summary>
+    [HttpGet("inventory/provider/{providerProfileId:long}")]
+    [ProducesResponseType(typeof(CargoDryProviderInventoryDetailBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetInventoryDetail(long providerProfileId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryInventoryDetailBffQuery { ProviderProfileId = providerProfileId }, ct);
+
+        if (result?.Detail is null) return NotFound();
+        return Ok(SetResponse(result.Detail));
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/inventory/movements</summary>
+    [HttpGet("inventory/movements")]
+    [ProducesResponseType(typeof(CargoDryInventoryMovementPagedBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryInventoryMovementPagedBffDto>> GetInventoryMovements(
+        [FromQuery] long?     providerProfileId = null,
+        [FromQuery] string?   productCode       = null,
+        [FromQuery] string?   batchCode         = null,
+        [FromQuery] int?      movementType      = null,
+        [FromQuery] DateTime? dateFrom          = null,
+        [FromQuery] DateTime? dateTo            = null,
+        [FromQuery] int       page              = 1,
+        [FromQuery] int       pageSize          = 50,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryInventoryMovementsBffQuery
+            {
+                ProviderProfileId = providerProfileId,
+                ProductCode       = productCode,
+                BatchCode         = batchCode,
+                MovementType      = movementType,
+                DateFrom          = dateFrom,
+                DateTo            = dateTo,
+                Page              = page,
+                PageSize          = pageSize,
+            }, ct);
+
+        return SetResponse(result?.PagedResult);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/inventory/preview?batchCode=X&amp;providerProfileId=Y&amp;commercialModel=Z</summary>
+    [HttpGet("inventory/preview")]
+    [ProducesResponseType(typeof(BatchAllocationPreviewBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<BatchAllocationPreviewBffDto>> GetAllocationPreview(
+        [FromQuery] string batchCode,
+        [FromQuery] long   providerProfileId,
+        [FromQuery] int    commercialModel,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryAllocationPreviewBffQuery
+            {
+                BatchCode         = batchCode,
+                ProviderProfileId = providerProfileId,
+                CommercialModel   = commercialModel,
+            }, ct);
+
+        return SetResponse(result?.Preview);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/inventory/allocate</summary>
+    [HttpPost("inventory/allocate")]
+    [ProducesResponseType(typeof(AllocateBatchToProviderBffResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AllocateBatchToProviderBffResultDto>> AllocateBatchToProvider(
+        [FromBody] AllocateBatchToProviderBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new AllocateBatchToProviderBffCommand
+            {
+                BatchCode              = body.BatchCode,
+                ProviderProfileId      = body.ProviderProfileId,
+                CommercialModel        = body.CommercialModel,
+                SalesChannel           = body.SalesChannel,
+                ConsignmentAgreementId = body.ConsignmentAgreementId,
+                WarehouseId            = body.WarehouseId,
+                Note                   = body.Note,
+            }, ct);
+
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/inventory/adjust</summary>
+    [HttpPost("inventory/adjust")]
+    [ProducesResponseType(typeof(CargoDryProviderInventoryBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProviderInventoryBffDto>> AdjustProviderInventory(
+        [FromBody] AdjustInventoryBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new AdjustProviderInventoryBffCommand
+            {
+                ProviderProfileId  = body.ProviderProfileId,
+                ProductCode        = body.ProductCode,
+                BatchCode          = body.BatchCode,
+                AdjustmentQuantity = body.AdjustmentQuantity,
+                Reason             = body.Reason,
+            }, ct);
+
+        return SetResponse(result?.UpdatedInventory);
+    }
 }
 
 // ── Inline body request records ───────────────────────────────────────────────
@@ -574,4 +715,24 @@ public sealed class UpdateConsignmentAgreementBodyRequest
     public DateTime? EndDateUtc              { get; init; }
     public string?   TermsDocumentRef        { get; init; }
     public string?   Notes                   { get; init; }
+}
+
+public sealed class AllocateBatchToProviderBodyRequest
+{
+    public string  BatchCode              { get; init; } = default!;
+    public long    ProviderProfileId      { get; init; }
+    public int     CommercialModel        { get; init; }
+    public int     SalesChannel           { get; init; }
+    public long?   ConsignmentAgreementId { get; init; }
+    public long?   WarehouseId            { get; init; }
+    public string? Note                   { get; init; }
+}
+
+public sealed class AdjustInventoryBodyRequest
+{
+    public long    ProviderProfileId  { get; init; }
+    public string  ProductCode        { get; init; } = default!;
+    public string? BatchCode          { get; init; }
+    public int     AdjustmentQuantity { get; init; }
+    public string  Reason             { get; init; } = default!;
 }
