@@ -43,6 +43,20 @@ public sealed class CargoDrySellThroughSettlementDto
     /// <summary>Phase 4A: UTC timestamp when settlement was marked ReadyForSettlement.</summary>
     public DateTime?                            ReadyForSettlementAtUtc { get; init; }
 
+    // ── Payment preparation (Phase 4B) ──────────────────────────────────────────
+    /// <summary>Phase 4B: Cross-module ref to Payment.PayoutRecordEntity. Null until MarkPaymentPrepared() is called.</summary>
+    public long?                                PayoutRecordId             { get; init; }
+    public DateTime?                            PaymentPreparedAtUtc       { get; init; }
+    public long?                                PaymentPreparedByUserId    { get; init; }
+    public string?                              PaymentPreparationNote     { get; init; }
+
+    // ── Invoice preparation (Phase 4C) ──────────────────────────────────────────
+    /// <summary>Phase 4C: Cross-module ref to Payment.InvoiceHeaderEntity (ProviderSettlementStatement). Null until MarkInvoicePrepared() is called.</summary>
+    public long?                                InvoiceId                  { get; init; }
+    public DateTime?                            InvoicePreparedAtUtc       { get; init; }
+    public long?                                InvoicePreparedByUserId    { get; init; }
+    public string?                              InvoicePreparationNote     { get; init; }
+
     public DateTime                             CreatedAtUtc            { get; init; }
 }
 
@@ -66,6 +80,12 @@ public sealed class CargoDrySellThroughSettlementListItemDto
     public string                               StatusName              { get; init; } = default!;
     public DateTime?                            ScheduledSettlementDate { get; init; }
     public DateTime?                            ReadyForSettlementAtUtc { get; init; }
+    // ── Payment preparation (Phase 4B) ──────────────────────────────────────────
+    public long?                                PayoutRecordId          { get; init; }
+    public DateTime?                            PaymentPreparedAtUtc    { get; init; }
+    // ── Invoice preparation (Phase 4C) ──────────────────────────────────────────
+    public long?                                InvoiceId               { get; init; }
+    public DateTime?                            InvoicePreparedAtUtc    { get; init; }
     public DateTime                             CreatedAtUtc            { get; init; }
 }
 

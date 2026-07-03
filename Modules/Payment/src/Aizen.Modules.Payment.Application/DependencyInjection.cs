@@ -48,6 +48,19 @@ public static class DependencyInjection
         // ── Invoice number generator ──────────────────────────────────────────
         services.AddScoped<InvoiceNumberService>();
 
+        // ── CargoDry settlement payout service (Phase 4B) ─────────────────────
+        // Bridges CargoDry → Payment module boundary in-process.
+        // CargoDry.Application injects ICargoDrySettlementPayoutService (from Payment.Abstraction);
+        // this registration maps it to the concrete implementation in Payment.Application.
+        services.AddScoped<ICargoDrySettlementPayoutService, CargoDrySettlementPayoutService>();
+
+        // ── CargoDry settlement invoice service (Phase 4C) ────────────────────
+        // Bridges CargoDry → Payment module boundary in-process.
+        // CargoDry.Application injects ICargoDrySettlementInvoiceService (from Payment.Abstraction);
+        // this registration maps it to the concrete implementation in Payment.Application.
+        // Creates Draft ProviderSettlementStatement; does NOT issue or create PaymentTransaction.
+        services.AddScoped<ICargoDrySettlementInvoiceService, CargoDrySettlementInvoiceService>();
+
         // ── IAP gateway stubs (Phase 2C: replace with real implementations) ──
         // Apple App Store and Google Play Billing gateway clients are registered
         // as NotImplemented stubs. Phase 2C will swap these for real HTTP clients.

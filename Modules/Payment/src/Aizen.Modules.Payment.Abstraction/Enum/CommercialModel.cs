@@ -35,4 +35,12 @@ public enum CommercialModel
     /// acts as both service organiser and biller. Not used in MVP.
     /// </summary>
     ManagedService        = 4,
+
+    /// <summary>
+    /// Consignment sell-through settlement: Inktavia acts as consignment seller of CargoDry kits
+    /// and disburses a revenue share (ProviderPayoutAmount) to the consignment provider.
+    /// Produces a ProviderSettlementStatement — not a buyer invoice, not a commission deduction.
+    /// Phase 4C (July 2026).
+    /// </summary>
+    ConsignmentSettlement = 5,
 }

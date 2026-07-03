@@ -35,13 +35,17 @@ public sealed class GetPayoutListQueryHandler
             skip, request.PageSize, ct);
 
         // Batch-fetch linked transactions in a single query.
-        var txIds = items.Select(p => p.PaymentTransactionId).Distinct().ToArray();
-        var txMap = (await _transactions.GetByIdsAsync(txIds, ct))
-            .ToDictionary(t => t.Id);
+        var txIds = items
+            .Where(p => p.PaymentTransactionId.HasValue)
+            .Select(p => p.PaymentTransactionId!.Value)
+            .Distinct().ToArray();
+        var txMap = txIds.Length > 0
+            ? (await _transactions.GetByIdsAsync(txIds, ct)).ToDictionary(t => t.Id)
+            : new Dictionary<long, global::Aizen.Modules.Payment.Domain.Entities.Transaction.PaymentTransactionEntity>();
 
         var dtos = items.Select(p =>
         {
-            txMap.TryGetValue(p.PaymentTransactionId, out var tx);
+            var tx = p.PaymentTransactionId.HasValue && txMap.TryGetValue(p.PaymentTransactionId.Value, out var t) ? t : null;
 
             var grossVolume        = tx?.GrossAmount ?? p.Amount;
             var commissionDeducted = tx is not null
@@ -52,7 +56,7 @@ public sealed class GetPayoutListQueryHandler
 
             return new PayoutListItemDto(
                 p.Id,
-                p.PaymentTransactionId,
+                p.PaymentTransactionId.GetValueOrDefault(),
                 p.ProviderProfileId,
                 grossVolume,
                 commissionDeducted,

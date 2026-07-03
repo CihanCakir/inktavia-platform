@@ -1,8 +1,12 @@
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsignmentAgreement;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDrySettlementInvoice;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementInvoicePreparationPreview;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDrySettlementPayment;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ResolveCargoDrySalesAttributionFinancials;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ResolveMonthlySellThroughSettlement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySalesAttributionDetail;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySalesAttributionsPaged;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementPaymentPreparationPreview;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySellThroughSettlementDetail;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySellThroughSettlementsPaged;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.AdjustProviderInventory;
@@ -811,6 +815,85 @@ public sealed class AdminCargoDryController : AizenWebApiController
 
         return SetResponse(result?.Settlement);
     }
+
+    // ── Phase 4C: Settlement Invoice Preparation ─────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/settlements/{id}/invoice-preparation-preview
+    /// Returns an eligibility preview for invoice preparation of the given Scheduled settlement.
+    /// Never throws for business ineligibility — returns CanPrepare=false + BlockingReasons instead.
+    /// </summary>
+    [HttpGet("commercial/settlements/{id:long}/invoice-preparation-preview")]
+    [ProducesResponseType(typeof(CargoDrySettlementInvoicePreparationPreviewBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementInvoicePreparationPreviewBffDto>> GetSettlementInvoicePreparationPreview(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySettlementInvoicePreparationPreviewBffQuery { SettlementId = id }, ct);
+
+        return SetResponse(result?.Preview);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/commercial/settlements/{id}/prepare-invoice
+    /// Prepares a Draft ProviderSettlementStatement invoice for the given Scheduled settlement.
+    /// Settlement status remains Scheduled. Idempotent — returns existing invoice if already prepared.
+    /// </summary>
+    [HttpPost("commercial/settlements/{id:long}/prepare-invoice")]
+    [ProducesResponseType(typeof(PrepareCargoDrySettlementInvoiceBffCommandResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PrepareCargoDrySettlementInvoiceBffCommandResponse>> PrepareSettlementInvoice(
+        long id, [FromBody] PrepareSettlementInvoiceBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new PrepareCargoDrySettlementInvoiceBffCommand
+            {
+                SettlementId     = id,
+                PreparedByUserId = body.PreparedByUserId,
+                PreparationNote  = body.PreparationNote,
+            }, ct);
+
+        return SetResponse(result);
+    }
+
+    // ── Phase 4B: Settlement Payment Preparation ─────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/settlements/{id}/payment-preparation-preview
+    /// Returns an eligibility preview for payment preparation of the given settlement.
+    /// Never throws for business ineligibility — returns CanPrepare=false + BlockingReasons instead.
+    /// </summary>
+    [HttpGet("commercial/settlements/{id:long}/payment-preparation-preview")]
+    [ProducesResponseType(typeof(CargoDrySettlementPaymentPreparationPreviewBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementPaymentPreparationPreviewBffDto>> GetSettlementPaymentPreparationPreview(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySettlementPaymentPreparationPreviewBffQuery { SettlementId = id }, ct);
+
+        return SetResponse(result?.Preview);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/commercial/settlements/{id}/prepare-payment
+    /// Prepares a PayoutRecord in the Payment module for the given ReadyForSettlement settlement
+    /// and transitions the settlement to Scheduled status.
+    /// Idempotent — safe to call multiple times; returns existing payout record if already prepared.
+    /// </summary>
+    [HttpPost("commercial/settlements/{id:long}/prepare-payment")]
+    [ProducesResponseType(typeof(PrepareCargoDrySettlementPaymentBffCommandResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PrepareCargoDrySettlementPaymentBffCommandResponse>> PrepareSettlementPayment(
+        long id, [FromBody] PrepareSettlementPaymentBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new PrepareCargoDrySettlementPaymentBffCommand
+            {
+                SettlementId     = id,
+                PreparedByUserId = body.PreparedByUserId,
+                PreparationNote  = body.PreparationNote,
+            }, ct);
+
+        return SetResponse(result);
+    }
 }
 
 // ── Inline body request records ───────────────────────────────────────────────
@@ -882,7 +965,7 @@ public sealed class AdjustInventoryBodyRequest
     public string  Reason             { get; init; } = default!;
 }
 
-// Phase 4A
+// ── Phase 4A ─────────────────────────────────────────────────────────────────
 public sealed class ResolveAttributionFinancialsBodyRequest
 {
     public decimal  SalePrice              { get; init; }
@@ -896,4 +979,18 @@ public sealed class ResolveMonthlySettlementBodyRequest
 {
     public long    ResolvedByUserId { get; init; }
     public string? ResolutionNote   { get; init; }
+}
+
+// ── Phase 4B ─────────────────────────────────────────────────────────────────
+public sealed class PrepareSettlementPaymentBodyRequest
+{
+    public long    PreparedByUserId { get; init; }
+    public string? PreparationNote  { get; init; }
+}
+
+// ── Phase 4C ─────────────────────────────────────────────────────────────────
+public sealed class PrepareSettlementInvoiceBodyRequest
+{
+    public long    PreparedByUserId { get; init; }
+    public string? PreparationNote  { get; init; }
 }

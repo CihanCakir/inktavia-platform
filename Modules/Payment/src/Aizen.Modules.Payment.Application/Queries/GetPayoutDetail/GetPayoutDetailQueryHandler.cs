@@ -28,7 +28,9 @@ public sealed class GetPayoutDetailQueryHandler
         var p = await _payouts.GetByIdAsync(request.PayoutRecordId, ct);
         if (p is null) return null;
 
-        var tx = await _transactions.GetByIdAsync(p.PaymentTransactionId, ct);
+        var tx = p.PaymentTransactionId.HasValue
+            ? await _transactions.GetByIdAsync(p.PaymentTransactionId.Value, ct)
+            : null;
 
         var grossVolume        = tx?.GrossAmount ?? p.Amount;
         var commissionDeducted = tx is not null
@@ -38,7 +40,7 @@ public sealed class GetPayoutDetailQueryHandler
 
         return new PayoutDetailDto(
             p.Id,
-            p.PaymentTransactionId,
+            p.PaymentTransactionId.GetValueOrDefault(),
             p.ProviderProfileId,
             grossVolume,
             commissionDeducted,

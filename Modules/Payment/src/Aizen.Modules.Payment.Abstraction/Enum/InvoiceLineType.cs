@@ -32,4 +32,12 @@ public enum InvoiceLineType
 
     /// <summary>Refund/credit line on a CreditNote or RefundInvoice.</summary>
     Refund              = 9,
+
+    /// <summary>
+    /// Settlement payout line on a ProviderSettlementStatement.
+    /// Documents the provider's revenue share for a CargoDry consignment sell-through period.
+    /// Tax rate = 0 (inter-party settlement; not a consumer-facing taxable sale).
+    /// Phase 4C (July 2026).
+    /// </summary>
+    ProviderSettlementLine = 10,
 }

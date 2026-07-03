@@ -9,7 +9,30 @@ namespace Aizen.Modules.Payment.Domain.Entities.Payout;
 public sealed class PayoutRecordEntity : AizenEntityWithAudit
 {
     public long         ProviderProfileId       { get; private set; }
-    public long         PaymentTransactionId    { get; private set; }
+
+    /// <summary>
+    /// FK to PaymentTransactionEntity. Null for CargoDry settlement payouts
+    /// which do not originate from a buyer-payment transaction.
+    /// Phase 4B (July 2026): made nullable to support CargoDry consignment payout preparation.
+    /// </summary>
+    public long?        PaymentTransactionId    { get; private set; }
+
+    /// <summary>
+    /// Cross-module source domain type. E.g. "CargoDrySettlement" for sell-through settlement payouts.
+    /// Null for standard ServiceRequest payouts (backwards-compatible).
+    /// Used with SourceId for idempotency and reverse-navigation.
+    /// </summary>
+    public string?      SourceType              { get; private set; }
+
+    /// <summary>
+    /// Cross-module source entity Id. E.g. CargoDrySellThroughSettlement.Id.
+    /// Null for standard ServiceRequest payouts.
+    /// </summary>
+    public long?        SourceId                { get; private set; }
+
+    /// <summary>Human-readable payout description for admin panel and statements.</summary>
+    public string?      Description             { get; private set; }
+
     public decimal      Amount                  { get; private set; }
     public string       CurrencyCode            { get; private set; } = "TRY";
     public PayoutStatus Status                  { get; private set; }
@@ -38,6 +61,34 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
             GatewayProvider      = gatewayProvider,
             RequestedAt          = DateTime.UtcNow,
             IsActive             = true,
+        };
+    }
+
+    /// <summary>
+    /// Creates a payout preparation record for a CargoDry sell-through settlement.
+    /// Does not require a PaymentTransactionId — the settlement itself is the source.
+    /// Phase 4B (July 2026). Does NOT execute any external payout.
+    /// </summary>
+    public static PayoutRecordEntity CreateForCargoDrySettlement(
+        long    providerProfileId,
+        long    settlementId,
+        decimal amount,
+        string  currencyCode,
+        string  description)
+    {
+        return new PayoutRecordEntity
+        {
+            ProviderProfileId = providerProfileId,
+            PaymentTransactionId = null,
+            SourceType        = "CargoDrySettlement",
+            SourceId          = settlementId,
+            Description       = description,
+            Amount            = amount,
+            CurrencyCode      = currencyCode.ToUpperInvariant(),
+            Status            = PayoutStatus.Pending,
+            GatewayProvider   = "Manual",   // Phase 4B: manual disbursement pending Phase 4C Iyzico wiring
+            RequestedAt       = DateTime.UtcNow,
+            IsActive          = true,
         };
     }
 

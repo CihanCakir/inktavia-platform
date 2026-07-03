@@ -16,7 +16,7 @@ public sealed class GetPendingPayoutsQueryHandler
     {
         var pending = await _payouts.GetPendingAsync(ct);
         return pending.Select(p => new PendingPayoutDto(
-            p.Id, p.PaymentTransactionId, p.ProviderProfileId,
+            p.Id, p.PaymentTransactionId.GetValueOrDefault(), p.ProviderProfileId,
             p.Amount, p.CurrencyCode, p.GatewayPayoutId, p.RequestedAt)).ToList();
     }
 }

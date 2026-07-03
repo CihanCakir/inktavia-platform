@@ -143,6 +143,11 @@ public sealed class InvoiceRepository : IInvoiceRepository
         => _db.InvoiceHeaders
             .AnyAsync(x => x.SourceType == sourceType && x.SourceId == sourceId && !x.IsDeleted, ct);
 
+    public Task<InvoiceHeaderEntity?> GetBySourceAsync(
+        InvoiceSourceType sourceType, long sourceId, CancellationToken ct = default)
+        => _db.InvoiceHeaders
+            .FirstOrDefaultAsync(x => x.SourceType == sourceType && x.SourceId == sourceId && !x.IsDeleted, ct);
+
     // ── Mutations ─────────────────────────────────────────────────────────────
 
     public Task AddAsync(InvoiceHeaderEntity invoice, CancellationToken ct = default)

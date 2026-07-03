@@ -297,6 +297,32 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] ResolveMonthlySettlementBffRequest request,
         CancellationToken ct = default);
 
+    // ── Phase 4B: Settlement Payment Preparation ─────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlements/{id}/payment-preparation-preview")]
+    Task<CargoDrySettlementPaymentPreparationPreviewBffDto> GetSettlementPaymentPreparationPreviewAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlements/{id}/prepare-payment")]
+    Task<PrepareCargoDrySettlementPaymentBffResponseDto> PrepareSettlementPaymentAsync(
+        long id,
+        [AizenRemoteCallBody] PrepareCargoDrySettlementPaymentBffRequest request,
+        CancellationToken ct = default);
+
+    // ── Phase 4C: Settlement Invoice Preparation ─────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlements/{id}/invoice-preparation-preview")]
+    Task<CargoDrySettlementInvoicePreparationPreviewBffDto> GetSettlementInvoicePreparationPreviewAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlements/{id}/prepare-invoice")]
+    Task<PrepareCargoDrySettlementInvoiceBffResponseDto> PrepareSettlementInvoiceAsync(
+        long id,
+        [AizenRemoteCallBody] PrepareCargoDrySettlementInvoiceBffRequest request,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

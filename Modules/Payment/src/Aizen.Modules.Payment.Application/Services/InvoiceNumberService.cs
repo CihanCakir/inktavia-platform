@@ -43,13 +43,15 @@ public sealed class InvoiceNumberService
     private static readonly IReadOnlyDictionary<InvoiceType, string> PrefixMap =
         new Dictionary<InvoiceType, string>
         {
-            [InvoiceType.SalesInvoice]        = "INV",
-            [InvoiceType.CommissionInvoice]   = "COM",
-            [InvoiceType.SubscriptionInvoice] = "SUB",
-            [InvoiceType.CargoDryInvoice]     = "CDY",
-            [InvoiceType.CreditNote]          = "CRD",
-            [InvoiceType.RefundInvoice]       = "REF",
-            [InvoiceType.ProformaInvoice]     = "PRF",
+            [InvoiceType.SalesInvoice]               = "INV",
+            [InvoiceType.CommissionInvoice]           = "COM",
+            [InvoiceType.SubscriptionInvoice]         = "SUB",
+            [InvoiceType.CargoDryInvoice]             = "CDY",
+            [InvoiceType.CreditNote]                  = "CRD",
+            [InvoiceType.RefundInvoice]               = "REF",
+            [InvoiceType.ProformaInvoice]             = "PRF",
+            // Phase 4C: PST = Provider Settlement Statement
+            [InvoiceType.ProviderSettlementStatement] = "PST",
         };
 
     private readonly IInvoiceNumberSequenceRepository          _sequences;

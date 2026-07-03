@@ -1013,6 +1013,19 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<long?>("InvoiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("InvoicePreparationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("InvoicePreparedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("InvoicePreparedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -1031,6 +1044,19 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PaymentPreparationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("PaymentPreparedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("PaymentPreparedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PayoutRecordId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("PeriodEndUtc")
                         .HasColumnType("timestamp with time zone");
@@ -1094,6 +1120,10 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.HasIndex("ConsignmentAgreementId");
 
                     b.HasIndex("CurrencyCode");
+
+                    b.HasIndex("InvoiceId")
+                        .HasDatabaseName("IX_sell_through_settlements_InvoiceId")
+                        .HasFilter("\"InvoiceId\" IS NOT NULL");
 
                     b.HasIndex("PeriodEndUtc");
 

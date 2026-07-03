@@ -29,4 +29,14 @@ public enum InvoiceType
 
     /// <summary>Non-binding proforma invoice; not a legal tax document.</summary>
     ProformaInvoice    = 7,
+
+    /// <summary>
+    /// Provider settlement statement for a CargoDry consignment sell-through period.
+    /// Documents the ProviderPayoutAmount owed by Inktavia to the consignment provider.
+    /// This is NOT a buyer-facing invoice and NOT a commission deduction.
+    /// Inktavia is the consignment seller; provider receives their revenue share.
+    /// Prefix: PST (Provider Settlement).
+    /// Phase 4C (July 2026).
+    /// </summary>
+    ProviderSettlementStatement = 8,
 }

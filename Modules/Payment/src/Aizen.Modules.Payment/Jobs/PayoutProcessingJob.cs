@@ -64,7 +64,7 @@ public sealed class PayoutProcessingJob : AizenRecurringJob
             _ = publisher.PublishAsync(new PayoutCompletedMessage
             {
                 PayoutRecordId    = payout.Id,
-                TransactionId     = payout.PaymentTransactionId,
+                TransactionId     = payout.PaymentTransactionId.GetValueOrDefault(),
                 ProviderProfileId = payout.ProviderProfileId,
                 Amount            = payout.Amount,
                 CurrencyCode      = payout.CurrencyCode,

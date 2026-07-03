@@ -50,6 +50,28 @@ public sealed class CargoDrySellThroughSettlementEntityConfiguration
         // ── Phase 4A ───────────────────────────────────────────────────────────
         builder.Property(x => x.ReadyForSettlementAtUtc);
 
+        // ── Phase 4B: Payment preparation ──────────────────────────────────────
+        // PayoutRecordId is a cross-module reference to Payment.PayoutRecordEntity.
+        // No EF FK constraint — module boundary maintained via Id only.
+        builder.Property(x => x.PayoutRecordId);
+        builder.Property(x => x.PaymentPreparedAtUtc);
+        builder.Property(x => x.PaymentPreparedByUserId);
+        builder.Property(x => x.PaymentPreparationNote).HasMaxLength(1000);
+
+        // ── Phase 4C: Invoice preparation ──────────────────────────────────────
+        // InvoiceId is a cross-module reference to Payment.InvoiceHeaderEntity.
+        // No EF FK constraint — module boundary maintained via Id only.
+        // Settlement status remains Scheduled after invoice preparation (Option B lifecycle).
+        builder.Property(x => x.InvoiceId);
+        builder.Property(x => x.InvoicePreparedAtUtc);
+        builder.Property(x => x.InvoicePreparedByUserId);
+        builder.Property(x => x.InvoicePreparationNote).HasMaxLength(1000);
+
+        // Filtered index for quick idempotency check in PrepareInvoice handler
+        builder.HasIndex(x => x.InvoiceId)
+            .HasDatabaseName("IX_sell_through_settlements_InvoiceId")
+            .HasFilter("\"InvoiceId\" IS NOT NULL");
+
         // ── Audit ──────────────────────────────────────────────────────────────
         builder.Property(x => x.CreatedAtUtc).IsRequired();
 

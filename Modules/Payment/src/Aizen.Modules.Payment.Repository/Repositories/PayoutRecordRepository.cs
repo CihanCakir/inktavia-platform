@@ -17,6 +17,10 @@ public sealed class PayoutRecordRepository : IPayoutRecordRepository
     public Task<PayoutRecordEntity?> GetByTransactionIdAsync(long transactionId, CancellationToken ct)
         => _db.PayoutRecords.FirstOrDefaultAsync(x => x.PaymentTransactionId == transactionId, ct);
 
+    public Task<PayoutRecordEntity?> GetBySourceAsync(string sourceType, long sourceId, CancellationToken ct)
+        => _db.PayoutRecords.FirstOrDefaultAsync(
+            x => x.SourceType == sourceType && x.SourceId == sourceId && x.IsActive, ct);
+
     public async Task<(List<PayoutRecordEntity> Items, int Total)> GetPagedAsync(
         PayoutStatus? status, long? providerProfileId,
         DateTime? fromDate, DateTime? toDate,

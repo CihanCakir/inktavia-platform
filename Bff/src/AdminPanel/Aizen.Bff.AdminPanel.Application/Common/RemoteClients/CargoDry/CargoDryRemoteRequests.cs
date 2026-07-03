@@ -175,3 +175,27 @@ public sealed class ResolveMonthlySettlementBffRequest
     public long    ResolvedByUserId { get; init; }
     public string? ResolutionNote   { get; init; }
 }
+
+[DocumentationInfo("Prepare settlement payment BFF request",
+    "Admin request to create a payout preparation record in the Payment module for a " +
+    "ReadyForSettlement sell-through settlement and transition it to Scheduled status. " +
+    "Idempotent — safe to call multiple times. " +
+    "Phase 4B (July 2026).")]
+public sealed class PrepareCargoDrySettlementPaymentBffRequest
+{
+    public long    PreparedByUserId { get; init; }
+    public string? PreparationNote  { get; init; }
+}
+
+// ── Phase 4C: Settlement Invoice Preparation Request DTOs ─────────────────────
+
+[DocumentationInfo("Prepare settlement invoice BFF request",
+    "Admin request to create a Draft ProviderSettlementStatement invoice in the Payment module " +
+    "for a Scheduled sell-through settlement. Settlement status remains Scheduled after preparation. " +
+    "Idempotent — safe to call multiple times. " +
+    "Phase 4C (July 2026).")]
+public sealed class PrepareCargoDrySettlementInvoiceBffRequest
+{
+    public long    PreparedByUserId { get; init; }
+    public string? PreparationNote  { get; init; }
+}

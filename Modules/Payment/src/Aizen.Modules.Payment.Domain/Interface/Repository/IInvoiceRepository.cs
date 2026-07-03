@@ -83,6 +83,14 @@ public interface IInvoiceRepository
     Task<bool> ExistsForSourceAsync(
         InvoiceSourceType sourceType, long sourceId, CancellationToken ct = default);
 
+    /// <summary>
+    /// Returns the first non-deleted invoice for the given source, or null.
+    /// Used in idempotency paths where the caller needs the existing entity (not just a bool).
+    /// Phase 4C (July 2026).
+    /// </summary>
+    Task<InvoiceHeaderEntity?> GetBySourceAsync(
+        InvoiceSourceType sourceType, long sourceId, CancellationToken ct = default);
+
     // ── Mutations ─────────────────────────────────────────────────────────────
 
     Task AddAsync(InvoiceHeaderEntity invoice, CancellationToken ct = default);

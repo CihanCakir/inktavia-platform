@@ -1,8 +1,12 @@
 using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDrySettlementInvoice;
+using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDrySettlementPayment;
 using Aizen.Modules.CargoDry.Application.Commands.ResolveCargoDrySalesAttributionFinancials;
 using Aizen.Modules.CargoDry.Application.Commands.ResolveMonthlySellThroughSettlement;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionDetail;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionsPaged;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySettlementInvoicePreparationPreview;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySettlementPaymentPreparationPreview;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySellThroughSettlementDetail;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySellThroughSettlementsPaged;
 using MediatR;
@@ -167,6 +171,94 @@ public sealed class CargoDryCommercialController : ControllerBase
 
         return Ok(result.Settlement);
     }
+
+    // ── Phase 4B: Settlement Payment Preparation ─────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/settlements/{id}/payment-preparation-preview
+    /// Returns an eligibility preview for payment preparation of the given settlement.
+    /// Never throws for business ineligibility — returns CanPrepare=false + BlockingReasons instead.
+    /// </summary>
+    [HttpGet("settlements/{id:long}/payment-preparation-preview")]
+    public async Task<IActionResult> GetSettlementPaymentPreparationPreview(
+        long id, CancellationToken ct)
+    {
+        var result = await _sender.Send(
+            new GetCargoDrySettlementPaymentPreparationPreviewQuery { SettlementId = id }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlements/{id}/prepare-payment
+    /// Prepares a PayoutRecord in the Payment module for the given ReadyForSettlement settlement
+    /// and transitions the settlement to Scheduled status.
+    /// Idempotent — safe to call multiple times; returns existing payout record if already prepared.
+    /// </summary>
+    [HttpPost("settlements/{id:long}/prepare-payment")]
+    public async Task<IActionResult> PrepareSettlementPayment(
+        long id,
+        [FromBody] PrepareSettlementPaymentRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new PrepareCargoDrySettlementPaymentCommand
+        {
+            SettlementId     = id,
+            PreparedByUserId = body.PreparedByUserId,
+            PreparationNote  = body.PreparationNote,
+        }, ct);
+
+        return Ok(new
+        {
+            result.Settlement,
+            result.PayoutRecordId,
+            result.AlreadyExisted,
+        });
+    }
+
+    // ── Phase 4C: Settlement Invoice Preparation ─────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/settlements/{id}/invoice-preparation-preview
+    /// Returns an eligibility preview for invoice preparation of the given Scheduled settlement.
+    /// Checks: status=Scheduled, payout record exists (Phase 4B), amount > 0, invoice not yet created.
+    /// Never throws for business ineligibility — returns CanPrepare=false + BlockingReasons instead.
+    /// </summary>
+    [HttpGet("settlements/{id:long}/invoice-preparation-preview")]
+    public async Task<IActionResult> GetSettlementInvoicePreparationPreview(
+        long id, CancellationToken ct)
+    {
+        var result = await _sender.Send(
+            new GetCargoDrySettlementInvoicePreparationPreviewQuery { SettlementId = id }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlements/{id}/prepare-invoice
+    /// Prepares a Draft ProviderSettlementStatement invoice in the Payment module for
+    /// the given Scheduled settlement. Settlement status remains Scheduled after preparation.
+    /// Idempotent — safe to call multiple times; returns existing invoice if already prepared.
+    /// Requires Phase 4B (prepare-payment) to have been completed first.
+    /// </summary>
+    [HttpPost("settlements/{id:long}/prepare-invoice")]
+    public async Task<IActionResult> PrepareSettlementInvoice(
+        long id,
+        [FromBody] PrepareSettlementInvoiceRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new PrepareCargoDrySettlementInvoiceCommand
+        {
+            SettlementId     = id,
+            PreparedByUserId = body.PreparedByUserId,
+            PreparationNote  = body.PreparationNote,
+        }, ct);
+
+        return Ok(new
+        {
+            result.Settlement,
+            result.InvoiceId,
+            result.AlreadyExisted,
+        });
+    }
 }
 
 // ── Inline request models (Phase 4A — module layer) ──────────────────────────
@@ -184,4 +276,20 @@ public sealed class ResolveMonthlySettlementRequest
 {
     public long    ResolvedByUserId { get; init; }
     public string? ResolutionNote   { get; init; }
+}
+
+// ── Inline request models (Phase 4B — module layer) ──────────────────────────
+
+public sealed class PrepareSettlementPaymentRequest
+{
+    public long    PreparedByUserId { get; init; }
+    public string? PreparationNote  { get; init; }
+}
+
+// ── Inline request models (Phase 4C — module layer) ──────────────────────────
+
+public sealed class PrepareSettlementInvoiceRequest
+{
+    public long    PreparedByUserId { get; init; }
+    public string? PreparationNote  { get; init; }
 }

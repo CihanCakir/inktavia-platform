@@ -766,6 +766,10 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.Property<long?>("DeletedBy")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("FailureReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -800,7 +804,7 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.Property<long?>("ModifyUserId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("PaymentTransactionId")
+                    b.Property<long?>("PaymentTransactionId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime?>("ProcessedAt")
@@ -816,6 +820,13 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.Property<DateTime>("RequestedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("SourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SourceType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -824,6 +835,9 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.HasIndex("ProviderProfileId");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("SourceType", "SourceId")
+                        .HasDatabaseName("IX_payout_records_SourceType_SourceId");
 
                     b.ToTable("payout_records", "payment");
                 });

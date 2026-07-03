@@ -66,6 +66,41 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
     /// <summary>UTC timestamp when this settlement was marked ReadyForSettlement. Phase 4A.</summary>
     public DateTime? ReadyForSettlementAtUtc { get; private set; }
 
+    // ── Payment preparation (Phase 4B) ──────────────────────────────────────────────────────────
+    /// <summary>
+    /// Cross-module reference to Payment.PayoutRecordEntity.
+    /// Set by MarkPaymentPrepared() after the Payment module has registered a payout record.
+    /// No EF FK constraint — cross-module boundary is maintained via Id only.
+    /// </summary>
+    public long?     PayoutRecordId             { get; private set; }
+
+    /// <summary>UTC timestamp when payment preparation was recorded.</summary>
+    public DateTime? PaymentPreparedAtUtc        { get; private set; }
+
+    /// <summary>Admin user who triggered payment preparation.</summary>
+    public long?     PaymentPreparedByUserId     { get; private set; }
+
+    /// <summary>Optional note captured during payment preparation.</summary>
+    public string?   PaymentPreparationNote      { get; private set; }
+
+    // ── Invoice preparation (Phase 4C) ──────────────────────────────────────────────────────────
+    /// <summary>
+    /// Cross-module reference to Payment.InvoiceHeaderEntity (ProviderSettlementStatement).
+    /// Set by MarkInvoicePrepared() after the Payment module has created the Draft invoice.
+    /// No EF FK constraint — cross-module boundary maintained via Id only.
+    /// Settlement status remains Scheduled after invoice preparation (Option B lifecycle).
+    /// </summary>
+    public long?     InvoiceId                  { get; private set; }
+
+    /// <summary>UTC timestamp when invoice preparation was recorded.</summary>
+    public DateTime? InvoicePreparedAtUtc        { get; private set; }
+
+    /// <summary>Admin user who triggered invoice preparation.</summary>
+    public long?     InvoicePreparedByUserId     { get; private set; }
+
+    /// <summary>Optional note captured during invoice preparation.</summary>
+    public string?   InvoicePreparationNote      { get; private set; }
+
     public DateTime  CreatedAtUtc            { get; private set; }
 
     private CargoDrySellThroughSettlementEntity() { }
@@ -156,7 +191,7 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
         if (note is not null) Note = note;
     }
 
-    /// <summary>Finance schedules the payout for a specific date.</summary>
+    /// <summary>Finance schedules the payout for a specific date (without payment payout record).</summary>
     public void Schedule(DateTime scheduledDate, string? note = null)
     {
         if (Status != CargoDrySellThroughSettlementStatus.ReadyForSettlement)
@@ -166,6 +201,62 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
         ScheduledSettlementDate = scheduledDate;
         Status                  = CargoDrySellThroughSettlementStatus.Scheduled;
         if (note is not null) Note = note;
+    }
+
+    /// <summary>
+    /// Records payout preparation details and transitions ReadyForSettlement → Scheduled.
+    /// Called by PrepareCargoDrySettlementPaymentCommandHandler after the Payment module
+    /// has created a PayoutRecord for this settlement.
+    /// The PayoutRecordId is a cross-module reference — no EF FK constraint.
+    /// Phase 4B (July 2026). Does NOT execute any real payout transfer.
+    /// </summary>
+    public void MarkPaymentPrepared(
+        long     payoutRecordId,
+        long     preparedByUserId,
+        DateTime preparedAtUtc,
+        string?  note = null)
+    {
+        if (Status != CargoDrySellThroughSettlementStatus.ReadyForSettlement)
+            throw new InvalidOperationException(
+                $"Settlement {Id} must be in ReadyForSettlement status to prepare payment. " +
+                $"Current status: {Status}.");
+
+        PayoutRecordId          = payoutRecordId;
+        PaymentPreparedAtUtc    = preparedAtUtc;
+        PaymentPreparedByUserId = preparedByUserId;
+        PaymentPreparationNote  = note;
+        Status                  = CargoDrySellThroughSettlementStatus.Scheduled;
+    }
+
+    /// <summary>
+    /// Records invoice preparation details without changing settlement status.
+    /// Settlement remains in Scheduled status (Option B lifecycle — no InvoicePrepared status).
+    /// Called by PrepareCargoDrySettlementInvoiceCommandHandler after the Payment module
+    /// has created a Draft ProviderSettlementStatement for this settlement.
+    /// The InvoiceId is a cross-module reference — no EF FK constraint.
+    /// Idempotency: if InvoiceId is already set, calling again is a no-op (idempotent).
+    /// Phase 4C (July 2026).
+    /// </summary>
+    public void MarkInvoicePrepared(
+        long     invoiceId,
+        long     preparedByUserId,
+        DateTime preparedAtUtc,
+        string?  note = null)
+    {
+        if (Status != CargoDrySellThroughSettlementStatus.Scheduled)
+            throw new InvalidOperationException(
+                $"Settlement {Id} must be in Scheduled status to prepare invoice. " +
+                $"Current status: {Status}.");
+
+        // Idempotency: invoice may already be prepared (e.g., retry scenario).
+        // Only update fields if not already set; do not change status.
+        if (InvoiceId.HasValue) return;
+
+        InvoiceId               = invoiceId;
+        InvoicePreparedAtUtc    = preparedAtUtc;
+        InvoicePreparedByUserId = preparedByUserId;
+        InvoicePreparationNote  = note;
+        // Status intentionally stays Scheduled — Phase 4C Option B
     }
 
     /// <summary>Finance confirms the provider payout has been executed.</summary>

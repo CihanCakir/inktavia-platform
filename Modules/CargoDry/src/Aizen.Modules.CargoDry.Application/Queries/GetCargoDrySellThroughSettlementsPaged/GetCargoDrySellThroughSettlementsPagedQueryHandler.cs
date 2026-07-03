@@ -53,6 +53,9 @@ public sealed class GetCargoDrySellThroughSettlementsPagedQueryHandler
             StatusName             = x.Status.ToString(),
             ScheduledSettlementDate = x.ScheduledSettlementDate,
             ReadyForSettlementAtUtc = x.ReadyForSettlementAtUtc,
+            // Phase 4B
+            PayoutRecordId          = x.PayoutRecordId,
+            PaymentPreparedAtUtc    = x.PaymentPreparedAtUtc,
             CreatedAtUtc            = x.CreatedAtUtc,
         }).ToList();
 

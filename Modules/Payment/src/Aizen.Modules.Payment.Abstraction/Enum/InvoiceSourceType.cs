@@ -28,4 +28,11 @@ public enum InvoiceSourceType
 
     /// <summary>Invoice is a refund/credit document generated from a refund event.</summary>
     Refund          = 7,
+
+    /// <summary>
+    /// Invoice generated from a CargoDry consignment sell-through monthly settlement.
+    /// Reserved for Phase 4C provider payout statement generation.
+    /// Phase 4B (July 2026).
+    /// </summary>
+    CargoDrySettlement = 8,
 }
