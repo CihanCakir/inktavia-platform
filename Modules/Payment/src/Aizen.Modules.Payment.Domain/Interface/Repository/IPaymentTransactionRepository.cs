@@ -9,6 +9,13 @@ public interface IPaymentTransactionRepository
     // ── Transaction queries ───────────────────────────────────────────────────
 
     Task<PaymentTransactionEntity?> GetByIdAsync(long id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns transactions for the given set of IDs in a single query.
+    /// Used by GetPayoutListQueryHandler to batch-enrich payout breakdown fields.
+    /// </summary>
+    Task<List<PaymentTransactionEntity>> GetByIdsAsync(long[] ids, CancellationToken ct = default);
+
     Task<PaymentTransactionEntity?> GetByIdempotencyKeyAsync(string key, CancellationToken ct = default);
     Task<PaymentTransactionEntity?> GetByGatewayReferenceAsync(string gatewayReference, CancellationToken ct = default);
     Task<PaymentTransactionEntity?> GetByContextAsync(TransactionContextType contextType, long contextId, CancellationToken ct = default);

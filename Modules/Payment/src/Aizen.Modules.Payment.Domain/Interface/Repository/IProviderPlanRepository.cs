@@ -45,6 +45,23 @@ public interface IProviderPlanRepository
     /// <summary>Returns total PaidAmount for Active subscriptions (MRR approximation).</summary>
     Task<decimal> SumActiveMrrAsync(DateTime utcNow, CancellationToken ct = default);
 
+    /// <summary>Returns total count of PastDue provider subscriptions (all time, for churn risk signal).</summary>
+    Task<int> CountTotalPastDueAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns monthly PaidAmount totals for provider subscriptions created within the given range.
+    /// Each tuple: (Year, Month, TotalPaid). Used for MRR trend calculation.
+    /// </summary>
+    Task<List<(int Year, int Month, decimal Total)>> GetMonthlyPaidAmountAsync(
+        DateTime fromUtc, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns all provider subscriptions for admin oversight list, optionally filtered by status.
+    /// Ordered by CreateDate descending. Used by GetAdminSubscriptionListQueryHandler.
+    /// </summary>
+    Task<List<ProviderPlanSubscriptionEntity>> GetAllSubscriptionsForAdminAsync(
+        string? status, CancellationToken ct = default);
+
     Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct = default);
     void UpdateSubscription(ProviderPlanSubscriptionEntity entity);
 

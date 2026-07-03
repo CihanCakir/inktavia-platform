@@ -11,6 +11,9 @@ using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
 using Aizen.Modules.Payment.Application.Queries.GetPaymentDashboardKpis;
 using Aizen.Modules.Payment.Application.Queries.GetPaymentTransactionStats;
 using Aizen.Modules.Payment.Application.Queries.GetSubscriptionStats;
+using Aizen.Modules.Payment.Application.Queries.GetAdminSubscriptionList;
+using Aizen.Modules.Payment.Application.Queries.GetSubscriptionMrrTrend;
+using Aizen.Modules.Payment.Application.Queries.GetSubscriptionChurnRisk;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -148,6 +151,43 @@ public sealed class PaymentAdminController : ControllerBase
     public async Task<IActionResult> GetSubscriptionStats(CancellationToken ct)
     {
         var result = await _sender.Send(new GetSubscriptionStatsQuery(), ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET admin/subscriptions — paged merged list of provider + participant subscriptions.</summary>
+    [HttpGet("subscriptions")]
+    public async Task<IActionResult> GetAdminSubscriptionList(
+        [FromQuery] string? audience = null,
+        [FromQuery] string? status   = null,
+        [FromQuery] int     page     = 1,
+        [FromQuery] int     pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetAdminSubscriptionListQuery
+        {
+            Audience = audience,
+            Status   = status,
+            Page     = page,
+            PageSize = pageSize,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET admin/subscriptions/mrr-trend — monthly MRR totals for the last N months.</summary>
+    [HttpGet("subscriptions/mrr-trend")]
+    public async Task<IActionResult> GetSubscriptionMrrTrend(
+        [FromQuery] int months = 6,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetSubscriptionMrrTrendQuery { Months = months }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET admin/subscriptions/churn-risk — churn risk signal counts.</summary>
+    [HttpGet("subscriptions/churn-risk")]
+    public async Task<IActionResult> GetSubscriptionChurnRisk(CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetSubscriptionChurnRiskQuery(), ct);
         return Ok(result);
     }
 

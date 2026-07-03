@@ -17,6 +17,9 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
     public Task<PaymentTransactionEntity?> GetByIdAsync(long id, CancellationToken ct)
         => _db.Transactions.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<List<PaymentTransactionEntity>> GetByIdsAsync(long[] ids, CancellationToken ct)
+        => _db.Transactions.Where(t => ids.Contains(t.Id)).ToListAsync(ct);
+
     public Task<PaymentTransactionEntity?> GetByIdWithRefundsAsync(long id, CancellationToken ct)
         => _db.Transactions
               .Include(x => x.RefundRecords)

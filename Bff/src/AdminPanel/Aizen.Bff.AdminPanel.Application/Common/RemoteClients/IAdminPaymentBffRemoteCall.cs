@@ -278,6 +278,23 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     Task<SubscriptionStatsBffDto> GetSubscriptionStatsAsync(
         CancellationToken ct = default);
 
+    [AizenRemoteCallGet("/api/v1/payment/admin/subscriptions")]
+    Task<AdminSubscriptionListBffResult> GetAdminSubscriptionListAsync(
+        [Query] string? audience = null,
+        [Query] string? status   = null,
+        [Query] int     page     = 1,
+        [Query] int     pageSize = 25,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/subscriptions/mrr-trend")]
+    Task<SubscriptionMrrTrendBffResult> GetSubscriptionMrrTrendAsync(
+        [Query] int months = 6,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/subscriptions/churn-risk")]
+    Task<SubscriptionChurnRiskBffDto> GetSubscriptionChurnRiskAsync(
+        CancellationToken ct = default);
+
     // ─── Plans — CRUD ─────────────────────────────────────────────────────────
 
     [AizenRemoteCallGet("/api/v1/payment/provider-plans/{id}")]

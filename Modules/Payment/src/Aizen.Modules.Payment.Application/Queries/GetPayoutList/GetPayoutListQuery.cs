@@ -14,18 +14,21 @@ public sealed class GetPayoutListQuery : AizenQuery<PayoutListResult>
 }
 
 public sealed record PayoutListItemDto(
-    long        PayoutRecordId,
-    long        TransactionId,
-    long        ProviderProfileId,
-    decimal     Amount,
-    string      CurrencyCode,
+    long         PayoutRecordId,
+    long         TransactionId,
+    long         ProviderProfileId,
+    decimal      GrossVolume,          // transaction.GrossAmount
+    decimal      CommissionDeducted,   // transaction.CommissionAmount + transaction.VatOnCommission
+    decimal      NetPayout,            // payout.Amount (== transaction.NetPayoutAmount)
+    int          ServiceRequestCount,  // 1 for SR-context transactions; 0 otherwise
+    string       CurrencyCode,
     PayoutStatus Status,
-    string?     GatewayPayoutId,
-    string?     HoldReason,
-    string?     AdminNote,
-    DateTime    RequestedAt,
-    DateTime?   ProcessedAt,
-    DateTime?   HeldAt
+    string?      GatewayPayoutId,
+    string?      HoldReason,
+    string?      AdminNote,
+    DateTime     RequestedAt,
+    DateTime?    ProcessedAt,
+    DateTime?    HeldAt
 );
 
 public sealed record PayoutListResult(

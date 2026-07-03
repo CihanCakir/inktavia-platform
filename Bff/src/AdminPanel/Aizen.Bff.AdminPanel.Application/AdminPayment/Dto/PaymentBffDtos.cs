@@ -316,3 +316,53 @@ public sealed record UpdateParticipantPlanBffRequest(
     DateTime? ValidTo,
     List<PlanFeatureItemBffDto> FeatureItems
 );
+
+// ─── Admin Subscription List ──────────────────────────────────────────────────
+
+/// <summary>Single row in the admin subscription oversight list (provider or participant).</summary>
+public sealed record AdminSubscriptionListItemBffDto(
+    long     Id,
+    string   Audience,            // "Provider" | "Participant"
+    long     ProfileId,
+    long     UserId,              // Identity userId — used for navigation to user detail page
+    string   ProfileDisplayName,  // "FirstName LastName" resolved from Identity
+    long     PlanId,
+    string   PlanCode,
+    string   PlanName,
+    string   Status,              // "Active" | "PastDue" | "Cancelled" | "Expired"
+    decimal  PaidAmount,
+    string   CurrencyCode,
+    DateTime PeriodStart,
+    DateTime PeriodEnd,
+    bool     AutoRenew,
+    DateTime CreateDate
+);
+
+/// <summary>Paged result for the admin subscription list endpoint.</summary>
+public sealed record AdminSubscriptionListBffResult(
+    List<AdminSubscriptionListItemBffDto> Items,
+    int Total,
+    int Page,
+    int PageSize
+);
+
+// ─── MRR Trend ────────────────────────────────────────────────────────────────
+
+public sealed record MrrMonthBffDto(
+    int     Year,
+    int     Month,
+    string  Label,
+    decimal MrrTotal
+);
+
+public sealed record SubscriptionMrrTrendBffResult(
+    List<MrrMonthBffDto> Months
+);
+
+// ─── Churn Risk ───────────────────────────────────────────────────────────────
+
+public sealed record SubscriptionChurnRiskBffDto(
+    int PaymentFailureRiskCount,
+    int ExpiringIn7DaysCount,
+    int TotalAtRiskCount
+);

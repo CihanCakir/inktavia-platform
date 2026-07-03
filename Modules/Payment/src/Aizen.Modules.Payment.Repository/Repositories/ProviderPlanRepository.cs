@@ -84,6 +84,36 @@ public sealed class ProviderPlanRepository : IProviderPlanRepository
         return amounts.Sum();
     }
 
+    public Task<int> CountTotalPastDueAsync(CancellationToken ct)
+        => _db.ProviderSubscriptions.CountAsync(x => x.Status == SubscriptionStatus.PastDue, ct);
+
+    public async Task<List<(int Year, int Month, decimal Total)>> GetMonthlyPaidAmountAsync(
+        DateTime fromUtc, CancellationToken ct)
+    {
+        var raw = await _db.ProviderSubscriptions
+            .Where(x => x.CreateDate >= fromUtc)
+            .Select(x => new { x.CreateDate, x.PaidAmount })
+            .ToListAsync(ct);
+
+        return raw
+            .Where(x => x.CreateDate.HasValue)
+            .GroupBy(x => new { x.CreateDate!.Value.Year, x.CreateDate!.Value.Month })
+            .Select(g => (g.Key.Year, g.Key.Month, g.Sum(x => x.PaidAmount)))
+            .ToList();
+    }
+
+    public async Task<List<ProviderPlanSubscriptionEntity>> GetAllSubscriptionsForAdminAsync(
+        string? status, CancellationToken ct)
+    {
+        var query = _db.ProviderSubscriptions.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(status) &&
+            Enum.TryParse<SubscriptionStatus>(status, ignoreCase: true, out var parsedStatus))
+        {
+            query = query.Where(x => x.Status == parsedStatus);
+        }
+        return await query.OrderByDescending(x => x.CreateDate).ToListAsync(ct);
+    }
+
     public Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct)
         => _db.ProviderSubscriptions.AddAsync(entity, ct).AsTask();
 

@@ -34,6 +34,9 @@ using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPendingPayouts;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderPlans;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderSubscription;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionStats;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetAdminSubscriptionList;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionMrrTrend;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionChurnRisk;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.DeactivateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ReactivateCommissionRule;
@@ -330,6 +333,47 @@ public sealed class AdminPaymentController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync(new GetSubscriptionStatsBffQuery(), ct);
         return SetResponse(result?.Stats);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/subscriptions — paged merged list of provider + participant subscriptions</summary>
+    [HttpGet("subscriptions")]
+    [ProducesResponseType(typeof(AdminSubscriptionListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminSubscriptionListBffResult>> GetAdminSubscriptionList(
+        [FromQuery] string? audience = null,
+        [FromQuery] string? status   = null,
+        [FromQuery] int     page     = 1,
+        [FromQuery] int     pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetAdminSubscriptionListBffQuery
+        {
+            Audience = audience,
+            Status   = status,
+            Page     = page,
+            PageSize = pageSize,
+        }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/subscriptions/mrr-trend — last N months of merged MRR</summary>
+    [HttpGet("subscriptions/mrr-trend")]
+    [ProducesResponseType(typeof(SubscriptionMrrTrendBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SubscriptionMrrTrendBffResult>> GetSubscriptionMrrTrend(
+        [FromQuery] int months = 6,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetSubscriptionMrrTrendBffQuery { Months = months }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/subscriptions/churn-risk — PastDue + expiring-soon counts</summary>
+    [HttpGet("subscriptions/churn-risk")]
+    [ProducesResponseType(typeof(SubscriptionChurnRiskBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SubscriptionChurnRiskBffDto>> GetSubscriptionChurnRisk(
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetSubscriptionChurnRiskBffQuery(), ct);
+        return SetResponse(result?.Result);
     }
 
     /// <summary>POST api/v1/admin-panel/payment/subscriptions/provider</summary>
@@ -661,10 +705,16 @@ public sealed class AdminPaymentController : AizenWebApiController
             Name             = command.Name,
             Description      = command.Description,
             MonthlyPriceTRY  = command.MonthlyPriceTRY,
+            AnnualPriceTRY   = command.AnnualPriceTRY,
+            TrialDays        = command.TrialDays,
+            BadgeLabel       = command.BadgeLabel,
             MaxActiveOffers  = command.MaxActiveOffers,
             HasPriorityBoost = command.HasPriorityBoost,
             HasFullAnalytics = command.HasFullAnalytics,
             SortOrder        = command.SortOrder,
+            ValidFrom        = command.ValidFrom,
+            ValidTo          = command.ValidTo,
+            FeatureItems     = command.FeatureItems,
         };
         var result = await _cqrs.ProcessAsync(enriched, ct);
         return SetResponse(result);
@@ -708,10 +758,16 @@ public sealed class AdminPaymentController : AizenWebApiController
             Name                  = command.Name,
             Description           = command.Description,
             MonthlyPriceTRY       = command.MonthlyPriceTRY,
+            AnnualPriceTRY        = command.AnnualPriceTRY,
+            TrialDays             = command.TrialDays,
+            BadgeLabel            = command.BadgeLabel,
             ServiceDiscountRate   = command.ServiceDiscountRate,
             CargoDryDiscountRate  = command.CargoDryDiscountRate,
             InkCoinEarnMultiplier = command.InkCoinEarnMultiplier,
             SortOrder             = command.SortOrder,
+            ValidFrom             = command.ValidFrom,
+            ValidTo               = command.ValidTo,
+            FeatureItems          = command.FeatureItems,
         };
         var result = await _cqrs.ProcessAsync(enriched, ct);
         return SetResponse(result);
