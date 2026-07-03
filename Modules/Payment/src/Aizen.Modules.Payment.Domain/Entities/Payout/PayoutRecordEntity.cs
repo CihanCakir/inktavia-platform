@@ -45,6 +45,22 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
     public string?      FailureReason           { get; private set; }
     public string?      AdminNote               { get; private set; }
 
+    // ── Phase 4D: Payout lifecycle audit fields ──────────────────────────────────
+    /// <summary>UTC timestamp when admin approved this payout for disbursement. Phase 4D.</summary>
+    public DateTime?    ApprovedAtUtc           { get; private set; }
+    /// <summary>Admin user Id who approved the payout. Phase 4D.</summary>
+    public long?        ApprovedByUserId        { get; private set; }
+    /// <summary>UTC timestamp when the payout entered Processing state. Phase 4D.</summary>
+    public DateTime?    ProcessingAtUtc         { get; private set; }
+    /// <summary>Admin user Id who initiated processing. Phase 4D.</summary>
+    public long?        ProcessingByUserId      { get; private set; }
+    /// <summary>Admin user Id who confirmed manual completion. Phase 4D.</summary>
+    public long?        CompletedByUserId       { get; private set; }
+    /// <summary>UTC timestamp when the payout was marked Failed. Phase 4D.</summary>
+    public DateTime?    FailedAtUtc             { get; private set; }
+    /// <summary>Admin user Id who recorded the failure. Phase 4D.</summary>
+    public long?        FailedByUserId          { get; private set; }
+
     private PayoutRecordEntity() { }
 
     public static PayoutRecordEntity Create(
@@ -130,5 +146,98 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
         GatewayPayoutId = gatewayPayoutId;
         ProcessedAt     = DateTime.UtcNow;
         AdminNote       = adminNote ?? AdminNote;
+    }
+
+    // ── Phase 4D: CargoDry settlement payout lifecycle methods ───────────────────
+
+    /// <summary>
+    /// Admin approves a Pending payout for disbursement.
+    /// Transition: Pending → Approved.
+    /// Phase 4D (July 2026).
+    /// </summary>
+    public void Approve(long approvedByUserId, DateTime approvedAtUtc, string? note = null)
+    {
+        if (Status != PayoutStatus.Pending)
+            throw new InvalidOperationException(
+                $"Cannot approve payout {Id}: current status is {Status}. Expected Pending.");
+
+        Status           = PayoutStatus.Approved;
+        ApprovedAtUtc    = approvedAtUtc;
+        ApprovedByUserId = approvedByUserId;
+        if (note is not null) AdminNote = note;
+    }
+
+    /// <summary>
+    /// Marks an Approved (or Pending) payout as actively Processing.
+    /// Records the admin user and an optional external reference (e.g. bank instruction ID).
+    /// Transition: Approved/Pending → Processing.
+    /// Phase 4D (July 2026). Does NOT call any payment gateway.
+    /// </summary>
+    public void MarkProcessingByAdmin(
+        long     processedByUserId,
+        DateTime processingAtUtc,
+        string?  externalReference = null,
+        string?  note = null)
+    {
+        if (Status is not (PayoutStatus.Approved or PayoutStatus.Pending))
+            throw new InvalidOperationException(
+                $"Cannot mark payout {Id} as Processing: current status is {Status}. " +
+                "Expected Approved or Pending.");
+
+        Status              = PayoutStatus.Processing;
+        ProcessingAtUtc     = processingAtUtc;
+        ProcessingByUserId  = processedByUserId;
+        if (externalReference is not null) GatewayPayoutId = externalReference;
+        if (note is not null) AdminNote = note;
+    }
+
+    /// <summary>
+    /// Admin confirms the manual disbursement has been executed.
+    /// Transition: Processing/Approved/Pending → Completed.
+    /// Records the completing admin, completion timestamp, and the manual payment reference.
+    /// Phase 4D (July 2026). Does NOT call any payment gateway.
+    /// </summary>
+    public void MarkCompletedManual(
+        long     completedByUserId,
+        DateTime completedAtUtc,
+        string   manualPaymentReference,
+        string?  note = null)
+    {
+        if (Status is PayoutStatus.Completed)
+            return; // idempotent — already completed
+
+        if (Status is PayoutStatus.Cancelled or PayoutStatus.Failed)
+            throw new InvalidOperationException(
+                $"Cannot complete payout {Id}: it is in terminal status {Status}.");
+
+        Status            = PayoutStatus.Completed;
+        CompletedByUserId = completedByUserId;
+        ProcessedAt       = completedAtUtc;
+        GatewayPayoutId   = manualPaymentReference;
+        if (note is not null) AdminNote = note;
+    }
+
+    /// <summary>
+    /// Records a payout failure with the responsible admin, reason, and optional external reference.
+    /// Transition: any non-Completed, non-Cancelled state → Failed.
+    /// Phase 4D (July 2026). Does NOT call any payment gateway.
+    /// </summary>
+    public void MarkFailedByAdmin(
+        long     failedByUserId,
+        DateTime failedAtUtc,
+        string   reason,
+        string?  externalReference = null,
+        string?  note = null)
+    {
+        if (Status is PayoutStatus.Completed)
+            throw new InvalidOperationException(
+                $"Cannot fail payout {Id}: it is already Completed.");
+
+        Status          = PayoutStatus.Failed;
+        FailedAtUtc     = failedAtUtc;
+        FailedByUserId  = failedByUserId;
+        FailureReason   = reason;
+        if (externalReference is not null) GatewayPayoutId = externalReference;
+        if (note is not null) AdminNote = note;
     }
 }

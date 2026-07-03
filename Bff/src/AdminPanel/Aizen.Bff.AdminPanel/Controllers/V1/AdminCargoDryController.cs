@@ -1,6 +1,11 @@
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsignmentAgreement;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ApproveCargoDrySettlementPayout;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CompleteCargoDrySettlementPayout;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.FailCargoDrySettlementPayout;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.MarkCargoDrySettlementPayoutProcessing;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDrySettlementInvoice;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementInvoicePreparationPreview;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementPayoutExecutionPreview;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDrySettlementPayment;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ResolveCargoDrySalesAttributionFinancials;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ResolveMonthlySellThroughSettlement;
@@ -894,6 +899,139 @@ public sealed class AdminCargoDryController : AizenWebApiController
 
         return SetResponse(result);
     }
+
+    // ── Phase 4D: Provider Payout Lifecycle & Settlement Closure ─────────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/settlements/{id}/payout-execution-preview
+    /// Returns a live eligibility preview for the payout lifecycle of the given settlement.
+    /// Shows prerequisite flags (PaymentPrepared, InvoicePrepared), current payout state,
+    /// and eligibility flags (CanApprovePayout, CanMarkProcessing, CanCompletePayout, CanFailPayout).
+    /// Never throws for business ineligibility — returns BlockingReasons instead.
+    /// </summary>
+    [HttpGet("commercial/settlements/{id:long}/payout-execution-preview")]
+    [ProducesResponseType(typeof(CargoDrySettlementPayoutExecutionPreviewBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementPayoutExecutionPreviewBffDto>> GetSettlementPayoutExecutionPreview(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySettlementPayoutExecutionPreviewBffQuery { SettlementId = id }, ct);
+
+        return SetResponse(result?.Preview);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/commercial/settlements/{id}/approve-payout
+    /// Approves the payout record for the given Scheduled settlement.
+    /// Transitions PayoutRecord status: Pending/Processing → Approved.
+    /// Settlement status remains Scheduled. Requires Phase 4B (PayoutRecord) to be complete.
+    /// No Iyzico call. No automatic transfer. Phase 4D (July 2026).
+    /// </summary>
+    [HttpPost("commercial/settlements/{id:long}/approve-payout")]
+    [ProducesResponseType(typeof(CargoDrySettlementPayoutLifecycleResponseBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementPayoutLifecycleResponseBffDto>> ApproveSettlementPayout(
+        long id, [FromBody] ApproveSettlementPayoutBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ApproveCargoDrySettlementPayoutBffCommand
+            {
+                SettlementId     = id,
+                ApprovedByUserId = body.ApprovedByUserId,
+                Note             = body.Note,
+            }, ct);
+
+        return SetResponse(new CargoDrySettlementPayoutLifecycleResponseBffDto
+        {
+            Settlement   = result?.Settlement,
+            PayoutResult = result?.PayoutResult,
+        });
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/commercial/settlements/{id}/mark-payout-processing
+    /// Marks the approved payout record as Processing (optional intermediate step).
+    /// Settlement status remains Scheduled. Requires PayoutRecord in Approved state.
+    /// No Iyzico call. No automatic transfer. Phase 4D (July 2026).
+    /// </summary>
+    [HttpPost("commercial/settlements/{id:long}/mark-payout-processing")]
+    [ProducesResponseType(typeof(CargoDrySettlementPayoutLifecycleResponseBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementPayoutLifecycleResponseBffDto>> MarkSettlementPayoutProcessing(
+        long id, [FromBody] MarkSettlementPayoutProcessingBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new MarkCargoDrySettlementPayoutProcessingBffCommand
+            {
+                SettlementId      = id,
+                ProcessedByUserId = body.ProcessedByUserId,
+                ExternalReference = body.ExternalReference,
+                Note              = body.Note,
+            }, ct);
+
+        return SetResponse(new CargoDrySettlementPayoutLifecycleResponseBffDto
+        {
+            Settlement   = result?.Settlement,
+            PayoutResult = result?.PayoutResult,
+        });
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/commercial/settlements/{id}/complete-payout
+    /// Records the manual payout completion and closes the settlement as Settled.
+    /// THIS IS THE ONLY ENDPOINT that advances settlement status to Settled.
+    /// ManualPaymentReference is required. Idempotent if already Settled.
+    /// Requires Phase 4B (PayoutRecord) AND Phase 4C (InvoiceId) to be complete first.
+    /// No Iyzico call. No automatic transfer. Phase 4D (July 2026).
+    /// </summary>
+    [HttpPost("commercial/settlements/{id:long}/complete-payout")]
+    [ProducesResponseType(typeof(CargoDrySettlementPayoutLifecycleResponseBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementPayoutLifecycleResponseBffDto>> CompleteSettlementPayout(
+        long id, [FromBody] CompleteSettlementPayoutBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new CompleteCargoDrySettlementPayoutBffCommand
+            {
+                SettlementId           = id,
+                CompletedByUserId      = body.CompletedByUserId,
+                ManualPaymentReference = body.ManualPaymentReference,
+                Note                   = body.Note,
+            }, ct);
+
+        return SetResponse(new CargoDrySettlementPayoutLifecycleResponseBffDto
+        {
+            Settlement       = result?.Settlement,
+            PayoutResult     = result?.PayoutResult,
+            AlreadyCompleted = result?.AlreadyCompleted ?? false,
+        });
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/commercial/settlements/{id}/fail-payout
+    /// Records a payout failure on both the PayoutRecord and the settlement.
+    /// Settlement status remains Scheduled — allows admin to retry after resolving the failure.
+    /// FailureReason is required. Cannot fail an already-Settled settlement.
+    /// No Iyzico call. No automatic transfer. Phase 4D (July 2026).
+    /// </summary>
+    [HttpPost("commercial/settlements/{id:long}/fail-payout")]
+    [ProducesResponseType(typeof(CargoDrySettlementPayoutLifecycleResponseBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementPayoutLifecycleResponseBffDto>> FailSettlementPayout(
+        long id, [FromBody] FailSettlementPayoutBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new FailCargoDrySettlementPayoutBffCommand
+            {
+                SettlementId      = id,
+                FailedByUserId    = body.FailedByUserId,
+                FailureReason     = body.FailureReason,
+                ExternalReference = body.ExternalReference,
+                Note              = body.Note,
+            }, ct);
+
+        return SetResponse(new CargoDrySettlementPayoutLifecycleResponseBffDto
+        {
+            Settlement   = result?.Settlement,
+            PayoutResult = result?.PayoutResult,
+        });
+    }
 }
 
 // ── Inline body request records ───────────────────────────────────────────────
@@ -993,4 +1131,33 @@ public sealed class PrepareSettlementInvoiceBodyRequest
 {
     public long    PreparedByUserId { get; init; }
     public string? PreparationNote  { get; init; }
+}
+
+// ── Phase 4D ─────────────────────────────────────────────────────────────────
+public sealed class ApproveSettlementPayoutBodyRequest
+{
+    public long    ApprovedByUserId { get; init; }
+    public string? Note             { get; init; }
+}
+
+public sealed class MarkSettlementPayoutProcessingBodyRequest
+{
+    public long    ProcessedByUserId  { get; init; }
+    public string? ExternalReference  { get; init; }
+    public string? Note               { get; init; }
+}
+
+public sealed class CompleteSettlementPayoutBodyRequest
+{
+    public long    CompletedByUserId      { get; init; }
+    public string  ManualPaymentReference { get; init; } = default!;
+    public string? Note                   { get; init; }
+}
+
+public sealed class FailSettlementPayoutBodyRequest
+{
+    public long    FailedByUserId    { get; init; }
+    public string  FailureReason     { get; init; } = default!;
+    public string? ExternalReference { get; init; }
+    public string? Note              { get; init; }
 }

@@ -72,6 +72,13 @@ public sealed class CargoDrySellThroughSettlementEntityConfiguration
             .HasDatabaseName("IX_sell_through_settlements_InvoiceId")
             .HasFilter("\"InvoiceId\" IS NOT NULL");
 
+        // ── Phase 4D: Payout lifecycle / closure ──────────────────────────────
+        builder.Property(x => x.PayoutCompletedAtUtc);
+        builder.Property(x => x.PayoutCompletedByUserId);
+        builder.Property(x => x.PayoutCompletionReference).HasMaxLength(500);
+        builder.Property(x => x.PayoutFailureReason).HasMaxLength(1000);
+        builder.Property(x => x.PayoutLifecycleNote).HasMaxLength(1000);
+
         // ── Audit ──────────────────────────────────────────────────────────────
         builder.Property(x => x.CreatedAtUtc).IsRequired();
 

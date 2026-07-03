@@ -25,6 +25,15 @@ public sealed class PayoutRecordConfiguration : IEntityTypeConfiguration<PayoutR
         b.Property(x => x.RequestedAt).IsRequired();
         b.Property(x => x.FailureReason).HasMaxLength(500);
         b.Property(x => x.AdminNote).HasMaxLength(500);
+        // ── Phase 4D: Lifecycle audit fields ──────────────────────────────────────
+        b.Property(x => x.ApprovedAtUtc);
+        b.Property(x => x.ApprovedByUserId);
+        b.Property(x => x.ProcessingAtUtc);
+        b.Property(x => x.ProcessingByUserId);
+        b.Property(x => x.CompletedByUserId);
+        b.Property(x => x.FailedAtUtc);
+        b.Property(x => x.FailedByUserId);
+
         b.HasIndex(x => x.ProviderProfileId);
         b.HasIndex(x => x.Status);
         // Composite index for idempotency lookup by source

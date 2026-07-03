@@ -54,9 +54,16 @@ public sealed class GetCargoDrySellThroughSettlementsPagedQueryHandler
             ScheduledSettlementDate = x.ScheduledSettlementDate,
             ReadyForSettlementAtUtc = x.ReadyForSettlementAtUtc,
             // Phase 4B
-            PayoutRecordId          = x.PayoutRecordId,
-            PaymentPreparedAtUtc    = x.PaymentPreparedAtUtc,
-            CreatedAtUtc            = x.CreatedAtUtc,
+            PayoutRecordId            = x.PayoutRecordId,
+            PaymentPreparedAtUtc      = x.PaymentPreparedAtUtc,
+            // Phase 4C
+            InvoiceId                 = x.InvoiceId,
+            InvoicePreparedAtUtc      = x.InvoicePreparedAtUtc,
+            // Phase 4D
+            PayoutCompletedAtUtc      = x.PayoutCompletedAtUtc,
+            PayoutCompletionReference = x.PayoutCompletionReference,
+            PayoutFailureReason       = x.PayoutFailureReason,
+            CreatedAtUtc              = x.CreatedAtUtc,
         }).ToList();
 
         return new GetCargoDrySellThroughSettlementsPagedResponse

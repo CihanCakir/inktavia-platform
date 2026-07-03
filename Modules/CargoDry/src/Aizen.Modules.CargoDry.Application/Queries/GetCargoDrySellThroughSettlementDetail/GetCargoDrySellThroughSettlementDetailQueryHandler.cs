@@ -60,6 +60,12 @@ public sealed class GetCargoDrySellThroughSettlementDetailQueryHandler
                 InvoicePreparedAtUtc    = x.InvoicePreparedAtUtc,
                 InvoicePreparedByUserId = x.InvoicePreparedByUserId,
                 InvoicePreparationNote  = x.InvoicePreparationNote,
+                // Phase 4D
+                PayoutCompletedAtUtc      = x.PayoutCompletedAtUtc,
+                PayoutCompletedByUserId   = x.PayoutCompletedByUserId,
+                PayoutCompletionReference = x.PayoutCompletionReference,
+                PayoutFailureReason       = x.PayoutFailureReason,
+                PayoutLifecycleNote       = x.PayoutLifecycleNote,
                 CreatedAtUtc            = x.CreatedAtUtc,
             }
         };

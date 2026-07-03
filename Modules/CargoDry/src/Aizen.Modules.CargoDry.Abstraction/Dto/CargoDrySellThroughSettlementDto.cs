@@ -57,6 +57,13 @@ public sealed class CargoDrySellThroughSettlementDto
     public long?                                InvoicePreparedByUserId    { get; init; }
     public string?                              InvoicePreparationNote     { get; init; }
 
+    // ── Payout lifecycle / closure (Phase 4D) ───────────────────────────────────
+    public DateTime?                            PayoutCompletedAtUtc       { get; init; }
+    public long?                                PayoutCompletedByUserId    { get; init; }
+    public string?                              PayoutCompletionReference  { get; init; }
+    public string?                              PayoutFailureReason        { get; init; }
+    public string?                              PayoutLifecycleNote        { get; init; }
+
     public DateTime                             CreatedAtUtc            { get; init; }
 }
 
@@ -86,6 +93,10 @@ public sealed class CargoDrySellThroughSettlementListItemDto
     // ── Invoice preparation (Phase 4C) ──────────────────────────────────────────
     public long?                                InvoiceId               { get; init; }
     public DateTime?                            InvoicePreparedAtUtc    { get; init; }
+    // ── Payout lifecycle / closure (Phase 4D) ───────────────────────────────────
+    public DateTime?                            PayoutCompletedAtUtc    { get; init; }
+    public string?                              PayoutCompletionReference { get; init; }
+    public string?                              PayoutFailureReason     { get; init; }
     public DateTime                             CreatedAtUtc            { get; init; }
 }
 

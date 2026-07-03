@@ -107,6 +107,12 @@ public sealed class CargoDrySellThroughSettlementBffDto
     public DateTime? InvoicePreparedAtUtc    { get; init; }
     public long?     InvoicePreparedByUserId { get; init; }
     public string?   InvoicePreparationNote  { get; init; }
+    // Phase 4D
+    public DateTime? PayoutCompletedAtUtc      { get; init; }
+    public long?     PayoutCompletedByUserId   { get; init; }
+    public string?   PayoutCompletionReference { get; init; }
+    public string?   PayoutFailureReason       { get; init; }
+    public string?   PayoutLifecycleNote       { get; init; }
     public DateTime  CreatedAtUtc            { get; init; }
 }
 
@@ -135,6 +141,10 @@ public sealed class CargoDrySellThroughSettlementListItemBffDto
     // Phase 4C
     public long?     InvoiceId               { get; init; }
     public DateTime? InvoicePreparedAtUtc    { get; init; }
+    // Phase 4D
+    public DateTime? PayoutCompletedAtUtc      { get; init; }
+    public string?   PayoutCompletionReference { get; init; }
+    public string?   PayoutFailureReason       { get; init; }
     public DateTime  CreatedAtUtc            { get; init; }
 }
 
@@ -245,4 +255,99 @@ public sealed class PrepareCargoDrySettlementInvoiceBffResponseDto
     public CargoDrySellThroughSettlementBffDto? Settlement     { get; init; }
     public long                                 InvoiceId      { get; init; }
     public bool                                 AlreadyExisted { get; init; }
+}
+
+// ── Phase 4D: Payout Lifecycle Preview & Lifecycle Response ──────────────────
+
+/// <summary>
+/// BFF DTO for GET .../payout-execution-preview.
+/// Mirrors GetCargoDrySettlementPayoutExecutionPreviewResponse from the CargoDry module.
+/// Shows all payout lifecycle eligibility flags (CanApprovePayout, CanCompletePayout, etc.)
+/// and the live PayoutStatus from the Payment module.
+/// Phase 4D (July 2026).
+/// </summary>
+public sealed class CargoDrySettlementPayoutExecutionPreviewBffDto
+{
+    // ── Settlement identity ──────────────────────────────────────────────────
+    public long   SettlementId          { get; init; }
+    public string SettlementCode        { get; init; } = default!;
+    public int    Status                { get; init; }
+    public string StatusName            { get; init; } = default!;
+
+    // ── Financials ───────────────────────────────────────────────────────────
+    public decimal  ProviderPayoutAmount { get; init; }
+    public string   CurrencyCode         { get; init; } = default!;
+    public string   ProductCode          { get; init; } = default!;
+    public DateTime PeriodStartUtc       { get; init; }
+    public DateTime PeriodEndUtc         { get; init; }
+
+    // ── Phase prerequisites ──────────────────────────────────────────────────
+    public bool      PaymentPrepared       { get; init; }
+    public long?     PayoutRecordId        { get; init; }
+    public DateTime? PaymentPreparedAtUtc  { get; init; }
+    public bool      InvoicePrepared       { get; init; }
+    public long?     InvoiceId             { get; init; }
+    public DateTime? InvoicePreparedAtUtc  { get; init; }
+
+    // ── Live payout state from Payment module ────────────────────────────────
+    public int?      PayoutStatus          { get; init; }
+    public string?   PayoutStatusName      { get; init; }
+    public string?   ExternalReference     { get; init; }
+    public DateTime? PayoutApprovedAtUtc   { get; init; }
+    public DateTime? PayoutProcessingAtUtc { get; init; }
+    public DateTime? PayoutCompletedAtUtc  { get; init; }
+    public DateTime? PayoutFailedAtUtc     { get; init; }
+    public string?   PayoutFailureReason   { get; init; }
+
+    // ── Settlement-side closure fields ───────────────────────────────────────
+    public string? PayoutCompletionReference { get; init; }
+    public string? PayoutLifecycleNote       { get; init; }
+
+    // ── Eligibility flags ────────────────────────────────────────────────────
+    public bool                  CanApprovePayout    { get; init; }
+    public bool                  CanMarkProcessing   { get; init; }
+    public bool                  CanCompletePayout   { get; init; }
+    public bool                  CanFailPayout       { get; init; }
+    public IReadOnlyList<string> BlockingReasons     { get; init; } = [];
+    public IReadOnlyList<string> RecommendedActions  { get; init; } = [];
+}
+
+/// <summary>
+/// Flat BFF DTO for the PayoutRecord state snapshot returned by each Phase 4D lifecycle command.
+/// Mirrors CargoDryPayoutLifecycleResultDto from Payment.Abstraction.
+/// Phase 4D (July 2026).
+/// </summary>
+public sealed class CargoDryPayoutLifecycleResultBffDto
+{
+    public long      PayoutRecordId    { get; init; }
+    public int       PayoutStatus      { get; init; }
+    public long      ProviderProfileId { get; init; }
+    public decimal   Amount            { get; init; }
+    public string    CurrencyCode      { get; init; } = default!;
+    public string?   ExternalReference { get; init; }
+    public DateTime? ApprovedAtUtc     { get; init; }
+    public long?     ApprovedByUserId  { get; init; }
+    public DateTime? ProcessingAtUtc   { get; init; }
+    public DateTime? CompletedAtUtc    { get; init; }
+    public long?     CompletedByUserId { get; init; }
+    public DateTime? FailedAtUtc       { get; init; }
+    public long?     FailedByUserId    { get; init; }
+    public string?   FailureReason     { get; init; }
+    public string?   AdminNote         { get; init; }
+    public bool      AlreadyCompleted  { get; init; }
+    public string    Message           { get; init; } = default!;
+}
+
+/// <summary>
+/// BFF DTO returned by POST .../approve-payout, .../mark-payout-processing,
+/// .../complete-payout, and .../fail-payout.
+/// Wraps the updated settlement DTO, the payout result snapshot, and the idempotency flag.
+/// Phase 4D (July 2026).
+/// </summary>
+public sealed class CargoDrySettlementPayoutLifecycleResponseBffDto
+{
+    public CargoDrySellThroughSettlementBffDto? Settlement       { get; init; }
+    public CargoDryPayoutLifecycleResultBffDto? PayoutResult     { get; init; }
+    /// <summary>True only for the complete-payout call if the settlement was already Settled.</summary>
+    public bool                                 AlreadyCompleted { get; init; }
 }

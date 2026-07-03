@@ -199,3 +199,48 @@ public sealed class PrepareCargoDrySettlementInvoiceBffRequest
     public long    PreparedByUserId { get; init; }
     public string? PreparationNote  { get; init; }
 }
+
+// ── Phase 4D: Payout Lifecycle Request DTOs ───────────────────────────────────
+
+[DocumentationInfo("Approve CargoDry settlement payout BFF request",
+    "Admin request to transition the linked PayoutRecord from Pending → Approved. " +
+    "Settlement status remains Scheduled. No gateway call. Phase 4D (July 2026).")]
+public sealed class ApproveCargoDrySettlementPayoutBffRequest
+{
+    public long    ApprovedByUserId { get; init; }
+    public string? Note             { get; init; }
+}
+
+[DocumentationInfo("Mark CargoDry settlement payout processing BFF request",
+    "Admin request to transition the linked PayoutRecord to Processing status (optional step). " +
+    "Settlement status remains Scheduled. No gateway call. Phase 4D (July 2026).")]
+public sealed class MarkCargoDrySettlementPayoutProcessingBffRequest
+{
+    public long    ProcessedByUserId  { get; init; }
+    public string? ExternalReference  { get; init; }
+    public string? Note               { get; init; }
+}
+
+[DocumentationInfo("Complete CargoDry settlement payout BFF request",
+    "Admin request to record a successful manual payout and close the settlement as Settled. " +
+    "ManualPaymentReference is required. Idempotent if already Settled. " +
+    "This is the ONLY request that advances settlement status to Settled. " +
+    "Phase 4D (July 2026).")]
+public sealed class CompleteCargoDrySettlementPayoutBffRequest
+{
+    public long   CompletedByUserId      { get; init; }
+    public string ManualPaymentReference { get; init; } = default!;
+    public string? Note                  { get; init; }
+}
+
+[DocumentationInfo("Fail CargoDry settlement payout BFF request",
+    "Admin request to record a payout failure. FailureReason is required. " +
+    "Settlement status remains Scheduled, allowing admin to retry. " +
+    "Cannot fail an already-Settled settlement. Phase 4D (July 2026).")]
+public sealed class FailCargoDrySettlementPayoutBffRequest
+{
+    public long    FailedByUserId    { get; init; }
+    public string  FailureReason     { get; init; } = default!;
+    public string? ExternalReference { get; init; }
+    public string? Note              { get; init; }
+}

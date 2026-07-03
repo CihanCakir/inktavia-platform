@@ -54,6 +54,11 @@ public static class DependencyInjection
         // this registration maps it to the concrete implementation in Payment.Application.
         services.AddScoped<ICargoDrySettlementPayoutService, CargoDrySettlementPayoutService>();
 
+        // ── CargoDry settlement payout lifecycle service (Phase 4D) ──────────
+        // Records Approve/Processing/Complete/Fail transitions on PayoutRecordEntity.
+        // Does NOT call Iyzico or any payment gateway.
+        services.AddScoped<ICargoDrySettlementPayoutLifecycleService, CargoDrySettlementPayoutLifecycleService>();
+
         // ── CargoDry settlement invoice service (Phase 4C) ────────────────────
         // Bridges CargoDry → Payment module boundary in-process.
         // CargoDry.Application injects ICargoDrySettlementInvoiceService (from Payment.Abstraction);

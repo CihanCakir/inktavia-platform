@@ -101,6 +101,29 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
     /// <summary>Optional note captured during invoice preparation.</summary>
     public string?   InvoicePreparationNote      { get; private set; }
 
+    // ── Payout lifecycle / closure (Phase 4D) ───────────────────────────────────
+    /// <summary>
+    /// UTC timestamp when the provider payout was confirmed as completed.
+    /// Set by MarkPayoutCompleted(); indicates Inktavia has disbursed the ProviderPayoutAmount.
+    /// Phase 4D (July 2026).
+    /// </summary>
+    public DateTime? PayoutCompletedAtUtc        { get; private set; }
+
+    /// <summary>Admin user Id who confirmed payout completion. Phase 4D.</summary>
+    public long?     PayoutCompletedByUserId     { get; private set; }
+
+    /// <summary>
+    /// External payment reference for the completed disbursement (bank reference, EFT ID, etc.).
+    /// Required for payout completion. Phase 4D.
+    /// </summary>
+    public string?   PayoutCompletionReference   { get; private set; }
+
+    /// <summary>Failure reason if the payout was recorded as Failed. Phase 4D.</summary>
+    public string?   PayoutFailureReason         { get; private set; }
+
+    /// <summary>General lifecycle note (approval note, failure context, etc.). Phase 4D.</summary>
+    public string?   PayoutLifecycleNote         { get; private set; }
+
     public DateTime  CreatedAtUtc            { get; private set; }
 
     private CargoDrySellThroughSettlementEntity() { }
@@ -270,6 +293,79 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
         SettledByUserId = settledByUserId;
         Status          = CargoDrySellThroughSettlementStatus.Settled;
         if (note is not null) Note = note;
+    }
+
+    /// <summary>
+    /// Records that the provider payout has been completed and closes the settlement as Settled.
+    /// This is the ONLY method in Phase 4D that transitions Status → Settled.
+    ///
+    /// Guards:
+    ///   - Status must be Scheduled (not already Settled, Cancelled, or Disputed)
+    ///   - PayoutRecordId must exist (Phase 4B preparation complete)
+    ///   - InvoiceId must exist (Phase 4C invoice preparation complete)
+    ///
+    /// Idempotency: if Status is already Settled, calling again is a no-op.
+    /// Phase 4D (July 2026).
+    /// </summary>
+    public void MarkPayoutCompleted(
+        long     completedByUserId,
+        DateTime completedAtUtc,
+        string   payoutReference,
+        string?  note = null)
+    {
+        if (Status == CargoDrySellThroughSettlementStatus.Settled)
+            return; // idempotent — already settled
+
+        if (Status != CargoDrySellThroughSettlementStatus.Scheduled)
+            throw new InvalidOperationException(
+                $"Settlement {Id} must be in Scheduled status to complete payout. " +
+                $"Current status: {Status}.");
+
+        if (!PayoutRecordId.HasValue)
+            throw new InvalidOperationException(
+                $"Settlement {Id} has no PayoutRecordId. Phase 4B preparation must be completed first.");
+
+        if (!InvoiceId.HasValue)
+            throw new InvalidOperationException(
+                $"Settlement {Id} has no InvoiceId. Phase 4C invoice preparation must be completed first.");
+
+        // Close settlement
+        PayoutCompletedAtUtc      = completedAtUtc;
+        PayoutCompletedByUserId   = completedByUserId;
+        PayoutCompletionReference = payoutReference;
+        PayoutLifecycleNote       = note;
+        SettledAtUtc              = completedAtUtc;
+        SettledByUserId           = completedByUserId;
+        Status                    = CargoDrySellThroughSettlementStatus.Settled;
+    }
+
+    /// <summary>
+    /// Records a payout failure without closing the settlement.
+    /// Does NOT set Status = Settled. Settlement remains Scheduled (retryable).
+    ///
+    /// Guards:
+    ///   - Status must NOT be Settled (cannot fail an already-settled settlement)
+    ///   - PayoutRecordId must exist
+    ///
+    /// Phase 4D (July 2026).
+    /// </summary>
+    public void MarkPayoutFailed(
+        long     failedByUserId,
+        DateTime failedAtUtc,
+        string   reason,
+        string?  note = null)
+    {
+        if (Status == CargoDrySellThroughSettlementStatus.Settled)
+            throw new InvalidOperationException(
+                $"Cannot record payout failure for already-Settled settlement {Id}.");
+
+        if (!PayoutRecordId.HasValue)
+            throw new InvalidOperationException(
+                $"Settlement {Id} has no PayoutRecordId. Cannot record failure without payout preparation.");
+
+        PayoutFailureReason   = reason;
+        PayoutLifecycleNote   = note;
+        // Status intentionally stays Scheduled — allows retry via another CompletePayout call
     }
 
     /// <summary>Provider raises a dispute on the settlement amounts.</summary>

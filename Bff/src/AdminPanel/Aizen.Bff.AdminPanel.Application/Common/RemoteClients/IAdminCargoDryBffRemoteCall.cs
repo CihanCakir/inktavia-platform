@@ -323,6 +323,37 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] PrepareCargoDrySettlementInvoiceBffRequest request,
         CancellationToken ct = default);
 
+    // ── Phase 4D: Payout Lifecycle ────────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlements/{id}/payout-execution-preview")]
+    Task<CargoDrySettlementPayoutExecutionPreviewBffDto> GetSettlementPayoutExecutionPreviewAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlements/{id}/approve-payout")]
+    Task<CargoDrySettlementPayoutLifecycleResponseBffDto> ApproveSettlementPayoutAsync(
+        long id,
+        [AizenRemoteCallBody] ApproveCargoDrySettlementPayoutBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlements/{id}/mark-payout-processing")]
+    Task<CargoDrySettlementPayoutLifecycleResponseBffDto> MarkSettlementPayoutProcessingAsync(
+        long id,
+        [AizenRemoteCallBody] MarkCargoDrySettlementPayoutProcessingBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlements/{id}/complete-payout")]
+    Task<CargoDrySettlementPayoutLifecycleResponseBffDto> CompleteSettlementPayoutAsync(
+        long id,
+        [AizenRemoteCallBody] CompleteCargoDrySettlementPayoutBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlements/{id}/fail-payout")]
+    Task<CargoDrySettlementPayoutLifecycleResponseBffDto> FailSettlementPayoutAsync(
+        long id,
+        [AizenRemoteCallBody] FailCargoDrySettlementPayoutBffRequest request,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

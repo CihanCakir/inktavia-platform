@@ -1,4 +1,8 @@
 using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Application.Commands.ApproveCargoDrySettlementPayout;
+using Aizen.Modules.CargoDry.Application.Commands.CompleteCargoDrySettlementPayout;
+using Aizen.Modules.CargoDry.Application.Commands.FailCargoDrySettlementPayout;
+using Aizen.Modules.CargoDry.Application.Commands.MarkCargoDrySettlementPayoutProcessing;
 using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDrySettlementInvoice;
 using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDrySettlementPayment;
 using Aizen.Modules.CargoDry.Application.Commands.ResolveCargoDrySalesAttributionFinancials;
@@ -7,6 +11,7 @@ using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionDeta
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionsPaged;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySettlementInvoicePreparationPreview;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySettlementPaymentPreparationPreview;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySettlementPayoutExecutionPreview;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySellThroughSettlementDetail;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySellThroughSettlementsPaged;
 using MediatR;
@@ -259,6 +264,131 @@ public sealed class CargoDryCommercialController : ControllerBase
             result.AlreadyExisted,
         });
     }
+
+    // ── Phase 4D: Payout Lifecycle ────────────────────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/settlements/{id}/payout-execution-preview
+    /// Returns an eligibility preview for all payout lifecycle actions on the given settlement:
+    /// CanApprovePayout, CanMarkProcessing, CanCompletePayout, CanFailPayout.
+    /// Loads live payout status from the Payment module. Never throws for business ineligibility.
+    /// </summary>
+    [HttpGet("settlements/{id:long}/payout-execution-preview")]
+    public async Task<IActionResult> GetSettlementPayoutExecutionPreview(
+        long id, CancellationToken ct)
+    {
+        var result = await _sender.Send(
+            new GetCargoDrySettlementPayoutExecutionPreviewQuery { SettlementId = id }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlements/{id}/approve-payout
+    /// Transitions the linked PayoutRecord from Pending → Approved.
+    /// Settlement status remains Scheduled. No gateway call. No bank transfer.
+    /// </summary>
+    [HttpPost("settlements/{id:long}/approve-payout")]
+    public async Task<IActionResult> ApproveSettlementPayout(
+        long id,
+        [FromBody] ApproveSettlementPayoutRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new ApproveCargoDrySettlementPayoutCommand
+        {
+            SettlementId      = id,
+            ApprovedByUserId  = body.ApprovedByUserId,
+            Note              = body.Note,
+        }, ct);
+
+        return Ok(new
+        {
+            result.Settlement,
+            result.PayoutResult,
+        });
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlements/{id}/mark-payout-processing
+    /// Transitions the linked PayoutRecord to Processing status (optional step).
+    /// Settlement status remains Scheduled. No gateway call. No bank transfer.
+    /// </summary>
+    [HttpPost("settlements/{id:long}/mark-payout-processing")]
+    public async Task<IActionResult> MarkSettlementPayoutProcessing(
+        long id,
+        [FromBody] MarkSettlementPayoutProcessingRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new MarkCargoDrySettlementPayoutProcessingCommand
+        {
+            SettlementId       = id,
+            ProcessedByUserId  = body.ProcessedByUserId,
+            ExternalReference  = body.ExternalReference,
+            Note               = body.Note,
+        }, ct);
+
+        return Ok(new
+        {
+            result.Settlement,
+            result.PayoutResult,
+        });
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlements/{id}/complete-payout
+    /// Records successful manual payout and closes the settlement as Settled.
+    /// THIS IS THE ONLY ENDPOINT that advances settlement status to Settled.
+    /// ManualPaymentReference is required. Idempotent if payout already completed.
+    /// Requires Phase 4B (PayoutRecord) and Phase 4C (InvoiceId) to be complete.
+    /// </summary>
+    [HttpPost("settlements/{id:long}/complete-payout")]
+    public async Task<IActionResult> CompleteSettlementPayout(
+        long id,
+        [FromBody] CompleteSettlementPayoutRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new CompleteCargoDrySettlementPayoutCommand
+        {
+            SettlementId           = id,
+            CompletedByUserId      = body.CompletedByUserId,
+            ManualPaymentReference = body.ManualPaymentReference,
+            Note                   = body.Note,
+        }, ct);
+
+        return Ok(new
+        {
+            result.Settlement,
+            result.PayoutResult,
+            result.AlreadyCompleted,
+        });
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlements/{id}/fail-payout
+    /// Records a payout failure on both the PayoutRecord and settlement.
+    /// Settlement status remains Scheduled (allowing retry). FailureReason is required.
+    /// Cannot fail an already-Settled settlement.
+    /// </summary>
+    [HttpPost("settlements/{id:long}/fail-payout")]
+    public async Task<IActionResult> FailSettlementPayout(
+        long id,
+        [FromBody] FailSettlementPayoutRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new FailCargoDrySettlementPayoutCommand
+        {
+            SettlementId      = id,
+            FailedByUserId    = body.FailedByUserId,
+            FailureReason     = body.FailureReason,
+            ExternalReference = body.ExternalReference,
+            Note              = body.Note,
+        }, ct);
+
+        return Ok(new
+        {
+            result.Settlement,
+            result.PayoutResult,
+        });
+    }
 }
 
 // ── Inline request models (Phase 4A — module layer) ──────────────────────────
@@ -292,4 +422,34 @@ public sealed class PrepareSettlementInvoiceRequest
 {
     public long    PreparedByUserId { get; init; }
     public string? PreparationNote  { get; init; }
+}
+
+// ── Inline request models (Phase 4D — module layer) ──────────────────────────
+
+public sealed class ApproveSettlementPayoutRequest
+{
+    public long    ApprovedByUserId { get; init; }
+    public string? Note             { get; init; }
+}
+
+public sealed class MarkSettlementPayoutProcessingRequest
+{
+    public long    ProcessedByUserId  { get; init; }
+    public string? ExternalReference  { get; init; }
+    public string? Note               { get; init; }
+}
+
+public sealed class CompleteSettlementPayoutRequest
+{
+    public long   CompletedByUserId      { get; init; }
+    public string ManualPaymentReference { get; init; } = default!;
+    public string? Note                  { get; init; }
+}
+
+public sealed class FailSettlementPayoutRequest
+{
+    public long    FailedByUserId    { get; init; }
+    public string  FailureReason     { get; init; } = default!;
+    public string? ExternalReference { get; init; }
+    public string? Note              { get; init; }
 }
