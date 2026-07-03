@@ -8,7 +8,8 @@ namespace Aizen.Modules.CargoDry.Domain.Entities;
     "Status transitions are enforced through domain methods only. " +
     "EfficiencyPercent and DaysUntilExpiry are computed properties — NOT mapped to the database. " +
     "Phase 0 (July 2026): Added commercial foundation fields — SalesChannel, CommercialModel, " +
-    "ProviderProfileId, StockLocationType, InvoiceId, PaymentTransactionId.")]
+    "ProviderProfileId, StockLocationType, InvoiceId, PaymentTransactionId. " +
+    "Phase 0 addendum (July 2026): Added WarehouseId — cross-module reference to future Warehouse entity.")]
 public sealed class CargoDryKitEntity : AizenEntityWithAudit
 {
     // ── Core identity ──────────────────────────────────────────────────────────
@@ -68,6 +69,14 @@ public sealed class CargoDryKitEntity : AizenEntityWithAudit
     /// No EF FK constraint — referenced by Id only.
     /// </summary>
     public long? PaymentTransactionId { get; private set; }
+
+    /// <summary>
+    /// Cross-module reference to the future WarehouseEntity (Phase 6).
+    /// Null = no specific warehouse assigned (platform stock / activated kits).
+    /// Set when a batch is allocated to a provider warehouse.
+    /// No EF FK constraint — referenced by Id only.
+    /// </summary>
+    public long? WarehouseId { get; private set; }
 
     private CargoDryKitEntity() { }
 
@@ -152,13 +161,29 @@ public sealed class CargoDryKitEntity : AizenEntityWithAudit
     /// <summary>
     /// Assign this kit to a provider with a specific commercial model.
     /// Called when a batch is allocated to a provider (Phase 1 AllocateBatchToProviderCommand).
+    /// warehouseId: optional — set when the provider has a registered warehouse (Phase 6 FK; safe as nullable now).
     /// </summary>
-    public void AssignToProvider(long providerProfileId, SalesChannel channel, CargoDryCommercialModel model)
+    public void AssignToProvider(
+        long providerProfileId,
+        SalesChannel channel,
+        CargoDryCommercialModel model,
+        long? warehouseId = null)
     {
         ProviderProfileId = providerProfileId;
         SalesChannel      = channel;
         CommercialModel   = model;
+        WarehouseId       = warehouseId;
         StockLocationType = StockLocationType.ProviderWarehouse;
+    }
+
+    /// <summary>
+    /// Updates the warehouse and stock location independently of commercial attribution.
+    /// Used for stock movements (e.g., transfer between warehouses).
+    /// </summary>
+    public void AssignWarehouse(long? warehouseId, StockLocationType stockLocationType)
+    {
+        WarehouseId       = warehouseId;
+        StockLocationType = stockLocationType;
     }
 
     /// <summary>

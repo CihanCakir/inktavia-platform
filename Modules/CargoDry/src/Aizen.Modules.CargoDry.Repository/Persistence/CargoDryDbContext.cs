@@ -10,10 +10,11 @@ public sealed class CargoDryDbContext : AizenDbContext
 {
     public CargoDryDbContext(DbContextOptions<CargoDryDbContext> options) : base(options) { }
 
-    public DbSet<CargoDryProductEntity>  Products  => Set<CargoDryProductEntity>();
-    public DbSet<CargoDryBatchEntity>    Batches   => Set<CargoDryBatchEntity>();
-    public DbSet<CargoDryKitEntity>      Kits      => Set<CargoDryKitEntity>();
-    public DbSet<CargoDryRenewalEntity>  Renewals  => Set<CargoDryRenewalEntity>();
+    public DbSet<CargoDryProductEntity>              Products               => Set<CargoDryProductEntity>();
+    public DbSet<CargoDryBatchEntity>               Batches                => Set<CargoDryBatchEntity>();
+    public DbSet<CargoDryKitEntity>                 Kits                   => Set<CargoDryKitEntity>();
+    public DbSet<CargoDryRenewalEntity>             Renewals               => Set<CargoDryRenewalEntity>();
+    public DbSet<CargoDryConsignmentAgreementEntity> ConsignmentAgreements => Set<CargoDryConsignmentAgreementEntity>();
     // ActivationLogs — moved to MongoDB (CargoDryMongoDbContext)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

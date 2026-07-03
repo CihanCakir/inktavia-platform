@@ -70,6 +70,45 @@ public sealed class TransferKitBffRequest
     public long NewVesselId { get; init; }
 }
 
+// ── Consignment Agreement Request DTOs ────────────────────────────────────────
+
+[DocumentationInfo("Create consignment agreement BFF request",
+    "Admin request to create a new CargoDry consignment agreement in Draft status.")]
+public sealed class CreateConsignmentAgreementBffRequest
+{
+    public string    AgreementCode           { get; init; } = default!;
+    public long      ProviderProfileId       { get; init; }
+    public string    ProductCode             { get; init; } = default!;
+    public decimal   ConsignmentRate         { get; init; }
+    public decimal   MinimumSettlementAmount { get; init; }
+    public string    CurrencyCode            { get; init; } = "TRY";
+    public int       MaxKitCount             { get; init; }
+    public DateTime  StartDateUtc            { get; init; }
+    public DateTime? EndDateUtc              { get; init; }
+    public string?   TermsDocumentRef        { get; init; }
+    public string?   Notes                   { get; init; }
+}
+
+[DocumentationInfo("Update consignment agreement BFF request",
+    "Admin request to update commercial terms of a Draft or Suspended agreement.")]
+public sealed class UpdateConsignmentAgreementBffRequest
+{
+    public decimal   ConsignmentRate         { get; init; }
+    public decimal   MinimumSettlementAmount { get; init; }
+    public string    CurrencyCode            { get; init; } = "TRY";
+    public int       MaxKitCount             { get; init; }
+    public DateTime  StartDateUtc            { get; init; }
+    public DateTime? EndDateUtc              { get; init; }
+    public string?   TermsDocumentRef        { get; init; }
+    public string?   Notes                   { get; init; }
+}
+
+[DocumentationInfo("Consignment agreement reason request", "Carries a reason string for Suspend/Terminate actions.")]
+public sealed class ConsignmentAgreementReasonBffRequest
+{
+    public string Reason { get; init; } = default!;
+}
+
 // ── Onboarding Request DTOs ───────────────────────────────────────────────────
 
 [DocumentationInfo("Validate kit BFF request", "Public request to validate a CargoDry kit serial/QR before activation.")]

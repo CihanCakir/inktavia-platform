@@ -138,6 +138,64 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
     Task<CargoDryAnalyticsRawBffDto> GetAnalyticsAsync(
         CancellationToken ct = default);
 
+    // ── Consignment Agreements ───────────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/consignment/agreements")]
+    Task<ConsignmentAgreementPagedBffDto> GetConsignmentAgreementsPagedAsync(
+        [Query] long?     providerProfileId,
+        [Query] string?   productCode,
+        [Query] int?      status,
+        [Query] DateTime? dateFrom,
+        [Query] DateTime? dateTo,
+        [Query] string?   search,
+        [Query] int       page,
+        [Query] int       pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/consignment/agreements/{id}")]
+    Task<ConsignmentAgreementBffDto?> GetConsignmentAgreementByIdAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/consignment/agreements/code/{code}")]
+    Task<ConsignmentAgreementBffDto?> GetConsignmentAgreementByCodeAsync(
+        string code,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/consignment/agreements/provider/{providerProfileId}/active")]
+    Task<ConsignmentAgreementBffDto?> GetActiveConsignmentAgreementForProviderAsync(
+        long providerProfileId,
+        [Query] string productCode,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/consignment/agreements")]
+    Task<ConsignmentAgreementBffDto> CreateConsignmentAgreementAsync(
+        [AizenRemoteCallBody] CreateConsignmentAgreementBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/cargodry/admin/consignment/agreements/{id}")]
+    Task<ConsignmentAgreementBffDto> UpdateConsignmentAgreementAsync(
+        long id,
+        [AizenRemoteCallBody] UpdateConsignmentAgreementBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/consignment/agreements/{id}/activate")]
+    Task<ConsignmentAgreementBffDto> ActivateConsignmentAgreementAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/consignment/agreements/{id}/suspend")]
+    Task<ConsignmentAgreementBffDto> SuspendConsignmentAgreementAsync(
+        long id,
+        [AizenRemoteCallBody] ConsignmentAgreementReasonBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/consignment/agreements/{id}/terminate")]
+    Task<ConsignmentAgreementBffDto> TerminateConsignmentAgreementAsync(
+        long id,
+        [AizenRemoteCallBody] ConsignmentAgreementReasonBffRequest request,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

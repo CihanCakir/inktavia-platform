@@ -136,6 +136,136 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.ToTable("batches", "cargodry");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryConsignmentAgreementEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("ActivatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AgreementCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<int>("AllocatedKitCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<decimal>("ConsignmentRate")
+                        .HasColumnType("decimal(6,4)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasDefaultValue("TRY");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("EndDateUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MaxKitCount")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("MinimumSettlementAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<long>("ProviderProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartDateUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SuspendReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("SuspendedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("TerminatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TerminationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("TermsDocumentRef")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgreementCode")
+                        .IsUnique();
+
+                    b.HasIndex("EndDateUtc");
+
+                    b.HasIndex("ProductCode");
+
+                    b.HasIndex("ProviderProfileId");
+
+                    b.HasIndex("StartDateUtc");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("ProviderProfileId", "ProductCode", "Status");
+
+                    b.ToTable("consignment_agreements", "cargodry");
+                });
+
             modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryKitEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -253,6 +383,9 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.Property<long?>("VesselId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("WarehouseId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ActivatedAt");
@@ -266,6 +399,8 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
 
                     b.HasIndex("SerialNumber")
                         .IsUnique();
+
+                    b.HasIndex("WarehouseId");
 
                     b.HasIndex("BatchCode", "Status");
 

@@ -15,9 +15,10 @@ public static class DependencyInjection
         this IServiceCollection services, IConfiguration configuration)
     {
         // ── PostgreSQL ─────────────────────────────────────────────────────────
-        services.AddScoped<ICargoDryProductRepository, CargoDryProductRepository>();
-        services.AddScoped<ICargoDryKitRepository,     CargoDryKitRepository>();
-        services.AddScoped<ICargoDryBatchRepository,   CargoDryBatchRepository>();
+        services.AddScoped<ICargoDryProductRepository,              CargoDryProductRepository>();
+        services.AddScoped<ICargoDryKitRepository,                  CargoDryKitRepository>();
+        services.AddScoped<ICargoDryBatchRepository,                CargoDryBatchRepository>();
+        services.AddScoped<ICargoDryConsignmentAgreementRepository, CargoDryConsignmentAgreementRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
 

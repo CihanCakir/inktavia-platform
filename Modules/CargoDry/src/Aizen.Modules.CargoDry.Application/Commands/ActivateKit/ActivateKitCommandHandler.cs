@@ -122,6 +122,8 @@ public sealed class ActivateKitCommandHandler
             StockLocationType    = kit.StockLocationType,
             InvoiceId            = kit.InvoiceId,
             PaymentTransactionId = kit.PaymentTransactionId,
+            // Phase 0 addendum
+            WarehouseId          = kit.WarehouseId,
         };
     }
 }

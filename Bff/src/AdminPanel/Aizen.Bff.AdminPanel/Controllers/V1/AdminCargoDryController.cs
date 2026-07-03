@@ -1,12 +1,21 @@
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CreateCargoDryProduct;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CreateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ExtendKit;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.GenerateCargoDryBatch;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RenewKit;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeBatch;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeKit;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.SuspendConsignmentAgreement;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.TerminateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.TransferKit;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.UpdateCargoDryProduct;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.UpdateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetActiveConsignmentAgreementForProvider;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetConsignmentAgreementByCode;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetConsignmentAgreementById;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetConsignmentAgreementsPaged;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.ExportCargoDryBatches;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.ExportCargoDryKits;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.ExportCargoDryUsageReport;
@@ -354,6 +363,168 @@ public sealed class AdminCargoDryController : AizenWebApiController
 
         return File(result.Bytes, result.ContentType, result.FileName);
     }
+
+    // ── Consignment Agreements ────────────────────────────────────────────────
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/consignment/agreements</summary>
+    [HttpGet("consignment/agreements")]
+    [ProducesResponseType(typeof(ConsignmentAgreementPagedBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ConsignmentAgreementPagedBffDto>> GetConsignmentAgreementsPaged(
+        [FromQuery] long?     providerProfileId = null,
+        [FromQuery] string?   productCode       = null,
+        [FromQuery] int?      status            = null,
+        [FromQuery] DateTime? dateFrom          = null,
+        [FromQuery] DateTime? dateTo            = null,
+        [FromQuery] string?   search            = null,
+        [FromQuery] int       page              = 1,
+        [FromQuery] int       pageSize          = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetConsignmentAgreementsPagedBffQuery
+            {
+                ProviderProfileId = providerProfileId,
+                ProductCode       = productCode,
+                Status            = status,
+                DateFrom          = dateFrom,
+                DateTo            = dateTo,
+                Search            = search,
+                Page              = page,
+                PageSize          = pageSize,
+            }, ct);
+
+        return SetResponse(result?.PagedResult);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/consignment/agreements/{id}</summary>
+    [HttpGet("consignment/agreements/{id:long}")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetConsignmentAgreementById(long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetConsignmentAgreementByIdBffQuery { Id = id }, ct);
+
+        if (result?.Agreement is null) return NotFound();
+        return Ok(SetResponse(result.Agreement));
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/consignment/agreements/code/{code}</summary>
+    [HttpGet("consignment/agreements/code/{code}")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetConsignmentAgreementByCode(string code, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetConsignmentAgreementByCodeBffQuery { AgreementCode = code }, ct);
+
+        if (result?.Agreement is null) return NotFound();
+        return Ok(SetResponse(result.Agreement));
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/consignment/agreements/provider/{providerProfileId}/active?productCode=X</summary>
+    [HttpGet("consignment/agreements/provider/{providerProfileId:long}/active")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetActiveConsignmentAgreementForProvider(
+        long providerProfileId,
+        [FromQuery] string productCode,
+        CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetActiveConsignmentAgreementForProviderBffQuery
+            {
+                ProviderProfileId = providerProfileId,
+                ProductCode       = productCode,
+            }, ct);
+
+        if (result?.Agreement is null) return NotFound();
+        return Ok(SetResponse(result.Agreement));
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/consignment/agreements</summary>
+    [HttpPost("consignment/agreements")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ConsignmentAgreementBffDto>> CreateConsignmentAgreement(
+        [FromBody] CreateConsignmentAgreementBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new CreateConsignmentAgreementBffCommand
+            {
+                AgreementCode           = body.AgreementCode,
+                ProviderProfileId       = body.ProviderProfileId,
+                ProductCode             = body.ProductCode,
+                ConsignmentRate         = body.ConsignmentRate,
+                MinimumSettlementAmount = body.MinimumSettlementAmount,
+                CurrencyCode            = body.CurrencyCode,
+                MaxKitCount             = body.MaxKitCount,
+                StartDateUtc            = body.StartDateUtc,
+                EndDateUtc              = body.EndDateUtc,
+                TermsDocumentRef        = body.TermsDocumentRef,
+                Notes                   = body.Notes,
+            }, ct);
+
+        return SetResponse(result?.Agreement);
+    }
+
+    /// <summary>PUT /api/v1/admin-panel/cargodry/consignment/agreements/{id}</summary>
+    [HttpPut("consignment/agreements/{id:long}")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ConsignmentAgreementBffDto>> UpdateConsignmentAgreement(
+        long id, [FromBody] UpdateConsignmentAgreementBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new UpdateConsignmentAgreementBffCommand
+            {
+                Id                      = id,
+                ConsignmentRate         = body.ConsignmentRate,
+                MinimumSettlementAmount = body.MinimumSettlementAmount,
+                CurrencyCode            = body.CurrencyCode,
+                MaxKitCount             = body.MaxKitCount,
+                StartDateUtc            = body.StartDateUtc,
+                EndDateUtc              = body.EndDateUtc,
+                TermsDocumentRef        = body.TermsDocumentRef,
+                Notes                   = body.Notes,
+            }, ct);
+
+        return SetResponse(result?.Agreement);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/consignment/agreements/{id}/activate</summary>
+    [HttpPost("consignment/agreements/{id:long}/activate")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ConsignmentAgreementBffDto>> ActivateConsignmentAgreement(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ActivateConsignmentAgreementBffCommand { Id = id }, ct);
+
+        return SetResponse(result?.Agreement);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/consignment/agreements/{id}/suspend</summary>
+    [HttpPost("consignment/agreements/{id:long}/suspend")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ConsignmentAgreementBffDto>> SuspendConsignmentAgreement(
+        long id, [FromBody] AgreementReasonBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new SuspendConsignmentAgreementBffCommand { Id = id, Reason = body.Reason }, ct);
+
+        return SetResponse(result?.Agreement);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/consignment/agreements/{id}/terminate</summary>
+    [HttpPost("consignment/agreements/{id:long}/terminate")]
+    [ProducesResponseType(typeof(ConsignmentAgreementBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ConsignmentAgreementBffDto>> TerminateConsignmentAgreement(
+        long id, [FromBody] AgreementReasonBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new TerminateConsignmentAgreementBffCommand { Id = id, Reason = body.Reason }, ct);
+
+        return SetResponse(result?.Agreement);
+    }
 }
 
 // ── Inline body request records ───────────────────────────────────────────────
@@ -374,4 +545,33 @@ public sealed class UpdateProductBody
     public bool    HasSmartDevice { get; init; }
     public string? DeviceType     { get; init; }
     public bool    IsActive       { get; init; }
+}
+
+public sealed record AgreementReasonBodyRequest(string Reason);
+
+public sealed class CreateConsignmentAgreementBodyRequest
+{
+    public string    AgreementCode           { get; init; } = default!;
+    public long      ProviderProfileId       { get; init; }
+    public string    ProductCode             { get; init; } = default!;
+    public decimal   ConsignmentRate         { get; init; }
+    public decimal   MinimumSettlementAmount { get; init; }
+    public string    CurrencyCode            { get; init; } = "TRY";
+    public int       MaxKitCount             { get; init; }
+    public DateTime  StartDateUtc            { get; init; }
+    public DateTime? EndDateUtc              { get; init; }
+    public string?   TermsDocumentRef        { get; init; }
+    public string?   Notes                   { get; init; }
+}
+
+public sealed class UpdateConsignmentAgreementBodyRequest
+{
+    public decimal   ConsignmentRate         { get; init; }
+    public decimal   MinimumSettlementAmount { get; init; }
+    public string    CurrencyCode            { get; init; } = "TRY";
+    public int       MaxKitCount             { get; init; }
+    public DateTime  StartDateUtc            { get; init; }
+    public DateTime? EndDateUtc              { get; init; }
+    public string?   TermsDocumentRef        { get; init; }
+    public string?   Notes                   { get; init; }
 }

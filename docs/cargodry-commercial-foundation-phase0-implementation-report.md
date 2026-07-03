@@ -241,3 +241,59 @@ The following items are explicitly out of Phase 0 scope. Do NOT implement withou
 ---
 
 *Phase 1 requires explicit owner approval before implementation.*
+
+---
+
+## J. Phase 0 Addendum — WarehouseId Patch
+
+**Date:** 2026-07-03
+**Reason:** The roadmap Phase 0 checklist (line 919) explicitly required `WarehouseId` on `CargoDryKitEntity`. The primary Phase 0 implementation missed it. This addendum patches the gap before Phase 1 begins.
+
+### Why it was safe to add now
+
+- `WarehouseId` is a nullable `long?` — zero migration risk, no data backfill.
+- No EF FK constraint. The future `WarehouseEntity` (Phase 6) does not exist yet; the column is a plain bigint reference, same pattern as `InvoiceId` and `PaymentTransactionId`.
+- Roadmap line 629 confirms: *"Until Phase 6, WarehouseId on Kit/Batch can remain nullable; BatchEntity.WarehouseCode free-text field continues to serve as human reference."* This means the column can exist as nullable immediately; the FK relationship is deferred.
+
+### Why it matters for Phase 1
+
+Phase 1 includes `AllocateBatchToProviderCommand`, which assigns kits to provider warehouses. `WarehouseId` must be present on the entity for that command to set it.
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `Modules/CargoDry/.../CargoDryKitEntity.cs` | Added `long? WarehouseId` property + `AssignWarehouse()` domain method; extended `AssignToProvider()` with optional `warehouseId` param (backward-compatible default `null`) |
+| `Modules/CargoDry/.../CargoDryKitEntityConfiguration.cs` | Added `Property(x => x.WarehouseId)` and `HasIndex(x => x.WarehouseId)` |
+| `Modules/CargoDry/.../CargoDryKitDto.cs` | Added `long? WarehouseId { get; init; }` |
+| `Bff/.../CargoDryKitBffDto.cs` | Added `long? WarehouseId { get; init; }` |
+| `GetAdminKitListQueryHandler.cs` | Added `WarehouseId = k.WarehouseId` mapping |
+| `ActivateKitCommandHandler.cs` | Added `WarehouseId = kit.WarehouseId` mapping |
+| `RenewKitCommandHandler.cs` | Added `WarehouseId = kit.WarehouseId` mapping |
+
+### Migration
+
+**`20260703120000_AddCargoDryKitWarehouseId`** (CargoDry module)
+- Adds `WarehouseId bigint NULL` to `cargodry.kits`
+- Creates index `IX_kits_WarehouseId`
+- No FK constraint, no default value, no data migration required
+
+### Build Result
+
+```bash
+dotnet build Modules/CargoDry/src/Aizen.Modules.CargoDry/Aizen.Modules.CargoDry.csproj
+dotnet build Bff/src/AdminPanel/Aizen.Bff.AdminPanel.Application/Aizen.Bff.AdminPanel.Application.csproj
+```
+
+Expected: zero errors. All changes are additive and backward-compatible.
+
+### Phase 0 Status
+
+**Phase 0 is now complete.** Both originally identified gaps have been resolved:
+
+| Gap | Resolution |
+|---|---|
+| `CommissionRuleEntity.ProviderProfileId` | Not a gap — field pre-existed before Phase 0 for `ProviderOverride` rule type |
+| `CargoDryKitEntity.WarehouseId` | Patched in this addendum — nullable, no FK, Phase 6 FK deferred |
+
+Phase 1 can safely begin after explicit owner approval.

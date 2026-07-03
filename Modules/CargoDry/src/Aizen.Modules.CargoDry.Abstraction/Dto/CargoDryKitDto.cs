@@ -35,4 +35,6 @@ public sealed class CargoDryKitDto
     public long?                    InvoiceId            { get; init; }
     /// <summary>Cross-module Payment transaction reference (Id only, no EF FK).</summary>
     public long?                    PaymentTransactionId { get; init; }
+    /// <summary>Cross-module Warehouse reference (Id only, no EF FK). Null = platform stock or activated kit. Phase 6 FK.</summary>
+    public long?                    WarehouseId          { get; init; }
 }

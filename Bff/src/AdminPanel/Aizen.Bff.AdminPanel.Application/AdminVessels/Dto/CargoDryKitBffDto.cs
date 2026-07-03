@@ -31,6 +31,10 @@ public sealed class CargoDryKitBffDto
     public int     DaysUntilExpiry   { get; init; }
     public int     RenewalCount      { get; init; }
     public string  ManufacturedAt    { get; init; } = default!;
+
+    // ── Commercial foundation (Phase 0, July 2026) ────────────────────────────
+    /// <summary>Cross-module warehouse reference. Null = platform stock. Phase 6 FK.</summary>
+    public long?   WarehouseId       { get; init; }
 }
 
 [DocumentationInfo("CargoDry kit list BFF DTO", "Paginated admin kit list response.")]

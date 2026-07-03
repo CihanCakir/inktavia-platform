@@ -52,6 +52,8 @@ public sealed class GetAdminKitListQueryHandler
                 StockLocationType    = k.StockLocationType,
                 InvoiceId            = k.InvoiceId,
                 PaymentTransactionId = k.PaymentTransactionId,
+                // Phase 0 addendum
+                WarehouseId          = k.WarehouseId,
             }).ToList(),
             Total    = total,
             Page     = request.Page,

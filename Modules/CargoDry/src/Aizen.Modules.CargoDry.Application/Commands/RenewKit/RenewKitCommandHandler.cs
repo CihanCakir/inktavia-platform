@@ -153,6 +153,8 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
             StockLocationType    = kit.StockLocationType,
             InvoiceId            = kit.InvoiceId,
             PaymentTransactionId = kit.PaymentTransactionId,
+            // Phase 0 addendum
+            WarehouseId          = kit.WarehouseId,
         };
     }
 }

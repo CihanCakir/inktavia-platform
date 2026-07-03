@@ -42,6 +42,7 @@ public sealed class CargoDryKitEntityConfiguration : IEntityTypeConfiguration<Ca
             .HasDefaultValue(StockLocationType.PlatformWarehouse);
         builder.Property(x => x.InvoiceId);                                 // cross-module, no FK
         builder.Property(x => x.PaymentTransactionId);                      // cross-module, no FK
+        builder.Property(x => x.WarehouseId);                               // cross-module, no FK (Phase 6 Warehouse entity)
 
         builder.HasIndex(x => new { x.OwnerUserId, x.Status });
         builder.HasIndex(x => new { x.VesselId, x.Status });
@@ -52,6 +53,8 @@ public sealed class CargoDryKitEntityConfiguration : IEntityTypeConfiguration<Ca
         // Phase 0 indexes for provider attribution and commercial reporting
         builder.HasIndex(x => x.ProviderProfileId);
         builder.HasIndex(x => new { x.SalesChannel, x.Status });
+        // Phase 0 addendum — WarehouseId for future stock location queries
+        builder.HasIndex(x => x.WarehouseId);
         // CreateDate / ModifyDate: from AizenEntityWithAudit
     }
 }
