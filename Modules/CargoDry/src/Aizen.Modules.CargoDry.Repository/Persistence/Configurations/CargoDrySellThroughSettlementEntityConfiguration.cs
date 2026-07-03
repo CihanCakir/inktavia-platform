@@ -13,7 +13,8 @@ public sealed class CargoDrySellThroughSettlementEntityConfiguration
         builder.HasKey(x => x.Id);
 
         // ── Identity ───────────────────────────────────────────────────────────
-        builder.Property(x => x.SettlementCode).HasMaxLength(50).IsRequired();
+        // MaxLength 100 to accommodate: STS-{providerProfileId}-{currencyCode}-{productCode}-{yyyyMM}
+        builder.Property(x => x.SettlementCode).HasMaxLength(100).IsRequired();
         builder.HasIndex(x => x.SettlementCode).IsUnique();
 
         // ── Scope ──────────────────────────────────────────────────────────────
@@ -52,14 +53,29 @@ public sealed class CargoDrySellThroughSettlementEntityConfiguration
         // ── Query indexes ──────────────────────────────────────────────────────
         builder.HasIndex(x => x.ConsignmentAgreementId);
         builder.HasIndex(x => x.ProviderProfileId);
+        builder.HasIndex(x => x.CurrencyCode);
         builder.HasIndex(x => x.ProductCode);
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.PeriodStartUtc);
         builder.HasIndex(x => x.PeriodEndUtc);
+
+        // Legacy composite for agreement-based queries
         builder.HasIndex(new[]
         {
             nameof(CargoDrySellThroughSettlementEntity.ConsignmentAgreementId),
             nameof(CargoDrySellThroughSettlementEntity.ProductCode),
+            nameof(CargoDrySellThroughSettlementEntity.Status),
+        });
+
+        // Phase 3.2: approved grouping index — Provider + Currency + Product + Month + Status
+        // Used by GetOpenForProviderCurrencyProductPeriodAsync (idempotency lookup on activation).
+        builder.HasIndex(new[]
+        {
+            nameof(CargoDrySellThroughSettlementEntity.ProviderProfileId),
+            nameof(CargoDrySellThroughSettlementEntity.CurrencyCode),
+            nameof(CargoDrySellThroughSettlementEntity.ProductCode),
+            nameof(CargoDrySellThroughSettlementEntity.PeriodStartUtc),
+            nameof(CargoDrySellThroughSettlementEntity.PeriodEndUtc),
             nameof(CargoDrySellThroughSettlementEntity.Status),
         });
     }

@@ -1,4 +1,8 @@
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsignmentAgreement;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySalesAttributionDetail;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySalesAttributionsPaged;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySellThroughSettlementDetail;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySellThroughSettlementsPaged;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.AdjustProviderInventory;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.AllocateBatchToProvider;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CreateCargoDryProduct;
@@ -665,6 +669,106 @@ public sealed class AdminCargoDryController : AizenWebApiController
             }, ct);
 
         return SetResponse(result?.UpdatedInventory);
+    }
+
+    // ── Commercial: Sales Attributions ───────────────────────────────────────────
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/commercial/sales-attributions</summary>
+    [HttpGet("commercial/sales-attributions")]
+    [ProducesResponseType(typeof(CargoDrySalesAttributionPagedBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySalesAttributionPagedBffDto>> GetSalesAttributionsPaged(
+        [FromQuery] long?     providerProfileId       = null,
+        [FromQuery] string?   productCode             = null,
+        [FromQuery] string?   batchCode               = null,
+        [FromQuery] int?      salesChannel            = null,
+        [FromQuery] int?      commercialModel         = null,
+        [FromQuery] int?      status                  = null,
+        [FromQuery] long?     sellThroughSettlementId = null,
+        [FromQuery] DateTime? dateFrom                = null,
+        [FromQuery] DateTime? dateTo                  = null,
+        [FromQuery] string?   search                  = null,
+        [FromQuery] int       page                    = 1,
+        [FromQuery] int       pageSize                = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySalesAttributionsPagedBffQuery
+            {
+                ProviderProfileId       = providerProfileId,
+                ProductCode             = productCode,
+                BatchCode               = batchCode,
+                SalesChannel            = salesChannel,
+                CommercialModel         = commercialModel,
+                Status                  = status,
+                SellThroughSettlementId = sellThroughSettlementId,
+                DateFrom                = dateFrom,
+                DateTo                  = dateTo,
+                Search                  = search,
+                Page                    = page,
+                PageSize                = pageSize,
+            }, ct);
+
+        return SetResponse(result?.PagedResult);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/commercial/sales-attributions/{id}</summary>
+    [HttpGet("commercial/sales-attributions/{id:long}")]
+    [ProducesResponseType(typeof(CargoDrySalesAttributionBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<AizenApiResponse<CargoDrySalesAttributionBffDto>> GetSalesAttributionDetail(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySalesAttributionDetailBffQuery { Id = id }, ct);
+
+        return SetResponse(result?.Detail);
+    }
+
+    // ── Commercial: Sell-Through Settlements ──────────────────────────────────────
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/commercial/settlements</summary>
+    [HttpGet("commercial/settlements")]
+    [ProducesResponseType(typeof(CargoDrySellThroughSettlementPagedBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySellThroughSettlementPagedBffDto>> GetSellThroughSettlementsPaged(
+        [FromQuery] long?     providerProfileId      = null,
+        [FromQuery] long?     consignmentAgreementId = null,
+        [FromQuery] string?   productCode            = null,
+        [FromQuery] int?      status                 = null,
+        [FromQuery] DateTime? periodFrom             = null,
+        [FromQuery] DateTime? periodTo               = null,
+        [FromQuery] string?   search                 = null,
+        [FromQuery] int       page                   = 1,
+        [FromQuery] int       pageSize               = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySellThroughSettlementsPagedBffQuery
+            {
+                ProviderProfileId      = providerProfileId,
+                ConsignmentAgreementId = consignmentAgreementId,
+                ProductCode            = productCode,
+                Status                 = status,
+                PeriodFrom             = periodFrom,
+                PeriodTo               = periodTo,
+                Search                 = search,
+                Page                   = page,
+                PageSize               = pageSize,
+            }, ct);
+
+        return SetResponse(result?.PagedResult);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/commercial/settlements/{id}</summary>
+    [HttpGet("commercial/settlements/{id:long}")]
+    [ProducesResponseType(typeof(CargoDrySellThroughSettlementBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<AizenApiResponse<CargoDrySellThroughSettlementBffDto>> GetSellThroughSettlementDetail(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySellThroughSettlementDetailBffQuery { Id = id }, ct);
+
+        return SetResponse(result?.Detail);
     }
 }
 

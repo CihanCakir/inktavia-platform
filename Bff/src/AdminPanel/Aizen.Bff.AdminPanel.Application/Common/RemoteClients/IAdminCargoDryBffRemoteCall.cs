@@ -246,7 +246,7 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
 
     // ── Commercial: Sales Attributions & Sell-Through Settlements ────────────
 
-    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/attributions")]
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/sales-attributions")]
     Task<CargoDrySalesAttributionPagedBffDto> GetSalesAttributionsPagedAsync(
         [Query] long?     providerProfileId,
         [Query] string?   productCode,
@@ -262,7 +262,7 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [Query] int       pageSize,
         CancellationToken ct = default);
 
-    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/attributions/{id}")]
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/sales-attributions/{id}")]
     Task<CargoDrySalesAttributionBffDto?> GetSalesAttributionDetailAsync(
         long id,
         CancellationToken ct = default);

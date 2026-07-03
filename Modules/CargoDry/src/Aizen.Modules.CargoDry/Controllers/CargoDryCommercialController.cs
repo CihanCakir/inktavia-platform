@@ -22,10 +22,10 @@ public sealed class CargoDryCommercialController : ControllerBase
     // ── Sales Attribution ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// GET /api/v1/cargodry/admin/commercial/attributions
+    /// GET /api/v1/cargodry/admin/commercial/sales-attributions
     /// Paged list of sales attribution records.
     /// </summary>
-    [HttpGet("attributions")]
+    [HttpGet("sales-attributions")]
     public async Task<IActionResult> GetAttributionsPaged(
         [FromQuery] long?                           providerProfileId       = null,
         [FromQuery] string?                         productCode             = null,
@@ -61,10 +61,10 @@ public sealed class CargoDryCommercialController : ControllerBase
     }
 
     /// <summary>
-    /// GET /api/v1/cargodry/admin/commercial/attributions/{id}
+    /// GET /api/v1/cargodry/admin/commercial/sales-attributions/{id}
     /// Full detail of a single sales attribution record.
     /// </summary>
-    [HttpGet("attributions/{id:long}")]
+    [HttpGet("sales-attributions/{id:long}")]
     public async Task<IActionResult> GetAttributionDetail(long id, CancellationToken ct)
     {
         var result = await _sender.Send(new GetCargoDrySalesAttributionDetailQuery { Id = id }, ct);

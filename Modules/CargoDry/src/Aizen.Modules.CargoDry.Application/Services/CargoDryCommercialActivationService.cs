@@ -131,22 +131,34 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
             return;
         }
 
-        // Resolve or create the open settlement for this agreement+product
-        var settlement = await _settlements.GetOpenForAgreementProductAsync(
-            agreement.Id, kit.ProductCode, ct);
+        // ── Phase 3.2: approved grouping = Provider + Currency + Product + Month ──
+        // Monthly period bucket for this activation date (UTC).
+        var periodStartUtc = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var periodEndUtc   = periodStartUtc.AddMonths(1);
+        var currencyCode   = agreement.CurrencyCode ?? "USD";
+
+        // Find or create the open monthly settlement using the approved grouping key.
+        var settlement = await _settlements.GetOpenForProviderCurrencyProductPeriodAsync(
+            providerProfileId: agreement.ProviderProfileId,
+            currencyCode:      currencyCode,
+            productCode:       kit.ProductCode,
+            periodStartUtc:    periodStartUtc,
+            periodEndUtc:      periodEndUtc,
+            ct);
 
         if (settlement is null)
         {
-            var settlementCode = GenerateSettlementCode(agreement.Id, kit.ProductCode, nowUtc);
+            var settlementCode = GenerateSettlementCode(
+                agreement.ProviderProfileId, currencyCode, kit.ProductCode, nowUtc);
             settlement = CargoDrySellThroughSettlementEntity.Create(
                 settlementCode:         settlementCode,
                 consignmentAgreementId: agreement.Id,
                 providerProfileId:      agreement.ProviderProfileId,
                 productCode:            kit.ProductCode,
                 batchCode:              kit.BatchCode,
-                currencyCode:           agreement.CurrencyCode ?? "USD",
-                periodStartUtc:         agreement.StartDateUtc,
-                periodEndUtc:           agreement.EndDateUtc ?? nowUtc.AddMonths(1),
+                currencyCode:           currencyCode,
+                periodStartUtc:         periodStartUtc,
+                periodEndUtc:           periodEndUtc,
                 nowUtc:                 nowUtc);
             await _settlements.AddAsync(settlement, ct);
         }
@@ -156,7 +168,6 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
         var salePrice        = (decimal?)null;
         var commissionRate   = agreement.ConsignmentRate;
         var commissionAmount = (decimal?)null;
-        var currencyCode     = agreement.CurrencyCode;
 
         // Update settlement totals (Phase 3: use 0 placeholders — real amounts resolved in Phase 4)
         settlement.AddAttribution(salePrice ?? 0m, commissionAmount ?? 0m, nowUtc);
@@ -319,7 +330,21 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
         return entity;
     }
 
+    /// <summary>
+    /// Generates a human-readable settlement code encoding the approved grouping dimensions:
+    /// Provider + Currency + Product + Month.
+    /// Format: STS-{providerProfileId}-{currencyCode}-{productCode}-{yyyyMM}
+    /// Example: STS-129-TRY-CD-BASIC-202607
+    /// ProductCode is normalized to uppercase; spaces replaced with dashes.
+    /// </summary>
     private static string GenerateSettlementCode(
-        long consignmentAgreementId, string productCode, DateTime nowUtc)
-        => $"STS-{consignmentAgreementId}-{productCode}-{nowUtc:yyyyMM}";
+        long     providerProfileId,
+        string   currencyCode,
+        string   productCode,
+        DateTime nowUtc)
+    {
+        var normalizedProduct  = productCode.ToUpperInvariant().Replace(" ", "-");
+        var normalizedCurrency = currencyCode.ToUpperInvariant();
+        return $"STS-{providerProfileId}-{normalizedCurrency}-{normalizedProduct}-{nowUtc:yyyyMM}";
+    }
 }

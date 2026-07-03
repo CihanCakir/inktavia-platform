@@ -10,11 +10,18 @@ public interface ICargoDrySellThroughSettlementRepository
     Task<CargoDrySellThroughSettlementEntity?> GetByCodeAsync(string settlementCode, CancellationToken ct);
 
     /// <summary>
-    /// Finds the most recent open (Pending) settlement for the given agreement + product.
-    /// Used by ICargoDryCommercialActivationService to find an existing settlement to append to.
+    /// Finds the open (Pending) settlement for the approved grouping key:
+    /// ProviderProfileId + CurrencyCode + ProductCode + Month (PeriodStartUtc + PeriodEndUtc).
+    /// Used by ICargoDryCommercialActivationService to find an existing monthly settlement to append to.
+    /// Phase 3.2 (July 2026): settlement grouping aligned to Provider + Currency + Product + Month.
     /// </summary>
-    Task<CargoDrySellThroughSettlementEntity?> GetOpenForAgreementProductAsync(
-        long consignmentAgreementId, string productCode, CancellationToken ct);
+    Task<CargoDrySellThroughSettlementEntity?> GetOpenForProviderCurrencyProductPeriodAsync(
+        long              providerProfileId,
+        string            currencyCode,
+        string            productCode,
+        DateTime          periodStartUtc,
+        DateTime          periodEndUtc,
+        CancellationToken ct);
 
     Task<(List<CargoDrySellThroughSettlementEntity> Items, int Total)> GetPagedAsync(
         long?                               providerProfileId,
