@@ -1,3 +1,4 @@
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Domain.Entities;
@@ -135,7 +136,12 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
         // Monthly period bucket for this activation date (UTC).
         var periodStartUtc = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var periodEndUtc   = periodStartUtc.AddMonths(1);
-        var currencyCode   = agreement.CurrencyCode ?? "USD";
+        if (string.IsNullOrWhiteSpace(agreement.CurrencyCode))
+            throw new AizenBusinessException(
+                $"Consignment agreement {agreement.Id} has no CurrencyCode configured. " +
+                "Financial resolution blocked. Set CurrencyCode on the agreement " +
+                "(e.g. TRY for domestic operations) before activating kits under it.");
+        var currencyCode = agreement.CurrencyCode!;
 
         // Find or create the open monthly settlement using the approved grouping key.
         var settlement = await _settlements.GetOpenForProviderCurrencyProductPeriodAsync(

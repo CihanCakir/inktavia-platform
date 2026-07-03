@@ -77,6 +77,21 @@ public sealed class CargoDrySalesAttributionRepository : ICargoDrySalesAttributi
         return (items, total);
     }
 
+    /// <inheritdoc cref="ICargoDrySalesAttributionRepository.GetBySettlementIdAsync"/>
+    public async Task<IReadOnlyList<CargoDrySalesAttributionEntity>> GetBySettlementIdAsync(
+        long settlementId, CancellationToken ct)
+        => await _db.SalesAttributions
+            .Where(x => x.SellThroughSettlementId == settlementId)
+            .ToListAsync(ct);
+
+    /// <inheritdoc cref="ICargoDrySalesAttributionRepository.GetUnresolvedBySettlementIdAsync"/>
+    public async Task<IReadOnlyList<CargoDrySalesAttributionEntity>> GetUnresolvedBySettlementIdAsync(
+        long settlementId, CancellationToken ct)
+        => await _db.SalesAttributions
+            .Where(x => x.SellThroughSettlementId == settlementId &&
+                        x.FinancialResolvedAtUtc == null)
+            .ToListAsync(ct);
+
     public async Task AddAsync(CargoDrySalesAttributionEntity entity, CancellationToken ct)
     {
         await _db.SalesAttributions.AddAsync(entity, ct);

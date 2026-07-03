@@ -40,6 +40,9 @@ public sealed class CargoDrySellThroughSettlementDto
     public string?                              DisputeReason           { get; init; }
     public string?                              Note                    { get; init; }
 
+    /// <summary>Phase 4A: UTC timestamp when settlement was marked ReadyForSettlement.</summary>
+    public DateTime?                            ReadyForSettlementAtUtc { get; init; }
+
     public DateTime                             CreatedAtUtc            { get; init; }
 }
 
@@ -62,6 +65,7 @@ public sealed class CargoDrySellThroughSettlementListItemDto
     public CargoDrySellThroughSettlementStatus  Status                  { get; init; }
     public string                               StatusName              { get; init; } = default!;
     public DateTime?                            ScheduledSettlementDate { get; init; }
+    public DateTime?                            ReadyForSettlementAtUtc { get; init; }
     public DateTime                             CreatedAtUtc            { get; init; }
 }
 

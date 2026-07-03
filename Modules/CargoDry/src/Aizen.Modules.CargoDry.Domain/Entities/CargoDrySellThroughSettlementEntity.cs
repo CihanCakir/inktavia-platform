@@ -63,6 +63,9 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
     /// <summary>Admin note (resolution note, scheduling note, etc.).</summary>
     public string?   Note                    { get; private set; }
 
+    /// <summary>UTC timestamp when this settlement was marked ReadyForSettlement. Phase 4A.</summary>
+    public DateTime? ReadyForSettlementAtUtc { get; private set; }
+
     public DateTime  CreatedAtUtc            { get; private set; }
 
     private CargoDrySellThroughSettlementEntity() { }
@@ -123,15 +126,33 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
     }
 
     /// <summary>
-    /// Finance marks the settlement as ready for payout after reviewing amounts.
+    /// Recalculates settlement totals from the resolved attribution set.
+    /// Called by ResolveMonthlySellThroughSettlementCommandHandler after all attributions are financially resolved.
+    /// Phase 4A (July 2026).
     /// </summary>
-    public void MarkReadyForSettlement(string? note = null)
+    public void RecalculateTotals(
+        int     totalKitCount,
+        decimal totalSaleAmount,
+        decimal totalProviderShareAmount)
+    {
+        TotalKitCount         = totalKitCount;
+        TotalSaleAmount       = totalSaleAmount;
+        TotalCommissionAmount = totalProviderShareAmount;               // CommissionAmount = provider's earnings
+        ProviderPayoutAmount  = totalProviderShareAmount;               // Provider gets their commission sum
+    }
+
+    /// <summary>
+    /// Finance marks the settlement as ready for payout after reviewing amounts.
+    /// Phase 4A: requires readyAtUtc parameter.
+    /// </summary>
+    public void MarkReadyForSettlement(DateTime readyAtUtc, string? note = null)
     {
         if (Status != CargoDrySellThroughSettlementStatus.Pending)
             throw new InvalidOperationException(
                 $"Settlement {Id} must be in Pending status to mark ReadyForSettlement.");
 
-        Status = CargoDrySellThroughSettlementStatus.ReadyForSettlement;
+        Status                  = CargoDrySellThroughSettlementStatus.ReadyForSettlement;
+        ReadyForSettlementAtUtc = readyAtUtc;
         if (note is not null) Note = note;
     }
 

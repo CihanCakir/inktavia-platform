@@ -151,3 +151,27 @@ public sealed class ActivateKitBffRequest
     public string ActivationToken { get; init; } = default!;
     public long   VesselId        { get; init; }
 }
+
+// ── Phase 4A: Financial Resolution Request DTOs ────────────────────────────────
+
+[DocumentationInfo("Resolve attribution financials BFF request",
+    "Admin request to resolve SalePrice, CommissionRate, ProviderShareAmount, and PlatformShareAmount " +
+    "on a CargoDry sales attribution record. Phase 4A (July 2026).")]
+public sealed class ResolveAttributionFinancialsBffRequest
+{
+    public decimal  SalePrice              { get; init; }
+    public string   CurrencyCode           { get; init; } = default!;
+    public decimal? CommissionRateOverride  { get; init; }
+    public long     ResolvedByUserId       { get; init; }
+    public string?  ResolutionNote         { get; init; }
+}
+
+[DocumentationInfo("Resolve monthly settlement BFF request",
+    "Admin request to finalize a monthly sell-through settlement: " +
+    "verifies all attribution financials resolved, recalculates totals, marks ReadyForSettlement. " +
+    "Phase 4A (July 2026).")]
+public sealed class ResolveMonthlySettlementBffRequest
+{
+    public long    ResolvedByUserId { get; init; }
+    public string? ResolutionNote   { get; init; }
+}

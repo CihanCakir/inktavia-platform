@@ -52,7 +52,8 @@ public sealed class GetCargoDrySellThroughSettlementsPagedQueryHandler
             Status                 = x.Status,
             StatusName             = x.Status.ToString(),
             ScheduledSettlementDate = x.ScheduledSettlementDate,
-            CreatedAtUtc           = x.CreatedAtUtc,
+            ReadyForSettlementAtUtc = x.ReadyForSettlementAtUtc,
+            CreatedAtUtc            = x.CreatedAtUtc,
         }).ToList();
 
         return new GetCargoDrySellThroughSettlementsPagedResponse

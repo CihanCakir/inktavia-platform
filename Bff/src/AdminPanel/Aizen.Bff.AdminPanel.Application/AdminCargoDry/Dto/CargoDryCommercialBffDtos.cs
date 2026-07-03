@@ -20,17 +20,24 @@ public sealed class CargoDrySalesAttributionBffDto
     public long?    InventoryId             { get; init; }
     public int      Status                  { get; init; }
     public string   StatusName              { get; init; } = default!;
-    public decimal? SalePrice               { get; init; }
-    public decimal? CommissionRate          { get; init; }
-    public decimal? CommissionAmount        { get; init; }
-    public string?  CurrencyCode            { get; init; }
-    public long?    SellThroughSettlementId { get; init; }
-    public DateTime? AttributedAt           { get; init; }
-    public long?    AttributedByUserId      { get; init; }
-    public string?  ReviewNote              { get; init; }
-    public long?    ReviewedByUserId        { get; init; }
-    public DateTime? ReviewedAt             { get; init; }
-    public DateTime CreatedAtUtc            { get; init; }
+    public decimal? SalePrice                 { get; init; }
+    public decimal? CommissionRate            { get; init; }
+    public decimal? CommissionAmount          { get; init; }
+    public string?  CurrencyCode              { get; init; }
+    // Phase 4A
+    public decimal? ProviderShareAmount       { get; init; }
+    public decimal? PlatformShareAmount       { get; init; }
+    public bool     IsFinanciallyResolved     { get; init; }
+    public DateTime? FinancialResolvedAtUtc   { get; init; }
+    public long?    FinancialResolvedByUserId { get; init; }
+    public string?  ResolutionNote            { get; init; }
+    public long?    SellThroughSettlementId   { get; init; }
+    public DateTime? AttributedAt             { get; init; }
+    public long?    AttributedByUserId        { get; init; }
+    public string?  ReviewNote                { get; init; }
+    public long?    ReviewedByUserId          { get; init; }
+    public DateTime? ReviewedAt               { get; init; }
+    public DateTime CreatedAtUtc              { get; init; }
 }
 
 public sealed class CargoDrySalesAttributionListItemBffDto
@@ -85,11 +92,12 @@ public sealed class CargoDrySellThroughSettlementBffDto
     public int      Status                  { get; init; }
     public string   StatusName              { get; init; } = default!;
     public DateTime? ScheduledSettlementDate { get; init; }
-    public DateTime? SettledAtUtc           { get; init; }
-    public long?    SettledByUserId         { get; init; }
-    public string?  DisputeReason           { get; init; }
-    public string?  Note                    { get; init; }
-    public DateTime CreatedAtUtc            { get; init; }
+    public DateTime? SettledAtUtc            { get; init; }
+    public long?     SettledByUserId         { get; init; }
+    public string?   DisputeReason           { get; init; }
+    public string?   Note                    { get; init; }
+    public DateTime? ReadyForSettlementAtUtc { get; init; }
+    public DateTime  CreatedAtUtc            { get; init; }
 }
 
 public sealed class CargoDrySellThroughSettlementListItemBffDto
@@ -110,7 +118,8 @@ public sealed class CargoDrySellThroughSettlementListItemBffDto
     public int      Status                  { get; init; }
     public string   StatusName              { get; init; } = default!;
     public DateTime? ScheduledSettlementDate { get; init; }
-    public DateTime CreatedAtUtc            { get; init; }
+    public DateTime? ReadyForSettlementAtUtc { get; init; }
+    public DateTime  CreatedAtUtc            { get; init; }
 }
 
 public sealed class CargoDrySellThroughSettlementPagedBffDto

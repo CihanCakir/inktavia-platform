@@ -29,10 +29,18 @@ public sealed class CargoDrySalesAttributionDto
     public string                          StatusName             { get; init; } = default!;
 
     // ── Financials ──────────────────────────────────────────────────────────────
-    public decimal?                        SalePrice              { get; init; }
-    public decimal?                        CommissionRate         { get; init; }
-    public decimal?                        CommissionAmount       { get; init; }
-    public string?                         CurrencyCode           { get; init; }
+    public decimal?                        SalePrice               { get; init; }
+    public decimal?                        CommissionRate          { get; init; }
+    public decimal?                        CommissionAmount        { get; init; }
+    public string?                         CurrencyCode            { get; init; }
+
+    // ── Extended financials (Phase 4A) ──────────────────────────────────────────
+    public decimal?                        ProviderShareAmount     { get; init; }
+    public decimal?                        PlatformShareAmount     { get; init; }
+    public bool                            IsFinanciallyResolved   { get; init; }
+    public DateTime?                       FinancialResolvedAtUtc  { get; init; }
+    public long?                           FinancialResolvedByUserId { get; init; }
+    public string?                         ResolutionNote          { get; init; }
 
     // ── Settlement link ─────────────────────────────────────────────────────────
     public long?                           SellThroughSettlementId { get; init; }
@@ -65,11 +73,13 @@ public sealed class CargoDrySalesAttributionListItemDto
     public string                          CommercialModelName    { get; init; } = default!;
     public CargoDrySalesAttributionStatus  Status                 { get; init; }
     public string                          StatusName             { get; init; } = default!;
-    public decimal?                        SalePrice              { get; init; }
-    public decimal?                        CommissionAmount       { get; init; }
-    public string?                         CurrencyCode           { get; init; }
+    public decimal?                        SalePrice               { get; init; }
+    public decimal?                        CommissionAmount        { get; init; }
+    public string?                         CurrencyCode            { get; init; }
+    public decimal?                        ProviderShareAmount     { get; init; }
+    public bool                            IsFinanciallyResolved   { get; init; }
     public long?                           SellThroughSettlementId { get; init; }
-    public DateTime                        CreatedAtUtc           { get; init; }
+    public DateTime                        CreatedAtUtc            { get; init; }
 }
 
 /// <summary>Paged result wrapper for sales attribution list queries.</summary>

@@ -49,6 +49,7 @@ public sealed class GetCargoDrySellThroughSettlementDetailQueryHandler
                 SettledByUserId         = x.SettledByUserId,
                 DisputeReason           = x.DisputeReason,
                 Note                    = x.Note,
+                ReadyForSettlementAtUtc = x.ReadyForSettlementAtUtc,
                 CreatedAtUtc            = x.CreatedAtUtc,
             }
         };

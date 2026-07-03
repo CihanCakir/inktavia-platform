@@ -1,4 +1,6 @@
 using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Application.Commands.ResolveCargoDrySalesAttributionFinancials;
+using Aizen.Modules.CargoDry.Application.Commands.ResolveMonthlySellThroughSettlement;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionDetail;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionsPaged;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySellThroughSettlementDetail;
@@ -118,4 +120,68 @@ public sealed class CargoDryCommercialController : ControllerBase
         if (result.Detail is null) return NotFound();
         return Ok(result.Detail);
     }
+
+    // ── Phase 4A: Financial Resolution ───────────────────────────────────────
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/sales-attributions/{id}/resolve-financials
+    /// Resolves financial amounts (SalePrice, CommissionRate, ProviderShareAmount, PlatformShareAmount)
+    /// for a single sales attribution record.
+    /// </summary>
+    [HttpPost("sales-attributions/{id:long}/resolve-financials")]
+    public async Task<IActionResult> ResolveAttributionFinancials(
+        long id,
+        [FromBody] ResolveAttributionFinancialsRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new ResolveCargoDrySalesAttributionFinancialsCommand
+        {
+            SalesAttributionId    = id,
+            SalePrice             = body.SalePrice,
+            CurrencyCode          = body.CurrencyCode,
+            CommissionRateOverride = body.CommissionRateOverride,
+            ResolvedByUserId      = body.ResolvedByUserId,
+            ResolutionNote        = body.ResolutionNote,
+        }, ct);
+
+        return Ok(result.Attribution);
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlements/{id}/resolve-monthly
+    /// Finalizes a monthly settlement: verifies all attributions are resolved,
+    /// recalculates totals, and marks the settlement ReadyForSettlement.
+    /// </summary>
+    [HttpPost("settlements/{id:long}/resolve-monthly")]
+    public async Task<IActionResult> ResolveMonthlySettlement(
+        long id,
+        [FromBody] ResolveMonthlySettlementRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new ResolveMonthlySellThroughSettlementCommand
+        {
+            SettlementId     = id,
+            ResolvedByUserId = body.ResolvedByUserId,
+            ResolutionNote   = body.ResolutionNote,
+        }, ct);
+
+        return Ok(result.Settlement);
+    }
+}
+
+// ── Inline request models (Phase 4A — module layer) ──────────────────────────
+
+public sealed class ResolveAttributionFinancialsRequest
+{
+    public decimal  SalePrice              { get; init; }
+    public string   CurrencyCode           { get; init; } = default!;
+    public decimal? CommissionRateOverride  { get; init; }
+    public long     ResolvedByUserId       { get; init; }
+    public string?  ResolutionNote         { get; init; }
+}
+
+public sealed class ResolveMonthlySettlementRequest
+{
+    public long    ResolvedByUserId { get; init; }
+    public string? ResolutionNote   { get; init; }
 }

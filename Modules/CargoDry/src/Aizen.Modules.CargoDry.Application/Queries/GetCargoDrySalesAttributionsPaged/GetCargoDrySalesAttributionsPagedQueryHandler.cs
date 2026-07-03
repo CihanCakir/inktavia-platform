@@ -57,6 +57,8 @@ public sealed class GetCargoDrySalesAttributionsPagedQueryHandler
             SalePrice               = x.SalePrice,
             CommissionAmount        = x.CommissionAmount,
             CurrencyCode            = x.CurrencyCode,
+            ProviderShareAmount     = x.ProviderShareAmount,
+            IsFinanciallyResolved   = x.IsFinanciallyResolved,
             SellThroughSettlementId = x.SellThroughSettlementId,
             CreatedAtUtc            = x.CreatedAtUtc,
         }).ToList();

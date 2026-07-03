@@ -47,6 +47,9 @@ public sealed class CargoDrySellThroughSettlementEntityConfiguration
         builder.Property(x => x.DisputeReason).HasMaxLength(1000);
         builder.Property(x => x.Note).HasMaxLength(1000);
 
+        // ── Phase 4A ───────────────────────────────────────────────────────────
+        builder.Property(x => x.ReadyForSettlementAtUtc);
+
         // ── Audit ──────────────────────────────────────────────────────────────
         builder.Property(x => x.CreatedAtUtc).IsRequired();
 

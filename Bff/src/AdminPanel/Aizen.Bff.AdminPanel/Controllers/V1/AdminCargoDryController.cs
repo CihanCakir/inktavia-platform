@@ -1,4 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsignmentAgreement;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ResolveCargoDrySalesAttributionFinancials;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ResolveMonthlySellThroughSettlement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySalesAttributionDetail;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySalesAttributionsPaged;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySellThroughSettlementDetail;
@@ -770,6 +772,45 @@ public sealed class AdminCargoDryController : AizenWebApiController
 
         return SetResponse(result?.Detail);
     }
+
+    // ── Phase 4A: Financial Resolution ───────────────────────────────────────
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/commercial/sales-attributions/{id}/resolve-financials</summary>
+    [HttpPost("commercial/sales-attributions/{id:long}/resolve-financials")]
+    [ProducesResponseType(typeof(CargoDrySalesAttributionBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySalesAttributionBffDto>> ResolveAttributionFinancials(
+        long id, [FromBody] ResolveAttributionFinancialsBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ResolveCargoDrySalesAttributionFinancialsBffCommand
+            {
+                SalesAttributionId    = id,
+                SalePrice             = body.SalePrice,
+                CurrencyCode          = body.CurrencyCode,
+                CommissionRateOverride = body.CommissionRateOverride,
+                ResolvedByUserId      = body.ResolvedByUserId,
+                ResolutionNote        = body.ResolutionNote,
+            }, ct);
+
+        return SetResponse(result?.Attribution);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/commercial/settlements/{id}/resolve-monthly</summary>
+    [HttpPost("commercial/settlements/{id:long}/resolve-monthly")]
+    [ProducesResponseType(typeof(CargoDrySellThroughSettlementBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySellThroughSettlementBffDto>> ResolveMonthlySettlement(
+        long id, [FromBody] ResolveMonthlySettlementBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ResolveMonthlySellThroughSettlementBffCommand
+            {
+                SettlementId     = id,
+                ResolvedByUserId = body.ResolvedByUserId,
+                ResolutionNote   = body.ResolutionNote,
+            }, ct);
+
+        return SetResponse(result?.Settlement);
+    }
 }
 
 // ── Inline body request records ───────────────────────────────────────────────
@@ -839,4 +880,20 @@ public sealed class AdjustInventoryBodyRequest
     public string? BatchCode          { get; init; }
     public int     AdjustmentQuantity { get; init; }
     public string  Reason             { get; init; } = default!;
+}
+
+// Phase 4A
+public sealed class ResolveAttributionFinancialsBodyRequest
+{
+    public decimal  SalePrice              { get; init; }
+    public string   CurrencyCode           { get; init; } = default!;
+    public decimal? CommissionRateOverride  { get; init; }
+    public long     ResolvedByUserId       { get; init; }
+    public string?  ResolutionNote         { get; init; }
+}
+
+public sealed class ResolveMonthlySettlementBodyRequest
+{
+    public long    ResolvedByUserId { get; init; }
+    public string? ResolutionNote   { get; init; }
 }

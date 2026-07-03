@@ -285,6 +285,18 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         long id,
         CancellationToken ct = default);
 
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/sales-attributions/{id}/resolve-financials")]
+    Task<CargoDrySalesAttributionBffDto> ResolveAttributionFinancialsAsync(
+        long id,
+        [AizenRemoteCallBody] ResolveAttributionFinancialsBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlements/{id}/resolve-monthly")]
+    Task<CargoDrySellThroughSettlementBffDto> ResolveMonthlySettlementAsync(
+        long id,
+        [AizenRemoteCallBody] ResolveMonthlySettlementBffRequest request,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

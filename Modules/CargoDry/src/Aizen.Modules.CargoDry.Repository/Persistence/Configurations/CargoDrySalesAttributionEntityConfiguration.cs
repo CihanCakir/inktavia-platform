@@ -35,6 +35,14 @@ public sealed class CargoDrySalesAttributionEntityConfiguration
         builder.Property(x => x.CommissionAmount).HasColumnType("numeric(18,4)");
         builder.Property(x => x.CurrencyCode).HasMaxLength(3);
 
+        // ── Extended financials (Phase 4A) ─────────────────────────────────────
+        builder.Property(x => x.ProviderShareAmount).HasColumnType("numeric(18,4)");
+        builder.Property(x => x.PlatformShareAmount).HasColumnType("numeric(18,4)");
+        builder.Property(x => x.FinancialResolvedAtUtc);
+        builder.Property(x => x.FinancialResolvedByUserId);
+        builder.Property(x => x.ResolutionNote).HasMaxLength(1000);
+        builder.Ignore(x => x.IsFinanciallyResolved); // computed — not stored
+
         // ── Settlement link ────────────────────────────────────────────────────
         builder.Property(x => x.SellThroughSettlementId);
 

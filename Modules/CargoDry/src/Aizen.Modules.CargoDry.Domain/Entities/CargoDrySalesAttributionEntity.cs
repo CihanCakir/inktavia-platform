@@ -55,6 +55,25 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
     /// <summary>ISO 4217 currency code. Null until attributed.</summary>
     public string?  CurrencyCode    { get; private set; }
 
+    // ── Extended financials (Phase 4A) ──────────────────────────────────────────
+    /// <summary>Provider's share of the sale: SalePrice × CommissionRate. Null until financials resolved.</summary>
+    public decimal?  ProviderShareAmount      { get; private set; }
+
+    /// <summary>Platform's retained share: SalePrice − ProviderShareAmount. Null until financials resolved.</summary>
+    public decimal?  PlatformShareAmount      { get; private set; }
+
+    /// <summary>UTC timestamp when financial amounts were resolved by an admin or automated job.</summary>
+    public DateTime? FinancialResolvedAtUtc   { get; private set; }
+
+    /// <summary>Admin user who resolved the financial amounts.</summary>
+    public long?     FinancialResolvedByUserId { get; private set; }
+
+    /// <summary>Admin note recorded during financial resolution (e.g., reason for rate override).</summary>
+    public string?   ResolutionNote            { get; private set; }
+
+    /// <summary>True when FinancialResolvedAtUtc has a value. Computed — not stored in DB.</summary>
+    public bool IsFinanciallyResolved => FinancialResolvedAtUtc.HasValue;
+
     // ── Settlement link ─────────────────────────────────────────────────────────
     /// <summary>
     /// Set when this attribution is included in a CargoDrySellThroughSettlementEntity.
@@ -181,6 +200,49 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
         AttributedAt       = nowUtc;
         AttributedByUserId = reviewedByUserId;
         Status             = CargoDrySalesAttributionStatus.Attributed;
+    }
+
+    /// <summary>
+    /// Resolves the financial amounts for this attribution.
+    /// Can be called on any status except Settled or Cancelled.
+    /// CommissionRate is the provider's share rate (0.00–1.00):
+    ///   ProviderShareAmount = SalePrice × CommissionRate
+    ///   PlatformShareAmount = SalePrice − ProviderShareAmount
+    /// Phase 4A (July 2026): Financial Resolution.
+    /// </summary>
+    public void ResolveFinancials(
+        decimal  salePrice,
+        decimal  commissionRate,
+        string   currencyCode,
+        DateTime resolvedAtUtc,
+        long     resolvedByUserId,
+        string?  resolutionNote = null)
+    {
+        if (Status is CargoDrySalesAttributionStatus.Settled
+                   or CargoDrySalesAttributionStatus.Cancelled)
+            throw new InvalidOperationException(
+                $"Cannot resolve financials on attribution {Id} with status {Status}.");
+
+        if (salePrice < 0)
+            throw new ArgumentOutOfRangeException(nameof(salePrice), "SalePrice must be non-negative.");
+
+        if (commissionRate is < 0m or > 1m)
+            throw new ArgumentOutOfRangeException(nameof(commissionRate),
+                "CommissionRate must be between 0.00 and 1.00.");
+
+        var providerShare  = Math.Round(salePrice * commissionRate,      4, MidpointRounding.AwayFromZero);
+        var platformShare  = Math.Round(salePrice - providerShare,       4, MidpointRounding.AwayFromZero);
+        var commissionAmt  = providerShare; // CommissionAmount = provider's earnings (their commission)
+
+        SalePrice               = salePrice;
+        CommissionRate          = commissionRate;
+        CommissionAmount        = commissionAmt;
+        CurrencyCode            = currencyCode;
+        ProviderShareAmount     = providerShare;
+        PlatformShareAmount     = platformShare;
+        FinancialResolvedAtUtc  = resolvedAtUtc;
+        FinancialResolvedByUserId = resolvedByUserId;
+        ResolutionNote          = resolutionNote;
     }
 
     /// <summary>Cancels the attribution (kit revoked or agreement voided).</summary>

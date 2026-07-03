@@ -24,6 +24,22 @@ public interface ICargoDrySalesAttributionRepository
         int                            take,
         CancellationToken              ct);
 
+    /// <summary>
+    /// Returns all attributions linked to a specific sell-through settlement.
+    /// Phase 4A: used by ResolveMonthlySellThroughSettlementCommandHandler to load
+    /// the full attribution set before recalculating totals.
+    /// </summary>
+    Task<IReadOnlyList<CargoDrySalesAttributionEntity>> GetBySettlementIdAsync(
+        long settlementId, CancellationToken ct);
+
+    /// <summary>
+    /// Returns attributions in a settlement that are NOT yet financially resolved.
+    /// Phase 4A: used by ResolveMonthlySellThroughSettlementCommandHandler to block
+    /// ReadyForSettlement if any attribution still has null financial amounts.
+    /// </summary>
+    Task<IReadOnlyList<CargoDrySalesAttributionEntity>> GetUnresolvedBySettlementIdAsync(
+        long settlementId, CancellationToken ct);
+
     Task AddAsync(CargoDrySalesAttributionEntity entity, CancellationToken ct);
 
     Task SaveChangesAsync(CancellationToken ct);
