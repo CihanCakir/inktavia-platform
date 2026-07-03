@@ -8,9 +8,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddCargoDryApplication(this IServiceCollection services)
     {
-        services.AddScoped<ICargoDryQrService,      CargoDryQrService>();
-        services.AddScoped<IActivationTokenService, ActivationTokenService>();
-        services.AddScoped<IBatchKeyVaultService,   BatchKeyVaultService>();
+        services.AddScoped<ICargoDryQrService,                   CargoDryQrService>();
+        services.AddScoped<IActivationTokenService,              ActivationTokenService>();
+        services.AddScoped<IBatchKeyVaultService,               BatchKeyVaultService>();
+        services.AddScoped<ICargoDryCommercialActivationService, CargoDryCommercialActivationService>();
 
         // Recurring jobs are registered via AddAizenRecurringJob() in Program.cs
         // which auto-discovers IAizenRecurringJob implementations through assembly scanning.

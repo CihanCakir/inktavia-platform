@@ -14,30 +14,33 @@ namespace Aizen.Modules.CargoDry.Application.Commands.ActivateKit;
 public sealed class ActivateKitCommandHandler
     : AizenCommandHandler<ActivateKitCommand, CargoDryKitDto>
 {
-    private readonly IActivationTokenService          _tokenService;
-    private readonly ICargoDryKitRepository           _kits;
-    private readonly ICargoDryProductRepository       _products;
-    private readonly IAizenMessagePublisher           _publisher;
-    private readonly ICargoDryActivationLogRepository _activationLogs;
-    private readonly IAizenDistributedCache           _cache;
-    private readonly ILogger<ActivateKitCommandHandler> _logger;
+    private readonly IActivationTokenService              _tokenService;
+    private readonly ICargoDryKitRepository               _kits;
+    private readonly ICargoDryProductRepository           _products;
+    private readonly IAizenMessagePublisher               _publisher;
+    private readonly ICargoDryActivationLogRepository     _activationLogs;
+    private readonly IAizenDistributedCache               _cache;
+    private readonly ILogger<ActivateKitCommandHandler>   _logger;
+    private readonly ICargoDryCommercialActivationService _commercialActivation;
 
     public ActivateKitCommandHandler(
-        IActivationTokenService tokenService,
-        ICargoDryKitRepository kits,
-        ICargoDryProductRepository products,
-        IAizenMessagePublisher publisher,
-        ICargoDryActivationLogRepository activationLogs,
-        IAizenDistributedCache cache,
-        ILogger<ActivateKitCommandHandler> logger)
+        IActivationTokenService               tokenService,
+        ICargoDryKitRepository                kits,
+        ICargoDryProductRepository            products,
+        IAizenMessagePublisher                publisher,
+        ICargoDryActivationLogRepository      activationLogs,
+        IAizenDistributedCache                cache,
+        ILogger<ActivateKitCommandHandler>    logger,
+        ICargoDryCommercialActivationService  commercialActivation)
     {
-        _tokenService   = tokenService;
-        _kits           = kits;
-        _products       = products;
-        _publisher      = publisher;
-        _activationLogs = activationLogs;
-        _cache          = cache;
-        _logger         = logger;
+        _tokenService         = tokenService;
+        _kits                 = kits;
+        _products             = products;
+        _publisher            = publisher;
+        _activationLogs       = activationLogs;
+        _cache                = cache;
+        _logger               = logger;
+        _commercialActivation = commercialActivation;
     }
 
     public override async Task<CargoDryKitDto?> Handle(ActivateKitCommand request, CancellationToken ct)
@@ -55,6 +58,9 @@ public sealed class ActivateKitCommandHandler
         existingActiveKit?.MarkExpired();
 
         kit.Activate(request.UserId, request.VesselId, product.ValidityDays);
+
+        // ── Phase 3: resolve commercial attribution (stages entities, does not SaveChanges) ──
+        await _commercialActivation.ResolveAsync(kit.Id, request.UserId, ct);
 
         await _kits.SaveChangesAsync(ct);
 

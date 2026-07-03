@@ -78,6 +78,12 @@ public sealed class CargoDryKitEntity : AizenEntityWithAudit
     /// </summary>
     public long? WarehouseId { get; private set; }
 
+    /// <summary>
+    /// Reference to the CargoDryConsignmentAgreementEntity that governs this kit's sell-through settlement.
+    /// Null when the kit is not under a consignment agreement (e.g. DirectSale or MarketplaceCommission).
+    /// </summary>
+    public long? ConsignmentAgreementId { get; private set; }
+
     private CargoDryKitEntity() { }
 
     // ── Factory ────────────────────────────────────────────────────────────────

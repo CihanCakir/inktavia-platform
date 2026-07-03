@@ -244,6 +244,47 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] AdjustProviderInventoryBffRequest request,
         CancellationToken ct = default);
 
+    // ── Commercial: Sales Attributions & Sell-Through Settlements ────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/attributions")]
+    Task<CargoDrySalesAttributionPagedBffDto> GetSalesAttributionsPagedAsync(
+        [Query] long?     providerProfileId,
+        [Query] string?   productCode,
+        [Query] string?   batchCode,
+        [Query] int?      salesChannel,
+        [Query] int?      commercialModel,
+        [Query] int?      status,
+        [Query] long?     sellThroughSettlementId,
+        [Query] DateTime? dateFrom,
+        [Query] DateTime? dateTo,
+        [Query] string?   search,
+        [Query] int       page,
+        [Query] int       pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/attributions/{id}")]
+    Task<CargoDrySalesAttributionBffDto?> GetSalesAttributionDetailAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlements")]
+    Task<CargoDrySellThroughSettlementPagedBffDto> GetSellThroughSettlementsPagedAsync(
+        [Query] long?     providerProfileId,
+        [Query] long?     consignmentAgreementId,
+        [Query] string?   productCode,
+        [Query] int?      status,
+        [Query] DateTime? periodFrom,
+        [Query] DateTime? periodTo,
+        [Query] string?   search,
+        [Query] int       page,
+        [Query] int       pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlements/{id}")]
+    Task<CargoDrySellThroughSettlementBffDto?> GetSellThroughSettlementDetailAsync(
+        long id,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]
