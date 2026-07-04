@@ -419,3 +419,102 @@ public sealed class CargoDrySalesAttributionRuleResolutionPreviewBffDto
     /// <summary>Rule resolution result computed from the attribution context + optional preview overrides.</summary>
     public CargoDryCommercialRuleResolutionBffDto? Resolution  { get; init; }
 }
+
+// ── Phase 6: Settlement Automation BFF DTOs ────────────────────────────────────
+
+public sealed class CargoDrySettlementAutomationRunBffDto
+{
+    public long     Id                        { get; init; }
+    public string   RunCode                   { get; init; } = default!;
+    public int      TargetYearMonth           { get; init; }
+    public int      Mode                      { get; init; }
+    public string   ModeName                  { get; init; } = default!;
+    public int      Status                    { get; init; }
+    public string   StatusName                { get; init; } = default!;
+    public bool     AutoCompletePayout        { get; init; }
+    public bool     AutoPreparePayment        { get; init; }
+    public bool     AutoPrepareInvoice        { get; init; }
+    public long     TriggeredByUserId         { get; init; }
+    public DateTime TriggeredAtUtc            { get; init; }
+    public DateTime? CompletedAtUtc           { get; init; }
+    public long?    DurationMs                { get; init; }
+    public int      TotalSettlementsFound     { get; init; }
+    public int      TotalSettlementsEligible  { get; init; }
+    public int      TotalSettlementsProcessed { get; init; }
+    public int      TotalSettlementsSkipped   { get; init; }
+    public int      TotalSettlementsErrored   { get; init; }
+    public string?  Note                      { get; init; }
+    public string?  ErrorSummary              { get; init; }
+    public DateTime CreatedAtUtc              { get; init; }
+    public IReadOnlyList<CargoDrySettlementAutomationRunItemBffDto> RunItems { get; init; } = [];
+}
+
+public sealed class CargoDrySettlementAutomationRunItemBffDto
+{
+    public long     Id                   { get; init; }
+    public long     RunId                { get; init; }
+    public long     SettlementId         { get; init; }
+    public string   SettlementCode       { get; init; } = default!;
+    public long     ProviderProfileId    { get; init; }
+    public string   ProductCode          { get; init; } = default!;
+    public string   CurrencyCode         { get; init; } = default!;
+    public int      PeriodYearMonth      { get; init; }
+    public int      StatusBefore         { get; init; }
+    public string   StatusBeforeName     { get; init; } = default!;
+    public string   Action               { get; init; } = default!;
+    public bool     Success              { get; init; }
+    public string?  ErrorMessage         { get; init; }
+    public int      AttributionsResolved { get; init; }
+    public int      AttributionsSkipped  { get; init; }
+    public int      AttributionsErrored  { get; init; }
+    public DateTime ProcessedAtUtc       { get; init; }
+}
+
+public sealed class CargoDrySettlementAutomationRunsPagedBffDto
+{
+    public IReadOnlyList<CargoDrySettlementAutomationRunBffDto> Items    { get; init; } = [];
+    public int Total    { get; init; }
+    public int Page     { get; init; }
+    public int PageSize { get; init; }
+}
+
+public sealed class CargoDrySettlementAutomationPreviewItemBffDto
+{
+    public long     SettlementId               { get; init; }
+    public string   SettlementCode             { get; init; } = default!;
+    public long     ProviderProfileId          { get; init; }
+    public string   ProductCode                { get; init; } = default!;
+    public string   CurrencyCode               { get; init; } = default!;
+    public int      PeriodYearMonth            { get; init; }
+    public int      CurrentStatus              { get; init; }
+    public string   CurrentStatusName          { get; init; } = default!;
+    public int      UnresolvedAttributionCount { get; init; }
+    public int      TotalAttributionCount      { get; init; }
+    public string   PredictedAction            { get; init; } = default!;
+    public bool     IsEligible                 { get; init; }
+    public IReadOnlyList<string> IneligibilityReasons { get; init; } = [];
+}
+
+public sealed class CargoDrySettlementAutomationPreviewBffDto
+{
+    public int      TargetYearMonth           { get; init; }
+    public int      TotalSettlementsFound     { get; init; }
+    public int      TotalEligible             { get; init; }
+    public int      TotalIneligible           { get; init; }
+    public int      TotalWouldMarkReady       { get; init; }
+    public int      TotalWouldPreparePayment  { get; init; }
+    public int      TotalWouldPrepareInvoice  { get; init; }
+    public bool     AutoPreparePayment        { get; init; }
+    public bool     AutoPrepareInvoice        { get; init; }
+    public IReadOnlyList<CargoDrySettlementAutomationPreviewItemBffDto> Items { get; init; } = [];
+}
+
+public sealed class RunSettlementAutomationBffRequest
+{
+    public int      TargetYearMonth    { get; init; }
+    public int      Mode               { get; init; } = 1; // DryRun = 1
+    public bool     AutoPreparePayment { get; init; } = false;
+    public bool     AutoPrepareInvoice { get; init; } = false;
+    public long     TriggeredByUserId  { get; init; }
+    public string?  Note               { get; init; }
+}

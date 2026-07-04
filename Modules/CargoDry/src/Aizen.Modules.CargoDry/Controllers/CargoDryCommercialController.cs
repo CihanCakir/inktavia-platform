@@ -1,5 +1,9 @@
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Application.Commands.ApproveCargoDrySettlementPayout;
+using Aizen.Modules.CargoDry.Application.Commands.RunCargoDryMonthlySettlementAutomation;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryMonthlySettlementAutomationPreview;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySettlementAutomationRunDetail;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySettlementAutomationRunsPaged;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryCommercialRuleResolutionPreview;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionRuleResolutionPreview;
 using Aizen.Modules.CargoDry.Application.Commands.CompleteCargoDrySettlementPayout;
@@ -130,6 +134,95 @@ public sealed class CargoDryCommercialController : ControllerBase
         var result = await _sender.Send(new GetCargoDrySellThroughSettlementDetailQuery { Id = id }, ct);
         if (result.Detail is null) return NotFound();
         return Ok(result.Detail);
+    }
+
+    // ── Phase 6: Settlement Automation ───────────────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/settlement-automation/preview
+    /// Dry-run preview of which settlements would be processed for the target year-month.
+    /// Never mutates any data. Returns predicted actions and aggregate counts.
+    /// </summary>
+    [HttpGet("settlement-automation/preview")]
+    public async Task<IActionResult> GetSettlementAutomationPreview(
+        [FromQuery] int  targetYearMonth    = 0,
+        [FromQuery] bool autoPreparePayment = false,
+        [FromQuery] bool autoPrepareInvoice = false,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryMonthlySettlementAutomationPreviewQuery
+        {
+            TargetYearMonth    = targetYearMonth,
+            AutoPreparePayment = autoPreparePayment,
+            AutoPrepareInvoice = autoPrepareInvoice,
+        }, ct);
+        return Ok(result.Preview);
+    }
+
+    /// <summary>
+    /// POST /api/v1/cargodry/admin/commercial/settlement-automation/run
+    /// Executes the monthly settlement automation for the given target year-month.
+    /// DryRun mode (default) records a preview run with no mutations.
+    /// Live mode dispatches existing command handlers per eligible settlement.
+    /// AutoCompletePayout is always false — payout lifecycle remains manual.
+    /// </summary>
+    [HttpPost("settlement-automation/run")]
+    public async Task<IActionResult> RunSettlementAutomation(
+        [FromBody] RunSettlementAutomationRequest body,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new RunCargoDryMonthlySettlementAutomationCommand
+        {
+            TargetYearMonth    = body.TargetYearMonth,
+            Mode               = body.Mode,
+            AutoPreparePayment = body.AutoPreparePayment,
+            AutoPrepareInvoice = body.AutoPrepareInvoice,
+            TriggeredByUserId  = body.TriggeredByUserId,
+            Note               = body.Note,
+        }, ct);
+        return Ok(result.Run);
+    }
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/settlement-automation/runs
+    /// Paged list of automation run records.
+    /// </summary>
+    [HttpGet("settlement-automation/runs")]
+    public async Task<IActionResult> GetSettlementAutomationRuns(
+        [FromQuery] int?                                   targetYearMonth   = null,
+        [FromQuery] CargoDrySettlementAutomationRunStatus? status            = null,
+        [FromQuery] CargoDrySettlementAutomationMode?      mode              = null,
+        [FromQuery] long?                                  triggeredByUserId = null,
+        [FromQuery] DateTime?                              fromUtc           = null,
+        [FromQuery] DateTime?                              toUtc             = null,
+        [FromQuery] int                                    page              = 1,
+        [FromQuery] int                                    pageSize          = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDrySettlementAutomationRunsPagedQuery
+        {
+            TargetYearMonth   = targetYearMonth,
+            Status            = status,
+            Mode              = mode,
+            TriggeredByUserId = triggeredByUserId,
+            FromUtc           = fromUtc,
+            ToUtc             = toUtc,
+            Page              = page,
+            PageSize          = pageSize,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/settlement-automation/runs/{id}
+    /// Full detail of a single automation run including all per-settlement run items.
+    /// </summary>
+    [HttpGet("settlement-automation/runs/{id:long}")]
+    public async Task<IActionResult> GetSettlementAutomationRunDetail(long id, CancellationToken ct)
+    {
+        var result = await _sender.Send(
+            new GetCargoDrySettlementAutomationRunDetailQuery { RunId = id }, ct);
+        return Ok(result.Run);
     }
 
     // ── Phase 5: Commercial Rule Resolution Preview ──────────────────────────
@@ -484,6 +577,18 @@ public sealed class PrepareSettlementInvoiceRequest
 {
     public long    PreparedByUserId { get; init; }
     public string? PreparationNote  { get; init; }
+}
+
+// ── Inline request models (Phase 6 — module layer) ───────────────────────────
+
+public sealed class RunSettlementAutomationRequest
+{
+    public int                               TargetYearMonth    { get; init; }
+    public CargoDrySettlementAutomationMode  Mode               { get; init; } = CargoDrySettlementAutomationMode.DryRun;
+    public bool                              AutoPreparePayment { get; init; } = false;
+    public bool                              AutoPrepareInvoice { get; init; } = false;
+    public long                              TriggeredByUserId  { get; init; }
+    public string?                           Note               { get; init; }
 }
 
 // ── Inline request models (Phase 4D — module layer) ──────────────────────────

@@ -1,3 +1,7 @@
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RunCargoDryMonthlySettlementAutomation;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementAutomationPreview;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementAutomationRunDetail;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementAutomationRunsPaged;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ApproveCargoDrySettlementPayout;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CompleteCargoDrySettlementPayout;
@@ -1101,6 +1105,107 @@ public sealed class AdminCargoDryController : AizenWebApiController
             PayoutResult = result?.PayoutResult,
         });
     }
+
+    // ── Phase 6: Settlement Automation ───────────────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/settlement-automation/preview
+    /// Returns a read-only prediction of what the automation run would do for the target year-month.
+    /// No mutations. AutoCompletePayout is always false. Phase 6 (July 2026).
+    /// </summary>
+    [HttpGet("commercial/settlement-automation/preview")]
+    [ProducesResponseType(typeof(CargoDrySettlementAutomationPreviewBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementAutomationPreviewBffDto>> GetSettlementAutomationPreview(
+        [FromQuery] int  targetYearMonth,
+        [FromQuery] bool autoPreparePayment = false,
+        [FromQuery] bool autoPrepareInvoice = false,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySettlementAutomationPreviewBffQuery
+            {
+                TargetYearMonth    = targetYearMonth,
+                AutoPreparePayment = autoPreparePayment,
+                AutoPrepareInvoice = autoPrepareInvoice,
+            }, ct);
+
+        return SetResponse(result?.Preview);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/commercial/settlement-automation/run
+    /// Triggers the monthly settlement automation. Mode=1 (DryRun) by default.
+    /// AutoCompletePayout is always enforced to false server-side.
+    /// Phase 6 (July 2026).
+    /// </summary>
+    [HttpPost("commercial/settlement-automation/run")]
+    [ProducesResponseType(typeof(CargoDrySettlementAutomationRunBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementAutomationRunBffDto>> RunSettlementAutomation(
+        [FromBody] RunSettlementAutomationBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RunCargoDryMonthlySettlementAutomationBffCommand
+            {
+                TargetYearMonth    = body.TargetYearMonth,
+                Mode               = body.Mode,
+                AutoPreparePayment = body.AutoPreparePayment,
+                AutoPrepareInvoice = body.AutoPrepareInvoice,
+                TriggeredByUserId  = body.TriggeredByUserId,
+                Note               = body.Note,
+            }, ct);
+
+        return SetResponse(result?.Run);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/settlement-automation/runs
+    /// Paginated list of settlement automation run history. RunItems not included.
+    /// Phase 6 (July 2026).
+    /// </summary>
+    [HttpGet("commercial/settlement-automation/runs")]
+    [ProducesResponseType(typeof(CargoDrySettlementAutomationRunsPagedBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementAutomationRunsPagedBffDto>> GetSettlementAutomationRuns(
+        [FromQuery] int?      targetYearMonth   = null,
+        [FromQuery] int?      status            = null,
+        [FromQuery] int?      mode              = null,
+        [FromQuery] long?     triggeredByUserId = null,
+        [FromQuery] DateTime? fromUtc           = null,
+        [FromQuery] DateTime? toUtc             = null,
+        [FromQuery] int       skip              = 0,
+        [FromQuery] int       take              = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySettlementAutomationRunsPagedBffQuery
+            {
+                TargetYearMonth   = targetYearMonth,
+                Status            = status,
+                Mode              = mode,
+                TriggeredByUserId = triggeredByUserId,
+                FromUtc           = fromUtc,
+                ToUtc             = toUtc,
+                Skip              = skip,
+                Take              = take,
+            }, ct);
+
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/settlement-automation/runs/{id}
+    /// Returns a single run record with all per-settlement RunItems included.
+    /// Phase 6 (July 2026).
+    /// </summary>
+    [HttpGet("commercial/settlement-automation/runs/{id:long}")]
+    [ProducesResponseType(typeof(CargoDrySettlementAutomationRunBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySettlementAutomationRunBffDto>> GetSettlementAutomationRunDetail(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySettlementAutomationRunDetailBffQuery { RunId = id }, ct);
+
+        return SetResponse(result?.Run);
+    }
 }
 
 // ── Inline body request records ───────────────────────────────────────────────
@@ -1200,6 +1305,17 @@ public sealed class PrepareSettlementInvoiceBodyRequest
 {
     public long    PreparedByUserId { get; init; }
     public string? PreparationNote  { get; init; }
+}
+
+// ── Phase 6 ──────────────────────────────────────────────────────────────────
+public sealed class RunSettlementAutomationBodyRequest
+{
+    public int    TargetYearMonth    { get; init; }
+    public int    Mode               { get; init; } = 1; // DryRun default
+    public bool   AutoPreparePayment { get; init; } = false;
+    public bool   AutoPrepareInvoice { get; init; } = false;
+    public long   TriggeredByUserId  { get; init; }
+    public string? Note              { get; init; }
 }
 
 // ── Phase 4D ─────────────────────────────────────────────────────────────────

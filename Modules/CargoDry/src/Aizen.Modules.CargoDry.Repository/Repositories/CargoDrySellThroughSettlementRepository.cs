@@ -84,6 +84,27 @@ public sealed class CargoDrySellThroughSettlementRepository : ICargoDrySellThrou
         return (items, total);
     }
 
+    /// <inheritdoc cref="ICargoDrySellThroughSettlementRepository.GetForYearMonthAsync"/>
+    public Task<List<CargoDrySellThroughSettlementEntity>> GetForYearMonthAsync(
+        int                                              targetYearMonth,
+        IEnumerable<CargoDrySellThroughSettlementStatus> statuses,
+        CancellationToken                                ct)
+    {
+        // Decompose YYYYMM → year + month for PeriodStartUtc comparison
+        var year  = targetYearMonth / 100;
+        var month = targetYearMonth % 100;
+        var allowedStatuses = statuses.ToList();
+
+        return _db.SellThroughSettlements
+            .AsNoTracking()
+            .Where(x =>
+                x.PeriodStartUtc.Year  == year  &&
+                x.PeriodStartUtc.Month == month &&
+                allowedStatuses.Contains(x.Status))
+            .OrderBy(x => x.SettlementCode)
+            .ToListAsync(ct);
+    }
+
     public async Task AddAsync(CargoDrySellThroughSettlementEntity entity, CancellationToken ct)
     {
         await _db.SellThroughSettlements.AddAsync(entity, ct);

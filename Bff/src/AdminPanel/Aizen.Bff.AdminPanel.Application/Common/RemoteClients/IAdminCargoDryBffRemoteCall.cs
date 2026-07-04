@@ -377,6 +377,37 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [Query] decimal? adminOverrideRate = null,
         CancellationToken ct = default);
 
+    // ── Phase 6: Settlement Automation ──────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlement-automation/preview")]
+    Task<CargoDrySettlementAutomationPreviewBffDto> GetSettlementAutomationPreviewAsync(
+        [Query] int  targetYearMonth,
+        [Query] bool autoPreparePayment = false,
+        [Query] bool autoPrepareInvoice = false,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/commercial/settlement-automation/run")]
+    Task<CargoDrySettlementAutomationRunBffDto> RunSettlementAutomationAsync(
+        [AizenRemoteCallBody] RunSettlementAutomationBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlement-automation/runs")]
+    Task<CargoDrySettlementAutomationRunsPagedBffDto> GetSettlementAutomationRunsAsync(
+        [Query] int?      targetYearMonth   = null,
+        [Query] int?      status            = null,
+        [Query] int?      mode              = null,
+        [Query] long?     triggeredByUserId = null,
+        [Query] DateTime? fromUtc           = null,
+        [Query] DateTime? toUtc             = null,
+        [Query] int       page              = 1,
+        [Query] int       pageSize          = 25,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlement-automation/runs/{id}")]
+    Task<CargoDrySettlementAutomationRunBffDto> GetSettlementAutomationRunDetailAsync(
+        long id,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

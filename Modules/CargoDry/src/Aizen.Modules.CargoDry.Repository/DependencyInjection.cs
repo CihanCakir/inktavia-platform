@@ -21,8 +21,9 @@ public static class DependencyInjection
         services.AddScoped<ICargoDryConsignmentAgreementRepository, CargoDryConsignmentAgreementRepository>();
         services.AddScoped<ICargoDryProviderInventoryRepository,     CargoDryProviderInventoryRepository>();
         services.AddScoped<ICargoDryInventoryMovementRepository,     CargoDryInventoryMovementRepository>();
-        services.AddScoped<ICargoDrySalesAttributionRepository,      CargoDrySalesAttributionRepository>();
-        services.AddScoped<ICargoDrySellThroughSettlementRepository, CargoDrySellThroughSettlementRepository>();
+        services.AddScoped<ICargoDrySalesAttributionRepository,          CargoDrySalesAttributionRepository>();
+        services.AddScoped<ICargoDrySellThroughSettlementRepository,     CargoDrySellThroughSettlementRepository>();
+        services.AddScoped<ICargoDrySettlementAutomationRunRepository,   CargoDrySettlementAutomationRunRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
 

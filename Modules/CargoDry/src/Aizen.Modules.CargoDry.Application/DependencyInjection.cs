@@ -16,6 +16,9 @@ public static class DependencyInjection
         // Phase 5: Commercial rule resolver
         services.AddScoped<ICargoDryCommercialRuleResolver,      CargoDryCommercialRuleResolver>();
 
+        // Phase 6: Monthly settlement automation
+        services.AddScoped<ICargoDryMonthlySettlementAutomationService, CargoDryMonthlySettlementAutomationService>();
+
         // Recurring jobs are registered via AddAizenRecurringJob() in Program.cs
         // which auto-discovers IAizenRecurringJob implementations through assembly scanning.
 
