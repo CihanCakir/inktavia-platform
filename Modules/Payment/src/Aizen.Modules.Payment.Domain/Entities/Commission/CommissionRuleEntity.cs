@@ -49,6 +49,28 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
     /// </summary>
     public SalesChannel?           SalesChannel { get; private set; }
 
+    // ── Phase 5: Rule resolution enrichment (July 2026) ──────────────────────
+    /// <summary>
+    /// Human-readable name for this rule (e.g. "Provider X Rate 2026-H1").
+    /// Stored in the rule trace on CargoDrySalesAttributionEntity for auditability.
+    /// Null for legacy rules created before Phase 5.
+    /// </summary>
+    public string?          RuleName       { get; private set; }
+
+    /// <summary>
+    /// ISO 4217 currency code this rule applies to.
+    /// Null = applies to any currency within the context.
+    /// Used for multi-currency CargoDry markets.
+    /// </summary>
+    public string?          CurrencyCode   { get; private set; }
+
+    /// <summary>
+    /// Commercial model this rule is scoped to.
+    /// Null = applies to any commercial model within the context.
+    /// Maps to CargoDryCommercialModel (integer values are identical).
+    /// </summary>
+    public CommercialModel? CommercialModel { get; private set; }
+
     private CommissionRuleEntity() { }
 
     // ── Factory methods ───────────────────────────────────────────────────────
@@ -118,6 +140,78 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
             RuleCode          = ruleCode,
             IsActive          = true,
             Status            = DeriveStatus(effectiveFrom, effectiveTo),
+        };
+
+    // ── Phase 5: CargoDry-specific factory methods ────────────────────────────
+
+    /// <summary>
+    /// Creates a provider-specific CargoDry commission rule (priority tier 2).
+    /// Sets ContextType = CargoDry so it is picked up only by the CargoDry rule resolver.
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public static CommissionRuleEntity CreateForCargoDryProviderSpecific(
+        long                   providerProfileId,
+        decimal                rate,
+        DateTime               effectiveFrom,
+        DateTime?              effectiveTo,
+        CommissionRulePriority priority,
+        string?                notes,
+        string?                ruleCode,
+        string?                ruleName       = null,
+        string?                currencyCode   = null,
+        CommercialModel?       commercialModel = null) =>
+        new()
+        {
+            RuleType          = CommissionRuleType.ProviderOverride,
+            ProviderProfileId = providerProfileId,
+            CommissionRate    = rate,
+            EffectiveFrom     = effectiveFrom,
+            EffectiveTo       = effectiveTo,
+            Priority          = priority,
+            Notes             = notes,
+            RuleCode          = ruleCode,
+            RuleName          = ruleName,
+            CurrencyCode      = currencyCode?.ToUpperInvariant(),
+            CommercialModel   = commercialModel,
+            ContextType       = TransactionContextType.CargoDry,
+            IsActive          = true,
+            Status            = DeriveStatus(effectiveFrom, effectiveTo),
+        };
+
+    /// <summary>
+    /// Creates a product+channel CargoDry commission rule (priority tier 3).
+    /// Scoped by ProductCode and SalesChannel within ContextType = CargoDry.
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public static CommissionRuleEntity CreateForCargoDryProductChannel(
+        string                 productCode,
+        SalesChannel           salesChannel,
+        decimal                rate,
+        DateTime               effectiveFrom,
+        DateTime?              effectiveTo,
+        CommissionRulePriority priority,
+        string?                notes,
+        string?                ruleCode,
+        string?                ruleName       = null,
+        string?                currencyCode   = null,
+        CommercialModel?       commercialModel = null) =>
+        new()
+        {
+            RuleType        = CommissionRuleType.Category,
+            ProductCode     = productCode.ToUpperInvariant(),
+            SalesChannel    = salesChannel,
+            CommissionRate  = rate,
+            EffectiveFrom   = effectiveFrom,
+            EffectiveTo     = effectiveTo,
+            Priority        = priority,
+            Notes           = notes,
+            RuleCode        = ruleCode,
+            RuleName        = ruleName,
+            CurrencyCode    = currencyCode?.ToUpperInvariant(),
+            CommercialModel = commercialModel,
+            ContextType     = TransactionContextType.CargoDry,
+            IsActive        = true,
+            Status          = DeriveStatus(effectiveFrom, effectiveTo),
         };
 
     // ── Domain methods ────────────────────────────────────────────────────────

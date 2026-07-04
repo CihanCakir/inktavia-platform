@@ -46,6 +46,15 @@ public sealed class CargoDrySalesAttributionEntityConfiguration
         // ── Settlement link ────────────────────────────────────────────────────
         builder.Property(x => x.SellThroughSettlementId);
 
+        // ── Phase 5: Commercial rule trace ────────────────────────────────────
+        builder.Property(x => x.ResolvedRuleId);
+        builder.Property(x => x.ResolvedRuleSource).HasMaxLength(100);
+        builder.Property(x => x.ResolvedRuleName).HasMaxLength(250);
+        builder.Property(x => x.ResolvedRate).HasColumnType("numeric(8,4)");
+        builder.Property(x => x.RateResolvedAtUtc);
+        builder.Property(x => x.RateResolvedByUserId);
+        builder.Property(x => x.RuleResolutionNote).HasMaxLength(1000);
+
         // ── Attribution audit ──────────────────────────────────────────────────
         builder.Property(x => x.AttributedAt);
         builder.Property(x => x.AttributedByUserId);

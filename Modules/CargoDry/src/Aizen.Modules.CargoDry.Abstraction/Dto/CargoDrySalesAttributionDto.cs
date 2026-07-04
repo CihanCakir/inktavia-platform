@@ -45,6 +45,15 @@ public sealed class CargoDrySalesAttributionDto
     // ── Settlement link ─────────────────────────────────────────────────────────
     public long?                           SellThroughSettlementId { get; init; }
 
+    // ── Phase 5: Commercial rule trace ───────────────────────────────────────────
+    public long?     ResolvedRuleId       { get; init; }
+    public string?   ResolvedRuleSource   { get; init; }
+    public string?   ResolvedRuleName     { get; init; }
+    public decimal?  ResolvedRate         { get; init; }
+    public DateTime? RateResolvedAtUtc    { get; init; }
+    public long?     RateResolvedByUserId { get; init; }
+    public string?   RuleResolutionNote   { get; init; }
+
     // ── Attribution audit ───────────────────────────────────────────────────────
     public DateTime?                       AttributedAt           { get; init; }
     public long?                           AttributedByUserId     { get; init; }

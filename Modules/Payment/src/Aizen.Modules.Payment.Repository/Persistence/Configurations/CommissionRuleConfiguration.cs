@@ -32,6 +32,11 @@ public sealed class CommissionRuleConfiguration : IEntityTypeConfiguration<Commi
         b.Property(x => x.ProductCode).HasMaxLength(50);         // null = all products
         b.Property(x => x.SalesChannel).HasConversion<int>();    // null = all channels
 
+        // ── Phase 5: Rule resolution enrichment ──────────────────────────────
+        b.Property(x => x.RuleName).HasMaxLength(200);           // human-readable name for trace
+        b.Property(x => x.CurrencyCode).HasMaxLength(10);        // null = any currency
+        b.Property(x => x.CommercialModel).HasConversion<int>(); // null = any commercial model
+
         // ── Indexes ─────────────────────────────────────────────────────────
         b.HasIndex(x => x.RuleType);
         b.HasIndex(x => x.Status);

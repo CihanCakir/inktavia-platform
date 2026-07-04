@@ -354,6 +354,29 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] FailCargoDrySettlementPayoutBffRequest request,
         CancellationToken ct = default);
 
+    // ── Phase 5: Commercial Rule Resolution Preview ──────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/rules/resolve-preview")]
+    Task<CargoDryCommercialRuleResolutionBffDto> GetRuleResolutionPreviewAsync(
+        [Query] string              productCode,
+        [Query] int                 salesChannel,
+        [Query] int                 commercialModel,
+        [Query] string              currencyCode,
+        [Query] long?               providerProfileId      = null,
+        [Query] decimal?            salePrice              = null,
+        [Query] long?               consignmentAgreementId = null,
+        [Query] decimal?            adminOverrideRate      = null,
+        [Query] DateTime?           effectiveAtUtc         = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/sales-attributions/{id}/rule-resolution-preview")]
+    Task<CargoDrySalesAttributionRuleResolutionPreviewBffDto> GetAttributionRuleResolutionPreviewAsync(
+        long id,
+        [Query] decimal? salePrice        = null,
+        [Query] string?  currencyCode      = null,
+        [Query] decimal? adminOverrideRate = null,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

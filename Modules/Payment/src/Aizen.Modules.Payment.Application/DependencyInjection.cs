@@ -59,6 +59,11 @@ public static class DependencyInjection
         // Does NOT call Iyzico or any payment gateway.
         services.AddScoped<ICargoDrySettlementPayoutLifecycleService, CargoDrySettlementPayoutLifecycleService>();
 
+        // ── CargoDry commission rule lookup service (Phase 5) ─────────────────
+        // Allows CargoDry.Application to query Payment commission_rules scoped
+        // to ContextType = CargoDry via the cross-module abstraction boundary.
+        services.AddScoped<ICargoDryCommissionRuleLookupService, CargoDryCommissionRuleLookupService>();
+
         // ── CargoDry settlement invoice service (Phase 4C) ────────────────────
         // Bridges CargoDry → Payment module boundary in-process.
         // CargoDry.Application injects ICargoDrySettlementInvoiceService (from Payment.Abstraction);

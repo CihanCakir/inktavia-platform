@@ -1,5 +1,7 @@
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Application.Commands.ApproveCargoDrySettlementPayout;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryCommercialRuleResolutionPreview;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDrySalesAttributionRuleResolutionPreview;
 using Aizen.Modules.CargoDry.Application.Commands.CompleteCargoDrySettlementPayout;
 using Aizen.Modules.CargoDry.Application.Commands.FailCargoDrySettlementPayout;
 using Aizen.Modules.CargoDry.Application.Commands.MarkCargoDrySettlementPayoutProcessing;
@@ -128,6 +130,66 @@ public sealed class CargoDryCommercialController : ControllerBase
         var result = await _sender.Send(new GetCargoDrySellThroughSettlementDetailQuery { Id = id }, ct);
         if (result.Detail is null) return NotFound();
         return Ok(result.Detail);
+    }
+
+    // ── Phase 5: Commercial Rule Resolution Preview ──────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/rules/resolve-preview
+    /// Runs the commercial rule resolver with the given inputs and returns the full resolution result.
+    /// Does not persist anything. Useful for admin tooling to verify which rule tier applies.
+    /// </summary>
+    [HttpGet("rules/resolve-preview")]
+    public async Task<IActionResult> GetRuleResolutionPreview(
+        [FromQuery] string              productCode            = "",
+        [FromQuery] SalesChannel        salesChannel           = SalesChannel.DirectSale,
+        [FromQuery] CargoDryCommercialModel commercialModel    = CargoDryCommercialModel.PrincipalSale,
+        [FromQuery] string              currencyCode           = "TRY",
+        [FromQuery] long?               providerProfileId      = null,
+        [FromQuery] decimal?            salePrice              = null,
+        [FromQuery] long?               consignmentAgreementId = null,
+        [FromQuery] decimal?            adminOverrideRate      = null,
+        [FromQuery] DateTime?           effectiveAtUtc         = null,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryCommercialRuleResolutionPreviewQuery
+        {
+            ProductCode            = productCode,
+            SalesChannel           = salesChannel,
+            CommercialModel        = commercialModel,
+            CurrencyCode           = currencyCode,
+            ProviderProfileId      = providerProfileId,
+            SalePrice              = salePrice,
+            ConsignmentAgreementId = consignmentAgreementId,
+            AdminOverrideRate      = adminOverrideRate,
+            EffectiveAtUtc         = effectiveAtUtc,
+        }, ct);
+
+        return Ok(result.Resolution);
+    }
+
+    /// <summary>
+    /// GET /api/v1/cargodry/admin/commercial/sales-attributions/{id}/rule-resolution-preview
+    /// Loads an existing attribution and previews the rule resolution result for it.
+    /// Does not persist anything.
+    /// </summary>
+    [HttpGet("sales-attributions/{id:long}/rule-resolution-preview")]
+    public async Task<IActionResult> GetAttributionRuleResolutionPreview(
+        long id,
+        [FromQuery] decimal? salePrice        = null,
+        [FromQuery] string?  currencyCode      = null,
+        [FromQuery] decimal? adminOverrideRate = null,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDrySalesAttributionRuleResolutionPreviewQuery
+        {
+            SalesAttributionId = id,
+            SalePrice          = salePrice,
+            CurrencyCode       = currencyCode,
+            AdminOverrideRate  = adminOverrideRate,
+        }, ct);
+
+        return Ok(result);
     }
 
     // ── Phase 4A: Financial Resolution ───────────────────────────────────────

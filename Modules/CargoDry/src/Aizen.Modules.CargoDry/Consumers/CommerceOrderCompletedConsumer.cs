@@ -1,8 +1,8 @@
 using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Abstraction.Message;
 using Aizen.Modules.CargoDry.Application.Commands.RenewKit;
-using Aizen.Modules.CargoDry.Application.Consumers;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

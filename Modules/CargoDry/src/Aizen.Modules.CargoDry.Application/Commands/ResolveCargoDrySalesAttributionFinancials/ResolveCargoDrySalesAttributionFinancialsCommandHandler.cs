@@ -2,33 +2,33 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.ResolveCargoDrySalesAttributionFinancials;
 
 [DocumentationInfo("Resolve CargoDry sales attribution financials command handler",
-    "Resolves financial amounts on a sales attribution record. " +
-    "Cascades commission rate lookup: override > agreement ConsignmentRate > product.ProviderCommissionRate > 0. " +
-    "Recalculates parent sell-through settlement totals if the attribution is linked to one. " +
-    "Phase 4A (July 2026).")]
+    "Resolves financial amounts on a sales attribution record via the CargoDry commercial rule resolver. " +
+    "The resolver evaluates a 7-tier cascade: AdminOverride → provider CommissionRule → product+channel CommissionRule " +
+    "→ ConsignmentAgreement.ConsignmentRate → product.ProviderCommissionRate → Unresolved. " +
+    "After successful resolution the rule trace is recorded on the attribution. " +
+    "Parent sell-through settlement totals are recalculated when applicable. " +
+    "Phase 5 (July 2026): replaced inline cascade with ICargoDryCommercialRuleResolver.")]
 public sealed class ResolveCargoDrySalesAttributionFinancialsCommandHandler
     : AizenCommandHandler<ResolveCargoDrySalesAttributionFinancialsCommand, ResolveCargoDrySalesAttributionFinancialsResponse>
 {
     private readonly ICargoDrySalesAttributionRepository      _attributions;
     private readonly ICargoDrySellThroughSettlementRepository _settlements;
-    private readonly ICargoDryConsignmentAgreementRepository  _agreements;
-    private readonly ICargoDryProductRepository               _products;
+    private readonly ICargoDryCommercialRuleResolver          _resolver;
 
     public ResolveCargoDrySalesAttributionFinancialsCommandHandler(
         ICargoDrySalesAttributionRepository      attributions,
         ICargoDrySellThroughSettlementRepository settlements,
-        ICargoDryConsignmentAgreementRepository  agreements,
-        ICargoDryProductRepository               products)
+        ICargoDryCommercialRuleResolver          resolver)
     {
         _attributions = attributions;
         _settlements  = settlements;
-        _agreements   = agreements;
-        _products     = products;
+        _resolver     = resolver;
     }
 
     public override async Task<ResolveCargoDrySalesAttributionFinancialsResponse> Handle(
@@ -47,42 +47,51 @@ public sealed class ResolveCargoDrySalesAttributionFinancialsCommandHandler
                 $"Cannot resolve financials on attribution {attribution.Id} with status {attribution.Status}. " +
                 "Only Pending, Attributed, SettlementPending, and CommercialReviewRequired attributions can be resolved.");
 
-        // ── Resolve commission rate (cascade) ──────────────────────────────────
-        decimal commissionRate;
+        // ── Run commercial rule resolver ───────────────────────────────────────
+        var resolutionRequest = new CargoDryCommercialRuleResolutionRequest
+        {
+            ProviderProfileId      = attribution.ProviderProfileId,
+            ProductCode            = attribution.ProductCode,
+            SalesChannel           = attribution.SalesChannel,
+            CommercialModel        = attribution.CommercialModel,
+            CurrencyCode           = request.CurrencyCode,
+            EffectiveAtUtc         = nowUtc,
+            SalePrice              = request.SalePrice,
+            ConsignmentAgreementId = attribution.ConsignmentAgreementId,
+            AdminOverrideRate      = request.CommissionRateOverride,
+            RequestedByUserId      = request.ResolvedByUserId,
+        };
 
-        if (request.CommissionRateOverride.HasValue)
+        var resolution = await _resolver.ResolveAsync(resolutionRequest, ct);
+
+        if (!resolution.CanResolve)
         {
-            // 1. Explicit override — highest priority.
-            commissionRate = request.CommissionRateOverride.Value;
+            var reasons = string.Join(" | ", resolution.BlockingReasons);
+            throw new AizenBusinessException(
+                $"Cannot resolve commission rate for attribution {attribution.Id}. " +
+                $"Reasons: {reasons}");
         }
-        else if (attribution.ConsignmentAgreementId.HasValue)
-        {
-            // 2. ConsignmentRate from the linked agreement.
-            var agreement = await _agreements.GetByIdAsync(attribution.ConsignmentAgreementId.Value, ct);
-            commissionRate = agreement?.ConsignmentRate
-                ?? throw new AizenBusinessException(
-                    $"Consignment agreement {attribution.ConsignmentAgreementId.Value} not found. " +
-                    "Provide a CommissionRateOverride or fix the agreement reference.");
-        }
-        else
-        {
-            // 3. ProviderCommissionRate from the product catalog.
-            var product = await _products.GetByCodeAsync(attribution.ProductCode, ct);
-            if (product?.ProviderCommissionRate.HasValue == true)
-                commissionRate = product.ProviderCommissionRate!.Value;
-            else
-                // 4. DirectSale default — platform retains the full SalePrice.
-                commissionRate = 0m;
-        }
+
+        var resolvedRate = resolution.ResolvedRate!.Value;
+
+        // ── Record rule trace on attribution ───────────────────────────────────
+        attribution.RecordRuleTrace(
+            ruleSource:         resolution.RuleSource!,
+            resolvedRate:       resolvedRate,
+            resolvedAtUtc:      nowUtc,
+            resolvedByUserId:   request.ResolvedByUserId,
+            ruleId:             resolution.RuleId,
+            ruleName:           resolution.RuleName,
+            ruleResolutionNote: request.ResolutionNote);
 
         // ── Apply financial resolution ─────────────────────────────────────────
         attribution.ResolveFinancials(
-            salePrice:       request.SalePrice,
-            commissionRate:  commissionRate,
-            currencyCode:    request.CurrencyCode,
-            resolvedAtUtc:   nowUtc,
+            salePrice:        request.SalePrice,
+            commissionRate:   resolvedRate,
+            currencyCode:     request.CurrencyCode,
+            resolvedAtUtc:    nowUtc,
             resolvedByUserId: request.ResolvedByUserId,
-            resolutionNote:  request.ResolutionNote);
+            resolutionNote:   request.ResolutionNote);
 
         // ── Recalculate parent settlement totals ───────────────────────────────
         if (attribution.SellThroughSettlementId.HasValue)
@@ -91,13 +100,12 @@ public sealed class ResolveCargoDrySalesAttributionFinancialsCommandHandler
             if (settlement is not null)
             {
                 var allAttributions = await _attributions.GetBySettlementIdAsync(settlement.Id, ct);
-
-                var resolvedOnes = allAttributions.Where(a => a.IsFinanciallyResolved).ToList();
+                var resolvedOnes    = allAttributions.Where(a => a.IsFinanciallyResolved).ToList();
 
                 settlement.RecalculateTotals(
-                    totalKitCount:             allAttributions.Count,
-                    totalSaleAmount:           resolvedOnes.Sum(a => a.SalePrice ?? 0m),
-                    totalProviderShareAmount:  resolvedOnes.Sum(a => a.ProviderShareAmount ?? 0m));
+                    totalKitCount:            allAttributions.Count,
+                    totalSaleAmount:          resolvedOnes.Sum(a => a.SalePrice ?? 0m),
+                    totalProviderShareAmount: resolvedOnes.Sum(a => a.ProviderShareAmount ?? 0m));
             }
         }
 
@@ -135,6 +143,14 @@ public sealed class ResolveCargoDrySalesAttributionFinancialsCommandHandler
                 FinancialResolvedByUserId = attribution.FinancialResolvedByUserId,
                 ResolutionNote            = attribution.ResolutionNote,
                 SellThroughSettlementId   = attribution.SellThroughSettlementId,
+                // Phase 5: rule trace
+                ResolvedRuleId            = attribution.ResolvedRuleId,
+                ResolvedRuleSource        = attribution.ResolvedRuleSource,
+                ResolvedRuleName          = attribution.ResolvedRuleName,
+                ResolvedRate              = attribution.ResolvedRate,
+                RateResolvedAtUtc         = attribution.RateResolvedAtUtc,
+                RateResolvedByUserId      = attribution.RateResolvedByUserId,
+                RuleResolutionNote        = attribution.RuleResolutionNote,
                 AttributedAt              = attribution.AttributedAt,
                 AttributedByUserId        = attribution.AttributedByUserId,
                 ReviewNote                = attribution.ReviewNote,

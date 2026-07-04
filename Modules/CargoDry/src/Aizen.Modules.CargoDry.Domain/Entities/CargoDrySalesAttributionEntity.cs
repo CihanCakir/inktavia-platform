@@ -81,6 +81,48 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
     /// </summary>
     public long? SellThroughSettlementId { get; private set; }
 
+    // ── Phase 5: Commercial rule trace ──────────────────────────────────────────
+    /// <summary>
+    /// Id of the CommissionRuleEntity that was used to resolve the commission rate.
+    /// Null for Admin overrides, agreement-rate resolutions, and product defaults.
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public long?     ResolvedRuleId        { get; private set; }
+
+    /// <summary>
+    /// Source tag identifying which tier in the resolution cascade produced the rate.
+    /// One of: AdminOverride, CommissionRuleProviderSpecific, CommissionRuleProductChannel,
+    ///         ConsignmentAgreement, CargoDryProductDefault, SystemParameterDefault,
+    ///         DirectSaleNoProviderShare, Unresolved.
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public string?   ResolvedRuleSource    { get; private set; }
+
+    /// <summary>
+    /// Human-readable name of the rule used (copied from CommissionRuleEntity.RuleName at resolution time).
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public string?   ResolvedRuleName      { get; private set; }
+
+    /// <summary>
+    /// Commission rate resolved by the rule resolver (0.00–1.00).
+    /// Stored separately from CommissionRate for comparison / audit.
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public decimal?  ResolvedRate          { get; private set; }
+
+    /// <summary>UTC timestamp when the rule was resolved.</summary>
+    public DateTime? RateResolvedAtUtc     { get; private set; }
+
+    /// <summary>Admin user who triggered the financial resolution that ran the resolver.</summary>
+    public long?     RateResolvedByUserId  { get; private set; }
+
+    /// <summary>
+    /// Admin note specific to the rule resolution (separate from ResolutionNote which covers financials).
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public string?   RuleResolutionNote    { get; private set; }
+
     // ── Attribution audit ────────────────────────────────────────────────────────
     /// <summary>When the commercial attribution was resolved (may differ from CreatedAtUtc).</summary>
     public DateTime? AttributedAt       { get; private set; }
@@ -243,6 +285,35 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
         FinancialResolvedAtUtc  = resolvedAtUtc;
         FinancialResolvedByUserId = resolvedByUserId;
         ResolutionNote          = resolutionNote;
+    }
+
+    /// <summary>
+    /// Records the commercial rule resolution trace on this attribution.
+    /// Called by ResolveCargoDrySalesAttributionFinancialsCommandHandler after the resolver runs.
+    /// Can be called on any status except Settled or Cancelled.
+    /// Phase 5 (July 2026).
+    /// </summary>
+    public void RecordRuleTrace(
+        string   ruleSource,
+        decimal  resolvedRate,
+        DateTime resolvedAtUtc,
+        long     resolvedByUserId,
+        long?    ruleId            = null,
+        string?  ruleName          = null,
+        string?  ruleResolutionNote = null)
+    {
+        if (Status is CargoDrySalesAttributionStatus.Settled
+                   or CargoDrySalesAttributionStatus.Cancelled)
+            throw new InvalidOperationException(
+                $"Cannot record rule trace on attribution {Id} with status {Status}.");
+
+        ResolvedRuleId       = ruleId;
+        ResolvedRuleSource   = ruleSource;
+        ResolvedRuleName     = ruleName;
+        ResolvedRate         = resolvedRate;
+        RateResolvedAtUtc    = resolvedAtUtc;
+        RateResolvedByUserId = resolvedByUserId;
+        RuleResolutionNote   = ruleResolutionNote;
     }
 
     /// <summary>Cancels the attribution (kit revoked or agreement voided).</summary>

@@ -4,6 +4,8 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CompleteCargoDrySet
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.FailCargoDrySettlementPayout;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.MarkCargoDrySettlementPayoutProcessing;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDrySettlementInvoice;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryCommercialRuleResolutionPreview;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySalesAttributionRuleResolutionPreview;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementInvoicePreparationPreview;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementPayoutExecutionPreview;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDrySettlementPayment;
@@ -780,6 +782,73 @@ public sealed class AdminCargoDryController : AizenWebApiController
             new GetCargoDrySellThroughSettlementDetailBffQuery { Id = id }, ct);
 
         return SetResponse(result?.Detail);
+    }
+
+    // ── Phase 5: Commercial Rule Resolution Preview ───────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/rules/resolve-preview
+    /// Runs the 7-tier CargoDry commercial rule resolver in read-only mode against the supplied inputs.
+    /// Never throws for business ineligibility — returns CanResolve=false + BlockingReasons instead.
+    /// Safe to call at any time. Phase 5 (July 2026).
+    /// </summary>
+    [HttpGet("commercial/rules/resolve-preview")]
+    [ProducesResponseType(typeof(CargoDryCommercialRuleResolutionBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryCommercialRuleResolutionBffDto>> GetRuleResolutionPreview(
+        [FromQuery] string   productCode            = "",
+        [FromQuery] int      salesChannel           = 0,
+        [FromQuery] int      commercialModel        = 0,
+        [FromQuery] string   currencyCode           = "TRY",
+        [FromQuery] long?    providerProfileId      = null,
+        [FromQuery] decimal? salePrice              = null,
+        [FromQuery] long?    consignmentAgreementId = null,
+        [FromQuery] decimal? adminOverrideRate      = null,
+        [FromQuery] DateTime? effectiveAtUtc        = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryCommercialRuleResolutionPreviewBffQuery
+            {
+                ProductCode            = productCode,
+                SalesChannel           = salesChannel,
+                CommercialModel        = commercialModel,
+                CurrencyCode           = currencyCode,
+                ProviderProfileId      = providerProfileId,
+                SalePrice              = salePrice,
+                ConsignmentAgreementId = consignmentAgreementId,
+                AdminOverrideRate      = adminOverrideRate,
+                EffectiveAtUtc         = effectiveAtUtc,
+            }, ct);
+
+        return SetResponse(result?.Resolution);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/commercial/sales-attributions/{id}/rule-resolution-preview
+    /// Loads the attribution record and runs the resolver against its context.
+    /// Optional query params override salePrice, currencyCode, or inject an adminOverrideRate.
+    /// Returns the current attribution DTO plus the full resolution result.
+    /// Never throws for business ineligibility. Phase 5 (July 2026).
+    /// </summary>
+    [HttpGet("commercial/sales-attributions/{id:long}/rule-resolution-preview")]
+    [ProducesResponseType(typeof(CargoDrySalesAttributionRuleResolutionPreviewBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySalesAttributionRuleResolutionPreviewBffDto>> GetAttributionRuleResolutionPreview(
+        long id,
+        [FromQuery] decimal? salePrice        = null,
+        [FromQuery] string?  currencyCode      = null,
+        [FromQuery] decimal? adminOverrideRate = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDrySalesAttributionRuleResolutionPreviewBffQuery
+            {
+                SalesAttributionId = id,
+                SalePrice          = salePrice,
+                CurrencyCode       = currencyCode,
+                AdminOverrideRate  = adminOverrideRate,
+            }, ct);
+
+        return SetResponse(result?.Preview);
     }
 
     // ── Phase 4A: Financial Resolution ───────────────────────────────────────

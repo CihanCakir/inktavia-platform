@@ -32,6 +32,14 @@ public sealed class CargoDrySalesAttributionBffDto
     public long?    FinancialResolvedByUserId { get; init; }
     public string?  ResolutionNote            { get; init; }
     public long?    SellThroughSettlementId   { get; init; }
+    // Phase 5: Commercial rule trace
+    public long?     ResolvedRuleId           { get; init; }
+    public string?   ResolvedRuleSource       { get; init; }
+    public string?   ResolvedRuleName         { get; init; }
+    public decimal?  ResolvedRate             { get; init; }
+    public DateTime? RateResolvedAtUtc        { get; init; }
+    public long?     RateResolvedByUserId     { get; init; }
+    public string?   RuleResolutionNote       { get; init; }
     public DateTime? AttributedAt             { get; init; }
     public long?    AttributedByUserId        { get; init; }
     public string?  ReviewNote                { get; init; }
@@ -350,4 +358,64 @@ public sealed class CargoDrySettlementPayoutLifecycleResponseBffDto
     public CargoDryPayoutLifecycleResultBffDto? PayoutResult     { get; init; }
     /// <summary>True only for the complete-payout call if the settlement was already Settled.</summary>
     public bool                                 AlreadyCompleted { get; init; }
+}
+
+// ── Phase 5: Commercial Rule Resolution Preview ───────────────────────────────
+
+/// <summary>
+/// BFF DTO mirroring CargoDryCommercialRuleResolutionResult from the CargoDry module.
+/// Returned by GET .../commercial/rules/resolve-preview and embedded in
+/// CargoDrySalesAttributionRuleResolutionPreviewBffDto.
+/// Phase 5 (July 2026).
+/// </summary>
+public sealed class CargoDryCommercialRuleResolutionBffDto
+{
+    /// <summary>True when a rate was successfully resolved; false when CommercialReviewRequired.</summary>
+    public bool      CanResolve          { get; init; }
+
+    /// <summary>Resolved commission rate (0.00–1.00). Null when CanResolve is false.</summary>
+    public decimal?  ResolvedRate        { get; init; }
+
+    public string?   CurrencyCode        { get; init; }
+
+    /// <summary>
+    /// One of: AdminOverride, CommissionRuleProviderSpecific, CommissionRuleProductChannel,
+    /// ConsignmentAgreement, CargoDryProductDefault, DirectSaleNoProviderShare, Unresolved.
+    /// </summary>
+    public string?   RuleSource          { get; init; }
+
+    /// <summary>Id of the CommissionRule or ConsignmentAgreement that supplied the rate. Null for AdminOverride/default tiers.</summary>
+    public long?     RuleId              { get; init; }
+
+    public string?   RuleName            { get; init; }
+
+    /// <summary>Sale price passed into the resolver (echo-back for preview tooling).</summary>
+    public decimal?  SalePrice           { get; init; }
+
+    /// <summary>Calculated provider share amount (SalePrice × ResolvedRate). Null when CanResolve is false or SalePrice not provided.</summary>
+    public decimal?  ProviderShareAmount { get; init; }
+
+    /// <summary>Calculated platform share amount (SalePrice − ProviderShareAmount). Null when CanResolve is false or SalePrice not provided.</summary>
+    public decimal?  PlatformShareAmount { get; init; }
+
+    /// <summary>Non-empty only when CanResolve is false. Lists all reasons the resolver could not find a rate.</summary>
+    public IReadOnlyList<string> BlockingReasons { get; init; } = [];
+
+    /// <summary>Advisory warnings that do not block resolution (e.g. "Rate resolved from product default, consider creating an explicit rule").</summary>
+    public IReadOnlyList<string> Warnings        { get; init; } = [];
+}
+
+/// <summary>
+/// BFF DTO returned by GET .../commercial/sales-attributions/{id}/rule-resolution-preview.
+/// Contains the current attribution state (including any previously applied rule trace)
+/// plus the full resolution result for the given preview inputs.
+/// Phase 5 (July 2026).
+/// </summary>
+public sealed class CargoDrySalesAttributionRuleResolutionPreviewBffDto
+{
+    /// <summary>Current state of the attribution record (includes Phase 5 rule trace fields if already resolved).</summary>
+    public CargoDrySalesAttributionBffDto?       Attribution { get; init; }
+
+    /// <summary>Rule resolution result computed from the attribution context + optional preview overrides.</summary>
+    public CargoDryCommercialRuleResolutionBffDto? Resolution  { get; init; }
 }

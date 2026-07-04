@@ -13,6 +13,9 @@ public static class DependencyInjection
         services.AddScoped<IBatchKeyVaultService,               BatchKeyVaultService>();
         services.AddScoped<ICargoDryCommercialActivationService, CargoDryCommercialActivationService>();
 
+        // Phase 5: Commercial rule resolver
+        services.AddScoped<ICargoDryCommercialRuleResolver,      CargoDryCommercialRuleResolver>();
+
         // Recurring jobs are registered via AddAizenRecurringJob() in Program.cs
         // which auto-discovers IAizenRecurringJob implementations through assembly scanning.
 
