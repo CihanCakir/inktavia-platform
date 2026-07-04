@@ -1,26 +1,32 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
+using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.TransferKit;
 
 public sealed class TransferCargoDryKitCommandHandler
     : AizenCommandHandler<TransferCargoDryKitCommand, TransferCargoDryKitResponse>
 {
-    private readonly ICargoDryKitRepository                  _kits;
-    private readonly IAizenDistributedCache                  _cache;
-    private readonly ILogger<TransferCargoDryKitCommandHandler> _logger;
+    private readonly ICargoDryKitRepository                      _kits;
+    private readonly ICargoDryKitLifecycleEventRepository        _lifecycleEvents;
+    private readonly IAizenDistributedCache                      _cache;
+    private readonly ILogger<TransferCargoDryKitCommandHandler>  _logger;
 
     public TransferCargoDryKitCommandHandler(
-        ICargoDryKitRepository kits,
-        IAizenDistributedCache cache,
+        ICargoDryKitRepository                     kits,
+        ICargoDryKitLifecycleEventRepository       lifecycleEvents,
+        IAizenDistributedCache                     cache,
         ILogger<TransferCargoDryKitCommandHandler> logger)
     {
-        _kits   = kits;
-        _cache  = cache;
-        _logger = logger;
+        _kits            = kits;
+        _lifecycleEvents = lifecycleEvents;
+        _cache           = cache;
+        _logger          = logger;
     }
 
     public override async Task<TransferCargoDryKitResponse> Handle(
@@ -29,6 +35,10 @@ public sealed class TransferCargoDryKitCommandHandler
         var kit = await _kits.GetByIdAsync(request.KitId, ct)
             ?? throw new InvalidOperationException($"Kit {request.KitId} not found.");
 
+        var previousStatus   = kit.Status.ToString();
+        var previousUserId   = kit.OwnerUserId;
+        var previousVesselId = kit.VesselId;
+
         // Transfer() throws InvalidOperationException if kit is not Activated
         kit.Transfer(request.NewUserId, request.NewVesselId);
         await _kits.SaveChangesAsync(ct);
@@ -36,6 +46,31 @@ public sealed class TransferCargoDryKitCommandHandler
         _logger.LogInformation(
             "Kit {KitId} transferred to UserId={NewUserId} / VesselId={NewVesselId} by Admin={AdminId}.",
             kit.Id, request.NewUserId, request.NewVesselId, request.AdminId);
+
+        // ── Phase 9: SQL lifecycle event ──────────────────────────────────────
+        var metadata = JsonSerializer.Serialize(new
+        {
+            PreviousUserId   = previousUserId,
+            PreviousVesselId = previousVesselId,
+            NewUserId        = request.NewUserId,
+            NewVesselId      = request.NewVesselId,
+        });
+
+        var lifecycleEvent = CargoDryKitLifecycleEventEntity.Create(
+            kitId:          kit.Id,
+            kitCode:        kit.KitCode,
+            serialNumber:   kit.SerialNumber,
+            batchCode:      kit.BatchCode,
+            productCode:    kit.ProductCode,
+            eventType:      CargoDryKitLifecycleEventType.Transferred,
+            previousStatus: previousStatus,
+            newStatus:      kit.Status.ToString(),
+            actorUserId:    (long?)request.AdminId,
+            actorType:      "Admin",
+            metadataJson:   metadata);
+
+        await _lifecycleEvents.AddAsync(lifecycleEvent, ct);
+        await _lifecycleEvents.SaveChangesAsync(ct);
 
         // Invalidate global stats cache (active vessel/kit counts may shift)
         await _cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);

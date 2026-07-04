@@ -14,30 +14,34 @@ using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction.RemoteCall;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.RenewKit;
 
 public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand, CargoDryKitDto>
 {
-    private readonly ICargoDryKitRepository     _kits;
-    private readonly ICargoDryProductRepository _products;
-    private readonly IAizenMessagePublisher     _publisher;
-    private readonly IAizenDistributedCache     _cache;
-    private readonly IPaymentModuleRemoteCall   _paymentRemoteCall;
-    private readonly IAizenInfoAccessor         _info;
-    private readonly ILogger<RenewKitCommandHandler> _logger;
+    private readonly ICargoDryKitRepository               _kits;
+    private readonly ICargoDryProductRepository           _products;
+    private readonly ICargoDryKitLifecycleEventRepository _lifecycleEvents;
+    private readonly IAizenMessagePublisher               _publisher;
+    private readonly IAizenDistributedCache               _cache;
+    private readonly IPaymentModuleRemoteCall             _paymentRemoteCall;
+    private readonly IAizenInfoAccessor                   _info;
+    private readonly ILogger<RenewKitCommandHandler>      _logger;
 
     public RenewKitCommandHandler(
-        ICargoDryKitRepository kits,
-        ICargoDryProductRepository products,
-        IAizenMessagePublisher publisher,
-        IAizenDistributedCache cache,
-        IPaymentModuleRemoteCall paymentRemoteCall,
-        IAizenInfoAccessor info,
-        ILogger<RenewKitCommandHandler> logger)
+        ICargoDryKitRepository               kits,
+        ICargoDryProductRepository           products,
+        ICargoDryKitLifecycleEventRepository lifecycleEvents,
+        IAizenMessagePublisher               publisher,
+        IAizenDistributedCache               cache,
+        IPaymentModuleRemoteCall             paymentRemoteCall,
+        IAizenInfoAccessor                   info,
+        ILogger<RenewKitCommandHandler>      logger)
     {
         _kits              = kits;
         _products          = products;
+        _lifecycleEvents   = lifecycleEvents;
         _publisher         = publisher;
         _cache             = cache;
         _paymentRemoteCall = paymentRemoteCall;
@@ -50,7 +54,9 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
         var kit = await _kits.GetByIdAsync(request.KitId, ct)
             ?? throw new InvalidOperationException($"Kit {request.KitId} not found");
 
-        var product = await _products.GetByCodeAsync(kit.ProductCode, ct);
+        var product        = await _products.GetByCodeAsync(kit.ProductCode, ct);
+        var previousStatus = kit.Status.ToString();
+        var previousExpiry = kit.ExpiresAt;
 
         // ── Payment escrow — only for online purchases ────────────────────────
         // AdminExtension and PhysicalKit do not go through the payment gateway.
@@ -116,6 +122,36 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
             request.Type, paymentRef, request.AdminUserId);
 
         await _kits.SaveChangesAsync(ct);
+
+        // ── Phase 9: SQL lifecycle event ──────────────────────────────────────
+        var eventType = request.Type == RenewalType.AdminExtension
+            ? CargoDryKitLifecycleEventType.Extended
+            : CargoDryKitLifecycleEventType.Renewed;
+
+        var metadata = JsonSerializer.Serialize(new
+        {
+            AddedDays      = request.AddedDays,
+            RenewalType    = request.Type.ToString(),
+            PreviousExpiry = previousExpiry?.ToString("O"),
+            NewExpiry      = kit.ExpiresAt?.ToString("O"),
+            PaymentRef     = paymentRef,
+        });
+
+        var lifecycleEvent = CargoDryKitLifecycleEventEntity.Create(
+            kitId:          kit.Id,
+            kitCode:        kit.KitCode,
+            serialNumber:   kit.SerialNumber,
+            batchCode:      kit.BatchCode,
+            productCode:    kit.ProductCode,
+            eventType:      eventType,
+            previousStatus: previousStatus,
+            newStatus:      kit.Status.ToString(),
+            actorUserId:    request.AdminUserId,
+            actorType:      request.AdminUserId.HasValue ? "Admin" : "System",
+            metadataJson:   metadata);
+
+        await _lifecycleEvents.AddAsync(lifecycleEvent, ct);
+        await _lifecycleEvents.SaveChangesAsync(ct);
 
         await _cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);
         await _cache.RemoveAsync<GetCargoDryAnalyticsResponse>("cargodry:analytics:snapshot", ct);

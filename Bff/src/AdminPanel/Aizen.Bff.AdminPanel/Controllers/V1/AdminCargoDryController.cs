@@ -1,3 +1,7 @@
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitLifecycleHistoryBff;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitLifecycleEventsPagedBff;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryOperationalAlertsBff;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryOperationalOverviewBff;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RunCargoDryMonthlySettlementAutomation;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementAutomationPreview;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDrySettlementAutomationRunDetail;
@@ -50,6 +54,8 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryAnalytics;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryBatchByCode;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryBatchList;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitList;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitDetailBff;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.LookupCargoDryKitAdminBff;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryProductDetail;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryProducts;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryStats;
@@ -108,6 +114,30 @@ public sealed class AdminCargoDryController : AizenWebApiController
             }, ct);
 
         return SetResponse(result?.KitList);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/kits/lookup?q={query} — exact kit lookup by id, kit code, or serial</summary>
+    [HttpGet("kits/lookup")]
+    [ProducesResponseType(typeof(LookupCargoDryKitAdminBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<LookupCargoDryKitAdminBffResponse>> LookupKit(
+        [FromQuery] string q,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new LookupCargoDryKitAdminBffQuery { Query = q }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/kits/{id} — full admin kit detail</summary>
+    [HttpGet("kits/{id:long}")]
+    [ProducesResponseType(typeof(GetCargoDryKitDetailBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetCargoDryKitDetailBffResponse>> GetKitDetail(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryKitDetailBffQuery { KitId = id }, ct);
+        return SetResponse(result);
     }
 
     /// <summary>GET /api/v1/admin-panel/cargodry/kits/export — CSV download</summary>
@@ -1205,6 +1235,80 @@ public sealed class AdminCargoDryController : AizenWebApiController
             new GetCargoDrySettlementAutomationRunDetailBffQuery { RunId = id }, ct);
 
         return SetResponse(result?.Run);
+    }
+
+    // ── Phase 9: Kit Lifecycle History & Operational Alerts ──────────────────
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/kits/{id}/history</summary>
+    [HttpGet("kits/{id:long}/history")]
+    [ProducesResponseType(typeof(CargoDryKitLifecycleHistoryBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryKitLifecycleHistoryBffResponse>> GetKitLifecycleHistory(
+        long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryKitLifecycleHistoryBffQuery { KitId = id }, ct);
+
+        return SetResponse(result?.History);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/kits/lifecycle-events</summary>
+    [HttpGet("kits/lifecycle-events")]
+    [ProducesResponseType(typeof(CargoDryKitLifecycleEventsPagedBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryKitLifecycleEventsPagedBffResponse>> GetKitLifecycleEventsPaged(
+        [FromQuery] long?           kitId,
+        [FromQuery] string?         kitCode,
+        [FromQuery] string?         batchCode,
+        [FromQuery] string?         productCode,
+        [FromQuery] string?         eventType,
+        [FromQuery] long?           actorUserId,
+        [FromQuery] DateTimeOffset? dateFrom,
+        [FromQuery] DateTimeOffset? dateTo,
+        [FromQuery] int             page     = 1,
+        [FromQuery] int             pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryKitLifecycleEventsPagedBffQuery
+            {
+                KitId       = kitId,
+                KitCode     = kitCode,
+                BatchCode   = batchCode,
+                ProductCode = productCode,
+                EventType   = eventType,
+                ActorUserId = actorUserId,
+                DateFrom    = dateFrom,
+                DateTo      = dateTo,
+                Page        = page,
+                PageSize    = pageSize,
+            }, ct);
+
+        return SetResponse(result?.PagedEvents);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/kits/operational-alerts</summary>
+    [HttpGet("kits/operational-alerts")]
+    [ProducesResponseType(typeof(CargoDryOperationalAlertsBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryOperationalAlertsBffResponse>> GetOperationalAlerts(
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryOperationalAlertsBffQuery { Page = page, PageSize = pageSize }, ct);
+
+        return SetResponse(result?.Alerts);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/operational-overview</summary>
+    [HttpGet("operational-overview")]
+    [ProducesResponseType(typeof(CargoDryOperationalOverviewBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryOperationalOverviewBffDto>> GetOperationalOverview(
+        CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryOperationalOverviewBffQuery(), ct);
+
+        return SetResponse(result?.Overview);
     }
 }
 

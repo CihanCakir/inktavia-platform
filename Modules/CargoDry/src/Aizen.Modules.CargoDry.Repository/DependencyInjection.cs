@@ -24,6 +24,8 @@ public static class DependencyInjection
         services.AddScoped<ICargoDrySalesAttributionRepository,          CargoDrySalesAttributionRepository>();
         services.AddScoped<ICargoDrySellThroughSettlementRepository,     CargoDrySellThroughSettlementRepository>();
         services.AddScoped<ICargoDrySettlementAutomationRunRepository,   CargoDrySettlementAutomationRunRepository>();
+        // Phase 9 — Kit lifecycle event repository
+        services.AddScoped<ICargoDryKitLifecycleEventRepository, CargoDryKitLifecycleEventRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
 

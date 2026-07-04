@@ -1,4 +1,21 @@
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
+
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
+
+// ── Phase 8B Raw Refit Response Types ────────────────────────────────────────
+// These mirror the JSON envelope the module controller returns for the two new endpoints.
+
+/// <summary>Wraps the module's GetCargoDryKitDetailResponse for Refit deserialization.</summary>
+public sealed class GetCargoDryKitDetailBffResult
+{
+    public CargoDryKitDetailBffDto? Kit { get; init; }
+}
+
+/// <summary>Wraps the module's LookupCargoDryKitAdminResponse for Refit deserialization.</summary>
+public sealed class LookupCargoDryKitAdminBffResult
+{
+    public CargoDryKitLookupResultBffDto? Result { get; init; }
+}
 
 // ── Admin Request DTOs ────────────────────────────────────────────────────────
 

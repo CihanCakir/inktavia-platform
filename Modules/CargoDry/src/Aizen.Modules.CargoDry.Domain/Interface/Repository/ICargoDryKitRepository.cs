@@ -30,6 +30,12 @@ public interface ICargoDryKitRepository
     Task<CargoDryProductKitStatsProjection> GetKitStatsByProductCodeAsync(
         string productCode, CancellationToken ct = default);
 
+    /// <summary>
+    /// Exact kit-code lookup. Returns null when no kit with the given code exists.
+    /// Used by the admin lookup endpoint (Phase 8B).
+    /// </summary>
+    Task<CargoDryKitEntity?> GetByKitCodeAsync(string kitCode, CancellationToken ct = default);
+
     Task AddAsync(CargoDryKitEntity entity, CancellationToken ct = default);
     Task AddRangeAsync(IEnumerable<CargoDryKitEntity> entities, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);

@@ -8,6 +8,12 @@ using Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
 using Aizen.Modules.CargoDry.Application.Commands.TransferKit;
 using Aizen.Modules.CargoDry.Application.Commands.UpdateCargoDryProduct;
 using Aizen.Modules.CargoDry.Application.Queries.GetAdminKitList;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryKitDetail;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryKitLifecycleHistory;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryKitLifecycleEventsPaged;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalAlerts;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalOverview;
+using Aizen.Modules.CargoDry.Application.Queries.LookupCargoDryKitAdmin;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryBatchByCode;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryBatchList;
@@ -60,6 +66,90 @@ public sealed class CargoDryAdminController : ControllerBase
             Page        = page,
             PageSize    = pageSize,
         }, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("kits/lookup")]
+    public async Task<IActionResult> LookupKit(
+        [FromQuery] string q,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new LookupCargoDryKitAdminQuery { Query = q }, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("kits/{id:long}")]
+    public async Task<IActionResult> GetKitDetail(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryKitDetailQuery { KitId = id }, ct);
+        if (result.Kit is null) return NotFound();
+        return Ok(result);
+    }
+
+    // ── Phase 9: Kit lifecycle history ───────────────────────────────────────
+
+    [HttpGet("kits/{id:long}/history")]
+    public async Task<IActionResult> GetKitLifecycleHistory(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(
+            new GetCargoDryKitLifecycleHistoryQuery { KitId = id }, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("kits/lifecycle-events")]
+    public async Task<IActionResult> GetKitLifecycleEvents(
+        [FromQuery] long?                         kitId       = null,
+        [FromQuery] string?                       kitCode     = null,
+        [FromQuery] string?                       batchCode   = null,
+        [FromQuery] string?                       productCode = null,
+        [FromQuery] CargoDryKitLifecycleEventType? eventType  = null,
+        [FromQuery] long?                         actorUserId = null,
+        [FromQuery] DateTimeOffset?               dateFrom    = null,
+        [FromQuery] DateTimeOffset?               dateTo      = null,
+        [FromQuery] int                           page        = 1,
+        [FromQuery] int                           pageSize    = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryKitLifecycleEventsPagedQuery
+        {
+            KitId       = kitId,
+            KitCode     = kitCode,
+            BatchCode   = batchCode,
+            ProductCode = productCode,
+            EventType   = eventType,
+            ActorUserId = actorUserId,
+            DateFrom    = dateFrom,
+            DateTo      = dateTo,
+            Page        = page,
+            PageSize    = pageSize,
+        }, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("kits/operational-alerts")]
+    public async Task<IActionResult> GetOperationalAlerts(
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryOperationalAlertsQuery
+        {
+            Page     = page,
+            PageSize = pageSize,
+        }, ct);
+        return Ok(result);
+    }
+
+    // ── Phase 9: Operational overview KPI ────────────────────────────────────
+
+    [HttpGet("operational-overview")]
+    public async Task<IActionResult> GetOperationalOverview(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetCargoDryOperationalOverviewQuery(), ct);
         return Ok(result);
     }
 

@@ -159,6 +159,9 @@ public sealed class CargoDryKitRepository : ICargoDryKitRepository
         };
     }
 
+    public Task<CargoDryKitEntity?> GetByKitCodeAsync(string kitCode, CancellationToken ct)
+        => _db.Kits.FirstOrDefaultAsync(x => x.KitCode == kitCode, ct);
+
     public Task<List<CargoDryKitEntity>> GetAvailableByBatchCodeAsync(string batchCode, CancellationToken ct)
         => _db.Kits
             .Where(x => x.BatchCode == batchCode && x.Status == CargoDryKitStatus.Available)

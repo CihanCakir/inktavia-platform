@@ -25,6 +25,18 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [Query] int     pageSize,
         CancellationToken ct = default);
 
+    // ── Admin Kit Detail + Lookup (Phase 8B) ─────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/kits/{id}")]
+    Task<GetCargoDryKitDetailBffResult> GetKitDetailAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/kits/lookup")]
+    Task<LookupCargoDryKitAdminBffResult> LookupKitAsync(
+        [Query] string q,
+        CancellationToken ct = default);
+
     [AizenRemoteCallGet("/api/v1/cargodry/admin/stats")]
     Task<CargoDryStatsBffDto> GetStatsAsync(
         CancellationToken ct = default);
@@ -406,6 +418,37 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/settlement-automation/runs/{id}")]
     Task<CargoDrySettlementAutomationRunBffDto> GetSettlementAutomationRunDetailAsync(
         long id,
+        CancellationToken ct = default);
+
+    // ── Phase 9: Kit Lifecycle History & Operational Alerts ──────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/kits/{id}/history")]
+    Task<CargoDryKitLifecycleHistoryBffResponse> GetKitLifecycleHistoryAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/kits/lifecycle-events")]
+    Task<CargoDryKitLifecycleEventsPagedBffResponse> GetKitLifecycleEventsPagedAsync(
+        [Query] long?           kitId,
+        [Query] string?         kitCode,
+        [Query] string?         batchCode,
+        [Query] string?         productCode,
+        [Query] string?         eventType,
+        [Query] long?           actorUserId,
+        [Query] DateTimeOffset? dateFrom,
+        [Query] DateTimeOffset? dateTo,
+        [Query] int             page,
+        [Query] int             pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/kits/operational-alerts")]
+    Task<CargoDryOperationalAlertsBffResponse> GetOperationalAlertsAsync(
+        [Query] int page,
+        [Query] int pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/operational-overview")]
+    Task<CargoDryOperationalOverviewBffDto> GetOperationalOverviewAsync(
         CancellationToken ct = default);
 
     // ── Onboarding (Public — no auth headers required) ───────────────────────

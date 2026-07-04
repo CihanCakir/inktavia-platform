@@ -2,7 +2,7 @@ using Aizen.Modules.CargoDry.Abstraction.Enum;
 
 namespace Aizen.Modules.CargoDry.Abstraction.Dto;
 
-public sealed class CargoDryKitDto
+public class CargoDryKitDto
 {
     public long              Id                { get; init; }
     public string            SerialNumber      { get; init; } = default!;

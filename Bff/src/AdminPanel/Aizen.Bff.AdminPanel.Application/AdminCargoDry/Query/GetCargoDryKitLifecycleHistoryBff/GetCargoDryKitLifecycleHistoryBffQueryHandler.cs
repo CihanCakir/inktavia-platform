@@ -1,0 +1,29 @@
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Core.CQRS.Handler;
+
+namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitLifecycleHistoryBff;
+
+public sealed class GetCargoDryKitLifecycleHistoryBffQueryHandler
+    : AizenQueryHandler<GetCargoDryKitLifecycleHistoryBffQuery, GetCargoDryKitLifecycleHistoryBffResponse>
+{
+    private readonly IAdminCargoDryBffRemoteCall _remote;
+
+    public GetCargoDryKitLifecycleHistoryBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+        => _remote = remote;
+
+    public override async Task<GetCargoDryKitLifecycleHistoryBffResponse> Handle(
+        GetCargoDryKitLifecycleHistoryBffQuery request, CancellationToken ct)
+    {
+        var result = await _remote.GetKitLifecycleHistoryAsync(request.KitId, ct);
+
+        return new GetCargoDryKitLifecycleHistoryBffResponse
+        {
+            History = result ?? new CargoDryKitLifecycleHistoryBffResponse
+            {
+                KitId   = request.KitId,
+                KitCode = string.Empty,
+            },
+        };
+    }
+}

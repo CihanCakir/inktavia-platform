@@ -2,31 +2,36 @@ using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
+using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Abstraction.Message;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
+using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Aizen.Modules.CargoDry.Domain.MongoDocuments;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.ActivateKit;
 
 public sealed class ActivateKitCommandHandler
     : AizenCommandHandler<ActivateKitCommand, CargoDryKitDto>
 {
-    private readonly IActivationTokenService              _tokenService;
-    private readonly ICargoDryKitRepository               _kits;
-    private readonly ICargoDryProductRepository           _products;
-    private readonly IAizenMessagePublisher               _publisher;
-    private readonly ICargoDryActivationLogRepository     _activationLogs;
-    private readonly IAizenDistributedCache               _cache;
-    private readonly ILogger<ActivateKitCommandHandler>   _logger;
-    private readonly ICargoDryCommercialActivationService _commercialActivation;
+    private readonly IActivationTokenService               _tokenService;
+    private readonly ICargoDryKitRepository                _kits;
+    private readonly ICargoDryProductRepository            _products;
+    private readonly ICargoDryKitLifecycleEventRepository  _lifecycleEvents;
+    private readonly IAizenMessagePublisher                _publisher;
+    private readonly ICargoDryActivationLogRepository      _activationLogs;
+    private readonly IAizenDistributedCache                _cache;
+    private readonly ILogger<ActivateKitCommandHandler>    _logger;
+    private readonly ICargoDryCommercialActivationService  _commercialActivation;
 
     public ActivateKitCommandHandler(
         IActivationTokenService               tokenService,
         ICargoDryKitRepository                kits,
         ICargoDryProductRepository            products,
+        ICargoDryKitLifecycleEventRepository  lifecycleEvents,
         IAizenMessagePublisher                publisher,
         ICargoDryActivationLogRepository      activationLogs,
         IAizenDistributedCache                cache,
@@ -36,6 +41,7 @@ public sealed class ActivateKitCommandHandler
         _tokenService         = tokenService;
         _kits                 = kits;
         _products             = products;
+        _lifecycleEvents      = lifecycleEvents;
         _publisher            = publisher;
         _activationLogs       = activationLogs;
         _cache                = cache;
@@ -54,6 +60,8 @@ public sealed class ActivateKitCommandHandler
         var product = await _products.GetByCodeAsync(kit.ProductCode, ct)
             ?? throw new InvalidOperationException($"Product not found: {kit.ProductCode}");
 
+        var previousStatus = kit.Status.ToString();
+
         var existingActiveKit = await _kits.GetActiveByVesselAsync(request.VesselId, kit.ProductCode, ct);
         existingActiveKit?.MarkExpired();
 
@@ -67,6 +75,34 @@ public sealed class ActivateKitCommandHandler
         await _cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);
         await _cache.RemoveAsync<GetCargoDryAnalyticsResponse>("cargodry:analytics:snapshot", ct);
 
+        // ── Phase 9: SQL lifecycle event ──────────────────────────────────────
+        var metadata = JsonSerializer.Serialize(new
+        {
+            ActivationMethod = request.Method.ToString(),
+            ActivationSource = request.Source.ToString(),
+            DeviceInfo       = request.DeviceInfo,
+            IpAddress        = request.IpAddress,
+            ValidityDays     = product.ValidityDays,
+            ExpiresAt        = kit.ExpiresAt?.ToString("O"),
+        });
+
+        var lifecycleEvent = CargoDryKitLifecycleEventEntity.Create(
+            kitId:          kit.Id,
+            kitCode:        kit.KitCode,
+            serialNumber:   kit.SerialNumber,
+            batchCode:      kit.BatchCode,
+            productCode:    kit.ProductCode,
+            eventType:      CargoDryKitLifecycleEventType.Activated,
+            previousStatus: previousStatus,
+            newStatus:      kit.Status.ToString(),
+            actorUserId:    (long?)request.UserId,
+            actorType:      request.Source == ActivationSource.AdminPanel ? "Admin" : "Participant",
+            metadataJson:   metadata);
+
+        await _lifecycleEvents.AddAsync(lifecycleEvent, ct);
+        await _lifecycleEvents.SaveChangesAsync(ct);
+
+        // ── MongoDB activation log (existing, fire-and-forget) ────────────────
         var logDoc = new CargoDryActivationLogDocument
         {
             KitId            = kit.Id,
