@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Domain.Entities;
@@ -15,22 +16,25 @@ public sealed class GenerateBatchCommandHandler
     private readonly ICargoDryProductRepository _products;
     private readonly ICargoDryQrService         _qrService;
     private readonly IBatchKeyVaultService      _keyVault;
+    private readonly IAizenInfoAccessor         _info;
     private readonly ILogger<GenerateBatchCommandHandler> _logger;
 
     public GenerateBatchCommandHandler(
-        ICargoDryBatchRepository batches,
-        ICargoDryKitRepository kits,
-        ICargoDryProductRepository products,
-        ICargoDryQrService qrService,
-        IBatchKeyVaultService keyVault,
+        ICargoDryBatchRepository             batches,
+        ICargoDryKitRepository               kits,
+        ICargoDryProductRepository           products,
+        ICargoDryQrService                   qrService,
+        IBatchKeyVaultService                keyVault,
+        IAizenInfoAccessor                   info,
         ILogger<GenerateBatchCommandHandler> logger)
     {
-        _batches  = batches;
-        _kits     = kits;
-        _products = products;
+        _batches   = batches;
+        _kits      = kits;
+        _products  = products;
         _qrService = qrService;
         _keyVault  = keyVault;
-        _logger   = logger;
+        _info      = info;
+        _logger    = logger;
     }
 
     public override async Task<GenerateBatchResultDto?> Handle(
@@ -44,7 +48,7 @@ public sealed class GenerateBatchCommandHandler
         await _keyVault.CreateKeyAsync(batchCode, ct);
 
         var batch = CargoDryBatchEntity.Create(
-            batchCode, product.ProductCode, request.Count, request.AdminUserId,
+            batchCode, product.ProductCode, request.Count, _info.UserInfoAccessor.UserInfo.UserId,
             batchLabel:      request.BatchLabel,
             warehouseCode:   request.WarehouseCode,
             productionNotes: request.ProductionNotes);

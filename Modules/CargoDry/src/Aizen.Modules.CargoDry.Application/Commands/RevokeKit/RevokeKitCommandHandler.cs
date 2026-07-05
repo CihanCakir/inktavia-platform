@@ -1,5 +1,6 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
@@ -18,6 +19,7 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
     private readonly IAizenMessagePublisher                _publisher;
     private readonly ICargoDryActivationLogRepository      _activationLogs;
     private readonly IAizenDistributedCache                _cache;
+    private readonly IAizenInfoAccessor                    _info;
     private readonly ILogger<RevokeKitCommandHandler>      _logger;
 
     public RevokeKitCommandHandler(
@@ -26,6 +28,7 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
         IAizenMessagePublisher               publisher,
         ICargoDryActivationLogRepository     activationLogs,
         IAizenDistributedCache               cache,
+        IAizenInfoAccessor                   info,
         ILogger<RevokeKitCommandHandler>     logger)
     {
         _kits            = kits;
@@ -33,6 +36,7 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
         _publisher       = publisher;
         _activationLogs  = activationLogs;
         _cache           = cache;
+        _info            = info;
         _logger          = logger;
     }
 
@@ -42,6 +46,7 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
             ?? throw new InvalidOperationException($"Kit {request.KitId} not found");
 
         var previousStatus = kit.Status.ToString();
+        var adminUserId    = _info.UserInfoAccessor.UserInfo.UserId;
 
         kit.Revoke(request.Reason);
         await _kits.SaveChangesAsync(ct);
@@ -56,7 +61,7 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
             eventType:      CargoDryKitLifecycleEventType.Revoked,
             previousStatus: previousStatus,
             newStatus:      kit.Status.ToString(),
-            actorUserId:    request.AdminUserId,
+            actorUserId:    adminUserId,
             actorType:      "Admin",
             reason:         request.Reason);
 

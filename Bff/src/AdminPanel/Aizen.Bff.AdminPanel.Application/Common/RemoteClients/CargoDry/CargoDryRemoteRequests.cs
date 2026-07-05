@@ -261,3 +261,61 @@ public sealed class FailCargoDrySettlementPayoutBffRequest
     public string? ExternalReference { get; init; }
     public string? Note              { get; init; }
 }
+
+// ── Phase 11: Renewal Billing & Notification Orchestration ────────────────────
+
+[DocumentationInfo("Prepare CargoDry kit renewal BFF request",
+    "Admin request to create a new renewal preparation workflow record for a kit. " +
+    "One open preparation per kit is enforced. Phase 11 (July 2026).")]
+public sealed class PrepareRenewalBffRequest
+{
+    public long    KitId                  { get; init; }
+    public int     RequestedRenewalMonths { get; init; }
+    public string? Note                   { get; init; }
+}
+
+[DocumentationInfo("Prepare CargoDry renewal invoice BFF request",
+    "Admin request to create a Draft CargoDryInvoice for the renewal preparation. " +
+    "Does NOT create a PaymentTransaction. Hard rule #16. Phase 11 (July 2026).")]
+public sealed class PrepareRenewalInvoiceBffRequest
+{
+    public string? Note { get; init; }
+}
+
+[DocumentationInfo("Prepare CargoDry renewal notification BFF request",
+    "Admin request to stamp notification metadata (template, language, channels) " +
+    "on the renewal preparation without dispatching. Phase 11 (July 2026).")]
+public sealed class PrepareRenewalNotificationBffRequest
+{
+    public string  TemplateCode { get; init; } = default!;
+    public string  LanguageCode { get; init; } = "tr";
+    public string  ChannelsJson { get; init; } = "[\"Email\"]";
+}
+
+[DocumentationInfo("Dispatch CargoDry renewal notification BFF request",
+    "Admin request to publish CargoDryRenewalNotificationRequestedMessage. " +
+    "Actual delivery goes through the Notification module. Hard rules #2, #4, #13. " +
+    "Phase 11 (July 2026).")]
+public sealed class DispatchRenewalNotificationBffRequest
+{
+    public string? RecipientEmail { get; init; }
+    public string? RecipientPhone { get; init; }
+}
+
+[DocumentationInfo("Complete CargoDry renewal BFF request",
+    "Explicit admin confirmation that completes the renewal and calls RenewKitCommand " +
+    "with AdminExtension type. Hard rule #8: must be explicit — not automatic. " +
+    "Phase 11 (July 2026).")]
+public sealed class CompleteRenewalBffRequest
+{
+    public string? ManualPaymentReference { get; init; }
+    public string? Note                   { get; init; }
+}
+
+[DocumentationInfo("Cancel CargoDry renewal preparation BFF request",
+    "Admin request to cancel an open renewal preparation. Phase 11 (July 2026).")]
+public sealed class CancelRenewalPreparationBffRequest
+{
+    public string  CancellationReason { get; init; } = default!;
+    public string? Note               { get; init; }
+}

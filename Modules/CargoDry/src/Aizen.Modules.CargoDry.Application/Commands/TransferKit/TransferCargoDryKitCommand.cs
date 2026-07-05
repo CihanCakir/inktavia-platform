@@ -10,5 +10,4 @@ public sealed class TransferCargoDryKitCommand : AizenCommand<TransferCargoDryKi
     public long KitId        { get; init; }
     public long NewUserId    { get; init; }
     public long NewVesselId  { get; init; }
-    public long AdminId      { get; init; }
 }

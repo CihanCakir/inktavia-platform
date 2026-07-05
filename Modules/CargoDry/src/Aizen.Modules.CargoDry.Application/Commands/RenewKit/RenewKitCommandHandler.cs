@@ -62,7 +62,8 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
         // AdminExtension and PhysicalKit do not go through the payment gateway.
         // EscrowRequired = false: CargoDry renewals settle immediately (no hold).
         // RecipientProfileId = null: funds go to the platform, not a provider.
-        var paymentRef = request.PaymentRef;
+        var paymentRef  = request.PaymentRef;
+        var adminUserId = (long?)_info.UserInfoAccessor.UserInfo.UserId;
 
         if (request.Type == RenewalType.OnlinePurchase && string.IsNullOrEmpty(paymentRef))
         {
@@ -119,7 +120,7 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
         _ = CargoDryRenewalEntity.Create(
             kit.Id, kit.OwnerUserId!.Value,
             kit.ExpiresAt!.Value, request.AddedDays,
-            request.Type, paymentRef, request.AdminUserId);
+            request.Type, paymentRef, adminUserId);
 
         await _kits.SaveChangesAsync(ct);
 
@@ -146,8 +147,8 @@ public sealed class RenewKitCommandHandler : AizenCommandHandler<RenewKitCommand
             eventType:      eventType,
             previousStatus: previousStatus,
             newStatus:      kit.Status.ToString(),
-            actorUserId:    request.AdminUserId,
-            actorType:      request.AdminUserId.HasValue ? "Admin" : "System",
+            actorUserId:    adminUserId,
+            actorType:      adminUserId.HasValue ? "Admin" : "System",
             metadataJson:   metadata);
 
         await _lifecycleEvents.AddAsync(lifecycleEvent, ct);

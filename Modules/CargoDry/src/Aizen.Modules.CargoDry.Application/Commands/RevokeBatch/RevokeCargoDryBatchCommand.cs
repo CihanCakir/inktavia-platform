@@ -9,5 +9,4 @@ public sealed class RevokeCargoDryBatchCommand : AizenCommand<RevokeCargoDryBatc
 {
     public string BatchCode { get; init; } = default!;
     public string Reason    { get; init; } = default!;
-    public long   AdminId   { get; init; }
 }

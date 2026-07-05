@@ -932,6 +932,191 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.ToTable("renewals", "cargodry");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryRenewalPreparationEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("CancelledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("CancelledByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("CompletedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTimeOffset>("CurrentExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("InvoiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("KitCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<long>("KitId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("LastNotificationLanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("LastNotificationTemplateCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ManualPaymentReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("NewExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("NotificationChannels")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NotificationCorrelationId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("NotificationDispatchedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("NotificationDispatchedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("NotificationFailureReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset?>("NotificationPreparedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("NotificationPreparedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("NotificationStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<long?>("OwnerUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PaymentTransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("PreparedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("PreparedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<long?>("ProviderProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RenewalCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<decimal>("RenewalPrice")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<int>("RequestedRenewalMonths")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<long?>("VesselId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KitCode");
+
+                    b.HasIndex("KitId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("PreparedAtUtc");
+
+                    b.HasIndex("ProductCode");
+
+                    b.HasIndex("RenewalCode")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("VesselId");
+
+                    b.HasIndex("KitId", "Status");
+
+                    b.ToTable("renewal_preparations", "cargodry");
+                });
+
             modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDrySalesAttributionEntity", b =>
                 {
                     b.Property<long>("Id")

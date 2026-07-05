@@ -1,5 +1,6 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Domain.Entities;
@@ -15,17 +16,20 @@ public sealed class TransferCargoDryKitCommandHandler
     private readonly ICargoDryKitRepository                      _kits;
     private readonly ICargoDryKitLifecycleEventRepository        _lifecycleEvents;
     private readonly IAizenDistributedCache                      _cache;
+    private readonly IAizenInfoAccessor                          _info;
     private readonly ILogger<TransferCargoDryKitCommandHandler>  _logger;
 
     public TransferCargoDryKitCommandHandler(
         ICargoDryKitRepository                     kits,
         ICargoDryKitLifecycleEventRepository       lifecycleEvents,
         IAizenDistributedCache                     cache,
+        IAizenInfoAccessor                         info,
         ILogger<TransferCargoDryKitCommandHandler> logger)
     {
         _kits            = kits;
         _lifecycleEvents = lifecycleEvents;
         _cache           = cache;
+        _info            = info;
         _logger          = logger;
     }
 
@@ -43,9 +47,11 @@ public sealed class TransferCargoDryKitCommandHandler
         kit.Transfer(request.NewUserId, request.NewVesselId);
         await _kits.SaveChangesAsync(ct);
 
+        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
+
         _logger.LogInformation(
             "Kit {KitId} transferred to UserId={NewUserId} / VesselId={NewVesselId} by Admin={AdminId}.",
-            kit.Id, request.NewUserId, request.NewVesselId, request.AdminId);
+            kit.Id, request.NewUserId, request.NewVesselId, adminId);
 
         // ── Phase 9: SQL lifecycle event ──────────────────────────────────────
         var metadata = JsonSerializer.Serialize(new
@@ -65,7 +71,7 @@ public sealed class TransferCargoDryKitCommandHandler
             eventType:      CargoDryKitLifecycleEventType.Transferred,
             previousStatus: previousStatus,
             newStatus:      kit.Status.ToString(),
-            actorUserId:    (long?)request.AdminId,
+            actorUserId:    (long?)adminId,
             actorType:      "Admin",
             metadataJson:   metadata);
 

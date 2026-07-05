@@ -103,6 +103,30 @@ public sealed class NotificationTemplateSeed
             "CargoDry Kit Revoked",
             "Kit {{kitCode}} has been revoked. Reason: {{reason}}."),
 
+        // ── Phase 11: Renewal notification templates ──────────────────────────
+        NotificationTemplateEntity.Create("CD_RENEWAL_NOTIFICATION_INAPP", "Kit Renewal Notification (In-App)",
+            NotificationType.CargoDryRenewalNotificationRequested, NotificationChannel.InApp,
+            "CargoDry Kit Renewal Available",
+            "Your CargoDry kit {{kitCode}} ({{productName}}) expires in {{daysUntilExpiry}} days. " +
+            "Renewal price: {{renewalPrice}}. Contact your marina to renew. Ref: {{renewalCode}}."),
+
+        NotificationTemplateEntity.Create("CD_RENEWAL_NOTIFICATION_EMAIL", "Kit Renewal Notification (Email)",
+            NotificationType.CargoDryRenewalNotificationRequested, NotificationChannel.Email,
+            "CargoDry Kit Renewal Notice — {{kitCode}}",
+            "Dear customer,\n\n" +
+            "Your CargoDry kit {{kitCode}} ({{productName}}) will expire in {{daysUntilExpiry}} days " +
+            "({{expiryDate}}).\n\n" +
+            "Renewal price: {{renewalPrice}}\n" +
+            "Reference: {{renewalCode}}\n\n" +
+            "Please contact your service provider to complete the renewal.\n\n" +
+            "Inktavia Marine Platform"),
+
+        NotificationTemplateEntity.Create("CD_RENEWAL_NOTIFICATION_SMS", "Kit Renewal Notification (SMS)",
+            NotificationType.CargoDryRenewalNotificationRequested, NotificationChannel.Sms,
+            "CargoDry Renewal",
+            "Your CargoDry kit {{kitCode}} expires in {{daysUntilExpiry}} days. " +
+            "Price: {{renewalPrice}}. Ref: {{renewalCode}}. Contact your marina to renew."),
+
         NotificationTemplateEntity.Create("PROFILE_APPROVAL_DECISION_INAPP", "Profile Approval Decision (In-App)",
             NotificationType.ProfileApprovalDecision, NotificationChannel.InApp,
             "Profile Review Complete",

@@ -23,6 +23,8 @@ public sealed class CargoDryDbContext : AizenDbContext
     public DbSet<CargoDrySettlementAutomationRunItemEntity> SettlementAutomationRunItems => Set<CargoDrySettlementAutomationRunItemEntity>();
     // Phase 9 — Kit lifecycle history (PostgreSQL, append-only)
     public DbSet<CargoDryKitLifecycleEventEntity> KitLifecycleEvents => Set<CargoDryKitLifecycleEventEntity>();
+    // Phase 11 — Renewal preparation workflow
+    public DbSet<CargoDryRenewalPreparationEntity> RenewalPreparations => Set<CargoDryRenewalPreparationEntity>();
     // ActivationLogs — moved to MongoDB (CargoDryMongoDbContext)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

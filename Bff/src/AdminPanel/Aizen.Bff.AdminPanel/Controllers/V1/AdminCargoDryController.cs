@@ -1,3 +1,12 @@
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CancelCargoDryRenewalPreparation;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CompleteCargoDryRenewal;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.DispatchCargoDryRenewalNotification;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDryKitRenewal;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDryRenewalInvoice;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDryRenewalNotification;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryRenewalCandidatesBff;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryRenewalPreparationDetailBff;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryRenewalPreparationsPagedBff;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitLifecycleHistoryBff;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryKitLifecycleEventsPagedBff;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryOperationalAlertsBff;
@@ -1310,6 +1319,214 @@ public sealed class AdminCargoDryController : AizenWebApiController
 
         return SetResponse(result?.Overview);
     }
+
+    // ── Phase 11: Renewal Billing & Notification Orchestration ───────────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/renewals/candidates
+    /// Returns Active kits expiring within WithinDays that have no open renewal preparation.
+    /// Phase 11 (July 2026).
+    /// </summary>
+    [HttpGet("renewals/candidates")]
+    [ProducesResponseType(typeof(List<CargoDryRenewalCandidateBffDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CargoDryRenewalCandidateBffDto>>> GetRenewalCandidates(
+        [FromQuery] int withinDays = 90,
+        [FromQuery] int page       = 1,
+        [FromQuery] int pageSize   = 50,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryRenewalCandidatesBffQuery
+            {
+                WithinDays = withinDays,
+                Page       = page,
+                PageSize   = pageSize,
+            }, ct);
+
+        return SetResponse(result?.Candidates);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/renewals
+    /// Creates a new renewal preparation workflow record for a kit.
+    /// Enforces one-open-preparation-per-kit. Phase 11 (July 2026).
+    /// </summary>
+    [HttpPost("renewals")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryRenewalPreparationBffDto>> PrepareRenewal(
+        [FromBody] PrepareRenewalBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new PrepareCargoDryKitRenewalBffCommand
+            {
+                KitId                  = body.KitId,
+                RequestedRenewalMonths = body.RequestedRenewalMonths,
+                PreparedByUserId       = body.PreparedByUserId,
+                Note                   = body.Note,
+            }, ct);
+
+        return SetResponse(result?.Preparation);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/renewals
+    /// Paginated list of renewal preparations with optional filters. Phase 11 (July 2026).
+    /// </summary>
+    [HttpGet("renewals")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationsPagedBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryRenewalPreparationsPagedBffResponse>> GetRenewalPreparationsPaged(
+        [FromQuery] long?           kitId              = null,
+        [FromQuery] string?         kitCode            = null,
+        [FromQuery] string?         productCode        = null,
+        [FromQuery] long?           ownerUserId        = null,
+        [FromQuery] long?           vesselId           = null,
+        [FromQuery] int?            status             = null,
+        [FromQuery] int?            notificationStatus = null,
+        [FromQuery] DateTimeOffset? preparedFrom       = null,
+        [FromQuery] DateTimeOffset? preparedTo         = null,
+        [FromQuery] int             page               = 1,
+        [FromQuery] int             pageSize           = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryRenewalPreparationsPagedBffQuery
+            {
+                KitId              = kitId,
+                KitCode            = kitCode,
+                ProductCode        = productCode,
+                OwnerUserId        = ownerUserId,
+                VesselId           = vesselId,
+                Status             = status,
+                NotificationStatus = notificationStatus,
+                PreparedFrom       = preparedFrom,
+                PreparedTo         = preparedTo,
+                Page               = page,
+                PageSize           = pageSize,
+            }, ct);
+
+        return SetResponse(result?.PagedResult);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/cargodry/renewals/{id}
+    /// Returns the full detail of a single renewal preparation. Phase 11 (July 2026).
+    /// </summary>
+    [HttpGet("renewals/{id:long}")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetRenewalPreparationDetail(long id, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryRenewalPreparationDetailBffQuery { Id = id }, ct);
+
+        if (result?.Preparation is null) return NotFound();
+        return Ok(SetResponse(result.Preparation));
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/renewals/{id}/invoice
+    /// Creates a Draft CargoDryInvoice for the renewal preparation.
+    /// Does NOT create a PaymentTransaction. Idempotent. Phase 11 (July 2026).
+    /// </summary>
+    [HttpPost("renewals/{id:long}/invoice")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryRenewalPreparationBffDto>> PrepareRenewalInvoice(
+        long id, [FromBody] PrepareRenewalInvoiceBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new PrepareCargoDryRenewalInvoiceBffCommand
+            {
+                RenewalPreparationId = id,
+                Note                 = body.Note,
+            }, ct);
+
+        return SetResponse(result?.Preparation);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/renewals/{id}/notification/prepare
+    /// Stamps notification metadata on the preparation. Does NOT dispatch. Phase 11 (July 2026).
+    /// </summary>
+    [HttpPost("renewals/{id:long}/notification/prepare")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryRenewalPreparationBffDto>> PrepareRenewalNotification(
+        long id, [FromBody] PrepareRenewalNotificationBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new PrepareCargoDryRenewalNotificationBffCommand
+            {
+                RenewalPreparationId = id,
+                TemplateCode         = body.TemplateCode,
+                LanguageCode         = body.LanguageCode,
+                ChannelsJson         = body.ChannelsJson,
+            }, ct);
+
+        return SetResponse(result?.Preparation);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/renewals/{id}/notification/dispatch
+    /// Publishes the renewal notification message. Delivery owned by Notification module.
+    /// Hard rules #2, #4, #13, #14, #15. Phase 11 (July 2026).
+    /// </summary>
+    [HttpPost("renewals/{id:long}/notification/dispatch")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryRenewalPreparationBffDto>> DispatchRenewalNotification(
+        long id, [FromBody] DispatchRenewalNotificationBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new DispatchCargoDryRenewalNotificationBffCommand
+            {
+                RenewalPreparationId = id,
+                RecipientEmail       = body.RecipientEmail,
+                RecipientPhone       = body.RecipientPhone,
+            }, ct);
+
+        return SetResponse(result?.Preparation);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/renewals/{id}/complete
+    /// Explicit admin confirmation completing the renewal (calls RenewKitCommand/AdminExtension).
+    /// Hard rule #8: must be explicit — not automatic. Phase 11 (July 2026).
+    /// </summary>
+    [HttpPost("renewals/{id:long}/complete")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryRenewalPreparationBffDto>> CompleteRenewal(
+        long id, [FromBody] CompleteRenewalBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new CompleteCargoDryRenewalBffCommand
+            {
+                RenewalPreparationId   = id,
+                CompletedByUserId      = body.CompletedByUserId,
+                ManualPaymentReference = body.ManualPaymentReference,
+                Note                   = body.Note,
+            }, ct);
+
+        return SetResponse(result?.Preparation);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/renewals/{id}/cancel
+    /// Cancels an open renewal preparation. CancellationReason is required. Phase 11 (July 2026).
+    /// </summary>
+    [HttpPost("renewals/{id:long}/cancel")]
+    [ProducesResponseType(typeof(CargoDryRenewalPreparationBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryRenewalPreparationBffDto>> CancelRenewalPreparation(
+        long id, [FromBody] CancelRenewalPreparationBodyRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new CancelCargoDryRenewalPreparationBffCommand
+            {
+                RenewalPreparationId = id,
+                CancelledByUserId    = body.CancelledByUserId,
+                CancellationReason   = body.CancellationReason,
+                Note                 = body.Note,
+            }, ct);
+
+        return SetResponse(result?.Preparation);
+    }
 }
 
 // ── Inline body request records ───────────────────────────────────────────────
@@ -1449,4 +1666,45 @@ public sealed class FailSettlementPayoutBodyRequest
     public string  FailureReason     { get; init; } = default!;
     public string? ExternalReference { get; init; }
     public string? Note              { get; init; }
+}
+
+// ── Phase 11: Renewal Billing & Notification Orchestration ───────────────────
+public sealed class PrepareRenewalBodyRequest
+{
+    public long    KitId                  { get; init; }
+    public int     RequestedRenewalMonths { get; init; }
+    public long    PreparedByUserId       { get; init; }
+    public string? Note                   { get; init; }
+}
+
+public sealed class PrepareRenewalInvoiceBodyRequest
+{
+    public string? Note { get; init; }
+}
+
+public sealed class PrepareRenewalNotificationBodyRequest
+{
+    public string TemplateCode { get; init; } = default!;
+    public string LanguageCode { get; init; } = "tr";
+    public string ChannelsJson { get; init; } = "[\"Email\"]";
+}
+
+public sealed class DispatchRenewalNotificationBodyRequest
+{
+    public string? RecipientEmail { get; init; }
+    public string? RecipientPhone { get; init; }
+}
+
+public sealed class CompleteRenewalBodyRequest
+{
+    public long    CompletedByUserId      { get; init; }
+    public string? ManualPaymentReference { get; init; }
+    public string? Note                   { get; init; }
+}
+
+public sealed class CancelRenewalPreparationBodyRequest
+{
+    public long    CancelledByUserId  { get; init; }
+    public string  CancellationReason { get; init; } = default!;
+    public string? Note               { get; init; }
 }

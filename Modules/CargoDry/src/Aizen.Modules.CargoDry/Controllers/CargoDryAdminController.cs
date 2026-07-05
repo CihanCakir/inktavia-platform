@@ -1,7 +1,12 @@
-using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Application.Commands.CancelCargoDryRenewalPreparation;
+using Aizen.Modules.CargoDry.Application.Commands.CompleteCargoDryRenewal;
 using Aizen.Modules.CargoDry.Application.Commands.CreateCargoDryProduct;
+using Aizen.Modules.CargoDry.Application.Commands.DispatchCargoDryRenewalNotification;
 using Aizen.Modules.CargoDry.Application.Commands.GenerateBatch;
+using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDryKitRenewal;
+using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDryRenewalInvoice;
+using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDryRenewalNotification;
 using Aizen.Modules.CargoDry.Application.Commands.RenewKit;
 using Aizen.Modules.CargoDry.Application.Commands.RevokeBatch;
 using Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
@@ -13,6 +18,9 @@ using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryKitLifecycleHistory;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryKitLifecycleEventsPaged;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalAlerts;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalOverview;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalCandidates;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalPreparationDetail;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalPreparationsPaged;
 using Aizen.Modules.CargoDry.Application.Queries.LookupCargoDryKitAdmin;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryBatchByCode;
@@ -35,12 +43,9 @@ namespace Aizen.Modules.CargoDry.Controllers;
 public sealed class CargoDryAdminController : ControllerBase
 {
     private readonly ISender            _sender;
-    private readonly IAizenInfoAccessor _info;
-
-    public CargoDryAdminController(ISender sender, IAizenInfoAccessor info)
+    public CargoDryAdminController(ISender sender)
     {
         _sender = sender;
-        _info   = info;
     }
 
     // ─── Kits ────────────────────────────────────────────────────────────────
@@ -183,13 +188,11 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> TransferKit(
         long id, [FromBody] TransferKitRequest request, CancellationToken ct)
     {
-        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
         var result = await _sender.Send(new TransferCargoDryKitCommand
         {
             KitId       = id,
             NewUserId   = request.NewUserId,
             NewVesselId = request.NewVesselId,
-            AdminId     = adminId,
         }, ct);
         return Ok(result);
     }
@@ -198,12 +201,10 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> RevokeKit(
         long id, [FromBody] RevokeKitRequest request, CancellationToken ct)
     {
-        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
         var result = await _sender.Send(new RevokeKitCommand
         {
-            KitId       = id,
-            Reason      = request.Reason,
-            AdminUserId = adminId,
+            KitId  = id,
+            Reason = request.Reason,
         }, ct);
         return Ok(result);
     }
@@ -212,13 +213,11 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> ExtendKit(
         long id, [FromBody] ExtendKitRequest request, CancellationToken ct)
     {
-        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
         var result = await _sender.Send(new RenewKitCommand
         {
-            KitId       = id,
-            AddedDays   = request.AddedDays,
-            Type        = RenewalType.AdminExtension,
-            AdminUserId = adminId,
+            KitId     = id,
+            AddedDays = request.AddedDays,
+            Type      = RenewalType.AdminExtension,
         }, ct);
         return Ok(result);
     }
@@ -227,14 +226,12 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> RenewKit(
         long id, [FromBody] RenewKitRequest request, CancellationToken ct)
     {
-        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
-        var result  = await _sender.Send(new RenewKitCommand
+        var result = await _sender.Send(new RenewKitCommand
         {
-            KitId       = id,
-            AddedDays   = request.AddedDays,
-            PaymentRef  = request.PaymentRef,
-            Type        = RenewalType.AdminExtension,
-            AdminUserId = adminId,
+            KitId      = id,
+            AddedDays  = request.AddedDays,
+            PaymentRef = request.PaymentRef,
+            Type       = RenewalType.AdminExtension,
         }, ct);
         return Ok(result);
     }
@@ -363,12 +360,10 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> RevokeBatch(
         string batchCode, [FromBody] RevokeBatchRequest request, CancellationToken ct)
     {
-        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
         var result = await _sender.Send(new RevokeCargoDryBatchCommand
         {
             BatchCode = batchCode,
             Reason    = request.Reason,
-            AdminId   = adminId,
         }, ct);
         return Ok(result);
     }
@@ -377,12 +372,10 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> GenerateBatch(
         [FromBody] GenerateBatchRequest request, CancellationToken ct)
     {
-        var adminId = _info.UserInfoAccessor.UserInfo.UserId;
         var result = await _sender.Send(new GenerateBatchCommand
         {
             ProductCode     = request.ProductCode,
             Count           = request.Count,
-            AdminUserId     = adminId,
             BatchLabel      = request.BatchLabel,
             WarehouseCode   = request.WarehouseCode,
             ProductionNotes = request.ProductionNotes,
@@ -438,6 +431,164 @@ public sealed class CargoDryAdminController : ControllerBase
         }
 
         return Ok(result.Report);
+    }
+
+    // ─── Renewals ────────────────────────────────────────────────────────────
+
+    /// <summary>GET /renewals/candidates — expiring kits eligible for renewal</summary>
+    [HttpGet("renewals/candidates")]
+    public async Task<IActionResult> GetRenewalCandidates(
+        [FromQuery] int withinDays = 90,
+        [FromQuery] int page       = 1,
+        [FromQuery] int pageSize   = 50,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryRenewalCandidatesQuery
+        {
+            WithinDays = withinDays,
+            Page       = page,
+            PageSize   = pageSize,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>POST /renewals — create a new renewal preparation for a kit</summary>
+    [HttpPost("renewals")]
+    public async Task<IActionResult> PrepareRenewal(
+        [FromBody] PrepareRenewalRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new PrepareCargoDryKitRenewalCommand
+        {
+            KitId                  = req.KitId,
+            RequestedRenewalMonths = req.RequestedRenewalMonths,
+            Note                   = req.Note,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /renewals — paged list of renewal preparations</summary>
+    [HttpGet("renewals")]
+    public async Task<IActionResult> GetRenewalPreparations(
+        [FromQuery] long?                              kitId              = null,
+        [FromQuery] string?                            kitCode            = null,
+        [FromQuery] string?                            productCode        = null,
+        [FromQuery] long?                              ownerUserId        = null,
+        [FromQuery] long?                              vesselId           = null,
+        [FromQuery] CargoDryRenewalPreparationStatus?  status             = null,
+        [FromQuery] CargoDryRenewalNotificationStatus? notificationStatus = null,
+        [FromQuery] DateTimeOffset?                    preparedFrom       = null,
+        [FromQuery] DateTimeOffset?                    preparedTo         = null,
+        [FromQuery] int                                page               = 1,
+        [FromQuery] int                                pageSize           = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryRenewalPreparationsPagedQuery
+        {
+            KitId              = kitId,
+            KitCode            = kitCode,
+            ProductCode        = productCode,
+            OwnerUserId        = ownerUserId,
+            VesselId           = vesselId,
+            Status             = status,
+            NotificationStatus = notificationStatus,
+            PreparedFrom       = preparedFrom,
+            PreparedTo         = preparedTo,
+            Page               = page,
+            PageSize           = pageSize,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /renewals/{id} — single renewal preparation by id</summary>
+    [HttpGet("renewals/{id:long}")]
+    public async Task<IActionResult> GetRenewalPreparationDetail(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetCargoDryRenewalPreparationDetailQuery { Id = id }, ct);
+        if (result is null) return NotFound();
+        return Ok(result);
+    }
+
+    /// <summary>POST /renewals/{id}/invoice — prepare the invoice for a renewal preparation</summary>
+    [HttpPost("renewals/{id:long}/invoice")]
+    public async Task<IActionResult> PrepareRenewalInvoice(
+        long id,
+        [FromBody] PrepareRenewalInvoiceRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new PrepareCargoDryRenewalInvoiceCommand
+        {
+            RenewalPreparationId = id,
+            Note                 = req.Note,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>POST /renewals/{id}/notification/prepare — configure notification template and channels</summary>
+    [HttpPost("renewals/{id:long}/notification/prepare")]
+    public async Task<IActionResult> PrepareRenewalNotification(
+        long id,
+        [FromBody] PrepareRenewalNotificationRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new PrepareCargoDryRenewalNotificationCommand
+        {
+            RenewalPreparationId = id,
+            TemplateCode         = req.TemplateCode,
+            LanguageCode         = req.LanguageCode,
+            ChannelsJson         = req.ChannelsJson,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>POST /renewals/{id}/notification/dispatch — publish renewal notification to message bus</summary>
+    [HttpPost("renewals/{id:long}/notification/dispatch")]
+    public async Task<IActionResult> DispatchRenewalNotification(
+        long id,
+        [FromBody] DispatchRenewalNotificationRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new DispatchCargoDryRenewalNotificationCommand
+        {
+            RenewalPreparationId = id,
+            RecipientEmail       = req.RecipientEmail,
+            RecipientPhone       = req.RecipientPhone,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>POST /renewals/{id}/complete — complete renewal (triggers RenewKitCommand internally)</summary>
+    [HttpPost("renewals/{id:long}/complete")]
+    public async Task<IActionResult> CompleteRenewal(
+        long id,
+        [FromBody] CompleteRenewalRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new CompleteCargoDryRenewalCommand
+        {
+            RenewalPreparationId   = id,
+            ManualPaymentReference = req.ManualPaymentReference,
+            Note                   = req.Note,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>POST /renewals/{id}/cancel — cancel an in-progress renewal preparation</summary>
+    [HttpPost("renewals/{id:long}/cancel")]
+    public async Task<IActionResult> CancelRenewal(
+        long id,
+        [FromBody] CancelRenewalRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new CancelCargoDryRenewalPreparationCommand
+        {
+            RenewalPreparationId = id,
+            CancellationReason   = req.CancellationReason,
+            Note                 = req.Note,
+        }, ct);
+        return Ok(result);
     }
 
     // ─── CSV builders ────────────────────────────────────────────────────────
@@ -539,4 +690,41 @@ public sealed class RenewKitRequest
 {
     public int     AddedDays  { get; init; }
     public string? PaymentRef { get; init; }
+}
+
+public sealed class PrepareRenewalRequest
+{
+    public long    KitId                  { get; init; }
+    public int     RequestedRenewalMonths { get; init; }
+    public string? Note                   { get; init; }
+}
+
+public sealed class PrepareRenewalInvoiceRequest
+{
+    public string? Note { get; init; }
+}
+
+public sealed class PrepareRenewalNotificationRequest
+{
+    public string  TemplateCode { get; init; } = default!;
+    public string  LanguageCode { get; init; } = "tr";
+    public string  ChannelsJson { get; init; } = "[\"Email\"]";
+}
+
+public sealed class DispatchRenewalNotificationRequest
+{
+    public string? RecipientEmail { get; init; }
+    public string? RecipientPhone { get; init; }
+}
+
+public sealed class CompleteRenewalRequest
+{
+    public string? ManualPaymentReference { get; init; }
+    public string? Note                   { get; init; }
+}
+
+public sealed class CancelRenewalRequest
+{
+    public string  CancellationReason { get; init; } = default!;
+    public string? Note               { get; init; }
 }

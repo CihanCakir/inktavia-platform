@@ -451,6 +451,70 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
     Task<CargoDryOperationalOverviewBffDto> GetOperationalOverviewAsync(
         CancellationToken ct = default);
 
+    // ── Phase 11: Renewal Billing & Notification Orchestration ───────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/renewals/candidates")]
+    Task<List<CargoDryRenewalCandidateBffDto>> GetRenewalCandidatesAsync(
+        [Query] int withinDays,
+        [Query] int page,
+        [Query] int pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/renewals")]
+    Task<CargoDryRenewalPreparationBffDto> PrepareRenewalAsync(
+        [AizenRemoteCallBody] PrepareRenewalBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/renewals")]
+    Task<CargoDryRenewalPreparationsPagedBffResponse> GetRenewalPreparationsPagedAsync(
+        [Query] long?   kitId,
+        [Query] string? kitCode,
+        [Query] string? productCode,
+        [Query] long?   ownerUserId,
+        [Query] long?   vesselId,
+        [Query] int?    status,
+        [Query] int?    notificationStatus,
+        [Query] DateTimeOffset? preparedFrom,
+        [Query] DateTimeOffset? preparedTo,
+        [Query] int     page,
+        [Query] int     pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/renewals/{id}")]
+    Task<CargoDryRenewalPreparationBffDto?> GetRenewalPreparationDetailAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/renewals/{id}/invoice")]
+    Task<CargoDryRenewalPreparationBffDto> PrepareRenewalInvoiceAsync(
+        long id,
+        [AizenRemoteCallBody] PrepareRenewalInvoiceBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/renewals/{id}/notification/prepare")]
+    Task<CargoDryRenewalPreparationBffDto> PrepareRenewalNotificationAsync(
+        long id,
+        [AizenRemoteCallBody] PrepareRenewalNotificationBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/renewals/{id}/notification/dispatch")]
+    Task<CargoDryRenewalPreparationBffDto> DispatchRenewalNotificationAsync(
+        long id,
+        [AizenRemoteCallBody] DispatchRenewalNotificationBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/renewals/{id}/complete")]
+    Task<CargoDryRenewalPreparationBffDto> CompleteRenewalAsync(
+        long id,
+        [AizenRemoteCallBody] CompleteRenewalBffRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/renewals/{id}/cancel")]
+    Task<CargoDryRenewalPreparationBffDto> CancelRenewalPreparationAsync(
+        long id,
+        [AizenRemoteCallBody] CancelRenewalPreparationBffRequest request,
+        CancellationToken ct = default);
+
     // ── Onboarding (Public — no auth headers required) ───────────────────────
 
     [AizenRemoteCallPost("/api/v1/cargodry/public/validate")]

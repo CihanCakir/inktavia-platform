@@ -71,6 +71,11 @@ public static class DependencyInjection
         // Creates Draft ProviderSettlementStatement; does NOT issue or create PaymentTransaction.
         services.AddScoped<ICargoDrySettlementInvoiceService, CargoDrySettlementInvoiceService>();
 
+        // ── CargoDry renewal invoice service (Phase 11) ───────────────────────
+        // Bridges CargoDry.Application → Payment.Application for kit renewal invoice drafts.
+        // Creates Draft CargoDryInvoice; does NOT create a PaymentTransaction.
+        services.AddScoped<ICargoDryRenewalInvoiceService, CargoDryRenewalInvoiceService>();
+
         // ── IAP gateway stubs (Phase 2C: replace with real implementations) ──
         // Apple App Store and Google Play Billing gateway clients are registered
         // as NotImplemented stubs. Phase 2C will swap these for real HTTP clients.
