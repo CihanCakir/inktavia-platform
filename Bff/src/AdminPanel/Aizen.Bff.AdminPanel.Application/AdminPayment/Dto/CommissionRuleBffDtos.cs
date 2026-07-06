@@ -10,6 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
 
 /// <summary>
 /// Single commission rule detail — returned by GetById and list items.
+/// Phase 13 (July 2026): Added CargoDry targeting (ContextType, ProductCode, SalesChannel)
+/// and labeling fields (RuleName, CurrencyCode, CommercialModel). All enum-typed at source
+/// are represented as string? here per BFF JSON serialization contract.
 /// </summary>
 public sealed record CommissionRuleBffDto(
     long      Id,
@@ -29,7 +32,15 @@ public sealed record CommissionRuleBffDto(
     string?   CreatedByAdminId,
     DateTime? CreateDate,
     string?   UpdatedByAdminId,
-    DateTime? ModifyDate
+    DateTime? ModifyDate,
+    // ── Phase 0: CargoDry targeting dimensions ────────────────────────────────
+    string?   ContextType,    // null = all contexts; "CargoDry" | "ServiceRequest" | ...
+    string?   ProductCode,    // null = all products
+    string?   SalesChannel,   // null = all channels; "Direct" | "CargoDryKit" | ...
+    // ── Phase 5: Rule labeling / metadata ────────────────────────────────────
+    string?   RuleName,       // human-readable label
+    string?   CurrencyCode,   // null = any currency
+    string?   CommercialModel // null = any commercial model; "B2B" | "B2C" | ...
 )
 {
     // BFF enrichment — resolved from Identity module for ProviderOverride rules
@@ -63,7 +74,10 @@ public sealed record CommissionRuleStatsBffDto(
 
 // ─── Commission Rule — BFF Request bodies ────────────────────────────────────
 
-/// <summary>Request body for creating a new commission rule.</summary>
+/// <summary>
+/// Request body for creating a new commission rule.
+/// Phase 13 (July 2026): Added CargoDry targeting and labeling fields.
+/// </summary>
 public sealed record CreateCommissionRuleBffRequest(
     string    RuleType,        // "Global" | "Category" | "Plan" | "ProviderOverride"
     string?   CategoryCode,
@@ -73,7 +87,15 @@ public sealed record CreateCommissionRuleBffRequest(
     DateTime  EffectiveFrom,
     DateTime? EffectiveTo,
     string?   Notes,
-    string    Priority        // "Low" | "Standard" | "Medium" | "High" | "EMERGENCY"
+    string    Priority,        // "Low" | "Standard" | "Medium" | "High" | "EMERGENCY"
+    // ── Phase 0: CargoDry targeting dimensions ────────────────────────────────
+    string?   ContextType    = null,  // "CargoDry" | "ServiceRequest" | null = all
+    string?   ProductCode    = null,
+    string?   SalesChannel   = null,  // "Direct" | "CargoDryKit" | null = all
+    // ── Phase 5: Rule labeling / metadata ────────────────────────────────────
+    string?   RuleName       = null,
+    string?   CurrencyCode   = null,
+    string?   CommercialModel = null  // "B2B" | "B2C" | null = any
 );
 
 /// <summary>Request body for updating an existing commission rule.</summary>

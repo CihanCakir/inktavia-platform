@@ -24,7 +24,7 @@ public sealed class GetParticipantPlanByIdQueryHandler
             p.Id, p.PlanCode, p.Name, p.Description,
             p.MonthlyPriceTRY, p.AnnualPriceTRY, p.TrialDays, p.BadgeLabel,
             p.ServiceDiscountRate, p.CargoDryDiscountRate,
-            p.InkCoinEarnMultiplier, p.IsFree, p.SortOrder,
+            p.InkCoinEarnMultiplier, p.IsFree, p.IsActive, p.SortOrder,
             p.ValidFrom, p.ValidTo, p.FeatureItems);
     }
 }

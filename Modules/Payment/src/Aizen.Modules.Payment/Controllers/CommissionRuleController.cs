@@ -25,23 +25,38 @@ public sealed class CommissionRuleController : ControllerBase
 
     /// <summary>
     /// Returns paged list of commission rules with optional filters.
+    /// Phase 13 (July 2026): Extended with CargoDry targeting, labeling, date, and search filters.
     /// </summary>
     [HttpGet("rules")]
     public async Task<IActionResult> GetList(
-        [FromQuery] CommissionRuleType?     ruleType = null,
-        [FromQuery] CommissionRuleStatus?   status   = null,
-        [FromQuery] CommissionRulePriority? priority = null,
-        [FromQuery] int page     = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] CommissionRuleType?     ruleType          = null,
+        [FromQuery] CommissionRuleStatus?   status            = null,
+        [FromQuery] CommissionRulePriority? priority          = null,
+        [FromQuery] int                     page              = 1,
+        [FromQuery] int                     pageSize          = 20,
+        [FromQuery] TransactionContextType? contextType       = null,
+        [FromQuery] CommercialModel?        commercialModel   = null,
+        [FromQuery] string?                 productCode       = null,
+        [FromQuery] SalesChannel?           salesChannel      = null,
+        [FromQuery] string?                 search            = null,
+        [FromQuery] long?                   providerProfileId = null,
+        [FromQuery] DateTime?               effectiveOnUtc    = null,
         CancellationToken ct = default)
     {
         var result = await _sender.Send(new GetCommissionRulesListQuery
         {
-            RuleType = ruleType,
-            Status   = status,
-            Priority = priority,
-            Page     = page,
-            PageSize = pageSize,
+            RuleType          = ruleType,
+            Status            = status,
+            Priority          = priority,
+            Page              = page,
+            PageSize          = pageSize,
+            ContextType       = contextType,
+            CommercialModel   = commercialModel,
+            ProductCode       = productCode,
+            SalesChannel      = salesChannel,
+            Search            = search,
+            ProviderProfileId = providerProfileId,
+            EffectiveOnUtc    = effectiveOnUtc,
         }, ct);
         return Ok(result);
     }

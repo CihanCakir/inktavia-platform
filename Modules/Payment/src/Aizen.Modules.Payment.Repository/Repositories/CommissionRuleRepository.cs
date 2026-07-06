@@ -59,13 +59,46 @@ public sealed class CommissionRuleRepository : ICommissionRuleRepository
         => _db.CommissionRules.OrderBy(x => x.RuleType).ThenBy(x => x.Id).ToListAsync(ct);
 
     public async Task<(List<CommissionRuleEntity> Items, int Total)> GetPagedAsync(
-        CommissionRuleType? ruleType, CommissionRuleStatus? status, CommissionRulePriority? priority,
-        int skip, int take, CancellationToken ct)
+        CommissionRuleType?     ruleType,
+        CommissionRuleStatus?   status,
+        CommissionRulePriority? priority,
+        int                     skip,
+        int                     take,
+        TransactionContextType? contextType      = null,
+        CommercialModel?        commercialModel  = null,
+        string?                 productCode      = null,
+        SalesChannel?           salesChannel     = null,
+        string?                 search           = null,
+        long?                   providerProfileId = null,
+        DateTime?               effectiveOnUtc   = null,
+        CancellationToken       ct               = default)
     {
         var q = _db.CommissionRules.AsQueryable();
-        if (ruleType.HasValue)  q = q.Where(x => x.RuleType  == ruleType.Value);
-        if (status.HasValue)    q = q.Where(x => x.Status    == status.Value);
-        if (priority.HasValue)  q = q.Where(x => x.Priority  == priority.Value);
+
+        if (ruleType.HasValue)          q = q.Where(x => x.RuleType          == ruleType.Value);
+        if (status.HasValue)            q = q.Where(x => x.Status            == status.Value);
+        if (priority.HasValue)          q = q.Where(x => x.Priority          == priority.Value);
+        if (contextType.HasValue)       q = q.Where(x => x.ContextType       == contextType.Value);
+        if (commercialModel.HasValue)   q = q.Where(x => x.CommercialModel   == commercialModel.Value);
+        if (salesChannel.HasValue)      q = q.Where(x => x.SalesChannel      == salesChannel.Value);
+        if (providerProfileId.HasValue) q = q.Where(x => x.ProviderProfileId == providerProfileId.Value);
+
+        if (!string.IsNullOrWhiteSpace(productCode))
+            q = q.Where(x => x.ProductCode == productCode.ToUpperInvariant());
+
+        if (effectiveOnUtc.HasValue)
+            q = q.Where(x => x.EffectiveFrom <= effectiveOnUtc.Value &&
+                              (x.EffectiveTo == null || x.EffectiveTo >= effectiveOnUtc.Value));
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.ToLowerInvariant();
+            q = q.Where(x =>
+                (x.RuleCode     != null && x.RuleCode.ToLower().Contains(s))    ||
+                (x.RuleName     != null && x.RuleName.ToLower().Contains(s))    ||
+                (x.CategoryCode != null && x.CategoryCode.ToLower().Contains(s)) ||
+                (x.ProductCode  != null && x.ProductCode.ToLower().Contains(s)));
+        }
 
         var total = await q.CountAsync(ct);
         var items = await q

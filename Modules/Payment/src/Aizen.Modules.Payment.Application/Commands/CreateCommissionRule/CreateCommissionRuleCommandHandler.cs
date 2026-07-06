@@ -69,6 +69,14 @@ public sealed class CreateCommissionRuleCommandHandler
             _ => throw new ArgumentOutOfRangeException(nameof(request.RuleType), request.RuleType, null)
         };
 
+        // Apply optional Phase 0 CargoDry targeting dimensions (allowed on any RuleType)
+        if (request.ContextType.HasValue || request.ProductCode is not null || request.SalesChannel.HasValue)
+            rule.SetContextDimensions(request.ContextType, request.ProductCode, request.SalesChannel);
+
+        // Apply optional Phase 5 labeling fields
+        if (request.RuleName is not null || request.CurrencyCode is not null || request.CommercialModel.HasValue)
+            rule.SetMetadata(request.RuleName, request.CurrencyCode, request.CommercialModel);
+
         await _rules.AddAsync(rule, ct);
         // SaveChanges handled by AizenCommandHandlerDecorator.
 

@@ -24,6 +24,6 @@ public sealed class GetProviderPlanByIdQueryHandler
             p.Id, p.PlanCode, p.Name, p.Description,
             p.MonthlyPriceTRY, p.AnnualPriceTRY, p.TrialDays, p.BadgeLabel,
             p.MaxActiveOffers, p.HasPriorityBoost, p.HasFullAnalytics,
-            p.IsFree, p.SortOrder, p.ValidFrom, p.ValidTo, p.FeatureItems);
+            p.IsFree, p.IsActive, p.SortOrder, p.ValidFrom, p.ValidTo, p.FeatureItems);
     }
 }

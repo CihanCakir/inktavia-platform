@@ -28,7 +28,8 @@ public sealed class GetCommissionRuleByIdQueryHandler
             rule.ProviderProfileId, rule.CommissionRate, rule.EffectiveFrom, rule.EffectiveTo,
             rule.Notes, rule.Status, rule.Priority, rule.ResolvedAppliedCount, rule.IsActive,
             rule.CreateUserId, rule.CreateDate, rule.ModifyUserId, rule.ModifyDate,
-            rule.ContextType, rule.ProductCode, rule.SalesChannel
+            rule.ContextType, rule.ProductCode, rule.SalesChannel,
+            rule.RuleName, rule.CurrencyCode, rule.CommercialModel
         );
     }
 }

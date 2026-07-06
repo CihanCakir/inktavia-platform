@@ -18,6 +18,7 @@ public sealed record ProviderPlanDto(
     bool                   HasPriorityBoost,
     bool                   HasFullAnalytics,
     bool                   IsFree,
+    bool                   IsActive,
     int                    SortOrder,
     DateTime?              ValidFrom,
     DateTime?              ValidTo,

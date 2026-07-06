@@ -152,11 +152,18 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/payment/commission/rules")]
     Task<CommissionRuleListBffResult> GetCommissionRulesPagedAsync(
-        [Query] string? ruleType  = null,
-        [Query] string? status    = null,
-        [Query] string? priority  = null,
-        [Query] int     page      = 1,
-        [Query] int     pageSize  = 20,
+        [Query] string?   ruleType          = null,
+        [Query] string?   status            = null,
+        [Query] string?   priority          = null,
+        [Query] int       page              = 1,
+        [Query] int       pageSize          = 20,
+        [Query] string?   contextType       = null,
+        [Query] string?   commercialModel   = null,
+        [Query] string?   productCode       = null,
+        [Query] string?   salesChannel      = null,
+        [Query] string?   search            = null,
+        [Query] long?     providerProfileId = null,
+        [Query] DateTime? effectiveOnUtc    = null,
         CancellationToken ct = default);
 
     [AizenRemoteCallGet("/api/v1/payment/commission/rules/{id}")]
@@ -327,6 +334,28 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     Task<PlanMutateBffResult> UpdateParticipantPlanAsync(
         long id,
         [AizenRemoteCallBody] UpdateParticipantPlanBffRequest body,
+        CancellationToken ct = default);
+
+    // ─── Plans — Activate / Deactivate ───────────────────────────────────────
+
+    [AizenRemoteCallPost("/api/v1/payment/provider-plans/{id}/activate")]
+    Task<PlanMutateBffResult> ActivateProviderPlanAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/provider-plans/{id}/deactivate")]
+    Task<PlanMutateBffResult> DeactivateProviderPlanAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/participant-plans/{id}/activate")]
+    Task<PlanMutateBffResult> ActivateParticipantPlanAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/participant-plans/{id}/deactivate")]
+    Task<PlanMutateBffResult> DeactivateParticipantPlanAsync(
+        long id,
         CancellationToken ct = default);
 
 }

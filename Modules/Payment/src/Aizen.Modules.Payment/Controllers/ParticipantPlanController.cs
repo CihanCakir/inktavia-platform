@@ -1,4 +1,6 @@
+using Aizen.Modules.Payment.Application.Commands.ActivateParticipantPlan;
 using Aizen.Modules.Payment.Application.Commands.CreateParticipantPlan;
+using Aizen.Modules.Payment.Application.Commands.DeactivateParticipantPlan;
 using Aizen.Modules.Payment.Application.Commands.UpdateParticipantPlan;
 using Aizen.Modules.Payment.Application.Queries.GetParticipantPlanById;
 using Aizen.Modules.Payment.Application.Queries.GetParticipantPlans;
@@ -40,6 +42,10 @@ public sealed class ParticipantPlanController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result!.Id }, result);
     }
 
+    /// <summary>
+    /// Updates all editable fields of a participant subscription plan.
+    /// PlanCode is immutable after creation.
+    /// </summary>
     [HttpPut("{id:long}")]
     [Authorize(Policy = "AdminPanelAccess")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateParticipantPlanCommand command, CancellationToken ct)
@@ -50,12 +56,40 @@ public sealed class ParticipantPlanController : ControllerBase
             Name                  = command.Name,
             Description           = command.Description,
             MonthlyPriceTRY       = command.MonthlyPriceTRY,
+            AnnualPriceTRY        = command.AnnualPriceTRY,
+            TrialDays             = command.TrialDays,
+            BadgeLabel            = command.BadgeLabel,
             ServiceDiscountRate   = command.ServiceDiscountRate,
             CargoDryDiscountRate  = command.CargoDryDiscountRate,
             InkCoinEarnMultiplier = command.InkCoinEarnMultiplier,
             SortOrder             = command.SortOrder,
+            ValidFrom             = command.ValidFrom,
+            ValidTo               = command.ValidTo,
+            FeatureItems          = command.FeatureItems,
         };
         var result = await _sender.Send(enriched, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Sets IsActive=true. Does NOT create subscriptions or trigger billing.
+    /// </summary>
+    [HttpPost("{id:long}/activate")]
+    [Authorize(Policy = "AdminPanelAccess")]
+    public async Task<IActionResult> Activate(long id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new ActivateParticipantPlanCommand { Id = id }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Sets IsActive=false. Does NOT cancel existing subscriptions or affect billing.
+    /// </summary>
+    [HttpPost("{id:long}/deactivate")]
+    [Authorize(Policy = "AdminPanelAccess")]
+    public async Task<IActionResult> Deactivate(long id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new DeactivateParticipantPlanCommand { Id = id }, ct);
         return Ok(result);
     }
 }

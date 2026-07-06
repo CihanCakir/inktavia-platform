@@ -5,9 +5,10 @@ using Aizen.Core.CQRS.Handler;
 namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRulesList;
 
 [DocumentationInfo("Get commission rules list BFF query handler",
-    "Returns a paged list of commission rules with optional RuleType/Status/Priority string filters. " +
-    "Filters are forwarded as plain strings to the Payment module; the Payment module " +
-    "parses enum values from the query string via its own enum converter. " +
+    "Returns a paged list of commission rules with optional filters forwarded as plain strings " +
+    "to the Payment module (enum parsing handled by the module's own converter). " +
+    "Phase 13 (July 2026): Extended with ContextType, CommercialModel, ProductCode, SalesChannel, " +
+    "Search, ProviderProfileId, and EffectiveOnUtc filters. " +
     "No identity enrichment needed — rules are admin-managed records, not user-linked.")]
 public sealed class GetCommissionRulesListBffQueryHandler
     : AizenQueryHandler<GetCommissionRulesListBffQuery, GetCommissionRulesListBffResponse>
@@ -21,12 +22,19 @@ public sealed class GetCommissionRulesListBffQueryHandler
         GetCommissionRulesListBffQuery request, CancellationToken ct)
     {
         var result = await _payment.GetCommissionRulesPagedAsync(
-            request.RuleType,
-            request.Status,
-            request.Priority,
-            request.Page,
-            request.PageSize,
-            ct);
+            ruleType:          request.RuleType,
+            status:            request.Status,
+            priority:          request.Priority,
+            page:              request.Page,
+            pageSize:          request.PageSize,
+            contextType:       request.ContextType,
+            commercialModel:   request.CommercialModel,
+            productCode:       request.ProductCode,
+            salesChannel:      request.SalesChannel,
+            search:            request.Search,
+            providerProfileId: request.ProviderProfileId,
+            effectiveOnUtc:    request.EffectiveOnUtc,
+            ct:                ct);
 
         return new GetCommissionRulesListBffResponse { Result = result };
     }

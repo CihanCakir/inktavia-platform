@@ -55,8 +55,12 @@ using Aizen.Modules.Payment.Abstraction.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ActivateParticipantPlan;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ActivateProviderPlan;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateParticipantPlan;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateProviderPlan;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.DeactivateParticipantPlan;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.DeactivateProviderPlan;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateParticipantPlan;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateProviderPlan;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetParticipantPlanById;
@@ -504,24 +508,41 @@ public sealed class AdminPaymentController : AizenWebApiController
         return SetResponse(result?.Stats);
     }
 
-    /// <summary>GET api/v1/admin-panel/payment/commission/rules — paged list with filters</summary>
+    /// <summary>
+    /// GET api/v1/admin-panel/payment/commission/rules — paged list with filters.
+    /// Phase 13 (July 2026): Extended with CargoDry targeting, labeling, date, and search filters.
+    /// </summary>
     [HttpGet("commission/rules")]
     [ProducesResponseType(typeof(CommissionRuleListBffResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CommissionRuleListBffResult>> GetCommissionRules(
-        [FromQuery] string? ruleType  = null,
-        [FromQuery] string? status    = null,
-        [FromQuery] string? priority  = null,
-        [FromQuery] int     page      = 1,
-        [FromQuery] int     pageSize  = 20,
+        [FromQuery] string?   ruleType          = null,
+        [FromQuery] string?   status            = null,
+        [FromQuery] string?   priority          = null,
+        [FromQuery] int       page              = 1,
+        [FromQuery] int       pageSize          = 20,
+        [FromQuery] string?   contextType       = null,
+        [FromQuery] string?   commercialModel   = null,
+        [FromQuery] string?   productCode       = null,
+        [FromQuery] string?   salesChannel      = null,
+        [FromQuery] string?   search            = null,
+        [FromQuery] long?     providerProfileId = null,
+        [FromQuery] DateTime? effectiveOnUtc    = null,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(new GetCommissionRulesListBffQuery
         {
-            RuleType = ruleType,
-            Status   = status,
-            Priority = priority,
-            Page     = page,
-            PageSize = pageSize,
+            RuleType          = ruleType,
+            Status            = status,
+            Priority          = priority,
+            Page              = page,
+            PageSize          = pageSize,
+            ContextType       = contextType,
+            CommercialModel   = commercialModel,
+            ProductCode       = productCode,
+            SalesChannel      = salesChannel,
+            Search            = search,
+            ProviderProfileId = providerProfileId,
+            EffectiveOnUtc    = effectiveOnUtc,
         }, ct);
         return SetResponse(result?.Result);
     }
@@ -770,6 +791,52 @@ public sealed class AdminPaymentController : AizenWebApiController
             FeatureItems          = command.FeatureItems,
         };
         var result = await _cqrs.ProcessAsync(enriched, ct);
+        return SetResponse(result);
+    }
+
+    // ─── Plans — Activate / Deactivate ───────────────────────────────────────
+
+    /// <summary>POST api/v1/admin-panel/payment/provider-plans/{id}/activate</summary>
+    [HttpPost("provider-plans/{id:long}/activate")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> ActivateProviderPlan(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ActivateProviderPlanBffCommand { Id = id }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/provider-plans/{id}/deactivate</summary>
+    [HttpPost("provider-plans/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> DeactivateProviderPlan(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new DeactivateProviderPlanBffCommand { Id = id }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/participant-plans/{id}/activate</summary>
+    [HttpPost("participant-plans/{id:long}/activate")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> ActivateParticipantPlan(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ActivateParticipantPlanBffCommand { Id = id }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/participant-plans/{id}/deactivate</summary>
+    [HttpPost("participant-plans/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(PlanMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlanMutateBffResult?>> DeactivateParticipantPlan(
+        long id,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new DeactivateParticipantPlanBffCommand { Id = id }, ct);
         return SetResponse(result);
     }
 

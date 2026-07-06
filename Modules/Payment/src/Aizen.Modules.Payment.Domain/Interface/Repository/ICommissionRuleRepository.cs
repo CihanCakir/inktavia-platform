@@ -24,13 +24,24 @@ public interface ICommissionRuleRepository
 
     Task<List<CommissionRuleEntity>> GetAllAsync(CancellationToken ct = default);
 
+    /// <summary>
+    /// Returns a paged list of commission rules with optional filters.
+    /// Phase 13 (July 2026): Extended with CargoDry targeting + labeling + date + search filters.
+    /// </summary>
     Task<(List<CommissionRuleEntity> Items, int Total)> GetPagedAsync(
         CommissionRuleType?     ruleType,
         CommissionRuleStatus?   status,
         CommissionRulePriority? priority,
-        int skip,
-        int take,
-        CancellationToken ct = default);
+        int                     skip,
+        int                     take,
+        TransactionContextType? contextType      = null,
+        CommercialModel?        commercialModel  = null,
+        string?                 productCode      = null,
+        SalesChannel?           salesChannel     = null,
+        string?                 search           = null,
+        long?                   providerProfileId = null,
+        DateTime?               effectiveOnUtc   = null,
+        CancellationToken       ct               = default);
 
     Task<CommissionRuleEntity?> GetByIdAsync(long id, CancellationToken ct = default);
 

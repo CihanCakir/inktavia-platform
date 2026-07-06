@@ -75,4 +75,7 @@ public sealed class ParticipantPlanEntity : AizenEntityWithAudit
     }
 
     public bool IsFree => MonthlyPriceTRY == 0;
+
+    public void Activate()   => IsActive = true;
+    public void Deactivate() => IsActive = false;
 }

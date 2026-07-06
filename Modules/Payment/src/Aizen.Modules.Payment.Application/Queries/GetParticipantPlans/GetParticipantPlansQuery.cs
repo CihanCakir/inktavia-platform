@@ -18,6 +18,7 @@ public sealed record ParticipantPlanDto(
     decimal CargoDryDiscountRate,
     decimal InkCoinEarnMultiplier,
     bool    IsFree,
+    bool    IsActive,
     int     SortOrder,
     DateTime? ValidFrom,
     DateTime? ValidTo,

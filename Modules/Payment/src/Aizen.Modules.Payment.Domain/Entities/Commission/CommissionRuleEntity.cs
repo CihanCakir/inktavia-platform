@@ -245,6 +245,33 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
 
     public void IncrementAppliedCount() => ResolvedAppliedCount++;
 
+    /// <summary>
+    /// Sets optional Phase 5 labeling fields after any factory method.
+    /// Called by CreateCommissionRuleCommandHandler when the admin supplies these fields.
+    /// Phase 13 (July 2026): exposed for general use — not just CargoDry-specific factory methods.
+    /// </summary>
+    public void SetMetadata(string? ruleName, string? currencyCode, CommercialModel? commercialModel)
+    {
+        RuleName        = ruleName;
+        CurrencyCode    = currencyCode?.ToUpperInvariant();
+        CommercialModel = commercialModel;
+    }
+
+    /// <summary>
+    /// Sets Phase 0 CargoDry targeting dimensions after any factory method.
+    /// Allows scoping a Global/Category/Plan/ProviderOverride rule to a specific context, product, or channel.
+    /// Phase 13 (July 2026): exposed for general use — not just CargoDry-specific factory methods.
+    /// </summary>
+    public void SetContextDimensions(
+        TransactionContextType? contextType,
+        string?                 productCode,
+        SalesChannel?           salesChannel)
+    {
+        ContextType  = contextType;
+        ProductCode  = productCode?.ToUpperInvariant();
+        SalesChannel = salesChannel;
+    }
+
     public bool IsEffective(DateTime atUtc) =>
         IsActive && EffectiveFrom <= atUtc && (EffectiveTo == null || EffectiveTo >= atUtc);
 
