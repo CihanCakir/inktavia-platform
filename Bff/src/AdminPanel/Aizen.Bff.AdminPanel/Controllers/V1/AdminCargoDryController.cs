@@ -4,6 +4,7 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.DispatchCargoDryRen
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDryKitRenewal;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDryRenewalInvoice;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.PrepareCargoDryRenewalNotification;
+using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryOpportunityRoutingPreview;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryRenewalCandidatesBff;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryRenewalPreparationDetailBff;
 using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryRenewalPreparationsPagedBff;
@@ -1526,6 +1527,30 @@ public sealed class AdminCargoDryController : AizenWebApiController
             }, ct);
 
         return SetResponse(result?.Preparation);
+    }
+
+    // ── Phase 24: CargoDry Opportunity Routing Priority Preview ──────────────
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/opportunity-routing/preview
+    ///
+    /// Phase 24 — Read-only admin decision-support preview.
+    /// Resolves CargoDry provider candidates (Active ConsignmentAgreements + ProviderInventory),
+    /// then calls the Profile priority-preview engine with context "CargoDryOpportunityRouting".
+    ///
+    /// Hard rules: No automatic kit allocation, no agreement/inventory changes,
+    /// no enforcement, no scoring formula changes. BFF orchestration only.
+    /// </summary>
+    [HttpPost("opportunity-routing/preview")]
+    [ProducesResponseType(typeof(CargoDryOpportunityRoutingPreviewBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryOpportunityRoutingPreviewBffResponse>> GetOpportunityRoutingPreview(
+        [FromBody] CargoDryOpportunityRoutingPreviewBffRequest body,
+        CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetCargoDryOpportunityRoutingPreviewBffQuery(body), ct);
+
+        return SetResponse(result);
     }
 }
 

@@ -38,6 +38,14 @@ public interface ICargoDryConsignmentAgreementRepository
         int                         take,
         CancellationToken           ct = default);
 
+    /// <summary>
+    /// Phase 24 — Returns distinct provider profile IDs that have at least one
+    /// Active consignment agreement. Used as a candidate source for the CargoDry
+    /// opportunity routing priority preview (read-only, decision support only).
+    /// </summary>
+    Task<IReadOnlyList<long>> GetDistinctActiveProviderProfileIdsAsync(
+        CancellationToken ct = default);
+
     Task AddAsync(CargoDryConsignmentAgreementEntity entity, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

@@ -77,6 +77,18 @@ public sealed class CargoDryProviderInventoryRepository : ICargoDryProviderInven
         return (items, total);
     }
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<long>> GetDistinctProviderProfileIdsAsync(
+        CancellationToken ct)
+    {
+        var ids = await _db.ProviderInventories
+            .Select(x => x.ProviderProfileId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        return ids;
+    }
+
     public async Task AddAsync(CargoDryProviderInventoryEntity entity, CancellationToken ct)
     {
         await _db.ProviderInventories.AddAsync(entity, ct);

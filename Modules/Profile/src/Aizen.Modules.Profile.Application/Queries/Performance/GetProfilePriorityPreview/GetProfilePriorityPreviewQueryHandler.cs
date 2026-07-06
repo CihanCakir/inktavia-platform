@@ -8,11 +8,9 @@ namespace Aizen.Modules.Profile.Application.Queries.Performance.GetProfilePriori
 
 /// <summary>
 /// Phase 21 — Priority Preview Query Handler.
+/// Phase 24 — adds CargoDryOpportunityRouting context-specific formula branching.
 ///
-/// Computes a ranked priority score for each candidate provider snapshot and returns
-/// a read-only, explainability-focused result for admin decision support only.
-///
-/// Priority formula (Phase 21 MVP):
+/// Priority formula (Phase 21 MVP — default for SR and AdminAssignment contexts):
 ///   PriorityScore = OverallScore       * 0.40
 ///                 + CategoryFitScore   * 0.20   ← neutral 50 (GeoDiscovery/CategoryMatch not yet integrated)
 ///                 + LocationFitScore   * 0.15   ← neutral 50 (GeoDiscovery not yet integrated)
@@ -21,22 +19,34 @@ namespace Aizen.Modules.Profile.Application.Queries.Performance.GetProfilePriori
 ///                 - RiskPenaltyScore   * 0.05   ← real value from snapshot (penalty)
 ///                 + ManualBoostValue            ← 0 (not implemented in Phase 21)
 ///
-/// Hard rules (Phase 21):
+/// Priority formula (Phase 24 — CargoDryOpportunityRouting context):
+///   PriorityScore = OverallScore                * 0.30   ← real
+///                 + CargoDryScore               * 0.30   ← real
+///                 + CargoDryOpportunityFitScore * 0.15   ← neutral 50 (post-MVP)
+///                 + InventoryDisciplineScore    * 0.10   ← neutral 50 (post-MVP)
+///                 + LocationFitScore            * 0.05   ← neutral 50 (GeoDiscovery post-MVP)
+///                 + ConfidenceNormalized        * 0.05   ← real: ConfidenceScore × 100
+///                 - RiskPenaltyScore            * 0.05   ← real
+///
+/// Hard rules (Phase 21/24):
 /// - Does NOT change ServiceRequest assignment logic.
 /// - Does NOT change provider search ranking.
 /// - Does NOT create scoring penalties or payout holds.
 /// - All scores come from the existing snapshot — no recalculation.
 /// - Decision log entries are append-only.
+/// - Phase 24: No CargoDry kit allocation, no consignment/inventory changes.
 /// </summary>
 [DocumentationInfo("GetProfilePriorityPreviewQueryHandler",
-    "Phase 21 read-only priority preview. Ranks candidate providers by a priority score " +
-    "derived from their existing performance snapshot. Returns explanation factors for each candidate. " +
-    "MVP: CategoryFit, LocationFit, Capacity are neutral (50). CargoDryScore and RiskPenaltyScore are live. " +
+    "Phase 21/24 read-only priority preview. Ranks candidate providers by a priority score " +
+    "derived from their existing performance snapshot. Returns explanation factors per candidate. " +
+    "Phase 21 (default): CategoryFit, LocationFit, Capacity neutral (50). " +
+    "Phase 24 (CargoDryOpportunityRouting): CargoDryScore weighted 0.30, OverallScore 0.30, " +
+    "CargoDryOpportunityFitScore+InventoryDiscipline neutral, ConfidenceNormalized live. " +
     "Does NOT modify any entity or trigger any assignment.")]
 public sealed class GetProfilePriorityPreviewQueryHandler
     : AizenQueryHandler<GetProfilePriorityPreviewQuery, ProfilePriorityPreviewResultDto>
 {
-    // ── Priority formula weights ───────────────────────────────────────────────
+    // ── Phase 21 default formula weights ─────────────────────────────────────
     private const decimal W_OVERALL       = 0.40m;
     private const decimal W_CATEGORY_FIT  = 0.20m;
     private const decimal W_LOCATION_FIT  = 0.15m;
@@ -44,7 +54,16 @@ public sealed class GetProfilePriorityPreviewQueryHandler
     private const decimal W_CARGODRY      = 0.10m;
     private const decimal W_RISK_PENALTY  = 0.05m; // subtracted
 
-    // ── MVP neutral value (when real data is not available) ────────────────────
+    // ── Phase 24 CargoDryOpportunityRouting formula weights ──────────────────
+    private const decimal CD_W_OVERALL               = 0.30m;
+    private const decimal CD_W_CARGODRY              = 0.30m;
+    private const decimal CD_W_OPPORTUNITY_FIT       = 0.15m;
+    private const decimal CD_W_INVENTORY_DISCIPLINE  = 0.10m;
+    private const decimal CD_W_LOCATION_FIT          = 0.05m;
+    private const decimal CD_W_CONFIDENCE            = 0.05m;
+    private const decimal CD_W_RISK_PENALTY          = 0.05m; // subtracted
+
+    // ── MVP neutral value (when real data is not available) ──────────────────
     private const decimal MVP_NEUTRAL = 50m;
 
     private readonly IProfilePerformanceSnapshotRepository _snapshots;
@@ -65,16 +84,22 @@ public sealed class GetProfilePriorityPreviewQueryHandler
         var snapshots = await _snapshots.GetByProfilesAsync(
             request.CandidateProfileIds, ProfileType.Provider, ct);
 
-        var snapshotMap = snapshots.ToDictionary(s => s.ProfileId);
-        var resolvedCount = snapshotMap.Count;
+        var resolvedCount = snapshots.Count;
         var skippedCount  = request.CandidateProfileIds.Count - resolvedCount;
 
         // ── 2. Compute priority score + explanation for each resolved candidate ─
+        var isCargoDryContext = string.Equals(
+            request.Context,
+            SupportedPriorityPreviewContexts.CargoDryOpportunityRouting,
+            StringComparison.OrdinalIgnoreCase);
+
         var candidates = new List<ProfilePriorityCandidateDto>(resolvedCount);
 
         foreach (var snapshot in snapshots)
         {
-            var candidate = ComputeCandidate(snapshot);
+            var candidate = isCargoDryContext
+                ? ComputeCandidateCargoDry(snapshot)
+                : ComputeCandidate(snapshot);
             candidates.Add(candidate);
         }
 
@@ -132,6 +157,10 @@ public sealed class GetProfilePriorityPreviewQueryHandler
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Phase 21 default formula — used for ServiceRequestProviderRecommendation
+    /// and AdminAssignmentSuggestion contexts.
+    /// </summary>
     private static ProfilePriorityCandidateDto ComputeCandidate(
         ProfilePerformanceSnapshotEntity snapshot)
     {
@@ -153,7 +182,6 @@ public sealed class GetProfilePriorityPreviewQueryHandler
             - riskPenalty      * W_RISK_PENALTY
             + manualBoost;
 
-        // Clamp to 0–100
         priorityScore = Math.Max(0m, Math.Min(100m, priorityScore));
 
         var factors = new List<ProfilePriorityExplanationFactorDto>
@@ -216,6 +244,119 @@ public sealed class GetProfilePriorityPreviewQueryHandler
             },
         };
 
+        return BuildCandidateDto(snapshot, priorityScore, factors);
+    }
+
+    /// <summary>
+    /// Phase 24 formula — used for CargoDryOpportunityRouting context.
+    /// CargoDryScore and OverallScore are each weighted 0.30 (CargoDry-heavy).
+    /// CargoDryOpportunityFitScore, InventoryDisciplineScore = neutral 50 (post-MVP).
+    /// LocationFitScore = neutral 50 (GeoDiscovery post-MVP).
+    /// ConfidenceNormalized = snapshot.ConfidenceScore × 100 (0–100 scale).
+    /// Phase 24 hard rule: No scoring formula changes beyond adding this context branch.
+    /// </summary>
+    private static ProfilePriorityCandidateDto ComputeCandidateCargoDry(
+        ProfilePerformanceSnapshotEntity snapshot)
+    {
+        var overallScore              = snapshot.OverallScore;
+        var cargoDryScore             = snapshot.CargoDryScore;
+        var cargoDryOpportunityFit    = MVP_NEUTRAL; // post-MVP: real fit score
+        var inventoryDisciplineScore  = MVP_NEUTRAL; // post-MVP: kit activation discipline
+        var locationFitScore          = MVP_NEUTRAL; // post-MVP: GeoDiscovery
+        var confidenceNormalized      = snapshot.ConfidenceScore * 100m; // 0.0–1.0 → 0–100
+        var riskPenalty               = snapshot.RiskPenaltyScore;
+
+        var priorityScore =
+              overallScore             * CD_W_OVERALL
+            + cargoDryScore            * CD_W_CARGODRY
+            + cargoDryOpportunityFit   * CD_W_OPPORTUNITY_FIT
+            + inventoryDisciplineScore * CD_W_INVENTORY_DISCIPLINE
+            + locationFitScore         * CD_W_LOCATION_FIT
+            + confidenceNormalized     * CD_W_CONFIDENCE
+            - riskPenalty              * CD_W_RISK_PENALTY;
+
+        priorityScore = Math.Max(0m, Math.Min(100m, priorityScore));
+
+        var factors = new List<ProfilePriorityExplanationFactorDto>
+        {
+            new()
+            {
+                Factor       = "OverallScore",
+                Value        = overallScore,
+                Weight       = CD_W_OVERALL,
+                Contribution = overallScore * CD_W_OVERALL,
+                IsMvpNeutral = false,
+                Note         = "Composite performance score from snapshot.",
+            },
+            new()
+            {
+                Factor       = "CargoDryScore",
+                Value        = cargoDryScore,
+                Weight       = CD_W_CARGODRY,
+                Contribution = cargoDryScore * CD_W_CARGODRY,
+                IsMvpNeutral = false,
+                Note         = "CargoDry dimension score from snapshot. Heavily weighted for CargoDry routing.",
+            },
+            new()
+            {
+                Factor       = "CargoDryOpportunityFit",
+                Value        = cargoDryOpportunityFit,
+                Weight       = CD_W_OPPORTUNITY_FIT,
+                Contribution = cargoDryOpportunityFit * CD_W_OPPORTUNITY_FIT,
+                IsMvpNeutral = true,
+                Note         = "MVP neutral (50). Kit activation fit scoring deferred post-MVP.",
+            },
+            new()
+            {
+                Factor       = "InventoryDiscipline",
+                Value        = inventoryDisciplineScore,
+                Weight       = CD_W_INVENTORY_DISCIPLINE,
+                Contribution = inventoryDisciplineScore * CD_W_INVENTORY_DISCIPLINE,
+                IsMvpNeutral = true,
+                Note         = "MVP neutral (50). Inventory replenishment discipline deferred post-MVP.",
+            },
+            new()
+            {
+                Factor       = "LocationFit",
+                Value        = locationFitScore,
+                Weight       = CD_W_LOCATION_FIT,
+                Contribution = locationFitScore * CD_W_LOCATION_FIT,
+                IsMvpNeutral = true,
+                Note         = "MVP neutral (50). GeoDiscovery integration deferred post-MVP.",
+            },
+            new()
+            {
+                Factor       = "ConfidenceNormalized",
+                Value        = confidenceNormalized,
+                Weight       = CD_W_CONFIDENCE,
+                Contribution = confidenceNormalized * CD_W_CONFIDENCE,
+                IsMvpNeutral = false,
+                Note         = $"Provider confidence score normalized to 0–100 (raw: {snapshot.ConfidenceScore:F2}). " +
+                               (confidenceNormalized < 25m
+                                   ? "Low confidence — cold-start or limited activity."
+                                   : "Sufficient confidence level."),
+            },
+            new()
+            {
+                Factor       = "RiskPenalty",
+                Value        = riskPenalty,
+                Weight       = CD_W_RISK_PENALTY,
+                Contribution = -(riskPenalty * CD_W_RISK_PENALTY),
+                IsMvpNeutral = false,
+                Note         = snapshot.HasActiveRiskSignal
+                    ? $"Active risk signal ({snapshot.ActiveRiskSignalMaxSeverity}) — penalty applied."
+                    : "No active risk signal.",
+            },
+        };
+
+        return BuildCandidateDto(snapshot, priorityScore, factors);
+    }
+
+    private static ProfilePriorityCandidateDto BuildCandidateDto(
+        ProfilePerformanceSnapshotEntity       snapshot,
+        decimal                                priorityScore,
+        List<ProfilePriorityExplanationFactorDto> factors)
+    {
         var isColdStart = snapshot.MetadataJson?.Contains("\"coldStart\":true") ?? false;
 
         return new ProfilePriorityCandidateDto
@@ -250,9 +391,20 @@ public sealed class GetProfilePriorityPreviewQueryHandler
         if (skippedCount > 0)
             parts.Add($"Skipped (no snapshot): {skippedCount}.");
 
-        parts.Add("Formula: OverallScore×0.40 + CategoryFit×0.20 + LocationFit×0.15 + Capacity×0.10 + CargoDry×0.10 − RiskPenalty×0.05.");
-        parts.Add("MVP: CategoryFit, LocationFit, Capacity are neutral (50).");
-        parts.Add("Phase 21 rule: read-only preview — no assignment or scoring changes.");
+        var formulaLine = string.Equals(
+            request.Context,
+            SupportedPriorityPreviewContexts.CargoDryOpportunityRouting,
+            StringComparison.OrdinalIgnoreCase)
+            ? "Formula (CargoDryOpportunityRouting): OverallScore×0.30 + CargoDryScore×0.30 + " +
+              "CargoDryOpportunityFit×0.15 + InventoryDiscipline×0.10 + LocationFit×0.05 + " +
+              "ConfidenceNormalized×0.05 − RiskPenalty×0.05. " +
+              "MVP: CargoDryOpportunityFit, InventoryDiscipline, LocationFit are neutral (50)."
+            : "Formula: OverallScore×0.40 + CategoryFit×0.20 + LocationFit×0.15 + " +
+              "Capacity×0.10 + CargoDry×0.10 − RiskPenalty×0.05. " +
+              "MVP: CategoryFit, LocationFit, Capacity are neutral (50).";
+
+        parts.Add(formulaLine);
+        parts.Add("Phase 21/24 rule: read-only preview — no assignment or scoring changes.");
 
         return string.Join(" ", parts);
     }

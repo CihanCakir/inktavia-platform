@@ -32,6 +32,14 @@ public interface ICargoDryProviderInventoryRepository
         int                      take,
         CancellationToken        ct = default);
 
+    /// <summary>
+    /// Phase 24 — Returns distinct provider profile IDs that have any inventory record.
+    /// Used as a candidate source for the CargoDry opportunity routing priority preview
+    /// (read-only, decision support only).
+    /// </summary>
+    Task<IReadOnlyList<long>> GetDistinctProviderProfileIdsAsync(
+        CancellationToken ct = default);
+
     Task AddAsync(CargoDryProviderInventoryEntity entity, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

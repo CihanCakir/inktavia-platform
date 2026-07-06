@@ -601,4 +601,16 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [Query] string?   salesChannel      = null,
         [Query] long?     providerProfileId = null,
         CancellationToken ct = default);
+
+    // ── Phase 24: CargoDry Opportunity Routing Candidates ────────────────────
+
+    /// <summary>
+    /// Phase 24 — Returns distinct provider profile IDs that have active CargoDry
+    /// relationships (Active ConsignmentAgreements + ProviderInventory records).
+    /// Used by the BFF to resolve candidates before calling the Profile priority-preview
+    /// engine with context "CargoDryOpportunityRouting". Read-only.
+    /// </summary>
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/opportunity-routing/candidates")]
+    Task<CargoDryOpportunityRoutingCandidatesBffResult> GetCargoDryOpportunityRoutingCandidatesAsync(
+        CancellationToken ct = default);
 }

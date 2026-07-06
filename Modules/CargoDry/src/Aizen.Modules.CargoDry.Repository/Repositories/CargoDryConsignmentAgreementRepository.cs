@@ -83,6 +83,19 @@ public sealed class CargoDryConsignmentAgreementRepository : ICargoDryConsignmen
         return (items, total);
     }
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<long>> GetDistinctActiveProviderProfileIdsAsync(
+        CancellationToken ct)
+    {
+        var ids = await _db.ConsignmentAgreements
+            .Where(x => x.Status == ConsignmentAgreementStatus.Active)
+            .Select(x => x.ProviderProfileId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        return ids;
+    }
+
     public async Task AddAsync(CargoDryConsignmentAgreementEntity entity, CancellationToken ct)
     {
         await _db.ConsignmentAgreements.AddAsync(entity, ct);

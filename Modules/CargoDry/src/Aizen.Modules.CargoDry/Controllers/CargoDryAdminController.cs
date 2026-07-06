@@ -18,6 +18,7 @@ using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryKitLifecycleHistory;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryKitLifecycleEventsPaged;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalAlerts;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalOverview;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOpportunityRoutingCandidates;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalCandidates;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalPreparationDetail;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalPreparationsPaged;
@@ -155,6 +156,21 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> GetOperationalOverview(CancellationToken ct)
     {
         var result = await _sender.Send(new GetCargoDryOperationalOverviewQuery(), ct);
+        return Ok(result);
+    }
+
+    // ── Phase 24: Opportunity routing candidates (read-only, decision support) ─
+
+    /// <summary>
+    /// Phase 24 — Returns distinct provider profile IDs that have active CargoDry
+    /// relationships (Active ConsignmentAgreements + ProviderInventory).
+    /// Used by AdminPanel BFF for CargoDryOpportunityRouting priority preview.
+    /// Read-only — no writes, no enforcement, no scoring changes.
+    /// </summary>
+    [HttpGet("opportunity-routing/candidates")]
+    public async Task<IActionResult> GetOpportunityRoutingCandidates(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetCargoDryOpportunityRoutingCandidatesQuery(), ct);
         return Ok(result);
     }
 
