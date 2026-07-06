@@ -82,6 +82,10 @@ public static class DependencyInjection
             CreateRemoteCall<IAdminPaymentBffRemoteCall>(
                 CreateHttpClient(provider, nameof(IAdminPaymentBffRemoteCall))));
 
+        services.AddTransient<IAdminProfilePerformanceBffRemoteCall>(provider =>
+            CreateRemoteCall<IAdminProfilePerformanceBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IAdminProfilePerformanceBffRemoteCall))));
+
         return services;
     }
 

@@ -10,7 +10,7 @@ var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
     Name        = "Profile",
     Type        = AppType.Operation,
-    TypeInclude = { AppType.Api },
+    TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler },
 }, args);
 
 // ── PostgreSQL ────────────────────────────────────────────────────────────────

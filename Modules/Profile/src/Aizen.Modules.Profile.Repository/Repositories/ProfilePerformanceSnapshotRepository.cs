@@ -35,6 +35,19 @@ public sealed class ProfilePerformanceSnapshotRepository : IProfilePerformanceSn
     public Task<int> CountByTierAsync(PriorityTier tier, CancellationToken ct)
         => _db.PerformanceSnapshots.CountAsync(x => x.PriorityTier == tier && x.IsActive, ct);
 
+    public Task<List<ProfilePerformanceSnapshotEntity>> GetProviderProfilesRequiringRecomputeAsync(
+        int staleThresholdHours, int batchSize, CancellationToken ct)
+    {
+        var threshold = DateTime.UtcNow.AddHours(-staleThresholdHours);
+        return _db.PerformanceSnapshots
+                  .Where(x => x.IsActive
+                           && x.ProfileType == ProfileType.Provider
+                           && (x.LastCalculatedAtUtc == null || x.LastCalculatedAtUtc < threshold))
+                  .OrderBy(x => x.LastCalculatedAtUtc)
+                  .Take(batchSize)
+                  .ToListAsync(ct);
+    }
+
     public Task AddAsync(ProfilePerformanceSnapshotEntity entity, CancellationToken ct)
         => _db.PerformanceSnapshots.AddAsync(entity, ct).AsTask();
 
