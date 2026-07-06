@@ -2,6 +2,7 @@ using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
@@ -525,5 +526,45 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/cargodry/kits/activate")]
     Task<CargoDryKitBffDto> ActivateKitAsync(
         [AizenRemoteCallBody] ActivateKitBffRequest request,
+        CancellationToken ct = default);
+
+    // ── Finance Reconciliation (Phase 15) ────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/finance/reconciliation/settlements")]
+    Task<CargoDrySettlementReconciliationReportDto> GetSettlementReconciliationAsync(
+        [Query] long?     providerProfileId = null,
+        [Query] string?   productCode       = null,
+        [Query] int?      status            = null,
+        [Query] bool?     hasMismatches     = null,
+        [Query] DateTime? dateFrom          = null,
+        [Query] DateTime? dateTo            = null,
+        [Query] int       page              = 1,
+        [Query] int       pageSize          = 50,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/finance/reconciliation/renewals")]
+    Task<CargoDryRenewalReconciliationReportDto> GetRenewalReconciliationAsync(
+        [Query] string?           productCode        = null,
+        [Query] long?             ownerUserId        = null,
+        [Query] long?             vesselId           = null,
+        [Query] int?              status             = null,
+        [Query] int?              notificationStatus = null,
+        [Query] bool?             hasMismatches      = null,
+        [Query] DateTimeOffset?   dateFrom           = null,
+        [Query] DateTimeOffset?   dateTo             = null,
+        [Query] int               page               = 1,
+        [Query] int               pageSize           = 50,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/finance/reports/commission-rule-usage")]
+    Task<CargoDryCommissionRuleUsageReportDto> GetCommissionRuleUsageAsync(
+        [Query] DateTime? dateFrom          = null,
+        [Query] DateTime? dateTo            = null,
+        [Query] long?     ruleId            = null,
+        [Query] string?   productCode       = null,
+        [Query] string?   salesChannel      = null,
+        [Query] long?     providerProfileId = null,
+        [Query] int       page              = 1,
+        [Query] int       pageSize          = 50,
         CancellationToken ct = default);
 }

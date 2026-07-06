@@ -1,3 +1,4 @@
+using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
@@ -91,6 +92,75 @@ public sealed class CargoDrySalesAttributionRepository : ICargoDrySalesAttributi
             .Where(x => x.SellThroughSettlementId == settlementId &&
                         x.FinancialResolvedAtUtc == null)
             .ToListAsync(ct);
+
+    /// <inheritdoc cref="ICargoDrySalesAttributionRepository.GetCommissionRuleUsageGroupedAsync"/>
+    public async Task<(List<CargoDryCommissionRuleUsageRowDto> Items, int Total)> GetCommissionRuleUsageGroupedAsync(
+        DateTime?         dateFrom,
+        DateTime?         dateTo,
+        long?             ruleId,
+        string?           productCode,
+        string?           salesChannel,
+        long?             providerProfileId,
+        int               skip,
+        int               take,
+        CancellationToken ct)
+    {
+        var query = _db.SalesAttributions.AsNoTracking()
+            .Where(x => x.ResolvedRuleId != null || x.ResolvedRuleSource != null);
+
+        if (dateFrom.HasValue)
+            query = query.Where(x => x.CreatedAtUtc >= dateFrom.Value);
+
+        if (dateTo.HasValue)
+            query = query.Where(x => x.CreatedAtUtc <= dateTo.Value);
+
+        if (ruleId.HasValue)
+            query = query.Where(x => x.ResolvedRuleId == ruleId.Value);
+
+        if (!string.IsNullOrWhiteSpace(productCode))
+            query = query.Where(x => x.ProductCode == productCode);
+
+        if (!string.IsNullOrWhiteSpace(salesChannel) &&
+            System.Enum.TryParse<SalesChannel>(salesChannel, ignoreCase: true, out var channelEnum))
+            query = query.Where(x => x.SalesChannel == channelEnum);
+
+        if (providerProfileId.HasValue)
+            query = query.Where(x => x.ProviderProfileId == providerProfileId.Value);
+
+        var grouped = query.GroupBy(x => new
+        {
+            x.ResolvedRuleId,
+            x.ResolvedRuleName,
+            x.ResolvedRuleSource,
+            x.ProductCode,
+            x.SalesChannel,
+            x.ProviderProfileId,
+        })
+        .Select(g => new CargoDryCommissionRuleUsageRowDto
+        {
+            RuleId                   = g.Key.ResolvedRuleId,
+            RuleName                 = g.Key.ResolvedRuleName,
+            ResolvedRuleSource       = g.Key.ResolvedRuleSource,
+            ProductCode              = g.Key.ProductCode,
+            SalesChannel             = g.Key.SalesChannel.ToString(),
+            ProviderProfileId        = g.Key.ProviderProfileId,
+            UsageCount               = g.Count(),
+            TotalSaleAmount          = g.Sum(x => x.SalePrice          ?? 0m),
+            TotalProviderShareAmount = g.Sum(x => x.ProviderShareAmount ?? 0m),
+            TotalPlatformShareAmount = g.Sum(x => x.PlatformShareAmount ?? 0m),
+            FirstUsedAtUtc           = g.Min(x => (DateTime?)x.CreatedAtUtc),
+            LastUsedAtUtc            = g.Max(x => (DateTime?)x.CreatedAtUtc),
+        });
+
+        var total = await grouped.CountAsync(ct);
+        var items = await grouped
+            .OrderByDescending(g => g.UsageCount)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
 
     public async Task AddAsync(CargoDrySalesAttributionEntity entity, CancellationToken ct)
     {

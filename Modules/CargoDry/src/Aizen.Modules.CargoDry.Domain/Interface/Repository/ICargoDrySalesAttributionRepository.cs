@@ -1,3 +1,4 @@
+using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Domain.Entities;
 
@@ -39,6 +40,23 @@ public interface ICargoDrySalesAttributionRepository
     /// </summary>
     Task<IReadOnlyList<CargoDrySalesAttributionEntity>> GetUnresolvedBySettlementIdAsync(
         long settlementId, CancellationToken ct);
+
+    /// <summary>
+    /// Returns commission rule usage rows grouped by ResolvedRuleId/Name/Source,
+    /// with aggregated sale amounts and provider/platform shares.
+    /// Used by the Finance Commission Rule Usage Report.
+    /// Phase 15 (July 2026).
+    /// </summary>
+    Task<(List<CargoDryCommissionRuleUsageRowDto> Items, int Total)> GetCommissionRuleUsageGroupedAsync(
+        DateTime?         dateFrom,
+        DateTime?         dateTo,
+        long?             ruleId,
+        string?           productCode,
+        string?           salesChannel,
+        long?             providerProfileId,
+        int               skip,
+        int               take,
+        CancellationToken ct);
 
     Task AddAsync(CargoDrySalesAttributionEntity entity, CancellationToken ct);
 

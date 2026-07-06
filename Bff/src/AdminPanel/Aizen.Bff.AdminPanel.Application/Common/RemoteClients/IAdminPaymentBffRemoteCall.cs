@@ -358,4 +358,21 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         long id,
         CancellationToken ct = default);
 
+    // ─── Finance Reporting (Phase 15) ────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/finance/reports/invoice-statement")]
+    Task<FinanceInvoiceStatementReportDto> GetFinanceInvoiceStatementAsync(
+        [Query] InvoiceType?       type          = null,
+        [Query] InvoiceStatus?     status        = null,
+        [Query] InvoiceSourceType? sourceType    = null,
+        [Query] long?              buyerUserId   = null,
+        [Query] string?            currency      = null,
+        [Query] DateTime?          fromDate      = null,
+        [Query] DateTime?          toDate        = null,
+        [Query] string?            search        = null,
+        [Query] bool?              hasMismatches = null,
+        [Query] int                page          = 1,
+        [Query] int                pageSize      = 50,
+        CancellationToken ct = default);
+
 }
