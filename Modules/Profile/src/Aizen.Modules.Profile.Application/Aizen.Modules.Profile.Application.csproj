@@ -1,9 +1,26 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache.Abstraction/Aizen.Core.Cache.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/InfoAccessor/src/Aizen.Core.InfoAccessor.Abstraction/Aizen.Core.InfoAccessor.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Profile.Domain/Aizen.Modules.Profile.Domain.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Profile.Abstraction/Aizen.Modules.Profile.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Profile.Repository/Aizen.Modules.Profile.Repository.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 
 </Project>

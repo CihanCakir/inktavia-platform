@@ -567,4 +567,38 @@ public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
         [Query] int       page              = 1,
         [Query] int       pageSize          = 50,
         CancellationToken ct = default);
+
+    // ── Finance CSV Exports (Phase 16G) ──────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/cargodry/finance/reconciliation/settlements/export")]
+    Task<HttpResponseMessage> ExportSettlementReconciliationAsync(
+        [Query] long?     providerProfileId = null,
+        [Query] string?   productCode       = null,
+        [Query] int?      status            = null,
+        [Query] bool?     hasMismatches     = null,
+        [Query] DateTime? dateFrom          = null,
+        [Query] DateTime? dateTo            = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/finance/reconciliation/renewals/export")]
+    Task<HttpResponseMessage> ExportRenewalReconciliationAsync(
+        [Query] string?          productCode        = null,
+        [Query] long?            ownerUserId        = null,
+        [Query] long?            vesselId           = null,
+        [Query] int?             status             = null,
+        [Query] int?             notificationStatus = null,
+        [Query] bool?            hasMismatches      = null,
+        [Query] DateTimeOffset?  dateFrom           = null,
+        [Query] DateTimeOffset?  dateTo             = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/finance/reports/commission-rule-usage/export")]
+    Task<HttpResponseMessage> ExportCommissionRuleUsageAsync(
+        [Query] DateTime? dateFrom          = null,
+        [Query] DateTime? dateTo            = null,
+        [Query] long?     ruleId            = null,
+        [Query] string?   productCode       = null,
+        [Query] string?   salesChannel      = null,
+        [Query] long?     providerProfileId = null,
+        CancellationToken ct = default);
 }

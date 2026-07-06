@@ -375,4 +375,19 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         [Query] int                pageSize      = 50,
         CancellationToken ct = default);
 
+    // ── Finance CSV Export (Phase 16G) ────────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/finance/reports/invoice-statement/export")]
+    Task<HttpResponseMessage> ExportFinanceInvoiceStatementAsync(
+        [Query] InvoiceType?       type          = null,
+        [Query] InvoiceStatus?     status        = null,
+        [Query] InvoiceSourceType? sourceType    = null,
+        [Query] long?              buyerUserId   = null,
+        [Query] string?            currency      = null,
+        [Query] DateTime?          fromDate      = null,
+        [Query] DateTime?          toDate        = null,
+        [Query] string?            search        = null,
+        [Query] bool?              hasMismatches = null,
+        CancellationToken ct = default);
+
 }

@@ -7,9 +7,31 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <ProjectReference Include="../../../../Core/Starter/src/Aizen.Core.Starter/Aizen.Core.Starter.csproj" />
+    <ProjectReference Include="../../../../Core/UnitOfWork/src/Aizen.Core.UnitOfWork/Aizen.Core.UnitOfWork.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Profile.Application/Aizen.Modules.Profile.Application.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Profile.Repository/Aizen.Modules.Profile.Repository.csproj" />
+    <!-- Event feeding: Profile.Performance consumers subscribe to Payment domain events -->
+    <ProjectReference Include="../../../Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="configuration\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="configuration\appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="configuration\appsettings.Production.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

@@ -27,24 +27,17 @@ public sealed class GetCargoDryOperationalAlertsQueryHandler
     public override async Task<CargoDryOperationalAlertsResponse> Handle(
         GetCargoDryOperationalAlertsQuery request, CancellationToken ct)
     {
-        // ── Gather alert sources in parallel ─────────────────────────────────
-        var expiringSoonTask = _kits.GetExpiringAsync(30, ct);
-        var expiredTask      = _kits.GetExpiredUnmarkedAsync(ct);
-        var commercialTask   = _kits.GetPagedAsync(
+        // Sequential — DbContext is not thread-safe; concurrent awaits on the same instance crash.
+        var expiringSoon = await _kits.GetExpiringAsync(30, ct);
+        var expired      = await _kits.GetExpiredUnmarkedAsync(ct);
+        var (commercialKits, _) = await _kits.GetPagedAsync(
             status: CargoDryKitStatus.CommercialReviewRequired,
             search: null, vesselId: null, ownerUserId: null, batchCode: null,
             skip: 0, take: 500, ct: ct);
-        var revokedTask = _kits.GetPagedAsync(
+        var (revokedKits, _) = await _kits.GetPagedAsync(
             status: CargoDryKitStatus.Revoked,
             search: null, vesselId: null, ownerUserId: null, batchCode: null,
             skip: 0, take: 200, ct: ct);
-
-        await Task.WhenAll(expiringSoonTask, expiredTask, commercialTask, revokedTask);
-
-        var expiringSoon = await expiringSoonTask;
-        var expired      = await expiredTask;
-        var (commercialKits, _) = await commercialTask;
-        var (revokedKits, _)    = await revokedTask;
 
         var now    = DateTimeOffset.UtcNow;
         var alerts = new List<CargoDryOperationalAlertDto>();

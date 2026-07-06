@@ -1,3 +1,7 @@
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.ExportCargoDryCommissionRuleUsageBff;
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.ExportCargoDryRenewalReconciliationBff;
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.ExportCargoDrySettlementReconciliationBff;
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.ExportPaymentInvoiceStatementBff;
 using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetCargoDryCommissionRuleUsageBff;
 using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetCargoDryRenewalReconciliationBff;
 using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetCargoDrySettlementReconciliationBff;
@@ -174,5 +178,125 @@ public sealed class AdminFinanceController : AizenWebApiController
         }, ct);
 
         return SetResponse(result?.Report);
+    }
+
+    // ── CSV Export Endpoints (Phase 16G) ─────────────────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/finance/cargodry/reconciliation/settlements/export
+    /// Downloads the full CargoDry settlement reconciliation report as CSV.
+    /// </summary>
+    [HttpGet("cargodry/reconciliation/settlements/export")]
+    public async Task<IActionResult> ExportCargoDrySettlementReconciliation(
+        [FromQuery] long?     providerProfileId = null,
+        [FromQuery] string?   productCode       = null,
+        [FromQuery] int?      status            = null,
+        [FromQuery] bool?     hasMismatches     = null,
+        [FromQuery] DateTime? dateFrom          = null,
+        [FromQuery] DateTime? dateTo            = null,
+        CancellationToken     ct                = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ExportCargoDrySettlementReconciliationBffQuery
+        {
+            ProviderProfileId = providerProfileId,
+            ProductCode       = productCode,
+            Status            = status,
+            HasMismatches     = hasMismatches,
+            DateFrom          = dateFrom,
+            DateTo            = dateTo,
+        }, ct);
+
+        return File(result!.Bytes, result.ContentType, result.FileName);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/finance/cargodry/reconciliation/renewals/export
+    /// Downloads the full CargoDry renewal reconciliation report as CSV.
+    /// </summary>
+    [HttpGet("cargodry/reconciliation/renewals/export")]
+    public async Task<IActionResult> ExportCargoDryRenewalReconciliation(
+        [FromQuery] string?          productCode        = null,
+        [FromQuery] long?            ownerUserId        = null,
+        [FromQuery] long?            vesselId           = null,
+        [FromQuery] int?             status             = null,
+        [FromQuery] int?             notificationStatus = null,
+        [FromQuery] bool?            hasMismatches      = null,
+        [FromQuery] DateTimeOffset?  dateFrom           = null,
+        [FromQuery] DateTimeOffset?  dateTo             = null,
+        CancellationToken            ct                 = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ExportCargoDryRenewalReconciliationBffQuery
+        {
+            ProductCode        = productCode,
+            OwnerUserId        = ownerUserId,
+            VesselId           = vesselId,
+            Status             = status,
+            NotificationStatus = notificationStatus,
+            HasMismatches      = hasMismatches,
+            DateFrom           = dateFrom,
+            DateTo             = dateTo,
+        }, ct);
+
+        return File(result!.Bytes, result.ContentType, result.FileName);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/finance/cargodry/reports/commission-rule-usage/export
+    /// Downloads the full CargoDry commission rule usage report as CSV.
+    /// </summary>
+    [HttpGet("cargodry/reports/commission-rule-usage/export")]
+    public async Task<IActionResult> ExportCargoDryCommissionRuleUsage(
+        [FromQuery] DateTime? dateFrom          = null,
+        [FromQuery] DateTime? dateTo            = null,
+        [FromQuery] long?     ruleId            = null,
+        [FromQuery] string?   productCode       = null,
+        [FromQuery] string?   salesChannel      = null,
+        [FromQuery] long?     providerProfileId = null,
+        CancellationToken     ct                = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ExportCargoDryCommissionRuleUsageBffQuery
+        {
+            DateFrom          = dateFrom,
+            DateTo            = dateTo,
+            RuleId            = ruleId,
+            ProductCode       = productCode,
+            SalesChannel      = salesChannel,
+            ProviderProfileId = providerProfileId,
+        }, ct);
+
+        return File(result!.Bytes, result.ContentType, result.FileName);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/finance/payment/reports/invoice-statement/export
+    /// Downloads the full Payment invoice statement report as CSV.
+    /// </summary>
+    [HttpGet("payment/reports/invoice-statement/export")]
+    public async Task<IActionResult> ExportPaymentInvoiceStatement(
+        [FromQuery] InvoiceType?       type          = null,
+        [FromQuery] InvoiceStatus?     status        = null,
+        [FromQuery] InvoiceSourceType? sourceType    = null,
+        [FromQuery] long?              buyerUserId   = null,
+        [FromQuery] string?            currency      = null,
+        [FromQuery] DateTime?          fromDate      = null,
+        [FromQuery] DateTime?          toDate        = null,
+        [FromQuery] string?            search        = null,
+        [FromQuery] bool?              hasMismatches = null,
+        CancellationToken              ct            = default)
+    {
+        var result = await _cqrs.ProcessAsync(new ExportPaymentInvoiceStatementBffQuery
+        {
+            Type          = type,
+            Status        = status,
+            SourceType    = sourceType,
+            BuyerUserId   = buyerUserId,
+            Currency      = currency,
+            FromDate      = fromDate,
+            ToDate        = toDate,
+            Search        = search,
+            HasMismatches = hasMismatches,
+        }, ct);
+
+        return File(result!.Bytes, result.ContentType, result.FileName);
     }
 }

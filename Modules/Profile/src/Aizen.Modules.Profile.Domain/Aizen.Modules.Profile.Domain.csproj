@@ -1,9 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Domain/src/Aizen.Core.Domain/Aizen.Core.Domain.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Profile.Abstraction/Aizen.Modules.Profile.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 
 </Project>

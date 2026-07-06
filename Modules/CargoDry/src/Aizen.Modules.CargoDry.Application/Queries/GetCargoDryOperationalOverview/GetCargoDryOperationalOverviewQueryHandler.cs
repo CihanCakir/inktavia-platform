@@ -41,27 +41,17 @@ public sealed class GetCargoDryOperationalOverviewQueryHandler
         var (hit, cached) = await _cache.TryGetAsync<CargoDryOperationalOverviewDto>(CacheKey, ct);
         if (hit) return cached;
 
-        // ── Parallel data gathering ────────────────────────────────────────────
-        var statsTask         = _kits.GetStatsAsync(ct);
-        var expiringSoonTask  = _kits.GetExpiringAsync(30, ct);
-        var commercialTask    = _kits.GetPagedAsync(
+        // Sequential — DbContext is not thread-safe; concurrent awaits on the same instance crash.
+        var stats                      = await _kits.GetStatsAsync(ct);
+        var expiringSoon               = await _kits.GetExpiringAsync(30, ct);
+        var (_, commercialReviewCount) = await _kits.GetPagedAsync(
             CargoDryKitStatus.CommercialReviewRequired,
             null, null, null, null, 0, 0, ct);
-        var lostTask          = _kits.GetPagedAsync(
+        var (_, lostCount)             = await _kits.GetPagedAsync(
             CargoDryKitStatus.Lost,
             null, null, null, null, 0, 0, ct);
-        var activeBatchesTask = _batches.CountActiveBatchesAsync(ct);
-        var recentEventsTask  = _lifecycleEvents.CountRecentAsync(24, ct);
-
-        await Task.WhenAll(statsTask, expiringSoonTask, commercialTask,
-                           lostTask, activeBatchesTask, recentEventsTask);
-
-        var stats                            = await statsTask;
-        var expiringSoon                     = await expiringSoonTask;
-        var (_, commercialReviewCount)       = await commercialTask;
-        var (_, lostCount)                   = await lostTask;
-        var activeBatches                    = await activeBatchesTask;
-        var recentLifecycleEventCount        = await recentEventsTask;
+        var activeBatches              = await _batches.CountActiveBatchesAsync(ct);
+        var recentLifecycleEventCount  = await _lifecycleEvents.CountRecentAsync(24, ct);
 
         // Alert count = critical expiring (≤7d) + commercial review + expired unmarked
         var criticalExpiring   = expiringSoon.Count(k =>
