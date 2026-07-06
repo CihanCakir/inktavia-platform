@@ -7,18 +7,15 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("Admin profile performance BFF remote call",
     "Proxy interface from AdminPanel BFF to Aizen.Modules.Profile — performance sub-module. " +
     "Covers snapshot reads, tier listing, score history, decision logs, risk signals, " +
-    "score components, and admin mutation endpoints (recalculate, raise/resolve risk signal). " +
+    "score components, admin mutation endpoints (recalculate, raise/resolve risk signal), " +
+    "and Phase 21 priority preview. " +
     "Auth headers (Authorization + X-Aizen-User-Token) are injected automatically " +
     "by AdminPanelBffAuthDelegatingHandler. " +
-    "Phase 20 rule: BFF is proxy-only — no score calculation occurs here.")]
+    "Phase 20/21 rule: BFF is proxy-only — no score calculation occurs here.")]
 public interface IAdminProfilePerformanceBffRemoteCall : IAizenRemoteCall
 {
     // ─── Snapshot ─────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Returns the current performance snapshot + score components for a provider.
-    /// Found=false when no snapshot exists yet.
-    /// </summary>
     [AizenRemoteCallGet("/api/v1/profile/admin/performance/{profileId}/{profileType}")]
     Task<ProfilePerformanceSnapshotWithComponentsBffDto> GetSnapshotAsync(
         long   profileId,
@@ -27,9 +24,6 @@ public interface IAdminProfilePerformanceBffRemoteCall : IAizenRemoteCall
 
     // ─── Tier listing ─────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Returns a paged list of snapshots for the given priority tier.
-    /// </summary>
     [AizenRemoteCallGet("/api/v1/profile/admin/performance/tier/{tier}")]
     Task<ProfileSnapshotPagedBffResultDto> GetSnapshotsByTierAsync(
         string      tier,
@@ -96,5 +90,17 @@ public interface IAdminProfilePerformanceBffRemoteCall : IAizenRemoteCall
     Task<ProfileRiskSignalBffDto> ResolveRiskSignalAsync(
         long        signalId,
         [AizenRemoteCallBody] ResolveProfileRiskSignalBffRequest body,
+        CancellationToken ct = default);
+
+    // ─── Phase 21 — Priority Preview ─────────────────────────────────────────
+
+    /// <summary>
+    /// Phase 21 — Read-only admin priority preview.
+    /// POST /api/v1/profile/admin/performance/priority-preview
+    /// Phase 21 rule: proxy-only — no score calculation in BFF.
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/profile/admin/performance/priority-preview")]
+    Task<ProfilePriorityPreviewBffResult> GetProfilePriorityPreviewAsync(
+        [AizenRemoteCallBody] ProfilePriorityPreviewBffRequest body,
         CancellationToken ct = default);
 }

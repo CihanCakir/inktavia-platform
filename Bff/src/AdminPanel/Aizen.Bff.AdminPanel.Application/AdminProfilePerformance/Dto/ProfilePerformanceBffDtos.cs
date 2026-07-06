@@ -172,3 +172,56 @@ public sealed class RecalculateProfilePerformanceBffResult
     public bool                             TierChanged  { get; init; }
     public bool                             IsColdStart  { get; init; }
 }
+
+// ── Phase 21 — Priority Preview ───────────────────────────────────────────────
+
+/// <summary>
+/// BFF request body for POST /api/v1/admin-panel/profile/performance/priority-preview.
+/// Phase 21 rule: read-only preview — no assignment or scoring changes.
+/// </summary>
+public sealed class ProfilePriorityPreviewBffRequest
+{
+    public List<long> CandidateProfileIds { get; init; } = [];
+    public string     Context             { get; init; } = default!;
+    public string?    CategoryCode        { get; init; }
+    public string?    LocationCode        { get; init; }
+    public int        MaxResults          { get; init; } = 10;
+    public bool       LogDecision         { get; init; } = false;
+}
+
+public sealed class ProfilePriorityPreviewBffResult
+{
+    public List<ProfilePriorityCandidateBffDto> Items              { get; init; } = [];
+    public string                               Context            { get; init; } = default!;
+    public DateTime                             GeneratedAtUtc     { get; init; }
+    public string                               ExplanationSummary { get; init; } = default!;
+    public int                                  RequestedCount     { get; init; }
+    public int                                  ResolvedCount      { get; init; }
+    public int                                  SkippedCount       { get; init; }
+}
+
+public sealed class ProfilePriorityCandidateBffDto
+{
+    public long    ProfileId                   { get; init; }
+    public string  ProfileType                 { get; init; } = default!;
+    public decimal OverallScore                { get; init; }
+    public string  PriorityTier                { get; init; } = default!;
+    public decimal PriorityScore               { get; init; }
+    public int     Rank                        { get; init; }
+    public bool    IsColdStart                 { get; init; }
+    public string  ConfidenceLevel             { get; init; } = default!;
+    public int     SampleSize                  { get; init; }
+    public bool    HasActiveRiskSignal         { get; init; }
+    public string? ActiveRiskSignalMaxSeverity { get; init; }
+    public List<ProfilePriorityExplanationFactorBffDto> ExplanationFactors { get; init; } = [];
+}
+
+public sealed class ProfilePriorityExplanationFactorBffDto
+{
+    public string  Factor       { get; init; } = default!;
+    public decimal Value        { get; init; }
+    public decimal Weight       { get; init; }
+    public decimal Contribution { get; init; }
+    public bool    IsMvpNeutral { get; init; }
+    public string? Note         { get; init; }
+}

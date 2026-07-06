@@ -1,0 +1,31 @@
+using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Dto;
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Core.CQRS.Handler;
+
+namespace Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProfilePriorityPreview;
+
+public sealed class GetProfilePriorityPreviewBffQueryHandler
+    : AizenQueryHandler<GetProfilePriorityPreviewBffQuery, GetProfilePriorityPreviewBffResponse>
+{
+    private readonly IAdminProfilePerformanceBffRemoteCall _remote;
+
+    public GetProfilePriorityPreviewBffQueryHandler(IAdminProfilePerformanceBffRemoteCall remote)
+        => _remote = remote;
+
+    public override async Task<GetProfilePriorityPreviewBffResponse> Handle(
+        GetProfilePriorityPreviewBffQuery request, CancellationToken ct)
+    {
+        var data = await _remote.GetProfilePriorityPreviewAsync(
+            new ProfilePriorityPreviewBffRequest
+            {
+                CandidateProfileIds = request.CandidateProfileIds,
+                Context             = request.Context,
+                CategoryCode        = request.CategoryCode,
+                LocationCode        = request.LocationCode,
+                MaxResults          = request.MaxResults,
+                LogDecision         = request.LogDecision,
+            }, ct);
+
+        return new GetProfilePriorityPreviewBffResponse { Data = data };
+    }
+}

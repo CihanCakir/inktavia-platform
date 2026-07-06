@@ -10,40 +10,51 @@ using Microsoft.EntityFrameworkCore;
 namespace Aizen.Modules.Profile.Application.Performance;
 
 /// <summary>
-/// Calculates 18-metric performance scores across 5 dimensions for any profile type.
+/// Calculates performance scores for Provider, Participant, and Owner profiles.
 ///
 /// Cross-schema reads are performed via the ProfileDbContext ADO.NET connection —
 /// same PostgreSQL instance, no HTTP calls, no module project dependencies.
 ///
-/// Phase 19 rules enforced here:
+/// Phase 19 rules (providers) + Phase 22 rules (participants) enforced here:
 /// - No automatic punishment, blocking, commission changes, or payout holds.
 /// - No scoring in BFF — BFF is proxy-only.
-/// - Cold-start: SampleSize &lt; 5 → neutral baseline (50), low confidence.
+/// - Cold-start: Provider SampleSize &lt; 5 → neutral; Participant SampleSize &lt; 3 → neutral.
 /// - Score history / decision logs are written by the calling CQRS handler, not here.
 /// - Risk signal flag override (Flagged tier) is applied by the calling handler.
+/// - Participant/Owner profiles use a different score formula (SR + CD + FR + PC; OD is neutral).
+/// - Participant performance is admin visibility only — no enforcement, ranking, or restriction.
 /// </summary>
 [DocumentationInfo("ProfilePerformanceEngine",
-    "Calculates 18-metric performance score for Provider/Participant/Owner profiles. " +
+    "Calculates performance score for Provider/Participant/Owner profiles. " +
     "Reads from servicerequest, cargodry, payment, and profile schemas via raw SQL. " +
-    "Returns ProfileScoreCalculationResult — never mutates entities directly.")]
+    "Returns ProfileScoreCalculationResult — never mutates entities directly. " +
+    "Phase 22: Added participant/owner branching. Participant score uses " +
+    "SR*0.35 + CD*0.20 + FR*0.15 + PC*0.20 (OD neutral/excluded). " +
+    "Participant identity resolved via UserProfiles.UserId lookup.")]
 public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
 {
     private readonly ProfileDbContext _db;
 
-    // ── Formula constants ────────────────────────────────────────────────────
-    private const int     ColdStartThreshold  = 5;
-    private const int     FullSampleSize       = 20;
-    private const string  CalculationVersion  = "v1";
-    private const decimal NeutralScore         = 50m;
+    // ── Provider formula constants ───────────────────────────────────────────
+    private const int     ColdStartThreshold            = 5;
+    private const int     ParticipantColdStartThreshold = 3;
+    private const int     FullSampleSize                = 20;
+    private const string  CalculationVersion            = "v1";
+    private const decimal NeutralScore                  = 50m;
 
     // ── Status constants (int values stored in DB) ───────────────────────────
-    private const int SrStatusCompleted        = 41;   // ServiceRequestStatus.Completed
-    private const int SrDisputeStatusResolved  = 6;    // ServiceRequestDisputeStatus.Resolved
-    private const int PayoutStatusFailed       = 4;    // PayoutStatus.Failed
-    private const int TxStatusDisputed         = 7;    // PaymentTransactionStatus.Disputed
-    private const int KitStatusActivated       = 2;    // CargoDryKitStatus.Activated
-    private const int KitStatusExpired         = 3;    // CargoDryKitStatus.Expired
-    private const int KitStatusRenewed         = 4;    // CargoDryKitStatus.Renewed
+    private const int SrStatusCompleted          = 41;   // ServiceRequestStatus.Completed
+    private const int SrStatusCancelled          = 90;   // ServiceRequestStatus.Cancelled
+    private const int SrStatusDisputeOpened      = 50;   // ServiceRequestStatus.DisputeOpened
+    private const int SrStatusUnderDisputeReview = 51;   // ServiceRequestStatus.UnderDisputeReview
+    private const int SrStatusDisputeResolved    = 52;   // ServiceRequestStatus.DisputeResolved
+    private const int SrDisputeStatusResolved    = 6;    // ServiceRequestDisputeStatus.Resolved
+    private const int PayoutStatusFailed         = 4;    // PayoutStatus.Failed
+    private const int TxStatusDisputed           = 7;    // PaymentTransactionStatus.Disputed
+    private const int KitStatusActivated         = 2;    // CargoDryKitStatus.Activated
+    private const int KitStatusExpired           = 3;    // CargoDryKitStatus.Expired
+    private const int KitStatusRenewed           = 4;    // CargoDryKitStatus.Renewed
+    private const int InvoiceStatusOverdue       = 6;    // InvoiceStatus.Overdue
 
     public ProfilePerformanceEngine(ProfileDbContext db)
     {
@@ -51,7 +62,7 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Public entry point
+    // Public entry point — branches by ProfileType
     // ─────────────────────────────────────────────────────────────────────────
 
     public async Task<ProfileScoreCalculationResult> CalculateAsync(
@@ -59,36 +70,45 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         ProfileType     profileType,
         CancellationToken ct = default)
     {
-        // Open a single shared ADO.NET connection for all cross-schema reads
         var conn = _db.Database.GetDbConnection();
         if (conn.State == ConnectionState.Closed)
             await conn.OpenAsync(ct);
 
-        // ── Gather raw metric inputs per dimension ─────────────────────────
-        var srMetrics = await GetServiceRequestMetricsAsync(conn, profileId, profileType, ct);
-        var cdMetrics = await GetCargoDryMetricsAsync(conn, profileId, profileType, ct);
-        var odMetrics = await GetOperationalDisciplineMetricsAsync(conn, profileId, profileType, ct);
-        var frMetrics = await GetFinancialReliabilityMetricsAsync(conn, profileId, profileType, ct);
-        var pcMetrics = await GetPlatformComplianceMetricsAsync(conn, profileId, profileType, ct);
+        if (profileType == ProfileType.Provider)
+            return await CalculateProviderAsync(conn, profileId, ct);
 
-        // ── Sample size = completed SR assignments (past 12 months) ─────────
+        if (profileType == ProfileType.Participant || profileType == ProfileType.Owner)
+            return await CalculateParticipantAsync(conn, profileId, profileType, ct);
+
+        // Unknown profile type — return cold-start baseline
+        return BuildColdStartResult(profileId, profileType, 0, isUnsupportedType: true);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Provider calculation (Phase 19 — unchanged)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private async Task<ProfileScoreCalculationResult> CalculateProviderAsync(
+        DbConnection conn, long profileId, CancellationToken ct)
+    {
+        var srMetrics = await GetServiceRequestMetricsAsync(conn, profileId, ct);
+        var cdMetrics = await GetCargoDryMetricsAsync(conn, profileId, ct);
+        var odMetrics = await GetOperationalDisciplineMetricsAsync(conn, profileId, ct);
+        var frMetrics = await GetFinancialReliabilityMetricsAsync(conn, profileId, ct);
+        var pcMetrics = await GetPlatformComplianceMetricsAsync(conn, profileId, ProfileType.Provider, ct);
+
         int sampleSize = srMetrics.TotalAssignments;
-
-        // ── Cold-start rule ──────────────────────────────────────────────────
         if (sampleSize < ColdStartThreshold)
-            return BuildColdStartResult(profileId, profileType, sampleSize);
+            return BuildColdStartResult(profileId, ProfileType.Provider, sampleSize);
 
-        // ── Compute dimension scores (0–100 each) ────────────────────────────
         decimal srScore = ComputeServiceRequestScore(srMetrics);
         decimal cdScore = ComputeCargoDryScore(cdMetrics);
         decimal odScore = ComputeOperationalDisciplineScore(odMetrics);
         decimal frScore = ComputeFinancialReliabilityScore(frMetrics);
         decimal pcScore = ComputePlatformComplianceScore(pcMetrics);
 
-        // RiskPenalty: applied by handler from active risk signals; engine returns 0 here.
-        const decimal riskPenalty = 0m;
+        const decimal riskPenalty = 0m; // Applied by handler from active risk signals
 
-        // ── Overall score formula ─────────────────────────────────────────────
         decimal overall = Math.Clamp(
             srScore * 0.35m
           + cdScore * 0.25m
@@ -98,14 +118,10 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
           - riskPenalty,
             0m, 100m);
 
-        // ── Confidence ────────────────────────────────────────────────────────
         decimal confidence     = Math.Min(1.0m, sampleSize / (decimal)FullSampleSize);
         var     confidenceLevel = ClassifyConfidence(confidence);
+        var     tier            = ClassifyTier(overall, confidence);
 
-        // ── Priority tier ─────────────────────────────────────────────────────
-        var tier = ClassifyTier(overall, confidence);
-
-        // ── Components ────────────────────────────────────────────────────────
         var now        = DateTime.UtcNow;
         var components = new List<ProfileScoreComponentDto>
         {
@@ -120,14 +136,14 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         {
             ["coldStart"]          = (object?)false,
             ["calculationVersion"] = CalculationVersion,
-            ["profileType"]        = profileType.ToString(),
+            ["profileType"]        = ProfileType.Provider.ToString(),
             ["sampleSize"]         = sampleSize,
         };
 
         return new ProfileScoreCalculationResult
         {
             ProfileId                  = profileId,
-            ProfileType                = profileType,
+            ProfileType                = ProfileType.Provider,
             ServiceRequestScore        = srScore,
             CargoDryScore              = cdScore,
             OperationalDisciplineScore = odScore,
@@ -147,25 +163,150 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Participant / Owner calculation (Phase 22)
+    //
+    // Hard rules enforced here:
+    // - No automatic restriction, demotion, or ranking of participants.
+    // - Score is admin visibility signal only.
+    // - Formula: SR*0.35 + CD*0.20 + FR*0.15 + PC*0.20 (OD not applicable → neutral).
+    // - Cold-start: SampleSize < 3.
+    // - Identity resolution: profileId → UserProfiles.UserId → used in cross-schema queries.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private async Task<ProfileScoreCalculationResult> CalculateParticipantAsync(
+        DbConnection conn, long profileId, ProfileType profileType, CancellationToken ct)
+    {
+        // ── Resolve UserId from ProfileId ─────────────────────────────────────
+        // UserProfiles table (Identity module) has no schema prefix (default/public schema).
+        long? userId = await ResolveParticipantUserIdAsync(conn, profileId, ct);
+        if (!userId.HasValue)
+        {
+            // Profile not found in UserProfiles — return cold-start
+            var metadata0 = new Dictionary<string, object?>
+            {
+                ["coldStart"]          = (object?)true,
+                ["calculationVersion"] = CalculationVersion,
+                ["profileType"]        = profileType.ToString(),
+                ["sampleSize"]         = 0,
+                ["participantRiskContext"] = true,
+                ["note"]               = "UserProfile not found for profileId",
+            };
+            return BuildColdStartResult(profileId, profileType, 0,
+                metadataOverride: JsonSerializer.Serialize(metadata0));
+        }
+
+        var srMetrics = await GetParticipantSrMetricsAsync(conn, userId.Value, ct);
+        var cdMetrics = await GetParticipantCdMetricsAsync(conn, userId.Value, ct);
+        var frMetrics = await GetParticipantFrMetricsAsync(conn, userId.Value, ct);
+        var pcMetrics = await GetPlatformComplianceMetricsAsync(conn, profileId, profileType, ct);
+
+        // ── Sample size for participants = total SRs created (not just completed) ──
+        int sampleSize = srMetrics.TotalSrs;
+        if (sampleSize < ParticipantColdStartThreshold)
+        {
+            var coldMeta = new Dictionary<string, object?>
+            {
+                ["coldStart"]           = (object?)true,
+                ["calculationVersion"]  = CalculationVersion,
+                ["profileType"]         = profileType.ToString(),
+                ["sampleSize"]          = sampleSize,
+                ["participantContext"]  = true,
+            };
+            return BuildColdStartResult(profileId, profileType, sampleSize,
+                metadataOverride: JsonSerializer.Serialize(coldMeta));
+        }
+
+        decimal srScore = ComputeParticipantServiceRequestScore(srMetrics);
+        decimal cdScore = ComputeParticipantCargoDryScore(cdMetrics);
+        decimal odScore = NeutralScore;  // Not applicable for participants — always neutral
+        decimal frScore = ComputeParticipantFinancialReliabilityScore(frMetrics);
+        decimal pcScore = ComputePlatformComplianceScore(pcMetrics);
+
+        const decimal riskPenalty = 0m; // Applied by handler from active risk signals
+
+        // Participant formula: SR*0.35 + CD*0.20 + FR*0.15 + PC*0.20
+        // OD excluded → max reachable = 90 before risk (reflects limited operational data for participants)
+        decimal overall = Math.Clamp(
+            srScore * 0.35m
+          + cdScore * 0.20m
+          // OD not included for participants
+          + frScore * 0.15m
+          + pcScore * 0.20m
+          - riskPenalty,
+            0m, 100m);
+
+        decimal confidence      = Math.Min(1.0m, sampleSize / (decimal)FullSampleSize);
+        var     confidenceLevel = ClassifyConfidence(confidence);
+        var     tier            = ClassifyTier(overall, confidence);
+
+        var now        = DateTime.UtcNow;
+        var components = new List<ProfileScoreComponentDto>
+        {
+            MakeComponent(PerformanceScoreCategory.ServiceRequest,        srScore, 0.35m, now, srMetrics.MetricsJson),
+            MakeComponent(PerformanceScoreCategory.CargoDry,              cdScore, 0.20m, now, cdMetrics.MetricsJson),
+            MakeComponent(PerformanceScoreCategory.OperationalDiscipline, odScore, 0.00m, now, null),  // neutral, not applicable
+            MakeComponent(PerformanceScoreCategory.FinancialReliability,  frScore, 0.15m, now, frMetrics.MetricsJson),
+            MakeComponent(PerformanceScoreCategory.PlatformCompliance,    pcScore, 0.20m, now, pcMetrics.MetricsJson),
+        };
+
+        var metaDict = new Dictionary<string, object?>
+        {
+            ["coldStart"]            = (object?)false,
+            ["calculationVersion"]   = CalculationVersion,
+            ["profileType"]          = profileType.ToString(),
+            ["sampleSize"]           = sampleSize,
+            ["participantContext"]   = true,
+            ["userId"]               = userId.Value,
+            ["overdueInvoices"]      = frMetrics.OverdueInvoices,
+            ["adminVisibilityOnly"]  = true,
+        };
+
+        return new ProfileScoreCalculationResult
+        {
+            ProfileId                  = profileId,
+            ProfileType                = profileType,
+            ServiceRequestScore        = srScore,
+            CargoDryScore              = cdScore,
+            OperationalDisciplineScore = odScore,
+            FinancialReliabilityScore  = frScore,
+            PlatformComplianceScore    = pcScore,
+            RiskPenaltyScore           = riskPenalty,
+            OverallScore               = overall,
+            ConfidenceScore            = confidence,
+            ConfidenceLevel            = confidenceLevel,
+            SampleSize                 = sampleSize,
+            IsColdStart                = false,
+            DerivedTier                = tier,
+            Components                 = components,
+            MetadataJson               = JsonSerializer.Serialize(metaDict),
+            CalculatedAtUtc            = now,
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Cold-start baseline
     // ─────────────────────────────────────────────────────────────────────────
 
     private static ProfileScoreCalculationResult BuildColdStartResult(
-        long profileId, ProfileType profileType, int sampleSize)
+        long        profileId,
+        ProfileType profileType,
+        int         sampleSize,
+        bool        isUnsupportedType  = false,
+        string?     metadataOverride   = null)
     {
-        var now = DateTime.UtcNow;
-
+        var now        = DateTime.UtcNow;
         var components = Enum.GetValues<PerformanceScoreCategory>()
-            .Select(cat => MakeComponent(cat, NeutralScore, WeightFor(cat), now, null))
+            .Select(cat => MakeComponent(cat, NeutralScore, WeightFor(cat, profileType), now, null))
             .ToList();
 
-        var metadata = new Dictionary<string, object?>
+        var metadata = metadataOverride ?? JsonSerializer.Serialize(new Dictionary<string, object?>
         {
             ["coldStart"]          = (object?)true,
             ["calculationVersion"] = CalculationVersion,
             ["profileType"]        = profileType.ToString(),
             ["sampleSize"]         = sampleSize,
-        };
+            ["unsupportedType"]    = isUnsupportedType,
+        });
 
         return new ProfileScoreCalculationResult
         {
@@ -184,30 +325,50 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
             IsColdStart                = true,
             DerivedTier                = PriorityTier.Standard,
             Components                 = components,
-            MetadataJson               = JsonSerializer.Serialize(metadata),
+            MetadataJson               = metadata,
             CalculatedAtUtc            = now,
         };
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Cross-schema raw SQL readers
+    // Participant identity resolution
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Metrics 1–6: ServiceRequest dimension.
-    /// Only meaningful for Provider profiles.
+    /// Resolves the Identity UserId for a given ProfileId.
+    /// UserProfiles table belongs to the Identity module — no schema prefix (default/public schema).
+    /// Result is used to query cross-module tables that store UserId (not ProfileId).
     /// </summary>
+    private static async Task<long?> ResolveParticipantUserIdAsync(
+        DbConnection conn, long profileId, CancellationToken ct)
+    {
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"SELECT ""UserId"" FROM ""UserProfiles"" WHERE ""Id"" = @profileId LIMIT 1";
+            Param(cmd, "profileId", profileId);
+
+            var result = await cmd.ExecuteScalarAsync(ct);
+            return result is null || result == DBNull.Value ? null : Convert.ToInt64(result);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Provider cross-schema raw SQL readers (Phase 19 — unchanged)
+    // ─────────────────────────────────────────────────────────────────────────
+
     private async Task<SrMetrics> GetServiceRequestMetricsAsync(
-        DbConnection conn, long profileId, ProfileType profileType, CancellationToken ct)
+        DbConnection conn, long profileId, CancellationToken ct)
     {
         var m     = new SrMetrics();
-        if (profileType != ProfileType.Provider) return m;
-
         try
         {
             var since = DateTime.UtcNow.AddMonths(-12);
 
-            // Metrics 1, 2, 3: totals and response speed
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -237,14 +398,13 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 using var r = await cmd.ExecuteReaderAsync(ct);
                 if (await r.ReadAsync(ct))
                 {
-                    m.TotalAssignments    = ToInt(r["TotalAssignments"]);
+                    m.TotalAssignments     = ToInt(r["TotalAssignments"]);
                     m.CompletedAssignments = ToInt(r["CompletedAssignments"]);
-                    m.ResponsesUnder2h    = ToInt(r["ResponsesUnder2h"]);
-                    m.ResponsesUnder6h    = ToInt(r["ResponsesUnder6h"]);
+                    m.ResponsesUnder2h     = ToInt(r["ResponsesUnder2h"]);
+                    m.ResponsesUnder6h     = ToInt(r["ResponsesUnder6h"]);
                 }
             }
 
-            // Metric 4: Client satisfaction (completions with ClientRating)
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -264,12 +424,11 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 using var r = await cmd.ExecuteReaderAsync(ct);
                 if (await r.ReadAsync(ct))
                 {
-                    m.RatedCompletions    = ToInt(r["RatedCompletions"]);
+                    m.RatedCompletions     = ToInt(r["RatedCompletions"]);
                     m.HighRatedCompletions = ToInt(r["HighRatedCompletions"]);
                 }
             }
 
-            // Metrics 5+6: Disputes
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -298,10 +457,7 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 }
             }
         }
-        catch
-        {
-            // Graceful degradation — partial or empty data returns neutral scores
-        }
+        catch { /* Graceful degradation — partial data returns neutral scores */ }
 
         m.MetricsJson = Serialize(new
         {
@@ -317,16 +473,10 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         return m;
     }
 
-    /// <summary>
-    /// Metrics 7–9: CargoDry dimension.
-    /// Only meaningful for Provider profiles.
-    /// </summary>
     private async Task<CdMetrics> GetCargoDryMetricsAsync(
-        DbConnection conn, long profileId, ProfileType profileType, CancellationToken ct)
+        DbConnection conn, long profileId, CancellationToken ct)
     {
         var m = new CdMetrics();
-        if (profileType != ProfileType.Provider) return m;
-
         try
         {
             using var cmd = conn.CreateCommand();
@@ -350,17 +500,14 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
             using var r = await cmd.ExecuteReaderAsync(ct);
             if (await r.ReadAsync(ct))
             {
-                m.AssignedKits      = ToInt(r["AssignedKits"]);
-                m.ActivatedKits     = ToInt(r["ActivatedKits"]);
-                m.KitsWithUsage     = ToInt(r["KitsWithUsage"]);
-                m.RenewedKits       = ToInt(r["RenewedKits"]);
+                m.AssignedKits       = ToInt(r["AssignedKits"]);
+                m.ActivatedKits      = ToInt(r["ActivatedKits"]);
+                m.KitsWithUsage      = ToInt(r["KitsWithUsage"]);
+                m.RenewedKits        = ToInt(r["RenewedKits"]);
                 m.EligibleForRenewal = ToInt(r["EligibleForRenewal"]);
             }
         }
-        catch
-        {
-            // Graceful degradation
-        }
+        catch { /* Graceful degradation */ }
 
         m.MetricsJson = Serialize(new
         {
@@ -373,21 +520,14 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         return m;
     }
 
-    /// <summary>
-    /// Metrics 10–12: OperationalDiscipline dimension.
-    /// Only meaningful for Provider profiles.
-    /// </summary>
     private async Task<OdMetrics> GetOperationalDisciplineMetricsAsync(
-        DbConnection conn, long profileId, ProfileType profileType, CancellationToken ct)
+        DbConnection conn, long profileId, CancellationToken ct)
     {
         var m = new OdMetrics();
-        if (profileType != ProfileType.Provider) return m;
-
         try
         {
             var since = DateTime.UtcNow.AddMonths(-12);
 
-            // Metric 10: On-time start (actual start ≤ scheduled start + 2h)
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -409,13 +549,12 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 using var r = await cmd.ExecuteReaderAsync(ct);
                 if (await r.ReadAsync(ct))
                 {
-                    m.TotalAssignments    = ToInt(r["TotalAssignments"]);
+                    m.TotalAssignments     = ToInt(r["TotalAssignments"]);
                     m.TotalScheduledStarts = ToInt(r["TotalScheduledStarts"]);
-                    m.OnTimeStarts        = ToInt(r["OnTimeStarts"]);
+                    m.OnTimeStarts         = ToInt(r["OnTimeStarts"]);
                 }
             }
 
-            // Metric 11: Work phase adherence
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -440,7 +579,6 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 }
             }
 
-            // Metric 12: Document upload rate (completions exist = documents submitted)
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -460,10 +598,7 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                     m.SrsWithDocuments = ToInt(r["SrsWithDocuments"]);
             }
         }
-        catch
-        {
-            // Graceful degradation
-        }
+        catch { /* Graceful degradation */ }
 
         m.MetricsJson = Serialize(new
         {
@@ -477,21 +612,14 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         return m;
     }
 
-    /// <summary>
-    /// Metrics 13–15: FinancialReliability dimension.
-    /// Only meaningful for Provider profiles.
-    /// </summary>
     private async Task<FrMetrics> GetFinancialReliabilityMetricsAsync(
-        DbConnection conn, long profileId, ProfileType profileType, CancellationToken ct)
+        DbConnection conn, long profileId, CancellationToken ct)
     {
         var m = new FrMetrics();
-        if (profileType != ProfileType.Provider) return m;
-
         try
         {
             var since = DateTime.UtcNow.AddMonths(-12);
 
-            // Metric 13: Payout failure rate
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -514,7 +642,6 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 }
             }
 
-            // Metric 14: Invoice issue rate (payout records with a linked invoice)
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -542,7 +669,6 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 }
             }
 
-            // Metric 15: Commission conflict rate (disputed transactions)
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -565,10 +691,7 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 }
             }
         }
-        catch
-        {
-            // Graceful degradation
-        }
+        catch { /* Graceful degradation */ }
 
         m.MetricsJson = Serialize(new
         {
@@ -583,13 +706,12 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
     }
 
     /// <summary>
-    /// Metrics 16–18: PlatformCompliance dimension.
+    /// Platform compliance metrics — generic for any profile type.
     /// Reads from profile.profile_metric_caches (populated by admin or external triggers).
     /// </summary>
     private async Task<PcMetrics> GetPlatformComplianceMetricsAsync(
         DbConnection conn, long profileId, ProfileType profileType, CancellationToken ct)
     {
-        // Neutral defaults until cache is populated
         var m = new PcMetrics
         {
             ProfileCompletionScore = 50m,
@@ -637,10 +759,7 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                 }
             }
         }
-        catch
-        {
-            // Graceful degradation
-        }
+        catch { /* Graceful degradation */ }
 
         m.MetricsJson = Serialize(new
         {
@@ -652,25 +771,219 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Score computation — per dimension
+    // Participant cross-schema raw SQL readers (Phase 22)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Phase 22 — Participant SR behaviour metrics.
+    /// Queries service_requests by OwnerUserId (not ProviderProfileId).
+    /// Metrics: total SRs, cancellation rate, dispute rate, completion rate.
+    /// PAR_SR_COMPLETION_APPROVAL_DELAY deferred to post-MVP (requires status history analysis).
+    /// Admin visibility signal only — does not affect assignment or routing.
+    /// </summary>
+    private async Task<ParticipantSrMetrics> GetParticipantSrMetricsAsync(
+        DbConnection conn, long userId, CancellationToken ct)
+    {
+        var m = new ParticipantSrMetrics();
+        try
+        {
+            var since = DateTime.UtcNow.AddMonths(-12);
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT
+                    COUNT(*)                                                             AS ""TotalSrs"",
+                    COUNT(*) FILTER (WHERE ""Status"" = @completed)                    AS ""CompletedSrs"",
+                    COUNT(*) FILTER (WHERE ""Status"" = @cancelled)                    AS ""CancelledSrs"",
+                    COUNT(*) FILTER (
+                        WHERE ""Status"" IN (@disputeOpened, @underDisputeReview, @disputeResolved)
+                    )                                                                    AS ""DisputeSrs"",
+                    COUNT(*) FILTER (
+                        WHERE ""CancelledByUserId"" = @userId
+                          AND ""Status""             = @cancelled
+                    )                                                                    AS ""SelfCancelledSrs""
+                FROM servicerequest.service_requests
+                WHERE ""OwnerUserId"" = @userId
+                  AND ""IsDeleted""   = false
+                  AND ""CreateDate""  >= @since";
+            Param(cmd, "userId",             userId);
+            Param(cmd, "completed",          SrStatusCompleted);
+            Param(cmd, "cancelled",          SrStatusCancelled);
+            Param(cmd, "disputeOpened",      SrStatusDisputeOpened);
+            Param(cmd, "underDisputeReview", SrStatusUnderDisputeReview);
+            Param(cmd, "disputeResolved",    SrStatusDisputeResolved);
+            Param(cmd, "since",              since);
+
+            using var r = await cmd.ExecuteReaderAsync(ct);
+            if (await r.ReadAsync(ct))
+            {
+                m.TotalSrs       = ToInt(r["TotalSrs"]);
+                m.CompletedSrs   = ToInt(r["CompletedSrs"]);
+                m.CancelledSrs   = ToInt(r["CancelledSrs"]);
+                m.DisputeSrs     = ToInt(r["DisputeSrs"]);
+                m.SelfCancelledSrs = ToInt(r["SelfCancelledSrs"]);
+            }
+        }
+        catch { /* Graceful degradation */ }
+
+        m.MetricsJson = Serialize(new
+        {
+            totalSrs        = m.TotalSrs,
+            completedSrs    = m.CompletedSrs,
+            cancelledSrs    = m.CancelledSrs,
+            disputeSrs      = m.DisputeSrs,
+            selfCancelled   = m.SelfCancelledSrs,
+            approvalDelayDeferredPostMvp = true,
+        });
+        return m;
+    }
+
+    /// <summary>
+    /// Phase 22 — Participant CargoDry renewal behaviour metrics.
+    /// Queries cargodry.kits and cargodry.renewal_preparations by OwnerUserId.
+    /// Captures: kit activation by owner, renewal preparation completion rate.
+    /// Admin visibility signal only — does not affect CargoDry routing.
+    /// </summary>
+    private async Task<ParticipantCdMetrics> GetParticipantCdMetricsAsync(
+        DbConnection conn, long userId, CancellationToken ct)
+    {
+        var m = new ParticipantCdMetrics();
+        try
+        {
+            // Owner's kits: activation and renewal behaviour
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT
+                        COUNT(*)                                                           AS ""TotalOwnerKits"",
+                        COUNT(*) FILTER (
+                            WHERE ""Status"" IN (@activated, @expired, @renewed)
+                        )                                                                  AS ""ActivatedOwnerKits"",
+                        COUNT(*) FILTER (WHERE ""Status"" = @renewed)                      AS ""RenewedOwnerKits"",
+                        COUNT(*) FILTER (WHERE ""Status"" IN (@expired, @renewed))         AS ""EligibleOwnerRenewal""
+                    FROM cargodry.kits
+                    WHERE ""OwnerUserId"" = @userId
+                      AND ""IsDeleted""   = false";
+                Param(cmd, "userId",     userId);
+                Param(cmd, "activated",  KitStatusActivated);
+                Param(cmd, "expired",    KitStatusExpired);
+                Param(cmd, "renewed",    KitStatusRenewed);
+
+                using var r = await cmd.ExecuteReaderAsync(ct);
+                if (await r.ReadAsync(ct))
+                {
+                    m.TotalOwnerKits      = ToInt(r["TotalOwnerKits"]);
+                    m.ActivatedOwnerKits  = ToInt(r["ActivatedOwnerKits"]);
+                    m.RenewedOwnerKits    = ToInt(r["RenewedOwnerKits"]);
+                    m.EligibleOwnerRenewal = ToInt(r["EligibleOwnerRenewal"]);
+                }
+            }
+
+            // Renewal preparations by OwnerUserId
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT
+                        COUNT(*)                                                 AS ""TotalPreparations"",
+                        COUNT(*) FILTER (WHERE ""Status"" = 3 OR ""Status"" = 4) AS ""CompletedPreparations""
+                    FROM cargodry.renewal_preparations
+                    WHERE ""OwnerUserId"" = @userId
+                      AND ""IsDeleted""   = false";
+                // Status 3 = Completed, 4 = Paid (both indicate completed renewal flow)
+                Param(cmd, "userId", userId);
+
+                using var r = await cmd.ExecuteReaderAsync(ct);
+                if (await r.ReadAsync(ct))
+                {
+                    m.TotalPreparations     = ToInt(r["TotalPreparations"]);
+                    m.CompletedPreparations = ToInt(r["CompletedPreparations"]);
+                }
+            }
+        }
+        catch { /* Graceful degradation */ }
+
+        m.MetricsJson = Serialize(new
+        {
+            totalOwnerKits         = m.TotalOwnerKits,
+            activatedOwnerKits     = m.ActivatedOwnerKits,
+            renewedOwnerKits       = m.RenewedOwnerKits,
+            eligibleOwnerRenewal   = m.EligibleOwnerRenewal,
+            totalPreparations      = m.TotalPreparations,
+            completedPreparations  = m.CompletedPreparations,
+        });
+        return m;
+    }
+
+    /// <summary>
+    /// Phase 22 — Participant financial reliability metrics.
+    /// Queries payment.invoice_headers by BuyerUserId.
+    /// Captures: total buyer invoices, overdue invoice count.
+    /// PAR_INVOICE_PAYMENT_DELAY_DAYS deferred — requires PaidAtUtc on InvoiceHeaderEntity (out of scope).
+    /// Admin visibility signal only — no payment enforcement.
+    /// </summary>
+    private async Task<ParticipantFrMetrics> GetParticipantFrMetricsAsync(
+        DbConnection conn, long userId, CancellationToken ct)
+    {
+        var m = new ParticipantFrMetrics();
+        try
+        {
+            var since = DateTime.UtcNow.AddMonths(-24); // 24-month window for invoice context
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT
+                    COUNT(*)                                                             AS ""TotalInvoices"",
+                    COUNT(*) FILTER (WHERE ""Status"" = @overdue)                       AS ""OverdueInvoices"",
+                    COUNT(*) FILTER (WHERE ""Status"" IN (3, 4, 5))                     AS ""ActiveInvoices""
+                FROM payment.invoice_headers
+                WHERE ""BuyerUserId"" = @userId
+                  AND ""IsDeleted""   = false
+                  AND ""CreateDate""  >= @since";
+            // Status 3=Sent, 4=Paid, 5=PartiallyPaid, 6=Overdue
+            Param(cmd, "userId",   userId);
+            Param(cmd, "overdue",  InvoiceStatusOverdue);
+            Param(cmd, "since",    since);
+
+            using var r = await cmd.ExecuteReaderAsync(ct);
+            if (await r.ReadAsync(ct))
+            {
+                m.TotalInvoices   = ToInt(r["TotalInvoices"]);
+                m.OverdueInvoices = ToInt(r["OverdueInvoices"]);
+                m.ActiveInvoices  = ToInt(r["ActiveInvoices"]);
+            }
+        }
+        catch { /* Graceful degradation */ }
+
+        m.MetricsJson = Serialize(new
+        {
+            totalInvoices           = m.TotalInvoices,
+            overdueInvoices         = m.OverdueInvoices,
+            activeInvoices          = m.ActiveInvoices,
+            paymentDelayDeferredPostMvp = true,
+        });
+        return m;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Provider score computation (Phase 19 — unchanged)
     // ─────────────────────────────────────────────────────────────────────────
 
     private static decimal ComputeServiceRequestScore(SrMetrics m)
     {
-        decimal completionRate  = Rate(m.CompletedAssignments, m.TotalAssignments);
-        decimal responseScore   = Rate(m.ResponsesUnder2h, m.TotalAssignments) * 0.60m
-                                + Rate(m.ResponsesUnder6h, m.TotalAssignments) * 0.40m;
+        decimal completionRate   = Rate(m.CompletedAssignments, m.TotalAssignments);
+        decimal responseScore    = Rate(m.ResponsesUnder2h, m.TotalAssignments) * 0.60m
+                                 + Rate(m.ResponsesUnder6h, m.TotalAssignments) * 0.40m;
         decimal satisfactionRate = Rate(m.HighRatedCompletions, m.RatedCompletions);
-        decimal disputeRate     = Rate(m.TotalDisputes, m.CompletedAssignments);
-        decimal disputeScore    = Math.Max(0m, 100m - disputeRate * 2m);  // 50% dispute rate = 0
-        decimal winRate         = Rate(m.WonDisputes, m.TotalDisputes);
+        decimal disputeRate      = Rate(m.TotalDisputes, m.CompletedAssignments);
+        decimal disputeScore     = Math.Max(0m, 100m - disputeRate * 2m);
+        decimal winRate          = Rate(m.WonDisputes, m.TotalDisputes);
 
         return Math.Clamp(
-              completionRate  * 0.30m
-            + responseScore   * 0.20m
+              completionRate   * 0.30m
+            + responseScore    * 0.20m
             + satisfactionRate * 0.25m
-            + disputeScore    * 0.15m
-            + winRate         * 0.10m,
+            + disputeScore     * 0.15m
+            + winRate          * 0.10m,
             0m, 100m);
     }
 
@@ -689,9 +1002,9 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
 
     private static decimal ComputeOperationalDisciplineScore(OdMetrics m)
     {
-        decimal onTimeRate      = Rate(m.OnTimeStarts,     m.TotalScheduledStarts);
-        decimal phaseAdherence  = Rate(m.CompletedPhases,  m.TotalPhases);
-        decimal docUploadRate   = Rate(m.SrsWithDocuments, m.TotalAssignments);
+        decimal onTimeRate     = Rate(m.OnTimeStarts,     m.TotalScheduledStarts);
+        decimal phaseAdherence = Rate(m.CompletedPhases,  m.TotalPhases);
+        decimal docUploadRate  = Rate(m.SrsWithDocuments, m.TotalAssignments);
 
         return Math.Clamp(
               onTimeRate     * 0.35m
@@ -703,10 +1016,10 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
     private static decimal ComputeFinancialReliabilityScore(FrMetrics m)
     {
         decimal payoutFailRate = Rate(m.FailedPayouts,       m.TotalPayouts);
-        decimal payoutScore    = Math.Max(0m, 100m - payoutFailRate * 3m);  // 33% fail = 0
+        decimal payoutScore    = Math.Max(0m, 100m - payoutFailRate * 3m);
         decimal invoiceRate    = Rate(m.IssuedInvoices,      m.TotalInvoiceableEvents);
         decimal conflictRate   = Rate(m.CommissionConflicts, m.TotalTransactions);
-        decimal conflictScore  = Math.Max(0m, 100m - conflictRate * 5m);    // 20% conflict = 0
+        decimal conflictScore  = Math.Max(0m, 100m - conflictRate * 5m);
 
         return Math.Clamp(
               payoutScore   * 0.50m
@@ -729,13 +1042,79 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Classification helpers
+    // Participant score computation (Phase 22)
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Derives tier from overall score + confidence. Flagged is NOT set here —
-    /// the calling handler applies Flagged when active risk signals are present.
+    /// Participant SR behaviour score.
+    /// Lower cancellation rate + lower dispute rate + higher completion rate → higher score.
+    /// Admin visibility signal only — does not affect assignment or offer routing.
     /// </summary>
+    private static decimal ComputeParticipantServiceRequestScore(ParticipantSrMetrics m)
+    {
+        // Cancellation rate (lower is better) — penalise self-cancellations heavily
+        decimal cancelRate        = Rate(m.CancelledSrs, m.TotalSrs);
+        decimal cancelScore       = Math.Max(0m, 100m - cancelRate * 1.5m);  // 67% cancel rate → 0
+
+        // Dispute creation rate (lower is better)
+        decimal disputeRate       = Rate(m.DisputeSrs, m.TotalSrs);
+        decimal disputeScore      = Math.Max(0m, 100m - disputeRate * 2m);   // 50% dispute rate → 0
+
+        // Completion rate (higher is better)
+        decimal completionRate    = Rate(m.CompletedSrs, m.TotalSrs);
+
+        return Math.Clamp(
+              completionRate * 0.40m
+            + cancelScore    * 0.35m
+            + disputeScore   * 0.25m,
+            0m, 100m);
+    }
+
+    /// <summary>
+    /// Participant CargoDry renewal reliability score.
+    /// Higher owner kit activation + renewal completion rate → higher score.
+    /// Admin visibility signal only — does not affect CargoDry routing.
+    /// </summary>
+    private static decimal ComputeParticipantCargoDryScore(ParticipantCdMetrics m)
+    {
+        decimal activationRate   = Rate(m.ActivatedOwnerKits,     m.TotalOwnerKits);
+        decimal renewalRate      = Rate(m.RenewedOwnerKits,       m.EligibleOwnerRenewal);
+        decimal preparationRate  = Rate(m.CompletedPreparations,  m.TotalPreparations);
+
+        // If no kits at all, return neutral
+        if (m.TotalOwnerKits == 0 && m.TotalPreparations == 0)
+            return NeutralScore;
+
+        return Math.Clamp(
+              activationRate  * 0.45m
+            + renewalRate     * 0.35m
+            + preparationRate * 0.20m,
+            0m, 100m);
+    }
+
+    /// <summary>
+    /// Participant financial reliability score.
+    /// Fewer overdue invoices → higher score.
+    /// PAR_INVOICE_PAYMENT_DELAY_DAYS deferred (requires PaidAtUtc on InvoiceHeaderEntity).
+    /// Admin visibility signal only — no payment enforcement.
+    /// </summary>
+    private static decimal ComputeParticipantFinancialReliabilityScore(ParticipantFrMetrics m)
+    {
+        // If no invoices at all, return neutral
+        if (m.TotalInvoices == 0)
+            return NeutralScore;
+
+        decimal overdueRate  = Rate(m.OverdueInvoices, m.TotalInvoices);
+        // Heavy penalty for overdue invoices: 20% overdue rate → score ~0
+        decimal overdueScore = Math.Max(0m, 100m - overdueRate * 5m);
+
+        return Math.Clamp(overdueScore, 0m, 100m);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Classification helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
     private static PriorityTier ClassifyTier(decimal overallScore, decimal confidence) =>
         (overallScore, confidence) switch
         {
@@ -757,22 +1136,34 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
     // Utility
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Safe percentage: returns 50 (neutral) when denominator is 0.
-    /// This prevents cold-path data gaps from artificially punishing providers.
-    /// </summary>
     private static decimal Rate(int numerator, int denominator)
         => denominator <= 0 ? NeutralScore : Math.Clamp(numerator * 100m / denominator, 0m, 100m);
 
-    private static decimal WeightFor(PerformanceScoreCategory cat) => cat switch
+    private static decimal WeightFor(PerformanceScoreCategory cat, ProfileType profileType)
     {
-        PerformanceScoreCategory.ServiceRequest        => 0.35m,
-        PerformanceScoreCategory.CargoDry              => 0.25m,
-        PerformanceScoreCategory.OperationalDiscipline => 0.15m,
-        PerformanceScoreCategory.FinancialReliability  => 0.15m,
-        PerformanceScoreCategory.PlatformCompliance    => 0.10m,
-        _                                              => 0.00m,
-    };
+        if (profileType == ProfileType.Provider)
+        {
+            return cat switch
+            {
+                PerformanceScoreCategory.ServiceRequest        => 0.35m,
+                PerformanceScoreCategory.CargoDry              => 0.25m,
+                PerformanceScoreCategory.OperationalDiscipline => 0.15m,
+                PerformanceScoreCategory.FinancialReliability  => 0.15m,
+                PerformanceScoreCategory.PlatformCompliance    => 0.10m,
+                _                                              => 0.00m,
+            };
+        }
+        // Participant / Owner weights
+        return cat switch
+        {
+            PerformanceScoreCategory.ServiceRequest        => 0.35m,
+            PerformanceScoreCategory.CargoDry              => 0.20m,
+            PerformanceScoreCategory.OperationalDiscipline => 0.00m,  // Not applicable
+            PerformanceScoreCategory.FinancialReliability  => 0.15m,
+            PerformanceScoreCategory.PlatformCompliance    => 0.20m,
+            _                                              => 0.00m,
+        };
+    }
 
     private static ProfileScoreComponentDto MakeComponent(
         PerformanceScoreCategory category,
@@ -784,7 +1175,7 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         var clamped = Math.Clamp(rawScore, 0m, 100m);
         return new ProfileScoreComponentDto
         {
-            SnapshotId           = 0,    // Filled in by upsert handler after snapshot is saved
+            SnapshotId           = 0,
             Category             = category,
             RawScore             = clamped,
             Weight               = weight,
@@ -810,7 +1201,7 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         => JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = false });
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Private metric bags
+    // Private metric bags — Provider (Phase 19)
     // ─────────────────────────────────────────────────────────────────────────
 
     private sealed class SrMetrics
@@ -864,5 +1255,38 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         public bool    IsIdVerified           { get; set; }
         public int     TosViolationCount      { get; set; }
         public string? MetricsJson            { get; set; }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private metric bags — Participant / Owner (Phase 22)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private sealed class ParticipantSrMetrics
+    {
+        public int     TotalSrs         { get; set; }
+        public int     CompletedSrs     { get; set; }
+        public int     CancelledSrs     { get; set; }
+        public int     DisputeSrs       { get; set; }
+        public int     SelfCancelledSrs { get; set; }
+        public string? MetricsJson      { get; set; }
+    }
+
+    private sealed class ParticipantCdMetrics
+    {
+        public int     TotalOwnerKits       { get; set; }
+        public int     ActivatedOwnerKits   { get; set; }
+        public int     RenewedOwnerKits     { get; set; }
+        public int     EligibleOwnerRenewal { get; set; }
+        public int     TotalPreparations    { get; set; }
+        public int     CompletedPreparations { get; set; }
+        public string? MetricsJson          { get; set; }
+    }
+
+    private sealed class ParticipantFrMetrics
+    {
+        public int     TotalInvoices   { get; set; }
+        public int     OverdueInvoices { get; set; }
+        public int     ActiveInvoices  { get; set; }
+        public string? MetricsJson     { get; set; }
     }
 }

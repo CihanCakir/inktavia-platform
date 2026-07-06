@@ -286,6 +286,7 @@
         "Vessel",
         "ServiceRequest",
         "Messaging",
+        "Profile",
         "CargoDry"
       ],
       "stopAll": true

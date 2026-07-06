@@ -22,4 +22,7 @@ public enum DecisionLogEventType
 
     /// <summary>Cold-start baseline was applied (SampleSize &lt; 5).</summary>
     ColdStartApplied   = 6,
+
+    /// <summary>A read-only priority preview was generated for admin decision support (Phase 21).</summary>
+    PriorityPreviewGenerated = 7,
 }

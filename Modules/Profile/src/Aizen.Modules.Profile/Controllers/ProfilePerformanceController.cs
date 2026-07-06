@@ -1,3 +1,4 @@
+using Aizen.Modules.Profile.Abstraction.Dtos.Performance;
 using Aizen.Modules.Profile.Abstraction.Enums.Performance;
 using Aizen.Modules.Profile.Application.Commands.Performance.RaiseRiskSignal;
 using Aizen.Modules.Profile.Application.Commands.Performance.ResolveRiskSignal;
@@ -5,6 +6,7 @@ using Aizen.Modules.Profile.Application.Commands.Performance.UpsertPerformanceSn
 using Aizen.Modules.Profile.Application.Queries.Performance.GetDecisionLogsByProfile;
 using Aizen.Modules.Profile.Application.Queries.Performance.GetPerformanceSnapshotByProfile;
 using Aizen.Modules.Profile.Application.Queries.Performance.GetPerformanceSnapshotsByTier;
+using Aizen.Modules.Profile.Application.Queries.Performance.GetProfilePriorityPreview;
 using Aizen.Modules.Profile.Application.Queries.Performance.GetRiskSignalsByProfile;
 using Aizen.Modules.Profile.Application.Queries.Performance.GetScoreComponentsByProfile;
 using Aizen.Modules.Profile.Application.Queries.Performance.GetScoreHistoryByProfile;
@@ -147,6 +149,41 @@ public sealed class ProfilePerformanceController : ControllerBase
             ProfileId   = profileId,
             ProfileType = profileType,
         }, ct);
+        return Ok(result);
+    }
+
+    // ─── Phase 21 — Priority Preview ─────────────────────────────────────────
+
+    /// <summary>
+    /// Phase 21 — Read-only priority preview for admin decision support.
+    ///
+    /// Returns a ranked list of candidate providers with priority scores and explanation factors.
+    /// Supported contexts (MVP): ServiceRequestProviderRecommendation, AdminAssignmentSuggestion.
+    ///
+    /// Hard rules:
+    /// - Does NOT change assignment logic.
+    /// - Does NOT change provider search ranking.
+    /// - Does NOT create penalties or modify any entity.
+    /// - All scores come from the existing snapshot — no recalculation.
+    /// </summary>
+    [HttpPost("priority-preview")]
+    public async Task<IActionResult> GetPriorityPreview(
+        [FromBody] ProfilePriorityPreviewRequestDto request,
+        CancellationToken ct = default)
+    {
+        var actorUserId = User.FindFirst("sub")?.Value;
+
+        var result = await _sender.Send(new GetProfilePriorityPreviewQuery
+        {
+            CandidateProfileIds = request.CandidateProfileIds,
+            Context             = request.Context,
+            CategoryCode        = request.CategoryCode,
+            LocationCode        = request.LocationCode,
+            MaxResults          = request.MaxResults,
+            LogDecision         = request.LogDecision,
+            ActorUserId         = actorUserId,
+        }, ct);
+
         return Ok(result);
     }
 

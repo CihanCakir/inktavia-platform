@@ -1,6 +1,7 @@
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
+using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -203,6 +204,24 @@ public sealed class ServiceRequestsController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync(
             new GetAdminServiceRequestOffersQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Phase 23 — Admin provider recommendation preview.
+    /// Decision-support only: returns ranked provider candidates from the Profile priority-preview engine.
+    /// Candidates are sourced from submitted offers for this SR.
+    /// No automatic assignment, no offer creation, no provider notifications.
+    /// </summary>
+    [HttpPost("service-requests/{serviceRequestId:long}/provider-recommendations/preview")]
+    [ProducesResponseType(typeof(SrProviderRecommendationPreviewBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SrProviderRecommendationPreviewBffResponse>> GetProviderRecommendationPreview(
+        long serviceRequestId,
+        [FromBody] SrProviderRecommendationPreviewBffRequest request,
+        CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetSrProviderRecommendationPreviewBffQuery(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 

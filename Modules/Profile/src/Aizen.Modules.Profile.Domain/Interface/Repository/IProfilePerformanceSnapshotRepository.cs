@@ -15,6 +15,12 @@ public interface IProfilePerformanceSnapshotRepository
     /// </summary>
     Task<List<ProfilePerformanceSnapshotEntity>> GetProviderProfilesRequiringRecomputeAsync(
         int staleThresholdHours, int batchSize, CancellationToken ct);
+    /// <summary>
+    /// Returns active snapshots for the supplied profile IDs and type (Phase 21 — priority preview bulk fetch).
+    /// Profiles with no snapshot are silently omitted; callers should count ResolvedCount vs RequestedCount.
+    /// </summary>
+    Task<List<ProfilePerformanceSnapshotEntity>> GetByProfilesAsync(
+        IEnumerable<long> profileIds, ProfileType profileType, CancellationToken ct);
     Task AddAsync(ProfilePerformanceSnapshotEntity entity, CancellationToken ct);
     void Update(ProfilePerformanceSnapshotEntity entity);
     Task SaveChangesAsync(CancellationToken ct);

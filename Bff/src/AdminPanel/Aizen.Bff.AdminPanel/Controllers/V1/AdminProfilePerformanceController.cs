@@ -8,6 +8,7 @@ using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProfileP
 using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProfilePerformanceRiskSignals;
 using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProfilePerformanceSnapshot;
 using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProfilePerformanceSnapshotsByTier;
+using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProfilePriorityPreview;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,8 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 ///
 /// All endpoints proxy to Aizen.Modules.Profile at /api/v1/profile/admin/performance/*.
 /// Phase 20 rule: BFF is proxy-only — no score calculation occurs here.
-/// Phase 20 rule: All endpoints require AdminPanelAccess policy.
+/// Phase 21 rule: Priority preview endpoint is read-only — no assignment or scoring changes.
+/// All endpoints require AdminPanelAccess policy.
 /// </summary>
 [ApiController]
 [Route("api/v1/admin-panel/profile/performance")]
@@ -64,7 +66,7 @@ public sealed class AdminProfilePerformanceController : AizenWebApiController
 
     /// <summary>
     /// Returns a paged list of provider performance snapshots filtered by tier.
-    /// Tiers: ColdStart, Bronze, Silver, Gold, Platinum, Flagged.
+    /// Tiers: Standard, Silver, Gold, Platinum, Flagged. (Phase 20H: ColdStart/Bronze removed)
     /// </summary>
     [HttpGet("tier/{tier}")]
     [ProducesResponseType(typeof(ProfileSnapshotPagedBffResultDto), StatusCodes.Status200OK)]
@@ -111,7 +113,7 @@ public sealed class AdminProfilePerformanceController : AizenWebApiController
 
     /// <summary>
     /// Returns paged decision audit log for a profile.
-    /// Events: TierChanged, RiskSignalRaised, RiskSignalResolved, ColdStartBaseline.
+    /// Events: TierChanged, RiskSignalRaised, RiskSignalResolved, ColdStartBaseline, PriorityPreviewGenerated.
     /// </summary>
     [HttpGet("{profileId:long}/{profileType}/decision-logs")]
     [ProducesResponseType(typeof(ProfileDecisionLogPagedBffResultDto), StatusCodes.Status200OK)]
@@ -175,6 +177,38 @@ public sealed class AdminProfilePerformanceController : AizenWebApiController
         {
             ProfileId   = profileId,
             ProfileType = profileType,
+        }, ct);
+        return SetResponse(result?.Data);
+    }
+
+    // ─── Phase 21 — Priority Preview ─────────────────────────────────────────
+
+    /// <summary>
+    /// Phase 21 — Read-only priority preview for admin decision support.
+    ///
+    /// Returns ranked candidate providers with priority scores and explanation factors.
+    /// Supported contexts (MVP): ServiceRequestProviderRecommendation, AdminAssignmentSuggestion.
+    ///
+    /// Phase 21 rules:
+    /// - BFF is proxy-only — no score calculation here.
+    /// - Does NOT change assignment logic.
+    /// - Does NOT change provider search ranking.
+    /// - Does NOT create penalties or modify any entity.
+    /// </summary>
+    [HttpPost("priority-preview")]
+    [ProducesResponseType(typeof(ProfilePriorityPreviewBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfilePriorityPreviewBffResult>> GetPriorityPreview(
+        [FromBody] ProfilePriorityPreviewBffRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetProfilePriorityPreviewBffQuery
+        {
+            CandidateProfileIds = body.CandidateProfileIds,
+            Context             = body.Context,
+            CategoryCode        = body.CategoryCode,
+            LocationCode        = body.LocationCode,
+            MaxResults          = body.MaxResults,
+            LogDecision         = body.LogDecision,
         }, ct);
         return SetResponse(result?.Data);
     }

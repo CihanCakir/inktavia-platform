@@ -48,6 +48,19 @@ public sealed class ProfilePerformanceSnapshotRepository : IProfilePerformanceSn
                   .ToListAsync(ct);
     }
 
+    /// <summary>
+    /// Phase 21: Bulk fetch for priority preview — returns active snapshots matching the supplied IDs + type.
+    /// Profiles without a snapshot are silently omitted.
+    /// </summary>
+    public Task<List<ProfilePerformanceSnapshotEntity>> GetByProfilesAsync(
+        IEnumerable<long> profileIds, ProfileType profileType, CancellationToken ct)
+    {
+        var ids = profileIds.ToList();
+        return _db.PerformanceSnapshots
+                  .Where(x => ids.Contains(x.ProfileId) && x.ProfileType == profileType && x.IsActive)
+                  .ToListAsync(ct);
+    }
+
     public Task AddAsync(ProfilePerformanceSnapshotEntity entity, CancellationToken ct)
         => _db.PerformanceSnapshots.AddAsync(entity, ct).AsTask();
 
