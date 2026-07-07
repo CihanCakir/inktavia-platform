@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Modules.Profile.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Roles = "Admin")]
 [Route("api/v1/profile/admin/performance")]
 public sealed class ProfilePerformanceController : ControllerBase
 {

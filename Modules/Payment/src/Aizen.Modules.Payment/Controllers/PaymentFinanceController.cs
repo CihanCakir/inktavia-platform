@@ -13,7 +13,7 @@ namespace Aizen.Modules.Payment.Controllers;
 /// Phase 15 (July 2026).
 /// </summary>
 [ApiController]
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Roles = "Admin")]
 [Route("api/v1/payment/finance")]
 public sealed class PaymentFinanceController : ControllerBase
 {

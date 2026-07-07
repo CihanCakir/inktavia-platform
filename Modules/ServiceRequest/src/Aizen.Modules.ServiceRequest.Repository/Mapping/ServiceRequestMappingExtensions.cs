@@ -171,7 +171,8 @@ public static class ServiceRequestMappingExtensions
         SubmittedAt = entity.SubmittedAt,
         ReviewedAt = entity.ReviewedAt,
         ReviewedByUserId = entity.ReviewedByUserId,
-        ReviewNotes = entity.ReviewNotes
+        ReviewNotes = entity.ReviewNotes,
+        ClientRating = entity.ClientRating
     };
 
     public static ServiceRequestDisputeDto ToDto(this ServiceRequestDisputeEntity entity) => new()

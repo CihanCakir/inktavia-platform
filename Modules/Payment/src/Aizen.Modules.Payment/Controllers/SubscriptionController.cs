@@ -18,8 +18,8 @@ namespace Aizen.Modules.Payment.Controllers;
 /// Queries (status) can be called by admin or internal services; adapt auth as needed for MVP.
 /// </summary>
 [ApiController]
-[Route("api/v1/payment/subscriptions")]
 [Authorize(Roles = "Admin")]
+[Route("api/v1/payment/subscriptions")]
 public sealed class SubscriptionController : ControllerBase
 {
     private readonly ISender _sender;

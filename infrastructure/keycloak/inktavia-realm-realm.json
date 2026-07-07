@@ -266,6 +266,20 @@
           "name": "payment.admin",
           "description": "Full administrative access to Payment API"
         }
+      ],
+      "profile-api": [
+        {
+          "name": "profile.read",
+          "description": "Read profile data"
+        },
+        {
+          "name": "profile.write",
+          "description": "Create and update profile records"
+        },
+        {
+          "name": "profile.admin",
+          "description": "Full administrative access to Profile API"
+        }
       ]
     }
   },
@@ -768,6 +782,19 @@
             "userinfo.token.claim": "false",
             "introspection.token.claim": "true"
           }
+        },
+        {
+          "name": "audience-profile-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "profile-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
         }
       ]
     },
@@ -994,6 +1021,11 @@
           "payment.read",
           "payment.write",
           "payment.admin"
+        ],
+        "profile-api": [
+          "profile.read",
+          "profile.write",
+          "profile.admin"
         ]
       },
       "realmRoles": []

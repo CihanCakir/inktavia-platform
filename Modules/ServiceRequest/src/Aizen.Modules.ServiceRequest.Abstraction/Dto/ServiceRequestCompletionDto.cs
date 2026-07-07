@@ -16,4 +16,5 @@ public sealed class ServiceRequestCompletionDto
     public DateTime? ReviewedAt { get; set; }
     public long? ReviewedByUserId { get; set; }
     public string? ReviewNotes { get; set; }
+    public int? ClientRating { get; set; }
 }

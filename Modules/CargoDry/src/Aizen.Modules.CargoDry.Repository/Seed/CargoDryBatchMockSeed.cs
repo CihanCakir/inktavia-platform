@@ -50,6 +50,7 @@ public sealed class CargoDryBatchMockSeed
             qrPayload:    "https://cargodry.inktavia.local/activate/CDK-STAN-0002",
             productCode:  "STANDARD-90",
             batchCode:    "202506-STAN-DEV1");
+        kit2.MarkAsDirectSale();
         kit2.Activate(userId: 10002, vesselId: 1, validityDays: 90);
 
         // Kit 3 — Activated and renewed once (owner: 10003, vessel 2)
@@ -59,6 +60,7 @@ public sealed class CargoDryBatchMockSeed
             qrPayload:    "https://cargodry.inktavia.local/activate/CDK-STAN-0003",
             productCode:  "STANDARD-90",
             batchCode:    "202506-STAN-DEV1");
+        kit3.MarkAsDirectSale();
         kit3.Activate(userId: 10003, vesselId: 2, validityDays: 90);
         kit3.Renew(additionalDays: 90, paymentRef: "PAY-LOCAL-DEV-001");
 
@@ -69,6 +71,7 @@ public sealed class CargoDryBatchMockSeed
             qrPayload:    "https://cargodry.inktavia.local/activate/CDK-STAN-0004",
             productCode:  "STANDARD-90",
             batchCode:    "202506-STAN-DEV1");
+        kit4.MarkAsDirectSale();
         kit4.Activate(userId: 10004, vesselId: 3, validityDays: 1);
         kit4.MarkExpired();
 
@@ -94,6 +97,7 @@ public sealed class CargoDryBatchMockSeed
             qrPayload:    "https://cargodry.inktavia.local/activate/CDK-PREM-0002",
             productCode:  "PREMIUM-180",
             batchCode:    "202506-PREM-DEV1");
+        kit6.MarkAsDirectSale();
         kit6.Activate(userId: 10005, vesselId: 4, validityDays: 180);
 
         // Kit 7 — Revoked

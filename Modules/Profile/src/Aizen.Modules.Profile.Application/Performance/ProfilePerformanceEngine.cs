@@ -365,13 +365,15 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
         DbConnection conn, long profileId, CancellationToken ct)
     {
         var m     = new SrMetrics();
+        var since = DateTime.UtcNow.AddMonths(-12);
+
+        // Each metric group is isolated in its own try/catch so a failure in one
+        // (e.g. a schema mismatch) can't silently skip the others — every group
+        // degrades to its own neutral default independently.
         try
         {
-            var since = DateTime.UtcNow.AddMonths(-12);
-
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = @"
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
                     SELECT
                         COUNT(*)                                                   AS ""TotalAssignments"",
                         COUNT(*) FILTER (WHERE sr.""Status"" = @srCompleted)       AS ""CompletedAssignments"",
@@ -391,23 +393,25 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                     WHERE a.""ProviderProfileId"" = @profileId
                       AND a.""IsDeleted"" = false
                       AND a.""CreateDate"" >= @since";
-                Param(cmd, "profileId",    profileId);
-                Param(cmd, "srCompleted",  SrStatusCompleted);
-                Param(cmd, "since",        since);
+            Param(cmd, "profileId",    profileId);
+            Param(cmd, "srCompleted",  SrStatusCompleted);
+            Param(cmd, "since",        since);
 
-                using var r = await cmd.ExecuteReaderAsync(ct);
-                if (await r.ReadAsync(ct))
-                {
-                    m.TotalAssignments     = ToInt(r["TotalAssignments"]);
-                    m.CompletedAssignments = ToInt(r["CompletedAssignments"]);
-                    m.ResponsesUnder2h     = ToInt(r["ResponsesUnder2h"]);
-                    m.ResponsesUnder6h     = ToInt(r["ResponsesUnder6h"]);
-                }
-            }
-
-            using (var cmd = conn.CreateCommand())
+            using var r = await cmd.ExecuteReaderAsync(ct);
+            if (await r.ReadAsync(ct))
             {
-                cmd.CommandText = @"
+                m.TotalAssignments     = ToInt(r["TotalAssignments"]);
+                m.CompletedAssignments = ToInt(r["CompletedAssignments"]);
+                m.ResponsesUnder2h     = ToInt(r["ResponsesUnder2h"]);
+                m.ResponsesUnder6h     = ToInt(r["ResponsesUnder6h"]);
+            }
+        }
+        catch { /* Graceful degradation — partial data returns neutral scores */ }
+
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
                     SELECT
                         COUNT(*) FILTER (WHERE c.""ClientRating"" IS NOT NULL)    AS ""RatedCompletions"",
                         COUNT(*) FILTER (WHERE c.""ClientRating"" >= 4)           AS ""HighRatedCompletions""
@@ -418,20 +422,22 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                     WHERE a.""ProviderProfileId"" = @profileId
                       AND c.""IsDeleted"" = false
                       AND c.""CreateDate"" >= @since";
-                Param(cmd, "profileId", profileId);
-                Param(cmd, "since",     since);
+            Param(cmd, "profileId", profileId);
+            Param(cmd, "since",     since);
 
-                using var r = await cmd.ExecuteReaderAsync(ct);
-                if (await r.ReadAsync(ct))
-                {
-                    m.RatedCompletions     = ToInt(r["RatedCompletions"]);
-                    m.HighRatedCompletions = ToInt(r["HighRatedCompletions"]);
-                }
-            }
-
-            using (var cmd = conn.CreateCommand())
+            using var r = await cmd.ExecuteReaderAsync(ct);
+            if (await r.ReadAsync(ct))
             {
-                cmd.CommandText = @"
+                m.RatedCompletions     = ToInt(r["RatedCompletions"]);
+                m.HighRatedCompletions = ToInt(r["HighRatedCompletions"]);
+            }
+        }
+        catch { /* Graceful degradation — partial data returns neutral scores */ }
+
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
                     SELECT
                         COUNT(*)                                                   AS ""TotalDisputes"",
                         COUNT(*) FILTER (
@@ -445,16 +451,15 @@ public sealed class ProfilePerformanceEngine : IProfilePerformanceEngine
                     WHERE a.""ProviderProfileId"" = @profileId
                       AND d.""IsDeleted"" = false
                       AND d.""CreateDate"" >= @since";
-                Param(cmd, "profileId", profileId);
-                Param(cmd, "resolved",  SrDisputeStatusResolved);
-                Param(cmd, "since",     since);
+            Param(cmd, "profileId", profileId);
+            Param(cmd, "resolved",  SrDisputeStatusResolved);
+            Param(cmd, "since",     since);
 
-                using var r = await cmd.ExecuteReaderAsync(ct);
-                if (await r.ReadAsync(ct))
-                {
-                    m.TotalDisputes = ToInt(r["TotalDisputes"]);
-                    m.WonDisputes   = ToInt(r["WonDisputes"]);
-                }
+            using var r = await cmd.ExecuteReaderAsync(ct);
+            if (await r.ReadAsync(ct))
+            {
+                m.TotalDisputes = ToInt(r["TotalDisputes"]);
+                m.WonDisputes   = ToInt(r["WonDisputes"]);
             }
         }
         catch { /* Graceful degradation — partial data returns neutral scores */ }

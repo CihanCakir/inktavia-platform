@@ -16,6 +16,7 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
     public DateTime? ReviewedAt { get; private set; }
     public long? ReviewedByUserId { get; private set; }
     public string? ReviewNotes { get; private set; }
+    public int? ClientRating { get; private set; }
 
     public ServiceRequestCompletionEntity() { }
 
@@ -61,5 +62,13 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
         ReviewedAt = DateTime.UtcNow;
         ReviewedByUserId = reviewerUserId;
         ReviewNotes = reviewNotes;
+    }
+
+    public void RateByClient(int rating)
+    {
+        if (rating is < 1 or > 5)
+            throw new ArgumentOutOfRangeException(nameof(rating), rating, "Client rating must be between 1 and 5.");
+
+        ClientRating = rating;
     }
 }

@@ -39,11 +39,8 @@ public static class DependencyInjection
         // ── Remote call registrations ──────────────────────────────────────────
 
         services.AddTransient<IIdentityAdminBffRemoteCall>(provider =>
-        {
-            var client = CreateHttpClient(provider, nameof(IIdentityAdminBffRemoteCall));
-            client.Timeout = TimeSpan.FromSeconds(15);
-            return CreateRemoteCall<IIdentityAdminBffRemoteCall>(client);
-        });
+            CreateRemoteCall<IIdentityAdminBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IIdentityAdminBffRemoteCall))));
 
         services.AddTransient<IVesselAdminBffRemoteCall>(provider =>
             CreateRemoteCall<IVesselAdminBffRemoteCall>(
