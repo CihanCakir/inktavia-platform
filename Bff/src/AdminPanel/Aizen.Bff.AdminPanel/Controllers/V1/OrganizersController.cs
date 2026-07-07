@@ -1,5 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
@@ -25,11 +26,17 @@ public sealed class OrganizersController : AizenWebApiController
     [HttpGet("identity/organizers/profiles")]
     [ProducesResponseType(typeof(PagedOrganizerProfileResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<PagedOrganizerProfileResult>> SearchProfiles(
-        [FromQuery] int pageIndex = 0,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] int     pageIndex      = 0,
+        [FromQuery] int     pageSize       = 20,
+        [FromQuery] string? searchTerm     = null,
+        [FromQuery] string? approvalStatus = null,
+        [FromQuery] string? status         = null,
+        [FromQuery] string? city           = null,
+        [FromQuery] string? country        = null,
         CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new SearchOrganizerProfilesQuery(pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(
+            new SearchOrganizerProfilesQuery(pageIndex, pageSize, searchTerm, approvalStatus, status, city, country), ct);
         return SetResponse(result);
     }
 
@@ -48,6 +55,20 @@ public sealed class OrganizersController : AizenWebApiController
         Guid profileId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(new GetOrganizerProfileWithUserQuery(profileId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Phase 27 — Provider Directory detail endpoint.
+    /// Uses long profileId matching Identity module's numeric PK.
+    /// Route suffix /detail distinguishes from the Guid-based /with-user route above.
+    /// </summary>
+    [HttpGet("identity/organizers/profiles/{profileId:long}/detail")]
+    [ProducesResponseType(typeof(OrganizerProfileWithUserDetailDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<OrganizerProfileWithUserDetailDto>> GetProviderDirectoryDetail(
+        long profileId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetProviderDirectoryDetailQuery(profileId), ct);
         return SetResponse(result);
     }
 }

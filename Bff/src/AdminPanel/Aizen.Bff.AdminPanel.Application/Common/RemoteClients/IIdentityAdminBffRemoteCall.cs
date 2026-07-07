@@ -35,8 +35,13 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles")]
     Task<AizenApiResponse<PagedOrganizerProfileResult>> SearchOrganizerProfiles(
-        [Refit.Query] int pageIndex = 0,
-        [Refit.Query] int pageSize  = 20);
+        [Refit.Query] int     pageIndex      = 0,
+        [Refit.Query] int     pageSize       = 20,
+        [Refit.Query] string? searchTerm     = null,
+        [Refit.Query] string? approvalStatus = null,
+        [Refit.Query] string? status         = null,
+        [Refit.Query] string? city           = null,
+        [Refit.Query] string? country        = null);
 
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles/{profileId}")]
     Task<AizenApiResponse<OrganizerProfileResult>> GetOrganizerProfileById(Guid profileId);

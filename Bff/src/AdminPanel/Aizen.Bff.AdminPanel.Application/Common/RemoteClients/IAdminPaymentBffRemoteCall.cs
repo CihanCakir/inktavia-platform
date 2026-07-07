@@ -253,9 +253,10 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/payment/payouts")]
     Task<PaymentPayoutListBffResult> GetPayoutsPagedAsync(
-        [Query] string? status   = null,
-        [Query] int     page     = 1,
-        [Query] int     pageSize = 25,
+        [Query] string? status     = null,
+        [Query] int     page       = 1,
+        [Query] int     pageSize   = 25,
+        [Query] long?   providerId = null,
         CancellationToken ct = default);
 
     [AizenRemoteCallGet("/api/v1/payment/payouts/{id}")]

@@ -16,7 +16,14 @@ public sealed class SearchOrganizerProfilesQueryHandler : AizenQueryHandler<Sear
     public override async Task<PagedOrganizerProfileResult?> Handle(SearchOrganizerProfilesQuery request, CancellationToken ct)
     {
 
-        var r = await _identity.SearchOrganizerProfiles(request.PageIndex, request.PageSize);
+        var r = await _identity.SearchOrganizerProfiles(
+            pageIndex:      request.PageIndex,
+            pageSize:       request.PageSize,
+            searchTerm:     request.SearchTerm,
+            approvalStatus: request.ApprovalStatus,
+            status:         request.Status,
+            city:           request.City,
+            country:        request.Country);
         return r.Body;
     }
 }

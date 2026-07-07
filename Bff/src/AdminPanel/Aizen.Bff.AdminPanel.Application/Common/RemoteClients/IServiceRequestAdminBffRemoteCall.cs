@@ -22,11 +22,12 @@ public interface IServiceRequestAdminBffRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/admin/service-requests")]
     Task<AizenApiResponse<GetAdminServiceRequestListResponse>> GetAdminServiceRequestList(
-        [Refit.Query] string? status      = null,
-        [Refit.Query] long?   vesselId    = null,
-        [Refit.Query] long?   ownerUserId = null,
-        [Refit.Query] int     pageIndex   = 0,
-        [Refit.Query] int     pageSize    = 20);
+        [Refit.Query] string? status            = null,
+        [Refit.Query] long?   vesselId          = null,
+        [Refit.Query] long?   ownerUserId       = null,
+        [Refit.Query] int     pageIndex         = 0,
+        [Refit.Query] int     pageSize          = 20,
+        [Refit.Query] long?   providerProfileId = null);
 
     [AizenRemoteCallGet("/api/v1/admin/service-requests/disputes")]
     Task<AizenApiResponse<GetAdminDisputeListResponse>> GetAdminDisputeList(

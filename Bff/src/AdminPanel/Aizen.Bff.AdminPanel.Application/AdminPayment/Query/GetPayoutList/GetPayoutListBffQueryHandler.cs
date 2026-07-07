@@ -30,7 +30,7 @@ public sealed class GetPayoutListBffQueryHandler
         GetPayoutListBffQuery request, CancellationToken ct)
     {
         // 1. Fetch paged payouts from Payment module.
-        var result = await _payment.GetPayoutsPagedAsync(request.Status, request.Page, request.PageSize, ct);
+        var result = await _payment.GetPayoutsPagedAsync(request.Status, request.Page, request.PageSize, ct: ct);
 
         if (result?.Items is not { Count: > 0 })
             return new GetPayoutListBffResponse { Result = result! };
