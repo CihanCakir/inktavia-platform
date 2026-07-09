@@ -168,8 +168,7 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
                 validationCode,
                 guid,
                 now.AddMinutes(5),
-                 0, // TODO: Bu değer ne anlama geliyor? Gerekli mi?
-                userProfileId: 0 // login işlemi için profile gerek yok
+                applicationId: 0
             );
 
             await _userValidationRepository.AddAsync(validation);
@@ -196,9 +195,8 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
                 validationCode,
                 guid,
                 now.AddMinutes(5),
-                0, //TODO: Bu değer ne anlama geliyor? Gerekli mi?
-                userProfileId: 0,
-                smsDto.ContextType.ToString()
+                applicationId: 0,
+                relationCode: smsDto.ContextType.ToString()
             );
 
             await _userValidationRepository.AddAsync(validation);

@@ -41,6 +41,9 @@ namespace Aizen.Modules.Identity.Domain.Entities
         public string? ReviewedBy { get; private set; }
         public DateTime? ReviewedAt { get; private set; }
 
+        public bool PhoneVerified { get; private set; }
+        public DateTime? PhoneVerifiedAt { get; private set; }
+
         public virtual ICollection<VerificationDocumentEntity> VerificationDocuments { get; private set; }
             = new List<VerificationDocumentEntity>();
 
@@ -131,6 +134,44 @@ namespace Aizen.Modules.Identity.Domain.Entities
         {
             City = city;
             Country = country;
+            SetModified();
+        }
+
+        public void MarkPhoneVerified(DateTime utcNow)
+        {
+            PhoneVerified = true;
+            PhoneVerifiedAt = utcNow;
+            SetModified();
+        }
+
+        /// <summary>
+        /// Suspends the profile (ProfileStatus = Suspended). Does not change ApprovalStatus.
+        /// Idempotent. Optional reason is stored in the existing InternalNote field when provided.
+        /// </summary>
+        public void Suspend(string? reason = null)
+        {
+            if (Status == ProfileStatus.Suspended)
+                return; // idempotent
+
+            Status = ProfileStatus.Suspended;
+            if (!string.IsNullOrWhiteSpace(reason))
+                InternalNote = reason;
+            SetModified();
+        }
+
+        /// <summary>
+        /// Reactivates an Approved profile (ProfileStatus = Active). Never approves a Pending/Rejected
+        /// profile — approval remains the responsibility of the Approve command. Idempotent.
+        /// </summary>
+        public void Reactivate()
+        {
+            if (ApprovalStatus != ApprovalStatus.Approved)
+                throw new AizenBusinessException(((int)AizenErrorCode.ProfileStatusInvalidForAction).ToString());
+
+            if (Status == ProfileStatus.Active)
+                return; // idempotent
+
+            Status = ProfileStatus.Active;
             SetModified();
         }
 

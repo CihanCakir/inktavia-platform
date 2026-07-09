@@ -1,4 +1,3 @@
-using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Interface;
@@ -10,13 +9,10 @@ namespace Aizen.Modules.Identity.Repository.Identity.Repository
     public class UserProfileRepository : IUserProfileRepository
     {
         private readonly IdentityDbContext _dbContext;
-        private readonly IAizenInfoAccessor _infoAccessor;
 
-        // Constructor injection for the DbContext
-        public UserProfileRepository(IdentityDbContext dbContext, IAizenInfoAccessor infoAccessor)
+        public UserProfileRepository(IdentityDbContext dbContext)
         {
             _dbContext = dbContext;
-            _infoAccessor = infoAccessor;
         }
 
         public async Task<UserProfileEntity?> GetActiveProfileIdAsync(long userId, WorkshopRoleContext roleContext)
@@ -42,12 +38,26 @@ namespace Aizen.Modules.Identity.Repository.Identity.Repository
 
         public async Task<UserProfileEntity?> GetProfileByIdAsync(long profileId)
         {
-            var context = Enum.TryParse(_infoAccessor.AppInfoAccessor.AppInfo.Code, out WorkshopRoleContext rc)
-                ? rc
-                : WorkshopRoleContext.Participant;
+            return await _dbContext.UserProfiles
+                .FirstOrDefaultAsync(p => p.Id == profileId);
+        }
+
+        public async Task<UserProfileEntity?> GetOrganizerProfileByKeycloakSubjectAsync(
+            string keycloakSubjectId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(keycloakSubjectId))
+                return null;
 
             return await _dbContext.UserProfiles
-                .FirstOrDefaultAsync(p => p.Id == profileId && p.RoleContext == context);
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Include(p => p.VerificationDocuments)
+                .Include(p => p.RiskSignals)
+                .FirstOrDefaultAsync(
+                    p => p.RoleContext == WorkshopRoleContext.Organizer
+                         && !p.IsDeleted
+                         && p.User.KeycloakSubjectId == keycloakSubjectId,
+                    cancellationToken);
         }
 
         public async Task AddProfileAsync(UserProfileEntity profile)

@@ -36,13 +36,17 @@ namespace Aizen.Modules.Identity.Repository
             if (configuration is not null)
             {
                 services.Configure<OAuthOptions>(configuration.GetSection("OAuth")); // appsettings: OAuth:Google/Apple ...
+                services.Configure<Abstraction.Options.IdentityKeycloakOptions>(
+                    configuration.GetSection(Abstraction.Options.IdentityKeycloakOptions.SectionName));
             }
 
+            services.AddScoped<IProviderKeycloakRoleSyncService, ProviderKeycloakRoleSyncService>();
             services.AddScoped<IAuthorizationService, AuthorizationService>();
             services.AddScoped<IConsumerRegistrationDomainService, ConsumerRegistrationDomainService>();
             services.AddScoped<IInktaviaTokenService, InktaviaTokenService>();
             services.AddScoped<IOAuthProviderClient, OAuthProviderClient>();
             services.AddScoped<IOrganizerRegistrationDomainService, OrganizerRegistrationDomainService>();
+            services.AddScoped<IOrganizerKeycloakProvisioningDomainService, OrganizerKeycloakProvisioningDomainService>();
             services.AddScoped<IVenueRegistrationDomainService, VenueRegistrationDomainService>();
 
 

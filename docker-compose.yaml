@@ -67,7 +67,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
 
       KC_HOSTNAME: ${KC_HOSTNAME:-localhost}
-      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
@@ -152,6 +152,44 @@ services:
       - "${BFF_ADMINPANEL_PORT:-17001}:8080"
     networks: [aizen]
 
+  bff-marineprovider:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.MarineProvider
+    container_name: bff-marineprovider
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - identity-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # Inbound auth (Keycloak full IdP). Authority = browser-facing issuer; MetadataAddress = in-cluster JWKS.
+      MarineProviderKeycloak__BaseUrl: http://keycloak:8080
+      MarineProviderKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineProviderKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineProviderKeycloak__Realm: inktavia-realm
+      MarineProviderKeycloak__Audience: provider-portal-bff
+      MarineProviderKeycloak__RequireHttpsMetadata: "false"
+      MarineProviderKeycloak__AdminClientId: provider-portal-bff
+      MarineProviderKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineProviderKeycloak__ProviderPortalClientId: provider-portal
+      MarineProviderKeycloak__ProviderPortalBffClientId: provider-portal-bff
+      MarineProviderKeycloak__ProviderPendingRole: provider_pending
+      MarineProviderKeycloak__ProviderUserRole: provider_user
+      MarineProviderKeycloak__ProviderRestrictedRole: provider_restricted
+      MarineProviderKeycloak__ProviderProfileIdAttributeName: provider_profile_id
+      MarineProviderKeycloak__VerifyEmailRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/verify-callback
+      # BFF → module calls (Keycloak service token injected by the delegating handler)
+      RemoteCalls__IProviderIdentityRemoteCall__BaseUrl: http://identity-api:8080
+    ports:
+      - "${BFF_MARINEPROVIDER_PORT:-17002}:8080"
+    networks: [aizen]
+
   # Example modules (expand as needed)
   minio:
     image: minio/minio:latest
@@ -213,6 +251,15 @@ services:
       KEYCLOAK_AUDIENCE: identity-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       ElasticApm__Enabled: "false"
+      IdentityKeycloak__Enabled: "true"
+      IdentityKeycloak__BaseUrl: http://keycloak:8080
+      IdentityKeycloak__Realm: inktavia-realm
+      IdentityKeycloak__AdminClientId: provider-portal-bff
+      IdentityKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET}
+      IdentityKeycloak__ProviderPendingRole: provider_pending
+      IdentityKeycloak__ProviderUserRole: provider_user
+      IdentityKeycloak__ProviderRestrictedRole: provider_restricted
+      IdentityKeycloak__RevokeSessionsOnSuspend: "false"
     ports:
       - "7101:8080"
     networks: [aizen]

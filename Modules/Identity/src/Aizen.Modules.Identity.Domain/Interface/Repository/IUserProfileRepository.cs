@@ -27,6 +27,12 @@ namespace Aizen.Modules.Identity.Domain.Interface
         Task<UserProfileEntity?> GetProfileByIdAsync(long profileId);
 
         /// <summary>
+        /// Verilen Keycloak subject'ine bağlı Organizer profilini döner; bağlı değilse null.
+        /// </summary>
+        Task<UserProfileEntity?> GetOrganizerProfileByKeycloakSubjectAsync(
+            string keycloakSubjectId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Yeni bir kullanıcı profili oluşturur.
         /// </summary>
         Task AddProfileAsync(UserProfileEntity profile);

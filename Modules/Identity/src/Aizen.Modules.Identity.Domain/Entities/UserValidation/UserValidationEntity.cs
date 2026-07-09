@@ -19,8 +19,8 @@ namespace Aizen.Modules.Identity.Domain.Entities
         public string ValidationGuid { get; set; } = null!;
         public DateTime ExpiredDateTime { get; set; }
 
-        public long UserProfileId { get; set; }
-        public virtual UserProfileEntity UserProfile { get; set; } = null!;
+        public long? UserProfileId { get; set; }
+        public virtual UserProfileEntity? UserProfile { get; set; }
         protected UserValidationEntity()
         {
         }
@@ -34,7 +34,7 @@ namespace Aizen.Modules.Identity.Domain.Entities
             string guid,
             DateTime expireDate,
             int applicationId,
-            long userProfileId,
+            long? userProfileId = null,
             string? relationCode = null)
         {
             return new UserValidationEntity

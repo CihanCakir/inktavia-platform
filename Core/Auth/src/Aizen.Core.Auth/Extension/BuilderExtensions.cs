@@ -225,25 +225,25 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
                     {
                         OnTokenValidated = ctx =>
                         {
-                            var jwt = ctx.SecurityToken as JwtSecurityToken;
-                            if (jwt is null)
-                                return System.Threading.Tasks.Task.CompletedTask;
-
                             var id = ctx.Principal?.Identity as ClaimsIdentity;
                             if (id is null)
                                 return System.Threading.Tasks.Task.CompletedTask;
 
-                            if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                            // Read realm_access and resource_access from principal claims.
+                            // Works with both JwtSecurityToken (.NET 7) and JsonWebToken (.NET 8/9+).
+                            var realmAccessJson = ctx.Principal?.FindFirst("realm_access")?.Value;
+                            if (!string.IsNullOrWhiteSpace(realmAccessJson))
                             {
-                                var realmAccess = realmAccessObj as JObject ?? JObject.FromObject(realmAccessObj);
+                                var realmAccess = JObject.Parse(realmAccessJson);
                                 var roles = realmAccess["roles"]?.Select(t => t.ToString()).ToArray() ?? System.Array.Empty<string>();
                                 foreach (var r in roles)
                                     id.AddClaim(new Claim(ClaimTypes.Role, r));
                             }
 
-                            if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                            var resourceAccessJson = ctx.Principal?.FindFirst("resource_access")?.Value;
+                            if (!string.IsNullOrWhiteSpace(resourceAccessJson))
                             {
-                                var resourceAccess = resourceAccessObj as JObject ?? JObject.FromObject(resourceAccessObj);
+                                var resourceAccess = JObject.Parse(resourceAccessJson);
                                 foreach (var clientProp in resourceAccess.Properties())
                                 {
                                     var clientRoles = resourceAccess[clientProp.Name]?["roles"]?.Select(t => t.ToString()) ?? Enumerable.Empty<string>();

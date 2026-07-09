@@ -334,3 +334,4 @@ ASALocalRun/
 
 # Local environment overrides (not for Docker)
 appsettings.Local.json
+.env

@@ -51,7 +51,9 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.LoginWithOtp
             if (user is null)
                 throw new AizenBusinessException(((int)AizenErrorCode.PassiveUser).ToString());
 
-            var profile = await _userProfileRepository.GetProfileByIdAsync(userValidation.UserProfileId);
+            var profile = userValidation.UserProfileId.HasValue
+                ? await _userProfileRepository.GetProfileByIdAsync(userValidation.UserProfileId.Value)
+                : null;
 
             if (profile is null)
                 throw new AizenBusinessException(((int)AizenErrorCode.UserHasNoActiveProfileInThisPanel).ToString());

@@ -6,6 +6,7 @@ namespace Aizen.Modules.Identity.Abstraction
         OTP = 2,
         Google = 3,
         Apple = 4,
-        Biometric = 5
+        Biometric = 5,
+        Keycloak = 6
     }
 }

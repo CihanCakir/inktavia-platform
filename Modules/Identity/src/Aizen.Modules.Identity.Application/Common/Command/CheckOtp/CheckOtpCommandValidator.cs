@@ -16,7 +16,9 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.CheckOtp
 
 
             RuleFor(x => x.PhoneNumber)
-                      .Length(10)
+                      .MinimumLength(10)
+                      .WithMessage(((int)AizenErrorCode.phoneNumberMustBeTenDigits).ToString())
+                      .MaximumLength(15)
                       .WithMessage(((int)AizenErrorCode.phoneNumberMustBeTenDigits).ToString());
 
             RuleFor(x => x.Otp)

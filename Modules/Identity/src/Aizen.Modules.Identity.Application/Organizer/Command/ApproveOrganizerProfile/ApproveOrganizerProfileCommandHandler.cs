@@ -6,7 +6,9 @@ using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Interface;
+using Aizen.Modules.Identity.Domain.Interface.Service;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
 {
@@ -14,11 +16,19 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
     {
         private readonly IUserProfileRepository _profileRepo;
         private readonly UserManager<UserEntity> _userManager;
+        private readonly IProviderKeycloakRoleSyncService _roleSync;
+        private readonly ILogger<ApproveOrganizerProfileCommandHandler> _logger;
 
-        public ApproveOrganizerProfileCommandHandler(IUserProfileRepository profileRepo, UserManager<UserEntity> userManager)
+        public ApproveOrganizerProfileCommandHandler(
+            IUserProfileRepository profileRepo,
+            UserManager<UserEntity> userManager,
+            IProviderKeycloakRoleSyncService roleSync,
+            ILogger<ApproveOrganizerProfileCommandHandler> logger)
         {
             _profileRepo = profileRepo;
             _userManager = userManager;
+            _roleSync = roleSync;
+            _logger = logger;
         }
 
         public override async Task<VenueOrganizationRegistrationResponse?> Handle(ApproveOrganizerProfileCommand request, CancellationToken ct)
@@ -44,6 +54,16 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
 
             user.SetActiveProfile(profile.Id);
             await _userManager.UpdateAsync(user);
+
+            // 3) Keycloak role sync (provider_pending → provider_user). Best-effort: never fail approval.
+            try
+            {
+                await _roleSync.OnApprovedAsync(user.KeycloakSubjectId, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Keycloak role sync (approve) failed for user {UserId}.", request.UserId);
+            }
 
             return new VenueOrganizationRegistrationResponse(
                 Success: true,

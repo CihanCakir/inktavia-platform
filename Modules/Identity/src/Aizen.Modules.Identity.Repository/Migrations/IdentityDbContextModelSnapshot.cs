@@ -1010,6 +1010,12 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.Property<long?>("PaymentProfileId")
                         .HasColumnType("bigint");
 
+                    b.Property<bool>("PhoneVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("PhoneVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("ProfilePhotoUrl")
                         .HasColumnType("text");
 
@@ -1127,7 +1133,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.Property<int>("State")
                         .HasColumnType("integer");
 
-                    b.Property<long>("UserProfileId")
+                    b.Property<long?>("UserProfileId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("UserValidationMethodTypeId")
@@ -1491,10 +1497,10 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.HasOne("Aizen.Modules.Identity.Domain.Entities.UserProfileEntity", "UserProfile")
                         .WithMany()
                         .HasForeignKey("UserProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("UserProfile");
+                    b.Navigation("UserProfile")
+                        .IsRequired(false);
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.VerificationDocumentEntity", b =>

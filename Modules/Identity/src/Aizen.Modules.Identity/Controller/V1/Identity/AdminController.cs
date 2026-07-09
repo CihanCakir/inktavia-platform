@@ -6,6 +6,8 @@ using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.InktaviaStore.Application.Identity;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer;
+using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.ReactivateOrganizerProfile;
+using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.SuspendOrganizerProfile;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Venue;
 using Aizen.Modules.InktaviaStore.Application.Identity.Query.Common;
 using Microsoft.AspNetCore.Authorization;
@@ -65,6 +67,43 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             var result = await _sender.ProcessAsync(
                 new RejectOrganizerProfileCommand(userId, profileId, req.Reason,
                     req.ReasonCategory, req.InternalNote, req.NotifyUser, GetCurrentUserEmail()),
+                ct);
+
+            return SetResponse(result);
+        }
+
+        // POST /api/v1/identity/admin/organizers/{userId}/profiles/{profileId}/suspend
+        [HttpPost("admin/organizers/{userId}/profiles/{profileId}/suspend")]
+        [ProducesResponseType(typeof(SuspendOrganizerProfileResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<AizenApiResponse<SuspendOrganizerProfileResponse>> SuspendOrganizer(
+            [FromRoute] long userId,
+            [FromRoute] long profileId,
+            [FromBody] SuspendProfileRequest? req,
+            CancellationToken ct)
+        {
+            var result = await _sender.ProcessAsync(
+                new SuspendOrganizerProfileCommand(userId, profileId, req?.Reason),
+                ct);
+
+            return SetResponse(result);
+        }
+
+        // POST /api/v1/identity/admin/organizers/{userId}/profiles/{profileId}/reactivate
+        [HttpPost("admin/organizers/{userId}/profiles/{profileId}/reactivate")]
+        [ProducesResponseType(typeof(ReactivateOrganizerProfileResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<AizenApiResponse<ReactivateOrganizerProfileResponse>> ReactivateOrganizer(
+            [FromRoute] long userId,
+            [FromRoute] long profileId,
+            CancellationToken ct)
+        {
+            var result = await _sender.ProcessAsync(
+                new ReactivateOrganizerProfileCommand(userId, profileId),
                 ct);
 
             return SetResponse(result);
