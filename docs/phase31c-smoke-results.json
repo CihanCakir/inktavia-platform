@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "utcTimestamp": "2026-07-09T08:48:35Z",
+    "gitCommit": "cfe8573",
+    "branch": "feature/messaging-registration",
+    "bffPort": 17002,
+    "identityApiPort": 7101,
+    "keycloakPort": 8080,
+    "database": "inktavia_store",
+    "realm": "inktavia-realm",
+    "images": {
+      "identityApi": "aizen-inktavia-local-identity-api",
+      "keycloak": "quay.io/keycloak/keycloak:25.0.0",
+      "postgres": "postgres:16-alpine"
+    }
+  },
+  "build": {
+    "result": "PASS",
+    "projects": [
+      {"name": "Aizen.Modules.Identity.Domain", "result": "PASS"},
+      {"name": "Aizen.Modules.Identity.Application", "result": "PASS"},
+      {"name": "Aizen.Modules.Identity.Repository", "result": "PASS"},
+      {"name": "Aizen.Modules.Identity", "result": "PASS"},
+      {"name": "Aizen.Bff.MarineProvider.Application", "result": "PASS"},
+      {"name": "Aizen.Bff.MarineProvider", "result": "PASS"}
+    ]
+  },
+  "tests": {
+    "H1": {
+      "name": "Registration",
+      "result": "PASS",
+      "details": {
+        "email": "prov1783583923@example.com",
+        "providerProfileId": 100005,
+        "keycloakUserId": "ee32c11c-b292-4da4-a4bd-00a4bb261843",
+        "registrationStatus": "PendingEmailVerification",
+        "kcRole": "provider_pending",
+        "dbApprovalStatus": 0,
+        "dbStatus": 1,
+        "warnings": ["Keycloak.VerifyEmail call failed: HttpRequestException (expected in local dev, no SMTP)"]
+      }
+    },
+    "H2": {
+      "name": "Token / Status Gate",
+      "result": "PASS",
+      "details": {
+        "tokenAcquired": true,
+        "audience": ["provider-portal-bff", "account"],
+        "providerProfileIdClaim": null,
+        "emailVerified": true,
+        "approvalStatus": "Pending",
+        "profileStatus": "Inactive",
+        "canEnterWorkspace": false,
+        "requiredNextStep": "AwaitApproval",
+        "note": "Had to manually clear VERIFY_EMAIL requiredAction via kcadm (no SMTP in local dev)"
+      }
+    },
+    "H3": {
+      "name": "Approve + Reactivate",
+      "result": "PASS",
+      "details": {
+        "approveResponse": {
+          "success": true,
+          "newStatus": "Approved",
+          "kcRoleAfterApprove": "provider_user"
+        },
+        "reactivateResponse": {
+          "success": true,
+          "profileStatus": "Active",
+          "approvalStatus": "Approved"
+        },
+        "statusAfter": {
+          "canEnterWorkspace": true,
+          "requiredNextStep": "EnterWorkspace"
+        }
+      }
+    },
+    "H4": {
+      "name": "Suspend",
+      "result": "PASS",
+      "details": {
+        "suspendResponse": {
+          "success": true,
+          "profileStatus": "Suspended"
+        },
+        "kcRoleAfterSuspend": "provider_restricted",
+        "requiredNextStep": "Suspended",
+        "canEnterWorkspace": false
+      }
+    },
+    "H5": {
+      "name": "Reactivate After Suspend",
+      "result": "PASS",
+      "details": {
+        "reactivateResponse": {
+          "success": true,
+          "profileStatus": "Active"
+        },
+        "kcRoleAfterReactivate": "provider_user",
+        "canEnterWorkspace": true,
+        "requiredNextStep": "EnterWorkspace"
+      }
+    },
+    "H6": {
+      "name": "Ensure-Profile (Social Login)",
+      "result": "PASS",
+      "details": {
+        "socialSmiteKcId": "fc216091-71aa-411a-bc85-5aaafbbf812f",
+        "response": {
+          "status": "Linked",
+          "providerProfileId": 100004,
+          "message": "Provider profile is linked."
+        },
+        "kcAttributeProviderProfileId": null,
+        "knownGap": "B4 — KC attribute not written by BFF"
+      }
+    },
+    "H7": {
+      "name": "Phone OTP",
+      "result": "PASS",
+      "details": {
+        "sendOtpResponse": {
+          "validationGuid": "0c74a176-b862-4da1-bca9-cc44edc9be9a",
+          "expireCounter": 299,
+          "message": "Verification code sent."
+        },
+        "otpReadFromDb": "***",
+        "verifyOtpResponse": {
+          "isConfirmed": true,
+          "phoneVerifiedPersisted": true,
+          "message": "Phone verified."
+        },
+        "dbPhoneVerified": true,
+        "dbPhoneVerifiedAt": "2026-07-09T08:48:23Z"
+      }
+    }
+  },
+  "bugVerification": {
+    "B1_GetProfileByIdNoContextFilter": "VERIFIED FIXED",
+    "B2_UserValidationEntityNullableFK": "VERIFIED FIXED",
+    "B3_CheckOtpE164PhoneAccepted": "VERIFIED FIXED",
+    "B4_ProviderProfileIdKcAttributeNotSet": "STILL OPEN",
+    "B5_AdminRoleMismatch": "NOT AN ISSUE - both admin_user and Admin roles present in token"
+  },
+  "deviations": [
+    "DB name in prompt was 'aizen' but actual tables are in 'inktavia_store'",
+    "After registration, KC user has requiredActions=[VERIFY_EMAIL] blocking direct grant — cleared manually (no SMTP in local dev)",
+    "Identity-api /health returns 401 (auth required), not 200 — service confirmed running by successful API calls",
+    "social-smoke user already existed from prior run — ensure-profile tested idempotency (status=Linked)"
+  ],
+  "verdict": {
+    "phase31cComplete": true,
+    "canPhase32Start": true,
+    "recommendation": "Address B4 (provider_profile_id KC attribute not set after registration/ensure-profile) as Phase 32 priority item"
+  },
+  "summary": {
+    "totalTests": 7,
+    "passed": 7,
+    "failed": 0
+  }
+}

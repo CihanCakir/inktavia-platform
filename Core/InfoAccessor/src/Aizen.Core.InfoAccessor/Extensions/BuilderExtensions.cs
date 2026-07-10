@@ -14,6 +14,10 @@ public static class BuilderExtensions
         var options = new InfoAccessorConfigurationSettings();
         setupAction?.Invoke(options);
 
+        // Trusted-BFF identity assertion (module side). Disabled unless BffAssertion:SharedSecret is set.
+        services.Configure<AizenBffAssertionOptions>(
+            configuration.GetSection(AizenBffAssertionOptions.SectionName));
+
         services.AddSingleton<AizenInfoContainerForSigleton>();
         services.AddScoped<AizenInfoContainerForScoped>();
         services.AddScoped<IAizenInfoContainer, AizenInfoContainer>();

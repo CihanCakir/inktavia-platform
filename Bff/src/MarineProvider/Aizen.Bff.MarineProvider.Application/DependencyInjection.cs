@@ -33,6 +33,7 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddScoped<IProviderContext, ProviderContext>();
+        services.AddScoped<IProviderIdentityHolder, ProviderIdentityHolder>();
         services.AddScoped<IProviderProfileResolver, ProviderProfileResolver>();
         services.AddSingleton<IProviderKeycloakServiceTokenProvider, ProviderKeycloakServiceTokenProvider>();
         services.AddScoped<IProviderKeycloakAdminClient, ProviderKeycloakAdminClient>();
@@ -43,6 +44,10 @@ public static class DependencyInjection
         services.AddTransient<IProviderIdentityRemoteCall>(provider =>
             CreateRemoteCall<IProviderIdentityRemoteCall>(
                 CreateHttpClient(provider, nameof(IProviderIdentityRemoteCall))));
+
+        services.AddTransient<IProviderServiceRequestRemoteCall>(provider =>
+            CreateRemoteCall<IProviderServiceRequestRemoteCall>(
+                CreateHttpClient(provider, nameof(IProviderServiceRequestRemoteCall))));
 
         return services;
     }

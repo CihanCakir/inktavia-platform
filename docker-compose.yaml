@@ -161,6 +161,7 @@ services:
       - keycloak
       - rabbitmq
       - identity-api
+      - service-request-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -186,6 +187,9 @@ services:
       MarineProviderKeycloak__VerifyEmailRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/verify-callback
       # BFF → module calls (Keycloak service token injected by the delegating handler)
       RemoteCalls__IProviderIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IProviderServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
+      MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
     ports:
       - "${BFF_MARINEPROVIDER_PORT:-17002}:8080"
     networks: [aizen]
@@ -256,6 +260,9 @@ services:
       IdentityKeycloak__Realm: inktavia-realm
       IdentityKeycloak__AdminClientId: provider-portal-bff
       IdentityKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET}
+      # Trusted-BFF identity assertion (module side). Empty = disabled. Must match the BFF's ModuleAssertionSecret.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
       IdentityKeycloak__ProviderPendingRole: provider_pending
       IdentityKeycloak__ProviderUserRole: provider_user
       IdentityKeycloak__ProviderRestrictedRole: provider_restricted
@@ -383,6 +390,12 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: service-request-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Database (ServiceRequest schema in inktavia_store postgres)
+      DatabaseSettings__ServiceRequest__Type: PostgreSQL
+      DatabaseSettings__ServiceRequest__ConnectionString: Host=postgres;Database=inktavia_store;Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      # Trusted-BFF identity assertion (Phase 32): accept X-Aizen-Provider-Profile-Id from the MarineProvider BFF.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
     ports:
       - "7107:8080"
     networks: [aizen]

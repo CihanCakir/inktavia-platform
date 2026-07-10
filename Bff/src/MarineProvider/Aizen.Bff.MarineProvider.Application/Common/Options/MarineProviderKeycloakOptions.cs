@@ -53,6 +53,12 @@ public sealed class MarineProviderKeycloakOptions
     /// <summary>Where Keycloak redirects the provider after the Verify Email action.</summary>
     public string? VerifyEmailRedirectUri { get; set; }
 
+    /// <summary>
+    /// Shared secret sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity
+    /// (must match each module's BffAssertion:SharedSecret). Empty = no assertion headers are sent.
+    /// </summary>
+    public string? ModuleAssertionSecret { get; set; }
+
     public string TokenEndpoint => $"{BaseUrl.TrimEnd('/')}/realms/{Realm}/protocol/openid-connect/token";
 
     public string AdminApiBaseUrl => $"{BaseUrl.TrimEnd('/')}/admin/realms/{Realm}";

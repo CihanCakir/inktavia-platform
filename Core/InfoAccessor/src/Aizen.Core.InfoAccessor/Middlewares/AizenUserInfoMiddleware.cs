@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Aizen.Core.InfoAccessor.Abstraction;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Aizen.Core.InfoAccessor.Middlewares
 {
@@ -31,19 +34,35 @@ namespace Aizen.Core.InfoAccessor.Middlewares
             var container = (IAizenInfoContainer)httpContext.RequestServices.GetRequiredService(typeof(IAizenInfoContainer));
 
             // Detect and register Keycloak/service-account token from Authorization header.
+            AizenKeycloakTokenInfo keycloakTokenInfo = null;
             if (httpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
             {
                 var authToken = authHeader.ToString().Replace("Bearer ", "");
-                if (IsKeycloakClientToken(authToken, out var keycloakTokenInfo))
+                if (IsKeycloakClientToken(authToken, out keycloakTokenInfo))
                 {
                     container.Set(keycloakTokenInfo);
                 }
             }
 
             // Read the application/identity user token exclusively from X-Aizen-User-Token.
-            if (!httpContext.Request.Headers.TryGetValue("X-Aizen-User-Token", out var userTokenHeader)
+            if (!httpContext.Request.Headers.TryGetValue(AizenAuthHeaders.UserToken, out var userTokenHeader)
                 || string.IsNullOrWhiteSpace(userTokenHeader))
             {
+                // Provider path: accept a trusted-BFF identity assertion (shared-secret gated) when present.
+                // Disabled by default (empty BffAssertion:SharedSecret) → behaves exactly as before.
+                if (TryAcceptBffAssertion(httpContext, keycloakTokenInfo, out var assertedInfo, out var assertedProfileId))
+                {
+                    container.Set(assertedInfo);
+                    if (keycloakTokenInfo != null && assertedProfileId.HasValue)
+                    {
+                        keycloakTokenInfo.ProviderProfileId = assertedProfileId;
+                        container.Set(keycloakTokenInfo);
+                    }
+
+                    await _next(httpContext);
+                    return;
+                }
+
                 container.Set(new AizenUserInfo());
                 await _next(httpContext);
                 return;
@@ -103,6 +122,58 @@ namespace Aizen.Core.InfoAccessor.Middlewares
 
             return true;
         }
+
+        /// <summary>
+        /// Accepts a trusted-BFF identity assertion: requires a Keycloak service-token caller AND a valid
+        /// shared secret (X-Aizen-Bff-Assertion == BffAssertion:SharedSecret). Then populates UserInfo from
+        /// X-Aizen-User-Id (and the optional provider profile id). Disabled when the secret is unset.
+        /// </summary>
+        private static bool TryAcceptBffAssertion(
+            HttpContext httpContext,
+            AizenKeycloakTokenInfo keycloakTokenInfo,
+            out AizenUserInfo userInfo,
+            out long? providerProfileId)
+        {
+            userInfo = null;
+            providerProfileId = null;
+
+            // Must be a machine-to-machine Keycloak service-token caller.
+            if (keycloakTokenInfo is null || !keycloakTokenInfo.IsPresent)
+                return false;
+
+            var cfg = (httpContext.RequestServices.GetService(typeof(IOptions<AizenBffAssertionOptions>))
+                as IOptions<AizenBffAssertionOptions>)?.Value;
+            if (cfg is null || string.IsNullOrWhiteSpace(cfg.SharedSecret))
+                return false; // feature disabled by default
+
+            var provided = httpContext.Request.Headers[AizenAuthHeaders.BffAssertion].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(provided) || !FixedTimeEquals(provided, cfg.SharedSecret))
+                return false;
+
+            if (cfg.AllowedClientIds is { Length: > 0 } allow
+                && !allow.Contains(keycloakTokenInfo.ClientId, StringComparer.OrdinalIgnoreCase))
+                return false;
+
+            var uidRaw = httpContext.Request.Headers[AizenAuthHeaders.AssertedUserId].FirstOrDefault();
+            if (!long.TryParse(uidRaw, out var uid) || uid <= 0)
+                return false;
+
+            if (long.TryParse(httpContext.Request.Headers[AizenAuthHeaders.AssertedProfileId].FirstOrDefault(), out var pid)
+                && pid > 0)
+                providerProfileId = pid;
+
+            userInfo = new AizenUserInfo
+            {
+                UserId = uid,
+                AccessToken = keycloakTokenInfo.RawToken ?? string.Empty,
+                PhoneNumber = string.Empty,
+                Roles = System.Array.Empty<string>()
+            };
+            return true;
+        }
+
+        private static bool FixedTimeEquals(string a, string b)
+            => CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(a), Encoding.UTF8.GetBytes(b));
 
         private bool TryGetUserInfoFromToken(string token, out AizenUserInfo userInfo, out string errorMessage)
         {

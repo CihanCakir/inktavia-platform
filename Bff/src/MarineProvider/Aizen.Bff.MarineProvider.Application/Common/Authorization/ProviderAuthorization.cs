@@ -43,9 +43,13 @@ internal sealed class ProviderProfileAuthorizationHandler : AuthorizationHandler
         var profileId = _context.ProviderProfileId;
         if (profileId is null or <= 0) return; // no linked profile → profile-scoped policies fail
 
+        var keycloakSubject = _context.KeycloakSubject;
+        if (string.IsNullOrWhiteSpace(keycloakSubject)) return;
+
         try
         {
-            var response = await _identity.GetOrganizerProfileById(profileId.Value);
+            // Use by-subject (IdentityRead policy) — the by-id endpoint requires Admin role.
+            var response = await _identity.GetOrganizerProfileByKeycloakSubject(keycloakSubject);
             var dto = response?.Body;
             if (dto is null) return;
 

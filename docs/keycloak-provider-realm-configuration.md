@@ -62,6 +62,15 @@ Add a **User Attribute** mapper (on `provider-portal` or a shared client scope):
 The BFF reads this claim (`MarineProviderKeycloak:ProviderProfileIdAttributeName`) to resolve `providerProfileId`.
 The attribute is written by the BFF via Admin API once the Identity Organizer profile is provisioned/linked.
 
+> **Required (Keycloak 24+): allow the `provider_profile_id` user attribute.** The declarative User Profile
+> ships with **unmanaged attributes DISABLED**, so an Admin-API write of `provider_profile_id` is **silently
+> dropped** (PUT returns 200 but the attribute doesn't persist → the token claim stays null). Fix either:
+> (a) set `unmanagedAttributePolicy=ADMIN_EDIT` on the realm User Profile (the setup script does this:
+> `kcadm update users/profile -r inktavia-realm -s 'unmanagedAttributePolicy=ADMIN_EDIT'`), or
+> (b) declare `provider_profile_id` in Realm settings → User profile with admin edit permission.
+> Note: the BFF's `ProviderProfileResolver` falls back to the by-subject lookup when the claim is absent, so
+> this is a claim-population optimization — not a functional blocker.
+
 ## 4. Google Identity Provider (social login)
 
 Realm → Identity Providers → **Add Google**:
