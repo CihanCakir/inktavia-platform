@@ -29,6 +29,12 @@ public interface IProviderKeycloakAdminClient
     Task SetUserAttributeAsync(string userId, string attributeName, string attributeValue, CancellationToken cancellationToken = default);
     Task AssignRealmRoleAsync(string userId, string roleName, CancellationToken cancellationToken = default);
     Task SendVerifyEmailAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Sets a new permanent (non-temporary) password for the Keycloak user (Admin reset-password).</summary>
+    Task ResetUserPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default);
+
+    /// <summary>Revokes the user's active Keycloak sessions (recommended after a password reset).</summary>
+    Task LogoutUserAsync(string userId, CancellationToken cancellationToken = default);
 }
 
 internal sealed class ProviderKeycloakAdminClient : IProviderKeycloakAdminClient
@@ -151,6 +157,26 @@ internal sealed class ProviderKeycloakAdminClient : IProviderKeycloakAdminClient
             url += "?" + string.Join("&", query);
 
         var response = await client.PutAsJsonAsync(url, new[] { "VERIFY_EMAIL" }, Json, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task ResetUserPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var client = await CreateClientAsync(cancellationToken);
+
+        var credential = new CredentialRepresentation { Type = "password", Value = newPassword, Temporary = false };
+
+        var response = await client.PutAsJsonAsync(
+            $"{_options.AdminApiBaseUrl}/users/{userId}/reset-password", credential, Json, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task LogoutUserAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var client = await CreateClientAsync(cancellationToken);
+
+        var response = await client.PostAsync(
+            $"{_options.AdminApiBaseUrl}/users/{userId}/logout", content: null, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
