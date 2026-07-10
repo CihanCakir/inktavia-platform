@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Aizen.Bff.MarineProvider.Application.Common.Services.PasswordRecovery;
+namespace Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery;
 
 /// <summary>
 /// Cryptographic helpers for password recovery: OTP generation, opaque token generation, salted PBKDF2 hashing

@@ -24,7 +24,7 @@ builder.Services.AddAizenUnitOfWork<NotificationDbContext>(builder.Configuration
 
 // ── Repository / Application ───────────────────────────────────────────────────
 builder.Services.AddNotificationRepository();
-builder.Services.AddNotificationApplicationServices();
+builder.Services.AddNotificationApplicationServices(builder.Configuration);
 
 // ── SignalR ────────────────────────────────────────────────────────────────────
 builder.Services.AddSignalR();

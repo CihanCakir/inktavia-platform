@@ -6,6 +6,7 @@ using Aizen.Modules.Identity.Repository.Context.Seed.MockData;
 using Aizen.Modules.Identity.Repository.Identity;
 using Aizen.Modules.Identity.Repository.Identity.Repository;
 using Aizen.Modules.Identity.Repository.Identity.Service;
+using Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery;
 using Aizen.Modules.Identity.Repository.Seed.MockData;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -49,7 +50,20 @@ namespace Aizen.Modules.Identity.Repository
             services.AddScoped<IOrganizerKeycloakProvisioningDomainService, OrganizerKeycloakProvisioningDomainService>();
             services.AddScoped<IVenueRegistrationDomainService, VenueRegistrationDomainService>();
 
+            // Password recovery (Identity-owned)
+            if (configuration is not null)
+            {
+                services.Configure<PasswordRecoveryOptions>(
+                    configuration.GetSection(PasswordRecoveryOptions.SectionName));
+            }
+            services.AddScoped<IIdentityKeycloakPasswordService, IdentityKeycloakPasswordService>();
+            services.AddScoped<IProviderPasswordRecoveryDomainService, ProviderPasswordRecoveryDomainService>();
 
+            var deliveryMode = configuration?.GetValue<string>("PasswordRecovery:DeliveryMode") ?? "Notification";
+            if (deliveryMode.Equals("Logging", StringComparison.OrdinalIgnoreCase))
+                services.AddSingleton<IProviderPasswordRecoveryNotifier, LoggingProviderPasswordRecoveryNotifier>();
+            else
+                services.AddScoped<IProviderPasswordRecoveryNotifier, MessageBusProviderPasswordRecoveryNotifier>();
 
             return services;
         }

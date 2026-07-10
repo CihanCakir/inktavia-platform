@@ -2,6 +2,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
+using Aizen.Modules.Identity.Abstraction.Dto.PasswordRecovery;
 
 namespace Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 
@@ -36,6 +37,24 @@ public interface IProviderIdentityRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallPost("/api/v1/auth/otp/check")]
     Task<AizenApiResponse<CheckOtpDto>> CheckOtp([AizenRemoteCallBody] ProviderCheckOtpRequest request);
+
+    // ── Password Recovery (delegated to Identity) ───────────────────────────
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-password-recovery/request")]
+    Task<AizenApiResponse<RequestProviderPasswordRecoveryResponse>> RequestProviderPasswordRecovery(
+        [AizenRemoteCallBody] RequestProviderPasswordRecoveryRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-password-recovery/verify-otp")]
+    Task<AizenApiResponse<VerifyProviderPasswordRecoveryOtpResponse>> VerifyProviderPasswordRecoveryOtp(
+        [AizenRemoteCallBody] VerifyProviderPasswordRecoveryOtpRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-password-recovery/reset")]
+    Task<AizenApiResponse<ResetProviderPasswordResponse>> ResetProviderPassword(
+        [AizenRemoteCallBody] ResetProviderPasswordRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-password-recovery/resend-otp")]
+    Task<AizenApiResponse<ResendProviderPasswordRecoveryOtpResponse>> ResendProviderPasswordRecoveryOtp(
+        [AizenRemoteCallBody] ResendProviderPasswordRecoveryOtpRequest request);
 }
 
 public sealed class ProviderProvisionFromKeycloakRequest

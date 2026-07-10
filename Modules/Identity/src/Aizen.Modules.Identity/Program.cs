@@ -1,3 +1,4 @@
+using Aizen.Core.Cache.Extension;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Starter;
@@ -30,6 +31,7 @@ builder.Services.AddAizenUnitOfWork<IdentityDbContext>(builder.Configuration, "I
 
 builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
 
+builder.Services.AddAizenCache(builder.Configuration);
 builder.Services.AddInktaviaService(builder.Configuration).AddInktaviaRepository();
 
 builder.Services.AddIdentityMockData(builder.Configuration);

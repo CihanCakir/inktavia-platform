@@ -131,5 +131,17 @@ public sealed class NotificationTemplateSeed
             NotificationType.ProfileApprovalDecision, NotificationChannel.InApp,
             "Profile Review Complete",
             "Your profile has been {{decision}}. {{reason}}"),
+
+        // ── Password Recovery OTP ───────────────────────────────────────────────
+        NotificationTemplateEntity.Create("PWD_RECOVERY_OTP_EMAIL", "Password Recovery OTP (Email)",
+            NotificationType.PasswordRecoveryOtp, NotificationChannel.Email,
+            "Inktavia — Password reset code",
+            "Your password reset code is {{otp}}. It expires in {{expiresMinutes}} minutes.\n\n" +
+            "If you did not request this, ignore this email."),
+
+        NotificationTemplateEntity.Create("PWD_RECOVERY_OTP_SMS", "Password Recovery OTP (SMS)",
+            NotificationType.PasswordRecoveryOtp, NotificationChannel.Sms,
+            "Inktavia Password Reset",
+            "Your Inktavia password reset code is {{otp}}. Expires in {{expiresMinutes}} min."),
     ];
 }

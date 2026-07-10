@@ -2,7 +2,6 @@ using Aizen.Bff.MarineProvider.Application.Common.Http;
 using Aizen.Bff.MarineProvider.Application.Common.Options;
 using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
-using Aizen.Bff.MarineProvider.Application.Common.Services.PasswordRecovery;
 using Aizen.Core.RemoteCall.Abstraction;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,16 +37,6 @@ public static class DependencyInjection
         services.AddScoped<IProviderProfileResolver, ProviderProfileResolver>();
         services.AddSingleton<IProviderKeycloakServiceTokenProvider, ProviderKeycloakServiceTokenProvider>();
         services.AddScoped<IProviderKeycloakAdminClient, ProviderKeycloakAdminClient>();
-
-        // Password recovery (BFF-orchestrated). Options + distributed-cache-backed request store + OTP notifier.
-        services.AddOptions<PasswordRecoveryOptions>()
-            .Bind(configuration.GetSection(PasswordRecoveryOptions.SectionName));
-
-        // Safety net: guarantees IDistributedCache resolves. TryAdd — if the platform starter already registered
-        // a Redis IDistributedCache (shared across BFF instances), this is a no-op and Redis is used.
-        services.AddDistributedMemoryCache();
-        services.AddSingleton<IProviderPasswordRecoveryStore, DistributedProviderPasswordRecoveryStore>();
-        services.AddSingleton<IProviderPasswordRecoveryNotifier, LoggingProviderPasswordRecoveryNotifier>();
 
         // Central outgoing auth handler wired into every downstream Refit client.
         services.AddTransient<MarineProviderBffAuthDelegatingHandler>();

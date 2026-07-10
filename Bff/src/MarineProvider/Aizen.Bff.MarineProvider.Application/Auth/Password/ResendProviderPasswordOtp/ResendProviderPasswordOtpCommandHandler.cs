@@ -1,80 +1,61 @@
-using Aizen.Bff.MarineProvider.Application.Common.Options;
-using Aizen.Bff.MarineProvider.Application.Common.Services.PasswordRecovery;
+using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Contracts.Auth.Password;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Modules.Identity.Abstraction.Dto.PasswordRecovery;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Aizen.Bff.MarineProvider.Application.Auth.Password.ResendProviderPasswordOtp;
 
 /// <summary>
-/// Re-issues an OTP for an in-flight request, enforcing the resend cooldown. Always returns a generic response so
-/// it cannot be used to probe account existence. A new OTP replaces the previous one and resets the attempt count.
+/// Delegates OTP resend to Identity via service-token remote call.
+/// Maps the Identity response into the existing BFF response contract (frontend unchanged).
 /// </summary>
 public sealed class ResendProviderPasswordOtpCommandHandler
     : AizenCommandHandler<ResendProviderPasswordOtpCommand, ResendProviderPasswordOtpResponse>
 {
-    private readonly IProviderPasswordRecoveryStore _store;
-    private readonly IProviderPasswordRecoveryNotifier _notifier;
-    private readonly PasswordRecoveryOptions _options;
+    private readonly IProviderIdentityRemoteCall _identity;
     private readonly ILogger<ResendProviderPasswordOtpCommandHandler> _logger;
 
     public ResendProviderPasswordOtpCommandHandler(
-        IProviderPasswordRecoveryStore store,
-        IProviderPasswordRecoveryNotifier notifier,
-        IOptions<PasswordRecoveryOptions> options,
+        IProviderIdentityRemoteCall identity,
         ILogger<ResendProviderPasswordOtpCommandHandler> logger)
     {
-        _store = store;
-        _notifier = notifier;
-        _options = options.Value;
+        _identity = identity;
         _logger = logger;
     }
 
     public override async Task<ResendProviderPasswordOtpResponse?> Handle(
         ResendProviderPasswordOtpCommand request, CancellationToken cancellationToken)
     {
-        var response = new ResendProviderPasswordOtpResponse
-        {
-            Resent = true,
-            ResendAfterSeconds = _options.ResendCooldownSeconds,
-            ExpiresInSeconds = _options.OtpTtlSeconds,
-            Message = "If an account exists, a new verification code has been sent.",
-        };
-
-        var record = await _store.GetAsync(request.ResetRequestId, cancellationToken);
-        if (record is null || record.ConsumedAtUtc is not null) return response;
-
-        var now = DateTime.UtcNow;
-        var elapsed = (now - record.LastSentAtUtc).TotalSeconds;
-        if (elapsed < _options.ResendCooldownSeconds)
-        {
-            // Still cooling down — report remaining time, do not send a new code.
-            response.ResendAfterSeconds = (int)Math.Ceiling(_options.ResendCooldownSeconds - elapsed);
-            return response;
-        }
-
-        var otp = PasswordRecoverySecurity.GenerateNumericOtp(_options.OtpLength);
-        var (otpHash, otpSalt) = PasswordRecoverySecurity.Hash(otp);
-
-        record.OtpHash = otpHash;
-        record.OtpSalt = otpSalt;
-        record.OtpExpiresAtUtc = now.AddSeconds(_options.OtpTtlSeconds);
-        record.Attempts = 0;
-        record.LastSentAtUtc = now;
-
-        var ttl = TimeSpan.FromSeconds(Math.Max(_options.OtpTtlSeconds, _options.ResetTokenTtlSeconds) + 30);
-        await _store.SaveAsync(record, ttl, cancellationToken);
-
         try
         {
-            await _notifier.SendOtpAsync(record.Channel, record.MaskedTarget, otp, cancellationToken);
+            var result = await _identity.ResendProviderPasswordRecoveryOtp(
+                new ResendProviderPasswordRecoveryOtpRequest
+                {
+                    ResetRequestId = request.ResetRequestId,
+                });
+
+            var data = result.Body;
+            if (data is not null)
+            {
+                return new ResendProviderPasswordOtpResponse
+                {
+                    Resent = data.Resent,
+                    ResendAfterSeconds = data.ResendAfterSeconds,
+                    ExpiresInSeconds = data.ExpiresInSeconds,
+                    Message = data.Message,
+                };
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Password recovery: OTP resend dispatch failed for {MaskedTarget}.", record.MaskedTarget);
+            _logger.LogError(ex, "Identity OTP resend failed.");
         }
 
-        return response;
+        return new ResendProviderPasswordOtpResponse
+        {
+            Resent = true,
+            Message = "If an account exists, a new verification code has been sent.",
+        };
     }
 }

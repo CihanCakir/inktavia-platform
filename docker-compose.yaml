@@ -190,6 +190,8 @@ services:
       RemoteCalls__IProviderServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
       MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      RateLimiting__PasswordRecovery__PermitPerWindow: 10
+      RateLimiting__PasswordRecovery__WindowSeconds: 300
     ports:
       - "${BFF_MARINEPROVIDER_PORT:-17002}:8080"
     networks: [aizen]
@@ -266,7 +268,19 @@ services:
       IdentityKeycloak__ProviderPendingRole: provider_pending
       IdentityKeycloak__ProviderUserRole: provider_user
       IdentityKeycloak__ProviderRestrictedRole: provider_restricted
-      IdentityKeycloak__RevokeSessionsOnSuspend: "false"
+      IdentityKeycloak__RevokeSessionsOnSuspend: "true"
+      PasswordRecovery__OtpLength: 6
+      PasswordRecovery__OtpTtlSeconds: 300
+      PasswordRecovery__ResendCooldownSeconds: 60
+      PasswordRecovery__MaxAttempts: 5
+      PasswordRecovery__ResetTokenTtlSeconds: 300
+      # DEV-ONLY: exposes the recovery OTP in logs. Safe default is FALSE; opt in locally via .env
+      # (PASSWORD_RECOVERY_DEV_EXPOSE_OTP=true + PASSWORD_RECOVERY_LOG_LEVEL=Debug). Never true in shared/test/prod.
+      PasswordRecovery__DeliveryMode: ${PASSWORD_RECOVERY_DELIVERY_MODE:-Notification}
+      PasswordRecovery__DevExposeOtp: ${PASSWORD_RECOVERY_DEV_EXPOSE_OTP:-false}
+      PasswordRecovery__MaxRequestsPerIdentifierPerWindow: 5
+      PasswordRecovery__IdentifierWindowSeconds: 3600
+      Logging__LogLevel__Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery: ${PASSWORD_RECOVERY_LOG_LEVEL:-Information}
     ports:
       - "7101:8080"
     networks: [aizen]
@@ -483,6 +497,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Notification: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__Notification__Type: PostgreSQL
+      DatabaseSettings__Notification__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       DistributedCache__InstanceName: "Notification:"
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=13
       MessageBroker__QueueSettings__HostName: rabbitmq
@@ -495,6 +511,13 @@ services:
       KEYCLOAK_AUDIENCE: notification-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       ElasticApm__Enabled: "false"
+      Email__Host: ${SMTP_HOST:-}
+      Email__Port: ${SMTP_PORT:-587}
+      Email__User: ${SMTP_USER:-}
+      Email__Password: ${SMTP_PASSWORD:-}
+      Email__FromAddress: ${SMTP_FROM:-no-reply@inktavia.com}
+      Email__FromName: ${SMTP_FROM_NAME:-Inktavia Marine}
+      Email__UseSsl: ${SMTP_USE_SSL:-true}
     ports:
       - "7110:8080"
     networks: [aizen]

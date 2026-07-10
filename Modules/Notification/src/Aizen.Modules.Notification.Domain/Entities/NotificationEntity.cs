@@ -60,4 +60,6 @@ public sealed class NotificationEntity : AizenEntity
     }
 
     public bool IsRead => ReadAt.HasValue;
+
+    public void RedactBody(string redactedBody) => Body = redactedBody;
 }

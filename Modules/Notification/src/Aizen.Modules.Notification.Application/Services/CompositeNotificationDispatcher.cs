@@ -10,15 +10,18 @@ public sealed class CompositeNotificationDispatcher : INotificationDispatcher
 {
     private readonly INotificationDispatcher _inApp;
     private readonly INotificationDispatcher _push;
+    private readonly INotificationDispatcher _email;
     private readonly ILogger<CompositeNotificationDispatcher> _logger;
 
     public CompositeNotificationDispatcher(
         [FromKeyedServices(NotificationChannel.InApp)] INotificationDispatcher inApp,
         [FromKeyedServices(NotificationChannel.Push)]  INotificationDispatcher push,
+        [FromKeyedServices(NotificationChannel.Email)] INotificationDispatcher email,
         ILogger<CompositeNotificationDispatcher> logger)
     {
         _inApp  = inApp;
         _push   = push;
+        _email  = email;
         _logger = logger;
     }
 
@@ -28,6 +31,7 @@ public sealed class CompositeNotificationDispatcher : INotificationDispatcher
         {
             NotificationChannel.InApp => _inApp,
             NotificationChannel.Push  => _push,
+            NotificationChannel.Email => _email,
             _ => null,
         };
 

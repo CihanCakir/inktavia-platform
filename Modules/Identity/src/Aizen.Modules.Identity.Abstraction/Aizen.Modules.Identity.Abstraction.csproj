@@ -12,6 +12,8 @@
       Include="..\..\..\..\Modules\Payment\src\Aizen.Modules.Payment.Abstraction\Aizen.Modules.Payment.Abstraction.csproj" />
     <ProjectReference
       Include="..\..\..\..\Core\Data\src\Aizen.Core.Data.Mongo\Aizen.Core.Data.Mongo.csproj" />
+    <ProjectReference
+      Include="..\..\..\..\Core\Messagebus\src\Aizen.Core.Messagebus.Abstraction\Aizen.Core.Messagebus.Abstraction.csproj" />
   </ItemGroup>
 
 </Project>

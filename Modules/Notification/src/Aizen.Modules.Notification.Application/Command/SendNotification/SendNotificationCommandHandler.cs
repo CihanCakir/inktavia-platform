@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Domain.Entities;
 using Aizen.Modules.Notification.Domain.Interface.Repository;
 using Aizen.Modules.Notification.Domain.Interface.Service;
@@ -65,10 +66,20 @@ public sealed class SendNotificationCommandHandler
             await _notificationRepository.UpdateAsync(entity, cancellationToken);
         }
 
+        // Redact sensitive content (e.g. OTP) from the persisted body after dispatch
+        if (request.Type == NotificationType.PasswordRecoveryOtp
+            && request.Variables.TryGetValue("otp", out var otp)
+            && !string.IsNullOrEmpty(otp))
+        {
+            var redactedBody = body.Replace(otp, new string('\u2022', otp.Length));
+            entity.RedactBody(redactedBody);
+            await _notificationRepository.UpdateAsync(entity, cancellationToken);
+        }
+
         return new SendNotificationCommandResponse
         {
             NotificationId = entity.Id,
-            Dispatched     = entity.Status == Abstraction.Enum.NotificationStatus.Sent,
+            Dispatched     = entity.Status == NotificationStatus.Sent,
         };
     }
 }

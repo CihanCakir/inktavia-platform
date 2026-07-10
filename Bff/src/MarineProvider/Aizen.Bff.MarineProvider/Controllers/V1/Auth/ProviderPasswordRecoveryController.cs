@@ -8,18 +8,20 @@ using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Aizen.Bff.MarineProvider.Controllers.V1.Auth;
 
 /// <summary>
-/// BFF-orchestrated provider password recovery (all endpoints public/anonymous). The BFF owns OTP generation and
-/// storage and updates the provider's Keycloak password server-side. No login token is issued; OTP is for reset
-/// only. Thin controller — all logic lives in the CQRS handlers.
+/// Provider-facing password recovery façade (public/anonymous). The BFF delegates all recovery logic to the Identity
+/// module (Identity owns OTP/reset state; Keycloak owns the password). No login token is issued; OTP is for reset
+/// only. Thin controller — endpoints bind HTTP <c>Request</c> DTOs and map them to internal CQRS commands.
 /// </summary>
 [ApiController]
 [Route("api/v1/provider/auth/password")]
 [Tags("Provider - Password Recovery")]
 [AllowAnonymous]
+[EnableRateLimiting("pwd-recovery-ip")]
 public sealed class ProviderPasswordRecoveryController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -34,8 +36,14 @@ public sealed class ProviderPasswordRecoveryController : AizenWebApiController
     [HttpPost("forgot")]
     [ProducesResponseType(typeof(ForgotProviderPasswordResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ForgotProviderPasswordResponse>> Forgot(
-        [FromBody] ForgotProviderPasswordCommand command, CancellationToken ct)
+        [FromBody] ForgotProviderPasswordRequest request, CancellationToken ct)
     {
+        var command = new ForgotProviderPasswordCommand
+        {
+            Channel = request.Channel,
+            Identifier = request.Identifier,
+        };
+
         var result = await _cqrs.ProcessAsync(command, ct);
         return SetResponse(result);
     }
@@ -44,18 +52,31 @@ public sealed class ProviderPasswordRecoveryController : AizenWebApiController
     [HttpPost("otp/verify")]
     [ProducesResponseType(typeof(VerifyProviderPasswordOtpResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<VerifyProviderPasswordOtpResponse>> VerifyOtp(
-        [FromBody] VerifyProviderPasswordOtpCommand command, CancellationToken ct)
+        [FromBody] VerifyProviderPasswordOtpRequest request, CancellationToken ct)
     {
+        var command = new VerifyProviderPasswordOtpCommand
+        {
+            ResetRequestId = request.ResetRequestId,
+            OtpCode = request.OtpCode,
+        };
+
         var result = await _cqrs.ProcessAsync(command, ct);
         return SetResponse(result);
     }
 
-    /// <summary>Set a new password using a valid reset token; updates Keycloak and revokes sessions.</summary>
+    /// <summary>Set a new password using a valid reset token; Identity updates Keycloak and revokes sessions.</summary>
     [HttpPost("reset")]
     [ProducesResponseType(typeof(ResetProviderPasswordResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ResetProviderPasswordResponse>> Reset(
-        [FromBody] ResetProviderPasswordCommand command, CancellationToken ct)
+        [FromBody] ResetProviderPasswordRequest request, CancellationToken ct)
     {
+        var command = new ResetProviderPasswordCommand
+        {
+            ResetToken = request.ResetToken,
+            NewPassword = request.NewPassword,
+            ConfirmPassword = request.ConfirmPassword,
+        };
+
         var result = await _cqrs.ProcessAsync(command, ct);
         return SetResponse(result);
     }
@@ -64,8 +85,13 @@ public sealed class ProviderPasswordRecoveryController : AizenWebApiController
     [HttpPost("otp/resend")]
     [ProducesResponseType(typeof(ResendProviderPasswordOtpResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ResendProviderPasswordOtpResponse>> ResendOtp(
-        [FromBody] ResendProviderPasswordOtpCommand command, CancellationToken ct)
+        [FromBody] ResendProviderPasswordOtpRequest request, CancellationToken ct)
     {
+        var command = new ResendProviderPasswordOtpCommand
+        {
+            ResetRequestId = request.ResetRequestId,
+        };
+
         var result = await _cqrs.ProcessAsync(command, ct);
         return SetResponse(result);
     }
