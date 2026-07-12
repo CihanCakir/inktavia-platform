@@ -5,7 +5,7 @@ using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 
 namespace Aizen.Modules.FileStorage.Application.Queries.GetFileById;
 
-[DocumentationInfo("Get file by ID query handler", "Loads the file entity and maps it to FileDto.")]
+[DocumentationInfo("Get file by ID query handler", "Resolves the file by Guid and maps it to FileDto.")]
 public sealed class GetFileByIdQueryHandler : AizenQueryHandler<GetFileByIdQuery, FileDto>
 {
     private readonly IFileRepository _fileRepository;
@@ -17,8 +17,8 @@ public sealed class GetFileByIdQueryHandler : AizenQueryHandler<GetFileByIdQuery
 
     public override async Task<FileDto> Handle(GetFileByIdQuery request, CancellationToken cancellationToken)
     {
-        var file = await _fileRepository.GetByIdAsync(request.FileId, cancellationToken)
-            ?? throw new KeyNotFoundException($"File with id '{request.FileId}' not found.");
+        var file = await _fileRepository.GetByGuidAsync(request.FileId, cancellationToken)
+            ?? throw new KeyNotFoundException($"File not found: {request.FileId}");
 
         return file.ToFileDto();
     }

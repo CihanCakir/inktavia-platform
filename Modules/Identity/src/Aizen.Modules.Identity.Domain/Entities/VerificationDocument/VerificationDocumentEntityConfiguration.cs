@@ -35,8 +35,18 @@ namespace Aizen.Modules.Identity.Domain.Entities
                    .HasMaxLength(20)
                    .IsRequired(false);
 
+            builder.Property(x => x.ContentType)
+                   .HasMaxLength(200);
+
+            builder.Property(x => x.SizeInBytes)
+                   .HasDefaultValue(0L);
+
+            builder.Property(x => x.FilePublicId)
+                   .IsRequired(false);
+
             builder.HasIndex(x => x.ProfileId);
             builder.HasIndex(x => x.FileId);
+            builder.HasIndex(x => x.FilePublicId);
         }
     }
 }

@@ -32,6 +32,7 @@ public sealed class ProviderOnboardingResponse
     public string? RevisionNote { get; set; }
     public DateTime? LastSavedAtUtc { get; set; }
     public DateTime? SubmittedAtUtc { get; set; }
+    public List<ProviderDocumentDto> Documents { get; set; } = new();
 }
 
 public sealed class SaveProviderOnboardingStepResponse
@@ -50,4 +51,42 @@ public sealed class RequestProviderOnboardingRevisionResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
+}
+
+// ── Document Attach / Remove DTOs ──────────────────────────────────────────
+
+public sealed class AttachProviderDocumentRequest
+{
+    public Guid FileId { get; set; }
+    public string DocumentType { get; set; } = default!;
+    public string? Issuer { get; set; }
+    public long UserId { get; set; }
+}
+
+public sealed class AttachProviderDocumentResponse
+{
+    public long DocumentId { get; set; }
+    public Guid FileId { get; set; }
+    public bool Success { get; set; }
+    public ProviderDocumentDto? Document { get; set; }
+}
+
+public sealed class RemoveProviderDocumentResponse
+{
+    public bool Success { get; set; }
+}
+
+// ── Document DTO ────────────────────────────────────────────────────────────
+
+public sealed class ProviderDocumentDto
+{
+    public Guid FileId { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string? ContentType { get; set; }
+    public long SizeInBytes { get; set; }
+    public string DocumentType { get; set; } = string.Empty;
+    public string? Issuer { get; set; }
+    public DateTime UploadedAt { get; set; }
+    public string? ReviewStatus { get; set; }
+    public string? ResolutionNote { get; set; }
 }

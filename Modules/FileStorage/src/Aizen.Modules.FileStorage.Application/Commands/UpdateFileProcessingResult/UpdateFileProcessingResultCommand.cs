@@ -6,6 +6,6 @@ namespace Aizen.Modules.FileStorage.Application.Commands.UpdateFileProcessingRes
 [DocumentationInfo("Update file processing result command", "Records the outcome of a completed processing job.")]
 public sealed class UpdateFileProcessingResultCommand : AizenCommand<bool>
 {
-    public long FileId { get; set; }
+    public Guid FileId { get; set; }
     public UpdateFileProcessingResultRequest Request { get; set; } = default!;
 }

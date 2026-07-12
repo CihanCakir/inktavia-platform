@@ -35,13 +35,14 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles")]
     Task<AizenApiResponse<PagedOrganizerProfileResult>> SearchOrganizerProfiles(
-        [Refit.Query] int     pageIndex      = 0,
-        [Refit.Query] int     pageSize       = 20,
-        [Refit.Query] string? searchTerm     = null,
-        [Refit.Query] string? approvalStatus = null,
-        [Refit.Query] string? status         = null,
-        [Refit.Query] string? city           = null,
-        [Refit.Query] string? country        = null);
+        [Refit.Query] int     pageIndex         = 0,
+        [Refit.Query] int     pageSize          = 20,
+        [Refit.Query] string? searchTerm        = null,
+        [Refit.Query] string? approvalStatus    = null,
+        [Refit.Query] string? onboardingStatus  = null,
+        [Refit.Query] string? status            = null,
+        [Refit.Query] string? city              = null,
+        [Refit.Query] string? country           = null);
 
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles/{profileId}")]
     Task<AizenApiResponse<OrganizerProfileResult>> GetOrganizerProfileById(Guid profileId);
@@ -134,9 +135,10 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles")]
     Task<AizenApiResponse<OrganizerProfilePagedAdminResult>> GetAdminOrganizerProfilesByStatus(
-        [Refit.Query] string? approvalStatus = null,
-        [Refit.Query] int     pageIndex      = 0,
-        [Refit.Query] int     pageSize       = 100);
+        [Refit.Query] string? approvalStatus  = null,
+        [Refit.Query] string? onboardingStatus = null,
+        [Refit.Query] int     pageIndex       = 0,
+        [Refit.Query] int     pageSize        = 100);
 
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles/{profileId}")]
     Task<AizenApiResponse<OrganizerProfileDetailDto>> GetAdminOrganizerProfileOnly(long profileId);

@@ -266,7 +266,7 @@ public sealed class QueryController : AizenWebApiController
     public async Task<AizenApiResponse<IPaginate<OrganizerProfileListItemDto>>> GetOrganizerProfilesByFilter([FromQuery] GetOrganizerProfilesByFilterRequest req, CancellationToken ct)
     {
         var result = await _sender.ProcessAsync(
-            new GetOrganizerProfilesByFilterQuery(req.FirstName, req.LastName, req.ApprovalStatus, req.SearchTerm, req.Status, req.City, req.Country, req.PageIndex, req.PageSize), ct);
+            new GetOrganizerProfilesByFilterQuery(req.FirstName, req.LastName, req.ApprovalStatus, req.SearchTerm, req.Status, req.City, req.Country, req.OnboardingStatus, req.PageIndex, req.PageSize), ct);
         return SetResponse(result);
     }
 

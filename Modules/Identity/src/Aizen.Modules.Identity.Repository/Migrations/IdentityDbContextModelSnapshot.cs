@@ -1486,6 +1486,10 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -1508,6 +1512,9 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.Property<long>("FileId")
                         .HasColumnType("bigint");
+
+                    b.Property<Guid?>("FilePublicId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("FileSizeDisplay")
                         .HasMaxLength(30)
@@ -1552,6 +1559,11 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
 
+                    b.Property<long>("SizeInBytes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1561,6 +1573,8 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FileId");
+
+                    b.HasIndex("FilePublicId");
 
                     b.HasIndex("ProfileId");
 

@@ -4,7 +4,6 @@ using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.FileStorage.Abstraction.Message;
 using Aizen.Modules.FileStorage.Abstraction.Request.File;
 using Aizen.Modules.FileStorage.Application.Commands.DeleteFile;
-using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aizen.Modules.FileStorage.Consumers;
@@ -14,12 +13,10 @@ public sealed class DeleteFileConsumer
     : AizenBaseMessageConsumer<DeleteFileProcessMessage, DeleteFileProcessMessageResult>
 {
     private readonly IAizenCQRSProcessor _cqrsProcessor;
-    private readonly IFileRepository _fileRepository;
 
     public DeleteFileConsumer(IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _cqrsProcessor = serviceProvider.GetRequiredService<IAizenCQRSProcessor>();
-        _fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
     }
 
     public override Task<bool> ExecutePrepareMessage(
@@ -29,16 +26,10 @@ public sealed class DeleteFileConsumer
     public override async Task<DeleteFileProcessMessageResult> ExecuteCommitMessage(
         DeleteFileProcessMessage message, CancellationToken cancellationToken)
     {
-        var fileEntity = await _fileRepository.GetByGuidAsync(message.FileId, cancellationToken);
-        if (fileEntity is null)
-        {
-            return new DeleteFileProcessMessageResult { FileId = message.FileId, IsDeleted = false };
-        }
-
         await _cqrsProcessor.ProcessAsync<bool>(
             new DeleteFileCommand
             {
-                FileId = fileEntity.Id,
+                FileId = message.FileId,
                 Request = new DeleteFileRequest { DeleteBehavior = message.DeleteBehavior }
             }, cancellationToken);
 

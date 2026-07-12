@@ -5,8 +5,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 
 public sealed class DeleteFileCommand : AizenCommand<AdminBffCommandResultDto>
 {
-    public long FileId { get; }
-    public DeleteFileCommand(long fileId)
+    public Guid FileId { get; }
+    public DeleteFileCommand(Guid fileId)
     {
         FileId = fileId;
     }

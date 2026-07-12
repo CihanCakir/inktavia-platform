@@ -20,4 +20,7 @@ public class VenueProfileListItemDto
     public string? Country { get; set; }
     public string? ReviewedAt { get; set; }
     public string RiskLevel { get; set; } = "L";
+    public DateTime? SubmittedAtUtc { get; set; }
+    public string? OnboardingStatus { get; set; }
+    public int DocumentCount { get; set; }
 }

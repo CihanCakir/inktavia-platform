@@ -43,17 +43,17 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
         _logger.LogInformation("[ApprovalQueueBff] Profile approval queue requested: status={Status} type={Type} page={Page}",
             request.Status, request.ProfileType, request.PageIndex);
 
-        var identityStatusFilter = MapToIdentityApprovalStatus(request.Status);
+        var (approvalStatusFilter, onboardingStatusFilter) = MapToIdentityFilters(request.Status);
         var includeOrganizers = request.ProfileType is null or "all" or "organizer";
         var includeVenues = request.ProfileType is null or "all" or "venue";
 
         // Fetch organizers and venues in parallel.
         var orgTask = includeOrganizers
-            ? FetchOrganizersAsync(identityStatusFilter, cancellationToken)
+            ? FetchOrganizersAsync(approvalStatusFilter, onboardingStatusFilter, cancellationToken)
             : Task.FromResult<(List<OrganizerProfileListItemDto> items, long total)>((new(), 0));
 
         var venTask = includeVenues
-            ? FetchVenuesAsync(identityStatusFilter, cancellationToken)
+            ? FetchVenuesAsync(approvalStatusFilter, cancellationToken)
             : Task.FromResult<(List<VenueProfileListItemDto> items, long total)>((new(), 0));
 
         await Task.WhenAll(orgTask, venTask);
@@ -65,6 +65,16 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
             response.Warnings.Add(AdminBffWarning.CallFailed("Identity.Organizers", orgTask.Exception?.Message ?? "Unknown error"));
         if (venTask.IsFaulted)
             response.Warnings.Add(AdminBffWarning.CallFailed("Identity.Venues", venTask.Exception?.Message ?? "Unknown error"));
+
+        // For "incomplete" status, apply BFF-side filtering since the server
+        // cannot express "NOT IN (Submitted, Completed)" as a single query param.
+        if (request.Status?.ToLowerInvariant() == "incomplete")
+        {
+            orgItems = orgItems.Where(x =>
+                x.OnboardingStatus is not null &&
+                x.OnboardingStatus != "Submitted" &&
+                x.OnboardingStatus != "Completed").ToList();
+        }
 
         // Normalize to queue items.
         var allItems = new List<ProfileApprovalQueueItemBffDto>(orgItems.Count + venItems.Count);
@@ -114,12 +124,12 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
     }
 
     private async Task<(List<OrganizerProfileListItemDto> items, long total)> FetchOrganizersAsync(
-        string? approvalStatus, CancellationToken ct)
+        string? approvalStatus, string? onboardingStatus, CancellationToken ct)
     {
         try
         {
             var result = await _identity.GetAdminOrganizerProfilesByStatus(
-                approvalStatus, pageIndex: 0, pageSize: MaxFetchPerType);
+                approvalStatus, onboardingStatus, pageIndex: 0, pageSize: MaxFetchPerType);
 
             if (result?.Header?.IsSuccess != true)
             {
@@ -175,12 +185,14 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
             Phone = null,
             City = null,
             Country = null,
-            SubmittedAt = item.CreateDate?.ToString("O"),
-            ReviewedAt = null,
+            SubmittedAt = item.SubmittedAtUtc?.ToString("O") ?? item.CreateDate?.ToString("O"),
+            ReviewedAt = item.ReviewedAt,
             Status = MapApprovalStatus(item.ApprovalStatus),
             StatusLabel = item.ApprovalStatus,
-            RiskLevel = null,
-            DocumentCompletionPercent = null
+            RiskLevel = item.RiskLevel,
+            DocumentCompletionPercent = null,
+            OnboardingStatus = item.OnboardingStatus,
+            DocumentCount = item.DocumentCount
         };
     }
 
@@ -198,12 +210,14 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
             Phone = null,
             City = null,
             Country = null,
-            SubmittedAt = item.CreateDate?.ToString("O"),
-            ReviewedAt = null,
+            SubmittedAt = item.SubmittedAtUtc?.ToString("O") ?? item.CreateDate?.ToString("O"),
+            ReviewedAt = item.ReviewedAt,
             Status = MapApprovalStatus(item.ApprovalStatus),
             StatusLabel = item.ApprovalStatus,
-            RiskLevel = null,
-            DocumentCompletionPercent = null
+            RiskLevel = item.RiskLevel,
+            DocumentCompletionPercent = null,
+            OnboardingStatus = item.OnboardingStatus,
+            DocumentCount = item.DocumentCount
         };
     }
 
@@ -227,13 +241,22 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
         var now = DateTime.UtcNow;
         var weekAgo = now.AddDays(-7);
 
-        var isPendingFilter = statusFilter?.ToLowerInvariant() is "pending" or null;
-        var pendingOrgs = isPendingFilter
-            ? (int)orgTotal
-            : orgItems.Count(x => x.ApprovalStatus?.ToLowerInvariant() == "pending");
-        var pendingVen = isPendingFilter
+        // PendingOrganizers: only count those with OnboardingStatus == "Submitted"
+        var pendingOrgs = orgItems.Count(x =>
+            x.ApprovalStatus?.ToLowerInvariant() == "pending" &&
+            x.OnboardingStatus == "Submitted");
+        var pendingVen = statusFilter?.ToLowerInvariant() is "pending" or null
             ? (int)venTotal
             : venItems.Count(x => x.ApprovalStatus?.ToLowerInvariant() == "pending");
+
+        var incompleteOrgs = orgItems.Count(x =>
+            x.ApprovalStatus?.ToLowerInvariant() == "pending" &&
+            x.OnboardingStatus is not null &&
+            x.OnboardingStatus != "Submitted" &&
+            x.OnboardingStatus != "Completed");
+
+        var needsRevisionOrgs = orgItems.Count(x =>
+            x.OnboardingStatus == "NeedsRevision");
 
         var approvedThisWeek = orgItems.Count(x =>
                 x.ApprovalStatus?.ToLowerInvariant() == "approved" &&
@@ -255,17 +278,24 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
             PendingVenues = pendingVen,
             ApprovedThisWeek = approvedThisWeek,
             RejectedThisWeek = rejectedThisWeek,
-            AverageReviewTimeHours = null
+            AverageReviewTimeHours = null,
+            IncompleteOrganizers = incompleteOrgs,
+            NeedsRevisionOrganizers = needsRevisionOrgs
         };
     }
 
-    private static string? MapToIdentityApprovalStatus(string? bffStatus) => bffStatus?.ToLowerInvariant() switch
+    /// <summary>
+    /// Maps BFF status filter to Identity approval + onboarding status query params.
+    /// </summary>
+    private static (string? approvalStatus, string? onboardingStatus) MapToIdentityFilters(string? bffStatus) => bffStatus?.ToLowerInvariant() switch
     {
-        "pending" => "Pending",
-        "approved" => "Approved",
-        "rejected" => "Rejected",
-        "all" => null,
-        _ => null
+        "pending" => ("Pending", "Submitted"),
+        "incomplete" => ("Pending", null),       // BFF-side filters out Submitted/Completed
+        "needs_revision" => (null, "NeedsRevision"),
+        "approved" => ("Approved", null),
+        "rejected" => ("Rejected", null),
+        "all" => (null, null),
+        _ => (null, null)
     };
 
     private static string MapApprovalStatus(string? identityStatus) => identityStatus?.ToLowerInvariant() switch

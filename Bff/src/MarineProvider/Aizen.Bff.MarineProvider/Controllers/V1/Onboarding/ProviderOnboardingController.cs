@@ -1,4 +1,6 @@
+using Aizen.Bff.MarineProvider.Application.Contracts.Files;
 using Aizen.Bff.MarineProvider.Application.Contracts.Onboarding;
+using Aizen.Bff.MarineProvider.Application.Onboarding.Documents;
 using Aizen.Bff.MarineProvider.Application.Onboarding.GetOnboarding;
 using Aizen.Bff.MarineProvider.Application.Onboarding.SaveOnboardingStep;
 using Aizen.Bff.MarineProvider.Application.Onboarding.SubmitOnboarding;
@@ -51,5 +53,35 @@ public sealed class ProviderOnboardingController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync(new SubmitOnboardingCommand(), ct);
         return SetResponse(result);
+    }
+
+    [HttpPost("documents")]
+    [ProducesResponseType(typeof(AttachDocumentBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AttachDocumentBffResponse>> AttachDocument(
+        [FromBody] AttachDocumentBffRequest request, CancellationToken ct)
+    {
+        var command = new AttachOnboardingDocumentCommand
+        {
+            FileId = request.FileId,
+            DocumentType = request.DocumentType,
+            Issuer = request.Issuer,
+        };
+        return SetResponse(await _cqrs.ProcessAsync(command, ct));
+    }
+
+    [HttpDelete("documents/{fileId:guid}")]
+    [ProducesResponseType(typeof(DeleteDocumentBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DeleteDocumentBffResponse>> DeleteDocument(Guid fileId, CancellationToken ct)
+    {
+        var command = new DeleteOnboardingDocumentCommand { FileId = fileId };
+        return SetResponse(await _cqrs.ProcessAsync(command, ct));
+    }
+
+    [HttpPost("documents/{fileId:guid}/access-url")]
+    [ProducesResponseType(typeof(DocumentAccessUrlBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DocumentAccessUrlBffResponse>> GetDocumentAccessUrl(Guid fileId, CancellationToken ct)
+    {
+        var command = new GetDocumentAccessUrlCommand { FileId = fileId };
+        return SetResponse(await _cqrs.ProcessAsync(command, ct));
     }
 }

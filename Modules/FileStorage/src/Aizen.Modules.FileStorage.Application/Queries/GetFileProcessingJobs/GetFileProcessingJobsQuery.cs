@@ -6,9 +6,9 @@ namespace Aizen.Modules.FileStorage.Application.Queries.GetFileProcessingJobs;
 [DocumentationInfo("Get file processing jobs query", "Returns all background processing jobs for a given file ID.")]
 public sealed class GetFileProcessingJobsQuery : AizenQuery<IReadOnlyList<FileProcessingJobDto>>
 {
-    public long FileId { get; }
+    public Guid FileId { get; }
 
-    public GetFileProcessingJobsQuery(long fileId)
+    public GetFileProcessingJobsQuery(Guid fileId)
     {
         FileId = fileId;
     }

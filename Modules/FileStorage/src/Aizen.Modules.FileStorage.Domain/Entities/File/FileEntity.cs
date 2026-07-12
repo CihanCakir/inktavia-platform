@@ -64,6 +64,7 @@ public sealed class FileEntity : AizenEntityWithAudit
             StorageProvider = storageProvider,
             Visibility = visibility,
             Category = category,
+            PublicId = Guid.NewGuid(),
             Status = FileStatus.Created,
             UploadedByUserId = uploadedByUserId,
             IsActive = true

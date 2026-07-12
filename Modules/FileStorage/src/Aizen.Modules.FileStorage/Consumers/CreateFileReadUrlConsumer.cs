@@ -4,7 +4,6 @@ using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Message;
 using Aizen.Modules.FileStorage.Application.Queries.GetFileAccessUrl;
-using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aizen.Modules.FileStorage.Consumers;
@@ -14,12 +13,10 @@ public sealed class CreateFileReadUrlConsumer
     : AizenBaseMessageConsumer<CreateFileReadUrlProcessMessage, CreateFileReadUrlProcessMessageResult>
 {
     private readonly IAizenCQRSProcessor _cqrsProcessor;
-    private readonly IFileRepository _fileRepository;
 
     public CreateFileReadUrlConsumer(IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _cqrsProcessor = serviceProvider.GetRequiredService<IAizenCQRSProcessor>();
-        _fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
     }
 
     public override Task<bool> ExecutePrepareMessage(
@@ -29,19 +26,8 @@ public sealed class CreateFileReadUrlConsumer
     public override async Task<CreateFileReadUrlProcessMessageResult> ExecuteCommitMessage(
         CreateFileReadUrlProcessMessage message, CancellationToken cancellationToken)
     {
-        var fileEntity = await _fileRepository.GetByGuidAsync(message.FileId, cancellationToken);
-        if (fileEntity is null)
-        {
-            return new CreateFileReadUrlProcessMessageResult
-            {
-                FileId = message.FileId,
-                ReadUrl = string.Empty,
-                ExpiresAt = DateTime.UtcNow
-            };
-        }
-
         var result = await _cqrsProcessor.ProcessAsync<FileAccessUrlDto>(
-            new GetFileAccessUrlQuery(fileEntity.Id, expiresIn: message.ExpiresIn),
+            new GetFileAccessUrlQuery(message.FileId, expiresIn: message.ExpiresIn),
             cancellationToken);
 
         return new CreateFileReadUrlProcessMessageResult

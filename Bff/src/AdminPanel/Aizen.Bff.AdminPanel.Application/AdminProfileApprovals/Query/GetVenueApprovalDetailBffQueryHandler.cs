@@ -69,7 +69,7 @@ public sealed class GetVenueApprovalDetailBffQueryHandler
                 response.Warnings.Add(AdminBffWarning.CallFailed("Identity.VenueWithUser", "Could not fetch user contact info."));
 
             // Enrich documents with signed read URLs from FileStorage (best-effort: failure yields url=null).
-            var signedUrlMap = new Dictionary<long, string?>();
+            var signedUrlMap = new Dictionary<Guid, string?>();
             if (detail.Documents?.Count > 0)
             {
                 try
@@ -111,7 +111,7 @@ public sealed class GetVenueApprovalDetailBffQueryHandler
     private static VenueApprovalDetailBffDto MapToDetailDto(
         VenueProfileDetailDto detail,
         VenueProfileWithUserDetailDto? withUser,
-        Dictionary<long, string?> signedUrlMap)
+        Dictionary<Guid, string?> signedUrlMap)
     {
         var reviewedAt = detail.ApprovalStatus?.ToLowerInvariant() switch
         {

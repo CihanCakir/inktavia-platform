@@ -124,6 +124,19 @@ namespace Aizen.Modules.Identity.Domain.Entities
             VerificationDocuments.Add(document);
         }
 
+        /// <summary>
+        /// Soft-deletes a verification document identified by its FilePublicId (Guid).
+        /// Returns true when found and removed, false otherwise.
+        /// </summary>
+        public bool RemoveVerificationDocument(Guid filePublicId)
+        {
+            var doc = VerificationDocuments.FirstOrDefault(d => d.FilePublicId == filePublicId && !d.IsDeleted);
+            if (doc is null) return false;
+            doc.MarkDeleted();
+            SetModified();
+            return true;
+        }
+
         public void SetCompanyName(string? companyName)
         {
             CompanyName = companyName;

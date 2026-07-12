@@ -5,8 +5,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Query;
 
 public sealed class GetAdminFileReviewOverviewQuery : AizenQuery<AdminFileReviewOverviewResponse>
 {
-    public long FileId { get; }
-    public GetAdminFileReviewOverviewQuery(long fileId)
+    public Guid FileId { get; }
+    public GetAdminFileReviewOverviewQuery(Guid fileId)
     {
         FileId = fileId;
     }

@@ -1,6 +1,9 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
+using Aizen.Modules.InktaviaStore.Application.Identity.Command.Onboarding.AttachProviderDocument;
+using Aizen.Modules.InktaviaStore.Application.Identity.Command.Onboarding.RemoveProviderDocument;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.MarkOrganizerPhoneVerified;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.ProvisionOrganizerFromKeycloak;
 using Aizen.Modules.InktaviaStore.Application.Identity.Query.Organizer;
@@ -61,6 +64,45 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             [FromRoute] long profileId, CancellationToken ct)
         {
             var result = await _sender.ProcessAsync(new MarkOrganizerPhoneVerifiedCommand(profileId), ct);
+            return SetResponse(result);
+        }
+
+        // POST /api/v1/identity/organizers/profiles/{profileId}/documents
+        [Authorize(Policy = "IdentityWrite")]
+        [HttpPost("organizers/profiles/{profileId:long}/documents")]
+        [ProducesResponseType(typeof(AttachProviderDocumentResponse), StatusCodes.Status200OK)]
+        public async Task<AizenApiResponse<AttachProviderDocumentResponse>> AttachDocument(
+            [FromRoute] long profileId,
+            [FromBody] AttachProviderDocumentRequest request,
+            CancellationToken ct)
+        {
+            var command = new AttachProviderDocumentCommand
+            {
+                ProfileId = profileId,
+                UserId = request.UserId,
+                FileId = request.FileId,
+                DocumentType = request.DocumentType,
+                Issuer = request.Issuer,
+            };
+            var result = await _sender.ProcessAsync(command, ct);
+            return SetResponse(result);
+        }
+
+        // DELETE /api/v1/identity/organizers/profiles/{profileId}/documents/{fileId}
+        [Authorize(Policy = "IdentityWrite")]
+        [HttpDelete("organizers/profiles/{profileId:long}/documents/{fileId:guid}")]
+        [ProducesResponseType(typeof(RemoveProviderDocumentResponse), StatusCodes.Status200OK)]
+        public async Task<AizenApiResponse<RemoveProviderDocumentResponse>> RemoveDocument(
+            [FromRoute] long profileId,
+            [FromRoute] Guid fileId,
+            CancellationToken ct)
+        {
+            var command = new RemoveProviderDocumentCommand
+            {
+                ProfileId = profileId,
+                FileId = fileId,
+            };
+            var result = await _sender.ProcessAsync(command, ct);
             return SetResponse(result);
         }
     }

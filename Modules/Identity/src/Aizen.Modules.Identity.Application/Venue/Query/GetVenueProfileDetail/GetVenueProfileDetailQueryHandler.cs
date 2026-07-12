@@ -65,7 +65,7 @@ public sealed class GetVenueProfileDetailQueryHandler
                 .Select(d => new VerificationDocumentDto
                 {
                     Id = d.Id,
-                    FileId = d.FileId,
+                    FileId = d.FilePublicId ?? Guid.Empty,
                     Name = d.Name,
                     DocumentType = d.DocumentType,
                     Format = d.Format,

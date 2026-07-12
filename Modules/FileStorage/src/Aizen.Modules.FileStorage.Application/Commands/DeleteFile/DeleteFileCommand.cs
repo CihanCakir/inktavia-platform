@@ -6,6 +6,6 @@ namespace Aizen.Modules.FileStorage.Application.Commands.DeleteFile;
 [DocumentationInfo("Delete file command", "Soft-deletes a file from the system.")]
 public sealed class DeleteFileCommand : AizenCommand<bool>
 {
-    public long FileId { get; set; }
+    public Guid FileId { get; set; }
     public DeleteFileRequest Request { get; set; } = default!;
 }

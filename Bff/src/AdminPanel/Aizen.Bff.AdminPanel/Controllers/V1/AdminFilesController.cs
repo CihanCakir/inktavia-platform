@@ -24,10 +24,10 @@ public sealed class FilesController : AizenWebApiController
         _cqrs = cqrsProcessor;
     }
 
-    [HttpGet("files/{fileId:long}")]
+    [HttpGet("files/{fileId:guid}")]
     [ProducesResponseType(typeof(AdminFileReviewOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminFileReviewOverviewResponse>> GetFileReviewOverview(
-        long fileId, CancellationToken ct)
+        Guid fileId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
             new GetAdminFileReviewOverviewQuery(fileId), ct);
@@ -44,30 +44,30 @@ public sealed class FilesController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpDelete("files/{fileId:long}")]
+    [HttpDelete("files/{fileId:guid}")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> DeleteFile(
-        long fileId, CancellationToken ct)
+        Guid fileId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
             new DeleteFileCommand(fileId), ct);
         return SetResponse(result);
     }
 
-    [HttpPost("files/{fileId:long}/read-url")]
+    [HttpPost("files/{fileId:guid}/read-url")]
     [ProducesResponseType(typeof(FileAccessUrlResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileAccessUrlResult>> CreateFileReadUrl(
-        long fileId, [FromBody] CreateReadUrlRequest request, CancellationToken ct)
+        Guid fileId, [FromBody] CreateReadUrlRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
             new CreateFileReadUrlCommand(fileId, request.ExpiresInMinutes), ct);
         return SetResponse(result);
     }
 
-    [HttpPatch("files/{fileId:long}/visibility")]
+    [HttpPatch("files/{fileId:guid}/visibility")]
     [ProducesResponseType(typeof(Aizen.Bff.AdminPanel.Application.Common.RemoteClients.EmptyResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<Aizen.Bff.AdminPanel.Application.Common.RemoteClients.EmptyResult>> UpdateVisibility(
-        long fileId, [FromBody] UpdateVisibilityRequest request, CancellationToken ct)
+        Guid fileId, [FromBody] UpdateVisibilityRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
             new UpdateFileVisibilityCommand(fileId, request.Visibility), ct);
@@ -78,7 +78,7 @@ public sealed class FilesController : AizenWebApiController
 [DocumentationInfo("Bulk generate read URLs request", "Request body for generating pre-signed read URLs for multiple files.")]
 public sealed class BulkGenerateReadUrlsRequest
 {
-    public List<long> FileIds { get; set; } = new();
+    public List<Guid> FileIds { get; set; } = new();
     public int ExpiresInMinutes { get; set; } = 60;
 }
 

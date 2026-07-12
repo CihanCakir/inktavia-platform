@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 
 namespace Aizen.Bff.MarineProvider.Application.Contracts.Onboarding;
 
@@ -20,6 +21,7 @@ public sealed class OnboardingResponse
     public string? RevisionNote { get; set; }
     public DateTime? LastSavedAtUtc { get; set; }
     public DateTime? SubmittedAtUtc { get; set; }
+    public List<ProviderDocumentDto>? Documents { get; set; }
 }
 
 public sealed class SaveOnboardingStepResponse

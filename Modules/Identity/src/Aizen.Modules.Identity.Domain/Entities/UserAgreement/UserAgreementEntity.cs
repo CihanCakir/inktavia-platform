@@ -18,7 +18,9 @@ public class UserAgreementEntity : AizenEntityWithAudit
     public DateTime ApprovedAt { get; private set; }
 
     // 📌 Domain Constructor
-    private UserAgreementEntity() { }
+    // EF Core lazy-loading proxies (Castle DynamicProxy) subclass the entity, so the parameterless ctor must be
+    // at least protected. A private one makes every query that materializes this type fail at runtime.
+    protected UserAgreementEntity() { }
 
     private UserAgreementEntity(long userId, long agreementId, decimal versionNumber)
     {

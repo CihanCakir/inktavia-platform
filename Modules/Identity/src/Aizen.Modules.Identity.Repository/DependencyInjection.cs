@@ -55,6 +55,7 @@ namespace Aizen.Modules.Identity.Repository
             // Provider onboarding
             services.AddScoped<IProviderOnboardingRepository, ProviderOnboardingRepository>();
             services.AddScoped<IProviderOnboardingDomainService, ProviderOnboardingDomainService>();
+            services.AddScoped<IFileAttachmentValidationService, FileAttachmentValidationService>();
 
             // Password recovery (Identity-owned)
             if (configuration is not null)

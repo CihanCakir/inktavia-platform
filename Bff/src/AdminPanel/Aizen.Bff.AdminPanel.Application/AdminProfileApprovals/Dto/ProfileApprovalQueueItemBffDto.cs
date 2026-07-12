@@ -16,6 +16,8 @@ public sealed class ProfileApprovalQueueItemBffDto
     public string? ReviewedAt { get; set; }                  // Gap: not in Identity list DTO
     public string Status { get; set; } = null!;              // "pending" | "approved" | "rejected" | "needsReview"
     public string StatusLabel { get; set; } = null!;
-    public string? RiskLevel { get; set; }                   // Gap: not available from Identity
+    public string? RiskLevel { get; set; }
     public double? DocumentCompletionPercent { get; set; }   // Gap: not available from Identity
+    public string? OnboardingStatus { get; set; }
+    public int DocumentCount { get; set; }
 }

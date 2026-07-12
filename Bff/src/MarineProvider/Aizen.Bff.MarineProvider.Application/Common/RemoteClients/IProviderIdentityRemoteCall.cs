@@ -85,6 +85,18 @@ public interface IProviderIdentityRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallPost("/api/v1/identity/provider-onboarding/{profileId}/submit")]
     Task<AizenApiResponse<SubmitProviderOnboardingResponse>> SubmitProviderOnboarding(long profileId);
+
+    // ── Onboarding Documents ────────────────────────────────────────────────────
+
+    [AizenRemoteCallPost("/api/v1/identity/organizers/profiles/{profileId}/documents")]
+    Task<AizenApiResponse<AttachProviderDocumentResponse>> AttachProviderDocument(
+        long profileId,
+        [AizenRemoteCallBody] AttachProviderDocumentRequest request);
+
+    [AizenRemoteCallDelete("/api/v1/identity/organizers/profiles/{profileId}/documents/{fileId}")]
+    Task<AizenApiResponse<RemoveProviderDocumentResponse>> RemoveProviderDocument(
+        long profileId,
+        Guid fileId);
 }
 
 public sealed class ProviderProvisionFromKeycloakRequest
@@ -115,4 +127,25 @@ public sealed class ProviderCheckOtpRequest
     public string PhoneNumber { get; set; } = default!;
     public int Otp { get; set; }
     public string ValidationGuid { get; set; } = default!;
+}
+
+public sealed class AttachProviderDocumentRequest
+{
+    public Guid FileId { get; set; }
+    public string DocumentType { get; set; } = default!;
+    public string? Issuer { get; set; }
+    public long UserId { get; set; }
+}
+
+public sealed class AttachProviderDocumentResponse
+{
+    public long DocumentId { get; set; }
+    public Guid FileId { get; set; }
+    public bool Success { get; set; }
+    public Aizen.Modules.Identity.Abstraction.Dto.Onboarding.ProviderDocumentDto? Document { get; set; }
+}
+
+public sealed class RemoveProviderDocumentResponse
+{
+    public bool Success { get; set; }
 }

@@ -5,9 +5,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 
 public sealed class CreateFileReadUrlCommand : AizenCommand<FileAccessUrlResult>
 {
-    public long FileId { get; }
+    public Guid FileId { get; }
     public int ExpiresInMinutes { get; }
-    public CreateFileReadUrlCommand(long fileId, int expiresInMinutes)
+    public CreateFileReadUrlCommand(Guid fileId, int expiresInMinutes)
     {
         FileId = fileId;
         ExpiresInMinutes = expiresInMinutes;

@@ -5,7 +5,6 @@ using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Message;
 using Aizen.Modules.FileStorage.Abstraction.Request.Access;
 using Aizen.Modules.FileStorage.Application.Commands.LinkFileToOwner;
-using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aizen.Modules.FileStorage.Consumers;
@@ -15,12 +14,10 @@ public sealed class LinkFileToOwnerConsumer
     : AizenBaseMessageConsumer<LinkFileToOwnerProcessMessage, LinkFileToOwnerProcessMessageResult>
 {
     private readonly IAizenCQRSProcessor _cqrsProcessor;
-    private readonly IFileRepository _fileRepository;
 
     public LinkFileToOwnerConsumer(IServiceProvider serviceProvider) : base(serviceProvider)
     {
         _cqrsProcessor = serviceProvider.GetRequiredService<IAizenCQRSProcessor>();
-        _fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
     }
 
     public override Task<bool> ExecutePrepareMessage(
@@ -30,20 +27,10 @@ public sealed class LinkFileToOwnerConsumer
     public override async Task<LinkFileToOwnerProcessMessageResult> ExecuteCommitMessage(
         LinkFileToOwnerProcessMessage message, CancellationToken cancellationToken)
     {
-        var fileEntity = await _fileRepository.GetByGuidAsync(message.FileId, cancellationToken);
-        if (fileEntity is null)
-        {
-            return new LinkFileToOwnerProcessMessageResult
-            {
-                FileId = message.FileId,
-                IsLinked = false
-            };
-        }
-
         var result = await _cqrsProcessor.ProcessAsync<FileOwnerReferenceDto>(
             new LinkFileToOwnerCommand
             {
-                FileId = fileEntity.Id,
+                FileId = message.FileId,
                 Request = new LinkFileToOwnerRequest
                 {
                     OwnerModule = message.OwnerModule,

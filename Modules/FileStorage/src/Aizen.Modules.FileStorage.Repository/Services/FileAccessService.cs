@@ -22,14 +22,18 @@ public sealed class FileAccessService : IFileAccessService
         var file = await _fileRepository.GetByIdAsync(fileId, cancellationToken)
             ?? throw new KeyNotFoundException($"File with id '{fileId}' not found.");
 
-        if (file.Status != FileStatus.Ready)
-            throw new InvalidOperationException("File is not ready.");
+        // A file is readable once its bytes are in the bucket. `Ready` is only reached by the post-upload
+        // processing/scan pipeline, which does not exist yet — requiring it here made every read URL throw for
+        // freshly uploaded files, while attach already accepts Uploaded|Ready. Allow-list the readable states
+        // and reject everything else by name, so Quarantined/Rejected/Deleted stay blocked (fail closed).
+        if (file.Status is not (FileStatus.Uploaded or FileStatus.Ready))
+            throw new InvalidOperationException($"File is not readable (status: {file.Status}).");
 
         var url = await _storageProvider.GenerateReadUrlAsync(file.BucketName, file.ObjectKey, expiresIn, cancellationToken);
 
         return new FileAccessUrlDto
         {
-            FileId = file.PublicId ?? Guid.Empty,
+            FileId = file.PublicId ?? throw new InvalidOperationException($"File {file.Id} has no PublicId — this is a data integrity bug."),
             ReadUrl = url,
             ExpiresAt = DateTime.UtcNow.Add(expiresIn)
         };

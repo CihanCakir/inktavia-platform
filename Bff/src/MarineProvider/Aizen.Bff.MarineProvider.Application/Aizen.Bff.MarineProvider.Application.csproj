@@ -16,6 +16,7 @@
     <ProjectReference Include="../../../../Modules/Identity/src/Aizen.Modules.Identity.Abstraction/Aizen.Modules.Identity.Abstraction.csproj" />
     <ProjectReference Include="../../../../Modules/Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
     <ProjectReference Include="../../../../Modules/ServiceRequest/src/Aizen.Modules.ServiceRequest.Abstraction/Aizen.Modules.ServiceRequest.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/FileStorage/src/Aizen.Modules.FileStorage.Abstraction/Aizen.Modules.FileStorage.Abstraction.csproj" />
   </ItemGroup>
 
   <ItemGroup>

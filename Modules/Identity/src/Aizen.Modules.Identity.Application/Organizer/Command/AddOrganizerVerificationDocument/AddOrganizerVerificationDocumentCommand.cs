@@ -6,34 +6,22 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer
     {
         public long UserId { get; }
         public long ProfileId { get; }
-        public long FileId { get; }
-        public string Name { get; }
+        public Guid FileId { get; }
         public string DocumentType { get; }
-        public string? Format { get; }
-        public string? FileSizeDisplay { get; }
         public string? Issuer { get; }
-        public long UploadedByUserId { get; }
 
         public AddOrganizerVerificationDocumentCommand(
             long userId,
             long profileId,
-            long fileId,
-            string name,
+            Guid fileId,
             string documentType,
-            string? format,
-            string? fileSizeDisplay,
-            string? issuer,
-            long uploadedByUserId)
+            string? issuer)
         {
             UserId = userId;
             ProfileId = profileId;
             FileId = fileId;
-            Name = name;
             DocumentType = documentType;
-            Format = format;
-            FileSizeDisplay = fileSizeDisplay;
             Issuer = issuer;
-            UploadedByUserId = uploadedByUserId;
         }
     }
 

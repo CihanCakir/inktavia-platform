@@ -158,12 +158,9 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             [FromBody] AddVerificationDocumentRequest req,
             CancellationToken ct)
         {
-            var adminUserId = long.TryParse(
-                ContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0L;
-
             var result = await _sender.ProcessAsync(
                 new AddOrganizerVerificationDocumentCommand(userId, profileId, req.FileId,
-                    req.Name, req.DocumentType, req.Format, req.FileSizeDisplay, req.Issuer, adminUserId),
+                    req.DocumentType, req.Issuer),
                 ct);
 
             return SetResponse(result);
@@ -180,12 +177,9 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             [FromBody] AddVerificationDocumentRequest req,
             CancellationToken ct)
         {
-            var adminUserId = long.TryParse(
-                ContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0L;
-
             var result = await _sender.ProcessAsync(
                 new AddVenueVerificationDocumentCommand(userId, profileId, req.FileId,
-                    req.Name, req.DocumentType, req.Format, req.FileSizeDisplay, req.Issuer, adminUserId),
+                    req.DocumentType, req.Issuer),
                 ct);
 
             return SetResponse(result);

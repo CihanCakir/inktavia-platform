@@ -9,6 +9,7 @@ public class GetOrganizerProfilesByFilterRequest
     public string? Status { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
+    public string? OnboardingStatus { get; set; }
     public int PageIndex { get; set; } = 0;
     public int PageSize { get; set; } = 20;
 }

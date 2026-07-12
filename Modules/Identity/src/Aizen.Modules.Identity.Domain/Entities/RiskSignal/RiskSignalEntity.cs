@@ -20,7 +20,9 @@ namespace Aizen.Modules.Identity.Domain.Entities
 
         public DateTime DetectedAt { get; private set; }
 
-        private RiskSignalEntity() { }
+        // EF Core lazy-loading proxies (Castle DynamicProxy) subclass the entity, so the parameterless ctor must be
+        // at least protected. A private one makes every query that materializes this type fail at runtime.
+        protected RiskSignalEntity() { }
 
         public static RiskSignalEntity Create(
             long profileId,

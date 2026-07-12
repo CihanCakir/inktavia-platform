@@ -8,4 +8,6 @@ public sealed class ProfileApprovalSummaryBffDto
     public int ApprovedThisWeek { get; set; }    // Gap: computed from current page only
     public int RejectedThisWeek { get; set; }    // Gap: computed from current page only
     public double? AverageReviewTimeHours { get; set; }  // Gap: not available from Identity
+    public int IncompleteOrganizers { get; set; }
+    public int NeedsRevisionOrganizers { get; set; }
 }

@@ -1,47 +1,35 @@
-using Aizen.Core.Api.Middleware;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction;
-using Aizen.Modules.Identity.Domain.Entities;
-using Aizen.Modules.Identity.Repository.Context;
+using Aizen.Modules.Identity.Repository.Identity.Service.Onboarding;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer;
-using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Venue
 {
+    /// <summary>
+    /// Legacy handler used by the admin / internal API for venue documents.
+    /// All validation, persistence, and file-claim logic is delegated to
+    /// <see cref="IFileAttachmentValidationService"/> with <c>skipOwnershipCheck: true</c>
+    /// and <c>roleContext: VenueOwner</c>.
+    /// </summary>
     public class AddVenueVerificationDocumentCommandHandler
         : AizenCommandHandler<AddVenueVerificationDocumentCommand, AddVerificationDocumentResult>
     {
-        private readonly IdentityDbContext _db;
+        private readonly IFileAttachmentValidationService _validationService;
 
-        public AddVenueVerificationDocumentCommandHandler(IdentityDbContext db)
+        public AddVenueVerificationDocumentCommandHandler(
+            IFileAttachmentValidationService validationService)
         {
-            _db = db;
+            _validationService = validationService;
         }
 
         public override async Task<AddVerificationDocumentResult?> Handle(
             AddVenueVerificationDocumentCommand request, CancellationToken ct)
         {
-            var profile = await _db.UserProfiles
-                .Include(p => p.VerificationDocuments)
-                .FirstOrDefaultAsync(p => p.Id == request.ProfileId
-                    && p.UserId == request.UserId
-                    && p.RoleContext == WorkshopRoleContext.VenueOwner
-                    && !p.IsDeleted, ct)
-                ?? throw new AizenBusinessException(((int)AizenErrorCode.NotFound).ToString());
-
-            var document = VerificationDocumentEntity.Create(
-                profileId: profile.Id,
-                fileId: request.FileId,
-                name: request.Name,
-                documentType: request.DocumentType,
-                format: request.Format,
-                fileSizeDisplay: request.FileSizeDisplay,
-                issuer: request.Issuer,
-                uploadedByUserId: request.UploadedByUserId);
-
-            profile.AddVerificationDocument(document);
-            await _db.SaveChangesAsync(ct);
+            var document = await _validationService.ValidateAndAttachAsync(
+                request.ProfileId, request.UserId, request.FileId,
+                request.DocumentType, request.Issuer,
+                skipOwnershipCheck: true, ct,
+                roleContext: WorkshopRoleContext.VenueOwner);
 
             return new AddVerificationDocumentResult(document.Id);
         }

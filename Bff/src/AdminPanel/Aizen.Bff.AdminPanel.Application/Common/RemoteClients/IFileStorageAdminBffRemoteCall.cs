@@ -12,19 +12,19 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 public interface IFileStorageAdminBffRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/files/{fileId}")]
-    Task<AizenApiResponse<FileMetadataResult>> GetFileMetadata(long fileId);
+    Task<AizenApiResponse<FileMetadataResult>> GetFileMetadata(Guid fileId);
 
     [AizenRemoteCallPost("/api/v1/files/{fileId}/access/read-url")]
     Task<AizenApiResponse<FileAccessUrlResult>> CreateReadUrl(
-        long fileId,
+        Guid fileId,
         [AizenRemoteCallBody] CreateFileReadUrlRemoteCallRequest request);
 
     [AizenRemoteCallDelete("/api/v1/files/{fileId}")]
-    Task<AizenApiResponse<EmptyResult>> DeleteFile(long fileId);
+    Task<AizenApiResponse<EmptyResult>> DeleteFile(Guid fileId);
 
     [AizenRemoteCallPatch("/api/v1/files/{fileId}/visibility")]
     Task<AizenApiResponse<EmptyResult>> UpdateFileVisibility(
-        long fileId,
+        Guid fileId,
         [AizenRemoteCallBody] UpdateFileVisibilityRequest request);
 
     /// <summary>

@@ -15,7 +15,9 @@ namespace Aizen.Modules.Identity.Domain.Entities
 
         public virtual UserEntity User { get; private set; } = default!;
 
-        private UserExternalLoginEntity() { }
+        // EF Core lazy-loading proxies (Castle DynamicProxy) subclass the entity, so the parameterless ctor must be
+        // at least protected. A private one makes every query that materializes this type fail at runtime.
+        protected UserExternalLoginEntity() { }
 
         public static UserExternalLoginEntity Create(long userId, LoginType provider, string providerUserId, string? email, string? scope)
             => new()

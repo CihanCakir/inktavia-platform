@@ -7,6 +7,6 @@ namespace Aizen.Modules.FileStorage.Application.Commands.StartFileProcessing;
 [DocumentationInfo("Start file processing command", "Enqueues a background processing job for a file.")]
 public sealed class StartFileProcessingCommand : AizenCommand<FileProcessingJobDto>
 {
-    public long FileId { get; set; }
+    public Guid FileId { get; set; }
     public StartFileProcessingRequest Request { get; set; } = default!;
 }

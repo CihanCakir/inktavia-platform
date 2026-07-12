@@ -94,7 +94,7 @@ public sealed class FileUploadSessionService : IFileUploadSessionService
 
         return new FileUploadSessionDto
         {
-            FileId = file.PublicId ?? Guid.Empty,
+            FileId = file.PublicId ?? throw new InvalidOperationException("FileEntity.PublicId was not assigned."),
             UploadSessionCode = sessionCode,
             UploadUrl = uploadUrl,
             BucketName = bucketName,

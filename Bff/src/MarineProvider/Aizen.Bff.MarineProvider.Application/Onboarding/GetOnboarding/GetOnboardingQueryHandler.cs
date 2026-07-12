@@ -38,6 +38,7 @@ public sealed class GetOnboardingQueryHandler
                 RevisionNote = body.RevisionNote,
                 LastSavedAtUtc = body.LastSavedAtUtc,
                 SubmittedAtUtc = body.SubmittedAtUtc,
+                Documents = body.Documents,
             };
         }
         catch (Exception ex)

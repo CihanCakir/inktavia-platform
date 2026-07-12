@@ -5,9 +5,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 
 public sealed class UpdateFileVisibilityCommand : AizenCommand<EmptyResult>
 {
-    public long FileId { get; }
+    public Guid FileId { get; }
     public string Visibility { get; }
-    public UpdateFileVisibilityCommand(long fileId, string visibility)
+    public UpdateFileVisibilityCommand(Guid fileId, string visibility)
     {
         FileId = fileId;
         Visibility = visibility;

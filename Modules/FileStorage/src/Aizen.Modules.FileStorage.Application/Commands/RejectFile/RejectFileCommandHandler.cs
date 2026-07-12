@@ -1,20 +1,26 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.RejectFile;
 
-[DocumentationInfo("Reject file command handler", "Delegates to IFileStorageService to mark the file as rejected.")]
+[DocumentationInfo("Reject file command handler", "Resolves the file by Guid, then delegates to IFileStorageService to mark the file as rejected.")]
 public sealed class RejectFileCommandHandler : AizenCommandHandler<RejectFileCommand, bool>
 {
     private readonly IFileStorageService _storageService;
+    private readonly IFileRepository _fileRepository;
 
-    public RejectFileCommandHandler(IFileStorageService storageService)
+    public RejectFileCommandHandler(IFileStorageService storageService, IFileRepository fileRepository)
     {
         _storageService = storageService;
+        _fileRepository = fileRepository;
     }
 
     public override async Task<bool> Handle(RejectFileCommand command, CancellationToken cancellationToken)
     {
-        return await _storageService.RejectFileAsync(command.FileId, cancellationToken);
+        var file = await _fileRepository.GetByGuidAsync(command.FileId, cancellationToken)
+            ?? throw new KeyNotFoundException($"File not found: {command.FileId}");
+
+        return await _storageService.RejectFileAsync(file.Id, cancellationToken);
     }
 }

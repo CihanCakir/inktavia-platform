@@ -6,9 +6,9 @@ namespace Aizen.Modules.FileStorage.Application.Queries.GetFileMetadata;
 [DocumentationInfo("Get file metadata query", "Returns extended file metadata including owner references for a given file ID.")]
 public sealed class GetFileMetadataQuery : AizenQuery<FileMetadataDto>
 {
-    public long FileId { get; }
+    public Guid FileId { get; }
 
-    public GetFileMetadataQuery(long fileId)
+    public GetFileMetadataQuery(Guid fileId)
     {
         FileId = fileId;
     }

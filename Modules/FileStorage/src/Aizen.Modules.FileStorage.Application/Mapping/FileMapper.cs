@@ -12,7 +12,7 @@ public static class FileMapper
 {
     public static FileDto ToFileDto(this FileEntity entity) => new()
     {
-        FileId = entity.PublicId ?? Guid.Empty,
+        FileId = entity.PublicId ?? throw new InvalidOperationException($"File {entity.Id} has no PublicId — this is a data integrity bug."),
         FileCode = entity.FileCode,
         OriginalFileName = entity.OriginalFileName,
         StoredFileName = entity.StoredFileName,
@@ -33,7 +33,7 @@ public static class FileMapper
 
     public static FileMetadataDto ToFileMetadataDto(this FileEntity entity) => new()
     {
-        FileId = entity.PublicId ?? Guid.Empty,
+        FileId = entity.PublicId ?? throw new InvalidOperationException($"File {entity.Id} has no PublicId — this is a data integrity bug."),
         FileCode = entity.FileCode,
         OriginalFileName = entity.OriginalFileName,
         ContentType = entity.ContentType,
@@ -47,7 +47,7 @@ public static class FileMapper
         UploadedAt = entity.UploadedAt,
         UploadedByUserId = entity.UploadedByUserId,
         OwnerReferences = entity.OwnerReferences
-            .Select(r => r.ToOwnerReferenceDto(entity.PublicId ?? Guid.Empty))
+            .Select(r => r.ToOwnerReferenceDto(entity.PublicId ?? throw new InvalidOperationException($"File {entity.Id} has no PublicId — this is a data integrity bug.")))
             .ToList()
     };
 
