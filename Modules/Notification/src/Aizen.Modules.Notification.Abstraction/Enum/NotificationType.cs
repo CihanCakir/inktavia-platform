@@ -33,5 +33,6 @@ public enum NotificationType
     CargoDryRenewalNotificationRequested   = 305,
     ProfileApprovalDecision      = 400,
     PasswordRecoveryOtp          = 410,
+    OtpLoginCode                 = 411,
     AdminBroadcast               = 900,
 }

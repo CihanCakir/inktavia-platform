@@ -12,11 +12,16 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.RegisterOrgan
     {
         private readonly IOrganizerRegistrationDomainService _domain;
         private readonly IdentityDbContext _db;
+        private readonly IProviderOnboardingDomainService _onboarding;
 
-        public RegisterOrganizerCommandHandler(IOrganizerRegistrationDomainService domain, IdentityDbContext db)
+        public RegisterOrganizerCommandHandler(
+            IOrganizerRegistrationDomainService domain,
+            IdentityDbContext db,
+            IProviderOnboardingDomainService onboarding)
         {
             _domain = domain;
             _db = db;
+            _onboarding = onboarding;
         }
 
         public override async Task<RegisterResult?> Handle(RegisterOrganizerCommand request, CancellationToken ct)
@@ -52,6 +57,18 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.RegisterOrgan
             {
                 await _db.RiskSignals.AddRangeAsync(signals, ct);
                 await _db.SaveChangesAsync(ct);
+            }
+
+            // Create the onboarding row (NotStarted) for the new Organizer profile.
+            // Best-effort — never fail registration because of it.
+            try
+            {
+                await _onboarding.EnsureOnboardingRowAsync(profile.Id, user.Id, ct);
+            }
+            catch (Exception ex)
+            {
+                // Log but do not fail the registration
+                System.Diagnostics.Debug.WriteLine($"Onboarding row creation failed: {ex.Message}");
             }
 
             return new RegisterResult(

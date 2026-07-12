@@ -1,0 +1,55 @@
+using Aizen.Bff.MarineProvider.Application.Contracts.Onboarding;
+using Aizen.Bff.MarineProvider.Application.Onboarding.GetOnboarding;
+using Aizen.Bff.MarineProvider.Application.Onboarding.SaveOnboardingStep;
+using Aizen.Bff.MarineProvider.Application.Onboarding.SubmitOnboarding;
+using Aizen.Core.CQRS.Abstraction;
+using Aizen.Core.Infrastructure.Api;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Aizen.Bff.MarineProvider.Controllers.V1.Onboarding;
+
+[ApiController]
+[Route("api/v1/provider/onboarding")]
+[Tags("Provider - Onboarding")]
+[Authorize]
+public sealed class ProviderOnboardingController : AizenWebApiController
+{
+    private readonly IAizenCQRSProcessor _cqrs;
+
+    public ProviderOnboardingController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) { _cqrs = cqrs; }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(OnboardingResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<OnboardingResponse>> Get(CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetOnboardingQuery(), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPut("steps/{step}")]
+    [ProducesResponseType(typeof(SaveOnboardingStepResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SaveOnboardingStepResponse>> SaveStep(
+        string step, [FromBody] SaveOnboardingStepRequest request, CancellationToken ct)
+    {
+        var command = new SaveOnboardingStepCommand
+        {
+            Step = step,
+            StepStatus = request.StepStatus,
+            StepData = request.StepData,
+            SchemaVersion = request.SchemaVersion,
+        };
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("submit")]
+    [ProducesResponseType(typeof(SubmitOnboardingResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SubmitOnboardingResponse>> Submit(CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new SubmitOnboardingCommand(), ct);
+        return SetResponse(result);
+    }
+}

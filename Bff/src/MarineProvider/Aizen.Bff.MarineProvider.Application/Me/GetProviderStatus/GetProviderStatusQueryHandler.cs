@@ -1,3 +1,4 @@
+using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Bff.MarineProvider.Application.Common.Warnings;
 using Aizen.Bff.MarineProvider.Application.Contracts.Me;
@@ -11,15 +12,18 @@ public sealed class GetProviderStatusQueryHandler
 {
     private readonly IProviderContext _context;
     private readonly IProviderProfileResolver _resolver;
+    private readonly IProviderIdentityRemoteCall _identity;
     private readonly ILogger<GetProviderStatusQueryHandler> _logger;
 
     public GetProviderStatusQueryHandler(
         IProviderContext context,
         IProviderProfileResolver resolver,
+        IProviderIdentityRemoteCall identity,
         ILogger<GetProviderStatusQueryHandler> logger)
     {
         _context = context;
         _resolver = resolver;
+        _identity = identity;
         _logger = logger;
     }
 
@@ -91,8 +95,35 @@ public sealed class GetProviderStatusQueryHandler
             }
             else
             {
-                response.RequiredNextStep = "AwaitApproval";
-                response.Message = "Your application is under review.";
+                // Fetch onboarding status to distinguish "completing application" from "submitted, awaiting review"
+                string? onboardingStatus = null;
+                try
+                {
+                    var onboarding = await _identity.GetProviderOnboarding(profileId);
+                    onboardingStatus = onboarding?.Body?.Status;
+                    response.OnboardingStatus = onboardingStatus;
+                }
+                catch (Exception obEx)
+                {
+                    _logger.LogWarning(obEx, "Onboarding lookup failed for profile {ProfileId}; degrading to AwaitApproval.", profileId);
+                    response.Warnings.Add(ProviderBffWarning.CallFailed("Identity.GetOnboarding", obEx.GetType().Name));
+                }
+
+                if (string.Equals(onboardingStatus, "NeedsRevision", StringComparison.OrdinalIgnoreCase))
+                {
+                    response.RequiredNextStep = "NeedsRevision";
+                    response.Message = "Your application needs revision. Please update the flagged sections.";
+                }
+                else if (string.Equals(onboardingStatus, "Submitted", StringComparison.OrdinalIgnoreCase))
+                {
+                    response.RequiredNextStep = "AwaitApproval";
+                    response.Message = "Your application is under review.";
+                }
+                else
+                {
+                    response.RequiredNextStep = "CompleteOnboarding";
+                    response.Message = "Please complete your application.";
+                }
             }
         }
         catch (Exception ex)

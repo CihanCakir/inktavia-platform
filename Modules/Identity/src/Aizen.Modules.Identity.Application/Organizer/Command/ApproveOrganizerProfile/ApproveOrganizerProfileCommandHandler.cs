@@ -5,9 +5,12 @@ using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Entities;
+using Aizen.Modules.Identity.Domain.Entities.Onboarding;
 using Aizen.Modules.Identity.Domain.Interface;
 using Aizen.Modules.Identity.Domain.Interface.Service;
+using Aizen.Modules.Identity.Repository.Context;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
@@ -18,17 +21,20 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
         private readonly UserManager<UserEntity> _userManager;
         private readonly IProviderKeycloakRoleSyncService _roleSync;
         private readonly ILogger<ApproveOrganizerProfileCommandHandler> _logger;
+        private readonly IdentityDbContext _db;
 
         public ApproveOrganizerProfileCommandHandler(
             IUserProfileRepository profileRepo,
             UserManager<UserEntity> userManager,
             IProviderKeycloakRoleSyncService roleSync,
-            ILogger<ApproveOrganizerProfileCommandHandler> logger)
+            ILogger<ApproveOrganizerProfileCommandHandler> logger,
+            IdentityDbContext db)
         {
             _profileRepo = profileRepo;
             _userManager = userManager;
             _roleSync = roleSync;
             _logger = logger;
+            _db = db;
         }
 
         public override async Task<VenueOrganizationRegistrationResponse?> Handle(ApproveOrganizerProfileCommand request, CancellationToken ct)
@@ -63,6 +69,22 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Keycloak role sync (approve) failed for user {UserId}.", request.UserId);
+            }
+
+            // Mark onboarding as Completed. Best-effort — never fail an approval because of it.
+            try
+            {
+                var onboarding = await _db.ProviderOnboarding
+                    .FirstOrDefaultAsync(o => o.ProfileId == request.ProfileId && !o.IsDeleted, ct);
+                if (onboarding is not null)
+                {
+                    onboarding.MarkCompleted(DateTime.UtcNow);
+                    await _db.SaveChangesAsync(ct);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Onboarding completion failed for profile {ProfileId}.", request.ProfileId);
             }
 
             return new VenueOrganizationRegistrationResponse(

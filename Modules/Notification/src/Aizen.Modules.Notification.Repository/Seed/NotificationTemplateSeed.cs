@@ -143,5 +143,17 @@ public sealed class NotificationTemplateSeed
             NotificationType.PasswordRecoveryOtp, NotificationChannel.Sms,
             "Inktavia Password Reset",
             "Your Inktavia password reset code is {{otp}}. Expires in {{expiresMinutes}} min."),
+
+        // ── OTP Login ───────────────────────────────────────────────────────────
+        NotificationTemplateEntity.Create("OTP_LOGIN_EMAIL", "OTP Login Code (Email)",
+            NotificationType.OtpLoginCode, NotificationChannel.Email,
+            "Inktavia — Login verification code",
+            "Your login verification code is {{otp}}. It expires in {{expiresMinutes}} minutes.\n\n" +
+            "If you did not request this, ignore this email."),
+
+        NotificationTemplateEntity.Create("OTP_LOGIN_SMS", "OTP Login Code (SMS)",
+            NotificationType.OtpLoginCode, NotificationChannel.Sms,
+            "Inktavia Login Code",
+            "Your Inktavia login code is {{otp}}. Expires in {{expiresMinutes}} min."),
     ];
 }

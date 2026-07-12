@@ -6,6 +6,8 @@ using Aizen.Modules.Identity.Repository.Context.Seed.MockData;
 using Aizen.Modules.Identity.Repository.Identity;
 using Aizen.Modules.Identity.Repository.Identity.Repository;
 using Aizen.Modules.Identity.Repository.Identity.Service;
+using Aizen.Modules.Identity.Repository.Identity.Service.Onboarding;
+using Aizen.Modules.Identity.Repository.Identity.Service.OtpLogin;
 using Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery;
 using Aizen.Modules.Identity.Repository.Seed.MockData;
 using Microsoft.AspNetCore.Identity;
@@ -50,6 +52,10 @@ namespace Aizen.Modules.Identity.Repository
             services.AddScoped<IOrganizerKeycloakProvisioningDomainService, OrganizerKeycloakProvisioningDomainService>();
             services.AddScoped<IVenueRegistrationDomainService, VenueRegistrationDomainService>();
 
+            // Provider onboarding
+            services.AddScoped<IProviderOnboardingRepository, ProviderOnboardingRepository>();
+            services.AddScoped<IProviderOnboardingDomainService, ProviderOnboardingDomainService>();
+
             // Password recovery (Identity-owned)
             if (configuration is not null)
             {
@@ -64,6 +70,27 @@ namespace Aizen.Modules.Identity.Repository
                 services.AddSingleton<IProviderPasswordRecoveryNotifier, LoggingProviderPasswordRecoveryNotifier>();
             else
                 services.AddScoped<IProviderPasswordRecoveryNotifier, MessageBusProviderPasswordRecoveryNotifier>();
+
+            // OTP login (Identity-owned, separate from recovery)
+            if (configuration is not null)
+            {
+                services.Configure<OtpLoginOptions>(
+                    configuration.GetSection(OtpLoginOptions.SectionName));
+            }
+            services.AddScoped<IProviderOtpLoginDomainService, ProviderOtpLoginDomainService>();
+
+            // OTP login ticket (single-use HMAC-SHA256 signed tickets)
+            if (configuration is not null)
+            {
+                services.Configure<OtpLoginTicketOptions>(
+                    configuration.GetSection(OtpLoginTicketOptions.SectionName));
+            }
+            services.AddScoped<IProviderOtpLoginTicketService, ProviderOtpLoginTicketService>();
+
+            if (deliveryMode.Equals("Logging", StringComparison.OrdinalIgnoreCase))
+                services.AddSingleton<IProviderOtpLoginNotifier, LoggingProviderOtpLoginNotifier>();
+            else
+                services.AddScoped<IProviderOtpLoginNotifier, MessageBusProviderOtpLoginNotifier>();
 
             return services;
         }

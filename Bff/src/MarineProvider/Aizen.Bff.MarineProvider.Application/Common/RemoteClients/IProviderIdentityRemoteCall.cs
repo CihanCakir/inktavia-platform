@@ -1,7 +1,9 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
+using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
+using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 using Aizen.Modules.Identity.Abstraction.Dto.PasswordRecovery;
 
 namespace Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
@@ -55,6 +57,34 @@ public interface IProviderIdentityRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/identity/auth/provider-password-recovery/resend-otp")]
     Task<AizenApiResponse<ResendProviderPasswordRecoveryOtpResponse>> ResendProviderPasswordRecoveryOtp(
         [AizenRemoteCallBody] ResendProviderPasswordRecoveryOtpRequest request);
+
+    // ── OTP Login (delegated to Identity) ───────────────────────────────────────
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-otp-login/request")]
+    Task<AizenApiResponse<RequestProviderOtpLoginResponse>> RequestProviderOtpLogin(
+        [AizenRemoteCallBody] RequestProviderOtpLoginRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-otp-login/verify")]
+    Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> VerifyProviderOtpLogin(
+        [AizenRemoteCallBody] VerifyProviderOtpLoginRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-otp-login/resend")]
+    Task<AizenApiResponse<ResendProviderOtpLoginResponse>> ResendProviderOtpLogin(
+        [AizenRemoteCallBody] ResendProviderOtpLoginRequest request);
+
+    // ── Onboarding (delegated to Identity) ──────────────────────────────────────
+
+    [AizenRemoteCallGet("/api/v1/identity/provider-onboarding/{profileId}")]
+    Task<AizenApiResponse<ProviderOnboardingResponse>> GetProviderOnboarding(long profileId);
+
+    [AizenRemoteCallPut("/api/v1/identity/provider-onboarding/{profileId}/steps/{step}")]
+    Task<AizenApiResponse<SaveProviderOnboardingStepResponse>> SaveProviderOnboardingStep(
+        long profileId,
+        string step,
+        [AizenRemoteCallBody] SaveProviderOnboardingStepRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/provider-onboarding/{profileId}/submit")]
+    Task<AizenApiResponse<SubmitProviderOnboardingResponse>> SubmitProviderOnboarding(long profileId);
 }
 
 public sealed class ProviderProvisionFromKeycloakRequest

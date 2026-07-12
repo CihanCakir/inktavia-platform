@@ -72,10 +72,14 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
       KC_PROXY: "none"
+      # DEBUG for the custom OTP-login authenticator so its ticket/HMAC/consume decisions are visible
+      # in `docker logs keycloak`. Everything else stays at INFO.
+      KC_LOG_LEVEL: ${KEYCLOAK_LOG_LEVEL:-INFO,com.inktavia:debug}
     ports:
       - "8080:8080"
     volumes:
       - ./infrastructure/keycloak/inktavia-realm-realm.json:/opt/keycloak/data/import/inktavia-realm-realm.json:ro
+      - ./infrastructure/keycloak/providers/provider-otp-login-authenticator.jar:/opt/keycloak/providers/provider-otp-login-authenticator.jar:ro
     networks: [aizen]
 
   keycloak-init:
@@ -88,6 +92,8 @@ services:
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      OTP_LOGIN_TICKET_SECRET: ${OTP_LOGIN_TICKET_SECRET:-}
+      OTP_LOGIN_CONSUME_SECRET: ${OTP_LOGIN_CONSUME_SECRET:-}
     volumes:
       - ./infrastructure/keycloak/init.sh:/init/init.sh:ro
     networks: [aizen]
@@ -192,6 +198,8 @@ services:
       MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
       RateLimiting__PasswordRecovery__WindowSeconds: 300
+      # CORS: browser SPA origin(s) allowed to call the BFF cross-origin (public + authenticated XHR).
+      Cors__AllowedOrigins__0: ${PROVIDER_WEB_BASE:-http://localhost:3002}
     ports:
       - "${BFF_MARINEPROVIDER_PORT:-17002}:8080"
     networks: [aizen]
@@ -281,6 +289,18 @@ services:
       PasswordRecovery__MaxRequestsPerIdentifierPerWindow: 5
       PasswordRecovery__IdentifierWindowSeconds: 3600
       Logging__LogLevel__Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery: ${PASSWORD_RECOVERY_LOG_LEVEL:-Information}
+      Logging__LogLevel__Aizen.Modules.Identity.Repository.Identity.Service.OtpLogin: ${PASSWORD_RECOVERY_LOG_LEVEL:-Information}
+      OtpLogin__OtpLength: 6
+      OtpLogin__OtpTtlSeconds: 300
+      OtpLogin__ResendCooldownSeconds: 60
+      OtpLogin__MaxAttempts: 5
+      OtpLogin__MaxRequestsPerIdentifierPerWindow: 5
+      OtpLogin__IdentifierWindowSeconds: 3600
+      OtpLoginTicket__Secret: ${OTP_LOGIN_TICKET_SECRET:-}
+      OtpLoginTicket__ConsumeSecret: ${OTP_LOGIN_CONSUME_SECRET:-}
+      OtpLoginTicket__TtlSeconds: 120
+      OtpLoginTicket__KeycloakAuthorizeBaseUrl: http://localhost:8080
+      OtpLoginTicket__SpaRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/callback
     ports:
       - "7101:8080"
     networks: [aizen]

@@ -14,6 +14,7 @@ public sealed class GetProviderStatusResponse
     public bool EmailVerified { get; set; }
     public bool? PhoneVerified { get; set; }
     public bool CanEnterWorkspace { get; set; }
+    public string? OnboardingStatus { get; set; }
     public string RequiredNextStep { get; set; } = default!;
     public string Message { get; set; } = string.Empty;
     public List<ProviderBffWarning> Warnings { get; set; } = new();

@@ -27,6 +27,23 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+// ── CORS (browser SPA → BFF) ──────────────────────────────────────────────────
+// The provider web app runs on a different origin (e.g. http://localhost:3002) and calls
+// the BFF cross-origin. Without CORS the browser blocks every XHR (public + authenticated),
+// including OTP login and password recovery. Origins come from config (Cors:AllowedOrigins);
+// falls back to the local provider web origin so local dev works out of the box.
+const string ProviderWebCorsPolicy = "provider-web";
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (corsOrigins is null || corsOrigins.Length == 0)
+    corsOrigins = new[] { "http://localhost:3002" };
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(ProviderWebCorsPolicy, policy => policy
+        .WithOrigins(corsOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+});
+
 // ── IP Rate Limiting (password recovery abuse protection) ─────────────────────
 var rlConfig = builder.Configuration.GetSection("RateLimiting:PasswordRecovery");
 builder.Services.AddRateLimiter(opts =>
@@ -44,6 +61,9 @@ builder.Services.AddRateLimiter(opts =>
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+// CORS must run before the rate limiter so preflight (OPTIONS) requests are answered
+// with the CORS headers instead of being consumed/rejected by the limiter.
+app.UseCors(ProviderWebCorsPolicy);
 app.UseRateLimiter();
 
 app.Run();
