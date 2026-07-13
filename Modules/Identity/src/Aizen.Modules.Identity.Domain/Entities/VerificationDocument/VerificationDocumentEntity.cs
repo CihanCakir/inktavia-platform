@@ -1,4 +1,5 @@
 using Aizen.Core.Domain;
+using Aizen.Modules.Identity.Domain.Enum;
 
 namespace Aizen.Modules.Identity.Domain.Entities
 {
@@ -33,6 +34,17 @@ namespace Aizen.Modules.Identity.Domain.Entities
         public long UploadedByUserId { get; private set; }
 
         public DateTime UploadedAt { get; private set; }
+
+        public DocumentReviewStatus ReviewStatus { get; private set; } = DocumentReviewStatus.Pending;
+
+        public string? ResolutionNote { get; private set; }
+
+        public void SetReviewStatus(DocumentReviewStatus status, string? note = null)
+        {
+            ReviewStatus = status;
+            ResolutionNote = note;
+            ModifyDate = DateTime.UtcNow;
+        }
 
         // EF Core lazy-loading proxies (Castle DynamicProxy) subclass the entity, so the parameterless ctor must be
         // at least protected. A private one makes every query that materializes this type fail at runtime.

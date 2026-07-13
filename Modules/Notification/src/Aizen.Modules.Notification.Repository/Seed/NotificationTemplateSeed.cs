@@ -132,6 +132,52 @@ public sealed class NotificationTemplateSeed
             "Profile Review Complete",
             "Your profile has been {{decision}}. {{reason}}"),
 
+        // ── Provider Lifecycle Events ──────────────────────────────────────────
+
+        // Approved
+        NotificationTemplateEntity.Create("PROFILE_APPROVED_INAPP", "Profile Approved (In-App)",
+            NotificationType.ProfileApproved, NotificationChannel.InApp,
+            "Profiliniz onaylandı",
+            "Profiliniz başarıyla onaylandı. Artık platformu kullanmaya başlayabilirsiniz."),
+
+        NotificationTemplateEntity.Create("PROFILE_APPROVED_PUSH", "Profile Approved (Push)",
+            NotificationType.ProfileApproved, NotificationChannel.Push,
+            "Profiliniz onaylandı",
+            "Profiliniz başarıyla onaylandı. Platforma giriş yapabilirsiniz."),
+
+        // Rejected
+        NotificationTemplateEntity.Create("PROFILE_REJECTED_INAPP", "Profile Rejected (In-App)",
+            NotificationType.ProfileRejected, NotificationChannel.InApp,
+            "Profiliniz reddedildi",
+            "Profiliniz reddedildi. Sebep: {{reason}}"),
+
+        NotificationTemplateEntity.Create("PROFILE_REJECTED_PUSH", "Profile Rejected (Push)",
+            NotificationType.ProfileRejected, NotificationChannel.Push,
+            "Profiliniz reddedildi",
+            "Profiliniz reddedildi. Detaylar için uygulamaya giriş yapın."),
+
+        // Suspended
+        NotificationTemplateEntity.Create("PROFILE_SUSPENDED_INAPP", "Profile Suspended (In-App)",
+            NotificationType.ProfileSuspended, NotificationChannel.InApp,
+            "Profiliniz askıya alındı",
+            "Profiliniz askıya alındı. Sebep: {{reason}}"),
+
+        NotificationTemplateEntity.Create("PROFILE_SUSPENDED_PUSH", "Profile Suspended (Push)",
+            NotificationType.ProfileSuspended, NotificationChannel.Push,
+            "Profiliniz askıya alındı",
+            "Profiliniz askıya alındı. Detaylar için uygulamaya giriş yapın."),
+
+        // Revision Requested
+        NotificationTemplateEntity.Create("ONBOARDING_REVISION_INAPP", "Onboarding Revision Requested (In-App)",
+            NotificationType.OnboardingRevisionRequested, NotificationChannel.InApp,
+            "Başvurunuzda düzenleme istendi",
+            "Başvurunuzda düzenleme istendi. Adımlar: {{steps}}. Not: {{note}}"),
+
+        NotificationTemplateEntity.Create("ONBOARDING_REVISION_PUSH", "Onboarding Revision Requested (Push)",
+            NotificationType.OnboardingRevisionRequested, NotificationChannel.Push,
+            "Başvurunuzda düzenleme istendi",
+            "Başvurunuzun bazı adımlarında düzenleme yapmanız gerekmektedir."),
+
         // ── Password Recovery OTP ───────────────────────────────────────────────
         NotificationTemplateEntity.Create("PWD_RECOVERY_OTP_EMAIL", "Password Recovery OTP (Email)",
             NotificationType.PasswordRecoveryOtp, NotificationChannel.Email,

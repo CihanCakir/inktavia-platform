@@ -2,10 +2,11 @@ using Aizen.Core.Messagebus.Abstraction.Messages;
 
 namespace Aizen.Modules.FileStorage.Abstraction.Message;
 
-[DocumentationInfo("Orphan file cleanup requested message", "Fire-and-forget message requesting cleanup of files with no active owner references.")]
+[DocumentationInfo("Orphan file cleanup requested message", "Fire-and-forget message that triggers a batch cleanup of files with no active owner references older than the configured TTL.")]
 public sealed class OrphanFileCleanupRequestedMessage : AizenBaseMessage
 {
-    public Guid FileId { get; set; }
-    public string ObjectKey { get; set; } = default!;
-    public string BucketName { get; set; } = default!;
+    /// <summary>
+    /// Number of hours a file must be unclaimed before it is eligible for cleanup. Default: 24.
+    /// </summary>
+    public int CleanupTtlHours { get; set; } = 24;
 }

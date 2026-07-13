@@ -54,9 +54,14 @@ public sealed class ForgotProviderPasswordCommandHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Identity password recovery request failed.");
+            return new ForgotProviderPasswordResponse
+            {
+                Accepted = false,
+                Message = "Service temporarily unavailable. Please try again later.",
+            };
         }
 
-        // Fallback: generic non-enumerating response even if Identity call fails.
+        // Identity returned a null body — treat as unknown account (anti-enumeration).
         return new ForgotProviderPasswordResponse
         {
             Accepted = true,

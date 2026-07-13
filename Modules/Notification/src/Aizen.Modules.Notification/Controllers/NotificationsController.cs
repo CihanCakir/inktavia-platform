@@ -1,8 +1,10 @@
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Application.Command.BulkMarkAsRead;
+using Aizen.Modules.Notification.Application.Command.DeactivateWebPushSubscription;
 using Aizen.Modules.Notification.Application.Command.MarkNotificationAsRead;
 using Aizen.Modules.Notification.Application.Command.RegisterDeviceToken;
+using Aizen.Modules.Notification.Application.Command.RegisterWebPushSubscription;
 using Aizen.Modules.Notification.Application.Query.GetUserNotifications;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -67,6 +69,52 @@ public sealed class NotificationsController : ControllerBase
         }, ct);
         return NoContent();
     }
+    [HttpPost("push-subscriptions")]
+    public async Task<IActionResult> RegisterWebPushSubscription(
+        [FromBody] RegisterWebPushSubscriptionRequest body,
+        CancellationToken ct)
+    {
+        var userId = _info.UserInfoAccessor.UserInfo.UserId;
+        if (userId <= 0)
+            return Unauthorized();
+
+        await _sender.Send(new RegisterWebPushSubscriptionCommand
+        {
+            UserId   = userId,
+            Endpoint = body.Endpoint,
+            P256dh   = body.P256dh,
+            Auth     = body.Auth,
+        }, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("push-subscriptions")]
+    public async Task<IActionResult> DeactivateWebPushSubscription(
+        [FromBody] DeactivateWebPushSubscriptionRequest body,
+        CancellationToken ct)
+    {
+        var userId = _info.UserInfoAccessor.UserInfo.UserId;
+        if (userId <= 0)
+            return Unauthorized();
+
+        await _sender.Send(new DeactivateWebPushSubscriptionCommand
+        {
+            Endpoint = body.Endpoint,
+        }, ct);
+        return NoContent();
+    }
+}
+
+public sealed class RegisterWebPushSubscriptionRequest
+{
+    public string Endpoint { get; set; } = default!;
+    public string P256dh { get; set; } = default!;
+    public string Auth { get; set; } = default!;
+}
+
+public sealed class DeactivateWebPushSubscriptionRequest
+{
+    public string Endpoint { get; set; } = default!;
 }
 
 public sealed class RegisterDeviceTokenRequest

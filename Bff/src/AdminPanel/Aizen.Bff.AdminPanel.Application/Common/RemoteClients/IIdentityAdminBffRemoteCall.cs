@@ -2,6 +2,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
+using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
@@ -175,6 +176,24 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         long userId,
         long profileId,
         [AizenRemoteCallBody] RejectProfileRequest request);
+
+    // ── Provider Onboarding (admin read + revision) ───────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/identity/provider-onboarding/{profileId}
+    /// Fetches provider onboarding state (step statuses, draft data, documents) for admin review.
+    /// </summary>
+    [AizenRemoteCallGet("/api/v1/identity/provider-onboarding/{profileId}")]
+    Task<AizenApiResponse<ProviderOnboardingResponse>> GetProviderOnboardingAdmin(long profileId);
+
+    /// <summary>
+    /// POST /api/v1/identity/provider-onboarding/{profileId}/revision
+    /// Admin requests the provider to revise specific onboarding steps.
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/identity/provider-onboarding/{profileId}/revision")]
+    Task<AizenApiResponse<RequestProviderOnboardingRevisionResponse>> RequestProviderOnboardingRevisionAdmin(
+        long profileId,
+        [AizenRemoteCallBody] RequestProviderOnboardingRevisionRequest request);
 
     // ── Verification Document Registration ───────────────────────────────────
 

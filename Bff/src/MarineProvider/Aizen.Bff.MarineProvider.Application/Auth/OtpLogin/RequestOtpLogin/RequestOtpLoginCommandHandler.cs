@@ -31,7 +31,17 @@ public sealed class RequestOtpLoginCommandHandler
                     Message = data.Message,
                 };
         }
-        catch (Exception ex) { _logger.LogError(ex, "Identity OTP login request failed."); }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Identity OTP login request failed.");
+            return new OtpLoginRequestResponse
+            {
+                Accepted = false,
+                Message = "Service temporarily unavailable. Please try again later.",
+            };
+        }
+
+        // Identity returned a null body — treat as unknown account (anti-enumeration).
         return new OtpLoginRequestResponse { Accepted = true, Message = "If an account exists, a verification code has been sent." };
     }
 }

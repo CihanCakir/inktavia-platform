@@ -1,0 +1,51 @@
+digraph arch {
+  rankdir=LR; bgcolor="white"; fontname="Helvetica"; fontsize=17; labelloc="t"; nodesep=0.45; ranksep=1.5;
+  label=<<b>Inktavia Marine OS — Provider Document Upload: Component Architecture</b><br/><font point-size="10" color="#5b6472">provider-web · MarineProvider BFF · Identity · FileStorage · MinIO/S3</font><br/> >;
+  node [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", penwidth=0, margin="0.18,0.12"];
+  edge [fontname="Helvetica", fontsize=9, color="#7c8595", fontcolor="#31394a"];
+
+  subgraph cluster_fe {
+    label="Browser"; fontsize=11; fontcolor="#1b2a4a"; color="#c9d1dd"; style="rounded"; bgcolor="#f6f8fb";
+    spa [label="provider-web (React SPA)\nComplianceVerificationPage\ndocumentsApi.uploadAndAttach()", fillcolor="#dde5f0", fontcolor="#1b2a4a"];
+  }
+
+  subgraph cluster_bff {
+    label="Aizen.Bff.MarineProvider"; fontsize=11; fontcolor="#4a3c0a"; color="#c9a227"; style="rounded"; bgcolor="#fdf8ea";
+    resolver [label="IProviderProfileResolver\n→ IProviderIdentityHolder\nfail closed if UserId ≤ 0", fillcolor="#f2e3b0", fontcolor="#4a3c0a"];
+    handlers [label="CreateUploadSession · CompleteUpload\nAttachOnboardingDocument\nGetDocumentAccessUrl · DeleteDocument", fillcolor="#f7edcf", fontcolor="#4a3c0a"];
+    resolver -> handlers [label=" resolve first", style=dotted, color="#b08d1f", fontcolor="#7a6412"];
+  }
+
+  subgraph cluster_id {
+    label="Aizen.Modules.Identity"; fontsize=11; fontcolor="#12402a"; color="#8fbfa4"; style="rounded"; bgcolor="#f1f8f4";
+    idval [label="FileAttachmentValidationService\nprofile · ownership · status\ncontent-type · size · claim", fillcolor="#cfe6d8", fontcolor="#12402a"];
+    iddoc [label="VerificationDocumentEntity\nFileId (Guid) + snapshots\nno bucket / objectKey / URL", fillcolor="#e2f1e8", fontcolor="#12402a"];
+    idval -> iddoc [style=dotted, arrowhead=none, color="#4c8767"];
+  }
+
+  subgraph cluster_fs {
+    label="Aizen.Modules.FileStorage"; fontsize=11; fontcolor="#3d2148"; color="#b596c4"; style="rounded"; bgcolor="#f8f4fa";
+    fssess [label="FileUploadSessionService\npresign PUT · SigV4 · 15 min", fillcolor="#e3d5ea", fontcolor="#3d2148"];
+    fsacc  [label="FileAccessService\npresign GET · SigV4 · 5 min", fillcolor="#e3d5ea", fontcolor="#3d2148"];
+    fsfile [label="FileEntity · FileOwnerReference\nPublicId · Status · Bucket · ObjectKey", fillcolor="#efe6f3", fontcolor="#3d2148"];
+  }
+
+  minio [label="MinIO / S3\nprivate bucket\nanonymous access: none", shape=cylinder, fillcolor="#1b2a4a", fontcolor="white"];
+  kc    [label="Keycloak", fillcolor="#e8eaee", fontcolor="#31394a"];
+
+  spa -> kc       [label=" bearer token", style=dashed, color="#98a1b0"];
+  spa -> handlers [label=" provider REST API\n Bearer + X-Client-Type"];
+  spa -> minio    [label=" file bytes only\n presigned PUT / GET\n no Authorization header —\n the signature IS the auth",
+                   color="#1b2a4a", fontcolor="#1b2a4a", penwidth=2.2, dir=both];
+
+  handlers -> idval  [label=" AizenRemoteCall\n X-Aizen-Bff-Assertion\n X-Aizen-User-Id"];
+  handlers -> fssess [label=" AizenRemoteCall"];
+  handlers -> fsacc  [label=" mint read URL"];
+  idval -> fsfile    [label=" verify + LinkToOwner (claim)", color="#4c8767", fontcolor="#2f6b4d"];
+  fssess -> minio    [label=" presign"];
+  fsacc  -> minio    [label=" presign"];
+
+  note [shape=note, fillcolor="#fff7f7", fontcolor="#7a1f1f", style="filled", penwidth=1, color="#e0b4b4", fontsize=9,
+        label="Invariants\l• bucket / objectKey / signed URLs never reach the SPA or the domain DB\l• file bytes never pass through the BFF\l• MIME + size re-verified server-side — the client's declaration is not trusted\l• a FileId is never attached without ownership + upload-status validation\l• every provider handler resolves identity first; a missing UserId is a rejection, not 0\l"];
+  { rank=sink; minio; note; }
+}

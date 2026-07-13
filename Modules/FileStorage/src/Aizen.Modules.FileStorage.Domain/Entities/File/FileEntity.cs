@@ -116,4 +116,32 @@ public sealed class FileEntity : AizenEntityWithAudit
     {
         Visibility = visibility;
     }
+
+    public void UpdateActualSize(long actualSizeInBytes)
+    {
+        SizeInBytes = actualSizeInBytes;
+    }
+
+    public void MarkRejected(string? reason = null)
+    {
+        Status = FileStatus.Rejected;
+    }
+
+    /// <summary>
+    /// Marks the file as quarantined after a virus/malware scan detected a threat.
+    /// Quarantined files are NOT readable and NOT attachable.
+    /// </summary>
+    public void MarkQuarantined()
+    {
+        Status = FileStatus.Quarantined;
+    }
+
+    /// <summary>
+    /// Promotes the file to Ready after passing the virus/malware scan.
+    /// Only valid from the Uploaded state.
+    /// </summary>
+    public void PromoteToReady()
+    {
+        Status = FileStatus.Ready;
+    }
 }

@@ -34,9 +34,36 @@ public sealed class UserDeviceTokenRepository : IUserDeviceTokenRepository
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task UpsertWebPushAsync(long userId, string endpoint, string p256dhKey, string authKey, CancellationToken ct)
+    {
+        var existing = await _db.UserDeviceTokens
+            .FirstOrDefaultAsync(x => x.Endpoint == endpoint, ct);
+        if (existing is not null)
+        {
+            existing.Refresh();
+            _db.UserDeviceTokens.Update(existing);
+        }
+        else
+        {
+            var entity = UserDeviceTokenEntity.CreateWebPush(userId, endpoint, p256dhKey, authKey);
+            await _db.UserDeviceTokens.AddAsync(entity, ct);
+        }
+        await _db.SaveChangesAsync(ct);
+    }
+
     public async Task DeactivateAsync(string token, CancellationToken ct)
     {
         var entity = await GetByTokenAsync(token, ct);
+        if (entity is null) return;
+        entity.Deactivate();
+        _db.UserDeviceTokens.Update(entity);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task DeactivateByEndpointAsync(string endpoint, CancellationToken ct)
+    {
+        var entity = await _db.UserDeviceTokens
+            .FirstOrDefaultAsync(x => x.Endpoint == endpoint && x.IsActive, ct);
         if (entity is null) return;
         entity.Deactivate();
         _db.UserDeviceTokens.Update(entity);

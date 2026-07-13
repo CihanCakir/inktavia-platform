@@ -7,6 +7,8 @@ public sealed class SaveOnboardingStepCommand : AizenCommand<SaveOnboardingStepR
 {
     public string Step { get; set; } = default!;
     public string StepStatus { get; set; } = default!;
-    public System.Text.Json.JsonElement StepData { get; set; }
+    /// <summary>The step's answers as raw JSON. A string is the only shape that survives both
+    /// Newtonsoft (MVC binding) and System.Text.Json (Refit).</summary>
+    public string StepDataJson { get; set; } = default!;
     public int SchemaVersion { get; set; } = 1;
 }

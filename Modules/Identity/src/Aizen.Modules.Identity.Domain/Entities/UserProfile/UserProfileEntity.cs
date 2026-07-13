@@ -95,6 +95,14 @@ namespace Aizen.Modules.Identity.Domain.Entities
             ReviewedAt = DateTime.UtcNow;
             RejectReason = null;
             RejectedAt = null;
+
+            // Approving a profile is what makes it usable. Leaving Status as-is meant an approved provider stayed
+            // Inactive forever: the BFF's CanEnterWorkspace is `Approved && Active`, so the SPA parked them on the
+            // "provisioning" screen with an "under review" message that would never change. A suspended profile is
+            // NOT reactivated here — lifting a suspension is a separate, deliberate decision (Reactivate()).
+            if (Status != ProfileStatus.Suspended)
+                Status = ProfileStatus.Active;
+
             Touch();
         }
 

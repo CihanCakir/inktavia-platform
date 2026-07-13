@@ -32,6 +32,10 @@ public enum NotificationType
     /// <summary>Admin-triggered renewal notification dispatched through the Notification module. Phase 11.</summary>
     CargoDryRenewalNotificationRequested   = 305,
     ProfileApprovalDecision      = 400,
+    ProfileApproved              = 401,
+    ProfileRejected              = 402,
+    ProfileSuspended             = 403,
+    OnboardingRevisionRequested  = 404,
     PasswordRecoveryOtp          = 410,
     OtpLoginCode                 = 411,
     AdminBroadcast               = 900,

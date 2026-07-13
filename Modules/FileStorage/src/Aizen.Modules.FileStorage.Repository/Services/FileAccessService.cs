@@ -22,10 +22,10 @@ public sealed class FileAccessService : IFileAccessService
         var file = await _fileRepository.GetByIdAsync(fileId, cancellationToken)
             ?? throw new KeyNotFoundException($"File with id '{fileId}' not found.");
 
-        // A file is readable once its bytes are in the bucket. `Ready` is only reached by the post-upload
-        // processing/scan pipeline, which does not exist yet — requiring it here made every read URL throw for
-        // freshly uploaded files, while attach already accepts Uploaded|Ready. Allow-list the readable states
-        // and reject everything else by name, so Quarantined/Rejected/Deleted stay blocked (fail closed).
+        // A file is readable once its bytes are in the bucket. We keep `Uploaded` readable so providers
+        // can view documents they just uploaded before the async virus scan completes. Once the scan
+        // finishes the file moves to `Ready` (clean) or `Quarantined` (threat). Quarantined files are
+        // NOT readable. All other terminal states (Rejected, Deleted) are also blocked (fail closed).
         if (file.Status is not (FileStatus.Uploaded or FileStatus.Ready))
             throw new InvalidOperationException($"File is not readable (status: {file.Status}).");
 

@@ -3,12 +3,13 @@ using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Application.Queries.GetFileAccessUrl;
+using Aizen.Modules.FileStorage.Abstraction.Request.File;
+using Aizen.Modules.FileStorage.Application.Commands.CreateReadUrl;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aizen.Modules.FileStorage.Consumers;
 
-[DocumentationInfo("Create file read URL consumer", "Request/response consumer that generates a pre-signed S3 read URL via CQRS.")]
+[DocumentationInfo("Create file read URL consumer", "Request/response consumer that generates a pre-signed S3 read URL via CreateReadUrlCommand.")]
 public sealed class CreateFileReadUrlConsumer
     : AizenBaseMessageConsumer<CreateFileReadUrlProcessMessage, CreateFileReadUrlProcessMessageResult>
 {
@@ -27,7 +28,11 @@ public sealed class CreateFileReadUrlConsumer
         CreateFileReadUrlProcessMessage message, CancellationToken cancellationToken)
     {
         var result = await _cqrsProcessor.ProcessAsync<FileAccessUrlDto>(
-            new GetFileAccessUrlQuery(message.FileId, expiresIn: message.ExpiresIn),
+            new CreateReadUrlCommand
+            {
+                FileId = message.FileId,
+                Request = new CreateReadUrlRequest { ExpiresIn = message.ExpiresIn }
+            },
             cancellationToken);
 
         return new CreateFileReadUrlProcessMessageResult

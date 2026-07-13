@@ -93,6 +93,18 @@ public sealed class GetProviderStatusQueryHandler
                 response.RequiredNextStep = "EnterWorkspace";
                 response.Message = "Your provider account is active.";
             }
+            else if (isApproved)
+            {
+                // Decided, but the profile is not Active yet (provisioning still in flight, or an approval that
+                // failed to activate). Reporting "under review" here is a lie the provider cannot act on — they
+                // sit on the provisioning screen forever watching a message that will never change. Say what is
+                // actually true.
+                response.RequiredNextStep = "Provisioning";
+                response.Message = "Your application was approved. We are activating your workspace.";
+                _logger.LogWarning(
+                    "Profile {ProfileId} is Approved but its status is {ProfileStatus}; the provider cannot enter the workspace.",
+                    profileId, dto.Status);
+            }
             else
             {
                 // Fetch onboarding status to distinguish "completing application" from "submitted, awaiting review"

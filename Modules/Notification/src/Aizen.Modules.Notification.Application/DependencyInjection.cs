@@ -13,6 +13,13 @@ public static class DependencyInjection
     {
         services.AddScoped<ITemplateInterpolator, TemplateInterpolator>();
         services.AddScoped<IFcmSender, FcmSenderStub>();
+        services.AddScoped<IPushSender, WebPushSender>();
+
+        // VAPID configuration for Web Push
+        if (configuration is not null)
+        {
+            services.Configure<VapidOptions>(configuration.GetSection(VapidOptions.SectionName));
+        }
 
         // Email sender: use SMTP when configured, otherwise a logging stub
         if (configuration is not null)

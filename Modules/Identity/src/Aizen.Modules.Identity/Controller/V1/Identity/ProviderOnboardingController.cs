@@ -42,8 +42,11 @@ public sealed class ProviderOnboardingController : AizenWebApiController
             ProfileId = profileId,
             Step = step,
             StepStatus = request.StepStatus,
-            StepDataJson = request.StepData.ValueKind != System.Text.Json.JsonValueKind.Undefined
-                ? request.StepData.GetRawText() : "{}",
+            // Fail closed. The previous version fell back to "{}" when the payload did not bind, which meant a
+            // step was persisted EMPTY and reported as saved — silent data loss. A step with no data is a bug.
+            StepDataJson = !string.IsNullOrWhiteSpace(request.StepDataJson)
+                ? request.StepDataJson
+                : throw new Aizen.Core.Infrastructure.Exception.AizenBusinessException("Step data is required."),
             SchemaVersion = request.SchemaVersion,
         };
         var result = await _sender.ProcessAsync(command, ct);

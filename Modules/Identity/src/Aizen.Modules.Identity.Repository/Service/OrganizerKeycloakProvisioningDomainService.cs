@@ -17,17 +17,20 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
         private readonly UserManager<UserEntity> _userManager;
         private readonly RoleManager<RoleEntity> _roleManager;
         private readonly IUserProfileRepository _profileRepo;
+        private readonly IProviderOnboardingDomainService _onboarding;
         private readonly IdentityDbContext _db;
 
         public OrganizerKeycloakProvisioningDomainService(
             UserManager<UserEntity> userManager,
             RoleManager<RoleEntity> roleManager,
             IUserProfileRepository profileRepo,
+            IProviderOnboardingDomainService onboarding,
             IdentityDbContext db)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _profileRepo = profileRepo;
+            _onboarding = onboarding;
             _db = db;
         }
 
@@ -127,6 +130,15 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
             if (!string.IsNullOrWhiteSpace(model.TaxNo))
                 warnings.Add("TaxNo is not persisted on the Organizer profile (no field). Value ignored.");
 
+            await _db.SaveChangesAsync(cancellationToken);
+
+            // A provider profile without an onboarding record is a broken aggregate: GET /onboarding returns
+            // nothing and every step save fails with "Onboarding record not found". Only the legacy
+            // RegisterOrganizer command created this row, so every provider who signed up through the SPA (i.e.
+            // through Keycloak) was born unable to start onboarding at all.
+            //
+            // Idempotent: a provider provisioned before this fix gets the row on their next request.
+            await _onboarding.EnsureOnboardingRowAsync(profile.Id, user.Id, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
 
             return new OrganizerKeycloakProvisionResult(

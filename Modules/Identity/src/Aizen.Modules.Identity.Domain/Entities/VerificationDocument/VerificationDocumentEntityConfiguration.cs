@@ -1,3 +1,4 @@
+using Aizen.Modules.Identity.Domain.Enum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -42,6 +43,15 @@ namespace Aizen.Modules.Identity.Domain.Entities
                    .HasDefaultValue(0L);
 
             builder.Property(x => x.FilePublicId)
+                   .IsRequired(false);
+
+            builder.Property(x => x.ReviewStatus)
+                   .HasConversion<string>()
+                   .HasMaxLength(20)
+                   .HasDefaultValue(Enum.DocumentReviewStatus.Pending);
+
+            builder.Property(x => x.ResolutionNote)
+                   .HasMaxLength(1000)
                    .IsRequired(false);
 
             builder.HasIndex(x => x.ProfileId);

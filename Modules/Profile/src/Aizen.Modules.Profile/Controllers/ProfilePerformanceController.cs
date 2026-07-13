@@ -17,7 +17,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Modules.Profile.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin")]
+// "Admin" is the human realm role; "profile.admin" is the profile-api client role carried by BFF
+// service-account tokens, which hold no realm roles at all. Both are required or the AdminPanel BFF 403s.
+[Authorize(Roles = "Admin,profile.admin")]
 [Route("api/v1/profile/admin/performance")]
 public sealed class ProfilePerformanceController : ControllerBase
 {

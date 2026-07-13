@@ -28,9 +28,9 @@ public sealed class GetOrganizerProfilesByFilterQueryHandler
         var repo = _uow.GetRepository<UserProfileEntity>();
 
         // EF Core cannot translate enum.ToString() inside WHERE — parse values before the lambda.
-        ApprovalStatus? approvalFilter = Enum.TryParse<ApprovalStatus>(request.ApprovalStatus, out var a) ? a : null;
-        ProfileStatus? statusFilter = Enum.TryParse<ProfileStatus>(request.Status, out var s) ? s : null;
-        ProviderOnboardingStatus? onboardingFilter = Enum.TryParse<ProviderOnboardingStatus>(request.OnboardingStatus, out var ob) ? ob : null;
+        ApprovalStatus? approvalFilter = Enum.TryParse<ApprovalStatus>(request.ApprovalStatus, ignoreCase: true, out var a) ? a : null;
+        ProfileStatus? statusFilter = Enum.TryParse<ProfileStatus>(request.Status, ignoreCase: true, out var s) ? s : null;
+        ProviderOnboardingStatus? onboardingFilter = Enum.TryParse<ProviderOnboardingStatus>(request.OnboardingStatus, ignoreCase: true, out var ob) ? ob : null;
 
         // When filtering by onboarding status, we need to pre-fetch matching profile IDs
         HashSet<long>? onboardingProfileIds = null;

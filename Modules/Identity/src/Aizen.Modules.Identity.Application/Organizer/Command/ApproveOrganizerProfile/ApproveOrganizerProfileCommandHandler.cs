@@ -2,7 +2,9 @@ using Aizen.Core.Api.Middleware;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Domain;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Identity.Abstraction;
+using Aizen.Modules.Identity.Abstraction.Message;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Entities.Onboarding;
@@ -20,6 +22,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
         private readonly IUserProfileRepository _profileRepo;
         private readonly UserManager<UserEntity> _userManager;
         private readonly IProviderKeycloakRoleSyncService _roleSync;
+        private readonly IAizenMessagePublisher _publisher;
         private readonly ILogger<ApproveOrganizerProfileCommandHandler> _logger;
         private readonly IdentityDbContext _db;
 
@@ -27,12 +30,14 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
             IUserProfileRepository profileRepo,
             UserManager<UserEntity> userManager,
             IProviderKeycloakRoleSyncService roleSync,
+            IAizenMessagePublisher publisher,
             ILogger<ApproveOrganizerProfileCommandHandler> logger,
             IdentityDbContext db)
         {
             _profileRepo = profileRepo;
             _userManager = userManager;
             _roleSync = roleSync;
+            _publisher = publisher;
             _logger = logger;
             _db = db;
         }
@@ -86,6 +91,15 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
             {
                 _logger.LogWarning(ex, "Onboarding completion failed for profile {ProfileId}.", request.ProfileId);
             }
+
+            await _publisher.PublishAsync(new ProviderProfileApprovedMessage
+            {
+                ProfileId = request.ProfileId,
+                UserId = request.UserId,
+                Email = user.Email,
+                ProfileType = "organizer",
+                ApprovedAtUtc = profile.ApprovedAt ?? DateTime.UtcNow,
+            }, ct);
 
             return new VenueOrganizationRegistrationResponse(
                 Success: true,

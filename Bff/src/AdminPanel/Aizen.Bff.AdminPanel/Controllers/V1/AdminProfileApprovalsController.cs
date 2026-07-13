@@ -134,6 +134,26 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    // ── Onboarding Revision ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// Admin requests the provider to revise specific onboarding steps.
+    /// At least one step is required; note must be 10–2000 characters.
+    /// </summary>
+    [HttpPost("organizers/{userId:long}/profiles/{profileId:long}/revision")]
+    [ProducesResponseType(typeof(OnboardingRevisionBffResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<AizenApiResponse<OnboardingRevisionBffResponse>> RequestOrganizerOnboardingRevision(
+        long userId, long profileId,
+        [FromBody] RequestOnboardingRevisionRequest request,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RequestOrganizerOnboardingRevisionBffCommand(
+                userId, profileId, request?.Steps ?? Array.Empty<string>(), request?.Note ?? string.Empty), ct);
+        return SetResponse(result);
+    }
+
     // ── Document Upload Flow ─────────────────────────────────────────────────
 
     /// <summary>
@@ -230,4 +250,13 @@ public sealed class RegisterDocumentRequest
     public string? Format { get; set; }
     public string? FileSizeDisplay { get; set; }
     public string? Issuer { get; set; }
+}
+
+public sealed class RequestOnboardingRevisionRequest
+{
+    /// <summary>camelCase step names: businessIdentity | serviceCapabilities | operatingRegion | complianceVerification | cargoDryInterest</summary>
+    [Required] public string[] Steps { get; set; } = Array.Empty<string>();
+
+    /// <summary>Admin note explaining what needs to be fixed. 10–2000 chars.</summary>
+    [Required] public string Note { get; set; } = null!;
 }

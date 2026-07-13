@@ -1,6 +1,7 @@
 using Aizen.Bff.MarineProvider.Application;
 using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Extensions;
+using Aizen.Core.Cache.Extension;
 using Aizen.Core.Starter;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
@@ -18,6 +19,13 @@ builder.Services
     .AddMarineProviderBffApplication(builder.Configuration)
     .AddMarineProviderAuthentication(builder.Configuration)
     .AddMarineProviderAuthorization();
+
+// ── Distributed cache (Redis) ────────────────────────────────────────────────
+// AppType.Bff does not register the cache the way AppType.Api does, so IAizenDistributedCache was not resolvable
+// here. CreateUploadSessionCommandHandler takes it (per-provider upload rate limiting), which meant Autofac could
+// not construct the handler and EVERY document upload died with a 500 at the container door — a dependency added
+// without a registration. Register it explicitly.
+builder.Services.AddAizenCache(builder.Configuration);
 
 // ── Forwarded Headers (real client IP behind gateway/proxy) ───────────────────
 builder.Services.Configure<ForwardedHeadersOptions>(options =>

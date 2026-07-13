@@ -37,6 +37,8 @@ public sealed class GetProviderOnboardingQueryHandler
                 DocumentType = d.DocumentType,
                 Issuer = d.Issuer,
                 UploadedAt = d.UploadedAt,
+                ReviewStatus = d.ReviewStatus.ToString(),
+                ResolutionNote = d.ResolutionNote,
             })
             .ToListAsync(ct);
 
@@ -46,7 +48,10 @@ public sealed class GetProviderOnboardingQueryHandler
             Status = entity.Status.ToString(),
             SchemaVersion = entity.SchemaVersion,
             StepStatuses = entity.GetStepStatuses(),
-            Draft = JsonSerializer.Deserialize<JsonElement>(entity.DraftJson ?? "{}"),
+            // Hand the stored JSON across the wire verbatim. Re-materialising it as a JsonElement only to have
+            // Newtonsoft serialise the response would corrupt it — the two serializers do not understand each
+            // other's types.
+            DraftJson = entity.DraftJson ?? "{}",
             RevisionSteps = string.IsNullOrEmpty(entity.RevisionStepsJson)
                 ? null
                 : JsonSerializer.Deserialize<string[]>(entity.RevisionStepsJson),

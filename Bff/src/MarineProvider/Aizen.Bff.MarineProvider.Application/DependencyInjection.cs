@@ -53,6 +53,10 @@ public static class DependencyInjection
             CreateRemoteCall<IProviderFileStorageRemoteCall>(
                 CreateHttpClient(provider, nameof(IProviderFileStorageRemoteCall))));
 
+        services.AddTransient<IProviderNotificationRemoteCall>(provider =>
+            CreateRemoteCall<IProviderNotificationRemoteCall>(
+                CreateHttpClient(provider, nameof(IProviderNotificationRemoteCall))));
+
         return services;
     }
 

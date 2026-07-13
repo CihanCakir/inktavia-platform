@@ -27,6 +27,13 @@ public sealed class OrganizerApprovalDetailBffDto
     public List<ProfileApprovalDocumentBffDto> Documents { get; set; } = new();
     public List<ProfileApprovalRiskSignalBffDto> RiskSignals { get; set; } = new();
     public List<ProfileApprovalActivityItemBffDto> Activity { get; set; } = new();
+
+    /// <summary>
+    /// Provider onboarding wizard state fetched in parallel with profile data.
+    /// Null when the provider has no onboarding record yet (e.g. not a Marine Provider) or when Identity is unavailable.
+    /// </summary>
+    public ProviderOnboardingBffDto? Onboarding { get; set; }
+
     public List<AdminBffWarning> Warnings { get; set; } = new();
 }
 

@@ -287,7 +287,8 @@
         "ServiceRequest",
         "Messaging",
         "Profile",
-        "CargoDry"
+        "CargoDry",
+        "FileStorage"
       ],
       "stopAll": true
     }

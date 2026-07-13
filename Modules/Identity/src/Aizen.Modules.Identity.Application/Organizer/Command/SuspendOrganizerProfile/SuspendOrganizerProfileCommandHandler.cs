@@ -2,8 +2,10 @@ using Aizen.Core.Api.Middleware;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Domain;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Identity.Abstraction;
+using Aizen.Modules.Identity.Abstraction.Message;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Interface.Service;
@@ -22,15 +24,18 @@ public sealed class SuspendOrganizerProfileCommandHandler
 {
     private readonly IAizenUnitOfWork<IdentityDbContext> _uow;
     private readonly IProviderKeycloakRoleSyncService _roleSync;
+    private readonly IAizenMessagePublisher _publisher;
     private readonly ILogger<SuspendOrganizerProfileCommandHandler> _logger;
 
     public SuspendOrganizerProfileCommandHandler(
         IAizenUnitOfWork<IdentityDbContext> uow,
         IProviderKeycloakRoleSyncService roleSync,
+        IAizenMessagePublisher publisher,
         ILogger<SuspendOrganizerProfileCommandHandler> logger)
     {
         _uow = uow;
         _roleSync = roleSync;
+        _publisher = publisher;
         _logger = logger;
     }
 
@@ -62,6 +67,18 @@ public sealed class SuspendOrganizerProfileCommandHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Keycloak role sync (suspend) failed for user {UserId}.", request.UserId);
+        }
+
+        if (!alreadySuspended)
+        {
+            await _publisher.PublishAsync(new ProviderProfileSuspendedMessage
+            {
+                ProfileId = request.ProfileId,
+                UserId = request.UserId,
+                Email = user?.Email,
+                Reason = request.Reason ?? "No reason provided",
+                SuspendedAtUtc = DateTime.UtcNow,
+            }, cancellationToken);
         }
 
         return new SuspendOrganizerProfileResponse(

@@ -20,12 +20,12 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service.Onboarding;
 ///
 /// Validation pipeline (fail-closed):
 ///   1. Profile exists + is Organizer + not deleted
-///   2. Caller owns the profile (profile.UserId == callerUserId) — skipped when <c>skipOwnershipCheck</c> is true
+///   2. Caller owns the profile (profile.UserId == callerUserId) — skipped when <c>actorIsAdmin</c> is true
 ///   3. Onboarding not Submitted (documents immutable post-submit)
 ///   4. Duplicate FilePublicId guard (same profile)
 ///   5. Cross-profile FilePublicId uniqueness
 ///   6. FileStorage: file exists (fail-closed)
-///   7. FileStorage: file was uploaded by the caller — skipped when <c>skipOwnershipCheck</c> is true
+///   7. FileStorage: file was uploaded by the profile owner (profile.UserId) — always checked
 ///   8. FileStorage: status is Uploaded or Ready
 ///   9. Content-type allowlist (pdf, jpeg, png)
 ///  10. Size ≤ 10 MB
@@ -42,8 +42,9 @@ public interface IFileAttachmentValidationService
     /// <param name="filePublicId">Public identifier of the file in FileStorage.</param>
     /// <param name="documentType">Document type label (e.g. "trade_license").</param>
     /// <param name="issuer">Optional issuing authority.</param>
-    /// <param name="skipOwnershipCheck">
-    /// When true, skips profile-ownership and file-upload-ownership checks. Used by admin/internal paths.
+    /// <param name="actorIsAdmin">
+    /// When true, skips profile-ownership check (admin doesn't own the profile) but still
+    /// verifies the file was uploaded by the profile owner (prevents cross-user file attachment).
     /// </param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The created <see cref="VerificationDocumentEntity"/>.</returns>
@@ -53,7 +54,7 @@ public interface IFileAttachmentValidationService
         Guid filePublicId,
         string documentType,
         string? issuer,
-        bool skipOwnershipCheck,
+        bool actorIsAdmin,
         CancellationToken ct,
         WorkshopRoleContext roleContext = WorkshopRoleContext.Organizer);
 }
@@ -92,10 +93,14 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
         Guid filePublicId,
         string documentType,
         string? issuer,
-        bool skipOwnershipCheck,
+        bool actorIsAdmin,
         CancellationToken ct,
         WorkshopRoleContext roleContext = WorkshopRoleContext.Organizer)
     {
+        // 0. Reject invalid caller identity for non-admin paths
+        if (!actorIsAdmin && callerUserId <= 0)
+            throw new AizenBusinessException("Invalid caller identity.");
+
         // 1. Profile exists + matches expected role
         var profile = await _db.UserProfiles
             .Include(p => p.VerificationDocuments)
@@ -104,8 +109,8 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
                 && !p.IsDeleted, ct)
             ?? throw new AizenBusinessException("Profile not found.");
 
-        // 2. Caller owns the profile (skip for admin path)
-        if (!skipOwnershipCheck && profile.UserId != callerUserId)
+        // 2. Caller owns the profile (skip for admin path — admin doesn't own the profile)
+        if (!actorIsAdmin && profile.UserId != callerUserId)
             throw new AizenBusinessException("You do not have permission to modify this profile.");
 
         // 3. Onboarding not Submitted
@@ -141,15 +146,20 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
             throw new AizenBusinessException("Unable to verify the file. Please try again.");
         }
 
-        // 7. Ownership — the file must have been uploaded by the caller (skip for admin path)
-        if (!skipOwnershipCheck && file.UploadedByUserId != callerUserId)
+        // 7. Ownership — the file must have been uploaded by the profile owner.
+        //    For non-admin: profile.UserId == callerUserId (checked in step 2), so this is equivalent.
+        //    For admin: we skip the profile-ownership check but still verify the file belongs to the profile owner.
+        if (file.UploadedByUserId != profile.UserId)
         {
-            _logger.LogWarning("Ownership violation: file {FileId} uploaded by {UploadedBy}, attach requested by {RequestedBy}.",
-                filePublicId, file.UploadedByUserId, callerUserId);
-            throw new AizenBusinessException("You do not own this file.");
+            _logger.LogWarning("Ownership violation: file {FileId} uploaded by {UploadedBy}, but profile {ProfileId} is owned by {ProfileOwner}.",
+                filePublicId, file.UploadedByUserId, profileId, profile.UserId);
+            throw new AizenBusinessException("The file was not uploaded by the profile owner.");
         }
 
-        // 8. Status
+        // 8. Status — allow Uploaded (scan pending) and Ready (scan passed).
+        //    Quarantined files (threat detected by AV scan) are explicitly rejected.
+        if (file.Status == FileStatus.Quarantined)
+            throw new AizenBusinessException("File has been quarantined due to a detected threat and cannot be attached.");
         if (file.Status != FileStatus.Uploaded && file.Status != FileStatus.Ready)
             throw new AizenBusinessException($"File is not ready for attachment (status: {file.Status}).");
 
@@ -172,11 +182,17 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
             sizeInBytes: file.SizeInBytes,
             uploadedByUserId: file.UploadedByUserId ?? 0);
 
-        // 12. Claim the file FIRST — fail-closed. If the claim fails, the document
-        //     is never persisted, so no corrupt state (dangling document without a claim).
         var documentPublicId = document.PublicId
             ?? throw new InvalidOperationException("Document has no PublicId before persistence.");
 
+        // 12. Persist the document FIRST — if this fails no claim is created, so no
+        //     phantom ownership reference pointing at a non-existent document.
+        profile.AddVerificationDocument(document);
+        await _db.SaveChangesAsync(ct);
+
+        // 13. Claim the file SECOND. If the claim fails, roll back the document row
+        //     so we don't leave a dangling document. The file remains unclaimed and the
+        //     orphan cleanup sweep will reap it normally.
         try
         {
             await _fileStorage.LinkToOwner(filePublicId, new LinkFileToOwnerRequest
@@ -191,14 +207,24 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to claim file {FileId}. Aborting document attachment.", filePublicId);
+            _logger.LogError(ex, "Failed to claim file {FileId} for document {DocumentPublicId}. Rolling back document row.",
+                filePublicId, documentPublicId);
+
+            // Roll back: remove the document row so we don't leave a dangling reference
+            try
+            {
+                _db.VerificationDocuments.Remove(document);
+                await _db.SaveChangesAsync(ct);
+            }
+            catch (Exception rollbackEx)
+            {
+                _logger.LogError(rollbackEx,
+                    "Failed to roll back document {DocumentPublicId} after claim failure. Document row may be orphaned.",
+                    documentPublicId);
+            }
+
             throw new AizenBusinessException("Unable to complete file attachment. Please try again.");
         }
-
-        // 13. Persist the document — the claim already exists, so worst case is
-        //     an orphaned ownership record (cleanable) rather than a dangling reference.
-        profile.AddVerificationDocument(document);
-        await _db.SaveChangesAsync(ct);
 
         return document;
     }

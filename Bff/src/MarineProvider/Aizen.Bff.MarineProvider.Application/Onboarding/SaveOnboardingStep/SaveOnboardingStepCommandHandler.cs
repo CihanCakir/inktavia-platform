@@ -10,17 +10,26 @@ namespace Aizen.Bff.MarineProvider.Application.Onboarding.SaveOnboardingStep;
 public sealed class SaveOnboardingStepCommandHandler
     : AizenCommandHandler<SaveOnboardingStepCommand, SaveOnboardingStepResponse>
 {
-    private readonly IProviderContext _context;
+    private readonly IProviderProfileResolver _resolver;
     private readonly IProviderIdentityRemoteCall _identity;
     private readonly ILogger<SaveOnboardingStepCommandHandler> _logger;
 
-    public SaveOnboardingStepCommandHandler(IProviderContext context, IProviderIdentityRemoteCall identity, ILogger<SaveOnboardingStepCommandHandler> logger)
-    { _context = context; _identity = identity; _logger = logger; }
+    public SaveOnboardingStepCommandHandler(
+        IProviderProfileResolver resolver,
+        IProviderIdentityRemoteCall identity,
+        ILogger<SaveOnboardingStepCommandHandler> logger)
+    {
+        _resolver = resolver;
+        _identity = identity;
+        _logger = logger;
+    }
 
     public override async Task<SaveOnboardingStepResponse?> Handle(SaveOnboardingStepCommand request, CancellationToken ct)
     {
-        var profileId = _context.ProviderProfileId ?? 0;
-        if (profileId <= 0) return new SaveOnboardingStepResponse { Success = false, Message = "Provider profile not found." };
+        var resolution = await _resolver.ResolveAsync(ct);
+        var profileId = resolution.ProfileId ?? 0;
+        if (profileId <= 0)
+            return new SaveOnboardingStepResponse { Success = false, Message = "Provider profile not found." };
 
         try
         {
@@ -28,18 +37,46 @@ public sealed class SaveOnboardingStepCommandHandler
                 new SaveProviderOnboardingStepRequest
                 {
                     StepStatus = request.StepStatus,
-                    StepData = request.StepData,
+                    StepDataJson = request.StepDataJson,
                     SchemaVersion = request.SchemaVersion,
                 });
             var data = result.Body;
-            return data is not null
-                ? new SaveOnboardingStepResponse { Success = data.Success, Message = data.Message }
-                : new SaveOnboardingStepResponse { Success = false, Message = "Save failed." };
+            if (data is null)
+                return new SaveOnboardingStepResponse { Success = false, Message = "Save failed." };
+
+            return data.Success
+                ? new SaveOnboardingStepResponse { Success = true, Message = data.Message }
+                : new SaveOnboardingStepResponse { Success = false, Message = data.Message };
+        }
+        catch (Refit.ApiException ex)
+        {
+            var message = ExtractBusinessMessage(ex.Content) ?? "An error occurred while saving the step.";
+            _logger.LogWarning(ex, "Save step rejected for step {Step}, profile {ProfileId}: {Message}",
+                request.Step, profileId, message);
+            return new SaveOnboardingStepResponse { Success = false, Message = message };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save onboarding step {Step}.", request.Step);
-            return new SaveOnboardingStepResponse { Success = false, Message = "Save failed." };
+            return new SaveOnboardingStepResponse { Success = false, Message = "An error occurred while saving the step." };
         }
+    }
+
+    private static string? ExtractBusinessMessage(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return null;
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(content);
+            if (doc.RootElement.TryGetProperty("header", out var header)
+                && header.TryGetProperty("errorMessage", out var msg)
+                && msg.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                var value = msg.GetString();
+                return string.IsNullOrWhiteSpace(value) ? null : value;
+            }
+        }
+        catch (System.Text.Json.JsonException) { }
+        return null;
     }
 }

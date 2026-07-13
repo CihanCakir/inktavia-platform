@@ -50,8 +50,14 @@ public sealed class ResendProviderPasswordOtpCommandHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Identity OTP resend failed.");
+            return new ResendProviderPasswordOtpResponse
+            {
+                Resent = false,
+                Message = "Service temporarily unavailable. Please try again later.",
+            };
         }
 
+        // Identity returned a null body — treat as unknown account (anti-enumeration).
         return new ResendProviderPasswordOtpResponse
         {
             Resent = true,

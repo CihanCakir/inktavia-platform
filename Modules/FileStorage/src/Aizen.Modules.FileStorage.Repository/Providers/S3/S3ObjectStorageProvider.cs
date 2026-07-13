@@ -136,4 +136,18 @@ public sealed class S3ObjectStorageProvider : IObjectStorageProvider
         var request = new DeleteObjectRequest { BucketName = bucketName, Key = objectKey };
         return _client.DeleteObjectAsync(request, cancellationToken);
     }
+
+    public async Task<byte[]> ReadFirstBytesAsync(string bucketName, string objectKey, int byteCount, CancellationToken cancellationToken = default)
+    {
+        var request = new GetObjectRequest
+        {
+            BucketName = bucketName,
+            Key = objectKey,
+            ByteRange = new ByteRange(0, byteCount - 1)
+        };
+        using var response = await _client.GetObjectAsync(request, cancellationToken);
+        using var ms = new MemoryStream();
+        await response.ResponseStream.CopyToAsync(ms, cancellationToken);
+        return ms.ToArray();
+    }
 }

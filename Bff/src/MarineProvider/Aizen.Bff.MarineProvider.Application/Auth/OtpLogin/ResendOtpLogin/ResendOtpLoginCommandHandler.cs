@@ -31,7 +31,17 @@ public sealed class ResendOtpLoginCommandHandler
                     Message = data.Message,
                 };
         }
-        catch (Exception ex) { _logger.LogError(ex, "Identity OTP login resend failed."); }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Identity OTP login resend failed.");
+            return new OtpLoginResendResponse
+            {
+                Resent = false,
+                Message = "Service temporarily unavailable. Please try again later.",
+            };
+        }
+
+        // Identity returned a null body — treat as unknown account (anti-enumeration).
         return new OtpLoginResendResponse { Resent = true, Message = "If an account exists, a new verification code has been sent." };
     }
 }

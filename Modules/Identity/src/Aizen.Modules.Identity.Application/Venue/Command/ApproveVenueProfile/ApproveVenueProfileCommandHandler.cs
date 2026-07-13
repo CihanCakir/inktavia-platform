@@ -2,7 +2,9 @@ using Aizen.Core.Api.Middleware;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Domain;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Identity.Abstraction;
+using Aizen.Modules.Identity.Abstraction.Message;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Interface;
@@ -14,11 +16,16 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity
 {
     private readonly IUserProfileRepository _profileRepo;
     private readonly UserManager<UserEntity> _userManager;
+    private readonly IAizenMessagePublisher _publisher;
 
-    public ApproveVenueProfileCommandHandler(IUserProfileRepository profileRepo, UserManager<UserEntity> userManager)
+    public ApproveVenueProfileCommandHandler(
+        IUserProfileRepository profileRepo,
+        UserManager<UserEntity> userManager,
+        IAizenMessagePublisher publisher)
     {
         _profileRepo = profileRepo;
         _userManager = userManager;
+        _publisher = publisher;
     }
 
         public override async Task<VenueOrganizationRegistrationResponse?> Handle(ApproveVenueProfileCommand request, CancellationToken ct)
@@ -42,6 +49,15 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity
 
         user.SetActiveProfile(profile.Id);
         await _userManager.UpdateAsync(user);
+
+        await _publisher.PublishAsync(new ProviderProfileApprovedMessage
+        {
+            ProfileId = request.ProfileId,
+            UserId = request.UserId,
+            Email = user.Email,
+            ProfileType = "venue",
+            ApprovedAtUtc = profile.ApprovedAt ?? DateTime.UtcNow,
+        }, ct);
 
         return new VenueOrganizationRegistrationResponse(
             Success: true,

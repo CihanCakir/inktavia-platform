@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="FluentAssertions" Version="8.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aizen.Modules.FileStorage.Domain\Aizen.Modules.FileStorage.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Aizen.Modules.FileStorage.Abstraction\Aizen.Modules.FileStorage.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Domain\src\Aizen.Core.Domain\Aizen.Core.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\Modules\Identity\src\Aizen.Modules.Identity.Domain\Aizen.Modules.Identity.Domain.csproj" />
+  </ItemGroup>
+</Project>

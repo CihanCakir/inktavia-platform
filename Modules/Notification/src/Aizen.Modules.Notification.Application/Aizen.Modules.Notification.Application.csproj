@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="WebPush" Version="1.0.13" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
     <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
     <ProjectReference Include="../Aizen.Modules.Notification.Domain/Aizen.Modules.Notification.Domain.csproj" />

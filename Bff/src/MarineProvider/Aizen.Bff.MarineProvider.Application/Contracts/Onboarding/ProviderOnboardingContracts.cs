@@ -1,12 +1,22 @@
-using System.Text.Json;
 using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
+using Newtonsoft.Json.Linq;
 
 namespace Aizen.Bff.MarineProvider.Application.Contracts.Onboarding;
 
 public sealed class SaveOnboardingStepRequest
 {
     public string StepStatus { get; set; } = default!;
-    public JsonElement StepData { get; set; }
+
+    /// <summary>
+    /// The step's answers, as sent by the SPA.
+    ///
+    /// MVC binds request bodies with <b>Newtonsoft.Json</b> (<c>AddNewtonsoftJson</c>). A
+    /// <c>System.Text.Json.JsonElement</c> here binds to <c>default</c> — Newtonsoft cannot populate it — so the
+    /// answers silently disappear and the outbound Refit call then throws trying to serialise an empty element.
+    /// <see cref="JToken"/> is Newtonsoft's own type and binds correctly.
+    /// </summary>
+    public JToken? StepData { get; set; }
+
     public int SchemaVersion { get; set; } = 1;
 }
 
@@ -16,7 +26,10 @@ public sealed class OnboardingResponse
     public string Status { get; set; } = string.Empty;
     public int SchemaVersion { get; set; }
     public Dictionary<string, string> StepStatuses { get; set; } = new();
-    public JsonElement? Draft { get; set; }
+
+    /// <summary>The draft handed to the SPA as a real JSON object. Newtonsoft serialises <see cref="JToken"/> natively.</summary>
+    public JToken? Draft { get; set; }
+
     public string[]? RevisionSteps { get; set; }
     public string? RevisionNote { get; set; }
     public DateTime? LastSavedAtUtc { get; set; }

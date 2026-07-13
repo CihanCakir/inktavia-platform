@@ -3,6 +3,7 @@ using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Aizen.Modules.FileStorage.Abstraction.Request.Access;
+using Aizen.Modules.FileStorage.Abstraction.Request.File;
 
 namespace Aizen.Modules.Identity.Abstraction.RemoteCall;
 
@@ -24,4 +25,15 @@ public interface IIdentityFileStorageRemoteCall : IAizenRemoteCall
         Guid fileId,
         [AizenRemoteCallBody] LinkFileToOwnerRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization);
+
+    [AizenRemoteCallDelete("/api/v1/files/{fileId}")]
+    Task<AizenApiResponse<IdentityFileDeleteResultDto>> DeleteFile(
+        Guid fileId,
+        [AizenRemoteCallBody] DeleteFileRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization);
+}
+
+public sealed class IdentityFileDeleteResultDto
+{
+    public bool IsDeleted { get; set; }
 }

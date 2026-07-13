@@ -26,7 +26,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer
             var document = await _validationService.ValidateAndAttachAsync(
                 request.ProfileId, request.UserId, request.FileId,
                 request.DocumentType, request.Issuer,
-                skipOwnershipCheck: true, ct);
+                actorIsAdmin: true, ct);
 
             return new AddVerificationDocumentResult(document.Id);
         }

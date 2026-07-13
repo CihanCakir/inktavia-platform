@@ -7,7 +7,18 @@ namespace Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 public sealed class SaveProviderOnboardingStepRequest
 {
     public string StepStatus { get; set; } = default!;
-    public JsonElement StepData { get; set; }
+
+    /// <summary>
+    /// The step's answers as a raw JSON string.
+    ///
+    /// This crosses two serializers with opposite ideas of the world: MVC binds request bodies with
+    /// <b>Newtonsoft.Json</b> (see <c>AddNewtonsoftJson</c>), while <c>AizenRemoteCall</c>/Refit writes them with
+    /// <b>System.Text.Json</b>. Newtonsoft cannot populate an STJ <c>JsonElement</c>, so a <c>JsonElement</c>
+    /// property here silently binds to <c>default</c> — the data vanishes with no error, and STJ then throws when
+    /// it tries to write that empty element back out. A plain string is the only shape that survives both.
+    /// </summary>
+    public string StepDataJson { get; set; } = default!;
+
     public int SchemaVersion { get; set; } = 1;
 }
 
@@ -27,7 +38,14 @@ public sealed class ProviderOnboardingResponse
     public string Status { get; set; } = string.Empty;
     public int SchemaVersion { get; set; }
     public Dictionary<string, string> StepStatuses { get; set; } = new();
-    public JsonElement? Draft { get; set; }
+
+    /// <summary>
+    /// The saved draft as a raw JSON string (same serializer trap as <see cref="SaveProviderOnboardingStepRequest.StepDataJson"/>:
+    /// Newtonsoft writes the MVC response, Refit reads it with System.Text.Json — only a string survives both).
+    /// The BFF parses this before handing it to the browser.
+    /// </summary>
+    public string? DraftJson { get; set; }
+
     public string[]? RevisionSteps { get; set; }
     public string? RevisionNote { get; set; }
     public DateTime? LastSavedAtUtc { get; set; }

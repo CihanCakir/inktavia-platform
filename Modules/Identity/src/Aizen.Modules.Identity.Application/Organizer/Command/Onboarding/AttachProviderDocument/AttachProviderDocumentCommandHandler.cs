@@ -25,7 +25,7 @@ public sealed class AttachProviderDocumentCommandHandler
         var document = await _validationService.ValidateAndAttachAsync(
             request.ProfileId, request.UserId, request.FileId,
             request.DocumentType, request.Issuer,
-            skipOwnershipCheck: false, ct);
+            actorIsAdmin: false, ct);
 
         return new AttachProviderDocumentResponse
         {

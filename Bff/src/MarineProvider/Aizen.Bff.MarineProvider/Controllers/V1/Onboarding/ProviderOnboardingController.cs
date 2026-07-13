@@ -40,7 +40,11 @@ public sealed class ProviderOnboardingController : AizenWebApiController
         {
             Step = step,
             StepStatus = request.StepStatus,
-            StepData = request.StepData,
+            // Fail closed: a step save with no data is a bug, not an empty step. Persisting "{}" and reporting
+            // success is how the answers went missing in the first place.
+            StepDataJson = request.StepData is not null
+                ? request.StepData.ToString(Newtonsoft.Json.Formatting.None)
+                : throw new Aizen.Core.Infrastructure.Exception.AizenBusinessException("Step data is required."),
             SchemaVersion = request.SchemaVersion,
         };
         var result = await _cqrs.ProcessAsync(command, ct);

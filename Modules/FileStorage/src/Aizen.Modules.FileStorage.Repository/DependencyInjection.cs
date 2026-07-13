@@ -23,9 +23,7 @@ public static class DependencyInjection
         services.AddSingleton<IObjectStorageProvider, S3ObjectStorageProvider>();
 
         services.AddScoped<IFileRepository, FileRepository>();
-        services.AddScoped<IFileVersionRepository, FileVersionRepository>();
         services.AddScoped<IFileOwnerReferenceRepository, FileOwnerReferenceRepository>();
-        services.AddScoped<IFileAccessPolicyRepository, FileAccessPolicyRepository>();
         services.AddScoped<IFileUploadSessionRepository, FileUploadSessionRepository>();
         services.AddScoped<IFileProcessingJobRepository, FileProcessingJobRepository>();
         services.AddScoped<IFileMetadataDocumentRepository, FileMetadataDocumentRepository>();
@@ -43,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IFileValidationService, FileValidationService>();
         services.AddSingleton<IFileCacheKeyService, FileCacheKeyService>();
         services.AddScoped<IFileCacheInvalidationService, FileCacheInvalidationService>();
+        services.AddSingleton<IFileScanner, NoOpFileScanner>();
 
         return services;
     }

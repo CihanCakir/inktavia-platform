@@ -18,5 +18,11 @@ public sealed class UserDeviceTokenEntityConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.RegisteredAt).IsRequired();
         builder.Property(x => x.LastActiveAt).IsRequired();
         builder.HasIndex(x => new { x.UserId, x.IsActive });
+
+        // Web Push subscription fields (nullable for FCM/APNs)
+        builder.Property(x => x.Endpoint).HasMaxLength(2048).IsRequired(false);
+        builder.Property(x => x.P256dhKey).HasMaxLength(256).IsRequired(false);
+        builder.Property(x => x.AuthKey).HasMaxLength(256).IsRequired(false);
+        builder.HasIndex(x => x.Endpoint).IsUnique().HasFilter("\"Endpoint\" IS NOT NULL");
     }
 }
