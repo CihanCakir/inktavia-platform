@@ -1,6 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Assignment;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
@@ -18,16 +20,19 @@ public sealed class CreateServiceRequestAssignmentCommandHandler : AizenCommandH
     private readonly IServiceRequestAssignmentRepository _assignmentRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public CreateServiceRequestAssignmentCommandHandler(
         IServiceRequestRepository srRepository,
         IServiceRequestOfferRepository offerRepository,
         IServiceRequestAssignmentRepository assignmentRepository,
         IAizenInfoAccessor info,
-        ServiceRequestRealtimePublisher realtimePublisher)
+        ServiceRequestRealtimePublisher realtimePublisher,
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _offerRepository = offerRepository;
         _assignmentRepository = assignmentRepository; _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<CreateServiceRequestAssignmentResponse?> Handle(CreateServiceRequestAssignmentCommand request, CancellationToken cancellationToken)
@@ -59,6 +64,15 @@ public sealed class CreateServiceRequestAssignmentCommandHandler : AizenCommandH
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, offer.ProviderProfileId,
             ServiceRequestRealtimeEventType.AssignmentCreated, assignment.ToDto(),
             currentUserId, ServiceRequestActorType.Owner, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestAssignmentCreatedMessage
+        {
+            ServiceRequestId = sr.Id,
+            AssignmentId = assignment.Id,
+            ProviderProfileId = offer.ProviderProfileId,
+            ProviderUserId = offer.ProviderUserId,
+            ScheduledStartDate = req.ScheduledStartDate
+        }, cancellationToken);
 
         return new CreateServiceRequestAssignmentResponse(assignment.ToDto());
     }

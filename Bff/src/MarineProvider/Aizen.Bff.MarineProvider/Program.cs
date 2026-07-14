@@ -1,8 +1,10 @@
 using Aizen.Bff.MarineProvider.Application;
 using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Extensions;
+using Aizen.Bff.MarineProvider.Realtime;
 using Aizen.Core.Cache.Extension;
 using Aizen.Core.Starter;
+using Aizen.Core.Starter.Bff;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
@@ -10,7 +12,11 @@ using System.Threading.RateLimiting;
 var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
     Name = "MarineProviderBff",
-    Type = AppType.Bff
+    Type = AppType.Bff,
+    // The BFF must consume bus messages (ServiceRequestPublished, OfferAccepted) to bridge them to the provider
+    // hub. Without AppType.Worker in TypeInclude, AddAizenMessagebus sets AddConsumer=false and MassTransit
+    // never registers the consumers — the messages are published to RabbitMQ but nobody in this process listens.
+    TypeInclude = { AppType.Worker }
 }, args);
 
 // Application services (Keycloak options, admin client, service token, provider context/resolver,
@@ -40,17 +46,36 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 // the BFF cross-origin. Without CORS the browser blocks every XHR (public + authenticated),
 // including OTP login and password recovery. Origins come from config (Cors:AllowedOrigins);
 // falls back to the local provider web origin so local dev works out of the box.
-const string ProviderWebCorsPolicy = "provider-web";
+//
+// Registered under the shared name so the BFF pipeline can apply it BEFORE authentication.
+// It used to be applied here, after Build(), which put the CORS middleware behind
+// UseAuthorization(): the hub's preflight (an OPTIONS with no Authorization header — the browser cannot
+// add one) was answered 401 and the SignalR connection never opened. Do not move it back.
 var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 if (corsOrigins is null || corsOrigins.Length == 0)
     corsOrigins = new[] { "http://localhost:3002" };
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(ProviderWebCorsPolicy, policy => policy
+    options.AddPolicy(AizenBffCors.PolicyName, policy => policy
         .WithOrigins(corsOrigins)
         .AllowAnyHeader()
-        .AllowAnyMethod());
+        .AllowAnyMethod()
+        // SignalR negotiates with credentials; without this the WebSocket handshake is blocked by the browser.
+        .AllowCredentials());
 });
+
+// ── Realtime (SignalR) ────────────────────────────────────────────────────────
+// The hub lives on the BFF, not on a module: the browser only ever authenticates against the BFF, and the group a
+// connection joins is decided server-side from the resolved provider profile.
+//
+// Redis backplane is REQUIRED for Kubernetes multi-replica: without it, a RabbitMQ consumer on pod B pushes to
+// pod B's hub context, but the provider's WebSocket is on pod A — the event is silently dropped. With the
+// backplane, SignalR re-broadcasts across all pods. Uses a separate Redis DB from the cache so FLUSHDB on the
+// cache cannot take realtime down.
+var signalRBuilder = builder.Services.AddSignalR();
+var signalRRedisConn = builder.Configuration["Realtime:SignalR:RedisConnectionString"];
+if (!string.IsNullOrWhiteSpace(signalRRedisConn))
+    signalRBuilder.AddStackExchangeRedis(signalRRedisConn);
 
 // ── IP Rate Limiting (password recovery abuse protection) ─────────────────────
 var rlConfig = builder.Configuration.GetSection("RateLimiting:PasswordRecovery");
@@ -69,9 +94,10 @@ builder.Services.AddRateLimiter(opts =>
 var app = builder.Build();
 
 app.UseForwardedHeaders();
-// CORS must run before the rate limiter so preflight (OPTIONS) requests are answered
-// with the CORS headers instead of being consumed/rejected by the limiter.
-app.UseCors(ProviderWebCorsPolicy);
+// CORS is applied inside the BFF pipeline (before authentication) — see AizenBffApplicationConfiguration.
+// Calling UseCors() here would place it after UseAuthorization(), which 401s the hub's preflight.
 app.UseRateLimiter();
+
+app.MapHub<ProviderRealtimeHub>("/hubs/provider");
 
 app.Run();

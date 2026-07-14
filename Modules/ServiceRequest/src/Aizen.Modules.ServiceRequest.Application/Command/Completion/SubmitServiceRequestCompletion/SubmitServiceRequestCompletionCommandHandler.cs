@@ -1,6 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
@@ -18,14 +20,16 @@ public sealed class SubmitServiceRequestCompletionCommandHandler : AizenCommandH
     private readonly IServiceRequestCompletionRepository _completionRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public SubmitServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestAssignmentRepository assignmentRepository,
         IServiceRequestCompletionRepository completionRepository, IAizenInfoAccessor info,
-        ServiceRequestRealtimePublisher realtimePublisher)
+        ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _assignmentRepository = assignmentRepository;
         _completionRepository = completionRepository; _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<SubmitServiceRequestCompletionResponse?> Handle(SubmitServiceRequestCompletionCommand request, CancellationToken cancellationToken)
@@ -58,6 +62,14 @@ public sealed class SubmitServiceRequestCompletionCommandHandler : AizenCommandH
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, assignment.ProviderProfileId,
             ServiceRequestRealtimeEventType.CompletionSubmitted, completion.ToDto(),
             currentUserId, ServiceRequestActorType.Provider, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestCompletionSubmittedMessage
+        {
+            ServiceRequestId = sr.Id,
+            CompletionId = completion.Id,
+            OwnerUserId = sr.OwnerUserId,
+            ProviderUserId = currentUserId
+        }, cancellationToken);
 
         return new SubmitServiceRequestCompletionResponse(completion.ToDto());
     }

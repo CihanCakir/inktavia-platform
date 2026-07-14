@@ -1,5 +1,7 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Model;
 using PaymentRoot = Aizen.Modules.Payment.Abstraction;
@@ -23,17 +25,19 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IPaymentModuleRemoteCall _paymentRemoteCall;
+    private readonly IAizenMessagePublisher _messagePublisher;
     private readonly ILogger<AcceptServiceRequestOfferCommandHandler> _logger;
 
     public AcceptServiceRequestOfferCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestOfferRepository offerRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
         IPaymentModuleRemoteCall paymentRemoteCall,
+        IAizenMessagePublisher messagePublisher,
         ILogger<AcceptServiceRequestOfferCommandHandler> logger)
     {
         _srRepository = srRepository; _offerRepository = offerRepository;
         _info = info; _realtimePublisher = realtimePublisher;
-        _paymentRemoteCall = paymentRemoteCall; _logger = logger;
+        _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher; _logger = logger;
     }
 
     public override async Task<AcceptServiceRequestOfferResponse?> Handle(AcceptServiceRequestOfferCommand request, CancellationToken cancellationToken)
@@ -102,6 +106,16 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, offer.ProviderProfileId,
             ServiceRequestRealtimeEventType.OfferAccepted, offer.ToDto(),
             currentUserId, ServiceRequestActorType.Owner, cancellationToken);
+
+        // The realtime push above never leaves this process. This is the single most valuable thing a provider can
+        // be told — their bid won — so it has to go on the bus, where the provider BFF and Notification can hear it.
+        await _messagePublisher.PublishAsync(new ServiceRequestOfferAcceptedMessage
+        {
+            ServiceRequestId = sr.Id,
+            OfferId = offer.Id,
+            OwnerUserId = sr.OwnerUserId,
+            ProviderProfileId = offer.ProviderProfileId,
+        }, cancellationToken);
 
         return new AcceptServiceRequestOfferResponse(offer.Id, sr.Id);
     }

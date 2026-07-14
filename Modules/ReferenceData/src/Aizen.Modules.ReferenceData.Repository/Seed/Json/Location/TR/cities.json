@@ -1,6 +1,60 @@
 [
   {
     "countryCode": "TR",
+    "cityCode": "06",
+    "name": { "tr": "Ankara", "en": "Ankara" },
+    "latitude": 39.9334,
+    "longitude": 32.8597,
+    "isCoastalCity": false,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "07",
+    "name": { "tr": "Antalya", "en": "Antalya" },
+    "latitude": 36.8969,
+    "longitude": 30.7133,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "09",
+    "name": { "tr": "Aydın", "en": "Aydin" },
+    "latitude": 37.8444,
+    "longitude": 27.8458,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "10",
+    "name": { "tr": "Balıkesir", "en": "Balikesir" },
+    "latitude": 39.6484,
+    "longitude": 27.8826,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "17",
+    "name": { "tr": "Çanakkale", "en": "Canakkale" },
+    "latitude": 40.1553,
+    "longitude": 26.4142,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "33",
+    "name": { "tr": "Mersin", "en": "Mersin" },
+    "latitude": 36.8121,
+    "longitude": 34.6415,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
     "cityCode": "34",
     "name": { "tr": "İstanbul", "en": "Istanbul" },
     "latitude": 41.0082,
@@ -19,11 +73,47 @@
   },
   {
     "countryCode": "TR",
-    "cityCode": "06",
-    "name": { "tr": "Ankara", "en": "Ankara" },
-    "latitude": 39.9334,
-    "longitude": 32.8597,
-    "isCoastalCity": false,
+    "cityCode": "41",
+    "name": { "tr": "Kocaeli", "en": "Kocaeli" },
+    "latitude": 40.7654,
+    "longitude": 29.9408,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "48",
+    "name": { "tr": "Muğla", "en": "Mugla" },
+    "latitude": 37.2153,
+    "longitude": 28.3636,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "55",
+    "name": { "tr": "Samsun", "en": "Samsun" },
+    "latitude": 41.2867,
+    "longitude": 36.33,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "61",
+    "name": { "tr": "Trabzon", "en": "Trabzon" },
+    "latitude": 41.0027,
+    "longitude": 39.7168,
+    "isCoastalCity": true,
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "cityCode": "77",
+    "name": { "tr": "Yalova", "en": "Yalova" },
+    "latitude": 40.6500,
+    "longitude": 29.2667,
+    "isCoastalCity": true,
     "isActive": true
   }
 ]

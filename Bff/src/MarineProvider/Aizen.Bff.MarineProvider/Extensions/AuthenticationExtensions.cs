@@ -46,7 +46,24 @@ public static class AuthenticationExtensions
                     NameClaimType = "preferred_username",
                     RoleClaimType = ClaimTypes.Role
                 };
-                options.Events = new JwtBearerEvents { OnTokenValidated = MapKeycloakRealmRoles };
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = MapKeycloakRealmRoles,
+
+                    // A browser WebSocket cannot send an Authorization header. SignalR therefore passes the token as
+                    // `?access_token=…`, and it is only honoured for the hub path — never for the REST API, where a
+                    // token in the URL would end up in logs, referrers and browser history.
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                            context.Token = accessToken;
+
+                        return Task.CompletedTask;
+                    },
+                };
             });
 
         return services;

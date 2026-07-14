@@ -1,6 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -14,12 +16,15 @@ public sealed class UpdateServiceRequestStatusCommandHandler : AizenCommandHandl
     private readonly IServiceRequestRepository _repository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public UpdateServiceRequestStatusCommandHandler(
         IServiceRequestRepository repository, IAizenInfoAccessor info,
-        ServiceRequestRealtimePublisher realtimePublisher)
+        ServiceRequestRealtimePublisher realtimePublisher,
+        IAizenMessagePublisher messagePublisher)
     {
         _repository = repository; _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<UpdateServiceRequestStatusResponse?> Handle(UpdateServiceRequestStatusCommand request, CancellationToken cancellationToken)
@@ -40,6 +45,16 @@ public sealed class UpdateServiceRequestStatusCommandHandler : AizenCommandHandl
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, sr.Assignment?.ProviderProfileId,
             ServiceRequestRealtimeEventType.ServiceRequestStatusChanged, new { ServiceRequestId = sr.Id, OldStatus = prevStatus, NewStatus = newStatus },
             currentUserId, ServiceRequestActorType.Admin, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestStatusChangedMessage
+        {
+            ServiceRequestId = sr.Id,
+            RequestCode = sr.RequestCode,
+            FromStatus = prevStatus,
+            ToStatus = newStatus,
+            ActorUserId = currentUserId,
+            ActorType = ServiceRequestActorType.Admin,
+        }, cancellationToken);
 
         return new UpdateServiceRequestStatusResponse(sr.Id, newStatus.ToString());
     }

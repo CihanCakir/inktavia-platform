@@ -1,3 +1,4 @@
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
@@ -64,10 +65,62 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
     public Task<int> CountAdminAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default)
         => BuildAdminQuery(filter).CountAsync(ct);
 
+    public async Task<IReadOnlyList<ServiceRequestEntity>> GetOpenForProviderAsync(
+        long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default)
+    {
+        var skip = filter.PageIndex * filter.PageSize;
+        return await BuildProviderOpenQuery(providerProfileId, filter)
+            .Include(x => x.Offers)
+            .Include(x => x.Attachments)
+            .OrderByDescending(x => x.CreateDate)
+            .Skip(skip)
+            .Take(filter.PageSize)
+            .ToListAsync(ct);
+    }
+
+    public Task<int> CountOpenForProviderAsync(
+        long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default)
+        => BuildProviderOpenQuery(providerProfileId, filter).CountAsync(ct);
+
     public Task AddAsync(ServiceRequestEntity entity, CancellationToken ct = default)
         => _db.ServiceRequests.AddAsync(entity, ct).AsTask();
 
     public void Update(ServiceRequestEntity entity) => _db.ServiceRequests.Update(entity);
+
+    private IQueryable<ServiceRequestEntity> BuildProviderOpenQuery(
+        long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter)
+    {
+        var biddableStatuses = new[] { ServiceRequestStatus.Open, ServiceRequestStatus.WaitingForOffer, ServiceRequestStatus.OfferReceived };
+
+        var query = _db.ServiceRequests
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && biddableStatuses.Contains(x.Status)
+                && !x.Offers.Any(o => o.ProviderProfileId == providerProfileId && !o.IsDeleted)
+                && x.Assignment == null);
+
+        if (!string.IsNullOrWhiteSpace(filter.ServiceCategoryCode))
+            query = query.Where(x => x.ServiceCategoryCode == filter.ServiceCategoryCode.ToUpperInvariant());
+
+        if (!string.IsNullOrWhiteSpace(filter.LocationCityCode))
+            query = query.Where(x => x.LocationCityCode == filter.LocationCityCode);
+
+        if (!string.IsNullOrWhiteSpace(filter.LocationCountryCode))
+            query = query.Where(x => x.LocationCountryCode == filter.LocationCountryCode);
+
+        if (filter.MinPriority.HasValue)
+            query = query.Where(x => x.Priority >= filter.MinPriority.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var term = filter.SearchTerm.ToLower();
+            query = query.Where(x =>
+                x.Title.ToLower().Contains(term) ||
+                x.RequestCode.ToLower().Contains(term));
+        }
+
+        return query;
+    }
 
     private IQueryable<ServiceRequestEntity> BuildAdminQuery(AdminServiceRequestFilterRequest filter)
     {

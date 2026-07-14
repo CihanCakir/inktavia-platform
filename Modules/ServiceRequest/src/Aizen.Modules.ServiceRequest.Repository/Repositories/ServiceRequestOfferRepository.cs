@@ -1,3 +1,4 @@
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
@@ -33,6 +34,23 @@ public sealed class ServiceRequestOfferRepository : IServiceRequestOfferReposito
             .Skip(skip)
             .Take(take)
             .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<ServiceRequestOfferEntity>> GetByProviderProfileIdWithSrAsync(
+        long providerProfileId, ServiceRequestOfferStatus? statusFilter, int skip, int take, CancellationToken ct = default)
+    {
+        var query = _db.ServiceRequestOffers
+            .AsNoTracking()
+            .Where(x => x.ProviderProfileId == providerProfileId && !x.IsDeleted);
+
+        if (statusFilter.HasValue)
+            query = query.Where(x => x.Status == statusFilter.Value);
+
+        return await query
+            .OrderByDescending(x => x.CreateDate)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+    }
 
     public Task AddAsync(ServiceRequestOfferEntity entity, CancellationToken ct = default)
         => _db.ServiceRequestOffers.AddAsync(entity, ct).AsTask();

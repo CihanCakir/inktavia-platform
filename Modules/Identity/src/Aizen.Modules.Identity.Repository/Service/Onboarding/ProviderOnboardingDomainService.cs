@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.Identity.Abstraction.RemoteCall;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Entities.Onboarding;
 using Aizen.Modules.Identity.Domain.Enum;
@@ -17,6 +18,7 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
     private readonly IProviderOnboardingRepository _repo;
     private readonly IUserProfileRepository _profileRepo;
     private readonly IdentityDbContext _db;
+    private readonly IIdentityReferenceDataRemoteCall _referenceData;
     private readonly ILogger<ProviderOnboardingDomainService> _logger;
 
     private const int CurrentSchemaVersion = 1;
@@ -25,11 +27,13 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
         IProviderOnboardingRepository repo,
         IUserProfileRepository profileRepo,
         IdentityDbContext db,
+        IIdentityReferenceDataRemoteCall referenceData,
         ILogger<ProviderOnboardingDomainService> logger)
     {
         _repo = repo;
         _profileRepo = profileRepo;
         _db = db;
+        _referenceData = referenceData;
         _logger = logger;
     }
 
@@ -40,6 +44,10 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
     {
         if (schemaVersion != CurrentSchemaVersion)
             throw new AizenBusinessException($"Unsupported schema version {schemaVersion}. Expected {CurrentSchemaVersion}.");
+
+        // Validate city code against ReferenceData when saving the OperatingRegion step.
+        if (step == "OperatingRegion")
+            await ValidateCityCodeInJsonAsync(stepDataJson, ct);
 
         var entity = await GetOrCreateAsync(profileId, ct)
             ?? throw new AizenBusinessException("Provider profile not found.");
@@ -104,6 +112,19 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
             }
         }
 
+        // Validate the operating city against ReferenceData. An unknown code is rejected — not stored,
+        // not uppercased into something plausible. This is the gate that prevents the vocabularies from
+        // drifting apart again.
+        if (draft.TryGetValue("OperatingRegion", out var orStep))
+        {
+            var cityCode = orStep.TryGetProperty("cityCode", out var cc) ? cc.GetString() : null;
+            var countryCode = orStep.TryGetProperty("country", out var co) ? co.GetString() : null;
+            if (string.IsNullOrWhiteSpace(cityCode))
+                missing.Add("OperatingRegion: city code is required.");
+            else if (!await IsCityCodeValidAsync(countryCode ?? "TR", cityCode, ct))
+                missing.Add($"OperatingRegion: city code '{cityCode}' is not a recognised ReferenceData city.");
+        }
+
         var documents = await _db.VerificationDocuments
             .Where(d => d.ProfileId == profileId && !d.IsDeleted)
             .ToListAsync(ct);
@@ -159,20 +180,68 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
         if (draft.TryGetValue("BusinessIdentity", out var bi))
         {
             var companyName = bi.TryGetProperty("companyName", out var cn) ? cn.GetString() : null;
-            var city = bi.TryGetProperty("city", out var c) ? c.GetString() : null;
-            var country = bi.TryGetProperty("country", out var co) ? co.GetString() : null;
             var firstName = bi.TryGetProperty("ownerFirstName", out var fn) ? fn.GetString() : null;
             var lastName = bi.TryGetProperty("ownerLastName", out var ln) ? ln.GetString() : null;
             var bio = bi.TryGetProperty("bio", out var b) ? b.GetString() : null;
 
             if (!string.IsNullOrWhiteSpace(companyName))
                 profile.SetCompanyName(companyName);
-            if (!string.IsNullOrWhiteSpace(city) || !string.IsNullOrWhiteSpace(country))
-                profile.SetLocation(city, country);
             if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
                 profile.ChangeName(firstName, lastName);
             if (bio is not null)
                 profile.UpdateBio(bio);
         }
+
+        // The provider's operating city is a ReferenceData city code (e.g. "35" for Izmir, "48" for Mugla).
+        // The field name is "cityCode" — the legacy "cityOrPort" accepted free text (district names, marina
+        // names, anything) and that is exactly the class of bug we are removing. No fallback to it.
+        //
+        // Bodrum, Çeşme etc. are districts of a province (Muğla, İzmir). The canonical code is the province
+        // plate code — port/district refinement belongs to GeoDiscovery, not here.
+        if (draft.TryGetValue("OperatingRegion", out var or))
+        {
+            var cityCode = or.TryGetProperty("cityCode", out var cc) ? cc.GetString() : null;
+            var countryCode = or.TryGetProperty("country", out var co) ? co.GetString() : null;
+            if (!string.IsNullOrWhiteSpace(cityCode))
+                profile.SetLocation(cityCode.Trim().ToUpperInvariant(), countryCode?.Trim().ToUpperInvariant() ?? profile.Country);
+        }
+    }
+
+    /// <summary>
+    /// Validates a city code against ReferenceData. Returns true only if the code is a known, active city.
+    /// </summary>
+    private async Task<bool> IsCityCodeValidAsync(string countryCode, string cityCode, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _referenceData.GetCity(
+                countryCode.Trim().ToUpperInvariant(),
+                cityCode.Trim().ToUpperInvariant());
+            return result.Body is not null && result.Body.IsActive;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ReferenceData city lookup failed for {CountryCode}/{CityCode}. Rejecting as unknown.",
+                countryCode, cityCode);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Validates the cityCode field in a raw OperatingRegion JSON string. Called on save-step.
+    /// </summary>
+    private async Task ValidateCityCodeInJsonAsync(string stepDataJson, CancellationToken ct)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(stepDataJson);
+            var root = doc.RootElement;
+            var cityCode = root.TryGetProperty("cityCode", out var cc) ? cc.GetString() : null;
+            var countryCode = root.TryGetProperty("country", out var co) ? co.GetString() : null;
+            if (!string.IsNullOrWhiteSpace(cityCode) && !await IsCityCodeValidAsync(countryCode ?? "TR", cityCode, ct))
+                throw new AizenBusinessException($"City code '{cityCode}' is not a recognised ReferenceData city.");
+        }
+        catch (AizenBusinessException) { throw; }
+        catch (JsonException) { /* Malformed JSON — let the step save handle it */ }
     }
 }

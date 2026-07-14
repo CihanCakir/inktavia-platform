@@ -1,6 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -16,13 +18,16 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
     private readonly IServiceRequestCompletionRepository _completionRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public ApproveServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestCompletionRepository completionRepository,
-        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher)
+        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _completionRepository = completionRepository;
         _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<ApproveServiceRequestCompletionResponse?> Handle(ApproveServiceRequestCompletionCommand request, CancellationToken cancellationToken)
@@ -47,6 +52,14 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, null,
             ServiceRequestRealtimeEventType.CompletionApproved, completion.ToDto(),
             currentUserId, ServiceRequestActorType.Owner, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestCompletionApprovedMessage
+        {
+            ServiceRequestId = sr.Id,
+            CompletionId = completion.Id,
+            ProviderUserId = completion.ProviderUserId,
+            OwnerUserId = currentUserId
+        }, cancellationToken);
 
         return new ApproveServiceRequestCompletionResponse(completion.Id);
     }

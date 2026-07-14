@@ -203,6 +203,9 @@ services:
       RateLimiting__PasswordRecovery__WindowSeconds: 300
       # Redis — backs the per-provider upload-session rate limit (IAizenDistributedCache).
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=14
+      # Redis backplane for SignalR (separate DB from cache — FLUSHDB on 14 must not kill realtime).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
       # CORS: browser SPA origin(s) allowed to call the BFF cross-origin (public + authenticated XHR).
       Cors__AllowedOrigins__0: ${PROVIDER_WEB_BASE:-http://localhost:3002}
     ports:
@@ -210,6 +213,70 @@ services:
     networks: [aizen]
 
   # Example modules (expand as needed)
+  # Second replica of the BFF — ONLY for proving the Redis SignalR backplane locally.
+  # In Kubernetes this is just `replicas: 2`; docker-compose cannot scale a service that pins
+  # container_name and a host port, so the replica is spelled out. Identical image, identical env,
+  # same Redis and same RabbitMQ — the ONLY differences are the container name and the host port.
+  #
+  # The test: point the browser at instance 1 only. RabbitMQ hands each published message to exactly
+  # ONE of the two (competing consumers). Roughly half will be consumed by instance 2 — an instance
+  # that holds no socket. Without the backplane those events vanish silently. With it, all arrive.
+  bff-marineprovider-2:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.MarineProvider
+    container_name: bff-marineprovider-2
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - redis
+      - identity-api
+      - service-request-api
+      - file-storage-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # Inbound auth (Keycloak full IdP). Authority = browser-facing issuer; MetadataAddress = in-cluster JWKS.
+      MarineProviderKeycloak__BaseUrl: http://keycloak:8080
+      MarineProviderKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineProviderKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineProviderKeycloak__Realm: inktavia-realm
+      MarineProviderKeycloak__Audience: provider-portal-bff
+      MarineProviderKeycloak__RequireHttpsMetadata: "false"
+      MarineProviderKeycloak__AdminClientId: provider-portal-bff
+      MarineProviderKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineProviderKeycloak__ProviderPortalClientId: provider-portal
+      MarineProviderKeycloak__ProviderPortalBffClientId: provider-portal-bff
+      MarineProviderKeycloak__ProviderPendingRole: provider_pending
+      MarineProviderKeycloak__ProviderUserRole: provider_user
+      MarineProviderKeycloak__ProviderRestrictedRole: provider_restricted
+      MarineProviderKeycloak__ProviderProfileIdAttributeName: provider_profile_id
+      MarineProviderKeycloak__VerifyEmailRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/verify-callback
+      # BFF → module calls (Keycloak service token injected by the delegating handler)
+      RemoteCalls__IProviderIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IProviderServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      RemoteCalls__IProviderFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
+      MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      RateLimiting__PasswordRecovery__PermitPerWindow: 10
+      RateLimiting__PasswordRecovery__WindowSeconds: 300
+      # Redis — backs the per-provider upload-session rate limit (IAizenDistributedCache).
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=14
+      # Redis backplane for SignalR (separate DB from cache — FLUSHDB on 14 must not kill realtime).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
+      # CORS: browser SPA origin(s) allowed to call the BFF cross-origin (public + authenticated XHR).
+      Cors__AllowedOrigins__0: ${PROVIDER_WEB_BASE:-http://localhost:3002}
+    ports:
+      - "${BFF_MARINEPROVIDER_2_PORT:-17012}:8080"
+    networks: [aizen]
+
+  # Example modules (expand as needed)
+
   minio:
     image: minio/minio:latest
     container_name: inktavia-minio
@@ -277,6 +344,7 @@ services:
       IdentityKeycloak__AdminClientId: provider-portal-bff
       IdentityKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET}
       RemoteCalls__IIdentityFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      RemoteCalls__IIdentityReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
       # Trusted-BFF identity assertion (module side). Empty = disabled. Must match the BFF's ModuleAssertionSecret.
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
@@ -337,6 +405,9 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: reference-data-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      DatabaseSettings__ReferenceData__Type: PostgreSQL
+      DatabaseSettings__ReferenceData__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=12
     ports:
       - "7104:8080"
     networks: [aizen]
@@ -442,6 +513,10 @@ services:
       # Trusted-BFF identity assertion (Phase 32): accept X-Aizen-Provider-Profile-Id from the MarineProvider BFF.
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      # Redis backplane for SignalR (ServiceRequestHub).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
+      RemoteCalls__IServiceRequestReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
     ports:
       - "7107:8080"
     networks: [aizen]
@@ -511,6 +586,9 @@ services:
       KEYCLOAK_AUDIENCE: messaging-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       ElasticApm__Enabled: "false"
+      # Redis backplane for SignalR (MessagingHub).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
     ports:
       - "7109:8080"
     networks: [aizen]
@@ -550,6 +628,9 @@ services:
       Email__FromAddress: ${SMTP_FROM:-no-reply@inktavia.com}
       Email__FromName: ${SMTP_FROM_NAME:-Inktavia Marine}
       Email__UseSsl: ${SMTP_USE_SSL:-true}
+      # Redis backplane for SignalR (NotificationHub).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
     ports:
       - "7110:8080"
     networks: [aizen]

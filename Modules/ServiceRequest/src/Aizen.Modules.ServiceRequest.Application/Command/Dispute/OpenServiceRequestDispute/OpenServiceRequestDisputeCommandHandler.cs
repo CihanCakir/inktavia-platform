@@ -1,6 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
@@ -17,13 +19,16 @@ public sealed class OpenServiceRequestDisputeCommandHandler : AizenCommandHandle
     private readonly IServiceRequestDisputeRepository _disputeRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public OpenServiceRequestDisputeCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestDisputeRepository disputeRepository,
-        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher)
+        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _disputeRepository = disputeRepository;
         _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<OpenServiceRequestDisputeResponse?> Handle(OpenServiceRequestDisputeCommand request, CancellationToken cancellationToken)
@@ -55,6 +60,15 @@ public sealed class OpenServiceRequestDisputeCommandHandler : AizenCommandHandle
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, null,
             ServiceRequestRealtimeEventType.AdminInterventionRequired, dispute.ToDto(),
             currentUserId, request.ActorType, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestDisputeOpenedMessage
+        {
+            ServiceRequestId = sr.Id,
+            DisputeId = dispute.Id,
+            OpenedByUserId = currentUserId,
+            OpenedByActorType = request.ActorType,
+            Reason = req.Reason
+        }, cancellationToken);
 
         return new OpenServiceRequestDisputeResponse(dispute.ToDto());
     }

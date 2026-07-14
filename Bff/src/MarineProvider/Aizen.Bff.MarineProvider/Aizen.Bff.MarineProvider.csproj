@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache/Aizen.Core.Cache.csproj" />
     <ProjectReference Include="../../../../Core/Starter/src/Aizen.Core.Starter/Aizen.Core.Starter.csproj" />
     <ProjectReference Include="../../../../Core/Starter/src/Aizen.Core.Starter.Bff/Aizen.Core.Starter.Bff.csproj" />

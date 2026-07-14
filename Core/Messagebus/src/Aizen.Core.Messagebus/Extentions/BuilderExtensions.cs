@@ -43,7 +43,14 @@ public static class BuilderExtensions
                 cfg.ConfigureEndpoints(context);
             });
 
-            var consumers = AizenModuleAssemblyDiscovery.GetInstance().ModuleAssemblies.SelectMany(x => x.GetTypes())
+            // Scan module assemblies AND the entry assembly for message consumers. The entry assembly
+            // scan is needed for BFFs that host bus consumers (e.g. the realtime bridge consumers in
+            // MarineProvider BFF). Without it, consumers in Aizen.Bff.* are invisible to MassTransit.
+            var discovery = AizenModuleAssemblyDiscovery.GetInstance();
+            var assembliesToScan = discovery.ModuleAssemblies
+                .Append(discovery.EntryAssembly)
+                .Distinct();
+            var consumers = assembliesToScan.SelectMany(x => x.GetTypes())
                 .Where(x => x is { IsClass: true, IsAbstract: false } &&
                             typeof(IAizenMessageConsumer).IsAssignableFrom(x) && !x.IsGenericType);
             foreach (var consumer in consumers)

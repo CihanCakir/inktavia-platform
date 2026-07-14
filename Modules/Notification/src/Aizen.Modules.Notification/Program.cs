@@ -27,7 +27,10 @@ builder.Services.AddNotificationRepository();
 builder.Services.AddNotificationApplicationServices(builder.Configuration);
 
 // ── SignalR ────────────────────────────────────────────────────────────────────
-builder.Services.AddSignalR();
+var signalRBuilder = builder.Services.AddSignalR();
+var signalRRedisConn = builder.Configuration["Realtime:SignalR:RedisConnectionString"];
+if (!string.IsNullOrWhiteSpace(signalRRedisConn))
+    signalRBuilder.AddStackExchangeRedis(signalRRedisConn);
 builder.Services.AddScoped<IInAppNotificationPusher, NotificationHubPusher>();
 
 var app = builder.Build();

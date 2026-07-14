@@ -32,6 +32,9 @@ public sealed class WithdrawServiceRequestOfferCommandHandler : AizenCommandHand
             ?? throw new InvalidOperationException($"Offer {request.OfferId} not found.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        if (offer.ProviderUserId != currentUserId)
+            throw new UnauthorizedAccessException("You do not have permission to withdraw this offer.");
+
         offer.Withdraw(request.Request.Reason);
         _offerRepository.Update(offer);
 

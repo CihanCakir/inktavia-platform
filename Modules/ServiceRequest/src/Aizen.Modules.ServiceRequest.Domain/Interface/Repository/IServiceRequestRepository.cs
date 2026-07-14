@@ -15,6 +15,8 @@ public interface IServiceRequestRepository
     Task<IReadOnlyList<ServiceRequestEntity>> GetByVesselIdAsync(long vesselId, CancellationToken ct = default);
     Task<IReadOnlyList<ServiceRequestEntity>> GetAdminListAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task<int> CountAdminAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default);
+    Task<IReadOnlyList<ServiceRequestEntity>> GetOpenForProviderAsync(long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default);
+    Task<int> CountOpenForProviderAsync(long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task AddAsync(ServiceRequestEntity entity, CancellationToken ct = default);
     void Update(ServiceRequestEntity entity);
 }
