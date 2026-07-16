@@ -10,7 +10,6 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     public long ProviderProfileId { get; private set; }
     public long ProviderUserId { get; private set; }
     public ServiceRequestOfferStatus Status { get; private set; }
-    public decimal TotalAmount { get; private set; }
     public string CurrencyCode { get; private set; } = "USD";
     public string? Description { get; private set; }
     public string? ProviderNotes { get; private set; }
@@ -23,6 +22,35 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     public string? RejectionReason { get; private set; }
     public DateTime? WithdrawnAt { get; private set; }
     public string? WithdrawalReason { get; private set; }
+
+    // --- Totals (computed by calculation service in 10c) ---
+    // TotalAmount is kept as the legacy alias for GrandTotal — both always agree.
+    public decimal TotalAmount { get; private set; }
+    public decimal Subtotal { get; private set; }
+    public decimal TaxTotal { get; private set; }
+    public decimal DiscountTotal { get; private set; }
+    public decimal GrandTotal { get; private set; }
+
+    // Per-category totals (computed by calculation service)
+    public decimal ServiceTotal { get; private set; }
+    public decimal ProductTotal { get; private set; }
+    public decimal LaborTotal { get; private set; }
+    public decimal InstallationTotal { get; private set; }
+    public decimal InspectionTotal { get; private set; }
+    public decimal DeliveryTotal { get; private set; }
+    public decimal EmergencyFeeTotal { get; private set; }
+    public decimal OtherTotal { get; private set; }
+
+    // Commercial terms
+    public OfferDepositType DepositType { get; private set; }
+    public decimal? DepositValue { get; private set; }
+    public string? PaymentTermsNote { get; private set; }
+    public string? WarrantyNote { get; private set; }
+
+    // Lifecycle timestamps
+    public DateTime? SubmittedAt { get; private set; }
+    public DateTime? ViewedAt { get; private set; }
+    public DateTime? RevisionRequestedAt { get; private set; }
 
     private readonly List<ServiceRequestOfferItemEntity> _items = new();
     public IReadOnlyCollection<ServiceRequestOfferItemEntity> Items => _items.AsReadOnly();
@@ -49,6 +77,7 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
             ProviderUserId = providerUserId,
             Status = ServiceRequestOfferStatus.Draft,
             TotalAmount = totalAmount,
+            GrandTotal = totalAmount,
             CurrencyCode = currencyCode.ToUpperInvariant(),
             Description = description,
             ProviderNotes = providerNotes,
@@ -60,7 +89,25 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
         };
     }
 
-    public void Submit() => Status = ServiceRequestOfferStatus.Submitted;
+    public void MarkSubmitted(DateTime utcNow)
+    {
+        if (Status != ServiceRequestOfferStatus.Draft)
+            throw new InvalidOperationException($"Cannot submit an offer in status {Status}.");
+        Status = ServiceRequestOfferStatus.Submitted;
+        SubmittedAt = utcNow;
+    }
+
+    public void Submit() => MarkSubmitted(DateTime.UtcNow);
+
+    public void MarkViewed(DateTime utcNow)
+    {
+        ViewedAt ??= utcNow;
+    }
+
+    public void MarkRevisionRequested(DateTime utcNow)
+    {
+        RevisionRequestedAt = utcNow;
+    }
 
     public void Accept()
     {
@@ -92,7 +139,10 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
         int? estimatedDurationMinutes,
         DateTime? expiresAt)
     {
+        if (Status != ServiceRequestOfferStatus.Draft)
+            throw new InvalidOperationException($"Cannot edit an offer in status {Status}. Only Draft offers are editable.");
         TotalAmount = totalAmount;
+        GrandTotal = totalAmount;
         CurrencyCode = currencyCode.ToUpperInvariant();
         Description = description;
         ProviderNotes = providerNotes;
@@ -100,6 +150,55 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
         EstimatedEndDate = estimatedEndDate;
         EstimatedDurationMinutes = estimatedDurationMinutes;
         ExpiresAt = expiresAt;
+    }
+
+    public void UpdateCommercialTerms(
+        OfferDepositType depositType,
+        decimal? depositValue,
+        string? paymentTermsNote,
+        string? warrantyNote)
+    {
+        DepositType = depositType;
+        DepositValue = depositValue;
+        PaymentTermsNote = paymentTermsNote;
+        WarrantyNote = warrantyNote;
+    }
+
+    /// <summary>
+    /// Atomically replaces the item set. Clears existing items and adds the new set.
+    /// Only allowed on Draft offers.
+    /// </summary>
+    public void ReplaceItems(IEnumerable<ServiceRequestOfferItemEntity> newItems)
+    {
+        if (Status != ServiceRequestOfferStatus.Draft)
+            throw new InvalidOperationException($"Cannot modify items on an offer in status {Status}.");
+        _items.Clear();
+        _items.AddRange(newItems);
+    }
+
+    /// <summary>
+    /// Sets the computed totals. Called by the calculation service only.
+    /// TotalAmount is kept in sync with GrandTotal.
+    /// </summary>
+    public void SetComputedTotals(
+        decimal subtotal, decimal discountTotal, decimal taxTotal, decimal grandTotal,
+        decimal serviceTotal, decimal productTotal, decimal laborTotal, decimal installationTotal,
+        decimal inspectionTotal, decimal deliveryTotal, decimal emergencyFeeTotal, decimal otherTotal)
+    {
+        Subtotal = subtotal;
+        DiscountTotal = discountTotal;
+        TaxTotal = taxTotal;
+        GrandTotal = grandTotal;
+        TotalAmount = grandTotal; // keep legacy alias in sync
+
+        ServiceTotal = serviceTotal;
+        ProductTotal = productTotal;
+        LaborTotal = laborTotal;
+        InstallationTotal = installationTotal;
+        InspectionTotal = inspectionTotal;
+        DeliveryTotal = deliveryTotal;
+        EmergencyFeeTotal = emergencyFeeTotal;
+        OtherTotal = otherTotal;
     }
 
     public void AddItem(ServiceRequestOfferItemEntity item) => _items.Add(item);

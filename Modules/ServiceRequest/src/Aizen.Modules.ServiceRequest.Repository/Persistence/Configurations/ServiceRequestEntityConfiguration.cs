@@ -53,6 +53,14 @@ public sealed class ServiceRequestEntityConfiguration : IEntityTypeConfiguration
         builder.Property(x => x.AssignedProviderName).HasMaxLength(200);
         builder.Property(x => x.DisputeReason).HasMaxLength(1000);
         builder.Property(x => x.PaymentTransactionId); // nullable long — set after escrow creation
+        builder.Property(x => x.PublishedAt);
+        builder.Property(x => x.ContentUpdatedAt);
+
+        // Discovery indexes
+        builder.HasIndex(x => new { x.Status, x.LocationCityCode });
+        builder.HasIndex(x => new { x.Status, x.PublishedAt });
+        builder.HasIndex(x => new { x.Status, x.LocationLatitude, x.LocationLongitude })
+            .HasDatabaseName("IX_service_requests_Status_Lat_Lng");
 
         builder.HasMany(x => x.WorkPhases).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(x => x.Conversations).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);

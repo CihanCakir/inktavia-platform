@@ -48,6 +48,12 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     /// </summary>
     public long? PaymentTransactionId { get; private set; }
 
+    /// <summary>UTC timestamp when the request transitioned from Draft to Open. Idempotent: a republish does not overwrite.</summary>
+    public DateTime? PublishedAt { get; private set; }
+
+    /// <summary>UTC timestamp of the last owner content edit (UpdateProfile). Not set by publish, status change, or offer flows.</summary>
+    public DateTime? ContentUpdatedAt { get; private set; }
+
     private readonly List<ServiceRequestItemEntity> _items = new();
     public IReadOnlyCollection<ServiceRequestItemEntity> Items => _items.AsReadOnly();
 
@@ -148,11 +154,16 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
         LocationLongitude = locationLongitude;
         OwnerNotes = ownerNotes;
         ExpiresAt = expiresAt;
+        ContentUpdatedAt = DateTime.UtcNow;
     }
 
     public void ChangeStatus(ServiceRequestStatus newStatus) => Status = newStatus;
 
-    public void Publish() => Status = ServiceRequestStatus.Open;
+    public void Publish()
+    {
+        Status = ServiceRequestStatus.Open;
+        PublishedAt ??= DateTime.UtcNow;
+    }
 
     public void Cancel(long cancelledByUserId, string? reason)
     {

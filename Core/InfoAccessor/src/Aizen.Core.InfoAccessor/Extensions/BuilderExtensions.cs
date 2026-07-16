@@ -14,9 +14,25 @@ public static class BuilderExtensions
         var options = new InfoAccessorConfigurationSettings();
         setupAction?.Invoke(options);
 
-        // Trusted-BFF identity assertion (module side). Disabled unless BffAssertion:SharedSecret is set.
-        services.Configure<AizenBffAssertionOptions>(
-            configuration.GetSection(AizenBffAssertionOptions.SectionName));
+        // ── Trusted-BFF identity assertion (module side) ─────────────────────────────────────────────────
+        // Disabled unless BffAssertion:SharedSecret is set.
+        //
+        // When it IS set, the module trusts whatever user id the caller asserts. The only thing distinguishing
+        // a trusted BFF from any other holder of a valid service-account token is AllowedClientIds. Leaving
+        // that list empty turns the assertion into "any service client may claim to be any user" — and it
+        // fails silently, because nothing about a wide-open allowlist looks wrong at runtime.
+        //
+        // So: secret set + allowlist empty ⇒ the service does not start. A misconfiguration that would grant
+        // impersonation must be loud at boot, not discovered later.
+        services.AddOptions<AizenBffAssertionOptions>()
+            .Bind(configuration.GetSection(AizenBffAssertionOptions.SectionName))
+            .Validate(
+                o => string.IsNullOrWhiteSpace(o.SharedSecret) || o.AllowedClientIds is { Length: > 0 },
+                "BffAssertion:SharedSecret is configured but BffAssertion:AllowedClientIds is empty. " +
+                "An empty allowlist would let ANY caller holding a valid service-account token assert ANY " +
+                "user id (X-Aizen-User-Id) and impersonate them. Configure the allowed client ids " +
+                "(e.g. BffAssertion__AllowedClientIds__0=provider-portal-bff) or unset the shared secret.")
+            .ValidateOnStart();
 
         services.AddSingleton<AizenInfoContainerForSigleton>();
         services.AddScoped<AizenInfoContainerForScoped>();

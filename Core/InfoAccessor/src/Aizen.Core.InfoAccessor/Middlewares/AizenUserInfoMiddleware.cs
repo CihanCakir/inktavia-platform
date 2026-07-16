@@ -150,8 +150,15 @@ namespace Aizen.Core.InfoAccessor.Middlewares
             if (string.IsNullOrWhiteSpace(provided) || !FixedTimeEquals(provided, cfg.SharedSecret))
                 return false;
 
-            if (cfg.AllowedClientIds is { Length: > 0 } allow
-                && !allow.Contains(keycloakTokenInfo.ClientId, StringComparer.OrdinalIgnoreCase))
+            // The allowlist is the ONLY thing that distinguishes the trusted BFF from any other holder of a
+            // valid service-account token. Empty list = every service client may assert any user id. Fail
+            // closed: no allowlist, no assertion. (Startup validation also refuses to boot in this state —
+            // this is the second lock, for the case where options are supplied some other way.)
+            var allow = cfg.AllowedClientIds;
+            if (allow is not { Length: > 0 })
+                return false;
+
+            if (!allow.Contains(keycloakTokenInfo.ClientId, StringComparer.OrdinalIgnoreCase))
                 return false;
 
             var uidRaw = httpContext.Request.Headers[AizenAuthHeaders.AssertedUserId].FirstOrDefault();

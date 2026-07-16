@@ -23,7 +23,7 @@ namespace Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderSer
 /// </summary>
 [DocumentationInfo("Get provider service request detail handler", "Returns one service request if the calling provider may see it; rejects otherwise.")]
 public sealed class GetProviderServiceRequestDetailQueryHandler
-    : AizenQueryHandler<GetProviderServiceRequestDetailQuery, GetServiceRequestDetailResponse>
+    : AizenQueryHandler<GetProviderServiceRequestDetailQuery, GetProviderServiceRequestDetailResponse>
 {
     private static readonly HashSet<ServiceRequestStatus> BiddableStatuses = new()
     {
@@ -52,7 +52,7 @@ public sealed class GetProviderServiceRequestDetailQueryHandler
         _logger = logger;
     }
 
-    public override async Task<GetServiceRequestDetailResponse?> Handle(
+    public override async Task<GetProviderServiceRequestDetailResponse?> Handle(
         GetProviderServiceRequestDetailQuery request, CancellationToken ct)
     {
         var providerProfileId = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
@@ -72,14 +72,12 @@ public sealed class GetProviderServiceRequestDetailQueryHandler
 
         if (!maySee)
         {
-            // Deliberately the same message as "not found": telling the caller that a request exists but is not
-            // theirs is itself a leak.
             _logger.LogWarning(
                 "Provider {ProviderProfileId} tried to read service request {ServiceRequestId} ({Status}) with no relationship to it.",
                 providerProfileId, sr.Id, sr.Status);
             throw new AizenBusinessException("Service request not found.");
         }
 
-        return new GetServiceRequestDetailResponse(sr.ToDetailDto());
+        return new GetProviderServiceRequestDetailResponse(sr.ToProviderDetailDto(providerProfileId));
     }
 }

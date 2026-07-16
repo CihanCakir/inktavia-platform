@@ -3,6 +3,9 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer;
+using Aizen.Modules.ServiceRequest.Application.Command.Offer.SaveOfferDraft;
+using Aizen.Modules.ServiceRequest.Application.Command.Offer.PreviewOffer;
+using Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -65,6 +68,43 @@ public sealed class ServiceRequestOfferController : AizenWebApiController
         [FromRoute] long serviceRequestId, [FromRoute] long offerId, [FromBody] WithdrawServiceRequestOfferRequest req, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<WithdrawServiceRequestOfferResponse>(new WithdrawServiceRequestOfferCommand(serviceRequestId, offerId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Aggregate save: get-or-create the caller's Draft, replace items, recompute server-authoritative totals.
+    /// Client-sent totals are ignored.
+    /// </summary>
+    [HttpPut("draft")]
+    [ProducesResponseType(typeof(SaveOfferDraftResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SaveOfferDraftResponse?>> SaveDraft(
+        [FromRoute] long serviceRequestId, [FromBody] SaveOfferDraftRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<SaveOfferDraftResponse>(new SaveOfferDraftCommand(serviceRequestId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Runs the calculation service on the inputs without persisting. Returns computed totals.
+    /// </summary>
+    [HttpPost("preview")]
+    [ProducesResponseType(typeof(PreviewOfferResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PreviewOfferResponse?>> Preview(
+        [FromRoute] long serviceRequestId, [FromBody] SaveOfferDraftRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<PreviewOfferResponse>(new PreviewOfferCommand(serviceRequestId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Draft → Submitted. Idempotent on idempotency key. Rejects empty offers.
+    /// </summary>
+    [HttpPatch("{offerId:long}/submit")]
+    [ProducesResponseType(typeof(SubmitOfferResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SubmitOfferResponse?>> Submit(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, [FromBody] SubmitOfferRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<SubmitOfferResponse>(new SubmitOfferCommand(serviceRequestId, offerId, req), ct);
         return SetResponse(result);
     }
 }

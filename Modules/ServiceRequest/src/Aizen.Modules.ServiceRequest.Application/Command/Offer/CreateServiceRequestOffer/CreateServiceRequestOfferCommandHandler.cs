@@ -71,7 +71,8 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
         {
             var offerItem = ServiceRequestOfferItemEntity.Create(
                 0, item.ItemType, item.Title, item.Description,
-                item.Quantity, item.UnitPrice, item.CurrencyCode, sortOrder++);
+                item.Quantity, item.UnitPrice, item.CurrencyCode, sortOrder++,
+                item.UnitCode, item.TaxRate, item.DiscountType, item.DiscountValue);
             offer.AddItem(offerItem);
         }
 

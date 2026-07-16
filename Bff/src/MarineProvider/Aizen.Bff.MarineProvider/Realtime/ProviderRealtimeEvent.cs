@@ -26,4 +26,22 @@ public static class ProviderRealtimeEventTypes
 
     /// <summary>This provider's offer was accepted. The one they actually care about.</summary>
     public const string OfferAccepted = "OfferAccepted";
+
+    /// <summary>A service request's details (title, description, dates, etc.) were updated.</summary>
+    public const string ServiceRequestUpdated = "ServiceRequestUpdated";
+
+    /// <summary>A service request was cancelled by its owner.</summary>
+    public const string ServiceRequestCancelled = "ServiceRequestCancelled";
+
+    /// <summary>A service request's priority was changed.</summary>
+    public const string ServiceRequestUrgencyChanged = "ServiceRequestUrgencyChanged";
+
+    /// <summary>This provider's offer was rejected by the owner.</summary>
+    public const string OfferRejected = "OfferRejected";
+
+    /// <summary>This provider's offer was viewed by the customer.</summary>
+    public const string OfferViewedByCustomer = "OfferViewedByCustomer";
+
+    /// <summary>The customer requested a revision on this provider's offer.</summary>
+    public const string OfferRevisionRequested = "OfferRevisionRequested";
 }

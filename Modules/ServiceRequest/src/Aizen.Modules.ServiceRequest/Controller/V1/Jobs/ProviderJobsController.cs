@@ -1,13 +1,18 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Jobs;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
 using Aizen.Modules.ServiceRequest.Application.Query.Jobs;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetMyOffers;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetOpenServiceRequests;
+using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderDiscovery;
+using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetDiscoveryMarkers;
+using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetDiscoverySummary;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderServiceRequestDetail;
+using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetAttachmentAccessUrl;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -81,20 +86,71 @@ public sealed class ProviderJobsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("discovery")]
+    [ProducesResponseType(typeof(ProviderDiscoveryResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderDiscoveryResponse?>> GetDiscovery(
+        [FromQuery] ProviderServiceRequestDiscoveryFilter filter,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ProviderDiscoveryResponse>(
+            new GetProviderDiscoveryQuery { Filter = filter }, ct);
+
+        return SetResponse(result);
+    }
+
+    [HttpGet("discovery/markers")]
+    [ProducesResponseType(typeof(ProviderDiscoveryMarkersResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderDiscoveryMarkersResponse?>> GetDiscoveryMarkers(
+        [FromQuery] ProviderServiceRequestDiscoveryFilter filter,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ProviderDiscoveryMarkersResponse>(
+            new GetDiscoveryMarkersQuery { Filter = filter }, ct);
+
+        return SetResponse(result);
+    }
+
+    [HttpGet("discovery/summary")]
+    [ProducesResponseType(typeof(ProviderDiscoverySummaryResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderDiscoverySummaryResponse?>> GetDiscoverySummary(
+        [FromQuery] ProviderServiceRequestDiscoveryFilter filter,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ProviderDiscoverySummaryResponse>(
+            new GetDiscoverySummaryQuery { Filter = filter }, ct);
+
+        return SetResponse(result);
+    }
+
     /// <summary>
     /// One service request, readable only when the calling provider has a relationship with it (it is biddable,
     /// they have an offer on it, or it is assigned to them). Without this a provider could walk the id space and
     /// read every customer's request in the system.
     /// </summary>
     [HttpGet("service-requests/{serviceRequestId:long}")]
-    [ProducesResponseType(typeof(GetServiceRequestDetailResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetServiceRequestDetailResponse?>> GetServiceRequestDetail(
+    [ProducesResponseType(typeof(GetProviderServiceRequestDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetProviderServiceRequestDetailResponse?>> GetServiceRequestDetail(
         [FromRoute] long serviceRequestId,
         CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<GetServiceRequestDetailResponse>(
+        var result = await _cqrs.ProcessAsync<GetProviderServiceRequestDetailResponse>(
             new GetProviderServiceRequestDetailQuery(serviceRequestId), ct);
 
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Access-checks an attachment on a request for the calling provider.
+    /// Returns the FileId if authorized — the BFF mints the signed URL.
+    /// </summary>
+    [HttpGet("service-requests/{serviceRequestId:long}/attachments/{fileId:guid}/access-check")]
+    [ProducesResponseType(typeof(GetAttachmentAccessCheckResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetAttachmentAccessCheckResponse?>> CheckAttachmentAccess(
+        [FromRoute] long serviceRequestId, [FromRoute] Guid fileId,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetAttachmentAccessCheckResponse>(
+            new GetAttachmentAccessCheckQuery(serviceRequestId, fileId), ct);
         return SetResponse(result);
     }
 }

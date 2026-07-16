@@ -72,6 +72,7 @@ public sealed class ServiceRequestMockDataSeeder
         await SeedCompletionsAsync(basePath, ct);
         await SeedDisputesAsync(basePath, ct);
         await SeedMessagesAsync(basePath, ct);
+        await SeedAttachmentsAsync(ct);
         await AdvanceSequencesAsync(ct);
 
         _logger.LogInformation("ServiceRequest MockData seeder completed.");
@@ -103,8 +104,8 @@ public sealed class ServiceRequestMockDataSeeder
                 locationCountryCode: model.LocationCountryCode,
                 locationCityCode: model.LocationCityCode,
                 locationMarinaName: model.LocationMarinaName,
-                locationLatitude: null,
-                locationLongitude: null,
+                locationLatitude: model.LocationLatitude,
+                locationLongitude: model.LocationLongitude,
                 ownerNotes: null,
                 expiresAt: null);
 
@@ -114,6 +115,11 @@ public sealed class ServiceRequestMockDataSeeder
             entity.ModifyDate = DateTime.UtcNow;
             entity.IsDeleted = false;
             entity.IsActive = model.Status != 90 && model.Status != 91 && model.Status != 99;
+
+            // Set PublishedAt for biddable statuses so they appear in provider discovery
+            var status = (ServiceRequestStatus)model.Status;
+            if (status is ServiceRequestStatus.Open or ServiceRequestStatus.WaitingForOffer or ServiceRequestStatus.OfferReceived)
+                SetPrivateProperty(entity, "PublishedAt", (DateTime?)DateTime.UtcNow);
 
             if (model.Status == 90 && !string.IsNullOrWhiteSpace(model.CancelReason))
                 entity.Cancel(model.OwnerUserId, model.CancelReason);
@@ -450,6 +456,40 @@ public sealed class ServiceRequestMockDataSeeder
         }
     }
 
+    /// <summary>
+    /// Seeds a single attachment on the emergency request (SR 9011) for end-to-end gallery/read-url testing.
+    /// Uses a deterministic FileId so it can be linked to a real MinIO object later.
+    /// </summary>
+    private async Task SeedAttachmentsAsync(CancellationToken ct)
+    {
+        const long attachmentId = 50001;
+        const long serviceRequestId = 9011;
+        var fileId = new Guid("a0a0a0a0-b1b1-c2c2-d3d3-e4e4e4e4e4e4");
+
+        if (await _db.ServiceRequestAttachments.AnyAsync(a => a.Id == attachmentId, ct))
+            return;
+
+        // Only seed if the parent SR exists
+        if (!await _db.ServiceRequests.AnyAsync(r => r.Id == serviceRequestId, ct))
+            return;
+
+        var entity = ServiceRequestAttachmentEntity.Create(
+            serviceRequestId: serviceRequestId,
+            fileId: fileId,
+            attachmentType: ServiceRequestAttachmentType.Photo,
+            title: "Dümen sistemi hasar fotoğrafı",
+            description: "Hidrolik hortum sızıntısı gösteren fotoğraf",
+            uploaderUserId: 10008,
+            uploaderActorType: ServiceRequestActorType.Owner);
+
+        entity.Id = attachmentId;
+        entity.CreateDate = DateTime.UtcNow;
+        entity.ModifyDate = DateTime.UtcNow;
+        entity.IsDeleted = false;
+
+        await SaveEntityAsync(entity, _db.ServiceRequestAttachments, ct, $"attachment {attachmentId}");
+    }
+
     private async Task SaveEntityAsync<T>(T entity, Microsoft.EntityFrameworkCore.DbSet<T> dbSet, CancellationToken ct, string label)
         where T : class
     {
@@ -514,7 +554,8 @@ public sealed class ServiceRequestMockDataSeeder
         string Title, string? Description, int Status, int Priority,
         DateTime? RequestedStartDate, DateTime? RequestedEndDate,
         string? LocationCountryCode, string? LocationCityCode, string? LocationMarinaName,
-        string? CancelReason = null);
+        string? CancelReason = null,
+        decimal? LocationLatitude = null, decimal? LocationLongitude = null);
 
     private sealed record MockServiceRequestItemModel(
         long Id, long ServiceRequestId, int ItemType,

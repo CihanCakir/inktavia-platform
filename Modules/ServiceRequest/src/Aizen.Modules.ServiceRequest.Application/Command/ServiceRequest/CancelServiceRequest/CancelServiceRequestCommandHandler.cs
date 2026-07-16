@@ -1,6 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -15,10 +17,11 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
     private readonly IServiceRequestRepository _repository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
-    public CancelServiceRequestCommandHandler(IServiceRequestRepository repository, IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher)
+    public CancelServiceRequestCommandHandler(IServiceRequestRepository repository, IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher)
     {
-        _repository = repository; _info = info; _realtimePublisher = realtimePublisher;
+        _repository = repository; _info = info; _realtimePublisher = realtimePublisher; _messagePublisher = messagePublisher;
     }
 
     public override async Task<CancelServiceRequestResponse?> Handle(CancelServiceRequestCommand request, CancellationToken cancellationToken)
@@ -39,6 +42,14 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
         await _realtimePublisher.PublishAsync(entity.Id, entity.RequestCode, entity.OwnerUserId, null,
             ServiceRequestRealtimeEventType.ServiceRequestStatusChanged,
             entity.ToDto(), currentUserId, ServiceRequestActorType.Owner, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestCancelledMessage
+        {
+            ServiceRequestId = entity.Id,
+            RequestCode = entity.RequestCode,
+            LocationCityCode = entity.LocationCityCode,
+            CancelledByUserId = currentUserId,
+        }, cancellationToken);
 
         return new CancelServiceRequestResponse(entity.Id);
     }

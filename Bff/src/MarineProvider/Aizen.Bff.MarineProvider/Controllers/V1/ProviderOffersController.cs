@@ -82,6 +82,68 @@ public sealed class ProviderOffersController : AizenWebApiController
         }, ct);
         return Ok(SetResponse(result));
     }
+
+    /// <summary>Aggregate draft save. Server computes all totals — BFF passes through untouched.</summary>
+    [HttpPut("service-requests/{serviceRequestId:long}/offer/draft")]
+    public async Task<IActionResult> SaveOfferDraft(
+        long serviceRequestId,
+        [FromBody] SaveOfferDraftRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new SaveOfferDraftBffCommand
+        {
+            ServiceRequestId = serviceRequestId,
+            Body = body,
+        }, ct);
+        return Ok(SetResponse(result));
+    }
+
+    /// <summary>Preview: runs calculation without persisting.</summary>
+    [HttpPost("service-requests/{serviceRequestId:long}/offer/preview")]
+    public async Task<IActionResult> PreviewOffer(
+        long serviceRequestId,
+        [FromBody] SaveOfferDraftRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new PreviewOfferBffCommand
+        {
+            ServiceRequestId = serviceRequestId,
+            Body = body,
+        }, ct);
+        return Ok(SetResponse(result));
+    }
+
+    /// <summary>Draft → Submitted. Idempotent on idempotency key.</summary>
+    [HttpPost("service-requests/{serviceRequestId:long}/offer/{offerId:long}/submit")]
+    public async Task<IActionResult> SubmitOffer(
+        long serviceRequestId, long offerId,
+        [FromBody] SubmitOfferRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new SubmitOfferBffCommand
+        {
+            ServiceRequestId = serviceRequestId,
+            OfferId = offerId,
+            Body = body,
+        }, ct);
+        return Ok(SetResponse(result));
+    }
+
+    /// <summary>Withdraw an offer (keeps the row for history).</summary>
+    [HttpPost("service-requests/{serviceRequestId:long}/offer/{offerId:long}/withdraw")]
+    public async Task<IActionResult> WithdrawOfferNew(
+        long serviceRequestId, long offerId,
+        [FromBody] WithdrawOfferBffRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new WithdrawOfferBffCommand
+        {
+            ServiceRequestId = serviceRequestId,
+            OfferId = offerId,
+            Reason = body.Reason,
+        }, ct);
+        return Ok(SetResponse(result));
+    }
 }
 
 public sealed class WithdrawOfferBffRequest

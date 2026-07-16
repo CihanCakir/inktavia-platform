@@ -109,6 +109,16 @@ public static class ServiceRequestMappingExtensions
         EstimatedEndDate = entity.EstimatedEndDate,
         EstimatedDurationMinutes = entity.EstimatedDurationMinutes,
         ExpiresAt = entity.ExpiresAt,
+        Subtotal = entity.Subtotal,
+        TaxTotal = entity.TaxTotal,
+        DiscountTotal = entity.DiscountTotal,
+        GrandTotal = entity.GrandTotal,
+        DepositType = entity.DepositType,
+        DepositValue = entity.DepositValue,
+        PaymentTermsNote = entity.PaymentTermsNote,
+        WarrantyNote = entity.WarrantyNote,
+        SubmittedAt = entity.SubmittedAt,
+        ViewedAt = entity.ViewedAt,
         Items = entity.Items.Select(i => i.ToDto()).ToList(),
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
@@ -124,7 +134,14 @@ public static class ServiceRequestMappingExtensions
         UnitPrice = entity.UnitPrice,
         CurrencyCode = entity.CurrencyCode,
         SortOrder = entity.SortOrder,
-        IsDiscount = entity.IsDiscount
+        UnitCode = entity.UnitCode,
+        TaxRate = entity.TaxRate,
+        DiscountType = entity.DiscountType,
+        DiscountValue = entity.DiscountValue,
+        LineSubtotal = entity.LineSubtotal,
+        TaxAmount = entity.TaxAmount,
+        LineTotal = entity.LineTotal,
+        DiscountAmount = entity.DiscountAmount
     };
 
     public static ServiceRequestAssignmentDto ToDto(this ServiceRequestAssignmentEntity entity) => new()
@@ -214,4 +231,98 @@ public static class ServiceRequestMappingExtensions
         AttachmentFileId = entity.AttachmentFileId,
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow
     };
+
+    // --- Provider-specific mappings (privacy-filtered) ---
+
+    /// <summary>
+    /// Provider-safe projection: no OwnerUserId, coordinates snapped to ~500m grid.
+    /// Same snapping algorithm as the discovery SQL projection.
+    /// </summary>
+    public static ProviderServiceRequestDto ToProviderDto(this ServiceRequestEntity entity) => new()
+    {
+        Id = entity.Id,
+        RequestCode = entity.RequestCode,
+        Title = entity.Title,
+        Description = entity.Description,
+        Status = entity.Status,
+        Priority = entity.Priority,
+        ServiceCategoryCode = entity.ServiceCategoryCode,
+        ServiceTypeCode = entity.ServiceTypeCode,
+        RequestedStartDate = entity.RequestedStartDate,
+        RequestedEndDate = entity.RequestedEndDate,
+        ExpiresAt = entity.ExpiresAt,
+        LocationCountryCode = entity.LocationCountryCode,
+        LocationCityCode = entity.LocationCityCode,
+        LocationMarinaName = entity.LocationMarinaName,
+        ApproxLatitude = SnapCoordinate(entity.LocationLatitude, entity.Id),
+        ApproxLongitude = SnapCoordinate(entity.LocationLongitude, entity.Id),
+        VesselId = entity.VesselId,
+        VesselName = entity.VesselName,
+        OwnerNotes = entity.OwnerNotes,
+        PublishedAt = entity.PublishedAt,
+        CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
+        UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
+    };
+
+    public static WorkScopeItemDto ToWorkScopeDto(this ServiceRequestItemEntity entity) => new()
+    {
+        Id = entity.Id,
+        ItemType = entity.ItemType,
+        Title = entity.Title,
+        Description = entity.Description,
+        Quantity = entity.Quantity,
+        UnitCode = entity.UnitCode,
+        SortOrder = entity.SortOrder
+    };
+
+    public static ProviderAttachmentMetaDto ToProviderAttachmentMetaDto(this ServiceRequestAttachmentEntity entity) => new()
+    {
+        Id = entity.Id,
+        FileId = entity.FileId,
+        AttachmentType = entity.AttachmentType,
+        Title = entity.Title,
+        CreatedAt = entity.CreateDate ?? DateTime.UtcNow
+    };
+
+    /// <summary>
+    /// Assembles the full provider detail aggregate. Filters offers to the caller's own only.
+    /// </summary>
+    public static ProviderServiceRequestDetailDto ToProviderDetailDto(this ServiceRequestEntity entity, long providerProfileId)
+    {
+        var myOffer = entity.Offers
+            .FirstOrDefault(o => o.ProviderProfileId == providerProfileId && !o.IsDeleted);
+
+        return new ProviderServiceRequestDetailDto
+        {
+            Request = entity.ToProviderDto(),
+            WorkScope = entity.Items
+                .Where(i => !i.IsDeleted)
+                .OrderBy(i => i.SortOrder)
+                .Select(i => i.ToWorkScopeDto())
+                .ToList(),
+            Attachments = entity.Attachments
+                .Where(a => !a.IsDeleted)
+                .OrderByDescending(a => a.CreateDate)
+                .Select(a => a.ToProviderAttachmentMetaDto())
+                .ToList(),
+            MyOffer = myOffer?.ToDto(),
+            Timeline = entity.StatusHistory
+                .OrderByDescending(s => s.OccurredAt)
+                .Select(s => s.ToDto())
+                .ToList(),
+            OfferCount = entity.Offers.Count(o => !o.IsDeleted),
+            AttachmentCount = entity.Attachments.Count(a => !a.IsDeleted)
+        };
+    }
+
+    /// <summary>
+    /// Snaps a coordinate to a ~500m grid with deterministic per-row jitter.
+    /// Same algorithm as the discovery SQL projection in ServiceRequestRepository.
+    /// </summary>
+    private static decimal? SnapCoordinate(decimal? raw, long entityId)
+    {
+        if (raw is null) return null;
+        var jitter = (entityId % 7 - 3) * 0.001;
+        return (decimal)(Math.Round(((double)raw.Value + jitter) / 0.005) * 0.005);
+    }
 }

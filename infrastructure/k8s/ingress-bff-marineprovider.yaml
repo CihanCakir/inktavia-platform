@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+# Public entry point: the Provider BFF, and nothing else.
+#
+# Two things here are load-bearing:
+#
+# 1. WebSocket upgrade must be allowed. Without it SignalR silently falls back to long polling, which needs
+#    sticky sessions — and with many replicas and no affinity, a polling connection lands on a different pod
+#    each time and the transport breaks in ways that look like "realtime is flaky".
+#
+# 2. THE SIGNALR TOKEN TRAVELS IN THE QUERY STRING. A browser WebSocket cannot send an Authorization header,
+#    so the BFF accepts `?access_token=…` — but only on /hubs (JwtBearerEvents.OnMessageReceived). That means
+#    the end-user's access token is present in the URL of every hub connection. If the ingress logs the query
+#    string (the nginx default `$request_uri` does), every access token is written to the access log in
+#    plaintext. See configmap-ingress-nginx-log.yaml — that is not optional.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bff-marineprovider
+  namespace: inktavia
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"   # keep the WebSocket alive
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # No sticky sessions: the Redis backplane carries frames across pods (verified with two replicas,
+    # 2026-07-14). If you ever find yourself adding affinity to "fix realtime", the backplane is broken —
+    # fix that instead.
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: provider-api.inktavia.example        # replace with the real host
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bff-marineprovider
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - provider-api.inktavia.example
+      secretName: bff-marineprovider-tls
+# NOTE: internal modules (identity, service-request, file-storage, …) get NO Ingress object at all.
+# They are reachable only from the BFF pods — see networkpolicy-internal-modules.yaml.

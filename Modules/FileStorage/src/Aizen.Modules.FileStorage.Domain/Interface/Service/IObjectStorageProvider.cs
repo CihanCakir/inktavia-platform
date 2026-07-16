@@ -10,6 +10,7 @@ public interface IObjectStorageProvider
     Task<ObjectMetadataResult> GetObjectMetadataAsync(string bucketName, string objectKey, CancellationToken cancellationToken = default);
     Task DeleteObjectAsync(string bucketName, string objectKey, CancellationToken cancellationToken = default);
     Task<byte[]> ReadFirstBytesAsync(string bucketName, string objectKey, int byteCount, CancellationToken cancellationToken = default);
+    Task PutObjectAsync(string bucketName, string objectKey, byte[] content, string contentType, CancellationToken cancellationToken = default);
 }
 
 [DocumentationInfo("Object metadata result", "Holds metadata returned by the object storage provider for an existing object.")]

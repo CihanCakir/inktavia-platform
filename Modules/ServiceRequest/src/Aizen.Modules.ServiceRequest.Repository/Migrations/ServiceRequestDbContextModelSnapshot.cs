@@ -536,9 +536,28 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.Property<long?>("DeletedBy")
                         .HasColumnType("bigint");
 
+                    b.Property<decimal>("DeliveryTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("DepositType")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("DepositValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<string>("Description")
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)");
+
+                    b.Property<decimal>("DiscountTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("EmergencyFeeTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int?>("EstimatedDurationMinutes")
                         .HasColumnType("integer");
@@ -552,11 +571,27 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal>("GrandTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("InspectionTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("InstallationTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<decimal>("LaborTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
@@ -566,6 +601,18 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
 
                     b.Property<long?>("ModifyUserId")
                         .HasColumnType("bigint");
+
+                    b.Property<decimal>("OtherTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("PaymentTermsNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<decimal>("ProductTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("ProviderNotes")
                         .HasMaxLength(2000)
@@ -588,15 +635,40 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<DateTime?>("RevisionRequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<long>("ServiceRequestId")
                         .HasColumnType("bigint");
+
+                    b.Property<decimal>("ServiceTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TaxTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
+
+                    b.Property<DateTime?>("ViewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WarrantyNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("WithdrawalReason")
                         .HasMaxLength(1000)
@@ -604,6 +676,12 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
 
                     b.Property<DateTime?>("WithdrawnAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -648,17 +726,33 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("DiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsDiscount")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("ItemType")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("LineSubtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("LineTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
@@ -673,8 +767,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(12, 3)
+                        .HasColumnType("numeric(12,3)");
 
                     b.Property<long>("ServiceRequestOfferId")
                         .HasColumnType("bigint");
@@ -682,10 +777,22 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TaxRate")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("numeric(9,4)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("UnitCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 4)
@@ -798,6 +905,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime?>("ContentUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -879,6 +989,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("RequestCode")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -930,6 +1043,13 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.HasIndex("Status");
 
                     b.HasIndex("VesselId");
+
+                    b.HasIndex("Status", "LocationCityCode");
+
+                    b.HasIndex("Status", "PublishedAt");
+
+                    b.HasIndex("Status", "LocationLatitude", "LocationLongitude")
+                        .HasDatabaseName("IX_service_requests_Status_Lat_Lng");
 
                     b.ToTable("service_requests", "servicerequest");
                 });

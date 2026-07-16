@@ -61,6 +61,10 @@ public static class DependencyInjection
             CreateRemoteCall<IProviderReferenceDataRemoteCall>(
                 CreateHttpClient(provider, nameof(IProviderReferenceDataRemoteCall))));
 
+        services.AddTransient<IProviderVesselRemoteCall>(provider =>
+            CreateRemoteCall<IProviderVesselRemoteCall>(
+                CreateHttpClient(provider, nameof(IProviderVesselRemoteCall))));
+
         return services;
     }
 

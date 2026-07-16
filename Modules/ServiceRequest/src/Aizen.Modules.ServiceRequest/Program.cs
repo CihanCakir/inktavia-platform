@@ -32,6 +32,8 @@ builder.Services.AddAizenInfoAccessor(builder.Configuration);
 
 builder.Services.AddServiceRequestRepository();
 builder.Services.AddServiceRequestServices();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.OfferCalculationService>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.UnitCodeValidator>();
 
 builder.Services.AddServiceRequestMockData(builder.Configuration);
 

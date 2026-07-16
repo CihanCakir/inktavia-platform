@@ -11,7 +11,7 @@ namespace Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderSer
 /// provider, which is the whole point of the access check in the handler.
 /// </summary>
 [DocumentationInfo("Get provider service request detail query", "Returns one service request, if the calling provider is allowed to see it.")]
-public sealed class GetProviderServiceRequestDetailQuery : AizenQuery<GetServiceRequestDetailResponse>
+public sealed class GetProviderServiceRequestDetailQuery : AizenQuery<GetProviderServiceRequestDetailResponse>
 {
     public long ServiceRequestId { get; }
 

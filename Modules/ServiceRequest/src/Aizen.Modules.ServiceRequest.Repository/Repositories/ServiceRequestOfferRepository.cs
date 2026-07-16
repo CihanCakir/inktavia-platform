@@ -52,6 +52,22 @@ public sealed class ServiceRequestOfferRepository : IServiceRequestOfferReposito
             .ToListAsync(ct);
     }
 
+    public Task<ServiceRequestOfferEntity?> GetDraftByProviderAndRequestAsync(long providerProfileId, long serviceRequestId, CancellationToken ct = default)
+        => _db.ServiceRequestOffers
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.ProviderProfileId == providerProfileId
+                && x.ServiceRequestId == serviceRequestId
+                && x.Status == ServiceRequestOfferStatus.Draft
+                && !x.IsDeleted, ct);
+
+    public Task<ServiceRequestOfferEntity?> GetByProviderRequestAndIdempotencyAsync(long providerProfileId, long serviceRequestId, CancellationToken ct = default)
+        => _db.ServiceRequestOffers
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.ProviderProfileId == providerProfileId
+                && x.ServiceRequestId == serviceRequestId
+                && x.Status == ServiceRequestOfferStatus.Submitted
+                && !x.IsDeleted, ct);
+
     public Task AddAsync(ServiceRequestOfferEntity entity, CancellationToken ct = default)
         => _db.ServiceRequestOffers.AddAsync(entity, ct).AsTask();
 

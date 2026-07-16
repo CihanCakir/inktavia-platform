@@ -150,4 +150,17 @@ public sealed class S3ObjectStorageProvider : IObjectStorageProvider
         await response.ResponseStream.CopyToAsync(ms, cancellationToken);
         return ms.ToArray();
     }
+
+    public async Task PutObjectAsync(string bucketName, string objectKey, byte[] content, string contentType, CancellationToken cancellationToken = default)
+    {
+        using var stream = new MemoryStream(content);
+        var request = new PutObjectRequest
+        {
+            BucketName = bucketName,
+            Key = objectKey,
+            InputStream = stream,
+            ContentType = contentType
+        };
+        await _client.PutObjectAsync(request, cancellationToken);
+    }
 }

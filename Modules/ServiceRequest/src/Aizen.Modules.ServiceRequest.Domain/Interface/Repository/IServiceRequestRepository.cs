@@ -1,5 +1,6 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 
 namespace Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
@@ -17,6 +18,9 @@ public interface IServiceRequestRepository
     Task<int> CountAdminAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task<IReadOnlyList<ServiceRequestEntity>> GetOpenForProviderAsync(long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task<int> CountOpenForProviderAsync(long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default);
+    Task<List<ProviderDiscoveryItemDto>> GetDiscoveryAsync(long providerProfileId, ProviderServiceRequestDiscoveryFilter filter, CancellationToken ct = default);
+    Task<List<DiscoveryMarkerDto>> GetDiscoveryMarkersAsync(long providerProfileId, ProviderServiceRequestDiscoveryFilter filter, CancellationToken ct = default);
+    Task<ProviderDiscoverySummaryResponse> GetDiscoverySummaryAsync(long providerProfileId, ProviderServiceRequestDiscoveryFilter filter, CancellationToken ct = default);
     Task AddAsync(ServiceRequestEntity entity, CancellationToken ct = default);
     void Update(ServiceRequestEntity entity);
 }
