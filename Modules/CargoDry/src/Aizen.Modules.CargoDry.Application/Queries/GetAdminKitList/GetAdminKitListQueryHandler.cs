@@ -21,7 +21,7 @@ public sealed class GetAdminKitListQueryHandler
     {
         var skip = (request.Page - 1) * request.PageSize;
         var (items, total) = await _kits.GetPagedAsync(
-            request.Status, request.Search, request.VesselId, request.OwnerUserId, request.BatchCode, skip, request.PageSize, ct);
+            request.Status, request.Search, request.VesselId, request.OwnerUserId, request.BatchCode, skip, request.PageSize, ct: ct);
 
         var allProducts = await _products.GetAllActiveAsync(ct);
         var productMap  = allProducts.ToDictionary(p => p.ProductCode);

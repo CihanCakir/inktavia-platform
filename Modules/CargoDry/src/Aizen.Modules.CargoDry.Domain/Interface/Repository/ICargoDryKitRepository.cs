@@ -9,14 +9,14 @@ public interface ICargoDryKitRepository
     Task<CargoDryKitEntity?> GetBySerialAsync(string serialNumber, CancellationToken ct = default);
     Task<List<CargoDryKitEntity>> GetByOwnerAsync(long userId, CancellationToken ct = default);
     Task<CargoDryKitEntity?> GetActiveByVesselAsync(long vesselId, string productCode, CancellationToken ct = default);
-    Task<List<CargoDryKitEntity>> GetExpiringAsync(int withinDays, CancellationToken ct = default);
-    Task<List<CargoDryKitEntity>> GetExpiredUnmarkedAsync(CancellationToken ct = default);
+    Task<List<CargoDryKitEntity>> GetExpiringAsync(int withinDays, long? providerProfileId = null, CancellationToken ct = default);
+    Task<List<CargoDryKitEntity>> GetExpiredUnmarkedAsync(long? providerProfileId = null, CancellationToken ct = default);
     Task<(List<CargoDryKitEntity> Items, int Total)> GetPagedAsync(
-        CargoDryKitStatus? status, string? search, long? vesselId, long? ownerUserId, string? batchCode, int skip, int take, CancellationToken ct = default);
+        CargoDryKitStatus? status, string? search, long? vesselId, long? ownerUserId, string? batchCode, int skip, int take, long? providerProfileId = null, CancellationToken ct = default);
     Task<List<CargoDryKitEntity>> GetAllAsync(CancellationToken ct = default);
     Task<List<CargoDryKitEntity>> GetAllForReportAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
-    Task<CargoDryStatsProjection> GetStatsAsync(CancellationToken ct = default);
+    Task<CargoDryStatsProjection> GetStatsAsync(long? providerProfileId = null, CancellationToken ct = default);
     /// <summary>
     /// Returns all Available (un-activated) kits belonging to the given batch.
     /// Used by batch revoke to cascade-revoke un-used kits.

@@ -32,7 +32,7 @@ public sealed class KitExpiredMarkingJob : AizenRecurringJob
         var activationLogs = scope.ServiceProvider.GetRequiredService<ICargoDryActivationLogRepository>();
         var cache          = scope.ServiceProvider.GetRequiredService<IAizenDistributedCache>();
 
-        var expired = await kits.GetExpiredUnmarkedAsync(cancellationToken);
+        var expired = await kits.GetExpiredUnmarkedAsync(ct: cancellationToken);
         Logger.WriteConsole($"KitExpiredMarkingJob: marking {expired.Count} kits as expired");
 
         foreach (var kit in expired)

@@ -38,20 +38,26 @@ public sealed class GetCargoDryOperationalOverviewQueryHandler
     public override async Task<CargoDryOperationalOverviewDto> Handle(
         GetCargoDryOperationalOverviewQuery request, CancellationToken ct)
     {
-        var (hit, cached) = await _cache.TryGetAsync<CargoDryOperationalOverviewDto>(CacheKey, ct);
+        var pid = request.ProviderProfileId;
+        var scope = pid?.ToString() ?? "global";
+        var cacheKey = $"{CacheKey}:{scope}";
+
+        var (hit, cached) = await _cache.TryGetAsync<CargoDryOperationalOverviewDto>(cacheKey, ct);
         if (hit) return cached;
 
         // Sequential — DbContext is not thread-safe; concurrent awaits on the same instance crash.
-        var stats                      = await _kits.GetStatsAsync(ct);
-        var expiringSoon               = await _kits.GetExpiringAsync(30, ct);
+        var stats                      = await _kits.GetStatsAsync(pid, ct);
+        var expiringSoon               = await _kits.GetExpiringAsync(30, pid, ct);
         var (_, commercialReviewCount) = await _kits.GetPagedAsync(
             CargoDryKitStatus.CommercialReviewRequired,
-            null, null, null, null, 0, 0, ct);
+            null, null, null, null, 0, 0, pid, ct);
         var (_, lostCount)             = await _kits.GetPagedAsync(
             CargoDryKitStatus.Lost,
-            null, null, null, null, 0, 0, ct);
-        var activeBatches              = await _batches.CountActiveBatchesAsync(ct);
-        var recentLifecycleEventCount  = await _lifecycleEvents.CountRecentAsync(24, ct);
+            null, null, null, null, 0, 0, pid, ct);
+
+        // Batch + lifecycle counts are platform-level — zero for provider scope
+        var activeBatches             = pid.HasValue ? 0 : await _batches.CountActiveBatchesAsync(ct);
+        var recentLifecycleEventCount = pid.HasValue ? 0 : await _lifecycleEvents.CountRecentAsync(24, ct);
 
         // Alert count = critical expiring (≤7d) + commercial review + expired unmarked
         var criticalExpiring   = expiringSoon.Count(k =>
@@ -70,13 +76,13 @@ public sealed class GetCargoDryOperationalOverviewQueryHandler
             LostKits                     = lostCount,
             RenewalDueSoonKits           = expiringSoon.Count,
             CommercialReviewRequiredKits = commercialReviewCount,
-            ProviderHeldKits             = 0,  // StockLocationType filter not yet in repo; post-MVP
-            WarehouseStockKits           = 0,  // StockLocationType filter not yet in repo; post-MVP
+            ProviderHeldKits             = 0,
+            WarehouseStockKits           = 0,
 
-            // Batch counts
-            TotalBatches             = activeBatches,  // non-revoked batches
+            // Batch counts (platform-level — zeroed for provider scope)
+            TotalBatches             = activeBatches,
             ActiveBatches            = activeBatches,
-            ProviderAllocatedBatches = 0,              // post-MVP (needs batch allocation tracking)
+            ProviderAllocatedBatches = 0,
 
             // Activity indicators
             RecentLifecycleEventCount = recentLifecycleEventCount,
@@ -85,7 +91,7 @@ public sealed class GetCargoDryOperationalOverviewQueryHandler
             ComputedAtUtc = DateTimeOffset.UtcNow,
         };
 
-        await _cache.SetAsync(result, CacheKey,
+        await _cache.SetAsync(result, cacheKey,
             new AizenCacheOptions { AbsoluteExpirationRelativeToNow = CacheTtl }, ct);
 
         return result;

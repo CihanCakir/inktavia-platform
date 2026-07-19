@@ -16,16 +16,20 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
 {
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestCompletionRepository _completionRepository;
+    private readonly IServiceRequestAssignmentRepository _assignmentRepository;
+    private readonly IServiceRequestMessageRepository _msgRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
 
     public ApproveServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestCompletionRepository completionRepository,
+        IServiceRequestAssignmentRepository assignmentRepository, IServiceRequestMessageRepository msgRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
         IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _completionRepository = completionRepository;
+        _assignmentRepository = assignmentRepository; _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _messagePublisher = messagePublisher;
     }
@@ -60,6 +64,26 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
             ProviderUserId = completion.ProviderUserId,
             OwnerUserId = currentUserId
         }, cancellationToken);
+
+        // Lifecycle system message (idempotent)
+        if (!await _msgRepository.HasSystemMessageAsync(sr.Id, "JOB_COMPLETED", cancellationToken))
+        {
+            var sysMsg = ServiceRequestMessageEntity.Create(
+                sr.Id, currentUserId, ServiceRequestMessageSenderType.System,
+                ServiceRequestMessageType.StatusChange, "JOB_COMPLETED", null);
+            await _msgRepository.AddAsync(sysMsg, cancellationToken);
+
+            // Resolve provider profile from assignment
+            var assignment = await _assignmentRepository.GetByServiceRequestIdAsync(sr.Id, cancellationToken);
+            var providerProfileId = assignment?.ProviderProfileId;
+
+            await _messagePublisher.PublishAsync(new ServiceRequestMessageSentMessage
+            {
+                ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
+                SenderType = ServiceRequestMessageSenderType.System,
+                ProviderProfileId = providerProfileId
+            }, cancellationToken);
+        }
 
         return new ApproveServiceRequestCompletionResponse(completion.Id);
     }

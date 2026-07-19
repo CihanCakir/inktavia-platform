@@ -41,29 +41,33 @@ public static class DependencyInjection
         // Central outgoing auth handler wired into every downstream Refit client.
         services.AddTransient<MarineProviderBffAuthDelegatingHandler>();
 
-        services.AddTransient<IProviderIdentityRemoteCall>(provider =>
-            CreateRemoteCall<IProviderIdentityRemoteCall>(
-                CreateHttpClient(provider, nameof(IProviderIdentityRemoteCall))));
+        services.AddTransient<IIdentityRemoteCall>(provider =>
+            CreateRemoteCall<IIdentityRemoteCall>(
+                CreateHttpClient(provider, nameof(IIdentityRemoteCall))));
 
-        services.AddTransient<IProviderServiceRequestRemoteCall>(provider =>
-            CreateRemoteCall<IProviderServiceRequestRemoteCall>(
-                CreateHttpClient(provider, nameof(IProviderServiceRequestRemoteCall))));
+        services.AddTransient<IServiceRequestRemoteCall>(provider =>
+            CreateRemoteCall<IServiceRequestRemoteCall>(
+                CreateHttpClient(provider, nameof(IServiceRequestRemoteCall))));
 
-        services.AddTransient<IProviderFileStorageRemoteCall>(provider =>
-            CreateRemoteCall<IProviderFileStorageRemoteCall>(
-                CreateHttpClient(provider, nameof(IProviderFileStorageRemoteCall))));
+        services.AddTransient<IFileStorageRemoteCall>(provider =>
+            CreateRemoteCall<IFileStorageRemoteCall>(
+                CreateHttpClient(provider, nameof(IFileStorageRemoteCall))));
 
-        services.AddTransient<IProviderNotificationRemoteCall>(provider =>
-            CreateRemoteCall<IProviderNotificationRemoteCall>(
-                CreateHttpClient(provider, nameof(IProviderNotificationRemoteCall))));
+        services.AddTransient<INotificationRemoteCall>(provider =>
+            CreateRemoteCall<INotificationRemoteCall>(
+                CreateHttpClient(provider, nameof(INotificationRemoteCall))));
 
-        services.AddTransient<IProviderReferenceDataRemoteCall>(provider =>
-            CreateRemoteCall<IProviderReferenceDataRemoteCall>(
-                CreateHttpClient(provider, nameof(IProviderReferenceDataRemoteCall))));
+        services.AddTransient<IReferenceDataRemoteCall>(provider =>
+            CreateRemoteCall<IReferenceDataRemoteCall>(
+                CreateHttpClient(provider, nameof(IReferenceDataRemoteCall))));
 
-        services.AddTransient<IProviderVesselRemoteCall>(provider =>
-            CreateRemoteCall<IProviderVesselRemoteCall>(
-                CreateHttpClient(provider, nameof(IProviderVesselRemoteCall))));
+        services.AddTransient<IVesselRemoteCall>(provider =>
+            CreateRemoteCall<IVesselRemoteCall>(
+                CreateHttpClient(provider, nameof(IVesselRemoteCall))));
+
+        services.AddTransient<ICargoDryRemoteCall>(provider =>
+            CreateRemoteCall<ICargoDryRemoteCall>(
+                CreateHttpClient(provider, nameof(ICargoDryRemoteCall))));
 
         return services;
     }

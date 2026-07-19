@@ -23,6 +23,7 @@ public sealed class ProviderServiceRequestDto
     public string? LocationMarinaName { get; set; }
     public decimal? ApproxLatitude { get; set; }
     public decimal? ApproxLongitude { get; set; }
+    public decimal? DistanceKm { get; set; }
     public long VesselId { get; set; }
     public string? VesselName { get; set; }
     public string? VesselTypeCode { get; set; }
@@ -30,6 +31,13 @@ public sealed class ProviderServiceRequestDto
     public string? VesselModel { get; set; }
     public decimal? VesselLengthValue { get; set; }
     public string? VesselLengthUnitCode { get; set; }
+    public int? VesselYear { get; set; }
+    public string? VesselMaterialCode { get; set; }
+    public string? VesselRegistrationNumber { get; set; }
+    public decimal? VesselBeamValue { get; set; }
+    public string? VesselBeamUnitCode { get; set; }
+    public decimal? VesselDraftValue { get; set; }
+    public string? VesselDraftUnitCode { get; set; }
     public string? OwnerNotes { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }

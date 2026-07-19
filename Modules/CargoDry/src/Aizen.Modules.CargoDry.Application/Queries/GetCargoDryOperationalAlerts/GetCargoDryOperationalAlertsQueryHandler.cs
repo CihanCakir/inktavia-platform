@@ -27,17 +27,19 @@ public sealed class GetCargoDryOperationalAlertsQueryHandler
     public override async Task<CargoDryOperationalAlertsResponse> Handle(
         GetCargoDryOperationalAlertsQuery request, CancellationToken ct)
     {
+        var pid = request.ProviderProfileId;
+
         // Sequential — DbContext is not thread-safe; concurrent awaits on the same instance crash.
-        var expiringSoon = await _kits.GetExpiringAsync(30, ct);
-        var expired      = await _kits.GetExpiredUnmarkedAsync(ct);
+        var expiringSoon = await _kits.GetExpiringAsync(30, pid, ct);
+        var expired      = await _kits.GetExpiredUnmarkedAsync(pid, ct);
         var (commercialKits, _) = await _kits.GetPagedAsync(
             status: CargoDryKitStatus.CommercialReviewRequired,
             search: null, vesselId: null, ownerUserId: null, batchCode: null,
-            skip: 0, take: 500, ct: ct);
+            skip: 0, take: 500, providerProfileId: pid, ct: ct);
         var (revokedKits, _) = await _kits.GetPagedAsync(
             status: CargoDryKitStatus.Revoked,
             search: null, vesselId: null, ownerUserId: null, batchCode: null,
-            skip: 0, take: 200, ct: ct);
+            skip: 0, take: 200, providerProfileId: pid, ct: ct);
 
         var now    = DateTimeOffset.UtcNow;
         var alerts = new List<CargoDryOperationalAlertDto>();

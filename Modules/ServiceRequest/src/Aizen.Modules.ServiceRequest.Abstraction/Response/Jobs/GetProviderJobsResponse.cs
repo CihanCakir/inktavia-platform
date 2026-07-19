@@ -15,6 +15,10 @@ public sealed record ProviderJobItemDto
     public long ServiceRequestId { get; init; }
     public long ServiceRequestOfferId { get; init; }
     public string Status { get; init; } = string.Empty;
+    public string? Title { get; init; }
+    public string? RequestCode { get; init; }
+    public long VesselId { get; init; }
+    public string? VesselName { get; init; }
     public DateTime? ScheduledStartDate { get; init; }
     public DateTime? ScheduledEndDate { get; init; }
     public DateTime? ActualStartDate { get; init; }

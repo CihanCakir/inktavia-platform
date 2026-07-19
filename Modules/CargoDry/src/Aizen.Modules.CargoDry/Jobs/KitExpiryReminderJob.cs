@@ -31,7 +31,7 @@ public sealed class KitExpiryReminderJob : AizenRecurringJob
 
         foreach (var days in ReminderDays)
         {
-            var expiring = await kits.GetExpiringAsync(days, cancellationToken);
+            var expiring = await kits.GetExpiringAsync(days, ct: cancellationToken);
             var targets  = expiring.Where(k => k.DaysUntilExpiry == days).ToList();
 
             Logger.WriteConsole($"KitExpiryReminderJob: {targets.Count} kits expiring in {days} day(s)");

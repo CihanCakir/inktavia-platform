@@ -17,6 +17,7 @@ public sealed class CargoDryDbContext : AizenDbContext
     public DbSet<CargoDryConsignmentAgreementEntity>  ConsignmentAgreements => Set<CargoDryConsignmentAgreementEntity>();
     public DbSet<CargoDryProviderInventoryEntity>     ProviderInventories    => Set<CargoDryProviderInventoryEntity>();
     public DbSet<CargoDryInventoryMovementEntity>     InventoryMovements     => Set<CargoDryInventoryMovementEntity>();
+    public DbSet<CargoDryStockRequestEntity>            StockRequests          => Set<CargoDryStockRequestEntity>();
     public DbSet<CargoDrySalesAttributionEntity>      SalesAttributions      => Set<CargoDrySalesAttributionEntity>();
     public DbSet<CargoDrySellThroughSettlementEntity>      SellThroughSettlements      => Set<CargoDrySellThroughSettlementEntity>();
     public DbSet<CargoDrySettlementAutomationRunEntity>    SettlementAutomationRuns    => Set<CargoDrySettlementAutomationRunEntity>();

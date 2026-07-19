@@ -10,6 +10,8 @@ namespace Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalAlert
 /// </summary>
 public sealed class GetCargoDryOperationalAlertsQuery : AizenQuery<CargoDryOperationalAlertsResponse>
 {
+    /// <summary>When set, scopes alerts to this provider's kits only.</summary>
+    public long? ProviderProfileId { get; init; }
     public int Page     { get; init; } = 1;
     public int PageSize { get; init; } = 25;
 }

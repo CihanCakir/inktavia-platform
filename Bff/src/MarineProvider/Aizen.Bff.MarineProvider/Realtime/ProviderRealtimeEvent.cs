@@ -16,6 +16,7 @@ public sealed class ProviderRealtimeEvent
     public string? CityCode { get; init; }
     public string? MarinaName { get; init; }
     public long? OfferId { get; init; }
+    public string? MessageSenderType { get; init; }
     public DateTimeOffset OccurredAt { get; init; } = DateTimeOffset.UtcNow;
 }
 
@@ -44,4 +45,7 @@ public static class ProviderRealtimeEventTypes
 
     /// <summary>The customer requested a revision on this provider's offer.</summary>
     public const string OfferRevisionRequested = "OfferRevisionRequested";
+
+    /// <summary>A message was added to a conversation involving this provider.</summary>
+    public const string MessageAdded = "MessageAdded";
 }

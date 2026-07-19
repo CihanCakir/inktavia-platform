@@ -14,9 +14,13 @@ namespace Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderSer
 public sealed class GetProviderServiceRequestDetailQuery : AizenQuery<GetProviderServiceRequestDetailResponse>
 {
     public long ServiceRequestId { get; }
+    public decimal? CenterLatitude { get; }
+    public decimal? CenterLongitude { get; }
 
-    public GetProviderServiceRequestDetailQuery(long serviceRequestId)
+    public GetProviderServiceRequestDetailQuery(long serviceRequestId, decimal? centerLatitude = null, decimal? centerLongitude = null)
     {
         ServiceRequestId = serviceRequestId;
+        CenterLatitude = centerLatitude;
+        CenterLongitude = centerLongitude;
     }
 }

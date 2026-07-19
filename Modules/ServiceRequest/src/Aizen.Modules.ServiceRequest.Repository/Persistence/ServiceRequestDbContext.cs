@@ -6,6 +6,7 @@ using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Catalog;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkPhase;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +33,9 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<ServiceRequestConversationEntity> Conversations => Set<ServiceRequestConversationEntity>();
     public DbSet<ConversationMessageEntity> ConversationMessages => Set<ConversationMessageEntity>();
     public DbSet<MessageAttachmentEntity> MessageAttachments => Set<MessageAttachmentEntity>();
+    public DbSet<ProviderCatalogItemEntity> ProviderCatalogItems => Set<ProviderCatalogItemEntity>();
+    public DbSet<ProviderOfferTemplateEntity> ProviderOfferTemplates => Set<ProviderOfferTemplateEntity>();
+    public DbSet<ProviderOfferTemplateItemEntity> ProviderOfferTemplateItems => Set<ProviderOfferTemplateItemEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

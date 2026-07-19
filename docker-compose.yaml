@@ -170,6 +170,9 @@ services:
       - identity-api
       - service-request-api
       - file-storage-api
+      - cargodry-api
+      - reference-data-api
+      - vessel-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -194,10 +197,11 @@ services:
       MarineProviderKeycloak__ProviderProfileIdAttributeName: provider_profile_id
       MarineProviderKeycloak__VerifyEmailRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/verify-callback
       # BFF → module calls (Keycloak service token injected by the delegating handler)
-      RemoteCalls__IProviderIdentityRemoteCall__BaseUrl: http://identity-api:8080
-      RemoteCalls__IProviderServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
-      RemoteCalls__IProviderFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
-      RemoteCalls__IProviderVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
       MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -234,6 +238,9 @@ services:
       - identity-api
       - service-request-api
       - file-storage-api
+      - cargodry-api
+      - reference-data-api
+      - vessel-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -258,10 +265,11 @@ services:
       MarineProviderKeycloak__ProviderProfileIdAttributeName: provider_profile_id
       MarineProviderKeycloak__VerifyEmailRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/verify-callback
       # BFF → module calls (Keycloak service token injected by the delegating handler)
-      RemoteCalls__IProviderIdentityRemoteCall__BaseUrl: http://identity-api:8080
-      RemoteCalls__IProviderServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
-      RemoteCalls__IProviderFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
-      RemoteCalls__IProviderVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
       MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -562,6 +570,8 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: cargodry-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
       ElasticApm__Enabled: "false"
     ports:
       - "7108:8080"

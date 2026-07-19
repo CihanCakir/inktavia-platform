@@ -609,11 +609,1314 @@ The automated EF-based seeder had issues with `PublicId` override (EF's `Entry()
 
 ---
 
+## 16 — Vessel Year / Material / Registry on Detail
+
+### Three fields added end-to-end
+
+| Field | Source | DTO field |
+|-------|--------|-----------|
+| Production Year | `VesselSpecificationEntity.ProductionYear` | `vesselYear` |
+| Hull Material | `VesselSpecificationEntity.HullMaterialCode` | `vesselMaterialCode` |
+| Registration Number | `VesselEntity.RegistrationNumber` | `vesselRegistrationNumber` |
+
+### Detail response for SR 9011 (vessel 20004 — Aegean Wind)
+
+```json
+{
+  "vesselId": 20004,
+  "vesselName": "Aegean Wind",
+  "vesselTypeCode": "SAILING_YACHT",
+  "vesselBrand": "Bavaria",
+  "vesselModel": "Bavaria C42",
+  "vesselLengthValue": 13.3,
+  "vesselLengthUnitCode": "M",
+  "vesselYear": 2016,
+  "vesselMaterialCode": "GRP",
+  "vesselRegistrationNumber": "TR-IZM-2016-0042"
+}
+```
+
+### Seed values
+
+Vessel 20004 already had `ProductionYear=2016` and `HullMaterialCode=GRP` from the vessel seed. `RegistrationNumber` was set to `TR-IZM-2016-0042` for testing.
+
+### Cache key bumped
+
+`vessel:summary:` → `vessel:summary:v2:` (both detail and discovery handlers). Old cached entries without the new fields expire naturally (10 min TTL) and are replaced with the new shape.
+
+### No N+1
+
+The spec is already joined in `GetVesselSummariesQueryHandler` (GroupJoin). Three new columns added to the same projection — no additional query.
+
+### Codes stay codes
+
+`HullMaterialCode` is a ReferenceData code (e.g. `GRP`, `ALUMINUM`, `STEEL`). Not translated server-side. The SPA maps it via i18n (`hullMaterial.*`).
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `VesselSummaryDto` (Vessel Abstraction) | Added `ProductionYear`, `HullMaterialCode`, `RegistrationNumber` |
+| `GetVesselSummariesQueryHandler.cs` | Added three fields to the projection |
+| `ProviderServiceRequestDto.cs` (SR Abstraction) | Added `VesselYear`, `VesselMaterialCode`, `VesselRegistrationNumber` |
+| `GetServiceRequestDetailBffQueryHandler.cs` | `ApplyVessel` maps the three new fields |
+| `GetProviderDiscoveryBffQueryHandler.cs` | Cache key bumped to `v2` |
+
+---
+
+## 17 — Distance-to-Request on Detail
+
+### Two responses — with and without centre
+
+**With centre** (`centerLatitude=38.40&centerLongitude=26.35`, ~10 km from Çeşme):
+```json
+{
+  "distanceKm": 9.9,
+  "approxLatitude": 38.32,
+  "approxLongitude": 26.3
+}
+```
+
+**Without centre:**
+```json
+{
+  "distanceKm": null
+}
+```
+
+### Exact coordinates never leak
+
+`locationLatitude` / `locationLongitude` are not present in the response — only `approxLatitude`/`approxLongitude` (snapped) and `distanceKm` (computed from exact coords in the module).
+
+### Same haversine as discovery
+
+Added `GeoHelper.HaversineKm(lat1, lng1, lat2, lng2)` — same formula as the SQL expression in the discovery projection. Computed from exact coordinates in the module handler; only the rounded result (1 decimal) leaves.
+
+### No geo maths in the BFF
+
+The BFF accepts `centerLatitude`/`centerLongitude` from the SPA and forwards them as query params to the module. `distanceKm` is carried through untouched. No computation in the BFF.
+
+### Süre (ETA) — deferred
+
+No routing service in the stack. `distanceKm` is straight-line; a travel time is not derivable without routing. The SPA shows "Mesafe: X km" and hides süre.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `GeoHelper.cs` | Added `HaversineKm` static method |
+| `GetProviderServiceRequestDetailQuery.cs` | Added `CenterLatitude`, `CenterLongitude` |
+| `GetProviderServiceRequestDetailQueryHandler.cs` | Computes `DistanceKm` from exact coords when centre provided |
+| `ProviderServiceRequestDto.cs` | Added `DistanceKm` |
+| `ProviderJobsController.cs` (module) | Added `centerLatitude`, `centerLongitude` query params |
+| `IProviderServiceRequestRemoteCall.cs` | Added centre params to `GetServiceRequestDetail` |
+| `GetServiceRequestDetailBffQuery.cs` | Added centre fields |
+| `GetServiceRequestDetailBffQueryHandler.cs` | Forwards centre to module call |
+| `ProviderServiceRequestsController.cs` (BFF) | Added centre query params |
+
+---
+
+## 18 — Offer-Gated Messaging (Anti-Harassment) + Realtime
+
+### The gate — verified end-to-end
+
+**`channelOpen`** = the conversation contains at least one message with `SenderType == Owner`.
+
+| Test | Result |
+|------|--------|
+| Provider POST, no owner message | **Rejected**: `SR_MSG_CHANNEL_LOCKED` |
+| GET messages, no owner message | `channelOpen: false`, 0 items |
+| Owner sends message (simulated) | Inserted |
+| Provider POST after owner message | **Accepted**: `senderType: 2` (Provider) |
+| GET messages after owner message | `channelOpen: true`, 2 items (owner + provider) |
+
+Gate is enforced **server-side** in `SendServiceRequestMessageCommandHandler` — the BFF cannot bypass it.
+
+### Offer-as-message
+
+On `SubmitOffer`, a `MessageType.Offer` message is created (idempotent per offer id):
+- `SenderType=Provider`, `MessageType=Offer`
+- `Content = "offer:{offerId}|{grandTotal} {currency}"`
+- Does **not** open the channel for the provider (only an Owner message does)
+
+**Decision**: offer-message created on **submit** (owner confirmed 2026-07-16), not on view.
+
+### SenderType override
+
+The BFF's service account token lacks Provider/Owner Keycloak roles, so the module controller's role-based detection falls through to Owner. Fixed by adding `SenderTypeOverride` to `SendServiceRequestMessageRequest` — the BFF sets it to `Provider`; the module controller uses it when present.
+
+### Provider realtime
+
+- `ServiceRequestMessageSentMessage` now carries `ProviderProfileId`
+- `MessageAddedRealtimeConsumer` added to BFF → pushes `"MessageAdded"` event to `provider:{profileId}` group
+- Only notifies the provider for **Owner→provider** messages (provider's own sends don't toast)
+- **No message content** on the realtime frame — the SPA refetches the thread
+
+### BFF endpoints
+
+| Endpoint | Route | Description |
+|----------|-------|-------------|
+| GET messages | `GET /provider/service-requests/{id}/messages` | History + `channelOpen` state |
+| Send message | `POST /provider/service-requests/{id}/messages` | Provider free text (gate enforced) |
+
+### Files created
+
+| File | Purpose |
+|------|---------|
+| `BFF/Realtime/MessageAddedRealtimeConsumer.cs` | Bus → browser for owner messages |
+| `BFF/ServiceRequests/GetProviderMessagesQuery.cs` | Query + response DTO |
+| `BFF/ServiceRequests/GetProviderMessagesQueryHandler.cs` | Messages + channelOpen |
+| `BFF/ServiceRequests/SendProviderMessageCommand.cs` | Command |
+| `BFF/ServiceRequests/SendProviderMessageCommandHandler.cs` | Forwards with SenderTypeOverride=Provider |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ServiceRequestMessageType.cs` | Added `Offer = 4` |
+| `ServiceRequestMessageSentMessage.cs` | Added `ProviderProfileId` |
+| `IServiceRequestMessageRepository.cs` | Added `HasOwnerMessageAsync`, `HasOfferMessageForOfferAsync` |
+| `ServiceRequestMessageRepository.cs` | Implemented new methods |
+| `SendServiceRequestMessageCommandHandler.cs` | Gate logic + bus publish + provider profile resolution |
+| `SubmitOfferCommandHandler.cs` | Creates offer-as-message on submit |
+| `SendServiceRequestMessageRequest.cs` | Added `SenderTypeOverride` |
+| `ServiceRequestMessageController.cs` | Respects `SenderTypeOverride` |
+| `ProviderRealtimeEvent.cs` | Added `MessageAdded` event type |
+| `IProviderServiceRequestRemoteCall.cs` | Added `GetMessages`, `SendMessage` Refit methods |
+| `ProviderServiceRequestsController.cs` (BFF) | Added GET/POST messages endpoints |
+
+---
+
+## 19a — Provider Catalog Items
+
+### Verified
+
+| Test | Result |
+|------|--------|
+| List (provider2) | 4 items (seeded: Gövde Yıkama, Antifouling Boya, Pasta Cila, Tekne Altı İşçilik) |
+| Create with `unitCode: "ZZZZ"` | Rejected (400) |
+| Create with valid unit (`PIECE`) | Accepted (id assigned) |
+| Delete own item | Accepted (soft-delete) |
+| Cross-provider access | Not found (ownership enforced by `ProviderProfileId` filter) |
+
+### Seed IDs
+
+| Id | Title | Price | Unit |
+|----|-------|-------|------|
+| 60001 | Gövde Basınçlı Yıkama | 1250 TRY | PIECE |
+| 60002 | Antifouling Boya — Jotun | 480 TRY | LITER |
+| 60003 | Pasta Cila | 900 TRY | — |
+| 60004 | Tekne Altı İşçilik (saat) | 350 TRY | HOUR |
+
+### DB columns verified
+
+`\d servicerequest.provider_catalog_items` — `ProviderProfileId`, `ItemType`, `Title`, `DefaultQuantity` (numeric 12,3), `UnitCode`, `DefaultUnitPrice` (numeric 18,4), `CurrencyCode`, `DefaultTaxRate` (numeric 9,4).
+
+Migration `AddProviderCatalogItems` with Designer — applied.
+
+---
+
+## 19b — Provider Offer Templates
+
+### Verified
+
+| Test | Result |
+|------|--------|
+| List (provider2) | 1 template: "Standart Karina Bakımı" with 3 items |
+| Get template | Returns items with all fields |
+| Create with 0 items | Rejected |
+| Cross-provider template | Not found |
+
+### Seed
+
+Template 70001 "Standart Karina Bakımı" with 3 items (Gövde Yıkama + Antifouling Boya + Pasta Cila).
+
+### DB tables
+
+`servicerequest.provider_offer_templates` + `servicerequest.provider_offer_template_items` — FK + cascade.
+
+Migration `AddProviderOfferTemplates` with Designer — applied.
+
+### Totals path confirmation
+
+Catalog/template items are **seed values only**. The SPA reads the library, seeds the builder inputs, and saves through the existing `SaveOfferDraft` → `OfferCalculationService`. No new totals path — the library never writes offer totals directly.
+
+### Files created (19a + 19b)
+
+| File | Purpose |
+|------|---------|
+| `Domain/Entities/Catalog/ProviderCatalogItemEntity.cs` | Catalog item entity |
+| `Domain/Entities/Catalog/ProviderOfferTemplateEntity.cs` | Template entity |
+| `Domain/Entities/Catalog/ProviderOfferTemplateItemEntity.cs` | Template item entity |
+| `Configurations/ProviderCatalogItemEntityConfiguration.cs` | EF config |
+| `Configurations/ProviderOfferTemplateEntityConfiguration.cs` | EF config (both entities) |
+| `Dto/ProviderCatalogItemDto.cs` | Catalog DTO |
+| `Dto/ProviderOfferTemplateDto.cs` | Template + item DTOs |
+| `Request/Offer/CatalogItemRequest.cs` | Create/update request |
+| `Request/Offer/OfferTemplateRequest.cs` | Create/update request |
+| `Command/Catalog/CatalogCommands.cs` | CRUD commands |
+| `Command/Catalog/CatalogHandlers.cs` | CRUD handlers (with UnitCode validation) |
+| `Command/Catalog/TemplateCommands.cs` | CRUD commands |
+| `Command/Catalog/TemplateHandlers.cs` | CRUD handlers (with UnitCode validation) |
+| `Controller/V1/Catalog/ProviderCatalogController.cs` | Module endpoints |
+| `Controller/V1/Catalog/ProviderTemplateController.cs` | Module endpoints |
+| `BFF/Controllers/V1/ProviderCatalogController.cs` | BFF passthrough |
+| `BFF/Controllers/V1/ProviderTemplateController.cs` | BFF passthrough |
+| Migrations (2, each with Designer) | `AddProviderCatalogItems`, `AddProviderOfferTemplates` |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ServiceRequestDbContext.cs` | Added 3 DbSets |
+| `IProviderServiceRequestRemoteCall.cs` | Added catalog + template Refit methods |
+| `ServiceRequestMockDataSeeder.cs` | Added `SeedCatalogItemsAsync`, `SeedTemplatesAsync` |
+
+---
+
+## 20a — Conversation List (Inbox)
+
+### Verified
+
+```
+GET /provider/service-requests/conversations → 1 conversation
+  SR 9011 | SR-SEED-EMERGENCY-1 | unread=1 | channelOpen=true | last="Tabii, nasıl yardımcı olabilir…"
+```
+
+- Provider-scoped: only requests where the provider has an offer or messages
+- No customer identity exposed — only request title/code
+- One grouped query (no N+1): unread count, last message preview, channelOpen, lifecycle status all computed in the projection
+
+### Endpoint
+
+| Route | Description |
+|-------|-------------|
+| Module: `GET /provider/conversations` | Returns `GetProviderConversationsResponse` |
+| BFF: `GET /provider/service-requests/conversations` | Passthrough |
+
+---
+
+## 20b — Rich Message Content (Location + Image display)
+
+### Location fields added
+
+`ServiceRequestMessageEntity`: `LocationLat` (numeric 10,7), `LocationLng` (numeric 10,7), `LocationLabel` (varchar 500).
+
+Migration `AddMessageLocationFields` with Designer — applied.
+
+### Message types added
+
+`MessageType.Image = 5`, `MessageType.Location = 6`.
+
+### Send flow
+
+`POST /messages` accepts optional `locationLat`, `locationLng`, `locationLabel`. When present, creates `MessageType.Location`. Gate still applies — provider can only send when `channelOpen`.
+
+### Image display
+
+Uses existing 14c pattern — `GET .../attachments/{fileId}/read-url` serves signed URLs for image messages with `AttachmentFileId`. No new endpoint needed for display.
+
+---
+
+## 20c — Lifecycle System Messages
+
+### Implemented
+
+| Handler | Code | Status |
+|---------|------|--------|
+| `AcceptServiceRequestOfferCommandHandler` | `OFFER_ACCEPTED` | ✓ Idempotent, publishes `MessageAdded` bus event |
+| `CancelServiceRequestCommandHandler` | `CONVERSATION_CLOSED` | ✓ Idempotent |
+
+`HasSystemMessageAsync(srId, code)` guards against duplicates. Messages are `SenderType.System`, `MessageType.StatusChange`.
+
+### Realtime fix
+
+`MessageAddedRealtimeConsumer` now forwards **System** messages (was Owner-only). Provider receives lifecycle pills live.
+
+### Not yet wired
+
+| Handler | Code | Reason |
+|---------|------|--------|
+| `StartServiceRequestAssignmentCommandHandler` | `JOB_STARTED` | Handler exists but not modified in this batch |
+| `ApproveServiceRequestCompletionCommandHandler` | `JOB_COMPLETED` | Handler exists but not modified in this batch |
+
+---
+
+## 20d — Conversation Seed
+
+### Seeded on SR 9011 (5 messages, ids 80001–80005)
+
+| Id | SenderType | MessageType | Content | Extra |
+|----|-----------|-------------|---------|-------|
+| 80001 | Owner | Text | "Merhaba, teklifinizi aldım…" | Unread — opens channel |
+| 80002 | Provider | Text | "Merhaba, acil müdahale gerekiyor…" | Read |
+| 80003 | Owner | Image | "Hasar fotoğrafı" | AttachmentFileId=a0a0a0a0… (14c file) — unread |
+| 80004 | Owner | Location | "Çeşme Marina" | lat=38.3235, lng=26.3050 — unread |
+| 80005 | System | StatusChange | `OFFER_ACCEPTED` | Read |
+
+### Conversations inbox
+
+```
+SR 9011 | unread=3 | channelOpen=true | lifecycleStatus=OFFER_ACCEPTED | last="Merhaba, acil müdahale gerekiyor…"
+```
+
+### Thread
+
+```
+channelOpen: true
+  Text   | sender=Owner    | "Merhaba, teklifinizi aldım…"
+  Text   | sender=Provider | "Merhaba, acil müdahale gerekiyor…"
+  Image  | sender=Owner    | "Hasar fotoğrafı" [file:a0a0a0a0]
+  Location| sender=Owner   | "Çeşme Marina" [loc:38.3235,26.305]
+  StatusChange | sender=System | OFFER_ACCEPTED
+```
+
+---
+
+### Files created (20a + 20b + 20c + 20d)
+
+| File | Purpose |
+|------|---------|
+| `Dto/ProviderConversationDto.cs` | Conversation list item DTO |
+| `Response/Message/GetProviderConversationsResponse.cs` | Response wrapper |
+| `Query/Provider/GetProviderConversations/GetProviderConversationsQuery.cs` | Query |
+| `Query/Provider/GetProviderConversations/GetProviderConversationsQueryHandler.cs` | Grouped query for inbox |
+| Migration `AddMessageLocationFields` (+ Designer) | Location columns on messages |
+
+### Files modified (20a + 20b + 20c + 20d)
+
+| File | Change |
+|------|--------|
+| `ServiceRequestMessageType.cs` | Added `Image = 5`, `Location = 6` |
+| `ServiceRequestMessageEntity.cs` | Added `LocationLat/Lng/Label`, `CreateLocation` factory |
+| `ServiceRequestMessageDto.cs` | Added location fields |
+| `ServiceRequestMappingExtensions.cs` | Maps location fields in `ToDto` |
+| `SendServiceRequestMessageRequest.cs` | Added location fields |
+| `SendServiceRequestMessageCommandHandler.cs` | Creates location messages when lat/lng present |
+| `ServiceRequestMessageEntityConfiguration.cs` | Precision for location columns |
+| `ProviderJobsController.cs` (module) | Added `GET /conversations` |
+| `IServiceRequestMessageRepository.cs` | Added `HasSystemMessageAsync` |
+| `ServiceRequestMessageRepository.cs` | Implemented `HasSystemMessageAsync` |
+| `AcceptServiceRequestOfferCommandHandler.cs` | Injects msgRepo, creates `OFFER_ACCEPTED` system msg |
+| `CancelServiceRequestCommandHandler.cs` | Injects msgRepo, creates `CONVERSATION_CLOSED` system msg |
+| `StartServiceRequestAssignmentCommandHandler.cs` | Injects msgRepo + messagePublisher, creates `JOB_STARTED` system msg (20e) |
+| `ApproveServiceRequestCompletionCommandHandler.cs` | Injects msgRepo + assignmentRepo + messagePublisher, creates `JOB_COMPLETED` system msg (20e) |
+| `MessageAddedRealtimeConsumer.cs` (BFF) | Forwards System messages (not just Owner) |
+| `ServiceRequestMockDataSeeder.cs` | Added `SeedConversationAsync` (5 messages on SR 9011) |
+| `IProviderServiceRequestRemoteCall.cs` | Added `GetProviderConversations` Refit method |
+| `ProviderServiceRequestsController.cs` (BFF) | Added conversations + location on send |
+| `SendProviderMessageCommand.cs` (BFF) | Added location fields |
+| `SendProviderMessageCommandHandler.cs` (BFF) | Passes location to module |
+
+---
+
+## 20e — JOB_STARTED / JOB_COMPLETED Lifecycle Messages
+
+### Implemented
+
+| Handler | Code | ProviderProfileId source |
+|---------|------|--------------------------|
+| `StartServiceRequestAssignmentCommandHandler` | `JOB_STARTED` | `assignment.ProviderProfileId` |
+| `ApproveServiceRequestCompletionCommandHandler` | `JOB_COMPLETED` | Resolved from `_assignmentRepository.GetByServiceRequestIdAsync` |
+
+Both follow the exact `OFFER_ACCEPTED` pattern: idempotent via `HasSystemMessageAsync`, `SenderType.System`, `MessageType.StatusChange`, content = code. Each publishes `ServiceRequestMessageSentMessage` with the correct `ProviderProfileId` so the BFF consumer pushes a content-free `MessageAdded` to the provider.
+
+All four lifecycle codes now wired: `OFFER_ACCEPTED`, `JOB_STARTED`, `JOB_COMPLETED`, `CONVERSATION_CLOSED`.
+
+---
+
+## 20f — Message Image Display (widened access check)
+
+### Approach: widen 14c
+
+Instead of a new endpoint, the existing `GET .../attachments/{fileId}/read-url` access check was widened to accept a fileId that is **either** a request attachment (`ServiceRequestAttachmentEntity.FileId`) **or** a message attachment (`ServiceRequestMessageEntity.AttachmentFileId`) on the same request. The SPA needs no new endpoint — the same URL pattern serves both.
+
+### Access check
+
+The three-prong provider relationship check is unchanged. After confirming the provider may see the request, the handler checks:
+1. `sr.Attachments.Any(a => a.FileId == fileId)` — request attachment (14c original)
+2. `sr.Messages.Any(m => m.AttachmentFileId == fileId)` — message attachment (20f addition)
+
+If neither matches → "not found". A foreign fileId still rejected.
+
+### MessageType.Image on send
+
+`SendServiceRequestMessageCommandHandler`: when `req.AttachmentFileId.HasValue` and no location, the message is created as `MessageType.Image` (not `Text`). The inbox preview can show "Görsel" and the thread renders deterministic image bubbles.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `GetAttachmentAccessCheckQueryHandler.cs` | Widened check: also accepts message `AttachmentFileId` |
+| `SendServiceRequestMessageCommandHandler.cs` | Sets `MessageType.Image` when attachment present |
+
+---
+
+## JB-1 — Jobs Enrichment (Title + Vessel + Code)
+
+### Module
+
+`GetProviderJobsQueryHandler` now does an in-module join (`ServiceRequestAssignments` JOIN `ServiceRequests`) and projects `Title`, `RequestCode`, `VesselId`, `VesselName` onto each `ProviderJobItemDto`. One query, no N+1, no cross-module call.
+
+### BFF
+
+`GetProviderJobsQueryHandler` (BFF) bulk-enriches vessel names: collects distinct `VesselId`s, one cached `GetSummaries` call, maps `VesselName` back. Same cache + graceful-degrade pattern as the detail handler. On failure → jobs without vessel names, page still renders.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ProviderJobItemDto` (Abstraction) | Added `Title`, `RequestCode`, `VesselId`, `VesselName` |
+| `GetProviderJobsQueryHandler.cs` (module) | In-module join with ServiceRequests; projects new fields |
+| `ProviderJobDto` (BFF Contracts) | Added `Title`, `RequestCode`, `VesselId`, `VesselName` |
+| `GetProviderJobsQueryHandler.cs` (BFF) | Vessel bulk enrichment + maps new fields |
+
+---
+
+## JB-2 — Jobs Summary Counts
+
+### Module
+
+`GetProviderJobsSummaryQueryHandler`: one `GROUP BY` query over assignments joined to SRs, grouped by `ServiceRequestStatus`. Returns per-status counts + `Active` (non-Completed) + `Total`. Provider-scoped.
+
+### Endpoint
+
+| Route | Description |
+|-------|-------------|
+| Module: `GET /provider/jobs/summary` | Returns `GetProviderJobsSummaryResponse` |
+| BFF: `GET /provider/jobs/summary` | Passthrough |
+
+### KPI mapping
+
+| KPI | Source |
+|-----|--------|
+| Aktif İşler | `Active` |
+| Devam Eden | `InProgress` |
+| Planlanan | `Scheduled` |
+| Onay Bekleyen | `WaitingForOwnerApproval + WaitingForMaterial + CompletionSubmitted` |
+
+### Files created
+
+| File | Purpose |
+|------|---------|
+| `Response/Jobs/GetProviderJobsSummaryResponse.cs` | Summary DTO |
+| `Query/Jobs/GetProviderJobsSummary/GetProviderJobsSummaryQuery.cs` | Query |
+| `Query/Jobs/GetProviderJobsSummary/GetProviderJobsSummaryQueryHandler.cs` | Grouped count query |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ProviderJobsController.cs` (module) | Added `GET /jobs/summary` |
+| `IProviderServiceRequestRemoteCall.cs` | Added `GetProviderJobsSummary` Refit |
+| `ProviderJobsController.cs` (BFF) | Added `GET /summary` passthrough |
+
+---
+
+## JB-3 — Weekly Workload (Stacked Bar Chart)
+
+### Endpoint
+
+`GET /provider/jobs/workload?weeks=6` → per-week buckets (Monday-start ISO weeks, UTC).
+
+Each bucket: `{ weekStartUtc, label ("H29"), scheduled, inProgress, completed }`.
+
+- `scheduled` = jobs with `scheduledStartDate` in that week, status ∈ {Assigned, Scheduled}
+- `inProgress` = jobs with start date in that week, status = InProgress
+- `completed` = jobs with `actualEndDate` in that week, status = Completed
+
+One query, bucketed in memory. Empty weeks zero-filled (not omitted). Provider-scoped.
+
+### Files created
+
+| File | Purpose |
+|------|---------|
+| `Response/Jobs/GetProviderJobsWorkloadResponse.cs` | Response + `WorkloadWeekBucket` |
+| `Query/Jobs/GetProviderJobsWorkload/GetProviderJobsWorkloadQuery.cs` | Query |
+| `Query/Jobs/GetProviderJobsWorkload/GetProviderJobsWorkloadQueryHandler.cs` | One query + in-memory bucketing |
+
+---
+
+## JB-4 — Action-Required Feed
+
+### Endpoint
+
+`GET /provider/jobs/action-required` → three groups, each enriched (title, requestCode, vesselId, vesselName), capped at 5.
+
+| Group | Statuses |
+|-------|----------|
+| `ownerApproval` | WaitingForOwnerApproval, CompletionSubmitted |
+| `materialRequired` | WaitingForMaterial |
+| `blocked` | Paused |
+
+### CTAs
+
+All three design CTAs ("Onay Hatırlat", "Stok Kontrol", "Engeli Çöz") are **navigate-to-detail** for MVP — no dedicated backend command exists for reminding an owner or resolving a block. The SPA links to `/app/jobs/:assignmentId`.
+
+### Files created
+
+| File | Purpose |
+|------|---------|
+| `Response/Jobs/GetProviderJobsActionRequiredResponse.cs` | Response + `ActionRequiredJobDto` |
+| `Query/Jobs/GetProviderJobsActionRequired/GetProviderJobsActionRequiredQuery.cs` | Query |
+| `Query/Jobs/GetProviderJobsActionRequired/GetProviderJobsActionRequiredQueryHandler.cs` | One query, grouped |
+
+### Files modified (JB-3 + JB-4)
+
+| File | Change |
+|------|--------|
+| `ProviderJobsController.cs` (module) | Added `GET /jobs/workload`, `GET /jobs/action-required` |
+| `IProviderServiceRequestRemoteCall.cs` | Added Refit methods |
+| `ProviderJobsController.cs` (BFF) | Added `GET /workload`, `GET /action-required` passthrough |
+
+---
+
+## SEED Accepted Job + JB-6 Status Alignment
+
+### Seed (idempotent, ids 90001/91001)
+
+- **Offer** 90001: provider2 on SR 9011, 5000 TRY, status `Accepted`, `SubmittedAt` + `AcceptedAt` set
+- **Assignment** 91001: provider2 on SR 9011, `ScheduledStartDate` = tomorrow, `ScheduledEndDate` = +3 days
+- **SR 9011** status changed to `Assigned`, `AssignedProviderName` set
+
+### JB-6 — Status alignment fix
+
+`GetProviderJobsQueryHandler` projection: `Status = x.a.Status.ToString()` → **`Status = x.sr.Status.ToString()`**. The list now uses `ServiceRequestStatus` (Assigned/Scheduled/InProgress/Completed…) — same vocabulary as JB-2 summary and the SPA.
+
+### Expected result
+
+- `GET /provider/jobs` → 1 job: SR 9011, title "Acil: Dümen sistemi arızası — Çeşme", requestCode "SR-SEED-EMERGENCY-1", status **"Assigned"**, scheduled dates set
+- `GET /provider/jobs/summary` → `assigned=1, active=1, total=1`
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `GetProviderJobsQueryHandler.cs` (module) | `Status = x.sr.Status.ToString()` (was `x.a.Status`) |
+| `ServiceRequestMockDataSeeder.cs` | Added `SeedAcceptedJobAsync` |
+
+---
+
+## JD-1 — Job Detail Aggregate
+
+### Endpoint
+
+| Route | Description |
+|-------|-------------|
+| Module: `GET /provider/jobs/{assignmentId}` | Returns `GetProviderJobDetailResponse` |
+| BFF: `GET /provider/jobs/{assignmentId}` | Passthrough + vessel enrichment |
+
+### Aggregate shape
+
+- **Assignment**: `assignmentId`, `status` (SR lifecycle), `assignmentStatus` (sub-state), scheduled/actual dates, providerNotes
+- **Service Request**: `title`, `requestCode`, `description`, work scope items, attachments (metadata only), location (snapped), vesselId + specs
+- **Accepted Offer**: line items (itemType/title/qty/price/tax/discount/totals) + `subtotal`/`taxTotal`/`grandTotal`/`currencyCode` + commercial notes
+- **Timeline**: status history events
+
+### Access check
+
+Provider must own the assignment (`assignment.ProviderProfileId == profileId`). Cross-provider → "Job not found." Same "not found" as a missing id.
+
+### Reuses existing P1 detail assembly
+
+`sr.ToProviderDetailDto(profileId)` provides the SR part (title, work scope, attachments, location, timeline, snapped coords). No duplicated logic.
+
+### BFF vessel enrichment
+
+One `GetSummaries` call per detail (cached, v2 key). All vessel spec fields mapped (name, type, brand, model, length, year, material, registration).
+
+### Files created
+
+| File | Purpose |
+|------|---------|
+| `Response/Jobs/GetProviderJobDetailResponse.cs` | Aggregate DTO |
+| `Query/Jobs/GetProviderJobDetail/GetProviderJobDetailQuery.cs` | Query |
+| `Query/Jobs/GetProviderJobDetail/GetProviderJobDetailQueryHandler.cs` | In-module assembly |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ProviderJobsController.cs` (module) | Added `GET /jobs/{assignmentId}` |
+| `IProviderServiceRequestRemoteCall.cs` | Added `GetProviderJobDetail` Refit |
+| `ProviderJobsController.cs` (BFF) | Added detail endpoint + vessel enrichment |
+
+---
+
+## JD-2 — Provider Job Actions (Start / Complete)
+
+### Guards added (Gap 1 + Gap 2 from the spec)
+
+**Ownership guard** (both handlers): `providerProfileId` from assertion; if `assignment.ProviderProfileId != providerProfileId` → "Job not found." Cross-provider access blocked.
+
+**State guard**:
+- **Start**: `sr.Status ∈ {Assigned, Scheduled}` only → else `SR_JOB_NOT_STARTABLE`
+- **Complete**: `sr.Status == InProgress` only → else `SR_JOB_NOT_COMPLETABLE`
+
+### Endpoints
+
+| Route | Description |
+|-------|-------------|
+| Module: `POST /provider/jobs/{assignmentId}/start` | Assigned/Scheduled → InProgress |
+| Module: `POST /provider/jobs/{assignmentId}/complete` | InProgress → CompletionSubmitted (body: notes + evidence optional) |
+| BFF: `POST /provider/jobs/{assignmentId}/start` | Passthrough |
+| BFF: `POST /provider/jobs/{assignmentId}/complete` | Passthrough |
+
+### Side effects (unchanged, existing)
+
+- Start: `assignment.Start()`, SR → InProgress, status-history, WorkStarted realtime, `JOB_STARTED` system message
+- Complete: Creates `ServiceRequestCompletionEntity`, SR → CompletionSubmitted, status-history, realtime, bus message
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `StartServiceRequestAssignmentCommandHandler.cs` | Added ownership + state guards |
+| `SubmitServiceRequestCompletionCommandHandler.cs` | Added ownership + state guards |
+| `ProviderJobsController.cs` (module) | Added `POST /start`, `POST /complete` |
+| `IProviderServiceRequestRemoteCall.cs` | Added `StartJob`, `CompleteJob` Refit |
+| `ProviderJobsController.cs` (BFF) | Added start/complete endpoints + error forwarding |
+
+---
+
+## RT — Realtime MessageSenderType
+
+`ProviderRealtimeEvent` now carries `messageSenderType` (`"Owner"` or `"System"`). The `MessageAddedRealtimeConsumer` sets it from the bus message's `SenderType`. The SPA uses it to differentiate toasts: System → "İş güncellemesi", Owner → "Müşteri size yanıt verdi". Still content-free.
+
+| File | Change |
+|------|--------|
+| `ProviderRealtimeEvent.cs` | Added `MessageSenderType` |
+| `MessageAddedRealtimeConsumer.cs` | Sets `MessageSenderType = message.SenderType.ToString()` |
+
+---
+
 ## What is NOT done
 
 | Item | Status |
 |------|--------|
 | `OfferViewedByCustomer` producer | Pending — no customer "view offer" command exists |
 | `OfferRevisionRequested` producer | Pending — no revision-request command exists |
-| Message-added realtime | Deferred — no provider-scoped message event exists |
-| Vessel enrichment end-to-end | Fields wired, call works — needs vessel-api running with seeded data |
+| Süre (ETA) | Deferred — no routing service in stack |
+| `SaveDraftAsTemplate` (from draft → template) | Optional, not implemented |
+| BFF vessel enrichment for action-required | Module returns `VesselName` from SR denorm; BFF enrichment deferred |
+| JD-4..JD-5 (evidence upload, completion evidence) | Planned — Post-MVP |
+
+---
+
+## JD-3 — Provider Work Logs (List + Add)
+
+### Guards added
+
+Both the add and get handlers now check ownership: `providerProfileId` from assertion, `assignment.ProviderProfileId != providerProfileId` → "Job not found."
+
+### Endpoints
+
+| Route | Description |
+|-------|-------------|
+| Module: `GET /provider/jobs/{assignmentId}/work-logs` | List logs (chronological) |
+| Module: `POST /provider/jobs/{assignmentId}/work-logs` | Add a log entry |
+| BFF: `GET /provider/jobs/{assignmentId}/work-logs` | Passthrough |
+| BFF: `POST /provider/jobs/{assignmentId}/work-logs` | Passthrough |
+
+### Request body (POST)
+
+`{ logType, title, description?, locationLatitude?, locationLongitude?, attachmentFileId? }`
+
+LogType codes: GeneralNote, ArrivedAtVessel, InspectionStarted, WorkStarted, MaterialRequired, WorkPaused, WorkResumed, WorkCompleted, etc. (SPA localizes.)
+
+### Side effects
+
+No SR status change. `WorkLogAdded` realtime event fired. `AttachmentFileId` optional (evidence upload is JD-5).
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `AddServiceRequestWorkLogCommandHandler.cs` | Added ownership guard |
+| `GetServiceRequestWorkLogsQueryHandler.cs` | Added ownership guard (loads assignment first) |
+| `ProviderJobsController.cs` (module) | Added `GET/POST /jobs/{id}/work-logs` |
+| `IProviderServiceRequestRemoteCall.cs` | Added `GetWorkLogs`, `AddWorkLog` Refit |
+| `ProviderJobsController.cs` (BFF) | Added work-logs GET/POST endpoints |
+
+---
+
+## JD-4 — Vessel Beam / Draft
+
+### Widened
+
+`VesselSummaryDto`: added `BeamValue`, `BeamUnitCode`, `DraftValue`, `DraftUnitCode`. Projection in `GetVesselSummariesQueryHandler` maps from spec (same null-guard pattern as Length).
+
+`ProviderServiceRequestDto`: added `VesselBeamValue`, `VesselBeamUnitCode`, `VesselDraftValue`, `VesselDraftUnitCode`.
+
+### Cache key bumped
+
+`vessel:summary:v2:` → `vessel:summary:v3:` in all 4 sites (discovery, detail, jobs list, job detail).
+
+### BFF enrichment
+
+Both `ApplyVessel` (SR detail handler) and the job detail controller's inline enrichment now map Beam/Draft from the vessel summary.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `VesselSummaryDto` | Added 4 Beam/Draft fields |
+| `GetVesselSummariesQueryHandler.cs` | Maps Beam/Draft from spec |
+| `ProviderServiceRequestDto.cs` | Added 4 Beam/Draft fields |
+| `GetServiceRequestDetailBffQueryHandler.cs` | Maps Beam/Draft in `ApplyVessel` |
+| `ProviderJobsController.cs` (BFF) | Maps Beam/Draft in job detail enrichment |
+| 4 BFF handlers | Cache key `v2` → `v3` |
+
+---
+
+## JD-5 — Evidence Read-URL (Work-Log + Completion)
+
+The 14c access-check (`GetAttachmentAccessCheckQueryHandler`) now accepts fileIds from **four** sources on the same SR:
+
+1. Request attachments (`sr.Attachments`)
+2. Message attachments (`sr.Messages`) — 20f
+3. Work-log evidence (`sr.Assignment?.WorkLogs`) — **new**
+4. Completion evidence (`sr.Completion?.EvidenceFileId`) — **new**
+
+Relationship gate unchanged (offer OR assigned). No new endpoint, DTO, or BFF change. The existing `/attachments/{fileId}/read-url` serves all four.
+
+| File | Change |
+|------|--------|
+| `GetAttachmentAccessCheckQueryHandler.cs` | Added work-log + completion evidence checks |
+
+---
+
+## SEED Reset Job 91001
+
+### What it does (Dev/Local only, idempotent)
+
+1. Deletes test work logs for assignment 91001
+2. Removes completion entity for SR 9011
+3. Removes lifecycle system messages (JOB_STARTED, JOB_COMPLETED) — keeps OFFER_ACCEPTED
+4. Trims status history after Assigned
+5. Resets assignment to Accepted status, clears actual dates
+6. Resets SR 9011 to `Assigned`
+7. Seeds 3 realistic offer line items on offer 90001 (Labor 24h×45, Product 15L×120, Service 1×250) with inline calculation → subtotal ~2830, tax ~566, grandTotal ~3396
+8. Seeds 2 demo conversation messages (Owner asks for photo, Provider replies)
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ServiceRequestMockDataSeeder.cs` | Added `ResetJob91001Async` |
+
+---
+
+## SEED Reset FIX — offer items crash
+
+**Root cause**: `offer.ReplaceItems()` throws `InvalidOperationException` on Accepted offers (domain guard). The seeder runs at boot → unhandled → crash loop.
+
+**Fix**:
+1. Insert offer items directly via `_db.ServiceRequestOfferItems.Add()` — bypasses domain guard (dev seed only)
+2. Pre-computed totals: subtotal=3130, taxTotal=626, grandTotal=3756 (Labor 1080+216, Product 1800+360, Service 250+50)
+3. Wrapped entire `ResetJob91001Async` in try/catch → log warning + `ChangeTracker.Clear()` on any error (boot-safe)
+
+---
+
+## JD-6 — Completion Requires Evidence Photo
+
+### Guard
+
+`SubmitServiceRequestCompletionCommandHandler`: after ownership + state guards, rejects if `EvidenceFileId` is null/empty → `SR_COMPLETION_EVIDENCE_REQUIRED`.
+
+### Exposed on job detail
+
+`GetProviderJobDetailResponse`: added `CompletionEvidenceFileId (Guid?)` + `CompletedAtUtc (DateTime?)`. Set from `sr.Completion?.EvidenceFileId` / `sr.Completion?.SubmittedAt` (already loaded, no extra query).
+
+The SPA can mint a read-URL for this fileId via the existing JD-5 path.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `SubmitServiceRequestCompletionCommandHandler.cs` | Added `SR_COMPLETION_EVIDENCE_REQUIRED` guard |
+| `GetProviderJobDetailResponse.cs` | Added `CompletionEvidenceFileId`, `CompletedAtUtc` |
+| `GetProviderJobDetailQueryHandler.cs` | Sets from `sr.Completion` |
+
+---
+
+## DD-2 — Exact Location for Assigned Provider
+
+The job aggregate (`GET /provider/jobs/{assignmentId}`) now returns **exact** `LocationLatitude/Longitude` instead of the snapped ~500m grid point. After `sr.ToProviderDetailDto(profileId)` (which snaps), the handler overwrites with the raw coordinates:
+
+```csharp
+detail.Request.ApproxLatitude  = sr.LocationLatitude;
+detail.Request.ApproxLongitude = sr.LocationLongitude;
+```
+
+Access is already enforced (JD-1: `assignment.ProviderProfileId == profileId`), so exact coordinates only reach the assigned provider. Discovery / pre-acceptance detail stays snapped. DEV_DEBT DD-2 resolved.
+
+| File | Change |
+|------|--------|
+| `GetProviderJobDetailQueryHandler.cs` | Overwrites snapped coords with exact for the assigned provider |
+
+---
+
+## CI-1 — Provider CargoDry BFF Foundation (Overview + Alerts)
+
+### Module changes
+
+- `GetCargoDryOperationalOverviewQuery`: added `long? ProviderProfileId` (null = global/admin)
+- `GetCargoDryOperationalAlertsQuery`: added `long? ProviderProfileId`
+- New `CargoDryProviderController` at `api/v1/cargodry/provider` (assertion identity, `[Authorize]`)
+  - `GET provider/overview` — scoped overview
+  - `GET provider/alerts` — scoped alerts
+
+### BFF
+
+- `IProviderCargoDryRemoteCall` interface (Refit: overview + alerts)
+- `ProviderCargoDryController` at `api/v1/provider/cargodry` (`ProviderActive` policy)
+  - `GET /provider/cargodry/overview`
+  - `GET /provider/cargodry/alerts?take=5`
+- Project reference to `CargoDry.Abstraction` added
+
+### Infrastructure
+
+- `docker-compose.yaml`: added `RemoteCalls__IProviderCargoDryRemoteCall__BaseUrl: http://cargodry-api:8080` to both BFF instances + `cargodry-api` to `depends_on`
+
+### Note on handler filtering
+
+The `ProviderProfileId` property is added to both queries. The handlers currently don't filter by it (they compute globally). Full per-provider filtering of the repo calls is deferred — for MVP the provider surface returns the global overview (the module's kit data is provider-linked but the handler's repo methods need filter params). The controller + BFF wiring is ready for when the handler filter is threaded through.
+
+### Files created
+
+| File | Purpose |
+|------|---------|
+| `CargoDry/Controllers/CargoDryProviderController.cs` | Module provider-scoped endpoints |
+| `BFF/RemoteClients/IProviderCargoDryRemoteCall.cs` | Refit interface |
+| `BFF/Controllers/V1/ProviderCargoDryController.cs` | BFF passthrough |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `GetCargoDryOperationalOverviewQuery.cs` | Added `ProviderProfileId` |
+| `GetCargoDryOperationalAlertsQuery.cs` | Added `ProviderProfileId` |
+| `Aizen.Bff.MarineProvider.Application.csproj` | Added CargoDry.Abstraction reference |
+| `docker-compose.yaml` | Added remote call config + depends_on |
+
+---
+
+## CI-1 Fixes (DI + Auth + Scoping)
+
+**CI-1 fix**: Registered `IProviderCargoDryRemoteCall` in BFF DI (`DependencyInjection.cs`).
+
+**CI-1 fix 2**: Added `AddAizenInfoAccessor(builder.Configuration)` to CargoDry `Program.cs` + `BffAssertion__SharedSecret` / `AllowedClientIds` in docker-compose for `cargodry-api`.
+
+**CI-1 fix 3**: Added `aud-cargodry-api` audience mapper to `provider-portal-bff` Keycloak client (runtime, no code).
+
+---
+
+## CI-1b — Provider Scoping (Security Correctness)
+
+### Repository
+
+4 kit repo methods gained `long? providerProfileId = null` (default = global/admin):
+- `GetStatsAsync`, `GetExpiringAsync`, `GetExpiredUnmarkedAsync`, `GetPagedAsync`
+- When set: `q.Where(x => x.ProviderProfileId == providerProfileId.Value)`
+- All existing callers updated to use named `ct:` parameter
+
+### Overview handler
+
+- Passes `request.ProviderProfileId` into all repo calls
+- Cache key scoped: `cargodry:operational:overview:{pid|global}` (no cross-tenant cache bleed)
+- Batch + lifecycle counts zeroed under provider scope (platform-level)
+
+### Alerts handler
+
+- Passes `request.ProviderProfileId` into all repo calls (GetExpiring, GetExpiredUnmarked, GetPaged)
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ICargoDryKitRepository.cs` | Added `providerProfileId` param to 4 methods |
+| `CargoDryKitRepository.cs` | Applies filter when set |
+| `GetCargoDryOperationalOverviewQueryHandler.cs` | Scoped cache key + passes pid to repos + zeroes global counters |
+| `GetCargoDryOperationalAlertsQueryHandler.cs` | Passes pid to repos |
+| `GetAdminKitListQueryHandler.cs` | Named `ct:` param |
+| `GetCargoDryStatsQueryHandler.cs` | Named `ct:` param |
+| `GetCargoDryRenewalCandidatesQueryHandler.cs` | Named `ct:` param |
+| `KitExpiredMarkingJob.cs` | Named `ct:` param |
+| `KitExpiryReminderJob.cs` | Named `ct:` param |
+| `DependencyInjection.cs` (BFF) | Registered `IProviderCargoDryRemoteCall` |
+| `Program.cs` (CargoDry module) | Added `AddAizenInfoAccessor` |
+| `docker-compose.yaml` | `BffAssertion` config for `cargodry-api` |
+
+---
+
+## CI-1c — Seed Provider2 CargoDry Kits
+
+`CargoDryProviderMockSeed`: 1 batch (`202507-CONS-PRV2`) + 7 kits for provider2 (100011):
+- 2 Available (Mevcut Stok)
+- 2 Activated healthy (120d, Aktif)
+- 1 Activated expiring ≤30d (Warning)
+- 1 Activated expiring ≤7d (Critical — Kritik Uyarı banner)
+- 1 Revoked
+
+Idempotent on `ProviderProfileId == 100011`, boot-safe (try/catch), dev/local only.
+
+| File | Purpose |
+|------|---------|
+| `Seed/CargoDryProviderMockSeed.cs` | Provider2 kit seeder |
+| `DependencyInjection.cs` (CargoDry repo) | Registered + wired into `SeedCargoDryAsync` |
+
+---
+
+## CI-2-0 — Seed Inventory + Movement Ledger for Provider2
+
+Extended `CargoDryProviderMockSeed` to also create:
+- **Inventory row**: `CargoDryProviderInventoryEntity` for provider 100011, STANDARD-90, batch 202507-CONS-PRV2 — TotalAllocated=7, TotalActivated=4, TotalRevoked=1, AvailableStock=2
+- **Movement ledger**: 6 rows (BatchAllocated +7 → 4× KitActivated -1 → KitRevoked -1), balanceAfter 7→6→5→4→3→2, staggered timestamps
+
+Same idempotency guard (100011 kit check), same boot-safe try/catch.
+
+| File | Change |
+|------|--------|
+| `Seed/CargoDryProviderMockSeed.cs` | Added inventory row + 6 movement ledger rows |
+
+---
+
+## CI-2a — Provider Inventory List + Movement Ledger
+
+### Endpoints
+
+| Route | Description |
+|-------|-------------|
+| Module: `GET /cargodry/provider/inventory` | Provider-scoped inventory list (filters: product, model, channel, stock, search, page) |
+| Module: `GET /cargodry/provider/inventory/movements` | Provider-scoped movement ledger (filters: product, batch, type, dates, page) |
+| BFF: `GET /provider/cargodry/inventory` | Passthrough |
+| BFF: `GET /provider/cargodry/inventory/movements` | Passthrough |
+
+Reuses existing `GetProviderInventoryListQuery` / `GetProviderInventoryMovementsQuery` (already filter by `ProviderProfileId`). Provider id forced from assertion — never client-sent. No domain or query changes.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `CargoDryProviderController.cs` (module) | Added `GET inventory`, `GET inventory/movements` |
+| `IProviderCargoDryRemoteCall.cs` | Added `GetInventory`, `GetInventoryMovements` Refit methods |
+| `ProviderCargoDryController.cs` (BFF) | Added inventory + movements passthrough |
+
+---
+
+## CI-3a — Provider Renewal Candidates
+
+### Endpoint
+
+| Route | Description |
+|-------|-------------|
+| Module: `GET /cargodry/provider/renewals?withinDays=90` | Provider-scoped renewal candidates |
+| BFF: `GET /provider/cargodry/renewals?withinDays=90` | Passthrough |
+
+Read-only: provider sees kits expiring within N days that lack an open renewal preparation. Provider id from assertion.
+
+### Changes
+
+- `GetCargoDryRenewalCandidatesQuery`: added `ProviderProfileId` (null = global/admin)
+- Handler: passes it into `GetExpiringAsync` (already has the filter from CI-1b)
+- Module controller: `GET renewals` action
+- BFF: Refit `GetRenewals` + controller passthrough
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `GetCargoDryRenewalCandidatesQuery.cs` | Added `ProviderProfileId` |
+| `GetCargoDryRenewalCandidatesQueryHandler.cs` | Passes pid to `GetExpiringAsync` |
+| `CargoDryProviderController.cs` (module) | Added `GET renewals` |
+| `IProviderCargoDryRemoteCall.cs` | Added `GetRenewals` Refit |
+| `ProviderCargoDryController.cs` (BFF) | Added renewals passthrough |
+
+---
+
+## CI-4a — Provider Stock Request (Create/List/Cancel)
+
+First provider-initiated CargoDry write path. A provider requests a stock allocation from admin.
+
+### New entity
+
+`CargoDryStockRequestEntity`: RequestCode (unique), ProviderProfileId, ProductCode, RequestedQuantity, Status (Pending→Approved/Rejected/Cancelled→Fulfilled), ProviderNote, decision fields, approval fields.
+
+Status enum: `CargoDryStockRequestStatus` (Pending=1, Approved=2, Rejected=3, Fulfilled=4, Cancelled=5).
+
+### Endpoints
+
+| Route | Description |
+|-------|-------------|
+| Module: `POST /cargodry/provider/stock-requests` | Create a Pending request |
+| Module: `GET /cargodry/provider/stock-requests` | List own requests (paged, status filter) |
+| Module: `POST /cargodry/provider/stock-requests/{id}/cancel` | Self-cancel (Pending only) |
+| Module: `GET /cargodry/provider/products` | Eligible products from inventory |
+| BFF: all four passthrough at `/provider/cargodry/...` |
+
+### Guards
+
+- Product must exist (active); duplicate Pending for same product → `SR_STOCK_REQUEST_DUPLICATE_PENDING`
+- Cancel only own Pending request; cross-provider → "not found"
+- RequestedQuantity 1..1000
+
+### Migration
+
+`AddCargoDryStockRequests` with Designer — table `cargodry_stock_requests`, unique index on `RequestCode`, composite index on `(ProviderProfileId, Status)`.
+
+### Files created
+
+| File | Purpose |
+|------|---------|
+| `Enum/CargoDryStockRequestStatus.cs` | Status enum |
+| `Entities/CargoDryStockRequestEntity.cs` | Entity with Create/Approve/Reject/Cancel/Fulfil |
+| `Dto/CargoDryStockRequestDto.cs` | DTO + paged result |
+| `Repository/ICargoDryStockRequestRepository.cs` | Interface |
+| `Repositories/CargoDryStockRequestRepository.cs` | Implementation |
+| `Configurations/CargoDryStockRequestEntityConfiguration.cs` | EF config |
+| `Commands/CreateProviderStockRequest/...` | Command + handler |
+| `Commands/CancelProviderStockRequest/...` | Command + handler |
+| `Queries/GetProviderStockRequests/...` | Query + handler |
+| Migration (+ Designer) | `AddCargoDryStockRequests` |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `CargoDryDbContext.cs` | Added `StockRequests` DbSet |
+| `DependencyInjection.cs` (CargoDry repo) | Registered `ICargoDryStockRequestRepository` |
+| `CargoDryProviderController.cs` (module) | Added stock-request CRUD + products |
+| `IProviderCargoDryRemoteCall.cs` | Added stock-request + products Refit methods |
+| `ProviderCargoDryController.cs` (BFF) | Added passthrough endpoints |
+
+---
+
+## Phase 3 — Catalog + Location + Template controllers → CQRS (gold standard)
+
+Three fully direct-remote-call controllers (`CatalogController`, `LocationController`, `TemplateController`)
+converted to the gold-standard CQRS pattern with typed responses, `[ProducesResponseType]`, and validators.
+
+### What changed
+
+- **CatalogController** (4 endpoints) — removed `IProviderProfileResolver`, `IProviderIdentityHolder`,
+  `IServiceRequestRemoteCall` from constructor; now injects only `IAizenCQRSProcessor`. Identity resolve
+  moved into handlers. Hand-rolled `Ok(new { header = new { isSuccess = true } })` on delete replaced
+  with `BffSuccessResult` via `SetResponse`.
+- **LocationController** (1 endpoint) — removed `IReferenceDataRemoteCall`; now uses CQRS query.
+  No identity resolve (reference data, not provider-scoped — matches original behaviour).
+- **TemplateController** (5 endpoints) — removed `EnsureIdentityAsync` helper and direct remote calls;
+  now pure CQRS. Delete hand-rolled envelope replaced with `BffSuccessResult`.
+- **`BffSuccessResult`** shared DTO created in `Common/` for delete operations across features.
+- **10 operations** total: 3 queries + 7 commands across `Catalog/`, `Location/`, `Template/` feature folders.
+- All request/response DTOs from module Abstractions — nothing inline.
+- Validators added for all operations requiring input validation.
+
+### Files created
+
+| Path | Purpose |
+|------|---------|
+| `Common/BffSuccessResult.cs` | Shared delete-success DTO |
+| `Catalog/Query/ListOfferCatalogBff/*.cs` | Query + handler |
+| `Catalog/Command/CreateOfferCatalogItemBff/*.cs` | Command + handler + validator |
+| `Catalog/Command/UpdateOfferCatalogItemBff/*.cs` | Command + handler + validator |
+| `Catalog/Command/DeleteOfferCatalogItemBff/*.cs` | Command + handler + validator |
+| `Location/Query/GetCitiesBff/*.cs` | Query + handler + validator |
+| `Template/Query/ListOfferTemplatesBff/*.cs` | Query + handler |
+| `Template/Query/GetOfferTemplateBff/*.cs` | Query + handler + validator |
+| `Template/Command/CreateOfferTemplateBff/*.cs` | Command + handler + validator |
+| `Template/Command/UpdateOfferTemplateBff/*.cs` | Command + handler + validator |
+| `Template/Command/DeleteOfferTemplateBff/*.cs` | Command + handler + validator |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `Controllers/V1/CatalogController.cs` | Rewritten: pure CQRS, typed + PRT |
+| `Controllers/V1/LocationController.cs` | Rewritten: pure CQRS, typed + PRT |
+| `Controllers/V1/TemplateController.cs` | Rewritten: pure CQRS, typed + PRT, `EnsureIdentityAsync` removed |
+
+---
+
+## Phase 4 — Jobs controller → CQRS + typed + PRT
+
+Converted all 8 non-CQRS `JobsController` endpoints to the gold-standard pattern (CQRS handlers,
+constructor-injected deps, typed responses, `[ProducesResponseType]`). The 9th endpoint (`GetJobs`)
+was already CQRS and was left as-is.
+
+### What changed
+
+- **Service-locator removed.** The controller no longer calls `HttpContext.RequestServices.GetRequiredService<…>()`.
+  It injects only `IAizenCQRSProcessor` — every endpoint delegates to a query/command via `_cqrs.ProcessAsync(…)`.
+- **6 new queries** created under `Jobs/Query/`:
+  `GetJobDetailBff`, `GetJobWorkLogsBff`, `GetJobsSummaryBff`, `GetJobsWorkloadBff`, `GetJobsActionRequiredBff`.
+- **3 new commands** created under `Jobs/Command/`:
+  `StartJobBff`, `CompleteJobBff`, `AddJobWorkLogBff`.
+- **Vessel enrichment** (14-field mapping from cached/fetched `VesselSummaryDto`) moved into
+  `GetJobDetailBffQueryHandler` — non-fatal, exactly as before.
+- **Refit-error mapping** moved into handlers via shared `RefitErrorHelper.ExtractError()`. Friendly messages
+  preserved: "Job not found.", "Failed to add work log.", "Failed to start job.", "Failed to complete job."
+- **Hand-rolled envelopes removed.** `StartJob`/`CompleteJob` previously returned
+  `Ok(new { header = new { isSuccess = true } })`; now they return `JobSuccessResult` via `SetResponse`.
+- **Validators added** for all operations requiring input validation:
+  `AssignmentId > 0` on detail/work-logs/start/complete/add-work-log; `Body NotNull` on complete/add-work-log;
+  `Weeks` in 1..52 on workload.
+- **Typed responses + `[ProducesResponseType]`** on all 9 endpoints; no `IActionResult` remains.
+
+### Files created
+
+| Path | Purpose |
+|------|---------|
+| `Jobs/Query/GetJobDetailBff/GetJobDetailBffQuery.cs` | Query |
+| `Jobs/Query/GetJobDetailBff/GetJobDetailBffQueryHandler.cs` | Handler (+ vessel enrichment) |
+| `Jobs/Query/GetJobDetailBff/GetJobDetailBffQueryValidator.cs` | Validator |
+| `Jobs/Query/GetJobWorkLogsBff/GetJobWorkLogsBffQuery.cs` | Query |
+| `Jobs/Query/GetJobWorkLogsBff/GetJobWorkLogsBffQueryHandler.cs` | Handler |
+| `Jobs/Query/GetJobWorkLogsBff/GetJobWorkLogsBffQueryValidator.cs` | Validator |
+| `Jobs/Query/GetJobsSummaryBff/GetJobsSummaryBffQuery.cs` | Query |
+| `Jobs/Query/GetJobsSummaryBff/GetJobsSummaryBffQueryHandler.cs` | Handler |
+| `Jobs/Query/GetJobsWorkloadBff/GetJobsWorkloadBffQuery.cs` | Query |
+| `Jobs/Query/GetJobsWorkloadBff/GetJobsWorkloadBffQueryHandler.cs` | Handler |
+| `Jobs/Query/GetJobsWorkloadBff/GetJobsWorkloadBffQueryValidator.cs` | Validator |
+| `Jobs/Query/GetJobsActionRequiredBff/GetJobsActionRequiredBffQuery.cs` | Query |
+| `Jobs/Query/GetJobsActionRequiredBff/GetJobsActionRequiredBffQueryHandler.cs` | Handler |
+| `Jobs/Command/StartJobBff/StartJobBffCommand.cs` | Command |
+| `Jobs/Command/StartJobBff/StartJobBffCommandHandler.cs` | Handler |
+| `Jobs/Command/StartJobBff/StartJobBffCommandValidator.cs` | Validator |
+| `Jobs/Command/CompleteJobBff/CompleteJobBffCommand.cs` | Command |
+| `Jobs/Command/CompleteJobBff/CompleteJobBffCommandHandler.cs` | Handler |
+| `Jobs/Command/CompleteJobBff/CompleteJobBffCommandValidator.cs` | Validator |
+| `Jobs/Command/AddJobWorkLogBff/AddJobWorkLogBffCommand.cs` | Command |
+| `Jobs/Command/AddJobWorkLogBff/AddJobWorkLogBffCommandHandler.cs` | Handler |
+| `Jobs/Command/AddJobWorkLogBff/AddJobWorkLogBffCommandValidator.cs` | Validator |
+| `Jobs/RefitErrorHelper.cs` | Shared Refit error extraction |
+| `Jobs/JobSuccessResult.cs` | DTO for start/complete responses |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `Controllers/V1/JobsController.cs` | Rewritten: service-locator → pure CQRS, typed + PRT, no `IActionResult` |
+
+---
+
+## Phase 5 — Offers + Notifications → typed + PRT + DTOs to module Abstraction
+
+Both controllers already used CQRS (`_cqrs.ProcessAsync`). This phase converted them to fully typed
+`AizenApiResponse<T>` + `[ProducesResponseType]`, removed the `Ok(…)` wrappers, moved inline controller
+DTOs to module Abstractions, and added validators.
+
+### What changed
+
+- **OffersController** — all 8 endpoints now return `Task<AizenApiResponse<T?>>` with `[ProducesResponseType]`.
+  Removed `Ok(SetResponse(result))` double-wrap → `SetResponse(…)`. No `IActionResult` remains.
+- **NotificationsController** — both endpoints now return `Task<AizenApiResponse<T?>>` with
+  `[ProducesResponseType]`. Removed `Ok(result)` wrapper → `SetResponse(…)`.
+- **Inline DTOs moved:**
+  - `WithdrawOfferBffRequest` (was in OffersController) → `ServiceRequestId` field added to existing
+    `WithdrawServiceRequestOfferRequest` in `Aizen.Modules.ServiceRequest.Abstraction.Request.Offer`;
+    controller now uses `WithdrawServiceRequestOfferRequest` directly.
+  - `PushSubscriptionRequest`, `PushSubscriptionKeys`, `PushUnsubscribeRequest` (were in
+    NotificationsController) → moved to `Aizen.Modules.Notification.Abstraction.Request`.
+- **BFF web project** now references `Aizen.Modules.Notification.Abstraction`.
+- **9 validators added** across both domains:
+  - Offers: `GetMyOffersBff` (PageIndex ≥ 0, PageSize 1..100), `CreateOfferBff`, `UpdateOfferBff`,
+    `WithdrawOfferBff`, `SaveOfferDraftBff`, `PreviewOfferBff`, `SubmitOfferBff` (ServiceRequestId > 0,
+    OfferId > 0, Body NotNull as applicable).
+  - Notifications: `SubscribePush` (Endpoint, P256dh, Auth NotEmpty), `UnsubscribePush` (Endpoint NotEmpty).
+
+### Files created
+
+| Path | Purpose |
+|------|---------|
+| `Notification.Abstraction/Request/PushSubscriptionRequest.cs` | Push subscribe DTO + Keys |
+| `Notification.Abstraction/Request/PushUnsubscribeRequest.cs` | Push unsubscribe DTO |
+| `Offers/Query/GetMyOffersBff/GetMyOffersBffQueryValidator.cs` | Validator |
+| `Offers/Command/CreateOfferBff/CreateOfferBffCommandValidator.cs` | Validator |
+| `Offers/Command/UpdateOfferBff/UpdateOfferBffCommandValidator.cs` | Validator |
+| `Offers/Command/WithdrawOfferBff/WithdrawOfferBffCommandValidator.cs` | Validator |
+| `Offers/Command/SaveOfferDraftBff/SaveOfferDraftBffCommandValidator.cs` | Validator |
+| `Offers/Command/PreviewOfferBff/PreviewOfferBffCommandValidator.cs` | Validator |
+| `Offers/Command/SubmitOfferBff/SubmitOfferBffCommandValidator.cs` | Validator |
+| `Notifications/Command/SubscribePush/SubscribePushCommandValidator.cs` | Validator |
+| `Notifications/Command/UnsubscribePush/UnsubscribePushCommandValidator.cs` | Validator |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `Controllers/V1/OffersController.cs` | Typed returns + PRT, removed `Ok()` wrapper, `WithdrawOfferBffRequest` removed |
+| `Controllers/V1/NotificationsController.cs` | Typed returns + PRT, removed `Ok()` wrapper, inline DTOs removed |
+| `WithdrawServiceRequestOfferRequest.cs` (SR Abstraction) | Added `ServiceRequestId` property |
+| `Aizen.Bff.MarineProvider.csproj` | Added Notification.Abstraction project reference |
+
+---
+
+## Phase 6 — ServiceRequests controller → fully CQRS
+
+Moved remaining controller-level business logic into the Application layer and completed the typed-response
+conversion. All 9 endpoints now use CQRS with typed `AizenApiResponse<T>` + `[ProducesResponseType]`.
+
+### What changed
+
+- **offerState mapping** moved from controller to `GetProviderDiscoveryBffQueryHandler`. The query now
+  carries the raw string (`"NotOffered"`, `"Offered"`) and the handler maps to int code (1/2/null).
+  The controller switch statement is removed.
+- **GetConversations service-locator leak** removed. Created `GetProviderConversationsBff` query+handler
+  with proper DI (resolver → identity check → `GetProviderConversations()` → `.Body`). No more
+  `HttpContext.RequestServices.GetRequiredService<…>()` in the controller.
+- **`SendProviderMessageRequest` inline DTO** moved from the controller to
+  `Aizen.Modules.ServiceRequest.Abstraction.Request.Message`. Controller now binds the Abstraction type.
+- **All 9 endpoints** converted from `IActionResult` + `Ok(SetResponse(…))` to typed
+  `Task<AizenApiResponse<T?>>` + `SetResponse(…)` + `[ProducesResponseType]`.
+- **6 validators added**: GetOpen (PageIndex/PageSize), GetDetail (ServiceRequestId), GetDiscovery
+  (PageSize), GetMessages (ServiceRequestId, Skip, Take), GetAttachmentReadUrl (ServiceRequestId, FileId),
+  SendProviderMessage (ServiceRequestId).
+- Controller injects only `IAizenCQRSProcessor`. `grep -E "GetRequiredService|RemoteCall|IActionResult"`
+  returns nothing.
+
+### Files created
+
+| Path | Purpose |
+|------|---------|
+| `SR.Abstraction/Request/Message/SendProviderMessageRequest.cs` | Provider message DTO (moved from controller) |
+| `ServiceRequests/Query/GetProviderConversationsBff/GetProviderConversationsBffQuery.cs` | Query |
+| `ServiceRequests/Query/GetProviderConversationsBff/GetProviderConversationsBffQueryHandler.cs` | Handler |
+| `ServiceRequests/Query/GetOpenServiceRequestsBff/GetOpenServiceRequestsBffQueryValidator.cs` | Validator |
+| `ServiceRequests/Query/GetServiceRequestDetailBff/GetServiceRequestDetailBffQueryValidator.cs` | Validator |
+| `ServiceRequests/Query/GetProviderDiscoveryBff/GetProviderDiscoveryBffQueryValidator.cs` | Validator |
+| `ServiceRequests/Query/GetProviderMessages/GetProviderMessagesQueryValidator.cs` | Validator |
+| `ServiceRequests/Query/GetAttachmentReadUrlBff/GetAttachmentReadUrlBffQueryValidator.cs` | Validator |
+| `ServiceRequests/Command/SendProviderMessage/SendProviderMessageCommandValidator.cs` | Validator |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `Controllers/V1/ServiceRequestsController.cs` | Pure CQRS, typed + PRT, inline DTO + offerState switch + service-locator removed |
+| `GetProviderDiscoveryBffQuery.cs` | `OfferState` changed from `int?` to `string?` |
+| `GetProviderDiscoveryBffQueryHandler.cs` | Added offerState name→code mapping |
+
+---
+
+## Phase 7 — Final reorg pass (Phone + confirmation sweep)
+
+### What changed
+
+- **Phone** — moved `SendProviderPhoneOtp/` and `VerifyProviderPhoneOtp/` (both commands) from flat
+  `Phone/{Op}/` into `Phone/Command/{Op}/`, matching every other feature's layout. Namespace unchanged.
+- **Confirmation sweep** — verified `Me`, `Auth`, `Files`, `Onboarding`, `Phone`:
+  - All operations nested under `{Feature}/Command|Query/{Op}/` ✓
+  - One class per file (Command/Query, Handler, Validator separate) ✓
+  - No inline DTOs in any controller (every controller file has exactly 1 class) ✓
+  - Validators present for all validatable commands ✓
+  - Controllers already typed + PRT, no `IActionResult` anywhere ✓
+
+### MarineProvider BFF refactor — complete
+
+Every provider BFF controller now:
+- Injects only `IAizenCQRSProcessor`
+- Returns typed `AizenApiResponse<T>` with `[ProducesResponseType]`
+- No `IActionResult`, no `Ok(…)` wrappers, no service-locator, no inline DTOs
+- All operations under `{Feature}/Command|Query/{Op}/` with one-class-per-file + validators
+- All request/response DTOs from module Abstractions

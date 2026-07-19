@@ -1,6 +1,9 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Assignment;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -14,23 +17,42 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
 {
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestAssignmentRepository _assignmentRepository;
+    private readonly IServiceRequestMessageRepository _msgRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public StartServiceRequestAssignmentCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestAssignmentRepository assignmentRepository,
-        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher)
+        IServiceRequestMessageRepository msgRepository,
+        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _assignmentRepository = assignmentRepository;
+        _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<StartServiceRequestAssignmentResponse?> Handle(StartServiceRequestAssignmentCommand request, CancellationToken cancellationToken)
     {
+        // Ownership guard
+        var providerProfileId = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
+        if (providerProfileId <= 0)
+            throw new AizenBusinessException("Provider identity could not be resolved.");
+
         var assignment = await _assignmentRepository.GetByIdAsync(request.AssignmentId, cancellationToken)
-            ?? throw new InvalidOperationException($"Assignment {request.AssignmentId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        if (assignment.ProviderProfileId != providerProfileId)
+            throw new AizenBusinessException("Job not found.");
+
         var sr = await _srRepository.GetByIdAsync(assignment.ServiceRequestId, cancellationToken)
-            ?? throw new InvalidOperationException($"ServiceRequest {assignment.ServiceRequestId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        // State guard: only startable from Assigned or Scheduled
+        if (sr.Status != ServiceRequestStatus.Assigned && sr.Status != ServiceRequestStatus.Scheduled)
+            throw new AizenBusinessException("SR_JOB_NOT_STARTABLE");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         assignment.Start();
@@ -47,6 +69,22 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, assignment.ProviderProfileId,
             ServiceRequestRealtimeEventType.WorkStarted, assignment.ToDto(),
             currentUserId, ServiceRequestActorType.Provider, cancellationToken);
+
+        // Lifecycle system message (idempotent)
+        if (!await _msgRepository.HasSystemMessageAsync(sr.Id, "JOB_STARTED", cancellationToken))
+        {
+            var sysMsg = ServiceRequestMessageEntity.Create(
+                sr.Id, currentUserId, ServiceRequestMessageSenderType.System,
+                ServiceRequestMessageType.StatusChange, "JOB_STARTED", null);
+            await _msgRepository.AddAsync(sysMsg, cancellationToken);
+
+            await _messagePublisher.PublishAsync(new ServiceRequestMessageSentMessage
+            {
+                ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
+                SenderType = ServiceRequestMessageSenderType.System,
+                ProviderProfileId = assignment.ProviderProfileId
+            }, cancellationToken);
+        }
 
         return new StartServiceRequestAssignmentResponse(assignment.Id);
     }

@@ -15,13 +15,14 @@ namespace Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest;
 public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<CancelServiceRequestCommand, CancelServiceRequestResponse>
 {
     private readonly IServiceRequestRepository _repository;
+    private readonly IServiceRequestMessageRepository _msgRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
 
-    public CancelServiceRequestCommandHandler(IServiceRequestRepository repository, IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher)
+    public CancelServiceRequestCommandHandler(IServiceRequestRepository repository, IServiceRequestMessageRepository msgRepository, IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher)
     {
-        _repository = repository; _info = info; _realtimePublisher = realtimePublisher; _messagePublisher = messagePublisher;
+        _repository = repository; _msgRepository = msgRepository; _info = info; _realtimePublisher = realtimePublisher; _messagePublisher = messagePublisher;
     }
 
     public override async Task<CancelServiceRequestResponse?> Handle(CancelServiceRequestCommand request, CancellationToken cancellationToken)
@@ -50,6 +51,15 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
             LocationCityCode = entity.LocationCityCode,
             CancelledByUserId = currentUserId,
         }, cancellationToken);
+
+        // Lifecycle system message (idempotent)
+        if (!await _msgRepository.HasSystemMessageAsync(entity.Id, "CONVERSATION_CLOSED", cancellationToken))
+        {
+            var sysMsg = ServiceRequestMessageEntity.Create(
+                entity.Id, currentUserId, ServiceRequestMessageSenderType.System,
+                ServiceRequestMessageType.StatusChange, "CONVERSATION_CLOSED", null);
+            await _msgRepository.AddAsync(sysMsg, cancellationToken);
+        }
 
         return new CancelServiceRequestResponse(entity.Id);
     }

@@ -22,6 +22,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
 {
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestOfferRepository _offerRepository;
+    private readonly IServiceRequestMessageRepository _msgRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IPaymentModuleRemoteCall _paymentRemoteCall;
@@ -30,12 +31,13 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
 
     public AcceptServiceRequestOfferCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestOfferRepository offerRepository,
+        IServiceRequestMessageRepository msgRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
         IPaymentModuleRemoteCall paymentRemoteCall,
         IAizenMessagePublisher messagePublisher,
         ILogger<AcceptServiceRequestOfferCommandHandler> logger)
     {
-        _srRepository = srRepository; _offerRepository = offerRepository;
+        _srRepository = srRepository; _offerRepository = offerRepository; _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher; _logger = logger;
     }
@@ -116,6 +118,21 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
             OwnerUserId = sr.OwnerUserId,
             ProviderProfileId = offer.ProviderProfileId,
         }, cancellationToken);
+
+        // Lifecycle system message (idempotent)
+        if (!await _msgRepository.HasSystemMessageAsync(sr.Id, "OFFER_ACCEPTED", cancellationToken))
+        {
+            var sysMsg = ServiceRequestMessageEntity.Create(
+                sr.Id, currentUserId, ServiceRequestMessageSenderType.System,
+                ServiceRequestMessageType.StatusChange, "OFFER_ACCEPTED", null);
+            await _msgRepository.AddAsync(sysMsg, cancellationToken);
+
+            await _messagePublisher.PublishAsync(new Abstraction.Message.ServiceRequestMessageSentMessage
+            {
+                ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
+                SenderType = ServiceRequestMessageSenderType.System, ProviderProfileId = offer.ProviderProfileId
+            }, cancellationToken);
+        }
 
         return new AcceptServiceRequestOfferResponse(offer.Id, sr.Id);
     }

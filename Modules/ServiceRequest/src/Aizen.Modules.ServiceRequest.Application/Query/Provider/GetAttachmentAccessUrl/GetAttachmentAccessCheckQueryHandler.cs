@@ -68,16 +68,20 @@ public sealed class GetAttachmentAccessCheckQueryHandler
             throw new AizenBusinessException("Service request not found.");
         }
 
-        // Verify fileId is an attachment on this request
-        var attachment = sr.Attachments.FirstOrDefault(a => a.FileId == request.FileId && !a.IsDeleted);
-        if (attachment is null)
+        // Verify fileId belongs to this SR: request attachment, message attachment, work-log evidence, or completion evidence
+        var isRequestAttachment = sr.Attachments.Any(a => a.FileId == request.FileId && !a.IsDeleted);
+        var isMessageAttachment = sr.Messages.Any(m => m.AttachmentFileId == request.FileId && !m.IsDeleted);
+        var isWorkLogEvidence = sr.Assignment?.WorkLogs.Any(w => w.AttachmentFileId == request.FileId) ?? false;
+        var isCompletionEvidence = sr.Completion?.EvidenceFileId == request.FileId;
+
+        if (!isRequestAttachment && !isMessageAttachment && !isWorkLogEvidence && !isCompletionEvidence)
         {
             _logger.LogWarning(
-                "Provider {ProviderProfileId} requested read-url for fileId {FileId} which is not an attachment on SR {ServiceRequestId}.",
+                "Provider {ProviderProfileId} requested read-url for fileId {FileId} which is not an attachment/message/evidence on SR {ServiceRequestId}.",
                 providerProfileId, request.FileId, sr.Id);
             throw new AizenBusinessException("Service request not found.");
         }
 
-        return new GetAttachmentAccessCheckResponse(attachment.FileId, true);
+        return new GetAttachmentAccessCheckResponse(request.FileId, true);
     }
 }

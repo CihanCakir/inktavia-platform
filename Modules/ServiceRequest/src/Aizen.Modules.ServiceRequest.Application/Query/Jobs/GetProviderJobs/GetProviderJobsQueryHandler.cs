@@ -1,26 +1,24 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Jobs;
-using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
+using Aizen.Modules.ServiceRequest.Repository.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.ServiceRequest.Application.Query.Jobs;
 
 /// <summary>
-/// Returns the caller provider's own assignments. The provider profile id is read from the trusted request
-/// context (asserted by the BFF via X-Aizen-Provider-Profile-Id → KeycloakTokenInfo.ProviderProfileId), never
-/// from a request parameter. Returns an empty list when no provider profile is present in the context.
+/// Returns the caller provider's own assignments with in-module SR enrichment (Title, RequestCode, VesselId).
+/// Provider profile from the assertion. One query with join — no N+1.
 /// </summary>
-[DocumentationInfo("Get provider jobs query handler", "Lists provider assignments scoped by the asserted provider profile id.")]
+[DocumentationInfo("Get provider jobs query handler", "Lists provider assignments scoped by the asserted provider profile id, enriched with SR title/code.")]
 public sealed class GetProviderJobsQueryHandler : AizenQueryHandler<GetProviderJobsQuery, GetProviderJobsResponse>
 {
-    private readonly IServiceRequestAssignmentRepository _assignmentRepository;
+    private readonly ServiceRequestDbContext _db;
     private readonly IAizenInfoAccessor _info;
 
-    public GetProviderJobsQueryHandler(
-        IServiceRequestAssignmentRepository assignmentRepository,
-        IAizenInfoAccessor info)
+    public GetProviderJobsQueryHandler(ServiceRequestDbContext db, IAizenInfoAccessor info)
     {
-        _assignmentRepository = assignmentRepository;
+        _db = db;
         _info = info;
     }
 
@@ -32,23 +30,31 @@ public sealed class GetProviderJobsQueryHandler : AizenQueryHandler<GetProviderJ
             return new GetProviderJobsResponse { PageIndex = request.PageIndex, PageSize = request.PageSize };
 
         var skip = request.PageIndex * request.PageSize;
-        var assignments = await _assignmentRepository
-            .GetByProviderProfileIdAsync(providerProfileId, skip, request.PageSize, cancellationToken);
 
-        var items = assignments
-            .Select(a => new ProviderJobItemDto
+        var items = await _db.ServiceRequestAssignments
+            .AsNoTracking()
+            .Where(a => a.ProviderProfileId == providerProfileId && !a.IsDeleted)
+            .Join(_db.ServiceRequests, a => a.ServiceRequestId, sr => sr.Id, (a, sr) => new { a, sr })
+            .OrderByDescending(x => x.a.CreateDate)
+            .Skip(skip)
+            .Take(request.PageSize)
+            .Select(x => new ProviderJobItemDto
             {
-                AssignmentId = a.Id,
-                ServiceRequestId = a.ServiceRequestId,
-                ServiceRequestOfferId = a.ServiceRequestOfferId,
-                Status = a.Status.ToString(),
-                ScheduledStartDate = a.ScheduledStartDate,
-                ScheduledEndDate = a.ScheduledEndDate,
-                ActualStartDate = a.ActualStartDate,
-                ActualEndDate = a.ActualEndDate,
-                ProviderNotes = a.ProviderNotes
+                AssignmentId = x.a.Id,
+                ServiceRequestId = x.a.ServiceRequestId,
+                ServiceRequestOfferId = x.a.ServiceRequestOfferId,
+                Status = x.sr.Status.ToString(),
+                Title = x.sr.Title,
+                RequestCode = x.sr.RequestCode,
+                VesselId = x.sr.VesselId,
+                VesselName = x.sr.VesselName,
+                ScheduledStartDate = x.a.ScheduledStartDate,
+                ScheduledEndDate = x.a.ScheduledEndDate,
+                ActualStartDate = x.a.ActualStartDate,
+                ActualEndDate = x.a.ActualEndDate,
+                ProviderNotes = x.a.ProviderNotes
             })
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         return new GetProviderJobsResponse
         {

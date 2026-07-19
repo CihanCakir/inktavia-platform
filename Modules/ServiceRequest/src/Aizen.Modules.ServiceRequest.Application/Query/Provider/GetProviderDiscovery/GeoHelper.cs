@@ -14,6 +14,19 @@ public static class GeoHelper
 {
     private const double EarthRadiusKm = 6371.0;
 
+    /// <summary>
+    /// Haversine distance between two points in km. Same formula as the SQL expression in discovery.
+    /// </summary>
+    public static decimal HaversineKm(decimal lat1, decimal lng1, decimal lat2, decimal lng2)
+    {
+        var dLat = ((double)lat2 - (double)lat1) * Math.PI / 360.0;
+        var dLng = ((double)lng2 - (double)lng1) * Math.PI / 360.0;
+        var a = Math.Pow(Math.Sin(dLat), 2) +
+                Math.Cos((double)lat1 * Math.PI / 180.0) * Math.Cos((double)lat2 * Math.PI / 180.0) *
+                Math.Pow(Math.Sin(dLng), 2);
+        return (decimal)(EarthRadiusKm * 2.0 * Math.Asin(Math.Sqrt(a)));
+    }
+
     public static (decimal minLat, decimal maxLat, decimal minLng, decimal maxLng) BoundingBox(
         decimal centerLat, decimal centerLng, decimal radiusKm)
     {

@@ -14,5 +14,8 @@ public sealed class ServiceRequestMessageEntityConfiguration : IEntityTypeConfig
         builder.HasIndex(x => x.ServiceRequestId);
         builder.HasIndex(x => x.SenderUserId);
         builder.HasIndex(x => new { x.ServiceRequestId, x.IsRead });
+        builder.Property(x => x.LocationLat).HasPrecision(10, 7);
+        builder.Property(x => x.LocationLng).HasPrecision(10, 7);
+        builder.Property(x => x.LocationLabel).HasMaxLength(500);
     }
 }

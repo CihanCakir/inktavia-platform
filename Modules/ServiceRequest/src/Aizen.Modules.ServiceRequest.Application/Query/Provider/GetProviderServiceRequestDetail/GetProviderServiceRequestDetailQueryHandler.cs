@@ -3,6 +3,7 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderDiscovery;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
 using Microsoft.Extensions.Logging;
@@ -78,6 +79,18 @@ public sealed class GetProviderServiceRequestDetailQueryHandler
             throw new AizenBusinessException("Service request not found.");
         }
 
-        return new GetProviderServiceRequestDetailResponse(sr.ToProviderDetailDto(providerProfileId));
+        var detail = sr.ToProviderDetailDto(providerProfileId);
+
+        // Compute distance from the provider's location (exact coords stay in the module)
+        if (request.CenterLatitude.HasValue && request.CenterLongitude.HasValue
+            && sr.LocationLatitude.HasValue && sr.LocationLongitude.HasValue)
+        {
+            detail.Request.DistanceKm = Math.Round(
+                GeoHelper.HaversineKm(
+                    request.CenterLatitude.Value, request.CenterLongitude.Value,
+                    sr.LocationLatitude.Value, sr.LocationLongitude.Value), 1);
+        }
+
+        return new GetProviderServiceRequestDetailResponse(detail);
     }
 }

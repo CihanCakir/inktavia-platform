@@ -229,6 +229,9 @@ public static class ServiceRequestMappingExtensions
         IsRead = entity.IsRead,
         ReadAt = entity.ReadAt,
         AttachmentFileId = entity.AttachmentFileId,
+        LocationLat = entity.LocationLat,
+        LocationLng = entity.LocationLng,
+        LocationLabel = entity.LocationLabel,
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow
     };
 

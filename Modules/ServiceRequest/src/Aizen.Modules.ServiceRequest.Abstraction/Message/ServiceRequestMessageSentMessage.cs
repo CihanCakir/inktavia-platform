@@ -10,4 +10,5 @@ public sealed class ServiceRequestMessageSentMessage : AizenBaseMessage
     public long MessageId { get; set; }
     public long SenderUserId { get; set; }
     public ServiceRequestMessageSenderType SenderType { get; set; }
+    public long? ProviderProfileId { get; set; }
 }

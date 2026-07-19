@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
@@ -34,10 +35,27 @@ public sealed class SubmitServiceRequestCompletionCommandHandler : AizenCommandH
 
     public override async Task<SubmitServiceRequestCompletionResponse?> Handle(SubmitServiceRequestCompletionCommand request, CancellationToken cancellationToken)
     {
+        // Ownership guard
+        var providerProfileId = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
+        if (providerProfileId <= 0)
+            throw new AizenBusinessException("Provider identity could not be resolved.");
+
         var assignment = await _assignmentRepository.GetByIdAsync(request.AssignmentId, cancellationToken)
-            ?? throw new InvalidOperationException($"Assignment {request.AssignmentId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        if (assignment.ProviderProfileId != providerProfileId)
+            throw new AizenBusinessException("Job not found.");
+
         var sr = await _srRepository.GetByIdAsync(assignment.ServiceRequestId, cancellationToken)
-            ?? throw new InvalidOperationException($"ServiceRequest {assignment.ServiceRequestId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        // State guard: only completable from InProgress
+        if (sr.Status != ServiceRequestStatus.InProgress)
+            throw new AizenBusinessException("SR_JOB_NOT_COMPLETABLE");
+
+        // Evidence required
+        if (request.Request.EvidenceFileId is null || request.Request.EvidenceFileId == Guid.Empty)
+            throw new AizenBusinessException("SR_COMPLETION_EVIDENCE_REQUIRED");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         var req = request.Request;

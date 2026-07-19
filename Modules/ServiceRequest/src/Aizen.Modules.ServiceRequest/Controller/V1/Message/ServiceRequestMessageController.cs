@@ -42,7 +42,9 @@ public sealed class ServiceRequestMessageController : AizenWebApiController
     public async Task<AizenApiResponse<SendServiceRequestMessageResponse?>> Send(
         [FromRoute] long serviceRequestId, [FromBody] SendServiceRequestMessageRequest req, CancellationToken ct = default)
     {
-        var senderType = ResolveSenderType();
+        // The BFF assertion flow sets SenderTypeOverride so the module uses the correct sender type
+        // (the BFF's service account doesn't have Provider/Owner roles — role detection falls through).
+        var senderType = req.SenderTypeOverride ?? ResolveSenderType();
         var result = await _cqrs.ProcessAsync<SendServiceRequestMessageResponse>(
             new SendServiceRequestMessageCommand(serviceRequestId, senderType, req), ct);
         return SetResponse(result);

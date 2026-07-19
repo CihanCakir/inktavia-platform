@@ -27,9 +27,9 @@ public sealed class ProviderProfileRequirement : IAuthorizationRequirement
 internal sealed class ProviderProfileAuthorizationHandler : AuthorizationHandler<ProviderProfileRequirement>
 {
     private readonly IProviderContext _context;
-    private readonly IProviderIdentityRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
-    public ProviderProfileAuthorizationHandler(IProviderContext context, IProviderIdentityRemoteCall identity)
+    public ProviderProfileAuthorizationHandler(IProviderContext context, IIdentityRemoteCall identity)
     {
         _context = context;
         _identity = identity;

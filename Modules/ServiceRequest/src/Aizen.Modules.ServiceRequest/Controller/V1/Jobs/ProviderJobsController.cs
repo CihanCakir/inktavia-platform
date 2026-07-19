@@ -13,6 +13,8 @@ using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetDiscoverySummar
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderServiceRequestDetail;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetAttachmentAccessUrl;
+using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderConversations;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Message;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +36,83 @@ public sealed class ProviderJobsController : AizenWebApiController
         : base(httpContextAccessor)
     {
         _cqrs = cqrs;
+    }
+
+    [HttpGet("jobs/summary")]
+    [ProducesResponseType(typeof(GetProviderJobsSummaryResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetProviderJobsSummaryResponse?>> GetJobsSummary(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetProviderJobsSummaryResponse>(
+            new GetProviderJobsSummaryQuery(), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("jobs/workload")]
+    [ProducesResponseType(typeof(GetProviderJobsWorkloadResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetProviderJobsWorkloadResponse?>> GetJobsWorkload(
+        [FromQuery] int weeks = 6, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetProviderJobsWorkloadResponse>(
+            new GetProviderJobsWorkloadQuery(weeks), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("jobs/action-required")]
+    [ProducesResponseType(typeof(GetProviderJobsActionRequiredResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetProviderJobsActionRequiredResponse?>> GetJobsActionRequired(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetProviderJobsActionRequiredResponse>(
+            new GetProviderJobsActionRequiredQuery(), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("jobs/{assignmentId:long}")]
+    [ProducesResponseType(typeof(GetProviderJobDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetProviderJobDetailResponse?>> GetJobDetail(
+        [FromRoute] long assignmentId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetProviderJobDetailResponse>(
+            new GetProviderJobDetailQuery(assignmentId), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("jobs/{assignmentId:long}/start")]
+    public async Task<IActionResult> StartJob([FromRoute] long assignmentId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<Abstraction.Response.Assignment.StartServiceRequestAssignmentResponse>(
+            new Application.Command.Assignment.StartServiceRequestAssignmentCommand(assignmentId), ct);
+        return Ok(new { Header = new { IsSuccess = true }, Body = new { AssignmentId = result?.AssignmentId } });
+    }
+
+    [HttpPost("jobs/{assignmentId:long}/complete")]
+    public async Task<IActionResult> CompleteJob(
+        [FromRoute] long assignmentId,
+        [FromBody] Abstraction.Request.Completion.SubmitServiceRequestCompletionRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<Abstraction.Response.Completion.SubmitServiceRequestCompletionResponse>(
+            new Application.Command.Completion.SubmitServiceRequestCompletionCommand(assignmentId, req), ct);
+        return Ok(new { Header = new { IsSuccess = true }, Body = result });
+    }
+
+    [HttpGet("jobs/{assignmentId:long}/work-logs")]
+    public async Task<AizenApiResponse<Abstraction.Response.WorkLog.GetServiceRequestWorkLogsResponse?>> GetWorkLogs(
+        [FromRoute] long assignmentId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<Abstraction.Response.WorkLog.GetServiceRequestWorkLogsResponse>(
+            new Application.Query.WorkLog.GetServiceRequestWorkLogsQuery(assignmentId), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("jobs/{assignmentId:long}/work-logs")]
+    public async Task<AizenApiResponse<Abstraction.Response.WorkLog.AddServiceRequestWorkLogResponse?>> AddWorkLog(
+        [FromRoute] long assignmentId,
+        [FromBody] Abstraction.Request.WorkLog.AddServiceRequestWorkLogRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<Abstraction.Response.WorkLog.AddServiceRequestWorkLogResponse>(
+            new Application.Command.WorkLog.AddServiceRequestWorkLogCommand(assignmentId, req), ct);
+        return SetResponse(result);
     }
 
     [HttpGet("jobs")]
@@ -131,10 +210,12 @@ public sealed class ProviderJobsController : AizenWebApiController
     [ProducesResponseType(typeof(GetProviderServiceRequestDetailResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetProviderServiceRequestDetailResponse?>> GetServiceRequestDetail(
         [FromRoute] long serviceRequestId,
+        [FromQuery] decimal? centerLatitude = null,
+        [FromQuery] decimal? centerLongitude = null,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<GetProviderServiceRequestDetailResponse>(
-            new GetProviderServiceRequestDetailQuery(serviceRequestId), ct);
+            new GetProviderServiceRequestDetailQuery(serviceRequestId, centerLatitude, centerLongitude), ct);
 
         return SetResponse(result);
     }
@@ -151,6 +232,15 @@ public sealed class ProviderJobsController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetAttachmentAccessCheckResponse>(
             new GetAttachmentAccessCheckQuery(serviceRequestId, fileId), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("conversations")]
+    [ProducesResponseType(typeof(GetProviderConversationsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetProviderConversationsResponse?>> GetConversations(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetProviderConversationsResponse>(
+            new GetProviderConversationsQuery(), ct);
         return SetResponse(result);
     }
 }

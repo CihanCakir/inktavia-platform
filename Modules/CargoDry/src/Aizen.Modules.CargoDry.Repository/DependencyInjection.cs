@@ -28,8 +28,10 @@ public static class DependencyInjection
         services.AddScoped<ICargoDryKitLifecycleEventRepository, CargoDryKitLifecycleEventRepository>();
         // Phase 11 — Renewal preparation repository
         services.AddScoped<ICargoDryRenewalPreparationRepository, CargoDryRenewalPreparationRepository>();
+        services.AddScoped<ICargoDryStockRequestRepository, CargoDryStockRequestRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
+        services.AddScoped<CargoDryProviderMockSeed>();
 
         // ── MongoDB ────────────────────────────────────────────────────────────
         // IMongoClient and IMongoDatabase are NOT registered here.
@@ -53,6 +55,9 @@ public static class DependencyInjection
 
         var batchSeeder = scope.ServiceProvider.GetRequiredService<CargoDryBatchMockSeed>();
         await batchSeeder.SeedAsync(ct);
+
+        var providerSeeder = scope.ServiceProvider.GetRequiredService<CargoDryProviderMockSeed>();
+        await providerSeeder.SeedAsync(ct);
 
         var mongoIndexer = scope.ServiceProvider.GetRequiredService<CargoDryMongoIndexInitializer>();
         await mongoIndexer.InitializeAsync(ct);

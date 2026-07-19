@@ -4,6 +4,7 @@ using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Services;
+using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
 
@@ -24,6 +25,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
 
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestOfferRepository _offerRepository;
+    private readonly IServiceRequestMessageRepository _messageRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly OfferCalculationService _calculation;
     private readonly UnitCodeValidator _unitCodeValidator;
@@ -31,12 +33,14 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
     public SubmitOfferCommandHandler(
         IServiceRequestRepository srRepository,
         IServiceRequestOfferRepository offerRepository,
+        IServiceRequestMessageRepository messageRepository,
         IAizenInfoAccessor info,
         OfferCalculationService calculation,
         UnitCodeValidator unitCodeValidator)
     {
         _srRepository = srRepository;
         _offerRepository = offerRepository;
+        _messageRepository = messageRepository;
         _info = info;
         _calculation = calculation;
         _unitCodeValidator = unitCodeValidator;
@@ -91,6 +95,19 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         {
             sr.ChangeStatus(ServiceRequestStatus.OfferReceived);
             _srRepository.Update(sr);
+        }
+
+        // Create offer-as-message (idempotent per offer id)
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        var hasOfferMsg = await _messageRepository.HasOfferMessageForOfferAsync(sr.Id, offer.Id, ct);
+        if (!hasOfferMsg)
+        {
+            var offerMessage = ServiceRequestMessageEntity.Create(
+                sr.Id, currentUserId, ServiceRequestMessageSenderType.Provider,
+                ServiceRequestMessageType.Offer,
+                $"offer:{offer.Id}|{offer.GrandTotal:F2} {offer.CurrencyCode}",
+                null);
+            await _messageRepository.AddAsync(offerMessage, ct);
         }
 
         return new SubmitOfferResponse(offer.ToDto());

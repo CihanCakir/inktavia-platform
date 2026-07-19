@@ -29,7 +29,7 @@ public sealed class GetCargoDryRenewalCandidatesQueryHandler
         GetCargoDryRenewalCandidatesQuery request, CancellationToken ct)
     {
         // ── Load expiring kits ────────────────────────────────────────────────
-        var expiringKits = await _kits.GetExpiringAsync(request.WithinDays, ct);
+        var expiringKits = await _kits.GetExpiringAsync(request.WithinDays, request.ProviderProfileId, ct);
 
         // ── Load kit IDs that already have an open preparation ─────────────────
         var blockedKitIds = new HashSet<long>(

@@ -15,4 +15,11 @@ public sealed record VesselSummaryDto
     public string? Model { get; init; }
     public decimal? LengthValue { get; init; }
     public string? LengthUnitCode { get; init; }
+    public int? ProductionYear { get; init; }
+    public string? HullMaterialCode { get; init; }
+    public string? RegistrationNumber { get; init; }
+    public decimal? BeamValue { get; init; }
+    public string? BeamUnitCode { get; init; }
+    public decimal? DraftValue { get; init; }
+    public string? DraftUnitCode { get; init; }
 }

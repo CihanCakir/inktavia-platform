@@ -43,7 +43,14 @@ public sealed class GetVesselSummariesQueryHandler
                     Brand = spec != null ? spec.Brand : null,
                     Model = spec != null ? spec.Model : null,
                     LengthValue = spec != null ? spec.LengthValue : null,
-                    LengthUnitCode = spec != null ? spec.LengthUnitCode : null
+                    LengthUnitCode = spec != null ? spec.LengthUnitCode : null,
+                    ProductionYear = spec != null ? spec.ProductionYear : null,
+                    HullMaterialCode = spec != null ? spec.HullMaterialCode : null,
+                    RegistrationNumber = x.Vessel.RegistrationNumber,
+                    BeamValue = spec != null ? spec.BeamValue : null,
+                    BeamUnitCode = spec != null ? spec.BeamUnitCode : null,
+                    DraftValue = spec != null ? spec.DraftValue : null,
+                    DraftUnitCode = spec != null ? spec.DraftUnitCode : null
                 })
             .ToListAsync(cancellationToken);
 

@@ -32,7 +32,7 @@ public sealed class GetCargoDryStatsQueryHandler
         var (hit, cached) = await _cache.TryGetAsync<CargoDryStatsDto>(CacheKey, ct);
         if (hit) return cached;
 
-        var stats         = await _kits.GetStatsAsync(ct);
+        var stats         = await _kits.GetStatsAsync(ct: ct);
         var activeBatches = await _batches.CountActiveBatchesAsync(ct);
 
         var result = new CargoDryStatsDto

@@ -21,13 +21,13 @@ public interface IProviderProfileResolver
 internal sealed class ProviderProfileResolver : IProviderProfileResolver
 {
     private readonly IProviderContext _context;
-    private readonly IProviderIdentityRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly IProviderIdentityHolder _holder;
     private readonly ILogger<ProviderProfileResolver> _logger;
 
     public ProviderProfileResolver(
         IProviderContext context,
-        IProviderIdentityRemoteCall identity,
+        IIdentityRemoteCall identity,
         IProviderIdentityHolder holder,
         ILogger<ProviderProfileResolver> logger)
     {
