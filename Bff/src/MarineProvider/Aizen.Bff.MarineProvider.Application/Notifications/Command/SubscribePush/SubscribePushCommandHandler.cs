@@ -2,11 +2,12 @@ using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.Notification.Abstraction.Response;
 
 namespace Aizen.Bff.MarineProvider.Application.Notifications;
 
 public sealed class SubscribePushCommandHandler
-    : AizenCommandHandler<SubscribePushCommand, SubscribePushResponse>
+    : AizenCommandHandler<SubscribePushCommand, PushSubscriptionResponse>
 {
     private readonly IProviderProfileResolver _resolver;
     private readonly IProviderIdentityHolder _identityHolder;
@@ -22,20 +23,18 @@ public sealed class SubscribePushCommandHandler
         _notification = notification;
     }
 
-    public override async Task<SubscribePushResponse?> Handle(SubscribePushCommand request, CancellationToken ct)
+    public override async Task<PushSubscriptionResponse?> Handle(SubscribePushCommand request, CancellationToken ct)
     {
         await _resolver.ResolveAsync(ct);
 
         if (_identityHolder.UserId is null or 0)
             throw new AizenBusinessException("Provider identity could not be resolved.");
 
-        await _notification.RegisterWebPushSubscription(new RegisterWebPushSubscriptionBffRequest
+        return (await _notification.RegisterWebPushSubscription(new RegisterWebPushSubscriptionBffRequest
         {
             Endpoint = request.Endpoint,
             P256dh = request.P256dh,
             Auth = request.Auth,
-        });
-
-        return new SubscribePushResponse { Success = true };
+        })).Body;
     }
 }

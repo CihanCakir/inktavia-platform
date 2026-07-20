@@ -16,6 +16,8 @@ public static class DependencyInjection
         services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
         services.AddScoped<IUserDeviceTokenRepository,      UserDeviceTokenRepository>();
         services.AddScoped<NotificationTemplateSeed>();
+        services.AddScoped<CargoDryProviderMilestoneMockSeed>();
+        services.AddScoped<NotificationDisplayMockSeed>();
         return services;
     }
 
@@ -30,5 +32,16 @@ public static class DependencyInjection
 
         var seeder = scope.ServiceProvider.GetRequiredService<NotificationTemplateSeed>();
         await seeder.SeedAsync(ct);
+
+        // Dev/local mock milestone notifications (idempotent, env-gated)
+        var env = scope.ServiceProvider.GetService<IHostEnvironment>();
+        if (env is null || env.IsDevelopment())
+        {
+            var milestoneMock = scope.ServiceProvider.GetRequiredService<CargoDryProviderMilestoneMockSeed>();
+            await milestoneMock.SeedAsync(ct);
+
+            var displayMock = scope.ServiceProvider.GetRequiredService<NotificationDisplayMockSeed>();
+            await displayMock.SeedAsync(ct);
+        }
     }
 }

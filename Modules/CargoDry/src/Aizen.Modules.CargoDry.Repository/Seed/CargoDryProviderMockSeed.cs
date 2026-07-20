@@ -102,10 +102,58 @@ public sealed class CargoDryProviderMockSeed
                 await _db.SaveChangesAsync(ct);
                 _logger.LogInformation("Seeded CargoDry provider2 inventory row + 6 movements.");
             }
+
+            // ── Sales attributions + settlement (skip if already seeded) ────
+            if (!await _db.SalesAttributions.AnyAsync(a => a.ProviderProfileId == Provider2, ct))
+            {
+                // Ensure provider2 has a consignment agreement (FK target for settlement)
+                var agreement = await _db.ConsignmentAgreements
+                    .FirstOrDefaultAsync(a => a.ProviderProfileId == Provider2 && a.ProductCode == "STANDARD-90", ct);
+                if (agreement is null)
+                {
+                    agreement = CargoDryConsignmentAgreementEntity.Create(
+                        agreementCode: "CONS-PRV2-STD90", providerProfileId: Provider2, productCode: "STANDARD-90",
+                        consignmentRate: 0.20m, minimumSettlementAmount: 0m, currencyCode: "USD",
+                        maxKitCount: 100, startDateUtc: nowUtc);
+                    await _db.ConsignmentAgreements.AddAsync(agreement, ct);
+                    await _db.SaveChangesAsync(ct);
+                }
+
+                foreach (var code in new[] { "CDK-PRV2-0003", "CDK-PRV2-0004", "CDK-PRV2-0005" })
+                {
+                    var kit = await _db.Kits.FirstOrDefaultAsync(k => k.KitCode == code, ct);
+                    if (kit is null) continue;
+                    var attr = CargoDrySalesAttributionEntity.Create(
+                        kitId: kit.Id, serialNumber: kit.SerialNumber, kitCode: kit.KitCode,
+                        productCode: "STANDARD-90", batchCode: BatchCode,
+                        salesChannel: SalesChannel.ConsignmentSellThrough,
+                        commercialModel: CargoDryCommercialModel.PrincipalSale,
+                        initialStatus: CargoDrySalesAttributionStatus.Attributed,
+                        nowUtc: nowUtc, providerProfileId: Provider2,
+                        consignmentAgreementId: agreement.Id);
+                    attr.ResolveFinancials(
+                        salePrice: 149.99m, commissionRate: 0.20m, currencyCode: "USD",
+                        resolvedAtUtc: nowUtc, resolvedByUserId: 10001);
+                    await _db.SalesAttributions.AddAsync(attr, ct);
+                }
+
+                var monthStart = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var monthEnd = monthStart.AddMonths(1);
+                var settlement = CargoDrySellThroughSettlementEntity.Create(
+                    settlementCode: $"STL-{nowUtc:yyyyMM}-PRV2", consignmentAgreementId: agreement.Id,
+                    providerProfileId: Provider2, productCode: "STANDARD-90", batchCode: BatchCode,
+                    currencyCode: "USD", periodStartUtc: monthStart, periodEndUtc: monthEnd, nowUtc: nowUtc);
+                settlement.RecalculateTotals(
+                    totalKitCount: 2, totalSaleAmount: 299.98m, totalProviderShareAmount: 60m);
+                await _db.SellThroughSettlements.AddAsync(settlement, ct);
+
+                await _db.SaveChangesAsync(ct);
+                _logger.LogInformation("Seeded CargoDry provider2 sales attributions (3) + settlement (1).");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "CargoDryProviderMockSeed failed (non-fatal).");
+            _logger.LogWarning(ex, "CargoDryProviderMockSeed failed (non-fatal): {Inner}", ex.InnerException?.Message);
             _db.ChangeTracker.Clear();
         }
     }

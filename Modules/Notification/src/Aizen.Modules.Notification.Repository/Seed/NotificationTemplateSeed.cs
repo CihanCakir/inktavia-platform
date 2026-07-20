@@ -201,5 +201,26 @@ public sealed class NotificationTemplateSeed
             NotificationType.OtpLoginCode, NotificationChannel.Sms,
             "Inktavia Login Code",
             "Your Inktavia login code is {{otp}}. Expires in {{expiresMinutes}} min."),
+
+        // ── CargoDry Provider Milestone Notifications (CE-6c) ──────────────────
+        NotificationTemplateEntity.Create("CD_FIRST_SALE_INAPP", "CargoDry First Sale (In-App)",
+            NotificationType.CargoDryProviderFirstSale, NotificationChannel.InApp,
+            "Congratulations on your first sale!",
+            "Your first sale has been completed! Your CargoDry commission earnings have started."),
+
+        NotificationTemplateEntity.Create("CD_MONTHLY_TARGET_INAPP", "CargoDry Monthly Target Reached (In-App)",
+            NotificationType.CargoDryProviderMonthlyTargetReached, NotificationChannel.InApp,
+            "Monthly target reached!",
+            "You've hit your monthly target! You reached {{displayValue}} in commission."),
+
+        NotificationTemplateEntity.Create("CD_TIER_UP_INAPP", "CargoDry Tier Up (In-App)",
+            NotificationType.CargoDryProviderTierUp, NotificationChannel.InApp,
+            "Tier upgrade!",
+            "You've been promoted to the {{displayValue}} tier!"),
+
+        NotificationTemplateEntity.Create("CD_STREAK_INAPP", "CargoDry Streak Milestone (In-App)",
+            NotificationType.CargoDryProviderStreakMilestone, NotificationChannel.InApp,
+            "Sales streak milestone!",
+            "{{displayValue}} consecutive months of sales! Your momentum is going strong."),
     ];
 }

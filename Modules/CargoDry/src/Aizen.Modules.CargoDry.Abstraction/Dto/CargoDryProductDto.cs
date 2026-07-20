@@ -23,6 +23,15 @@ public sealed class CargoDryProductDto
     public decimal? ProviderCommissionRate { get; init; }
 
     /// <summary>
+    /// What the provider earns on one consignment/attributed sale of this product, in <see cref="CurrencyCode"/>.
+    /// = round( (ConsignmentPrice ?? RetailPrice) * ProviderCommissionRate, 2 ). Null when no commission rate is set.
+    /// </summary>
+    public decimal? ProviderEarningPerSale =>
+        ProviderCommissionRate is > 0m
+            ? decimal.Round((ConsignmentPrice ?? RetailPrice) * ProviderCommissionRate.Value, 2)
+            : null;
+
+    /// <summary>
     /// Operational kit statistics for this product.
     /// Populated only by the product detail endpoint — null in list responses.
     /// </summary>

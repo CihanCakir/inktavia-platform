@@ -1,10 +1,10 @@
 using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Notification.Abstraction.Response;
 
 namespace Aizen.Modules.Notification.Application.Command.RegisterWebPushSubscription;
 
-public sealed class RegisterWebPushSubscriptionCommand : AizenCommand<bool>
+public sealed class RegisterWebPushSubscriptionCommand : AizenCommand<PushSubscriptionResponse>
 {
-    public long UserId { get; set; }
     public string Endpoint { get; set; } = default!;
     public string P256dh { get; set; } = default!;
     public string Auth { get; set; } = default!;

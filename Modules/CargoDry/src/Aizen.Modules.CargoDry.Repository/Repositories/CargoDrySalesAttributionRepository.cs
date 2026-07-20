@@ -162,6 +162,52 @@ public sealed class CargoDrySalesAttributionRepository : ICargoDrySalesAttributi
         return (items, total);
     }
 
+    public async Task<decimal> SumProviderCommissionAsync(long providerProfileId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken ct)
+    {
+        return await _db.SalesAttributions
+            .Where(x => x.ProviderProfileId == providerProfileId
+                && x.Status != CargoDrySalesAttributionStatus.Cancelled
+                && x.CreatedAtUtc >= fromUtc.UtcDateTime
+                && x.CreatedAtUtc < toUtc.UtcDateTime)
+            .SumAsync(x => x.ProviderShareAmount ?? 0m, ct);
+    }
+
+    public async Task<HashSet<string>> GetProviderActiveSalesMonthsAsync(
+        long providerProfileId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken ct)
+    {
+        var dates = await _db.SalesAttributions
+            .Where(x => x.ProviderProfileId == providerProfileId
+                && x.Status != CargoDrySalesAttributionStatus.Cancelled
+                && x.CreatedAtUtc >= fromUtc.UtcDateTime
+                && x.CreatedAtUtc < toUtc.UtcDateTime)
+            .Select(x => x.CreatedAtUtc)
+            .ToListAsync(ct);
+
+        return dates
+            .Select(d => $"{d.Year:D4}-{d.Month:D2}")
+            .ToHashSet();
+    }
+
+    public async Task<Dictionary<(string ProductCode, string? BatchCode), decimal>> SumProviderCommissionByProductBatchAsync(
+        long providerProfileId, CancellationToken ct)
+    {
+        var rows = await _db.SalesAttributions
+            .Where(x => x.ProviderProfileId == providerProfileId
+                && x.Status != CargoDrySalesAttributionStatus.Cancelled)
+            .GroupBy(x => new { x.ProductCode, x.BatchCode })
+            .Select(g => new
+            {
+                g.Key.ProductCode,
+                g.Key.BatchCode,
+                Total = g.Sum(x => x.ProviderShareAmount ?? 0m),
+            })
+            .ToListAsync(ct);
+
+        return rows.ToDictionary(
+            r => (r.ProductCode, r.BatchCode),
+            r => r.Total);
+    }
+
     public async Task AddAsync(CargoDrySalesAttributionEntity entity, CancellationToken ct)
     {
         await _db.SalesAttributions.AddAsync(entity, ct);

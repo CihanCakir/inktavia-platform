@@ -1,5 +1,8 @@
+using Aizen.Core.Cache.Abstraction;
+using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Notification.Abstraction.Enum;
+using Aizen.Modules.Notification.Abstraction.Response;
 using Aizen.Modules.Notification.Domain.Entities;
 using Aizen.Modules.Notification.Domain.Interface.Repository;
 using Aizen.Modules.Notification.Domain.Interface.Service;
@@ -8,12 +11,13 @@ using Microsoft.Extensions.Logging;
 namespace Aizen.Modules.Notification.Application.Command.SendNotification;
 
 public sealed class SendNotificationCommandHandler
-    : AizenCommandHandler<SendNotificationCommand, SendNotificationCommandResponse>
+    : AizenCommandHandler<SendNotificationCommand, SendNotificationResponse>
 {
     private readonly INotificationRepository         _notificationRepository;
     private readonly INotificationTemplateRepository _templateRepository;
     private readonly INotificationDispatcher         _dispatcher;
     private readonly ITemplateInterpolator           _interpolator;
+    private readonly IAizenDistributedCache           _cache;
     private readonly ILogger<SendNotificationCommandHandler> _logger;
 
     public SendNotificationCommandHandler(
@@ -21,16 +25,18 @@ public sealed class SendNotificationCommandHandler
         INotificationTemplateRepository templateRepository,
         INotificationDispatcher dispatcher,
         ITemplateInterpolator interpolator,
+        IAizenDistributedCache cache,
         ILogger<SendNotificationCommandHandler> logger)
     {
         _notificationRepository = notificationRepository;
         _templateRepository     = templateRepository;
         _dispatcher             = dispatcher;
         _interpolator           = interpolator;
+        _cache                  = cache;
         _logger                 = logger;
     }
 
-    public override async Task<SendNotificationCommandResponse?> Handle(
+    public override async Task<SendNotificationResponse?> Handle(
         SendNotificationCommand request, CancellationToken cancellationToken)
     {
         var template = await _templateRepository
@@ -41,7 +47,7 @@ public sealed class SendNotificationCommandHandler
             _logger.LogWarning(
                 "No active notification template found for Type={Type} Channel={Channel}. Skipping.",
                 request.Type, request.Channel);
-            return new SendNotificationCommandResponse { NotificationId = 0, Dispatched = false };
+            return new SendNotificationResponse { NotificationId = 0, Dispatched = false };
         }
 
         var title = _interpolator.Interpolate(template.TitleTemplate, request.Variables);
@@ -76,10 +82,26 @@ public sealed class SendNotificationCommandHandler
             await _notificationRepository.UpdateAsync(entity, cancellationToken);
         }
 
-        return new SendNotificationCommandResponse
+        // Bump recipient's cache generation so their notification list refreshes
+        await BumpGenerationAsync(request.RecipientUserId, cancellationToken);
+
+        return new SendNotificationResponse
         {
             NotificationId = entity.Id,
             Dispatched     = entity.Status == NotificationStatus.Sent,
         };
+    }
+
+    private async Task BumpGenerationAsync(long rid, CancellationToken ct)
+    {
+        try
+        {
+            await _cache.SetAsync(
+                DateTimeOffset.UtcNow.Ticks,
+                $"notif:gen:{rid}",
+                new AizenCacheOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) },
+                ct);
+        }
+        catch { /* cache failure must not break the write path */ }
     }
 }

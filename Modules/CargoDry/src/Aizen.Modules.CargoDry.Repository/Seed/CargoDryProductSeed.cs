@@ -46,5 +46,27 @@ public sealed class CargoDryProductSeed
         }
 
         await _db.SaveChangesAsync(ct);
+
+        // Fill commercial pricing where missing (idempotent — only when ProviderCommissionRate is null)
+        var pricing = new (string Code, decimal Consignment, decimal Rate)[]
+        {
+            ("STANDARD-90", 149.99m, 0.20m),
+            ("PREMIUM-180", 249.99m, 0.22m),
+            ("PREMIUM-365", 399.99m, 0.25m),
+            ("SMART-90",    299.99m, 0.28m),
+        };
+        foreach (var p in pricing)
+        {
+            var entity = await _db.Products.FirstOrDefaultAsync(x => x.ProductCode == p.Code, ct);
+            if (entity is not null && entity.ProviderCommissionRate is null)
+            {
+                entity.UpdateCommercialPricing(
+                    wholesalePrice: null, consignmentPrice: p.Consignment, providerCommissionRate: p.Rate);
+                _logger.LogInformation("Seeded commercial pricing on {Code}: consignment={Consignment}, rate={Rate}",
+                    p.Code, p.Consignment, p.Rate);
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
     }
 }

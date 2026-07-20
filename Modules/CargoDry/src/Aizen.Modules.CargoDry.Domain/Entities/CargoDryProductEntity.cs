@@ -89,6 +89,15 @@ public sealed class CargoDryProductEntity : AizenEntityWithAudit
     }
 
     /// <summary>
+    /// Provider earning per single sale: (ConsignmentPrice ?? RetailPrice) × ProviderCommissionRate, rounded to 2 dp.
+    /// Returns null when no commission rate is configured.
+    /// </summary>
+    public decimal? ProviderEarningPerSale()
+        => ProviderCommissionRate is > 0m
+            ? decimal.Round((ConsignmentPrice ?? RetailPrice) * ProviderCommissionRate.Value, 2)
+            : null;
+
+    /// <summary>
     /// Updates commercial pricing fields. Null values are applied as-is (clearing the field).
     /// </summary>
     public void UpdateCommercialPricing(

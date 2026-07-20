@@ -43,6 +43,34 @@ public sealed class NotificationEntity : AizenEntity
         };
     }
 
+    /// <summary>Dev/seed only: create with explicit CreatedAt/ReadAt for realistic display seeding.</summary>
+    public static NotificationEntity CreateSeed(
+        long recipientUserId,
+        NotificationType type,
+        NotificationChannel channel,
+        string templateCode,
+        string title,
+        string body,
+        string? metadataJson,
+        DateTimeOffset createdAtUtc,
+        DateTimeOffset? readAtUtc)
+    {
+        return new NotificationEntity
+        {
+            RecipientUserId = recipientUserId,
+            Type            = type,
+            Channel         = channel,
+            TemplateCode    = templateCode,
+            Title           = title,
+            Body            = body,
+            MetadataJson    = metadataJson,
+            Status          = readAtUtc.HasValue ? NotificationStatus.Read : NotificationStatus.Sent,
+            CreatedAt       = createdAtUtc,
+            SentAt          = createdAtUtc,
+            ReadAt          = readAtUtc,
+        };
+    }
+
     public void MarkAsSent(string? providerRef = null)
     {
         Status              = NotificationStatus.Sent;

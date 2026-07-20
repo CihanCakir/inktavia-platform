@@ -25,14 +25,14 @@ public sealed class NotificationsController : AizenWebApiController
 
     /// <summary>GET /api/v1/notifications — paginated inbox for the authenticated user</summary>
     [HttpGet]
-    [ProducesResponseType(typeof(NotificationListBffDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationListBffDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<NotificationListBffDto>> GetMyNotifications(
         [FromQuery] int skip = 0,
         [FromQuery] int take = 20,
         CancellationToken ct = default)
     {
         var result = await _remote.GetMyNotificationsAsync(skip, take, ct);
-        return SetResponse(result);
+        return SetResponse(result.Body);
     }
 
     /// <summary>PATCH /api/v1/notifications/{id}/read — mark a single notification as read</summary>

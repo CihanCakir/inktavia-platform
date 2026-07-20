@@ -1,12 +1,13 @@
-using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Notification.Abstraction.Enum;
+using Aizen.Core.CQRS.Abstraction;
+using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Notification.Abstraction.Request;
+using Aizen.Modules.Notification.Abstraction.Response;
 using Aizen.Modules.Notification.Application.Command.BulkMarkAsRead;
 using Aizen.Modules.Notification.Application.Command.DeactivateWebPushSubscription;
 using Aizen.Modules.Notification.Application.Command.MarkNotificationAsRead;
 using Aizen.Modules.Notification.Application.Command.RegisterDeviceToken;
 using Aizen.Modules.Notification.Application.Command.RegisterWebPushSubscription;
 using Aizen.Modules.Notification.Application.Query.GetUserNotifications;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,110 +16,49 @@ namespace Aizen.Modules.Notification.Controllers;
 [ApiController]
 [Route("api/v1/notification/notifications")]
 [Authorize]
-public sealed class NotificationsController : ControllerBase
+public sealed class NotificationsController : AizenWebApiController
 {
-    private readonly ISender            _sender;
-    private readonly IAizenInfoAccessor _info;
+    private readonly IAizenCQRSProcessor _cqrs;
 
-    public NotificationsController(ISender sender, IAizenInfoAccessor info)
-    {
-        _sender = sender;
-        _info   = info;
-    }
+    public NotificationsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet]
-    public async Task<IActionResult> GetNotifications(
-        [FromQuery] int skip = 0,
-        [FromQuery] int take = 20,
-        CancellationToken ct = default)
-    {
-        var userId = _info.UserInfoAccessor.UserInfo.UserId;
-        var result = await _sender.Send(
-            new GetUserNotificationsQuery { UserId = userId, Skip = skip, Take = take }, ct);
-        return Ok(result);
-    }
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationListResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationListResponse?>> List(
+        [FromQuery] int skip = 0, [FromQuery] int take = 20, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<NotificationListResponse>(
+               new GetUserNotificationsQuery { Skip = skip, Take = take }, ct));
 
     [HttpPatch("{id:long}/read")]
-    public async Task<IActionResult> MarkAsRead(long id, CancellationToken ct)
-    {
-        var userId = _info.UserInfoAccessor.UserInfo.UserId;
-        var ok = await _sender.Send(
-            new MarkNotificationAsReadCommand { NotificationId = id, RequestingUserId = userId }, ct);
-        return ok ? NoContent() : NotFound();
-    }
+    [ProducesResponseType(typeof(AizenApiResponse<MarkNotificationReadResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkNotificationReadResponse?>> MarkRead(long id, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<MarkNotificationReadResponse>(
+               new MarkNotificationAsReadCommand { NotificationId = id }, ct));
 
     [HttpPost("mark-all-read")]
-    public async Task<IActionResult> MarkAllAsRead(CancellationToken ct)
-    {
-        var userId = _info.UserInfoAccessor.UserInfo.UserId;
-        await _sender.Send(new BulkMarkAsReadCommand { UserId = userId }, ct);
-        return NoContent();
-    }
+    [ProducesResponseType(typeof(AizenApiResponse<MarkAllNotificationsReadResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkAllNotificationsReadResponse?>> MarkAllRead(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<MarkAllNotificationsReadResponse>(new BulkMarkAsReadCommand(), ct));
 
-    [HttpPost("device-token")]
-    public async Task<IActionResult> RegisterDeviceToken(
-        [FromBody] RegisterDeviceTokenRequest body,
-        CancellationToken ct)
-    {
-        var userId = _info.UserInfoAccessor.UserInfo.UserId;
-        await _sender.Send(new RegisterDeviceTokenCommand
-        {
-            UserId      = userId,
-            DeviceToken = body.DeviceToken,
-            Platform    = body.Platform,
-        }, ct);
-        return NoContent();
-    }
     [HttpPost("push-subscriptions")]
-    public async Task<IActionResult> RegisterWebPushSubscription(
-        [FromBody] RegisterWebPushSubscriptionRequest body,
-        CancellationToken ct)
-    {
-        var userId = _info.UserInfoAccessor.UserInfo.UserId;
-        if (userId <= 0)
-            return Unauthorized();
-
-        await _sender.Send(new RegisterWebPushSubscriptionCommand
-        {
-            UserId   = userId,
-            Endpoint = body.Endpoint,
-            P256dh   = body.P256dh,
-            Auth     = body.Auth,
-        }, ct);
-        return NoContent();
-    }
+    [ProducesResponseType(typeof(AizenApiResponse<PushSubscriptionResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PushSubscriptionResponse?>> Subscribe(
+        [FromBody] PushSubscriptionRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<PushSubscriptionResponse>(
+               new RegisterWebPushSubscriptionCommand { Endpoint = body.Endpoint, P256dh = body.Keys.P256dh, Auth = body.Keys.Auth }, ct));
 
     [HttpDelete("push-subscriptions")]
-    public async Task<IActionResult> DeactivateWebPushSubscription(
-        [FromBody] DeactivateWebPushSubscriptionRequest body,
-        CancellationToken ct)
-    {
-        var userId = _info.UserInfoAccessor.UserInfo.UserId;
-        if (userId <= 0)
-            return Unauthorized();
+    [ProducesResponseType(typeof(AizenApiResponse<PushSubscriptionResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PushSubscriptionResponse?>> Unsubscribe(
+        [FromBody] PushUnsubscribeRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<PushSubscriptionResponse>(
+               new DeactivateWebPushSubscriptionCommand { Endpoint = body.Endpoint }, ct));
 
-        await _sender.Send(new DeactivateWebPushSubscriptionCommand
-        {
-            Endpoint = body.Endpoint,
-        }, ct);
-        return NoContent();
-    }
-}
-
-public sealed class RegisterWebPushSubscriptionRequest
-{
-    public string Endpoint { get; set; } = default!;
-    public string P256dh { get; set; } = default!;
-    public string Auth { get; set; } = default!;
-}
-
-public sealed class DeactivateWebPushSubscriptionRequest
-{
-    public string Endpoint { get; set; } = default!;
-}
-
-public sealed class RegisterDeviceTokenRequest
-{
-    public string       DeviceToken { get; set; } = default!;
-    public PushPlatform Platform    { get; set; }
+    [HttpPost("device-token")]
+    [ProducesResponseType(typeof(AizenApiResponse<DeviceTokenResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DeviceTokenResponse?>> RegisterDeviceToken(
+        [FromBody] RegisterDeviceTokenRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<DeviceTokenResponse>(
+               new RegisterDeviceTokenCommand { DeviceToken = body.DeviceToken, Platform = body.Platform }, ct));
 }

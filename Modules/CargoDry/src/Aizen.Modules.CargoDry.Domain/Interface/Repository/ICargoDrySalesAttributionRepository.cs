@@ -58,6 +58,25 @@ public interface ICargoDrySalesAttributionRepository
         int               take,
         CancellationToken ct);
 
+    /// <summary>
+    /// SUM(ProviderShareAmount) for a provider within a date range, excluding cancelled attributions.
+    /// </summary>
+    Task<decimal> SumProviderCommissionAsync(long providerProfileId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken ct);
+
+    /// <summary>
+    /// SUM(ProviderShareAmount) grouped by ProductCode+BatchCode for a provider, excluding cancelled.
+    /// Returns a dictionary keyed by (ProductCode, BatchCode).
+    /// </summary>
+    Task<Dictionary<(string ProductCode, string? BatchCode), decimal>> SumProviderCommissionByProductBatchAsync(
+        long providerProfileId, CancellationToken ct);
+
+    /// <summary>
+    /// Distinct "yyyy-MM" (UTC) keys in [fromUtc, toUtc) where the provider has ≥1 non-cancelled attribution.
+    /// Used to derive monthly sales streak (CE-6b). Read-only.
+    /// </summary>
+    Task<HashSet<string>> GetProviderActiveSalesMonthsAsync(
+        long providerProfileId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken ct);
+
     Task AddAsync(CargoDrySalesAttributionEntity entity, CancellationToken ct);
 
     Task SaveChangesAsync(CancellationToken ct);

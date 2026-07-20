@@ -26,6 +26,8 @@ public sealed class CargoDryDbContext : AizenDbContext
     public DbSet<CargoDryKitLifecycleEventEntity> KitLifecycleEvents => Set<CargoDryKitLifecycleEventEntity>();
     // Phase 11 — Renewal preparation workflow
     public DbSet<CargoDryRenewalPreparationEntity> RenewalPreparations => Set<CargoDryRenewalPreparationEntity>();
+    // CE-6c — Provider milestone awards (idempotent)
+    public DbSet<CargoDryProviderMilestoneAwardEntity> ProviderMilestoneAwards => Set<CargoDryProviderMilestoneAwardEntity>();
     // ActivationLogs — moved to MongoDB (CargoDryMongoDbContext)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

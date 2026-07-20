@@ -29,6 +29,7 @@ public static class DependencyInjection
         // Phase 11 — Renewal preparation repository
         services.AddScoped<ICargoDryRenewalPreparationRepository, CargoDryRenewalPreparationRepository>();
         services.AddScoped<ICargoDryStockRequestRepository, CargoDryStockRequestRepository>();
+        services.AddScoped<ICargoDryProviderMilestoneAwardRepository, CargoDryProviderMilestoneAwardRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
         services.AddScoped<CargoDryProviderMockSeed>();

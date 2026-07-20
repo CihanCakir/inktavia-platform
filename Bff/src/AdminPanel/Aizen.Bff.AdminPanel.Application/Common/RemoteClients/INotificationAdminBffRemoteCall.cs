@@ -2,6 +2,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Notification.Abstraction.Dto;
 using Aizen.Modules.Notification.Abstraction.Enum;
+using Aizen.Modules.Notification.Abstraction.Response;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -17,16 +18,16 @@ public interface INotificationAdminBffRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<NotificationTemplateDto>> GetNotificationTemplateByCode(string code);
 
     [AizenRemoteCallPost("/api/v1/notification/admin/notification-templates")]
-    Task<AizenApiResponse<object>> CreateNotificationTemplate(
+    Task<AizenApiResponse<NotificationTemplateMutationResponse>> CreateNotificationTemplate(
         [AizenRemoteCallBody] CreateNotificationTemplateRemoteRequest body);
 
     [AizenRemoteCallPut("/api/v1/notification/admin/notification-templates/{code}")]
-    Task<AizenApiResponse<object>> UpdateNotificationTemplate(
+    Task<AizenApiResponse<NotificationTemplateMutationResponse>> UpdateNotificationTemplate(
         string code,
         [AizenRemoteCallBody] UpdateNotificationTemplateRemoteRequest body);
 
     [AizenRemoteCallPatch("/api/v1/notification/admin/notification-templates/{code}/toggle")]
-    Task<AizenApiResponse<object>> ToggleNotificationTemplate(string code);
+    Task<AizenApiResponse<NotificationTemplateMutationResponse>> ToggleNotificationTemplate(string code);
 }
 
 public sealed class CreateNotificationTemplateRemoteRequest

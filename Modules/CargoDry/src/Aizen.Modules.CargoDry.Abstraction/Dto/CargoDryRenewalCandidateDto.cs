@@ -29,4 +29,5 @@ public sealed class CargoDryRenewalCandidateDto
     public DateTimeOffset?    LastNotificationDispatchedAtUtc  { get; init; }
     public string?            LastNotificationStatus           { get; init; }
     public long?              OpenRenewalPreparationId         { get; init; }
+    public decimal?           RenewalCommission                { get; init; }
 }

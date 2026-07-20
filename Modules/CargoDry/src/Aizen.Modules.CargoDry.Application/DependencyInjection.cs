@@ -16,6 +16,9 @@ public static class DependencyInjection
         // Phase 5: Commercial rule resolver
         services.AddScoped<ICargoDryCommercialRuleResolver,      CargoDryCommercialRuleResolver>();
 
+        // CE-6c: Milestone evaluator
+        services.AddScoped<ICargoDryProviderMilestoneEvaluator, CargoDryProviderMilestoneEvaluator>();
+
         // Phase 6: Monthly settlement automation
         services.AddScoped<ICargoDryMonthlySettlementAutomationService, CargoDryMonthlySettlementAutomationService>();
 

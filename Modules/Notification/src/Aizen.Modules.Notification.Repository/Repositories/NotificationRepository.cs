@@ -18,9 +18,14 @@ public sealed class NotificationRepository : INotificationRepository
     public Task<List<NotificationEntity>> GetByRecipientAsync(long userId, int skip, int take, CancellationToken ct)
         => _db.Notifications
             .Where(x => x.RecipientUserId == userId)
-            .OrderByDescending(x => x.CreatedAt)
+            .OrderByDescending(x => x.ReadAt == null)   // unread first
+            .ThenByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.Id)                // deterministic tiebreaker
             .Skip(skip).Take(take)
             .ToListAsync(ct);
+
+    public Task<int> CountByRecipientAsync(long userId, CancellationToken ct)
+        => _db.Notifications.CountAsync(x => x.RecipientUserId == userId, ct);
 
     public Task<int> GetUnreadCountAsync(long userId, CancellationToken ct)
         => _db.Notifications.CountAsync(x => x.RecipientUserId == userId && x.ReadAt == null, ct);
@@ -37,10 +42,10 @@ public sealed class NotificationRepository : INotificationRepository
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task BulkMarkAsReadAsync(long userId, CancellationToken ct)
+    public async Task<int> BulkMarkAsReadAsync(long userId, CancellationToken ct)
     {
         var now = DateTimeOffset.UtcNow;
-        await _db.Notifications
+        return await _db.Notifications
             .Where(x => x.RecipientUserId == userId && x.ReadAt == null)
             .ExecuteUpdateAsync(s =>
                 s.SetProperty(x => x.ReadAt, now)

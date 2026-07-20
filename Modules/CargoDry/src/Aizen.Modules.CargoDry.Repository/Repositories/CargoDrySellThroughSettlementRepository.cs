@@ -105,6 +105,16 @@ public sealed class CargoDrySellThroughSettlementRepository : ICargoDrySellThrou
             .ToListAsync(ct);
     }
 
+    public async Task<decimal> SumProviderPayoutByStatusAsync(
+        long providerProfileId, IEnumerable<CargoDrySellThroughSettlementStatus> statuses, CancellationToken ct)
+    {
+        var allowed = statuses.ToList();
+        return await _db.SellThroughSettlements
+            .AsNoTracking()
+            .Where(x => x.ProviderProfileId == providerProfileId && allowed.Contains(x.Status))
+            .SumAsync(x => x.ProviderPayoutAmount, ct);
+    }
+
     public async Task AddAsync(CargoDrySellThroughSettlementEntity entity, CancellationToken ct)
     {
         await _db.SellThroughSettlements.AddAsync(entity, ct);

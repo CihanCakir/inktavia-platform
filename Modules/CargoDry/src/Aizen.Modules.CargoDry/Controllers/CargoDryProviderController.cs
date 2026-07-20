@@ -13,6 +13,11 @@ using Aizen.Modules.CargoDry.Application.Queries.GetProviderStockRequests;
 using Aizen.Modules.CargoDry.Application.Commands.CreateProviderStockRequest;
 using Aizen.Modules.CargoDry.Application.Commands.CancelProviderStockRequest;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProductList;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderEarnings;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderCommissionTrend;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderProductPerformance;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderTier;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderMomentum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -165,6 +170,52 @@ public sealed class CargoDryProviderController : AizenWebApiController
     public async Task<AizenApiResponse<List<CargoDryProductDto>?>> GetCatalog(CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<List<CargoDryProductDto>>(new GetCargoDryProductListQuery(), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("earnings")]
+    public async Task<AizenApiResponse<CargoDryProviderEarningsDto?>> GetEarnings(CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<CargoDryProviderEarningsDto>(
+            new GetCargoDryProviderEarningsQuery { ProviderProfileId = pid }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("earnings/trend")]
+    public async Task<AizenApiResponse<List<CargoDryEarningsTrendPointDto>?>> GetEarningsTrend(
+        [FromQuery] int months = 6, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<List<CargoDryEarningsTrendPointDto>>(
+            new GetCargoDryProviderCommissionTrendQuery { ProviderProfileId = pid, Months = months }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("products/performance")]
+    public async Task<AizenApiResponse<List<CargoDryProductPerformanceDto>?>> GetProductPerformance(CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<List<CargoDryProductPerformanceDto>>(
+            new GetCargoDryProviderProductPerformanceQuery { ProviderProfileId = pid }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("tier")]
+    public async Task<AizenApiResponse<CargoDryProviderTierDto?>> GetTier(CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<CargoDryProviderTierDto>(
+            new GetCargoDryProviderTierQuery { ProviderProfileId = pid }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("momentum")]
+    public async Task<AizenApiResponse<CargoDryProviderMomentumDto?>> GetMomentum(CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<CargoDryProviderMomentumDto>(
+            new GetCargoDryProviderMomentumQuery { ProviderProfileId = pid }, ct);
         return SetResponse(result);
     }
 }

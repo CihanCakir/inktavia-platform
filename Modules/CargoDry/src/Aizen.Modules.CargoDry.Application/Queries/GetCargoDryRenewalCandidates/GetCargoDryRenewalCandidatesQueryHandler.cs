@@ -104,6 +104,7 @@ public sealed class GetCargoDryRenewalCandidatesQueryHandler
                 BlockingReasons                = blockingReasons,
                 Warnings                       = warnings,
                 OpenRenewalPreparationId       = null, // not hydrated here for performance
+                RenewalCommission              = product?.ProviderEarningPerSale(),
             };
         }).ToList();
     }

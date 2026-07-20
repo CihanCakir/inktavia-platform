@@ -48,4 +48,20 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/cargodry/provider/catalog")]
     Task<AizenApiResponse<List<CargoDryProductDto>>> GetCatalog();
+
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/earnings")]
+    Task<AizenApiResponse<CargoDryProviderEarningsDto>> GetEarnings();
+
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/earnings/trend")]
+    Task<AizenApiResponse<List<CargoDryEarningsTrendPointDto>>> GetEarningsTrend(
+        [Refit.Query] int months = 6);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/products/performance")]
+    Task<AizenApiResponse<List<CargoDryProductPerformanceDto>>> GetProductPerformance();
+
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/tier")]
+    Task<AizenApiResponse<CargoDryProviderTierDto>> GetTier();
+
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/momentum")]
+    Task<AizenApiResponse<CargoDryProviderMomentumDto>> GetMomentum();
 }

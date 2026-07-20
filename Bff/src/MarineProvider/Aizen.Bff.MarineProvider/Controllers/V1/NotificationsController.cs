@@ -3,6 +3,7 @@ using Aizen.Bff.MarineProvider.Application.Notifications;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Notification.Abstraction.Request;
+using Aizen.Modules.Notification.Abstraction.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,9 +21,25 @@ public sealed class NotificationsController : AizenWebApiController
     public NotificationsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
+    [HttpGet]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationListResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationListResponse?>> List(
+        [FromQuery] int skip = 0, [FromQuery] int take = 20, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetProviderNotificationsBffQuery { Skip = skip, Take = take }, ct));
+
+    [HttpPost("mark-all-read")]
+    [ProducesResponseType(typeof(AizenApiResponse<MarkAllNotificationsReadResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkAllNotificationsReadResponse?>> MarkAllRead(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new MarkAllNotificationsReadBffCommand(), ct));
+
+    [HttpPatch("{id:long}/read")]
+    [ProducesResponseType(typeof(AizenApiResponse<MarkNotificationReadResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkNotificationReadResponse?>> MarkRead(long id, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new MarkNotificationReadBffCommand { Id = id }, ct));
+
     [HttpPost("push-subscriptions")]
-    [ProducesResponseType(typeof(SubscribePushResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<SubscribePushResponse?>> Subscribe(
+    [ProducesResponseType(typeof(AizenApiResponse<PushSubscriptionResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PushSubscriptionResponse?>> Subscribe(
         [FromBody] PushSubscriptionRequest body, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new SubscribePushCommand
         {
@@ -32,8 +49,8 @@ public sealed class NotificationsController : AizenWebApiController
         }, ct));
 
     [HttpDelete("push-subscriptions")]
-    [ProducesResponseType(typeof(UnsubscribePushResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<UnsubscribePushResponse?>> Unsubscribe(
+    [ProducesResponseType(typeof(AizenApiResponse<PushSubscriptionResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PushSubscriptionResponse?>> Unsubscribe(
         [FromBody] PushUnsubscribeRequest body, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new UnsubscribePushCommand
         {

@@ -46,6 +46,11 @@ public sealed class CargoDryProviderInventoryListItemDto
     public int TotalActivated  { get; init; }
     public int AvailableStock  { get; init; }
 
+    public decimal EarnedCommission    { get; init; }
+    public decimal PotentialCommission { get; init; }
+    public decimal SellThroughPct      { get; init; }
+    public string  CurrencyCode        { get; init; } = "USD";
+
     public DateTime? LastMovementAtUtc { get; init; }
     public DateTime  CreatedAtUtc      { get; init; }
 }

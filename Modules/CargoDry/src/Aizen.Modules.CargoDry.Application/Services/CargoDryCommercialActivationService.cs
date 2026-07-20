@@ -3,6 +3,7 @@ using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.CargoDry.Application.Services;
 
@@ -35,6 +36,8 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
     private readonly ICargoDryInventoryMovementRepository    _movements;
     private readonly ICargoDrySalesAttributionRepository     _attributions;
     private readonly ICargoDrySellThroughSettlementRepository _settlements;
+    private readonly ICargoDryProviderMilestoneEvaluator _milestones;
+    private readonly ILogger<CargoDryCommercialActivationService> _logger;
 
     public CargoDryCommercialActivationService(
         ICargoDryKitRepository                   kits,
@@ -42,7 +45,9 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
         ICargoDryProviderInventoryRepository     inventories,
         ICargoDryInventoryMovementRepository     movements,
         ICargoDrySalesAttributionRepository      attributions,
-        ICargoDrySellThroughSettlementRepository settlements)
+        ICargoDrySellThroughSettlementRepository settlements,
+        ICargoDryProviderMilestoneEvaluator      milestones,
+        ILogger<CargoDryCommercialActivationService> logger)
     {
         _kits        = kits;
         _agreements  = agreements;
@@ -50,6 +55,8 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
         _movements   = movements;
         _attributions = attributions;
         _settlements  = settlements;
+        _milestones   = milestones;
+        _logger       = logger;
     }
 
     public async Task ResolveAsync(long kitId, long activatedByUserId, CancellationToken ct)
@@ -220,6 +227,13 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
             commissionAmount: commissionAmount,
             currencyCode:    currencyCode);
 
+        // ── Milestone evaluation (non-blocking) ────────────────────────────────
+        if (kit.ProviderProfileId.HasValue)
+        {
+            try { await _milestones.EvaluateAfterSaleAsync(kit.ProviderProfileId.Value, DateTimeOffset.UtcNow, ct); }
+            catch (Exception ex) { _logger.LogError(ex, "Milestone eval failed for provider {Pid}", kit.ProviderProfileId); }
+        }
+
         // Link requires an Id, which won't exist until SaveChanges — defer link via settlement
         // (the settlement already holds the aggregated totals; the SellThroughSettlementId FK
         // on the attribution is set only after the EF insert assigns an Id, so this is handled
@@ -278,6 +292,13 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
             inventoryId:            inventoryId,
             consignmentAgreementId: null,
             ct);
+
+        // ── Milestone evaluation (non-blocking) ────────────────────────────────
+        if (kit.ProviderProfileId.HasValue)
+        {
+            try { await _milestones.EvaluateAfterSaleAsync(kit.ProviderProfileId.Value, DateTimeOffset.UtcNow, ct); }
+            catch (Exception ex) { _logger.LogError(ex, "Milestone eval failed for provider {Pid}", kit.ProviderProfileId); }
+        }
     }
 
     // ── DirectSale ──────────────────────────────────────────────────────────────

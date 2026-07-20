@@ -20,6 +20,7 @@
     <ProjectReference Include="../../../../Modules/ReferenceData/src/Aizen.Modules.ReferenceData.Abstraction/Aizen.Modules.ReferenceData.Abstraction.csproj" />
     <ProjectReference Include="../../../../Modules/Vessel/src/Aizen.Modules.Vessel.Abstraction/Aizen.Modules.Vessel.Abstraction.csproj" />
     <ProjectReference Include="../../../../Modules/CargoDry/src/Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/Notification/src/Aizen.Modules.Notification.Abstraction/Aizen.Modules.Notification.Abstraction.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -75,4 +75,30 @@ public sealed class CargoDryController : AizenWebApiController
     [ProducesResponseType(typeof(List<CargoDryProductDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<List<CargoDryProductDto>?>> GetCatalog(CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryCatalogBffQuery(), ct));
+
+    [HttpGet("earnings")]
+    [ProducesResponseType(typeof(CargoDryProviderEarningsDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProviderEarningsDto?>> GetEarnings(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryEarningsBffQuery(), ct));
+
+    [HttpGet("earnings/trend")]
+    [ProducesResponseType(typeof(List<CargoDryEarningsTrendPointDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CargoDryEarningsTrendPointDto>?>> GetEarningsTrend(
+        [FromQuery] int months = 6, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryTrendBffQuery { Months = months }, ct));
+
+    [HttpGet("products/performance")]
+    [ProducesResponseType(typeof(List<CargoDryProductPerformanceDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CargoDryProductPerformanceDto>?>> GetProductPerformance(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryProductPerformanceBffQuery(), ct));
+
+    [HttpGet("tier")]
+    [ProducesResponseType(typeof(CargoDryProviderTierDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProviderTierDto?>> GetTier(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryProviderTierBffQuery(), ct));
+
+    [HttpGet("momentum")]
+    [ProducesResponseType(typeof(CargoDryProviderMomentumDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProviderMomentumDto?>> GetMomentum(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryProviderMomentumBffQuery(), ct));
 }

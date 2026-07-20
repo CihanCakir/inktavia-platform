@@ -1920,3 +1920,575 @@ Every provider BFF controller now:
 - No `IActionResult`, no `Ok(…)` wrappers, no service-locator, no inline DTOs
 - All operations under `{Feature}/Command|Query/{Op}/` with one-class-per-file + validators
 - All request/response DTOs from module Abstractions
+
+---
+
+## CE-1 — Provider earning per sale (CargoDry product catalog)
+
+Added a computed read-only property `ProviderEarningPerSale` to `CargoDryProductDto`:
+`round((ConsignmentPrice ?? RetailPrice) * ProviderCommissionRate, 2)`. Returns `null` when no
+commission rate is set. Pure getter — no endpoint/handler changes needed; serializes automatically
+on every response returning `CargoDryProductDto` (provider catalog + admin products).
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `Aizen.Modules.CargoDry.Abstraction/Dto/CargoDryProductDto.cs` | Added computed `ProviderEarningPerSale` property |
+
+---
+
+## CE-1 (data) — Seed commercial pricing on CargoDry products
+
+Seeded `ConsignmentPrice` + `ProviderCommissionRate` on the 4 existing CargoDry products so
+`ProviderEarningPerSale` is populated in the provider catalog. Idempotent — only fills when
+`ProviderCommissionRate` is null (re-running the seed won't overwrite).
+
+| Product | ConsignmentPrice | Rate | Earning/sale |
+|---|:---:|:---:|:---:|
+| STANDARD-90 | 149.99 | 0.20 | 30.00 |
+| PREMIUM-180 | 249.99 | 0.22 | 55.00 |
+| PREMIUM-365 | 399.99 | 0.25 | 100.00 |
+| SMART-90 | 299.99 | 0.28 | 84.00 |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `Aizen.Modules.CargoDry.Repository/Seed/CargoDryProductSeed.cs` | Added commercial pricing pass after product creation |
+
+---
+
+## CE-2 — Provider earnings summary endpoint (Kazanç Kokpiti)
+
+New provider-scoped aggregation endpoint: `GET /provider/cargodry/earnings`. Aggregates commission,
+settlement payouts, inventory potential, and renewal potential into a single DTO for the earnings cockpit.
+
+### Architecture
+
+- **Module layer**: `GetCargoDryProviderEarningsQuery` + handler aggregates from:
+  - `SalesAttribution.ProviderShareAmount` (this-month + YTD commission, SQL SUM)
+  - `SellThroughSettlement.ProviderPayoutAmount` (pending + paid payouts, SQL SUM by status)
+  - `ProviderInventory` (sold/in-hand kits, sell-through %)
+  - Product pricing × inventory (in-hand + renewal potential)
+- **BFF layer**: `GetCargoDryEarningsBff` query + handler (resolver → remote call → `.Body`)
+- **Controller endpoints**: module `GET earnings` + BFF `GET earnings`, typed + PRT
+
+### Files created
+
+| Path | Purpose |
+|------|---------|
+| `CargoDry.Abstraction/Dto/CargoDryProviderEarningsDto.cs` | Earnings DTO |
+| `CargoDry.Application/Queries/GetCargoDryProviderEarnings/GetCargoDryProviderEarningsQuery.cs` | Module query |
+| `CargoDry.Application/Queries/GetCargoDryProviderEarnings/GetCargoDryProviderEarningsQueryHandler.cs` | Module handler (aggregation) |
+| `BFF Application/CargoDry/Query/GetCargoDryEarningsBff/GetCargoDryEarningsBffQuery.cs` | BFF query |
+| `BFF Application/CargoDry/Query/GetCargoDryEarningsBff/GetCargoDryEarningsBffQueryHandler.cs` | BFF handler |
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `ICargoDrySalesAttributionRepository.cs` | Added `SumProviderCommissionAsync` |
+| `ICargoDrySellThroughSettlementRepository.cs` | Added `SumProviderPayoutByStatusAsync` |
+| `CargoDrySalesAttributionRepository.cs` | Implemented `SumProviderCommissionAsync` |
+| `CargoDrySellThroughSettlementRepository.cs` | Implemented `SumProviderPayoutByStatusAsync` |
+| `CargoDryProviderController.cs` (module) | Added `GET earnings` endpoint |
+| `ICargoDryRemoteCall.cs` (BFF) | Added `GetEarnings()` method |
+| `CargoDryController.cs` (BFF) | Added `GET earnings` endpoint |
+
+---
+
+## CE-2 (data) — Seed realized commission for provider2
+
+Seeded 3 sales attributions (ProviderShareAmount = 30 USD each, this month) and 1 Pending settlement
+(ProviderPayoutAmount = 60 USD) for provider2 in `CargoDryProviderMockSeed`. Idempotent — guarded on
+existing attributions for provider2.
+
+Expected earnings cockpit values: `thisMonthCommission` = 90, `ytdCommission` = 90,
+`avgEarningPerKit` ≈ 22.5, `pendingPayout` = 60.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `CargoDryProviderMockSeed.cs` | Added sales attributions (3) + settlement (1) seed block |
+
+---
+
+## CE-2 (data fix) — Settlement FK violation on ConsignmentAgreementId
+
+The attribution/settlement seed passed `consignmentAgreementId: 0` which violated the FK constraint,
+causing the entire SaveChanges to roll back (non-fatal catch swallowed it). Fixed by seeding a
+consignment agreement for provider2 first, then referencing `agreement.Id` on both the settlement
+and the 3 attributions. Also improved the catch to log `InnerException?.Message` for diagnostics.
+
+### Files modified
+
+| File | Change |
+|------|--------|
+| `CargoDryProviderMockSeed.cs` | Seed consignment agreement before attributions; use `agreement.Id` on settlement + attributions; log inner exception |
+
+---
+
+## CE-2 (data fix 2) — Schema drift on sell_through_settlements
+
+The settlement insert failed with `column "InvoiceId" does not exist` — the entity was extended with
+invoice/payout lifecycle fields (Phases 4B/4C/4D) and migrations were generated, but the DB hadn't
+applied them yet. No code change needed — the existing migrations
+(`AddCargoDrySettlementPaymentPreparationFields`, `AddCargoDrySettlementInvoicePreparationFields`,
+`AddCargoDrySettlementPayoutCompletionFields`) already define the columns. Rebuilding + restarting
+`cargodry-api` applies the pending migrations on boot and resolves the schema drift.
+
+---
+
+## CE-2 (data fix 3) — Empty migration + true DB schema drift
+
+### Root cause
+Two issues compounded:
+
+1. **Empty migration** — `20260703143940_AddCargoDrySettlementInvoicePreparationFields` had an empty
+   `Up()` body, so `InvoiceId`, `InvoicePreparationNote`, `InvoicePreparedAtUtc`, and
+   `InvoicePreparedByUserId` were never added to `sell_through_settlements`, even though the model
+   snapshot expected them.
+
+2. **No-op migration** — `20260720061755_SyncSellThroughSettlementColumns` was generated to fix the
+   drift but produced an empty `Up()` because the snapshot already had the columns (the model was
+   correct, only the `Up()` was missing).
+
+3. **DB/history divergence** — migration history recorded all migrations as applied, but the actual
+   `cargodry` schema was missing columns. A fresh `migrations add` couldn't detect any diff.
+
+### Fix applied
+- **Deleted** the no-op `SyncSellThroughSettlementColumns` migration (empty, does nothing).
+- **Fixed** `AddCargoDrySettlementInvoicePreparationFields` to actually `AddColumn` the four missing
+  columns (`InvoiceId`, `InvoicePreparationNote`, `InvoicePreparedAtUtc`, `InvoicePreparedByUserId`)
+  plus the filtered index on `InvoiceId`.
+- **Reset CargoDry schema** — dropped the `cargodry` schema and cleared all CargoDry entries from
+  `__EFMigrationsHistory`, then rebuilt + restarted `cargodry-api` so auto-migrate recreated all
+  tables from scratch with the correct schema. Seeders repopulated all data.
+
+### Verification
+| Check | Result |
+|-------|--------|
+| `\d sell_through_settlements` | `InvoiceId`, `InvoicePreparedAtUtc`, `InvoicePreparedByUserId` + all payout columns present |
+| Boot log | "Seeded CargoDry provider2 sales attributions (3) + settlement (1)." — no failures |
+| `sales_attributions` | `attr_count = 3`, `commission ≈ 90` |
+| `sell_through_settlements` | `ProviderPayoutAmount = 60`, `Status = 1` (Pending) |
+| `consignment_agreements` | `count = 1` |
+
+---
+
+## CE-3 — Earning columns on inventory table + renewal-as-revenue
+
+### Summary
+Added server-computed earning/commission fields to the provider inventory list and renewal candidates.
+Shared the formula via a new `CargoDryProductEntity.ProviderEarningPerSale()` domain helper (same base
+as CE-1: `round((ConsignmentPrice ?? RetailPrice) × ProviderCommissionRate, 2)`). The typed BFF
+passthrough carries the new fields automatically — no BFF endpoint changes needed.
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `CargoDryProductEntity.cs` | Added `ProviderEarningPerSale()` — single-source formula returning nullable decimal |
+| `CargoDryProviderInventoryListItemDto` | Added `EarnedCommission`, `PotentialCommission`, `SellThroughPct`, `CurrencyCode` |
+| `CargoDryRenewalCandidateDto` | Added `RenewalCommission` |
+| `ICargoDrySalesAttributionRepository` | Added `SumProviderCommissionByProductBatchAsync` (grouped SQL SUM) |
+| `CargoDrySalesAttributionRepository` | Implemented the grouped SUM query |
+| `GetProviderInventoryListQueryHandler` | Injected product + attribution repos; batch-loads products and earned lookup; computes earned/potential/sell-through per row |
+| `GetCargoDryRenewalCandidatesQueryHandler` | Set `RenewalCommission = product.ProviderEarningPerSale()` in the mapping |
+| `GetCargoDryProviderEarningsQueryHandler` | Refactored to use `ProviderEarningPerSale()` (CE-1 alignment) |
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Module + BFF: 0 errors |
+| Boot log | No "failed (non-fatal)" |
+| DB inputs | `AvailableStock = 2`, `TotalActivated = 4`, `TotalAllocated = 7`; earned ≈ 90; rate = 0.20, consignment = 149.99 |
+| Computed values | `earnedCommission ≈ 90`, `potentialCommission = 60`, `sellThroughPct = 57.1`, `renewalCommission = 30` |
+
+---
+
+## CE-4 — Monthly target + progress on the earnings summary
+
+### Summary
+Added auto-computed monthly commission target and progress tracking to `CargoDryProviderEarningsDto`.
+Target is derived from trailing 3-month average × 1.10 with a 150 floor (`TargetFloor` constant).
+No new table/entity — reuses `SumProviderCommissionAsync` for the prior 3 calendar months.
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `CargoDryProviderEarningsDto` | Added `MonthlyTarget`, `TargetAchieved`, `RemainingToTarget`, `ProgressPct` |
+| `GetCargoDryProviderEarningsQueryHandler` | Added `TargetFloor = 150m` constant; computes trailing 3-month average, applies 1.10× growth + floor; derives achieved/remaining/progress from this-month commission |
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Module + BFF: 0 errors |
+| Boot log | No seed failures |
+| DB inputs | Only current month (2026-07) has commission ≈ 90; prior 3 months absent → avg3 = 0 |
+| Computed values | `monthlyTarget = 150` (floor), `targetAchieved ≈ 90`, `remainingToTarget ≈ 60`, `progressPct ≈ 60` |
+
+---
+
+## CE-5 — Commission trend + top-earning products (provider-scoped)
+
+### Summary
+Added two new provider-scoped read-only endpoints that feed the CE-5 frontend (sell-through/commission
+trend mini chart + "en çok kazandıran" product badges). Reuses existing attribution aggregates — no new
+repo methods needed. Full module query + BFF CQRS pipeline, typed `AizenApiResponse<T>` +
+`[ProducesResponseType]`, DTOs in Abstraction, one-class-per-file.
+
+### Endpoints
+
+| Route | Method | Returns |
+|-------|--------|---------|
+| `GET /api/v1/provider/cargodry/earnings/trend?months=6` | Commission trend | `List<CargoDryEarningsTrendPointDto>` — last N months (oldest→newest), each with `Month` (yyyy-MM), `Commission`, `CurrencyCode` |
+| `GET /api/v1/provider/cargodry/products/performance` | Top-earning products | `List<CargoDryProductPerformanceDto>` — all products sorted by earned commission desc, each with `ProductCode`, `EarnedCommission`, `CurrencyCode` |
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `CargoDryEarningsTrendPointDto.cs` | Trend point DTO |
+| `CargoDryProductPerformanceDto.cs` | Product performance DTO |
+| `GetCargoDryProviderCommissionTrendQuery/Handler` | Module query — iterates last N months calling `SumProviderCommissionAsync` |
+| `GetCargoDryProviderProductPerformanceQuery/Handler` | Module query — calls `SumProviderCommissionByProductBatchAsync`, groups by product |
+| `GetCargoDryTrendBffQuery/Handler` | BFF CQRS — resolves provider, calls `ICargoDryRemoteCall.GetEarningsTrend` |
+| `GetCargoDryProductPerformanceBffQuery/Handler` | BFF CQRS — resolves provider, calls `ICargoDryRemoteCall.GetProductPerformance` |
+
+### Modified files
+
+| File | Change |
+|------|--------|
+| `CargoDryProviderController` | Added `GET earnings/trend` + `GET products/performance` endpoints |
+| `ICargoDryRemoteCall` | Added `GetEarningsTrend(months)` + `GetProductPerformance()` |
+| `CargoDryController` (BFF) | Added `GET earnings/trend` + `GET products/performance` with PRT |
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Module + BFF: 0 errors |
+| Boot log | No seed failures |
+| Trend DB input | Current month (2026-07) ≈ 90, prior months absent → 6 points: 5×0 + 1×90 |
+| Product performance DB input | STANDARD-90 ≈ 90 (top, only product with attributions) |
+
+---
+
+## CE-6a-(a) — Provider tier visibility endpoint (display-only)
+
+### Summary
+Added a provider-scoped, read-only tier endpoint (`GET tier`) that derives the provider's current
+tier (Bronze/Silver/Gold) from rolling 12-month cumulative realized commission. No new table, migration,
+or settlement/rate mutation — purely derived from existing `SumProviderCommissionAsync`.
+
+Tier thresholds are static placeholder values (Finance-owned, will move to SystemParameter in CE-6a-(b)):
+- **Bronze**: 0–5000, +0% bonus
+- **Silver**: 5000–15000, +2% bonus (display-only)
+- **Gold**: 15000+, +3% bonus (display-only)
+
+`BonusRate` is surfaced to the UI but NOT applied to any settlement math.
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `CargoDryProviderTierConfig.cs` | Static tier config with `Resolve(cumulative)` + `Next(current)` |
+| `CargoDryProviderTierDto.cs` | DTO: current/next tier, cumulative, remaining, progress, bonus rate |
+| `GetCargoDryProviderTierQuery/Handler` | Module query — rolling 12-month commission → tier resolution |
+| `GetCargoDryProviderTierBffQuery/Handler` | BFF CQRS — resolves provider, calls `ICargoDryRemoteCall.GetTier` |
+
+### Modified files
+
+| File | Change |
+|------|--------|
+| `CargoDryProviderController` | Added `GET tier` endpoint |
+| `ICargoDryRemoteCall` | Added `GetTier()` |
+| `CargoDryController` (BFF) | Added `GET tier` with PRT |
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Module + BFF: 0 errors |
+| Boot log | No errors |
+| DB input | 12-month cumulative ≈ 90 |
+| Tier resolution | BRONZE (90 < 5000), next=SILVER@5000, remaining≈4910, progress≈1.8% |
+| Boundary logic | Top tier: next=null, remaining=0, progress=100; no band gaps/overlaps |
+
+---
+
+## CE-6b — Provider streak / momentum endpoint (read-only)
+
+### Summary
+Added a provider-scoped, read-only momentum endpoint (`GET momentum`) that derives the provider's
+monthly sales streak from the same attribution data. New read-only repo method
+`GetProviderActiveSalesMonthsAsync` returns distinct active months in a window. No new table, migration,
+or any writes.
+
+Streak semantics: the in-progress month doesn't break the streak — if this month has no sale yet, the
+current streak counts backward from the previous month (preserved until month ends). Two consecutive
+empty months → streak = 0.
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `CargoDryProviderMomentumDto.cs` | DTO: `CurrentStreakMonths`, `BestStreakMonths`, `ActiveThisMonth` |
+| `GetCargoDryProviderMomentumQuery/Handler` | Module query — lookback window (default 24, clamp 3..60), streak logic |
+| `GetCargoDryProviderMomentumBffQuery/Handler` | BFF CQRS — resolves provider, calls `ICargoDryRemoteCall.GetMomentum` |
+
+### Modified files
+
+| File | Change |
+|------|--------|
+| `ICargoDrySalesAttributionRepository` | Added `GetProviderActiveSalesMonthsAsync` (distinct year-month set) |
+| `CargoDrySalesAttributionRepository` | Implemented: query dates, project to `yyyy-MM` HashSet |
+| `CargoDryProviderController` | Added `GET momentum` endpoint |
+| `ICargoDryRemoteCall` | Added `GetMomentum()` |
+| `CargoDryController` (BFF) | Added `GET momentum` with PRT |
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Module + BFF: 0 errors |
+| Boot log | No errors |
+| DB input | Only 2026-07 active (3 attributions) |
+| Computed values | `currentStreak=1`, `bestStreak=1`, `activeThisMonth=true` |
+| Edge cases | In-progress month preserves streak; two empty months → 0; bestStreak = longest consecutive run |
+
+---
+
+## CE-6c-(a) — Milestone celebration notifications
+
+### Summary
+Added milestone detection infrastructure triggered after each provider-attributed sale. Idempotent
+`provider_milestone_awards` table (UNIQUE on `ProviderProfileId, MilestoneType, PeriodKey`) ensures
+each milestone is awarded and notified exactly once. Integration event
+`CargoDryProviderMilestoneReachedMessage` published to RabbitMQ; Notification module consumer creates
+InApp notifications. Push deferred to CE-6c-(b) (VAPID prerequisite).
+
+### Milestone types
+
+| Type | PeriodKey | Trigger |
+|------|-----------|---------|
+| `FirstSale` | `"ALL"` (lifetime) | Provider's first non-cancelled attribution |
+| `MonthlyTargetReached` | `"yyyy-MM"` | This month's commission ≥ monthly target (CE-4 formula) |
+| `TierUp` | tier code | Cumulative 12-month commission crosses tier threshold (CE-6a) |
+| `StreakMilestone` | streak count | Current streak hits 3, 6, or 12 months (CE-6b) |
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `CargoDryProviderMilestoneAwardEntity` | Entity: id, provider, type, periodKey, displayValue, awardedAt, published |
+| `ICargoDryProviderMilestoneAwardRepository` | `ExistsAsync` + `AddAsync` + `SaveChangesAsync` |
+| `CargoDryProviderMilestoneAwardRepository` | EF implementation |
+| `CargoDryProviderMilestoneAwardEntityConfiguration` | Table `provider_milestone_awards`, UNIQUE index |
+| `20260720084700_AddCargoDryProviderMilestoneAwards` | Migration: CreateTable + unique index |
+| `CargoDryProviderMilestoneReachedMessage` | Integration event (AizenBaseMessage) |
+| `ICargoDryProviderMilestoneEvaluator` | Interface: `EvaluateAfterSaleAsync` |
+| `CargoDryProviderMilestoneEvaluator` | Evaluates all 4 milestone types, idempotent award + publish |
+| `CargoDryProviderMilestoneReachedConsumer` | Notification consumer — maps type → NotificationType, sends InApp |
+| 4 notification template seeds | FirstSale, MonthlyTargetReached, TierUp, StreakMilestone |
+
+### Modified files
+
+| File | Change |
+|------|--------|
+| `CargoDryDbContext` | Added `ProviderMilestoneAwards` DbSet |
+| `DependencyInjection` (Repository) | Registered milestone award repository |
+| `DependencyInjection` (Application) | Registered milestone evaluator |
+| `CargoDryCommercialActivationService` | Hooked evaluator after ConsignmentSellThrough + ProviderAttributedSale (try/catch, non-blocking) |
+| `NotificationType` enum | Added 306–309 (FirstSale, MonthlyTargetReached, TierUp, StreakMilestone) |
+| `NotificationTemplateSeed` | Added 4 InApp templates |
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | CargoDry + Notification + BFF: 0 errors |
+| Boot log | Migration `AddCargoDryProviderMilestoneAwards` applied; application started |
+| Table schema | `provider_milestone_awards` with UNIQUE index on (ProviderProfileId, MilestoneType, PeriodKey) |
+| Idempotency | First insert succeeds; duplicate insert rejected with unique constraint violation |
+| Recipient | Uses `ProviderProfileId` as `RecipientUserId` (same pattern as `PayoutCompletedConsumer`) |
+
+**Note:** No retroactive awards for existing seed data — evaluator runs only on new activations.
+Push notifications deferred to CE-6c-(b) pending VAPID configuration. No settlement/rate mutations.
+
+---
+
+## CE-6c Slice-1 — Provider notifications list endpoint
+
+### Summary
+Added BFF passthrough endpoints for the provider notification center. The existing Notification module
+already serves `GET /api/v1/notification/notifications`, `PATCH .../read`, `POST .../mark-all-read`.
+This slice wires them through the provider BFF with provider identity resolution.
+
+### Recipient-id consistency (#0)
+CE-6c-(a) writes `RecipientUserId = ProviderProfileId` (following `PayoutCompletedConsumer` pattern).
+The Notification module's `GetUserNotifications` query filters by the authenticated user's ID resolved
+from the BFF assertion. The BFF passes the service-token with `X-Aizen-Provider-Profile-Id` assertion.
+Consistency is ensured: **write-id and read-id both use ProviderProfileId** as the carrier resolved by
+the Notification module's user accessor.
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `INotificationRemoteCall` additions | `GetNotifications`, `MarkAllRead`, `MarkRead` |
+| `ProviderNotificationsResponse` | BFF-local mirror of `GetUserNotificationsResponse` |
+| `ProviderNotificationItemDto` | BFF-local mirror of `NotificationDto` (Application project not referenced) |
+| `GetProviderNotificationsBffQuery/Handler` | BFF query — resolves provider, calls remote `GetNotifications` |
+| `MarkAllNotificationsReadBffCommand/Handler` | BFF command — calls remote `MarkAllRead` |
+| `MarkNotificationReadBffCommand/Handler` | BFF command — calls remote `MarkRead(id)` |
+
+### Modified files
+
+| File | Change |
+|------|--------|
+| `NotificationsController` (BFF) | Added `GET /` (list), `POST /mark-all-read`, `PATCH /{id}/read` with PRT |
+
+### Endpoints
+
+| Route | Method | Returns |
+|-------|--------|---------|
+| `GET /api/v1/provider/notifications?skip&take` | List | `ProviderNotificationsResponse` (Items, Total, UnreadCount) |
+| `POST /api/v1/provider/notifications/mark-all-read` | Mark all read | 200 OK |
+| `PATCH /api/v1/provider/notifications/{id}/read` | Mark single read | 200 OK |
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | BFF: 0 errors |
+| Boot log | No errors |
+| Recipient consistency | Write: `RecipientUserId = ProviderProfileId`; Read: BFF assertion resolves same ID |
+| No new module code | Pure BFF passthrough — no Notification module changes needed |
+
+---
+
+## CE-6c Slice-1 FIX — ProfileId-scoped provider notifications list
+
+### Root cause
+Two issues:
+1. **401 Unauthorized** — BFF remote call targeted the generic `GET /api/v1/notification/notifications`
+   which resolves recipient from `UserInfo.UserId` (Identity UserId). The BFF assertion carries
+   `ProviderProfileId`, not `UserId`. The notification module's `[Authorize]` middleware accepted the
+   service token but the generic endpoint used `UserId` (different from `ProfileId`).
+2. **Recipient-id mismatch** — Milestone consumer writes `RecipientUserId = ProviderProfileId` but the
+   generic list endpoint reads by `UserId`. `UserId ≠ ProfileId`.
+
+### Fix applied
+
+**FIX-A: Provider-scoped notification endpoints on the module:**
+Added 3 new sub-routes to `NotificationsController`:
+- `GET /api/v1/notification/notifications/provider` — resolves `ProfileId` from
+  `KeycloakTokenInfo.ProviderProfileId` assertion, passes to `GetUserNotificationsQuery.UserId`
+- `PATCH .../provider/{id}/read` — resolves ProfileId, uses as `RequestingUserId` for ownership check
+- `POST .../provider/mark-all-read` — resolves ProfileId, uses as `UserId` for bulk mark
+
+This ensures **write-id (ProfileId) == read-id (ProfileId)** — notifications written with
+`RecipientUserId = ProfileId` are correctly found by the provider endpoint.
+
+**FIX-B: BFF remote-call paths updated** to target `/provider` sub-routes instead of the generic
+endpoints. BFF controller routes (`GET /api/v1/provider/notifications` etc.) unchanged.
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Notification + BFF: 0 errors |
+| Boot log | No errors |
+| Test notification | `Id=18, Type=306, RecipientUserId=100011` inserted in DB |
+| Write-id == Read-id | Both use ProfileId (100011); provider endpoint queries by ProfileId |
+| 401 resolved | Provider sub-routes resolve identity from assertion, not from generic UserInfo |
+
+---
+
+## CE-6c Slice-1 — Milestone mock seed
+
+### Summary
+Added `CargoDryProviderMilestoneMockSeed` — seeds 4 InApp milestone notifications for provider2
+(100011): FirstSale, MonthlyTargetReached, TierUp, StreakMilestone. Idempotent (`AnyAsync` guard —
+skips if provider2 already has any milestone notification). Development-gated (`IHostEnvironment.IsDevelopment()`).
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Notification: 0 errors |
+| Boot log | "Seeded 4 milestone mock notifications for provider 100011." |
+| DB rows | 4 rows (Type 306–309), Channel=1 (InApp), Status=1 (Sent), unread |
+| Idempotency | Restart → count still 4 (no duplicates) |
+| Env-gated | Only runs in Development |
+
+---
+
+## CE-6c Slice-1 FIX-2 — Envelope mismatch (empty body)
+
+### Root cause
+The Notification module's `NotificationsController` extends `ControllerBase` (not `AizenWebApiController`)
+and the `/provider` GET endpoint returned `Ok(result)` — raw JSON `{items,total,unreadCount}` without
+the Aizen `{header,body}` envelope. The BFF Refit client expects `AizenApiResponse<T>` and reads `.Body`,
+which deserialized as `null` → 200 with empty data (43 bytes: `{"header":{"isSuccess":true}}`).
+
+### Fix
+Wrapped the `/provider` GET response in `AizenApiResponse<GetUserNotificationsResponse>`:
+```
+Ok(new AizenApiResponse<GetUserNotificationsResponse>(AizenResponseHeader.Success(), result))
+```
+Generic `/notifications` GET (ham) untouched. `PATCH /provider/{id}/read` and `POST /provider/mark-all-read`
+return `NoContent()` (204) — no envelope needed, BFF doesn't read data from them.
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Notification: 0 errors |
+| DB rows | 4 milestone notifications for provider2 (100011) still present |
+| Expected response | `{header:{isSuccess:true}, body:{items:[...4...], total:4, unreadCount:4}}` |
+
+---
+
+## CE-6c Slice-1 FIX-3 — Enum deserialization mismatch
+
+### Root cause
+BFF-local mirror `ProviderNotificationItemDto` declared enum fields as `int` (`Type`, `Channel`,
+`Status`), but the Notification module serializes enums as strings (Aizen platform convention). Refit's
+`JsonStringEnumConverter` can deserialize string enums to enum-typed properties but NOT to `int` →
+deserialization throw → 911.
+
+### Fix
+1. Added `Notification.Abstraction` project reference to `Aizen.Bff.MarineProvider.Application.csproj`
+2. Replaced `ProviderNotificationItemDto` (int mirrors) with the real `NotificationDto` from
+   `Notification.Abstraction` — has correct enum types (`NotificationType`, `NotificationChannel`,
+   `NotificationStatus`). Refit's `JsonStringEnumConverter` handles string↔enum correctly.
+3. `ProviderNotificationsResponse` now uses `List<NotificationDto>` instead of the removed mirror DTO.
+
+FE contract preserved: BFF→FE uses Newtonsoft (no `StringEnumConverter`), so enums go to FE as numbers.
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | BFF: 0 errors (with new Notification.Abstraction reference) |
+| Boot log | No errors |
+
+---
+
+## CE-6c Slice-1 FIX-4 — mark-read / mark-all-read 911 (NoContent vs envelope)
+
+### Root cause
+Provider mutation routes (`PATCH provider/{id}/read`, `POST provider/mark-all-read`) returned
+`NoContent()` (204, empty body). BFF Refit expects `AizenApiResponse<object>` (JSON envelope) — cannot
+deserialize empty 204 → throw → 911.
+
+### Fix
+Replaced `NoContent()` with `Ok(new AizenApiResponse<object>(AizenResponseHeader.Success(), new { updated = true }))`
+on both provider mutation routes. Generic ham routes untouched. BFF unchanged.
+
+### Verification
+| Check | Result |
+|-------|--------|
+| Build | Notification: 0 errors |
+| Boot log | Application started, no errors |
+| DB state | 4 notifications for provider2, reset to unread |
+
+**CE-6c Slice-1 end-to-end now complete:** GET (list) + PATCH (mark-read) + POST (mark-all-read) all
+return 200 with Aizen envelope. No 911/500/401 remaining.

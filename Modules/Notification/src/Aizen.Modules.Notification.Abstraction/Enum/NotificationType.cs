@@ -31,6 +31,10 @@ public enum NotificationType
     CargoDryKitRevoked                     = 304,
     /// <summary>Admin-triggered renewal notification dispatched through the Notification module. Phase 11.</summary>
     CargoDryRenewalNotificationRequested   = 305,
+    CargoDryProviderFirstSale              = 306,
+    CargoDryProviderMonthlyTargetReached   = 307,
+    CargoDryProviderTierUp                 = 308,
+    CargoDryProviderStreakMilestone         = 309,
     ProfileApprovalDecision      = 400,
     ProfileApproved              = 401,
     ProfileRejected              = 402,

@@ -45,6 +45,11 @@ public interface ICargoDrySellThroughSettlementRepository
         IEnumerable<CargoDrySellThroughSettlementStatus> statuses,
         CancellationToken                                ct);
 
+    /// <summary>
+    /// SUM(ProviderPayoutAmount) for a provider filtered by settlement status(es).
+    /// </summary>
+    Task<decimal> SumProviderPayoutByStatusAsync(long providerProfileId, IEnumerable<CargoDrySellThroughSettlementStatus> statuses, CancellationToken ct);
+
     Task AddAsync(CargoDrySellThroughSettlementEntity entity, CancellationToken ct);
 
     Task SaveChangesAsync(CancellationToken ct);

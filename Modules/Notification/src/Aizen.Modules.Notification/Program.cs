@@ -1,3 +1,4 @@
+using Aizen.Core.Cache.Extension;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Starter;
@@ -21,6 +22,9 @@ builder.Services.AddAizenUnitOfWork<NotificationDbContext>(builder.Configuration
     options.MigrationAssembly      = "Aizen.Modules.Notification.Repository";
     options.UseLazyLoadingProxies  = false;
 });
+
+// ── Cache (not included by Operation starter — register explicitly) ───────────
+builder.Services.AddAizenCache(builder.Configuration);
 
 // ── Repository / Application ───────────────────────────────────────────────────
 builder.Services.AddNotificationRepository();
