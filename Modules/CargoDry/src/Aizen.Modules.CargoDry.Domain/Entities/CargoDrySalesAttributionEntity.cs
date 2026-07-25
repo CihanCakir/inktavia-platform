@@ -123,6 +123,13 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
     /// </summary>
     public string?   RuleResolutionNote    { get; private set; }
 
+    // ── CE-6a-(b): Tier snapshot (frozen at sale time) ────────────────────────────
+    /// <summary>Provider tier code frozen at sale time (Bronze/Silver/Gold). Null for non-provider sales. CE-6a-(b).</summary>
+    public string?  TierAtSale     { get; private set; }
+
+    /// <summary>Additive commission bonus rate frozen at sale time (e.g. 0.02). 0 when no tier bonus. CE-6a-(b).</summary>
+    public decimal  TierBonusRate  { get; private set; }
+
     // ── Attribution audit ────────────────────────────────────────────────────────
     /// <summary>When the commercial attribution was resolved (may differ from CreatedAtUtc).</summary>
     public DateTime? AttributedAt       { get; private set; }
@@ -324,5 +331,15 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
                 $"Cannot cancel attribution {Id} with status {Status}.");
 
         Status = CargoDrySalesAttributionStatus.Cancelled;
+    }
+
+    /// <summary>
+    /// Snapshots the provider's tier and bonus rate at sale time. Called once at attribution creation.
+    /// CE-6a-(b): Tier-Based Real Commission Bonus.
+    /// </summary>
+    public void ApplyTierSnapshot(string? tierCode, decimal tierBonusRate)
+    {
+        TierAtSale    = tierCode;
+        TierBonusRate = tierBonusRate < 0m ? 0m : tierBonusRate;
     }
 }

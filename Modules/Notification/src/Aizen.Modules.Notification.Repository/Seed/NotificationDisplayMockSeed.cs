@@ -16,20 +16,20 @@ public sealed class NotificationDisplayMockSeed
     private const long Provider2 = 100011;
     private const string SeedMarker = "SEED_DISPLAY";
 
-    private static readonly (NotificationType Type, string Title, string Body)[] Templates =
+    private static readonly (NotificationType Type, string Title, string Body, string? RefType, long? RefId)[] Templates =
     [
-        (NotificationType.CargoDryKitActivated,       "Kit aktive edildi",                     "CargoDry kitiniz aktif edildi ve kullanıma hazır."),
-        (NotificationType.CargoDryKitExpiringReminder,  "Kit süresi dolmak üzere",              "Kitinizin süresi yakında doluyor, lütfen yenileme işlemini başlatın."),
-        (NotificationType.CargoDryKitRenewed,          "Kit yenilendi",                        "CargoDry kitiniz başarıyla yenilendi."),
-        (NotificationType.CargoDryKitRevoked,          "Kit iptal edildi",                     "CargoDry kitiniz iptal edildi. Detaylar için destek ile iletişime geçin."),
-        (NotificationType.ServiceRequestCreated,       "Yeni servis talebi oluşturuldu",       "Bir müşteri yeni bir servis talebi oluşturdu."),
-        (NotificationType.OfferCreated,                  "Yeni teklif alındı",                   "Servis talebinize yeni bir teklif geldi."),
-        (NotificationType.ServiceRequestStatusChanged, "Talep durumu güncellendi",              "Servis talebinizin durumu güncellendi."),
-        (NotificationType.AssignmentCreated,             "Talep atandı",                          "Bir servis talebi size atandı."),
-        (NotificationType.PaymentCaptured,             "Ödeme alındı",                          "Ödemeniz başarıyla gerçekleştirildi."),
-        (NotificationType.PayoutCompleted,             "Ödeme tamamlandı",                      "Komisyon ödemeniz hesabınıza aktarıldı."),
-        (NotificationType.CargoDryProviderFirstSale,   "İlk satışınız gerçekleşti",            "Tebrikler! İlk CargoDry satışınızı tamamladınız."),
-        (NotificationType.CargoDryProviderTierUp,      "Kademe yükseltmesi",                   "CargoDry satış kademeniz yükseltildi."),
+        (NotificationType.CargoDryKitActivated,       "Kit aktive edildi",                     "CargoDry kitiniz aktif edildi ve kullanıma hazır.",       "CargoDry",       1001),
+        (NotificationType.CargoDryKitExpiringReminder,  "Kit süresi dolmak üzere",              "Kitinizin süresi yakında doluyor, lütfen yenileme işlemini başlatın.", "CargoDry", 1002),
+        (NotificationType.CargoDryKitRenewed,          "Kit yenilendi",                        "CargoDry kitiniz başarıyla yenilendi.",                   "CargoDry",       1003),
+        (NotificationType.CargoDryKitRevoked,          "Kit iptal edildi",                     "CargoDry kitiniz iptal edildi. Detaylar için destek ile iletişime geçin.", "CargoDry", 1004),
+        (NotificationType.ServiceRequestCreated,       "Yeni servis talebi oluşturuldu",       "Bir müşteri yeni bir servis talebi oluşturdu.",           "ServiceRequest", 2001),
+        (NotificationType.OfferCreated,                  "Yeni teklif alındı",                   "Servis talebinize yeni bir teklif geldi.",                "ServiceRequest", 2002),
+        (NotificationType.ServiceRequestStatusChanged, "Talep durumu güncellendi",              "Servis talebinizin durumu güncellendi.",                  "ServiceRequest", 2003),
+        (NotificationType.AssignmentCreated,             "Talep atandı",                          "Bir servis talebi size atandı.",                          "ServiceRequest", 2004),
+        (NotificationType.PaymentCaptured,             "Ödeme alındı",                          "Ödemeniz başarıyla gerçekleştirildi.",                    "Payment",        3001),
+        (NotificationType.PayoutCompleted,             "Ödeme tamamlandı",                      "Komisyon ödemeniz hesabınıza aktarıldı.",                 "Payment",        3002),
+        (NotificationType.CargoDryProviderFirstSale,   "İlk satışınız gerçekleşti",            "Tebrikler! İlk CargoDry satışınızı tamamladınız.",        "Milestone",      null),
+        (NotificationType.CargoDryProviderTierUp,      "Kademe yükseltmesi",                   "CargoDry satış kademeniz yükseltildi.",                   "Milestone",      null),
     ];
 
     private readonly NotificationDbContext _db;
@@ -71,7 +71,9 @@ public sealed class NotificationDisplayMockSeed
                 t.Body,
                 null,
                 createdAt,
-                readAt);
+                readAt,
+                t.RefType,
+                t.RefId);
         }
 
         await _db.Notifications.AddRangeAsync(items, ct);

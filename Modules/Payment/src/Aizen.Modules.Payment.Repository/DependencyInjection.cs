@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<SubscriptionMockSeed>();
         services.AddScoped<TransactionRefundMockSeed>();
         services.AddScoped<CommissionRuleMockSeed>();
+        services.AddScoped<InvoiceMockSeed>();
 
         return services;
     }
@@ -65,5 +66,9 @@ public static class DependencyInjection
         // Phase 6: commission rule mock data (admin panel detail page — idempotent by RuleCode)
         var commRuleSeeder = scope.ServiceProvider.GetRequiredService<CommissionRuleMockSeed>();
         await commRuleSeeder.SeedAsync(ct);
+
+        // Phase 7: invoice mock data (provider2 settlement statement)
+        var invoiceSeeder = scope.ServiceProvider.GetRequiredService<InvoiceMockSeed>();
+        await invoiceSeeder.SeedAsync(ct);
     }
 }

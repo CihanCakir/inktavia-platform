@@ -54,6 +54,10 @@ public sealed class CargoDrySalesAttributionDto
     public long?     RateResolvedByUserId { get; init; }
     public string?   RuleResolutionNote   { get; init; }
 
+    // ── CE-6a-(b): Tier snapshot ───────────────────────────────────────────────
+    public string?                         TierAtSale             { get; init; }
+    public decimal                         TierBonusRate          { get; init; }
+
     // ── Attribution audit ───────────────────────────────────────────────────────
     public DateTime?                       AttributedAt           { get; init; }
     public long?                           AttributedByUserId     { get; init; }

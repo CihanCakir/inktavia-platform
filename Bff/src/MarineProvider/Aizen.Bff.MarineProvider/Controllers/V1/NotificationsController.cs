@@ -21,6 +21,11 @@ public sealed class NotificationsController : AizenWebApiController
     public NotificationsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
+    [HttpGet("vapid-public-key")]
+    [ProducesResponseType(typeof(AizenApiResponse<VapidPublicKeyResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<VapidPublicKeyResponse?>> GetVapidPublicKey(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetVapidPublicKeyBffQuery(), ct));
+
     [HttpGet]
     [ProducesResponseType(typeof(AizenApiResponse<NotificationListResponse>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<NotificationListResponse?>> List(

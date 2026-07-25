@@ -55,6 +55,10 @@ public sealed class CargoDrySalesAttributionEntityConfiguration
         builder.Property(x => x.RateResolvedByUserId);
         builder.Property(x => x.RuleResolutionNote).HasMaxLength(1000);
 
+        // ── CE-6a-(b): Tier snapshot ──────────────────────────────────────────
+        builder.Property(x => x.TierAtSale).HasMaxLength(20);
+        builder.Property(x => x.TierBonusRate).HasColumnType("numeric(8,4)").HasDefaultValue(0m).IsRequired();
+
         // ── Attribution audit ──────────────────────────────────────────────────
         builder.Property(x => x.AttributedAt);
         builder.Property(x => x.AttributedByUserId);

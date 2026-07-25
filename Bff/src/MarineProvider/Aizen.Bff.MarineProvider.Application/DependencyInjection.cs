@@ -69,6 +69,10 @@ public static class DependencyInjection
             CreateRemoteCall<ICargoDryRemoteCall>(
                 CreateHttpClient(provider, nameof(ICargoDryRemoteCall))));
 
+        services.AddTransient<IPaymentRemoteCall>(provider =>
+            CreateRemoteCall<IPaymentRemoteCall>(
+                CreateHttpClient(provider, nameof(IPaymentRemoteCall))));
+
         return services;
     }
 

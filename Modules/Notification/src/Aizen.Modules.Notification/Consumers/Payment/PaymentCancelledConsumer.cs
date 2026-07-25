@@ -43,6 +43,8 @@ public sealed class PaymentCancelledConsumer
                 ["cancelledAt"]        = message.CancelledAtUtc.ToString("dd MMM yyyy HH:mm"),
             },
             MetadataJson = $"{{\"transactionId\":{message.TransactionId},\"contextType\":\"{message.ContextType}\",\"contextId\":{message.ContextId}}}",
+            ReferenceType = "Payment",
+            ReferenceId   = message.TransactionId,
         }, ct);
 
         _logger.LogInformation(

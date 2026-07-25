@@ -9,6 +9,8 @@ public sealed class NotificationBffDto
     public string          Body         { get; init; } = default!;
     public bool            IsRead       { get; init; }
     public string?         MetadataJson { get; init; }
+    public string?         ReferenceType { get; init; }
+    public long?           ReferenceId   { get; init; }
     public DateTimeOffset  CreatedAt    { get; init; }
     public DateTimeOffset? ReadAt       { get; init; }
 }

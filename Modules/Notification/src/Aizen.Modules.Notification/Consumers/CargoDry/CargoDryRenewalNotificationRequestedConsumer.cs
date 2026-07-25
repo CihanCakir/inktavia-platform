@@ -108,6 +108,8 @@ public sealed class CargoDryRenewalNotificationRequestedConsumer
                     Channel         = channel,
                     Variables       = new Dictionary<string, string>(variables),
                     MetadataJson    = metadataJson,
+                    ReferenceType   = "CargoDry",
+                    ReferenceId     = message.RenewalPreparationId,
                 }, ct);
 
                 _logger.LogInformation(

@@ -54,6 +54,8 @@ public sealed class GetCargoDrySalesAttributionDetailQueryHandler
                 FinancialResolvedByUserId = x.FinancialResolvedByUserId,
                 ResolutionNote            = x.ResolutionNote,
                 SellThroughSettlementId   = x.SellThroughSettlementId,
+                TierAtSale                = x.TierAtSale,
+                TierBonusRate             = x.TierBonusRate,
                 AttributedAt            = x.AttributedAt,
                 AttributedByUserId      = x.AttributedByUserId,
                 ReviewNote              = x.ReviewNote,

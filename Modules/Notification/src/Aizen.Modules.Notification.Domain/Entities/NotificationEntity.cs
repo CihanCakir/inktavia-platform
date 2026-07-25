@@ -14,6 +14,10 @@ public sealed class NotificationEntity : AizenEntity
     public NotificationStatus  Status              { get; private set; }
     public string?             DeliveryProviderRef { get; private set; }
     public string?             MetadataJson        { get; private set; }
+    /// <summary>Routable entity kind for deep-link (e.g. "ServiceRequest","Job","Message","CargoDry","Payment","Milestone"). Nullable.</summary>
+    public string?             ReferenceType       { get; private set; }
+    /// <summary>Id of the referenced entity for deep-link. Nullable.</summary>
+    public long?               ReferenceId         { get; private set; }
     public DateTimeOffset      CreatedAt           { get; private set; }
     public DateTimeOffset?     SentAt              { get; private set; }
     public DateTimeOffset?     ReadAt              { get; private set; }
@@ -27,7 +31,9 @@ public sealed class NotificationEntity : AizenEntity
         string templateCode,
         string title,
         string body,
-        string? metadataJson = null)
+        string? metadataJson = null,
+        string? referenceType = null,
+        long? referenceId = null)
     {
         return new NotificationEntity
         {
@@ -39,6 +45,8 @@ public sealed class NotificationEntity : AizenEntity
             Body            = body,
             Status          = NotificationStatus.Pending,
             MetadataJson    = metadataJson,
+            ReferenceType   = referenceType,
+            ReferenceId     = referenceId,
             CreatedAt       = DateTimeOffset.UtcNow,
         };
     }
@@ -53,7 +61,9 @@ public sealed class NotificationEntity : AizenEntity
         string body,
         string? metadataJson,
         DateTimeOffset createdAtUtc,
-        DateTimeOffset? readAtUtc)
+        DateTimeOffset? readAtUtc,
+        string? referenceType = null,
+        long? referenceId = null)
     {
         return new NotificationEntity
         {
@@ -64,6 +74,8 @@ public sealed class NotificationEntity : AizenEntity
             Title           = title,
             Body            = body,
             MetadataJson    = metadataJson,
+            ReferenceType   = referenceType,
+            ReferenceId     = referenceId,
             Status          = readAtUtc.HasValue ? NotificationStatus.Read : NotificationStatus.Sent,
             CreatedAt       = createdAtUtc,
             SentAt          = createdAtUtc,

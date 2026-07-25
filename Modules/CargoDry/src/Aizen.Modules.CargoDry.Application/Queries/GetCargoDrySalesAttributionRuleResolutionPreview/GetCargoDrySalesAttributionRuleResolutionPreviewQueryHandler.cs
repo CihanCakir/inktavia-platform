@@ -80,6 +80,8 @@ public sealed class GetCargoDrySalesAttributionRuleResolutionPreviewQueryHandler
             FinancialResolvedByUserId = attribution.FinancialResolvedByUserId,
             ResolutionNote            = attribution.ResolutionNote,
             SellThroughSettlementId   = attribution.SellThroughSettlementId,
+            TierAtSale                = attribution.TierAtSale,
+            TierBonusRate             = attribution.TierBonusRate,
             ResolvedRuleId            = attribution.ResolvedRuleId,
             ResolvedRuleSource        = attribution.ResolvedRuleSource,
             ResolvedRuleName          = attribution.ResolvedRuleName,

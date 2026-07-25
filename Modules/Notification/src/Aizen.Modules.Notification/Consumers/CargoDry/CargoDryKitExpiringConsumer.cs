@@ -39,6 +39,8 @@ public sealed class CargoDryKitExpiringConsumer
                 ["productName"] = message.ProductName,
             },
             MetadataJson = $"{{\"kitId\":{message.KitId}}}",
+            ReferenceType = "CargoDry",
+            ReferenceId   = message.KitId,
         }, ct);
 
         _logger.LogInformation("Notification sent for CargoDryKitExpiring: {KitCode}, DaysLeft={DaysLeft}", message.KitCode, message.DaysLeft);

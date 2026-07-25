@@ -64,4 +64,11 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/cargodry/provider/momentum")]
     Task<AizenApiResponse<CargoDryProviderMomentumDto>> GetMomentum();
+
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/settlements")]
+    Task<AizenApiResponse<CargoDryProviderSettlementPagedResultDto>> GetSettlements(
+        [Refit.Query] int? status = null, [Refit.Query] int page = 1, [Refit.Query] int pageSize = 20);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/settlements/summary")]
+    Task<AizenApiResponse<CargoDryProviderPayoutSummaryDto>> GetPayoutSummary();
 }

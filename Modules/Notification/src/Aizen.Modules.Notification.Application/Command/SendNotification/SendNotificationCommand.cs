@@ -11,4 +11,6 @@ public sealed class SendNotificationCommand : AizenCommand<SendNotificationRespo
     public NotificationChannel        Channel         { get; set; }
     public Dictionary<string, string> Variables       { get; set; } = new();
     public string?                    MetadataJson    { get; set; }
+    public string?                    ReferenceType   { get; set; }
+    public long?                      ReferenceId     { get; set; }
 }

@@ -15,6 +15,7 @@ public sealed class ProviderPaymentProfileConfiguration : IEntityTypeConfigurati
         b.Property(x => x.SubMerchantKey).HasMaxLength(200);
         b.Property(x => x.SubMerchantAccountId).HasMaxLength(200);
         b.Property(x => x.IbanEncrypted).HasMaxLength(500);  // Encrypted at rest
+        b.Property(x => x.IbanLast4).HasMaxLength(4);
         b.Property(x => x.LegalName).HasMaxLength(300);
         b.Property(x => x.TaxNumber).HasMaxLength(50);
         b.Property(x => x.Status).HasMaxLength(20).IsRequired();

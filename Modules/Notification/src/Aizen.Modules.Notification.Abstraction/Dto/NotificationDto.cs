@@ -11,6 +11,8 @@ public sealed class NotificationDto
     public string              Title        { get; init; } = default!;
     public string              Body         { get; init; } = default!;
     public string?             MetadataJson { get; init; }
+    public string?             ReferenceType { get; init; }
+    public long?               ReferenceId   { get; init; }
     public bool                IsRead       { get; init; }
     public DateTimeOffset      CreatedAt    { get; init; }
     public DateTimeOffset?     ReadAt       { get; init; }

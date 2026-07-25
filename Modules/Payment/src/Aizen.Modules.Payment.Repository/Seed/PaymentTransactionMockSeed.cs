@@ -33,7 +33,10 @@ public sealed class PaymentTransactionMockSeed
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
-        if (await _db.Transactions.AnyAsync(ct))
+        // Provider2 transactions seed independently (own guard)
+        await SeedProvider2IfNeededAsync(ct);
+
+        if (await _db.Transactions.AnyAsync(x => x.RecipientProfileId != 100011, ct))
         {
             _logger.LogDebug("PaymentTransaction mock seed skipped — data already present.");
             return;
@@ -44,6 +47,21 @@ public sealed class PaymentTransactionMockSeed
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("PaymentTransaction mock seed complete: {Count} transactions.", transactions.Count);
+    }
+
+    private async Task SeedProvider2IfNeededAsync(CancellationToken ct)
+    {
+        if (await _db.Transactions.AnyAsync(x => x.RecipientProfileId == 100011, ct))
+            return;
+
+        var list = new List<PaymentTransactionEntity>();
+        SeedProvider2Transactions(list);
+        if (list.Count > 0)
+        {
+            await _db.Transactions.AddRangeAsync(list, ct);
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("Provider2 transaction seed complete: {Count} records.", list.Count);
+        }
     }
 
     // ── Factory ───────────────────────────────────────────────────────────────
@@ -226,6 +244,31 @@ public sealed class PaymentTransactionMockSeed
         list.Add(tx16);
 
         return list;
+    }
+
+    /// <summary>
+    /// Seeds a handful of transactions for provider2 (RecipientProfileId = 100011)
+    /// so the provider-facing transaction list endpoint has data to return.
+    /// </summary>
+    private static void SeedProvider2Transactions(List<PaymentTransactionEntity> list)
+    {
+        // SR 20001 — Captured (in escrow)
+        var p2tx1 = MakeSrEscrow("TXN-20260610-P201", 20001, null, 11003, 100011,
+            gross: 32_000m, commRate: 0.12m, currency: "TRY", idempotencyKey: "idm-sr-20001-p2-escrow");
+        p2tx1.Capture("IYZICO-CAPTURE-P2-0001");
+        list.Add(p2tx1);
+
+        // SR 20002 — Released (payout generated)
+        var p2tx2 = MakeSrEscrow("TXN-20260610-P202", 20002, null, 11004, 100011,
+            gross: 18_500m, commRate: 0.12m, currency: "TRY", idempotencyKey: "idm-sr-20002-p2-escrow");
+        p2tx2.Capture("IYZICO-CAPTURE-P2-0002");
+        p2tx2.Release("SR completion approved — provider2");
+        list.Add(p2tx2);
+
+        // SR 20003 — PendingIntent (not yet paid)
+        var p2tx3 = MakeSrEscrow("TXN-20260610-P203", 20003, null, 11005, 100011,
+            gross: 7_200m, commRate: 0.18m, currency: "TRY", idempotencyKey: "idm-sr-20003-p2-escrow");
+        list.Add(p2tx3);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

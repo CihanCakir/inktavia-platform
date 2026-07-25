@@ -37,6 +37,8 @@ public sealed class ServiceRequestCompletionSubmittedConsumer
                 { "completionId",     message.CompletionId.ToString() },
             },
             MetadataJson = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"completionId\":{message.CompletionId}}}",
+            ReferenceType = "ServiceRequest",
+            ReferenceId   = message.ServiceRequestId,
         }, ct);
     }
 

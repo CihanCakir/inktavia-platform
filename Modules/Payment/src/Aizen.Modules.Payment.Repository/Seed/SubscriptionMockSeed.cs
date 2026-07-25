@@ -1,3 +1,4 @@
+using Aizen.Modules.Payment.Domain.Entities.Plan;
 using Aizen.Modules.Payment.Domain.Entities.Subscription;
 using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,8 @@ public sealed class SubscriptionMockSeed
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
+        await SeedProvider2IfNeededAsync(ct);
+
         if (await _db.ProviderSubscriptions.AnyAsync(ct))
         {
             _logger.LogDebug("Subscription mock seed skipped — data already present.");
@@ -216,5 +219,41 @@ public sealed class SubscriptionMockSeed
         _logger.LogInformation(
             "Subscription mock seed complete: {Provider} provider subs, {Participant} participant subs.",
             providerSubs.Count, participantSubs.Count);
+    }
+
+    private async Task SeedProvider2IfNeededAsync(CancellationToken ct)
+    {
+        const long provider2 = 100011;
+        if (await _db.ProviderSubscriptions.AnyAsync(s => s.ProviderProfileId == provider2, ct))
+        {
+            _logger.LogDebug("Provider2 subscription seed skipped — data already present.");
+            return;
+        }
+
+        var standardPlan = await _db.ProviderPlans
+            .Where(p => p.PlanCode == "STANDARD")
+            .FirstOrDefaultAsync(ct);
+
+        if (standardPlan is null)
+        {
+            _logger.LogWarning("Provider2 subscription seed: STANDARD plan not found — run PaymentPlanSeed first.");
+            return;
+        }
+
+        var utcNow = DateTime.UtcNow;
+        var sub = ProviderPlanSubscriptionEntity.Create(
+            providerProfileId:            provider2,
+            providerPlanId:               standardPlan.Id,
+            paidAmount:                   499m,
+            currencyCode:                 "TRY",
+            periodStart:                  utcNow,
+            periodEnd:                    utcNow.AddDays(30),
+            autoRenew:                    true,
+            paymentTransactionId:         null,
+            commissionRateAtSubscription: 0.12m);
+
+        await _db.ProviderSubscriptions.AddAsync(sub, ct);
+        await _db.SaveChangesAsync(ct);
+        _logger.LogInformation("Provider2 subscription seed complete: STANDARD plan, active for 30 days.");
     }
 }

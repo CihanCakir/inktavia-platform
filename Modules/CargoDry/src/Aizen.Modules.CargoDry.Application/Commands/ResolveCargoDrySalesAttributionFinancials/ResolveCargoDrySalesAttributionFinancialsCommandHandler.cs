@@ -3,6 +3,7 @@ using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
+using Aizen.Modules.CargoDry.Application.Common;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.ResolveCargoDrySalesAttributionFinancials;
@@ -74,7 +75,7 @@ public sealed class ResolveCargoDrySalesAttributionFinancialsCommandHandler
 
         var resolvedRate = resolution.ResolvedRate!.Value;
 
-        // ── Record rule trace on attribution ───────────────────────────────────
+        // ── Record rule trace on attribution (base rate for audit) ─────────────
         attribution.RecordRuleTrace(
             ruleSource:         resolution.RuleSource!,
             resolvedRate:       resolvedRate,
@@ -84,10 +85,13 @@ public sealed class ResolveCargoDrySalesAttributionFinancialsCommandHandler
             ruleName:           resolution.RuleName,
             ruleResolutionNote: request.ResolutionNote);
 
-        // ── Apply financial resolution ─────────────────────────────────────────
+        // ── CE-6a-(b): apply tier bonus to effective rate ─────────────────────
+        var effectiveRate = CargoDryProviderTierConfig.EffectiveRate(resolvedRate, attribution.TierBonusRate);
+
+        // ── Apply financial resolution (bonus-applied rate drives ProviderShareAmount) ──
         attribution.ResolveFinancials(
             salePrice:        request.SalePrice,
-            commissionRate:   resolvedRate,
+            commissionRate:   effectiveRate,
             currencyCode:     request.CurrencyCode,
             resolvedAtUtc:    nowUtc,
             resolvedByUserId: request.ResolvedByUserId,
@@ -143,6 +147,9 @@ public sealed class ResolveCargoDrySalesAttributionFinancialsCommandHandler
                 FinancialResolvedByUserId = attribution.FinancialResolvedByUserId,
                 ResolutionNote            = attribution.ResolutionNote,
                 SellThroughSettlementId   = attribution.SellThroughSettlementId,
+                // CE-6a-(b): tier snapshot
+                TierAtSale                = attribution.TierAtSale,
+                TierBonusRate             = attribution.TierBonusRate,
                 // Phase 5: rule trace
                 ResolvedRuleId            = attribution.ResolvedRuleId,
                 ResolvedRuleSource        = attribution.ResolvedRuleSource,

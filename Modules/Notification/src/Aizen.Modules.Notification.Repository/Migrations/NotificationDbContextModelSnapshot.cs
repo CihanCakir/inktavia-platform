@@ -59,6 +59,13 @@ namespace Aizen.Modules.Notification.Repository.Migrations
                     b.Property<DateTimeOffset?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("ReferenceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<long>("RecipientUserId")
                         .HasColumnType("bigint");
 
@@ -158,10 +165,18 @@ namespace Aizen.Modules.Notification.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("AuthKey")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<string>("DeviceToken")
                         .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
+
+                    b.Property<string>("Endpoint")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -171,6 +186,10 @@ namespace Aizen.Modules.Notification.Repository.Migrations
 
                     b.Property<DateTimeOffset>("LastActiveAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("P256dhKey")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<int>("Platform")
                         .HasColumnType("integer");
@@ -189,6 +208,10 @@ namespace Aizen.Modules.Notification.Repository.Migrations
 
                     b.HasIndex("DeviceToken")
                         .IsUnique();
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique()
+                        .HasFilter("\"Endpoint\" IS NOT NULL");
 
                     b.HasIndex("UserId", "IsActive");
 

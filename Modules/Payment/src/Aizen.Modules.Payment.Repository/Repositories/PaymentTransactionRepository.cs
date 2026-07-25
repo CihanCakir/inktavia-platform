@@ -59,6 +59,31 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
         return (items, total);
     }
 
+    public async Task<(List<PaymentTransactionEntity> Items, int Total)> GetProviderPagedAsync(
+        long recipientProfileId,
+        PaymentTransactionStatus? status,
+        TransactionType? type,
+        int skip, int take,
+        CancellationToken ct)
+    {
+        var q = _db.Transactions
+            .Where(x => x.RecipientProfileId == recipientProfileId);
+
+        if (status.HasValue)
+            q = q.Where(x => x.Status == status.Value);
+        if (type.HasValue)
+            q = q.Where(x => x.TransactionType == type.Value);
+
+        var total = await q.CountAsync(ct);
+        var items = await q
+            .OrderByDescending(x => x.CreateDate)
+            .ThenByDescending(x => x.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+        return (items, total);
+    }
+
     public Task<List<PaymentTransactionEntity>> GetPendingIntentOlderThanAsync(
         TimeSpan olderThan, int maxBatch, CancellationToken ct)
     {

@@ -23,6 +23,9 @@ public interface INotificationRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallPatch("/api/v1/notification/notifications/{id}/read")]
     Task<AizenApiResponse<MarkNotificationReadResponse>> MarkRead(long id);
+
+    [AizenRemoteCallGet("/api/v1/notification/notifications/vapid-public-key")]
+    Task<AizenApiResponse<VapidPublicKeyResponse>> GetVapidPublicKey();
 }
 
 public sealed class RegisterWebPushSubscriptionBffRequest

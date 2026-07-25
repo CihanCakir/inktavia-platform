@@ -45,6 +45,8 @@ public sealed class PaymentFailedConsumer
                 ["failedAt"]        = message.FailedAtUtc.ToString("dd MMM yyyy HH:mm"),
             },
             MetadataJson = $"{{\"transactionId\":{message.TransactionId},\"contextType\":\"{message.ContextType}\",\"contextId\":{message.ContextId},\"isRetryable\":{message.IsRetryable.ToString().ToLower()}}}",
+            ReferenceType = "Payment",
+            ReferenceId   = message.TransactionId,
         }, ct);
 
         _logger.LogInformation(

@@ -24,6 +24,8 @@ public interface IPayoutRecordRepository
 
     Task<List<PayoutRecordEntity>> GetPendingAsync(CancellationToken ct = default);
 
+    Task<decimal> SumProviderAmountByStatusAsync(long providerProfileId, IEnumerable<PayoutStatus> statuses, CancellationToken ct = default);
+
     Task AddAsync(PayoutRecordEntity entity, CancellationToken ct = default);
     void Update(PayoutRecordEntity entity);
     Task SaveChangesAsync(CancellationToken ct = default);

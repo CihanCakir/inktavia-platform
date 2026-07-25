@@ -12,6 +12,7 @@ public sealed class ProviderPaymentProfileEntity : AizenEntityWithAudit
     public string? SubMerchantKey       { get; private set; }  // Iyzico subMerchantKey (masked in APIs)
     public string? SubMerchantAccountId { get; private set; }  // Iyzico accountId
     public string? IbanEncrypted        { get; private set; }  // AES-256 encrypted IBAN
+    public string? IbanLast4            { get; private set; }  // Last 4 of raw IBAN for masked display
     public string? LegalName            { get; private set; }
     public string? TaxNumber            { get; private set; }  // Masked in APIs
     public string  Status               { get; private set; } = "Active";  // Active | OnHold | Blocked
@@ -41,7 +42,21 @@ public sealed class ProviderPaymentProfileEntity : AizenEntityWithAudit
         VerifiedAt           = DateTime.UtcNow;
     }
 
-    public void UpdateIban(string ibanEncrypted) => IbanEncrypted = ibanEncrypted;
+    public void UpdateIban(string ibanEncrypted, string ibanLast4)
+    {
+        IbanEncrypted = ibanEncrypted;
+        IbanLast4     = ibanLast4;
+    }
+
+    public void UpdateProfileAndResetVerification(string ibanEncrypted, string ibanLast4, string? legalName, string? taxNumber)
+    {
+        IbanEncrypted = ibanEncrypted;
+        IbanLast4     = ibanLast4;
+        LegalName     = legalName;
+        TaxNumber     = taxNumber;
+        VerifiedAt    = null;
+        Status        = "OnHold";
+    }
 
     public void Suspend()  => Status = "OnHold";
     public void Reactivate() => Status = "Active";

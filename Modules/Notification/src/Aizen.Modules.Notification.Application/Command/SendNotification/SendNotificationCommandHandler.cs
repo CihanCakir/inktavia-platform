@@ -55,7 +55,8 @@ public sealed class SendNotificationCommandHandler
 
         var entity = NotificationEntity.Create(
             request.RecipientUserId, request.Type, request.Channel,
-            template.TemplateCode, title, body, request.MetadataJson);
+            template.TemplateCode, title, body, request.MetadataJson,
+            request.ReferenceType, request.ReferenceId);
 
         await _notificationRepository.AddAsync(entity, cancellationToken);
 

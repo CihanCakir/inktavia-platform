@@ -37,6 +37,8 @@ public sealed class ServiceRequestOfferAcceptedConsumer
                 { "offerId",          message.OfferId.ToString() },
             },
             MetadataJson = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"offerId\":{message.OfferId}}}",
+            ReferenceType = "ServiceRequest",
+            ReferenceId   = message.ServiceRequestId,
         }, ct);
     }
 

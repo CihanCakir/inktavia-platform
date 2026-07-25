@@ -18,6 +18,8 @@ using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderCommissionTr
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderProductPerformance;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderTier;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderMomentum;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderSettlements;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderPayoutSummary;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -216,6 +218,25 @@ public sealed class CargoDryProviderController : AizenWebApiController
         var pid = ResolveProviderProfileId();
         var result = await _cqrs.ProcessAsync<CargoDryProviderMomentumDto>(
             new GetCargoDryProviderMomentumQuery { ProviderProfileId = pid }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("settlements")]
+    public async Task<AizenApiResponse<CargoDryProviderSettlementPagedResultDto?>> GetSettlements(
+        [FromQuery] int? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<CargoDryProviderSettlementPagedResultDto>(
+            new GetCargoDryProviderSettlementsQuery { ProviderProfileId = pid, Status = status, Page = page, PageSize = pageSize }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("settlements/summary")]
+    public async Task<AizenApiResponse<CargoDryProviderPayoutSummaryDto?>> GetPayoutSummary(CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<CargoDryProviderPayoutSummaryDto>(
+            new GetCargoDryProviderPayoutSummaryQuery { ProviderProfileId = pid }, ct);
         return SetResponse(result);
     }
 }

@@ -39,6 +39,8 @@ public sealed class ServiceRequestOfferCreatedConsumer
                 { "currencyCode",     message.CurrencyCode },
             },
             MetadataJson = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"offerId\":{message.OfferId}}}",
+            ReferenceType = "ServiceRequest",
+            ReferenceId   = message.ServiceRequestId,
         }, ct);
     }
 

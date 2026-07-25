@@ -45,7 +45,9 @@ public sealed class MessagingMessageSentConsumer
                     { "senderName",        message.SenderName },
                     { "conversationTitle", message.ConversationTitle },
                 },
-                MetadataJson = metadataJson,
+                MetadataJson  = metadataJson,
+                ReferenceType = "Message",
+                ReferenceId   = message.ConversationId,
             }, ct));
 
         await Task.WhenAll(tasks);

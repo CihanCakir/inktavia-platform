@@ -35,22 +35,40 @@ public sealed class CargoDryProviderMilestoneReachedConsumer
             _ => NotificationType.CargoDryProviderFirstSale,
         };
 
+        var variables = new Dictionary<string, string>
+        {
+            ["displayValue"]  = message.DisplayValue ?? "",
+            ["milestoneType"] = message.MilestoneType,
+            ["periodKey"]     = message.PeriodKey,
+        };
+        var metadataJson = $"{{\"milestoneType\":\"{message.MilestoneType}\",\"periodKey\":\"{message.PeriodKey}\"}}";
+
+        // InApp notification (existing)
         await _sender.Send(new SendNotificationCommand
         {
             RecipientUserId = message.ProviderProfileId,
             Type            = notificationType,
             Channel         = NotificationChannel.InApp,
-            Variables = new Dictionary<string, string>
-            {
-                ["displayValue"]  = message.DisplayValue ?? "",
-                ["milestoneType"] = message.MilestoneType,
-                ["periodKey"]     = message.PeriodKey,
-            },
-            MetadataJson = $"{{\"milestoneType\":\"{message.MilestoneType}\",\"periodKey\":\"{message.PeriodKey}\"}}",
+            Variables       = variables,
+            MetadataJson    = metadataJson,
+            ReferenceType   = "Milestone",
+            ReferenceId     = null,
+        }, ct);
+
+        // Web Push notification (CE-6c-(b) — additive; safe no-op when no subscription)
+        await _sender.Send(new SendNotificationCommand
+        {
+            RecipientUserId = message.ProviderProfileId,
+            Type            = notificationType,
+            Channel         = NotificationChannel.Push,
+            Variables       = variables,
+            MetadataJson    = metadataJson,
+            ReferenceType   = "Milestone",
+            ReferenceId     = null,
         }, ct);
 
         _logger.LogInformation(
-            "Milestone notification sent: {Type}/{PeriodKey} for provider {Pid}.",
+            "Milestone notification sent (InApp + Push): {Type}/{PeriodKey} for provider {Pid}.",
             message.MilestoneType, message.PeriodKey, message.ProviderProfileId);
     }
 

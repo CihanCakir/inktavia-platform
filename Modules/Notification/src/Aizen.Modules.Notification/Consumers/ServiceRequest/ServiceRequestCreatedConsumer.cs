@@ -37,6 +37,8 @@ public sealed class ServiceRequestCreatedConsumer
                 { "serviceName", message.ServiceCategoryCode },
             },
             MetadataJson = $"{{\"serviceRequestId\":{message.ServiceRequestId}}}",
+            ReferenceType = "ServiceRequest",
+            ReferenceId   = message.ServiceRequestId,
         }, ct);
 
         _logger.LogInformation("Notification sent for ServiceRequestCreated: {RequestCode}", message.RequestCode);

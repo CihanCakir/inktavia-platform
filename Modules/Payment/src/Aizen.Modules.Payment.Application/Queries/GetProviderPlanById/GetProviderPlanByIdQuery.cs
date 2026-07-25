@@ -1,5 +1,5 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Payment.Application.Queries.GetProviderPlans;
+using Aizen.Modules.Payment.Abstraction.Dto;
 
 namespace Aizen.Modules.Payment.Application.Queries.GetProviderPlanById;
 

@@ -52,6 +52,15 @@ public interface IInvoiceRepository
         int                take,
         CancellationToken  ct = default);
 
+    /// <summary>Provider-facing paged list — only provider-relevant invoice types.</summary>
+    Task<(List<InvoiceHeaderEntity> Items, int Total)> GetProviderInvoicesPagedAsync(
+        long               providerProfileId,
+        InvoiceStatus?     status,
+        InvoiceType?       type,
+        int                skip,
+        int                take,
+        CancellationToken  ct = default);
+
     /// <summary>All CreditNote invoices linked to a given original invoice.</summary>
     Task<List<InvoiceHeaderEntity>> GetCreditNotesByOriginalIdAsync(
         long originalInvoiceId, CancellationToken ct = default);

@@ -1313,6 +1313,15 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TierAtSale")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<decimal>("TierBonusRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(8,4)")
+                        .HasDefaultValue(0m);
+
                     b.HasKey("Id");
 
                     b.HasIndex("BatchCode");

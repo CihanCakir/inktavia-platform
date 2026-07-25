@@ -37,6 +37,17 @@ public interface IPaymentTransactionRepository
         CancellationToken ct = default);
 
     /// <summary>
+    /// Returns paged transactions where the provider is the recipient.
+    /// Used by the provider-facing transaction list (PAY-3).
+    /// </summary>
+    Task<(List<PaymentTransactionEntity> Items, int Total)> GetProviderPagedAsync(
+        long recipientProfileId,
+        PaymentTransactionStatus? status,
+        TransactionType?          type,
+        int skip, int take,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Returns PendingIntent transactions older than <paramref name="olderThan"/>, capped at <paramref name="maxBatch"/>.
     /// Used by PaymentEscrowTimeoutJob and StaleEscrowCleanupJob.
     /// </summary>

@@ -42,6 +42,8 @@ public sealed class ServiceRequestAssignmentCreatedConsumer
             Channel         = NotificationChannel.InApp,
             Variables       = variables,
             MetadataJson    = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"assignmentId\":{message.AssignmentId}}}",
+            ReferenceType = "ServiceRequest",
+            ReferenceId   = message.ServiceRequestId,
         }, ct);
     }
 

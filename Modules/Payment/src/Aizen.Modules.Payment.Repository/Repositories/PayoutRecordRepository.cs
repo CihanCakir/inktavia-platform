@@ -40,6 +40,14 @@ public sealed class PayoutRecordRepository : IPayoutRecordRepository
     public Task<List<PayoutRecordEntity>> GetPendingAsync(CancellationToken ct)
         => _db.PayoutRecords.Where(x => x.Status == PayoutStatus.Pending).OrderBy(x => x.RequestedAt).ToListAsync(ct);
 
+    public async Task<decimal> SumProviderAmountByStatusAsync(long providerProfileId, IEnumerable<PayoutStatus> statuses, CancellationToken ct = default)
+    {
+        var statusList = statuses.ToList();
+        return await _db.PayoutRecords
+            .Where(x => x.ProviderProfileId == providerProfileId && statusList.Contains(x.Status))
+            .SumAsync(x => x.Amount, ct);
+    }
+
     public Task AddAsync(PayoutRecordEntity entity, CancellationToken ct)
         => _db.PayoutRecords.AddAsync(entity, ct).AsTask();
 

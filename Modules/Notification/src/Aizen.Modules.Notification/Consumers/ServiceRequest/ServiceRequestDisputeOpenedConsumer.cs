@@ -38,6 +38,8 @@ public sealed class ServiceRequestDisputeOpenedConsumer
                 { "reason",           message.Reason.ToString() },
             },
             MetadataJson = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"disputeId\":{message.DisputeId}}}",
+            ReferenceType = "ServiceRequest",
+            ReferenceId   = message.ServiceRequestId,
         }, ct);
     }
 

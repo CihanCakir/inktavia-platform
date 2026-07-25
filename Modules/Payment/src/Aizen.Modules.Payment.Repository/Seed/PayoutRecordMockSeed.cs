@@ -36,7 +36,10 @@ public sealed class PayoutRecordMockSeed
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
-        if (await _db.PayoutRecords.AnyAsync(ct))
+        // Provider2 dev payouts run independently (own guard)
+        await SeedProvider2Async(ct);
+
+        if (await _db.PayoutRecords.AnyAsync(p => p.ProviderProfileId != 100011, ct))
         {
             _logger.LogDebug("PayoutRecord mock seed skipped — data already present.");
             return;
@@ -113,6 +116,28 @@ public sealed class PayoutRecordMockSeed
         }
 
         _logger.LogInformation("PayoutRecord mock seed complete: {Count} records.", records.Count);
+    }
+
+    private async Task SeedProvider2Async(CancellationToken ct)
+    {
+        const long provider2 = 100011;
+        if (await _db.PayoutRecords.AnyAsync(p => p.ProviderProfileId == provider2, ct))
+        {
+            _logger.LogDebug("Provider2 payout seed skipped — data already present.");
+            return;
+        }
+
+        var p2Records = new List<PayoutRecordEntity>
+        {
+            PayoutRecordEntity.CreateForCargoDrySettlement(provider2, 1, 60m, "TRY", "CargoDry settlement payout — pending"),
+        };
+        var completed = PayoutRecordEntity.CreateForCargoDrySettlement(provider2, 2, 40m, "TRY", "CargoDry settlement payout — completed");
+        completed.MarkCompleted("MANUAL-PAYOUT-P2-001", "Dev seed — manually confirmed.");
+        p2Records.Add(completed);
+
+        await _db.PayoutRecords.AddRangeAsync(p2Records, ct);
+        await _db.SaveChangesAsync(ct);
+        _logger.LogInformation("Provider2 payout seed complete: {Count} records.", p2Records.Count);
     }
 
     private async Task<long> ResolveTransactionIdAsync(string transactionCode, CancellationToken ct)

@@ -1,5 +1,5 @@
 using Aizen.Core.CQRS.Handler;
-using Aizen.Modules.Payment.Application.Queries.GetProviderPlans;
+using Aizen.Modules.Payment.Abstraction.Dto;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 
 namespace Aizen.Modules.Payment.Application.Queries.GetProviderPlanById;
@@ -20,10 +20,21 @@ public sealed class GetProviderPlanByIdQueryHandler
         var p = await _plans.GetByIdAsync(request.Id, ct);
         if (p is null) return null;
 
-        return new ProviderPlanDto(
-            p.Id, p.PlanCode, p.Name, p.Description,
-            p.MonthlyPriceTRY, p.AnnualPriceTRY, p.TrialDays, p.BadgeLabel,
-            p.MaxActiveOffers, p.HasPriorityBoost, p.HasFullAnalytics,
-            p.IsFree, p.IsActive, p.SortOrder, p.ValidFrom, p.ValidTo, p.FeatureItems);
+        return new ProviderPlanDto
+        {
+            Id               = p.Id,
+            PlanCode         = p.PlanCode,
+            Name             = p.Name,
+            Description      = p.Description,
+            MonthlyPriceTRY  = p.MonthlyPriceTRY,
+            AnnualPriceTRY   = p.AnnualPriceTRY,
+            BadgeLabel       = p.BadgeLabel,
+            MaxActiveOffers  = p.MaxActiveOffers,
+            HasPriorityBoost = p.HasPriorityBoost,
+            HasFullAnalytics = p.HasFullAnalytics,
+            SortOrder        = p.SortOrder,
+            IsCurrent        = false,
+            Features         = p.FeatureItems?.Select(f => f.Text).ToList() ?? [],
+        };
     }
 }

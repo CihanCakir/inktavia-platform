@@ -40,6 +40,8 @@ public sealed class CargoDryKitRevokedConsumer
                 ["reason"]    = message.Reason,
             },
             MetadataJson = $"{{\"kitId\":{message.KitId}}}",
+            ReferenceType = "CargoDry",
+            ReferenceId   = message.KitId,
         }, ct);
 
         _logger.LogInformation("Notification sent for CargoDryKitRevoked: {KitCode}", message.KitCode);

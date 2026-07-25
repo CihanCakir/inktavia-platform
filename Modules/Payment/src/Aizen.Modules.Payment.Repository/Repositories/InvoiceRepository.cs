@@ -101,6 +101,39 @@ public sealed class InvoiceRepository : IInvoiceRepository
         return (items, total);
     }
 
+    private static readonly InvoiceType[] ProviderTypes =
+    {
+        InvoiceType.CommissionInvoice,
+        InvoiceType.SubscriptionInvoice,
+        InvoiceType.ProviderSettlementStatement,
+    };
+
+    public async Task<(List<InvoiceHeaderEntity> Items, int Total)> GetProviderInvoicesPagedAsync(
+        long providerProfileId,
+        InvoiceStatus? status,
+        InvoiceType? type,
+        int skip, int take,
+        CancellationToken ct = default)
+    {
+        var q = _db.InvoiceHeaders
+            .Where(x => x.BuyerUserId == providerProfileId
+                     && !x.IsDeleted
+                     && ProviderTypes.Contains(x.InvoiceType));
+
+        if (status.HasValue) q = q.Where(x => x.Status == status.Value);
+        if (type.HasValue)   q = q.Where(x => x.InvoiceType == type.Value);
+
+        var total = await q.CountAsync(ct);
+        var items = await q
+            .OrderByDescending(x => x.IssueDateUtc ?? x.CreateDate)
+            .ThenByDescending(x => x.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     public Task<List<InvoiceHeaderEntity>> GetCreditNotesByOriginalIdAsync(
         long originalInvoiceId, CancellationToken ct = default)
         => _db.InvoiceHeaders

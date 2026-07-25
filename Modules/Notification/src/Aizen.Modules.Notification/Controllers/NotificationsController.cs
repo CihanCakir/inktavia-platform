@@ -8,8 +8,10 @@ using Aizen.Modules.Notification.Application.Command.MarkNotificationAsRead;
 using Aizen.Modules.Notification.Application.Command.RegisterDeviceToken;
 using Aizen.Modules.Notification.Application.Command.RegisterWebPushSubscription;
 using Aizen.Modules.Notification.Application.Query.GetUserNotifications;
+using Aizen.Modules.Notification.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.Notification.Controllers;
 
@@ -19,9 +21,22 @@ namespace Aizen.Modules.Notification.Controllers;
 public sealed class NotificationsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
+    private readonly IOptions<VapidOptions> _vapidOptions;
 
-    public NotificationsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
-        : base(httpContextAccessor) => _cqrs = cqrs;
+    public NotificationsController(
+        IHttpContextAccessor httpContextAccessor,
+        IAizenCQRSProcessor cqrs,
+        IOptions<VapidOptions> vapidOptions)
+        : base(httpContextAccessor)
+    {
+        _cqrs = cqrs;
+        _vapidOptions = vapidOptions;
+    }
+
+    [HttpGet("vapid-public-key")]
+    [ProducesResponseType(typeof(AizenApiResponse<VapidPublicKeyResponse>), StatusCodes.Status200OK)]
+    public AizenApiResponse<VapidPublicKeyResponse?> GetVapidPublicKey()
+        => SetResponse(new VapidPublicKeyResponse { PublicKey = _vapidOptions.Value.PublicKey });
 
     [HttpGet]
     [ProducesResponseType(typeof(AizenApiResponse<NotificationListResponse>), StatusCodes.Status200OK)]

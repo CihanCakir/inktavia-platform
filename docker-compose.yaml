@@ -202,6 +202,7 @@ services:
       RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
+      RemoteCalls__IPaymentRemoteCall__BaseUrl: http://payment-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
       MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -270,6 +271,7 @@ services:
       RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
+      RemoteCalls__IPaymentRemoteCall__BaseUrl: http://payment-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
       MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -651,6 +653,10 @@ services:
       Email__FromAddress: ${SMTP_FROM:-no-reply@inktavia.com}
       Email__FromName: ${SMTP_FROM_NAME:-Inktavia Marine}
       Email__UseSsl: ${SMTP_USE_SSL:-true}
+      # VAPID Web Push
+      Vapid__Subject: ${VAPID_SUBJECT:-}
+      Vapid__PublicKey: ${VAPID_PUBLIC_KEY:-}
+      Vapid__PrivateKey: ${VAPID_PRIVATE_KEY:-}
       # Redis backplane for SignalR (NotificationHub).
       Realtime__SignalR__UseRedisBackplane: "true"
       Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
@@ -696,6 +702,9 @@ services:
       Scheduler__DatabaseKey: PaymentScheduler
       Scheduler__SchemaName: payment-scheduler
       ElasticApm__Enabled: "false"
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      Payment__IbanEncryptionKey: ${PAYMENT_IBAN_ENCRYPTION_KEY:-local-dev-iban-key-change-me!!!!!}
     ports:
       - "${PAYMENT_API_PORT:-7102}:8080"
     networks: [aizen]

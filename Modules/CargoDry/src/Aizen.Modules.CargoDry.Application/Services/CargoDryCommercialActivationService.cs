@@ -1,6 +1,7 @@
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
+using Aizen.Modules.CargoDry.Application.Common;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Microsoft.Extensions.Logging;
@@ -352,6 +353,21 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
             attributedByUserId:     status == CargoDrySalesAttributionStatus.Attributed
                                         ? activatedByUserId
                                         : null);
+
+        // ── CE-6a-(b): snapshot provider tier at sale time ────────────────────
+        if (kit.ProviderProfileId is { } pid)
+        {
+            var windowStart = new DateTimeOffset(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, TimeSpan.Zero)
+                .AddMonths(-11); // rolling 12mo including current month
+            var endOfTime = DateTimeOffset.UtcNow.AddDays(1);
+            var cumulative = await _attributions.SumProviderCommissionAsync(pid, windowStart, endOfTime, ct);
+            var tier = CargoDryProviderTierConfig.Resolve(cumulative);
+            entity.ApplyTierSnapshot(tier.Code, tier.BonusRate);
+        }
+        else
+        {
+            entity.ApplyTierSnapshot(null, 0m);
+        }
 
         await _attributions.AddAsync(entity, ct);
         return entity;

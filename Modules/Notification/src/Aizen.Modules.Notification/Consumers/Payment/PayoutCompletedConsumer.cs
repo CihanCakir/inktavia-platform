@@ -42,6 +42,8 @@ public sealed class PayoutCompletedConsumer
                 ["processedAt"]      = message.ProcessedAtUtc.ToString("dd MMM yyyy HH:mm"),
             },
             MetadataJson = $"{{\"payoutRecordId\":{message.PayoutRecordId},\"transactionId\":{message.TransactionId}}}",
+            ReferenceType = "Payment",
+            ReferenceId   = message.PayoutRecordId,
         }, ct);
 
         _logger.LogInformation(

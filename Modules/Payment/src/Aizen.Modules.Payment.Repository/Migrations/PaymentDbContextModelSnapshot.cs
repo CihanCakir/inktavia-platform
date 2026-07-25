@@ -688,6 +688,10 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("IbanLast4")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
