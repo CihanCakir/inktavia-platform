@@ -21,7 +21,7 @@ public sealed class GetProviderTransactionsQueryHandler
         var type   = request.Type.HasValue   ? (TransactionType?)request.Type.Value           : null;
 
         var (items, total) = await _repo.GetProviderPagedAsync(
-            request.ProviderProfileId, status, type, skip, request.PageSize, ct);
+            request.ProviderProfileId, status, type, skip, request.PageSize, request.From, request.To, ct);
 
         return new ProviderTransactionPagedResultDto
         {

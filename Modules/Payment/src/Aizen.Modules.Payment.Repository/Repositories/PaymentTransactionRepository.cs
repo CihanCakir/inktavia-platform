@@ -64,6 +64,7 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
         PaymentTransactionStatus? status,
         TransactionType? type,
         int skip, int take,
+        DateTime? fromUtc, DateTime? toUtc,
         CancellationToken ct)
     {
         var q = _db.Transactions
@@ -73,6 +74,10 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
             q = q.Where(x => x.Status == status.Value);
         if (type.HasValue)
             q = q.Where(x => x.TransactionType == type.Value);
+        if (fromUtc.HasValue)
+            q = q.Where(x => x.CreateDate >= fromUtc.Value);
+        if (toUtc.HasValue)
+            q = q.Where(x => x.CreateDate < toUtc.Value);
 
         var total = await q.CountAsync(ct);
         var items = await q

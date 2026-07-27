@@ -15,9 +15,11 @@
     <ProjectReference Include="../Aizen.Modules.Payment.Repository/Aizen.Modules.Payment.Repository.csproj" />
     <!-- ReferenceData.Domain only (interface layer) — used for ISystemParameterReferenceService (VatRate, CommissionRate params) -->
     <ProjectReference Include="../../../../Modules/ReferenceData/src/Aizen.Modules.ReferenceData.Domain/Aizen.Modules.ReferenceData.Domain.csproj" />
+    <ProjectReference Include="../../../../Modules/FileStorage/src/Aizen.Modules.FileStorage.Abstraction/Aizen.Modules.FileStorage.Abstraction.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="QuestPDF" Version="2024.12.2" />
   </ItemGroup>
 
   <ItemGroup>

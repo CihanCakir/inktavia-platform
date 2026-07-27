@@ -77,8 +77,16 @@ public sealed class S3ObjectStorageProvider : IObjectStorageProvider
         }
     }
 
-    public Task<string> GenerateUploadUrlAsync(string bucketName, string objectKey, string contentType, TimeSpan expiresIn, CancellationToken cancellationToken = default)
+    public Task<string> GenerateUploadUrlAsync(string bucketName, string objectKey, string contentType, TimeSpan expiresIn, bool useInternalEndpoint = false, CancellationToken cancellationToken = default)
     {
+        // useInternalEndpoint: sign with ServiceUrl (container-internal, e.g. http://minio:9000)
+        // instead of PublicServiceUrl (browser-facing, e.g. http://localhost:9000).
+        // Used for server-side uploads where the browser is never involved.
+        var client = useInternalEndpoint ? _client : _presignClient;
+        var protocol = useInternalEndpoint
+            ? (_options.ServiceUrl?.StartsWith("https", StringComparison.OrdinalIgnoreCase) == true ? Protocol.HTTPS : Protocol.HTTP)
+            : _presignProtocol;
+
         var request = new GetPreSignedUrlRequest
         {
             BucketName = bucketName,
@@ -86,9 +94,9 @@ public sealed class S3ObjectStorageProvider : IObjectStorageProvider
             Verb = HttpVerb.PUT,
             Expires = DateTime.UtcNow.Add(expiresIn),
             ContentType = contentType,
-            Protocol = _presignProtocol
+            Protocol = protocol
         };
-        var url = _presignClient.GetPreSignedURL(request);
+        var url = client.GetPreSignedURL(request);
         return Task.FromResult(url);
     }
 

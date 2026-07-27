@@ -59,6 +59,8 @@ public interface IInvoiceRepository
         InvoiceType?       type,
         int                skip,
         int                take,
+        DateTime?          fromUtc = null,
+        DateTime?          toUtc = null,
         CancellationToken  ct = default);
 
     /// <summary>All CreditNote invoices linked to a given original invoice.</summary>

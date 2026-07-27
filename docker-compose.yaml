@@ -704,6 +704,7 @@ services:
       ElasticApm__Enabled: "false"
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      RemoteCalls__IPaymentFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       Payment__IbanEncryptionKey: ${PAYMENT_IBAN_ENCRYPTION_KEY:-local-dev-iban-key-change-me!!!!!}
     ports:
       - "${PAYMENT_API_PORT:-7102}:8080"

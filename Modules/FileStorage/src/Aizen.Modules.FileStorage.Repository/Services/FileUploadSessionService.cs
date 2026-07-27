@@ -73,7 +73,7 @@ public sealed class FileUploadSessionService : IFileUploadSessionService
         await _db.SaveChangesAsync(cancellationToken);
 
         var expiresIn = TimeSpan.FromMinutes(_options.UploadUrlExpirationMinutes);
-        var uploadUrl = await _storageProvider.GenerateUploadUrlAsync(bucketName, objectKey, request.ContentType, expiresIn, cancellationToken);
+        var uploadUrl = await _storageProvider.GenerateUploadUrlAsync(bucketName, objectKey, request.ContentType, expiresIn, request.ServerSideUpload, cancellationToken);
 
         var sessionCode = Guid.NewGuid().ToString("N").ToUpperInvariant();
         var session = FileUploadSessionEntity.Create(

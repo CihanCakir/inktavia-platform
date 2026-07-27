@@ -7,6 +7,8 @@ using Aizen.Modules.Payment.Repository;
 using Aizen.Modules.Payment.Repository.Persistence;
 using Aizen.Core.Common.Extension;
 
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
     Name        = "Payment",

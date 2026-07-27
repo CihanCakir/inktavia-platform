@@ -113,6 +113,8 @@ public sealed class InvoiceRepository : IInvoiceRepository
         InvoiceStatus? status,
         InvoiceType? type,
         int skip, int take,
+        DateTime? fromUtc = null,
+        DateTime? toUtc = null,
         CancellationToken ct = default)
     {
         var q = _db.InvoiceHeaders
@@ -122,6 +124,8 @@ public sealed class InvoiceRepository : IInvoiceRepository
 
         if (status.HasValue) q = q.Where(x => x.Status == status.Value);
         if (type.HasValue)   q = q.Where(x => x.InvoiceType == type.Value);
+        if (fromUtc.HasValue) q = q.Where(x => x.IssueDateUtc >= fromUtc.Value);
+        if (toUtc.HasValue)   q = q.Where(x => x.IssueDateUtc < toUtc.Value);
 
         var total = await q.CountAsync(ct);
         var items = await q

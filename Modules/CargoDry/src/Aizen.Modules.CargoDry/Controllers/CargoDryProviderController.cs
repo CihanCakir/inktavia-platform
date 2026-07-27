@@ -223,11 +223,20 @@ public sealed class CargoDryProviderController : AizenWebApiController
 
     [HttpGet("settlements")]
     public async Task<AizenApiResponse<CargoDryProviderSettlementPagedResultDto?>> GetSettlements(
-        [FromQuery] int? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        [FromQuery] int? status, [FromQuery] DateTime? from, [FromQuery] DateTime? to,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var pid = ResolveProviderProfileId();
         var result = await _cqrs.ProcessAsync<CargoDryProviderSettlementPagedResultDto>(
-            new GetCargoDryProviderSettlementsQuery { ProviderProfileId = pid, Status = status, Page = page, PageSize = pageSize }, ct);
+            new GetCargoDryProviderSettlementsQuery
+            {
+                ProviderProfileId = pid,
+                Status = status,
+                Page = page,
+                PageSize = pageSize,
+                From = from.HasValue ? DateTime.SpecifyKind(from.Value, DateTimeKind.Utc) : null,
+                To   = to.HasValue   ? DateTime.SpecifyKind(to.Value,   DateTimeKind.Utc) : null,
+            }, ct);
         return SetResponse(result);
     }
 

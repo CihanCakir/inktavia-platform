@@ -45,6 +45,7 @@ public interface IPaymentTransactionRepository
         PaymentTransactionStatus? status,
         TransactionType?          type,
         int skip, int take,
+        DateTime? fromUtc = null, DateTime? toUtc = null,
         CancellationToken ct = default);
 
     /// <summary>

@@ -51,14 +51,14 @@ public sealed class PaymentController : AizenWebApiController
     [HttpGet("transactions")]
     [ProducesResponseType(typeof(ProviderTransactionPagedResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProviderTransactionPagedResultDto?>> GetTransactions(
-        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new GetProviderTransactionsBffQuery { Status = status, Type = type, Page = page, PageSize = pageSize }, ct));
+        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] string? from, [FromQuery] string? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetProviderTransactionsBffQuery { Status = status, Type = type, From = from, To = to, Page = page, PageSize = pageSize }, ct));
 
     [HttpGet("invoices")]
     [ProducesResponseType(typeof(ProviderInvoicePagedResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProviderInvoicePagedResultDto?>> GetInvoices(
-        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new GetProviderInvoicesBffQuery { Status = status, Type = type, Page = page, PageSize = pageSize }, ct));
+        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] string? from, [FromQuery] string? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetProviderInvoicesBffQuery { Status = status, Type = type, From = from, To = to, Page = page, PageSize = pageSize }, ct));
 
     [HttpGet("invoices/{id:long}")]
     [ProducesResponseType(typeof(ProviderInvoiceDetailDto), StatusCodes.Status200OK)]
@@ -74,4 +74,14 @@ public sealed class PaymentController : AizenWebApiController
     [ProducesResponseType(typeof(List<ProviderPlanDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<List<ProviderPlanDto>?>> GetPlans(CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetProviderPlansBffQuery(), ct));
+
+    [HttpGet("invoices/{id:long}/pdf-url")]
+    [ProducesResponseType(typeof(ProviderFilePdfUrlDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderFilePdfUrlDto?>> GetInvoicePdfUrl(long id, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetProviderInvoicePdfUrlBffQuery { InvoiceId = id }, ct));
+
+    [HttpGet("payouts/{id:long}/receipt-url")]
+    [ProducesResponseType(typeof(ProviderFilePdfUrlDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderFilePdfUrlDto?>> GetPayoutReceiptUrl(long id, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetProviderPayoutReceiptUrlBffQuery { PayoutId = id }, ct));
 }

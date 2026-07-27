@@ -61,6 +61,11 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
     /// <summary>Admin user Id who recorded the failure. Phase 4D.</summary>
     public long?        FailedByUserId          { get; private set; }
 
+    // ── Phase L12: Payout receipt PDF file reference ─────────────────────────────
+    public string?      ReceiptFileRef          { get; private set; }
+
+    public void SetReceiptRef(string receiptFileRef) => ReceiptFileRef = receiptFileRef;
+
     private PayoutRecordEntity() { }
 
     public static PayoutRecordEntity Create(

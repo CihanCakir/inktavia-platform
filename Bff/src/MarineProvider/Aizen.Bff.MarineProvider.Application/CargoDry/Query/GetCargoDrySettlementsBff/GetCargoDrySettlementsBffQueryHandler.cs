@@ -21,6 +21,6 @@ public sealed class GetCargoDrySettlementsBffQueryHandler
         await _resolver.ResolveAsync(ct);
         if (_h.ProfileId is null or 0)
             throw new AizenBusinessException("Provider identity could not be resolved.");
-        return (await _c.GetSettlements(q.Status, q.Page, q.PageSize)).Body;
+        return (await _c.GetSettlements(q.Status, q.Page, q.PageSize, q.From, q.To)).Body;
     }
 }

@@ -2,6 +2,7 @@ namespace Aizen.Modules.Payment.Abstraction.Dto;
 
 public sealed class ProviderPayoutDto
 {
+    public long    Id               { get; init; }
     public decimal Amount            { get; init; }
     public string  CurrencyCode      { get; init; } = "TRY";
     public int     Status            { get; init; }

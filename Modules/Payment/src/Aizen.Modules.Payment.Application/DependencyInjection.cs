@@ -91,6 +91,14 @@ public static class DependencyInjection
         // StaleEscrowCleanupJob) are now in Aizen.Modules.Payment/Jobs/ and auto-discovered
         // by AizenApplicationBuilder via host assembly scanning.
 
+        // ── Invoice PDF generation (L11) ────────────────────────────────────
+        services.AddScoped<IInvoicePdfRenderer, InvoicePdfRenderer>();
+        services.AddScoped<IPaymentInvoicePdfService, PaymentInvoicePdfService>();
+
+        // ── Payout Receipt PDF generation (L12) ─────────────────────────────
+        services.AddScoped<IPayoutReceiptPdfRenderer, PayoutReceiptPdfRenderer>();
+        services.AddScoped<IPayoutReceiptPdfService, PayoutReceiptPdfService>();
+
         // CQRS handlers are auto-discovered by AizenApplicationBuilder
         // via assembly scanning when AppType.Scheduler is included in AizenAppInfo.TypeInclude.
         return services;

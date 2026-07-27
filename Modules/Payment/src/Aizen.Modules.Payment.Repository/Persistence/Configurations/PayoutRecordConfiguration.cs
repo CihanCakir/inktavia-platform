@@ -33,6 +33,8 @@ public sealed class PayoutRecordConfiguration : IEntityTypeConfiguration<PayoutR
         b.Property(x => x.CompletedByUserId);
         b.Property(x => x.FailedAtUtc);
         b.Property(x => x.FailedByUserId);
+        // ── Phase L12: Payout receipt PDF ────────────────────────────────────────
+        b.Property(x => x.ReceiptFileRef).HasMaxLength(500);
 
         b.HasIndex(x => x.ProviderProfileId);
         b.HasIndex(x => x.Status);

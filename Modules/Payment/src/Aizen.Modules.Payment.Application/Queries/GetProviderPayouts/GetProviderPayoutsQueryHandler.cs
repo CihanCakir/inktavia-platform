@@ -36,6 +36,7 @@ public sealed class GetProviderPayoutsQueryHandler
         {
             Items = items.Select(x => new ProviderPayoutDto
             {
+                Id              = x.Id,
                 Amount          = x.Amount,
                 CurrencyCode    = x.CurrencyCode,
                 Status          = (int)x.Status,

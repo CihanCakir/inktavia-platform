@@ -21,6 +21,6 @@ public sealed class GetProviderInvoicesBffQueryHandler
         await _resolver.ResolveAsync(ct);
         if (_h.ProfileId is null or 0)
             throw new AizenBusinessException("Provider identity could not be resolved.");
-        return (await _c.GetInvoices(q.Status, q.Type, q.Page, q.PageSize)).Body;
+        return (await _c.GetInvoices(q.Status, q.Type, q.Page, q.PageSize, q.From, q.To)).Body;
     }
 }

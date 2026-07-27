@@ -9,4 +9,6 @@ public sealed class GetProviderInvoicesBffQuery : AizenQuery<ProviderInvoicePage
     public int? Type     { get; init; }
     public int  Page     { get; init; } = 1;
     public int  PageSize { get; init; } = 20;
+    public string? From { get; init; }
+    public string? To   { get; init; }
 }

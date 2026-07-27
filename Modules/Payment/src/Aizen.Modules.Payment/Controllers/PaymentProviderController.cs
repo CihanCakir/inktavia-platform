@@ -11,6 +11,8 @@ using Aizen.Modules.Payment.Application.Queries.GetProviderPayoutSummary;
 using Aizen.Modules.Payment.Application.Queries.GetProviderTransactions;
 using Aizen.Modules.Payment.Application.Queries.GetProviderInvoices;
 using Aizen.Modules.Payment.Application.Queries.GetProviderInvoiceById;
+using Aizen.Modules.Payment.Application.Queries.GetProviderInvoicePdfUrl;
+using Aizen.Modules.Payment.Application.Queries.GetProviderPayoutReceiptUrl;
 using Aizen.Modules.Payment.Application.Queries.GetProviderSubscription;
 using Aizen.Modules.Payment.Application.Queries.GetProviderPlans;
 using Microsoft.AspNetCore.Authorization;
@@ -65,11 +67,20 @@ public sealed class PaymentProviderController : AizenWebApiController
     [HttpGet("transactions")]
     [ProducesResponseType(typeof(ProviderTransactionPagedResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProviderTransactionPagedResultDto?>> GetTransactions(
-        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var pid = ResolveProviderProfileId();
         var result = await _cqrs.ProcessAsync<ProviderTransactionPagedResultDto>(
-            new GetProviderTransactionsQuery { ProviderProfileId = pid, Status = status, Type = type, Page = page, PageSize = pageSize }, ct);
+            new GetProviderTransactionsQuery
+            {
+                ProviderProfileId = pid,
+                Status = status,
+                Type = type,
+                From = from.HasValue ? DateTime.SpecifyKind(from.Value, DateTimeKind.Utc) : null,
+                To   = to.HasValue   ? DateTime.SpecifyKind(to.Value,   DateTimeKind.Utc) : null,
+                Page = page,
+                PageSize = pageSize,
+            }, ct);
         return SetResponse(result);
     }
 
@@ -86,11 +97,20 @@ public sealed class PaymentProviderController : AizenWebApiController
     [HttpGet("invoices")]
     [ProducesResponseType(typeof(ProviderInvoicePagedResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProviderInvoicePagedResultDto?>> GetInvoices(
-        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        [FromQuery] int? status, [FromQuery] int? type, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var pid = ResolveProviderProfileId();
         var result = await _cqrs.ProcessAsync<ProviderInvoicePagedResultDto>(
-            new GetProviderInvoicesQuery { ProviderProfileId = pid, Status = status, Type = type, Page = page, PageSize = pageSize }, ct);
+            new GetProviderInvoicesQuery
+            {
+                ProviderProfileId = pid,
+                Status = status,
+                Type = type,
+                From = from.HasValue ? DateTime.SpecifyKind(from.Value, DateTimeKind.Utc) : null,
+                To   = to.HasValue   ? DateTime.SpecifyKind(to.Value,   DateTimeKind.Utc) : null,
+                Page = page,
+                PageSize = pageSize,
+            }, ct);
         return SetResponse(result);
     }
 
@@ -101,6 +121,26 @@ public sealed class PaymentProviderController : AizenWebApiController
         var pid = ResolveProviderProfileId();
         var result = await _cqrs.ProcessAsync<ProviderInvoiceDetailDto>(
             new GetProviderInvoiceByIdQuery { ProviderProfileId = pid, InvoiceId = id }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("invoices/{id:long}/pdf-url")]
+    [ProducesResponseType(typeof(ProviderFilePdfUrlDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderFilePdfUrlDto?>> GetInvoicePdfUrl(long id, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<ProviderFilePdfUrlDto>(
+            new GetProviderInvoicePdfUrlQuery { ProviderProfileId = pid, InvoiceId = id }, ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("payouts/{id:long}/receipt-url")]
+    [ProducesResponseType(typeof(ProviderFilePdfUrlDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderFilePdfUrlDto?>> GetPayoutReceiptUrl(long id, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<ProviderFilePdfUrlDto>(
+            new GetProviderPayoutReceiptUrlQuery { ProviderProfileId = pid, PayoutId = id }, ct);
         return SetResponse(result);
     }
 

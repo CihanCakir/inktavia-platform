@@ -20,7 +20,7 @@ public sealed class GetProviderInvoicesQueryHandler
         var type   = request.Type.HasValue   ? (InvoiceType?)request.Type.Value     : null;
 
         var (items, total) = await _repo.GetProviderInvoicesPagedAsync(
-            request.ProviderProfileId, status, type, skip, request.PageSize, ct);
+            request.ProviderProfileId, status, type, skip, request.PageSize, request.From, request.To, ct);
 
         return new ProviderInvoicePagedResultDto
         {

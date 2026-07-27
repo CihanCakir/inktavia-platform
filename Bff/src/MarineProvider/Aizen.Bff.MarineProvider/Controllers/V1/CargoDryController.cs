@@ -105,8 +105,9 @@ public sealed class CargoDryController : AizenWebApiController
     [HttpGet("settlements")]
     [ProducesResponseType(typeof(CargoDryProviderSettlementPagedResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryProviderSettlementPagedResultDto?>> GetSettlements(
-        [FromQuery] int? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDrySettlementsBffQuery { Status = status, Page = page, PageSize = pageSize }, ct));
+        [FromQuery] int? status, [FromQuery] string? from, [FromQuery] string? to,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDrySettlementsBffQuery { Status = status, Page = page, PageSize = pageSize, From = from, To = to }, ct));
 
     [HttpGet("settlements/summary")]
     [ProducesResponseType(typeof(CargoDryProviderPayoutSummaryDto), StatusCodes.Status200OK)]

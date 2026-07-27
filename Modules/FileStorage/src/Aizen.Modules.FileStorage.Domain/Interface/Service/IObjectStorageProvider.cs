@@ -4,7 +4,7 @@ namespace Aizen.Modules.FileStorage.Domain.Interface.Service;
 [DocumentationInfo("Object storage provider interface", "Abstracts over S3/MinIO/local object storage for upload URL generation, read URL generation and object management.")]
 public interface IObjectStorageProvider
 {
-    Task<string> GenerateUploadUrlAsync(string bucketName, string objectKey, string contentType, TimeSpan expiresIn, CancellationToken cancellationToken = default);
+    Task<string> GenerateUploadUrlAsync(string bucketName, string objectKey, string contentType, TimeSpan expiresIn, bool useInternalEndpoint = false, CancellationToken cancellationToken = default);
     Task<string> GenerateReadUrlAsync(string bucketName, string objectKey, TimeSpan expiresIn, CancellationToken cancellationToken = default);
     Task<bool> ObjectExistsAsync(string bucketName, string objectKey, CancellationToken cancellationToken = default);
     Task<ObjectMetadataResult> GetObjectMetadataAsync(string bucketName, string objectKey, CancellationToken cancellationToken = default);
