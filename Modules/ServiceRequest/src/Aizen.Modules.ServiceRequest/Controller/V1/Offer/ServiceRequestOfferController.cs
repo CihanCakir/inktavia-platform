@@ -6,6 +6,8 @@ using Aizen.Modules.ServiceRequest.Application.Command.Offer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.SaveOfferDraft;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.PreviewOffer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
+using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferCommissionPreview;
+using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,6 +52,21 @@ public sealed class ServiceRequestOfferController : AizenWebApiController
         [FromRoute] long serviceRequestId, [FromRoute] long offerId, [FromBody] AcceptServiceRequestOfferRequest req, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<AcceptServiceRequestOfferResponse>(new AcceptServiceRequestOfferCommand(serviceRequestId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-S7 offer-builder commission preview: per-line resolved rate / commission / provider-net + transaction totals.
+    /// Compute-on-demand (nothing persisted). Optional <paramref name="providerPlanId"/> so plan-tier rates resolve.
+    /// </summary>
+    [HttpGet("{offerId:long}/commission-preview")]
+    [ProducesResponseType(typeof(ResolveLineCommissionsRemoteCallResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolveLineCommissionsRemoteCallResponse?>> CommissionPreview(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId,
+        [FromQuery] long? providerPlanId = null, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ResolveLineCommissionsRemoteCallResponse>(
+            new GetOfferCommissionPreviewQuery(offerId, providerPlanId), ct);
         return SetResponse(result);
     }
 

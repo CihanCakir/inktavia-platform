@@ -41,6 +41,18 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     public decimal EmergencyFeeTotal { get; private set; }
     public decimal OtherTotal { get; private set; }
 
+    // ── Line economics aggregate (BE-S1) ──────────────────────────────────────
+    /// <summary>
+    /// Σ of each priced line's <c>CommissionBaseAmount</c> (§20.15 line→aggregate). The eligible base the
+    /// transaction-level commission (S7/P8) reconciles against. Invariant: <c>CommissionBaseTotal ≤ Subtotal</c>.
+    /// </summary>
+    public decimal CommissionBaseTotal { get; private set; }
+
+    // ── Customer discount funding aggregate (BE-S6) — computed; 0 unless a customer discount is applied ──
+    public decimal TotalCustomerDiscount       { get; private set; }
+    public decimal TotalPlatformFundedDiscount { get; private set; }
+    public decimal TotalProviderFundedDiscount { get; private set; }
+
     // Commercial terms
     public OfferDepositType DepositType { get; private set; }
     public decimal? DepositValue { get; private set; }
@@ -199,6 +211,20 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
         DeliveryTotal = deliveryTotal;
         EmergencyFeeTotal = emergencyFeeTotal;
         OtherTotal = otherTotal;
+    }
+
+    /// <summary>Sets the aggregate commission base (BE-S1). Called by the calculation service only.</summary>
+    public void SetCommissionBaseTotal(decimal commissionBaseTotal)
+    {
+        CommissionBaseTotal = commissionBaseTotal;
+    }
+
+    /// <summary>BE-S6 — sets the aggregate customer discount + funding split. Called by the calculation service only.</summary>
+    public void SetCustomerDiscountTotals(decimal totalCustomerDiscount, decimal totalPlatformFunded, decimal totalProviderFunded)
+    {
+        TotalCustomerDiscount       = totalCustomerDiscount;
+        TotalPlatformFundedDiscount = totalPlatformFunded;
+        TotalProviderFundedDiscount = totalProviderFunded;
     }
 
     public void AddItem(ServiceRequestOfferItemEntity item) => _items.Add(item);

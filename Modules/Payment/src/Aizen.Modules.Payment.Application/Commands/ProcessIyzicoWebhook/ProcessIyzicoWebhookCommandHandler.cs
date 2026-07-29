@@ -3,6 +3,7 @@ using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Request;
 using Aizen.Modules.Payment.Abstraction.Response;
 using Aizen.Modules.Payment.Application.Gateway.Iyzico;
+using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.Extensions.Logging;
@@ -27,16 +28,19 @@ public sealed class ProcessIyzicoWebhookCommandHandler
 {
     private readonly IyzicoMarketplacePaymentGatewayProvider   _iyzicoProvider;
     private readonly IPaymentTransactionRepository             _transactions;
+    private readonly PremiumBoostService                       _premiumBoost;
     private readonly ILogger<ProcessIyzicoWebhookCommandHandler> _logger;
 
     public ProcessIyzicoWebhookCommandHandler(
         IAizenUnitOfWork<PaymentDbContext>               unitOfWork,
         IyzicoMarketplacePaymentGatewayProvider          iyzicoProvider,
         IPaymentTransactionRepository                    transactions,
+        PremiumBoostService                              premiumBoost,
         ILogger<ProcessIyzicoWebhookCommandHandler>      logger)
     {
         _iyzicoProvider = iyzicoProvider;
         _transactions   = transactions;
+        _premiumBoost   = premiumBoost;
         _logger         = logger;
     }
 
@@ -54,12 +58,20 @@ public sealed class ProcessIyzicoWebhookCommandHandler
         }
 
         var rawBody = $"token={request.Token}&status={request.Status}";
+        var isProduction = string.Equals(
+            Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Production", StringComparison.OrdinalIgnoreCase);
 
         var webhookInput = new ProviderWebhookInput(
-            GatewayReference: request.Token,
-            RawBody:          rawBody,
-            Signature:        request.Signature,
-            Headers:          request.Headers);
+            GatewayReference:      request.Token,
+            RawBody:               rawBody,
+            Signature:             request.Signature,
+            Headers:               request.Headers,
+            PaidAtUtc:             null,
+            Status:                request.Status,
+            IyziPaymentId:         request.IyziPaymentId,
+            PaymentConversationId: request.PaymentConversationId,
+            IyziEventType:         request.IyziEventType,
+            IsProduction:          isProduction);
 
         PaymentApplyResult gatewayResult;
         try
@@ -103,7 +115,14 @@ public sealed class ProcessIyzicoWebhookCommandHandler
             }
 
             tx.Capture(gatewayResult.GatewayReference);
+            // BE-P9-fix §6: persist the iyzico item paymentTransactionId + sub-merchant payout for approve/refund/settlement.
+            tx.RecordGatewayItemBreakdown(gatewayResult.GatewayTransactionId, gatewayResult.SubMerchantPayoutAmount);
             _transactions.Update(tx);
+
+            // BE-P11 §9.2: a paid premium boost → mark the purchase Paid + create & Activate the single entitlement.
+            // Idempotent (unique PremiumPurchaseId + the CapturedAt guard above short-circuits a duplicate webhook).
+            if (tx.TransactionType == Abstraction.TransactionType.PremiumBoostPurchase)
+                await _premiumBoost.OnBoostPaidAsync(tx, ct);
             // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
             _logger.LogInformation(

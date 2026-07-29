@@ -88,14 +88,25 @@ public sealed class PaymentPlanSeed
     // Called AFTER SeedProviderPlansAsync + SaveChangesAsync so plan PKs are available.
     private async Task SeedCommissionRulesAsync(CancellationToken ct)
     {
-        // ── Global fallback: 15% ──────────────────────────────────────────────
-        if (!await _db.CommissionRules.AnyAsync(x => x.RuleType == CommissionRuleType.Global, ct))
+        // ── Global fallback: 15% (BE-P2 authoritative, admin-tunable) ─────────
+        // Self-healing for the seed-OWNED global (RuleCode IS NULL): create if missing, else reconcile the
+        // rate/priority to the P2 target. Admin- and mock-created rules (which carry a RuleCode) are untouched.
+        var seedGlobal = await _db.CommissionRules
+            .FirstOrDefaultAsync(x => x.RuleType == CommissionRuleType.Global && x.RuleCode == null, ct);
+
+        if (seedGlobal is null)
         {
             await _db.CommissionRules.AddAsync(CommissionRuleEntity.CreateGlobal(0.15m,
                 DateTime.UtcNow, null, CommissionRulePriority.Standard,
                 notes: "MVP global fallback — applies when no Plan/Category/Override rule matches",
                 ruleCode: null), ct);
             _logger.LogInformation("Seeding global commission rule: 15%");
+        }
+        else if (seedGlobal.CommissionRate != 0.15m || seedGlobal.Priority != CommissionRulePriority.Standard)
+        {
+            seedGlobal.Update(0.15m, seedGlobal.EffectiveFrom, seedGlobal.EffectiveTo,
+                CommissionRulePriority.Standard, seedGlobal.Notes);
+            _logger.LogInformation("Reconciling seed global commission rule to 15% / Standard.");
         }
 
         // ── Category overrides ────────────────────────────────────────────────
@@ -122,15 +133,15 @@ public sealed class PaymentPlanSeed
             }
         }
 
-        // ── Plan-level rules ──────────────────────────────────────────────────
+        // ── Plan-level rules (BE-P2: FREE 15% / STANDARD 12% / PREMIUM_PARTNER 9%) ──
         // Resolved from DB now that Phase 1 SaveChanges has run and PKs are assigned.
-        // FREE plan pays higher commission (platform subsidises free tier).
-        // PREMIUM_PARTNER pays lowest (loyalty reward for paid tier).
+        // Self-healing for the seed-OWNED plan rule (RuleCode IS NULL): create if missing, else reconcile
+        // the rate to the P2 target. Admin/mock rules (with a RuleCode) are untouched.
         var planRates = new Dictionary<string, decimal>
         {
-            { "FREE",            0.18m },
+            { "FREE",            0.15m },
             { "STANDARD",        0.12m },
-            { "PREMIUM_PARTNER", 0.08m },
+            { "PREMIUM_PARTNER", 0.09m },
         };
 
         foreach (var (planCode, rate) in planRates)
@@ -146,10 +157,10 @@ public sealed class PaymentPlanSeed
                 continue;
             }
 
-            var alreadyExists = await _db.CommissionRules.AnyAsync(
-                x => x.RuleType == CommissionRuleType.Plan && x.ProviderPlanId == plan.Id, ct);
+            var seedRule = await _db.CommissionRules.FirstOrDefaultAsync(
+                x => x.RuleType == CommissionRuleType.Plan && x.ProviderPlanId == plan.Id && x.RuleCode == null, ct);
 
-            if (!alreadyExists)
+            if (seedRule is null)
             {
                 await _db.CommissionRules.AddAsync(
                     CommissionRuleEntity.CreateForPlan(plan.Id, rate,
@@ -158,6 +169,14 @@ public sealed class PaymentPlanSeed
                         ruleCode: null), ct);
                 _logger.LogInformation(
                     "Seeding plan commission rule: {Code} (Id={Id}) = {Rate:P0}", planCode, plan.Id, rate);
+            }
+            else if (seedRule.CommissionRate != rate || seedRule.Priority != CommissionRulePriority.Standard)
+            {
+                seedRule.Update(rate, seedRule.EffectiveFrom, seedRule.EffectiveTo,
+                    CommissionRulePriority.Standard, seedRule.Notes);
+                _logger.LogInformation(
+                    "Reconciling plan commission rule: {Code} (Id={Id}) → {Rate:P0} / Standard.",
+                    planCode, plan.Id, rate);
             }
         }
     }

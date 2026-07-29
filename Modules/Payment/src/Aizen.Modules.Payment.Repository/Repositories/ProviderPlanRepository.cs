@@ -114,6 +114,15 @@ public sealed class ProviderPlanRepository : IProviderPlanRepository
         return await query.OrderByDescending(x => x.CreateDate).ToListAsync(ct);
     }
 
+    public Task<List<ProviderPlanSubscriptionEntity>> GetActiveSubscriptionsRenewingBetweenAsync(
+        DateTime fromUtc, DateTime toUtc, CancellationToken ct)
+        => _db.ProviderSubscriptions
+            .Where(x => x.Status == SubscriptionStatus.Active
+                     && x.AutoRenew
+                     && x.SubscriptionPeriodEnd >= fromUtc
+                     && x.SubscriptionPeriodEnd <  toUtc)
+            .ToListAsync(ct);
+
     public Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct)
         => _db.ProviderSubscriptions.AddAsync(entity, ct).AsTask();
 

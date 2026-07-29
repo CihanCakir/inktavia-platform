@@ -10,9 +10,10 @@ public sealed class UpdateCommissionRuleCommandValidator
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("Id must be greater than zero.");
 
+        // §6: rate is a fraction in the open interval (0,1) — e.g. 0.12 = 12%.
         RuleFor(x => x.CommissionRate)
-            .InclusiveBetween(0m, 100m)
-            .WithMessage("CommissionRate must be between 0 and 100.");
+            .ExclusiveBetween(0m, 1m)
+            .WithMessage("CommissionRate must be a fraction strictly between 0 and 1 (e.g. 0.12 = 12%).");
 
         RuleFor(x => x.EffectiveFrom)
             .NotEmpty().WithMessage("EffectiveFrom is required.");

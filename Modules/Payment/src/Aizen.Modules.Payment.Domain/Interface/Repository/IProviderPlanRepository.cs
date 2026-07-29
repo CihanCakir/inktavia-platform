@@ -62,6 +62,13 @@ public interface IProviderPlanRepository
     Task<List<ProviderPlanSubscriptionEntity>> GetAllSubscriptionsForAdminAsync(
         string? status, CancellationToken ct = default);
 
+    /// <summary>
+    /// Returns Active subscriptions whose SubscriptionPeriodEnd (next renewal) falls in [fromUtc, toUtc).
+    /// Used by the BE-P4 ≥14-day upcoming-price-change query (feeds Notification N1).
+    /// </summary>
+    Task<List<ProviderPlanSubscriptionEntity>> GetActiveSubscriptionsRenewingBetweenAsync(
+        DateTime fromUtc, DateTime toUtc, CancellationToken ct = default);
+
     Task AddSubscriptionAsync(ProviderPlanSubscriptionEntity entity, CancellationToken ct = default);
     void UpdateSubscription(ProviderPlanSubscriptionEntity entity);
 

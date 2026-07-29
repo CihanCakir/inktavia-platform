@@ -28,15 +28,17 @@ public sealed class ServiceRequestCancelledConsumer
 {
     private readonly IPaymentTransactionRepository            _transactions;
     private readonly PaymentGatewayResolver                   _gatewayResolver;
+    private readonly RefundAllocationService                  _allocationService;
     private readonly IAizenMessagePublisher                   _publisher;
     private readonly ILogger<ServiceRequestCancelledConsumer> _logger;
 
     public ServiceRequestCancelledConsumer(IServiceProvider sp) : base(sp)
     {
-        _transactions    = sp.GetRequiredService<IPaymentTransactionRepository>();
-        _gatewayResolver = sp.GetRequiredService<PaymentGatewayResolver>();
-        _publisher       = sp.GetRequiredService<IAizenMessagePublisher>();
-        _logger          = sp.GetRequiredService<ILogger<ServiceRequestCancelledConsumer>>();
+        _transactions      = sp.GetRequiredService<IPaymentTransactionRepository>();
+        _gatewayResolver   = sp.GetRequiredService<PaymentGatewayResolver>();
+        _allocationService = sp.GetRequiredService<RefundAllocationService>();
+        _publisher         = sp.GetRequiredService<IAizenMessagePublisher>();
+        _logger            = sp.GetRequiredService<ILogger<ServiceRequestCancelledConsumer>>();
     }
 
     public override async Task<bool> ExecutePrepareMessage(
@@ -81,11 +83,12 @@ public sealed class ServiceRequestCancelledConsumer
         var gateway = _gatewayResolver.Resolve();
         var gatewayResult = await gateway.RefundAsync(new RefundInput
         {
-            TransactionId    = tx.Id,
-            GatewayReference = tx.GatewayReference ?? string.Empty,
-            RefundAmount     = tx.GrossAmount,
-            Currency         = tx.CurrencyCode,
-            Reason           = RefundReason.ServiceRequestCancelled,
+            TransactionId            = tx.Id,
+            GatewayReference         = tx.GatewayReference ?? string.Empty,
+            GatewayItemTransactionId = tx.GatewayItemTransactionId,   // BE-P9-fix §8
+            RefundAmount             = tx.GrossAmount,
+            Currency                 = tx.CurrencyCode,
+            Reason                   = RefundReason.ServiceRequestCancelled,
             AdminNote        = $"SR {message.ServiceRequestId} cancelled on {message.CancelledAtUtc:u}. Auto-refund.",
         }, ct);
 
@@ -117,6 +120,15 @@ public sealed class ServiceRequestCancelledConsumer
         // ── Apply to parent transaction ───────────────────────────────────────
         tx.ApplyRefund(record);
         _transactions.Update(tx);
+
+        // ── BE-P10: snapshot-driven allocation. SR cancellation on a Captured (escrow, pre-release) transaction is a
+        // release-before refund (§7.2) → cancel provider net + commission, no settlement. Cause = CustomerCancelledBeforeWork.
+        await _allocationService.ApplyAsync(
+            tx, record,
+            requestedRefundAmount: tx.GrossAmount,
+            cause:                 RefundCause.CustomerCancelledBeforeWork,
+            restoreBenefit:        true,
+            ct:                    ct);
 
         // Consumers are NOT wrapped by AizenCommandHandlerDecorator — must call SaveChanges directly.
         await _transactions.SaveChangesAsync(ct);

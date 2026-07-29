@@ -34,4 +34,12 @@ builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(Payment
 var app = builder.Build();
 await app.SeedPaymentAsync();
 
+// ── BE-P12: idempotent financial-ledger backfill from the existing immutable sources (safe to re-run). ──
+using (var scope = app.Services.CreateScope())
+{
+    var backfill = scope.ServiceProvider.GetRequiredService<
+        Aizen.Modules.Payment.Application.Services.FinancialLedgerBackfillService>();
+    await backfill.BackfillAsync();
+}
+
 app.Run();

@@ -143,10 +143,22 @@ public sealed class IyzicoRetrieveCheckoutResponse : IyzicoBaseResponse
     [JsonPropertyName("basketId")]
     public string? BasketId { get; set; }
 
+    // BE-P9-fix §3/§6: payment id + response signature (validated against paymentStatus:paymentId:currency:basketId:...).
+    [JsonPropertyName("paymentId")]
+    public string? PaymentId { get; set; }
+
+    [JsonPropertyName("signature")]
+    public string? Signature { get; set; }
+
     [JsonPropertyName("paymentItems")]
     public List<IyzicoPaymentItem>? PaymentItems { get; set; }
 }
 
+/// <summary>
+/// One per-split payment item from CF-retrieve. BE-P9-fix §6: carries the item <c>paymentTransactionId</c> (used for
+/// approve/refund), the sub-merchant payout + blockage, and the <c>transactionStatus</c> (1 = held/awaiting approval,
+/// 2 = released, 0 = fraud review, -1 = rejected).
+/// </summary>
 public sealed class IyzicoPaymentItem
 {
     [JsonPropertyName("paymentTransactionId")]
@@ -160,6 +172,28 @@ public sealed class IyzicoPaymentItem
 
     [JsonPropertyName("paidPrice")]
     public string? PaidPrice { get; set; }
+
+    [JsonPropertyName("subMerchantKey")]
+    public string? SubMerchantKey { get; set; }
+
+    [JsonPropertyName("subMerchantPrice")]
+    public string? SubMerchantPrice { get; set; }
+
+    [JsonPropertyName("subMerchantPayoutAmount")]
+    public decimal? SubMerchantPayoutAmount { get; set; }
+
+    [JsonPropertyName("merchantPayoutAmount")]
+    public decimal? MerchantPayoutAmount { get; set; }
+
+    [JsonPropertyName("blockageRateAmountMerchant")]
+    public decimal? BlockageRateAmountMerchant { get; set; }
+
+    [JsonPropertyName("blockageRateAmountSubMerchant")]
+    public decimal? BlockageRateAmountSubMerchant { get; set; }
+
+    /// <summary>1 = held/awaiting marketplace approval, 2 = released, 0 = fraud review, -1 = rejected.</summary>
+    [JsonPropertyName("transactionStatus")]
+    public int? TransactionStatus { get; set; }
 }
 
 // ── Marketplace Approval ──────────────────────────────────────────────────────
@@ -179,6 +213,11 @@ public sealed class IyzicoApprovalResponse : IyzicoBaseResponse
 
 // ── SubMerchant ───────────────────────────────────────────────────────────────
 
+/// <summary>
+/// BE-P9-fix §5 — sub-merchant create. The body is <c>subMerchantType</c>-discriminated: only the fields required for the
+/// chosen type are serialized (nulls are omitted), and <see cref="IyzicoSubMerchantRequestBuilder"/> validates them + fails
+/// loud on a missing required field. No hardcoded identity/tax number.
+/// </summary>
 public sealed class IyzicoSubMerchantRequest : IyzicoBaseRequest
 {
     [JsonPropertyName("subMerchantExternalId")]
@@ -190,38 +229,91 @@ public sealed class IyzicoSubMerchantRequest : IyzicoBaseRequest
     [JsonPropertyName("address")]
     public string Address { get; set; } = string.Empty;
 
-    [JsonPropertyName("contactName")]
-    public string ContactName { get; set; } = string.Empty;
-
-    [JsonPropertyName("contactSurname")]
-    public string ContactSurname { get; set; } = string.Empty;
-
     [JsonPropertyName("email")]
     public string Email { get; set; } = string.Empty;
 
-    [JsonPropertyName("gsmNumber")]
+    [JsonPropertyName("gsmNumber"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? GsmNumber { get; set; }
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("contactName"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ContactName { get; set; }
+
+    [JsonPropertyName("contactSurname"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ContactSurname { get; set; }
+
+    [JsonPropertyName("identityNumber"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? IdentityNumber { get; set; }
+
+    [JsonPropertyName("taxOffice"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TaxOffice { get; set; }
+
+    [JsonPropertyName("taxNumber"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TaxNumber { get; set; }
+
+    [JsonPropertyName("legalCompanyTitle"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? LegalCompanyTitle { get; set; }
+
+    [JsonPropertyName("iban"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Iban { get; set; }   // optional at create, required before product approval (→ split-eligibility)
+
+    [JsonPropertyName("currency")]
+    public string Currency { get; set; } = "TRY";
+}
+
+/// <summary>BE-P9-fix §5 — sub-merchant update: PUT /onboarding/submerchant, NO subMerchantType; subMerchantKey + iban.</summary>
+public sealed class IyzicoUpdateSubMerchantRequest : IyzicoBaseRequest
+{
+    [JsonPropertyName("subMerchantKey")]
+    public string SubMerchantKey { get; set; } = string.Empty;
+
     [JsonPropertyName("iban")]
     public string Iban { get; set; } = string.Empty;
 
-    [JsonPropertyName("identityNumber")]
+    [JsonPropertyName("address"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Address { get; set; }
+
+    [JsonPropertyName("email"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Email { get; set; }
+
+    [JsonPropertyName("gsmNumber"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? GsmNumber { get; set; }
+
+    [JsonPropertyName("name"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("identityNumber"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? IdentityNumber { get; set; }
 
-    [JsonPropertyName("taxOffice")]
+    [JsonPropertyName("taxOffice"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? TaxOffice { get; set; }
 
-    [JsonPropertyName("taxNumber")]
+    [JsonPropertyName("taxNumber"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? TaxNumber { get; set; }
 
-    [JsonPropertyName("legalCompanyTitle")]
+    [JsonPropertyName("legalCompanyTitle"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? LegalCompanyTitle { get; set; }
 
     [JsonPropertyName("currency")]
     public string Currency { get; set; } = "TRY";
+}
+
+/// <summary>BE-P9-fix §5 — sub-merchant detail lookup by external id.</summary>
+public sealed class IyzicoSubMerchantDetailRequest : IyzicoBaseRequest
+{
+    [JsonPropertyName("subMerchantExternalId")]
+    public string SubMerchantExternalId { get; set; } = string.Empty;
+}
+
+public sealed class IyzicoSubMerchantDetailResponse : IyzicoBaseResponse
+{
+    [JsonPropertyName("subMerchantKey")]  public string? SubMerchantKey  { get; set; }
+    [JsonPropertyName("subMerchantType")] public string? SubMerchantType { get; set; }
+    [JsonPropertyName("iban")]            public string? Iban            { get; set; }
+    [JsonPropertyName("name")]            public string? Name            { get; set; }
+    [JsonPropertyName("email")]           public string? Email           { get; set; }
 }
 
 public sealed class IyzicoSubMerchantResponse : IyzicoBaseResponse
@@ -237,6 +329,7 @@ public sealed class IyzicoSubMerchantResponse : IyzicoBaseResponse
 
 public sealed class IyzicoRefundRequest : IyzicoBaseRequest
 {
+    // BE-P9-fix §8: item-level refund — paymentTransactionId is the CF-retrieve item id (NOT the payment-level paymentId).
     [JsonPropertyName("paymentTransactionId")]
     public string PaymentTransactionId { get; set; } = string.Empty;
 
@@ -245,6 +338,13 @@ public sealed class IyzicoRefundRequest : IyzicoBaseRequest
 
     [JsonPropertyName("currency")]
     public string Currency { get; set; } = "TRY";
+
+    /// <summary>OTHER | FRAUD | BUYER_REQUEST | DOUBLE_PAYMENT (iyzico enum).</summary>
+    [JsonPropertyName("reason"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Reason { get; set; }
+
+    [JsonPropertyName("description"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Description { get; set; }
 
     [JsonPropertyName("ip")]
     public string Ip { get; set; } = "85.34.78.112";
@@ -255,9 +355,74 @@ public sealed class IyzicoRefundResponse : IyzicoBaseResponse
     [JsonPropertyName("paymentTransactionId")]
     public string? PaymentTransactionId { get; set; }
 
+    [JsonPropertyName("paymentId")]
+    public string? PaymentId { get; set; }
+
     [JsonPropertyName("price")]
     public string? Price { get; set; }
 
     [JsonPropertyName("currency")]
     public string? Currency { get; set; }
+
+    [JsonPropertyName("signature")]
+    public string? Signature { get; set; }
+
+    [JsonPropertyName("retryable")]
+    public bool? Retryable { get; set; }
+}
+
+/// <summary>BE-P9-fix §8 — allowed iyzico refund reasons.</summary>
+public static class IyzicoRefundReason
+{
+    public const string Other         = "OTHER";
+    public const string Fraud         = "FRAUD";
+    public const string BuyerRequest  = "BUYER_REQUEST";
+    public const string DoublePayment = "DOUBLE_PAYMENT";
+}
+
+// ── BE-P9 item-level marketplace operations (§10, §21) ──────────────────────
+
+/// <summary>POST /payment/iyzipos/item/approve — approve a single basket item's sub-merchant split (partial/native).</summary>
+public sealed class IyzicoItemApproveRequest : IyzicoBaseRequest
+{
+    [JsonPropertyName("paymentTransactionId")]
+    public string PaymentTransactionId { get; set; } = string.Empty;
+}
+
+public sealed class IyzicoItemApproveResponse : IyzicoBaseResponse
+{
+    [JsonPropertyName("paymentTransactionId")]
+    public string? PaymentTransactionId { get; set; }
+}
+
+/// <summary>POST /payment/iyzipos/item/disapprove — disapprove a single basket item's sub-merchant split.</summary>
+public sealed class IyzicoItemDisapproveRequest : IyzicoBaseRequest
+{
+    [JsonPropertyName("paymentTransactionId")]
+    public string PaymentTransactionId { get; set; } = string.Empty;
+}
+
+public sealed class IyzicoItemDisapproveResponse : IyzicoBaseResponse
+{
+    [JsonPropertyName("paymentTransactionId")]
+    public string? PaymentTransactionId { get; set; }
+}
+
+/// <summary>PUT /payment/item — update a sub-merchant's share on a basket item (change-order / partial per §20.13/§21).</summary>
+public sealed class IyzicoUpdateItemRequest : IyzicoBaseRequest
+{
+    [JsonPropertyName("paymentTransactionId")]
+    public string  PaymentTransactionId { get; set; } = string.Empty;
+
+    [JsonPropertyName("subMerchantKey")]
+    public string  SubMerchantKey       { get; set; } = string.Empty;
+
+    [JsonPropertyName("subMerchantPrice")]
+    public string  SubMerchantPrice     { get; set; } = "0.0";
+}
+
+public sealed class IyzicoUpdateItemResponse : IyzicoBaseResponse
+{
+    [JsonPropertyName("paymentTransactionId")]
+    public string? PaymentTransactionId { get; set; }
 }

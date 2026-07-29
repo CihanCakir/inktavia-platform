@@ -4,6 +4,7 @@ using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Message;
+using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.Extensions.Logging;
@@ -17,18 +18,21 @@ public sealed class MarkPayoutCompleteCommandHandler
     : AizenCommandHandler<MarkPayoutCompleteCommand, MarkPayoutCompleteResult>
 {
     private readonly IPayoutRecordRepository                    _payouts;
+    private readonly ProviderNegativeBalanceService             _negativeBalance;
     private readonly IAizenMessagePublisher                     _publisher;
     private readonly ILogger<MarkPayoutCompleteCommandHandler>  _logger;
 
     public MarkPayoutCompleteCommandHandler(
         IAizenUnitOfWork<PaymentDbContext>              unitOfWork,
         IPayoutRecordRepository                         payouts,
+        ProviderNegativeBalanceService                 negativeBalance,
         IAizenMessagePublisher                          publisher,
         ILogger<MarkPayoutCompleteCommandHandler>       logger)
     {
-        _payouts   = payouts;
-        _publisher = publisher;
-        _logger    = logger;
+        _payouts         = payouts;
+        _negativeBalance = negativeBalance;
+        _publisher       = publisher;
+        _logger          = logger;
     }
 
     public override async Task<MarkPayoutCompleteResult?> Handle(
@@ -36,6 +40,10 @@ public sealed class MarkPayoutCompleteCommandHandler
     {
         var payout = await _payouts.GetByIdAsync(request.PayoutRecordId, ct)
             ?? throw new AizenBusinessException((int)PaymentErrorCode.PayoutRecordNotFound);
+
+        // ── BE-P10 §7.3/§7.4: offset the provider's negative balance from this payout first; over-limit blocks it.
+        await _negativeBalance.OffsetBeforePayoutAsync(
+            payout.ProviderProfileId, payout.CurrencyCode, payout.Amount, allowOverLimit: false, ct);
 
         payout.MarkCompleted(request.GatewayPayoutId, request.AdminNote);
         _payouts.Update(payout);

@@ -30,6 +30,12 @@ public sealed class CreateCommissionRuleCommand : AizenCommand<CreateCommissionR
     public string?                 CurrencyCode   { get; init; }
     /// <summary>Commercial model scope. Null = any commercial model.</summary>
     public CommercialModel?        CommercialModel { get; init; }
+
+    // ── BE-P2: Line-level commission dimensions (§20.11, optional) ─────────
+    /// <summary>Line kind scope (Labor/Part/Travel/PassThrough). Null = any line type.</summary>
+    public LineType?               LineType             { get; init; }
+    /// <summary>Commission eligibility scope. Null = any eligibility.</summary>
+    public CommissionEligibility?  CommissionEligibility { get; init; }
 }
 
 public sealed record CreateCommissionRuleResult(long Id, string RuleCode);

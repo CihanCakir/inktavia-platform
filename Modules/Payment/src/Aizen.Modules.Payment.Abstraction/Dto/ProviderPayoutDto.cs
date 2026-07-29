@@ -23,6 +23,22 @@ public sealed class ProviderPayoutPagedResultDto
     public int Total    { get; init; }
     public int Page     { get; init; }
     public int PageSize { get; init; }
+
+    // ── BE-P10 provider negative-balance transparency (null when the provider has no balance ledger row) ──
+    /// <summary>The provider's current negative-balance ledger state (§7.4). A clawback offsets from future payouts;
+    /// over the limit blocks payouts/acceptance. Null when no ledger row exists (never clawed back).</summary>
+    public ProviderBalanceSummaryDto? NegativeBalance { get; init; }
+}
+
+/// <summary>BE-P10 §7.4 — the provider negative-balance ledger snapshot for transparency (read-only).</summary>
+public sealed class ProviderBalanceSummaryDto
+{
+    /// <summary>Signed running balance; negative = the provider owes the platform (offset from future payouts first).</summary>
+    public decimal Balance              { get; init; }
+    public decimal NegativeAmount       { get; init; }
+    public decimal NegativeBalanceLimit { get; init; }
+    public bool    IsOverLimit          { get; init; }
+    public string  CurrencyCode         { get; init; } = "TRY";
 }
 
 public sealed class ProviderPayoutSummaryDto

@@ -27,6 +27,12 @@ public sealed class TransactionRefundRecordConfiguration : IEntityTypeConfigurat
         b.Property(x => x.Reason).HasConversion<int>().IsRequired();
         b.Property(x => x.Status).HasConversion<int>().IsRequired();
 
+        // ── BE-P10: allocation link + cause/release-state + benefit-restore-once guard ──
+        b.Property(x => x.Cause).HasConversion<int>();
+        b.Property(x => x.ReleaseState).HasConversion<int>();
+        b.Property(x => x.RefundAllocationId);
+        b.Property(x => x.BenefitRestoreApplied).IsRequired().HasDefaultValue(false);
+
         // ── Amount ────────────────────────────────────────────────────────────
         b.Property(x => x.Amount).HasColumnType("numeric(18,4)").IsRequired();
         b.Property(x => x.CurrencyCode).HasMaxLength(10).IsRequired();

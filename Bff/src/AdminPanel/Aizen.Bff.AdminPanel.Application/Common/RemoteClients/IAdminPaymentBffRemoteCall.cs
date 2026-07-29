@@ -1,6 +1,7 @@
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Payment.Abstraction;
+using Aizen.Modules.Payment.Abstraction.Dto;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Model.Request;
 using Aizen.Modules.Payment.Abstraction.Model.Result;
@@ -391,4 +392,264 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         [Query] bool?              hasMismatches = null,
         CancellationToken ct = default);
 
+    // ─── Provider sub-merchant onboarding KYC review (BE-I1) ──────────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/providers/sub-merchant/onboarding-queue")]
+    Task<ProviderSubMerchantOnboardingQueueDto> GetSubMerchantOnboardingQueueAsync(
+        [Query] ProviderSubMerchantOnboardingStatus? status = null,
+        [Query] int page = 1,
+        [Query] int pageSize = 20,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/providers/{providerProfileId}/sub-merchant/verify")]
+    Task<ProviderSubMerchantOnboardingResult> VerifySubMerchantAsync(
+        long providerProfileId,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/providers/{providerProfileId}/sub-merchant/reject")]
+    Task<ProviderSubMerchantOnboardingResult> RejectSubMerchantAsync(
+        long providerProfileId,
+        [AizenRemoteCallBody] RejectSubMerchantBffRequest body,
+        CancellationToken ct = default);
+
+    // ─── BE-P3 PlatformFeeRule CRUD (module: /api/v1/payment/platform-fee) ────
+
+    [AizenRemoteCallGet("/api/v1/payment/platform-fee/resolve")]
+    Task<PlatformFeeResolveBffResult?> ResolvePlatformFeeAsync(
+        [Query] string   currencyCode                 = "TRY",
+        [Query] string?  categoryCode                 = null,
+        [Query] string?  customerType                 = null,
+        [Query] decimal  customerPayableServiceAmount = 0m,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/platform-fee/rules")]
+    Task<PlatformFeeRuleCreateBffResult> CreatePlatformFeeRuleAsync(
+        [AizenRemoteCallBody] CreatePlatformFeeRuleBffRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/platform-fee/rules/{id}")]
+    Task<PlatformFeeRuleMutateBffResult> UpdatePlatformFeeRuleAsync(
+        long id,
+        [AizenRemoteCallBody] UpdatePlatformFeeRuleBffRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/platform-fee/rules/{id}/deactivate")]
+    Task<PlatformFeeRuleMutateBffResult> DeactivatePlatformFeeRuleAsync(
+        long id,
+        CancellationToken ct = default);
+
+    // ─── BE-P4 ProviderPlanPrice CRUD (module: /api/v1/payment/plan-prices) ───
+
+    [AizenRemoteCallGet("/api/v1/payment/plan-prices/plan/{planId}")]
+    Task<List<ProviderPlanPriceBffDto>> GetProviderPlanPricesForPlanAsync(long planId, CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/plan-prices/resolve")]
+    Task<ProviderPlanPriceBffDto?> ResolveProviderPlanPriceAsync(
+        [Query] long      providerPlanId,
+        [Query] string    currencyCode  = "TRY",
+        [Query] string    billingPeriod = "Monthly",
+        [Query] DateTime? atUtc         = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/plan-prices/upcoming-changes")]
+    Task<List<UpcomingPriceChangeBffItem>> GetUpcomingPlanPriceChangesAsync(
+        [Query] int withinDays = 14,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/plan-prices")]
+    Task<ProviderPlanPriceCreateBffResult> CreateProviderPlanPriceAsync(
+        [AizenRemoteCallBody] CreateProviderPlanPriceBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/plan-prices/{id}")]
+    Task<ProviderPlanPriceMutateBffResult> UpdateProviderPlanPriceAsync(
+        long id, [AizenRemoteCallBody] UpdateProviderPlanPriceBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/plan-prices/{id}/deactivate")]
+    Task<ProviderPlanPriceMutateBffResult> DeactivateProviderPlanPriceAsync(long id, CancellationToken ct = default);
+
+    // ─── BE-P5 ProfitProtectionPolicy CRUD (module: /api/v1/payment/profit-protection) ──
+
+    [AizenRemoteCallGet("/api/v1/payment/profit-protection/resolve")]
+    Task<ProfitProtectionPolicyResolveBffResult?> ResolveProfitProtectionPolicyAsync(
+        [Query] string currencyCode = "TRY",
+        [Query] DateTime? atUtc = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/profit-protection/policies")]
+    Task<ProfitProtectionPolicyCreateBffResult> CreateProfitProtectionPolicyAsync(
+        [AizenRemoteCallBody] CreateProfitProtectionPolicyBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/profit-protection/policies/{id}")]
+    Task<ProfitProtectionPolicyMutateBffResult> UpdateProfitProtectionPolicyAsync(
+        long id, [AizenRemoteCallBody] UpdateProfitProtectionPolicyBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/profit-protection/policies/{id}/deactivate")]
+    Task<ProfitProtectionPolicyMutateBffResult> DeactivateProfitProtectionPolicyAsync(long id, CancellationToken ct = default);
+
+    // ─── BE-P6 CustomerDiscountRule CRUD (module: /api/v1/payment/customer-discounts) ──
+
+    [AizenRemoteCallGet("/api/v1/payment/customer-discounts/resolve")]
+    Task<CustomerDiscountResolveBffResult?> ResolveCustomerDiscountAsync(
+        [Query] long?    customerPlanId                = null,
+        [Query] string?  categoryCode                  = null,
+        [Query] string   currencyCode                  = "TRY",
+        [Query] decimal  serviceBaseAmount             = 0m,
+        [Query] bool     providerConsent               = false,
+        [Query] long?    participantPlanSubscriptionId = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/customer-discounts/rules")]
+    Task<CustomerDiscountRuleCreateBffResult> CreateCustomerDiscountRuleAsync(
+        [AizenRemoteCallBody] CreateCustomerDiscountRuleBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/customer-discounts/rules/{id}")]
+    Task<CustomerDiscountRuleMutateBffResult> UpdateCustomerDiscountRuleAsync(
+        long id, [AizenRemoteCallBody] UpdateCustomerDiscountRuleBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/customer-discounts/rules/{id}/deactivate")]
+    Task<CustomerDiscountRuleMutateBffResult> DeactivateCustomerDiscountRuleAsync(long id, CancellationToken ct = default);
+
+    // ─── BE-P6 CustomerBenefitBudgetPolicy (module: /api/v1/payment/benefit-budget) ──
+
+    [AizenRemoteCallPost("/api/v1/payment/benefit-budget/policies")]
+    Task<CustomerBenefitBudgetPolicyCreateBffResult> CreateCustomerBenefitBudgetPolicyAsync(
+        [AizenRemoteCallBody] CreateCustomerBenefitBudgetPolicyBffRequest body, CancellationToken ct = default);
+
+    // ─── BE-P7 ProviderCommissionBenefitRule + entitlement (module: /api/v1/payment/commission-benefits) ──
+
+    [AizenRemoteCallGet("/api/v1/payment/commission-benefits/resolve")]
+    Task<EffectiveCommissionResolveBffResult?> ResolveEffectiveCommissionAsync(
+        [Query] long     providerProfileId,
+        [Query] long?    providerPlanId       = null,
+        [Query] string?  categoryCode         = null,
+        [Query] decimal  serviceAmount        = 0m,
+        [Query] string   currencyCode         = "TRY",
+        [Query] decimal? eligibleGmvRemaining = null,
+        [Query] decimal  planFloorRate        = 0m,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/commission-benefits/rules")]
+    Task<ProviderCommissionBenefitRuleCreateBffResult> CreateProviderCommissionBenefitRuleAsync(
+        [AizenRemoteCallBody] CreateProviderCommissionBenefitRuleBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/commission-benefits/rules/{id}")]
+    Task<ProviderCommissionBenefitRuleMutateBffResult> UpdateProviderCommissionBenefitRuleAsync(
+        long id, [AizenRemoteCallBody] UpdateProviderCommissionBenefitRuleBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/commission-benefits/rules/{id}/deactivate")]
+    Task<ProviderCommissionBenefitRuleMutateBffResult> DeactivateProviderCommissionBenefitRuleAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/commission-benefits/entitlements")]
+    Task<GrantEntitlementBffResult> GrantProviderCommissionBenefitEntitlementAsync(
+        [AizenRemoteCallBody] GrantProviderCommissionBenefitEntitlementBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/commission-benefits/entitlements/{id}/revoke")]
+    Task<RevokeEntitlementBffResult> RevokeProviderCommissionBenefitEntitlementAsync(long id, CancellationToken ct = default);
+
+    // ─── P11 Premium admin (module: /api/v1/payment/admin/premium) ────────────
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/premium/products")]
+    Task<List<PremiumProductAdminDto>> GetPremiumProductsAsync(CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/premium/products/{id}")]
+    Task<PremiumProductAdminDto?> GetPremiumProductByIdAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/premium/products")]
+    Task<PremiumMutateResultDto> CreatePremiumProductAsync(
+        [AizenRemoteCallBody] CreatePremiumProductBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/admin/premium/products/{id}")]
+    Task<PremiumMutateResultDto> UpdatePremiumProductAsync(
+        long id, [AizenRemoteCallBody] UpdatePremiumProductBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/premium/products/{id}/activate")]
+    Task<PremiumMutateResultDto> ActivatePremiumProductAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/premium/products/{id}/deactivate")]
+    Task<PremiumMutateResultDto> DeactivatePremiumProductAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/premium/products/{productId}/prices")]
+    Task<List<PremiumProductPriceAdminDto>> GetPremiumProductPricesAsync(long productId, CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/premium/products/{productId}/prices/resolve")]
+    Task<PremiumProductPriceAdminDto?> ResolvePremiumProductPriceAsync(
+        long productId,
+        [Query] string    currencyCode = "TRY",
+        [Query] DateTime? atUtc        = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/premium/prices")]
+    Task<PremiumMutateResultDto> CreatePremiumProductPriceAsync(
+        [AizenRemoteCallBody] CreatePremiumProductPriceBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/admin/premium/prices/{id}")]
+    Task<PremiumMutateResultDto> UpdatePremiumProductPriceAsync(
+        long id, [AizenRemoteCallBody] UpdatePremiumProductPriceBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/premium/prices/{id}/deactivate")]
+    Task<PremiumMutateResultDto> DeactivatePremiumProductPriceAsync(long id, CancellationToken ct = default);
+
+    // ─── P10 RefundAllocationPolicy (module: /api/v1/payment/admin/refund-allocation-policies) ──
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/refund-allocation-policies")]
+    Task<List<RefundAllocationPolicyAdminDto>> GetRefundAllocationPoliciesAsync(CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/refund-allocation-policies/resolve")]
+    Task<RefundAllocationPolicyAdminDto?> ResolveRefundAllocationPolicyAsync(
+        [Query] string    currencyCode = "TRY",
+        [Query] DateTime? atUtc        = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/refund-allocation-policies/{id}")]
+    Task<RefundAllocationPolicyAdminDto?> GetRefundAllocationPolicyByIdAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/refund-allocation-policies")]
+    Task<RefundAllocationPolicyMutateResultDto> CreateRefundAllocationPolicyAsync(
+        [AizenRemoteCallBody] CreateRefundAllocationPolicyBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/admin/refund-allocation-policies/{id}")]
+    Task<RefundAllocationPolicyMutateResultDto> UpdateRefundAllocationPolicyAsync(
+        long id, [AizenRemoteCallBody] UpdateRefundAllocationPolicyBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/refund-allocation-policies/{id}/deactivate")]
+    Task<RefundAllocationPolicyMutateResultDto> DeactivateRefundAllocationPolicyAsync(long id, CancellationToken ct = default);
+
+    // ─── P10 Refund / Chargeback queues (module: /api/v1/payment/admin) ───────
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/refund-queue")]
+    Task<RefundQueuePagedDto> GetRefundQueueAsync(
+        [Query] RefundCause?             cause        = null,
+        [Query] ReleaseState?            releaseState = null,
+        [Query] TransactionRefundStatus? status       = null,
+        [Query] int                      page         = 1,
+        [Query] int                      pageSize     = 20,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/chargeback-queue")]
+    Task<ChargebackQueuePagedDto> GetChargebackQueueAsync(
+        [Query] int page     = 1,
+        [Query] int pageSize = 20,
+        CancellationToken ct = default);
+
+    // ─── P10 ProviderBalance ledger (module: /api/v1/payment/admin/provider-balances) ──
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/provider-balances")]
+    Task<ProviderBalancePagedDto> GetProviderBalancesAsync(
+        [Query] string? currency      = null,
+        [Query] bool    onlyNegative  = false,
+        [Query] int     page          = 1,
+        [Query] int     pageSize      = 20,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/admin/provider-balances/{providerProfileId}")]
+    Task<ProviderBalanceAdminDto?> GetProviderBalanceAsync(
+        long providerProfileId,
+        [Query] string currency = "TRY",
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/admin/provider-balances/{providerProfileId}/adjust")]
+    Task<ProviderBalanceAdjustResultDto> AdjustProviderBalanceAsync(
+        long providerProfileId,
+        [AizenRemoteCallBody] AdjustProviderBalanceBffRequest body,
+        CancellationToken ct = default);
 }

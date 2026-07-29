@@ -8,9 +8,10 @@ public sealed class CreateCommissionRuleCommandValidator
 {
     public CreateCommissionRuleCommandValidator()
     {
+        // §6: rate is a fraction in the open interval (0,1) — e.g. 0.12 = 12%.
         RuleFor(x => x.CommissionRate)
-            .InclusiveBetween(0m, 100m)
-            .WithMessage("CommissionRate must be between 0 and 100.");
+            .ExclusiveBetween(0m, 1m)
+            .WithMessage("CommissionRate must be a fraction strictly between 0 and 1 (e.g. 0.12 = 12%).");
 
         RuleFor(x => x.EffectiveFrom)
             .NotEmpty().WithMessage("EffectiveFrom is required.");
@@ -39,5 +40,11 @@ public sealed class CreateCommissionRuleCommandValidator
         RuleFor(x => x.ProviderProfileId)
             .GreaterThan(0).WithMessage("ProviderProfileId must be greater than zero for ProviderOverride rules.")
             .When(x => x.RuleType == CommissionRuleType.ProviderOverride);
+
+        // §6: Global rule must not declare any primary scope dimension.
+        RuleFor(x => x)
+            .Must(x => x.ProviderPlanId is null && x.ProviderProfileId is null && string.IsNullOrWhiteSpace(x.CategoryCode))
+            .When(x => x.RuleType == CommissionRuleType.Global)
+            .WithMessage("Global rules must not set ProviderPlanId, ProviderProfileId, or CategoryCode.");
     }
 }

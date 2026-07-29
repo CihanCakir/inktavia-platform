@@ -47,7 +47,8 @@ public sealed class PreviewOfferCommandHandler : AizenCommandHandler<PreviewOffe
         var items = req.Items.Select((item, idx) => ServiceRequestOfferItemEntity.Create(
             0, item.ItemType, item.Title, item.Description,
             item.Quantity, item.UnitPrice, item.CurrencyCode, item.SortOrder > 0 ? item.SortOrder : idx,
-            item.UnitCode, item.TaxRate, item.DiscountType, item.DiscountValue
+            item.UnitCode, item.TaxRate, item.DiscountType, item.DiscountValue,
+            item.PricingMethod, item.CommissionEligibility
         ));
 
         offer.ReplaceItems(items);

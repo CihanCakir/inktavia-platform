@@ -16,4 +16,10 @@ public sealed class CreateServiceRequestOfferItemRequest
     public decimal TaxRate { get; set; }
     public OfferDiscountType DiscountType { get; set; }
     public decimal? DiscountValue { get; set; }
+
+    // ── Line economics inputs (BE-S1) ─────────────────────────────────────────
+    /// <summary>How the price was derived (§20.4). Descriptive; defaults to Fixed. Money math is unchanged.</summary>
+    public PricingMethod PricingMethod { get; set; } = PricingMethod.Fixed;
+    /// <summary>Explicit per-line commission eligibility (§20.11). Null = use the item-type default map.</summary>
+    public LineCommissionEligibility? CommissionEligibility { get; set; }
 }

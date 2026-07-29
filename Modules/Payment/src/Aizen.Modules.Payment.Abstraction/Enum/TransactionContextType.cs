@@ -14,6 +14,7 @@ namespace Aizen.Modules.Payment.Abstraction.Enum
         // Marine OS
         ServiceRequest = 10,
         CargoDry       = 20,
+        Premium        = 40,   // BE-P11: offer-scoped premium purchase (GeneralId = offerId); decoupled from commission
     }
 
     public enum TransactionContextSubType

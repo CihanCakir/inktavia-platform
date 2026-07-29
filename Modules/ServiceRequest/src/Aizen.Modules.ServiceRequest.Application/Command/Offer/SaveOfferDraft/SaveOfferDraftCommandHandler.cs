@@ -89,7 +89,8 @@ public sealed class SaveOfferDraftCommandHandler : AizenCommandHandler<SaveOffer
         var newItems = req.Items.Select((item, idx) => ServiceRequestOfferItemEntity.Create(
             0, item.ItemType, item.Title, item.Description,
             item.Quantity, item.UnitPrice, item.CurrencyCode, item.SortOrder > 0 ? item.SortOrder : idx,
-            item.UnitCode, item.TaxRate, item.DiscountType, item.DiscountValue
+            item.UnitCode, item.TaxRate, item.DiscountType, item.DiscountValue,
+            item.PricingMethod, item.CommissionEligibility
         )).ToList();
 
         offer.ReplaceItems(newItems);
@@ -130,6 +131,12 @@ public sealed class SaveOfferDraftCommandHandler : AizenCommandHandler<SaveOffer
             }
             if (item.TaxRate < 0 || item.TaxRate > 1)
                 throw new AizenBusinessException($"Tax rate must be between 0 and 1 for item '{item.Title}'.");
+
+            // ── BE-S1: new line-economics inputs must be defined enum values ──
+            if (!Enum.IsDefined(typeof(PricingMethod), item.PricingMethod))
+                throw new AizenBusinessException($"PricingMethod is invalid for item '{item.Title}'.");
+            if (item.CommissionEligibility is { } elig && !Enum.IsDefined(typeof(LineCommissionEligibility), elig))
+                throw new AizenBusinessException($"CommissionEligibility is invalid for item '{item.Title}'.");
         }
 
         if (currencies.Count > 1)

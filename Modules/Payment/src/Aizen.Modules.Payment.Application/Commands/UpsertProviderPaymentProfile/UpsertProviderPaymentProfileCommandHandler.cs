@@ -61,8 +61,19 @@ public sealed class UpsertProviderPaymentProfileCommandHandler
             TaxNumberMasked = MaskTaxNumber(entity.TaxNumber),
             Status          = entity.Status,
             VerifiedAt      = entity.VerifiedAt,
+
+            // ── BE-I1 onboarding + split-eligibility (post-upsert state; UpdateProfileAndResetVerification → DataSubmitted) ──
+            IsSplitEligible      = entity.IsSplitEligible,
+            OnboardingStatus     = entity.OnboardingStatus.ToString(),
+            SubMerchantKeyMasked = MaskSubMerchantKey(entity.SubMerchantKey),
+            IbanRequired         = false,                    // an IBAN was just saved
+            SubMerchantType      = request.SubMerchantType,  // echo the submitted KYC type (reserved for registration)
+            RejectionReason      = null,
         };
     }
+
+    private static string? MaskSubMerchantKey(string? key)
+        => string.IsNullOrEmpty(key) ? null : (key.Length <= 4 ? new string('*', key.Length) : $"****{key[^4..]}");
 
     private static string? MaskTaxNumber(string? taxNumber)
     {

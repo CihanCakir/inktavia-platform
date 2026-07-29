@@ -1,6 +1,8 @@
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Model.Result;
 using Aizen.Modules.Payment.Application.Queries.GetFinanceInvoiceStatementReport;
+using Aizen.Modules.Payment.Application.Queries.GetFinancialSummaryReport;
+using Aizen.Modules.Payment.Application.Queries.GetLedgerEntries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -61,6 +63,59 @@ public sealed class PaymentFinanceController : ControllerBase
         }, ct);
 
         return Ok(result.Report);
+    }
+
+    // ── Financial ledger summary + drill-down (BE-P12) ────────────────────────
+
+    /// <summary>
+    /// GET /api/v1/payment/finance/reports/financial-summary
+    /// §15 period summary: revenue/expense totals + NetMarketplaceContribution + per-line breakdown.
+    /// VAT liability + provider-funded discount are surfaced separately (not in the Inktavia P&amp;L, §19.17).
+    /// </summary>
+    [HttpGet("reports/financial-summary")]
+    public async Task<IActionResult> GetFinancialSummary(
+        [FromQuery] DateTime from,
+        [FromQuery] DateTime to,
+        [FromQuery] string   currency = "TRY",
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetFinancialSummaryReportQuery
+        {
+            From     = DateTime.SpecifyKind(from, DateTimeKind.Utc),
+            To       = DateTime.SpecifyKind(to,   DateTimeKind.Utc),
+            Currency = currency,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// GET /api/v1/payment/finance/reports/ledger-entries
+    /// Paged audit drill-down over the append-only financial ledger.
+    /// </summary>
+    [HttpGet("reports/ledger-entries")]
+    public async Task<IActionResult> GetLedgerEntries(
+        [FromQuery] LedgerAccountLine? accountLine       = null,
+        [FromQuery] LedgerSourceType?  sourceType        = null,
+        [FromQuery] long?              providerProfileId = null,
+        [FromQuery] DateTime?          from              = null,
+        [FromQuery] DateTime?          to                = null,
+        [FromQuery] string?            currency          = null,
+        [FromQuery] int                page              = 1,
+        [FromQuery] int                pageSize          = 50,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetLedgerEntriesQuery
+        {
+            AccountLine       = accountLine,
+            SourceType        = sourceType,
+            ProviderProfileId = providerProfileId,
+            From              = from,
+            To                = to,
+            Currency          = currency,
+            Page              = page,
+            PageSize          = pageSize,
+        }, ct);
+        return Ok(result);
     }
 
     // ── CSV Export (Phase 16G) ────────────────────────────────────────────────

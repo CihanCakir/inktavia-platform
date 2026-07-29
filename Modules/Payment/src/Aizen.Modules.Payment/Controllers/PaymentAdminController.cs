@@ -225,5 +225,34 @@ public sealed class PaymentAdminController : ControllerBase
         }, ct);
         return Ok(result);
     }
+
+    // ── Provider sub-merchant onboarding review (BE-I1) ─────────────────────────
+
+    /// <summary>Paged admin sub-merchant onboarding review queue (optional status filter).</summary>
+    [HttpGet("providers/sub-merchant/onboarding-queue")]
+    public async Task<IActionResult> GetSubMerchantOnboardingQueue(
+        [FromQuery] ProviderSubMerchantOnboardingStatus? status = null,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        => Ok(await _sender.Send(new Application.Queries.GetProviderSubMerchantOnboardingQueue
+            .GetProviderSubMerchantOnboardingQueueQuery { Status = status, Page = page, PageSize = pageSize }, ct));
+
+    /// <summary>Admin review complete: advances a provider's sub-merchant onboarding SubMerchantCreated → Verified.</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/verify")]
+    public async Task<IActionResult> VerifyProviderSubMerchant(long providerProfileId, CancellationToken ct)
+        => Ok(await _sender.Send(new Application.Commands.MarkProviderSubMerchantVerified
+            .MarkProviderSubMerchantVerifiedCommand { ProviderProfileId = providerProfileId }, ct));
+
+    /// <summary>Admin rejects a provider's sub-merchant onboarding (→ Rejected, not split-eligible).</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/reject")]
+    public async Task<IActionResult> RejectProviderSubMerchant(
+        long providerProfileId, [FromBody] RejectProviderSubMerchantRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new Application.Commands.RejectProviderSubMerchant
+            .RejectProviderSubMerchantCommand { ProviderProfileId = providerProfileId, Reason = request?.Reason }, ct));
+}
+
+/// <summary>Admin body for rejecting a provider sub-merchant onboarding (BE-I1).</summary>
+public sealed class RejectProviderSubMerchantRequest
+{
+    public string? Reason { get; init; }
 }
 

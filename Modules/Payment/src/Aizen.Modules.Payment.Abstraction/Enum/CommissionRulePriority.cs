@@ -1,9 +1,10 @@
 namespace Aizen.Modules.Payment.Abstraction.Enum;
 
 /// <summary>
-/// Admin-assigned priority metadata for a CommissionRule.
-/// Does NOT affect the resolution precedence engine (ProviderOverride > Plan > Category > Global).
-/// Used purely for admin panel display, sorting, and alerting.
+/// Admin-assigned priority for a CommissionRule.
+/// BE-P2 (§13.7): acts as the <b>secondary</b> selector in resolution — after SpecificityRank, the highest
+/// Priority wins; if two active rules still tie on (SpecificityRank, Priority) the resolver fails loud with
+/// CommissionRuleConflict rather than guessing. Also used for admin panel display, sorting, and alerting.
 /// </summary>
 public enum CommissionRulePriority
 {

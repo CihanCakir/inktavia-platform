@@ -4,6 +4,7 @@ using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Abstraction.Model.Result;
+using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Microsoft.Extensions.Logging;
 
@@ -17,17 +18,20 @@ public sealed class ApproveManualPayoutCommandHandler
     : AizenCommandHandler<ApproveManualPayoutCommand, ApproveManualPayoutResult>
 {
     private readonly IPayoutRecordRepository                       _payouts;
+    private readonly ProviderNegativeBalanceService                _negativeBalance;
     private readonly IAizenMessagePublisher                        _publisher;
     private readonly ILogger<ApproveManualPayoutCommandHandler>    _logger;
 
     public ApproveManualPayoutCommandHandler(
         IPayoutRecordRepository                     payouts,
+        ProviderNegativeBalanceService              negativeBalance,
         IAizenMessagePublisher                      publisher,
         ILogger<ApproveManualPayoutCommandHandler>  logger)
     {
-        _payouts   = payouts;
-        _publisher = publisher;
-        _logger    = logger;
+        _payouts         = payouts;
+        _negativeBalance = negativeBalance;
+        _publisher       = publisher;
+        _logger          = logger;
     }
 
     public override async Task<ApproveManualPayoutResult?> Handle(
@@ -38,6 +42,11 @@ public sealed class ApproveManualPayoutCommandHandler
 
         if (payout.Status != PayoutStatus.OnHold)
             throw new AizenBusinessException((int)PaymentErrorCode.PayoutInvalidStateForApproval);
+
+        // ── BE-P10 §7.3/§7.4: recover the provider's negative balance from this payout first; over-limit blocks it.
+        // Manual approval carries no override flag — an over-limit provider must be brought back within the limit first.
+        await _negativeBalance.OffsetBeforePayoutAsync(
+            payout.ProviderProfileId, payout.CurrencyCode, payout.Amount, allowOverLimit: false, ct);
 
         payout.ApproveManualPayout(request.GatewayPayoutId, request.AdminNote);
         _payouts.Update(payout);

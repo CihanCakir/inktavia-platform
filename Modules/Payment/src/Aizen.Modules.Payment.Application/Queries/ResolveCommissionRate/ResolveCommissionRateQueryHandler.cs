@@ -1,10 +1,15 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Domain.Entities.Commission;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 
 namespace Aizen.Modules.Payment.Application.Queries.ResolveCommissionRate;
 
+[DocumentationInfo("ResolveCommissionRateQueryHandler",
+    "Resolves the effective commission rate via the BE-P2 specificity engine and returns the MATCHED rule's " +
+    "rate, id, code, specificity rank, priority, and source (RuleType) — no longer request-inferred. " +
+    "Throws CommissionRuleConflict on a fail-loud tie and CommissionRuleNotFound when nothing matches.")]
 public sealed class ResolveCommissionRateQueryHandler
     : AizenQueryHandler<ResolveCommissionRateQuery, CommissionRateResult>
 {
@@ -16,24 +21,28 @@ public sealed class ResolveCommissionRateQueryHandler
     public override async Task<CommissionRateResult?> Handle(
         ResolveCommissionRateQuery request, CancellationToken ct)
     {
-        var atUtc = DateTime.UtcNow;
-        var rate = await _rules.ResolveRateAsync(
-            request.ProviderProfileId, request.ProviderPlanId, request.CategoryCode, atUtc, ct);
+        var ctx = new CommissionResolveContext(
+            ProviderProfileId:     request.ProviderProfileId,
+            ProviderPlanId:        request.ProviderPlanId,
+            CategoryCode:          request.CategoryCode,
+            ProductCode:           request.ProductCode,
+            LineType:              request.LineType,
+            ContextType:           request.ContextType,
+            CommercialModel:       request.CommercialModel,
+            SalesChannel:          request.SalesChannel,
+            CurrencyCode:          request.CurrencyCode,
+            CommissionEligibility: request.CommissionEligibility);
 
-        if (rate is null)
-            throw new AizenBusinessException((int)PaymentErrorCode.CommissionRuleNotFound);
+        // Pure resolution — may throw CommissionRuleConflict (fail-loud tie).
+        var resolution = await _rules.ResolveAsync(ctx, DateTime.UtcNow, ct)
+            ?? throw new AizenBusinessException((int)PaymentErrorCode.CommissionRuleNotFound);
 
-        // Determine which level of the chain resolved it (for admin display)
-        string source;
-        if (request.ProviderProfileId.HasValue)
-            source = CommissionRuleType.ProviderOverride.ToString();
-        else if (request.ProviderPlanId.HasValue)
-            source = CommissionRuleType.Plan.ToString();
-        else if (!string.IsNullOrWhiteSpace(request.CategoryCode))
-            source = CommissionRuleType.Category.ToString();
-        else
-            source = CommissionRuleType.Global.ToString();
-
-        return new CommissionRateResult(rate.Value, source);
+        return new CommissionRateResult(
+            Rate:            resolution.Rate,
+            ResolvedFrom:    resolution.Source,          // matched rule's RuleType, not request-inferred
+            RuleId:          resolution.RuleId,
+            RuleCode:        string.IsNullOrEmpty(resolution.RuleCode) ? null : resolution.RuleCode,
+            SpecificityRank: resolution.SpecificityRank,
+            Priority:        resolution.Priority);
     }
 }

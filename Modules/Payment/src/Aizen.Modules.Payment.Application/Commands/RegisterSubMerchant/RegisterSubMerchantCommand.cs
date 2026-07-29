@@ -23,5 +23,7 @@ public sealed class RegisterSubMerchantCommand : AizenCommand<RegisterSubMerchan
     public          string? GsmNumber        { get; init; }
     public          string? ContactName      { get; init; }
     public          string? ContactSurname   { get; init; }
+    /// <summary>BE-P9-fix §5 — real TCKN (required for PERSONAL). No hardcoded default.</summary>
+    public          string? IdentityNumber   { get; init; }
     public          string  Address          { get; init; } = "N/A";
 }

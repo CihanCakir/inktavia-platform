@@ -15,5 +15,12 @@ public sealed record ProviderWebhookInput(
     /// <summary>All request headers — passed through for gateway-specific validation.</summary>
     IReadOnlyDictionary<string, string>? Headers = null,
     /// <summary>UTC timestamp from webhook payload; null = use DateTime.UtcNow.</summary>
-    DateTime? PaidAtUtc = null
+    DateTime? PaidAtUtc = null,
+    // ── BE-P9-fix §2: HPP webhook V3 signature fields ──
+    string? Status = null,
+    string? IyziPaymentId = null,
+    string? PaymentConversationId = null,
+    string? IyziEventType = null,
+    /// <summary>True in production → the dev signature-bypass is disabled (validation is mandatory).</summary>
+    bool IsProduction = false
 );

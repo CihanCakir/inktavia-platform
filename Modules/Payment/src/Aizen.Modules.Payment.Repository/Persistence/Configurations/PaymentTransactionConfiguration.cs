@@ -1,3 +1,4 @@
+using Aizen.Modules.Payment.Domain.Entities.Economics;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -47,9 +48,15 @@ public sealed class PaymentTransactionConfiguration : IEntityTypeConfiguration<P
         b.Property(x => x.Status).HasConversion<int>().IsRequired();
         b.Property(x => x.GatewayProvider).HasMaxLength(50).IsRequired();
         b.Property(x => x.GatewayReference).HasMaxLength(500);
+        // BE-P9-fix §6 — iyzico per-item breakdown captured from CF-retrieve.
+        b.Property(x => x.GatewayItemTransactionId).HasMaxLength(200);
+        b.Property(x => x.SubMerchantPayoutAmount).HasColumnType("numeric(18,4)");
         b.Property(x => x.IdempotencyKey).HasMaxLength(200).IsRequired();
         b.HasIndex(x => x.IdempotencyKey).IsUnique();
         b.Property(x => x.EscrowRequired).IsRequired().HasDefaultValue(false);
+        // BE-P9 — auth-mode snapshot (legacy rows default Capture=1).
+        b.Property(x => x.AuthMode).HasConversion<int>().IsRequired()
+            .HasDefaultValue(Aizen.Modules.Payment.Abstraction.Enum.PaymentAuthMode.Capture);
 
         // ── Capture / Release lifecycle ───────────────────────────────────────
         b.Property(x => x.CapturedAt);
@@ -70,6 +77,15 @@ public sealed class PaymentTransactionConfiguration : IEntityTypeConfiguration<P
 
         // ── Admin ─────────────────────────────────────────────────────────────
         b.Property(x => x.AdminNote).HasMaxLength(500);
+
+        // ── Economics snapshot link (BE-P1) ───────────────────────────────────
+        b.Property(x => x.EconomicsSnapshotId);   // nullable; NULL on legacy rows
+        b.HasOne<PaymentEconomicsSnapshotEntity>()
+            .WithMany()
+            .HasForeignKey(x => x.EconomicsSnapshotId)
+            .OnDelete(DeleteBehavior.Restrict);   // no cascade — snapshot is an immutable ledger record
+        b.HasIndex(x => x.EconomicsSnapshotId);
+        // P10: Settlement / RefundAllocation FKs to the snapshot are added in their own phase.
 
         // ── Navigation: refund records ────────────────────────────────────────
         b.HasMany(x => x.RefundRecords)

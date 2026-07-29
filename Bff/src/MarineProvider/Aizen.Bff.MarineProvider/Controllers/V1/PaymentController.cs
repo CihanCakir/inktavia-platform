@@ -1,8 +1,10 @@
 using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Application.Payment;
+using Aizen.Bff.MarineProvider.Application.Payment.Premium;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Payment.Abstraction.Dto;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 using Aizen.Modules.Payment.Abstraction.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -46,6 +48,10 @@ public sealed class PaymentController : AizenWebApiController
             Iban      = body.Iban,
             LegalName = body.LegalName,
             TaxNumber = body.TaxNumber,
+            SubMerchantType   = body.SubMerchantType,
+            IdentityNumber    = body.IdentityNumber,
+            TaxOffice         = body.TaxOffice,
+            LegalCompanyTitle = body.LegalCompanyTitle,
         }, ct));
 
     [HttpGet("transactions")]
@@ -84,4 +90,21 @@ public sealed class PaymentController : AizenWebApiController
     [ProducesResponseType(typeof(ProviderFilePdfUrlDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProviderFilePdfUrlDto?>> GetPayoutReceiptUrl(long id, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetProviderPayoutReceiptUrlBffQuery { PayoutId = id }, ct));
+
+    // ── BE-P11 premium offer boost ────────────────────────────────────────────
+
+    [HttpPost("offer-boost")]
+    [ProducesResponseType(typeof(PurchaseOfferBoostResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PurchaseOfferBoostResult?>> PurchaseOfferBoost(
+        [FromBody] PurchaseOfferBoostRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new PurchaseOfferBoostBffCommand
+        {
+            OfferId      = body.OfferId,
+            CurrencyCode = string.IsNullOrWhiteSpace(body.CurrencyCode) ? "TRY" : body.CurrencyCode,
+        }, ct));
+
+    [HttpGet("offers/{offerId:long}/boost-status")]
+    [ProducesResponseType(typeof(OfferBoostStatusDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<OfferBoostStatusDto?>> GetOfferBoostStatus(long offerId, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetOfferBoostStatusBffQuery { OfferId = offerId }, ct));
 }

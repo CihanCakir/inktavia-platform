@@ -18,5 +18,8 @@ namespace Aizen.Modules.Payment.Abstraction
         CargoDryRenewalRefund     = 21,  // Refund on CargoDry renewal
         ProviderPlanSubscription  = 30,  // Provider platform subscription (monthly/annual)
         ParticipantSubscription   = 31,  // Participant/customer platform subscription
+
+        // ── Premium (BE-P11) ──────────────────────────────────────────────────
+        PremiumBoostPurchase      = 40,  // OFFER_BOOST_7D one-off premium purchase (non-marketplace, whole amount to Inktavia)
     }
 }

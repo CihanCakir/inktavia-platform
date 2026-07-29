@@ -40,7 +40,20 @@ using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionChurnRi
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.DeactivateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ReactivateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.RejectSubMerchant;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Command.VerifySubMerchant;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubMerchantOnboardingQueue;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.PlatformFeeRule;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.ProviderPlanPrice;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.ProfitProtectionPolicy;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.CustomerDiscount;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.ProviderCommissionBenefit;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.PremiumAdmin;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.RefundAllocationPolicy;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.RefundQueue;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.ProviderBalance;
+using Aizen.Modules.Payment.Abstraction.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRuleDetail;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRulesList;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRuleStats;
@@ -603,6 +616,276 @@ public sealed class AdminPaymentController : AizenWebApiController
         return SetResponse(result?.Result);
     }
 
+    // ─── Sub-merchant onboarding KYC review (BE-I1) ───────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/providers/sub-merchant/onboarding-queue — paged KYC review queue.</summary>
+    [HttpGet("providers/sub-merchant/onboarding-queue")]
+    [ProducesResponseType(typeof(ProviderSubMerchantOnboardingQueueDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderSubMerchantOnboardingQueueDto?>> GetSubMerchantOnboardingQueue(
+        [FromQuery] ProviderSubMerchantOnboardingStatus? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetSubMerchantOnboardingQueueBffQuery
+        {
+            Status = status, Page = page, PageSize = pageSize,
+        }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/providers/{id}/sub-merchant/verify — SubMerchantCreated → Verified.</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/verify")]
+    [ProducesResponseType(typeof(ProviderSubMerchantOnboardingResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderSubMerchantOnboardingResult?>> VerifySubMerchant(
+        long providerProfileId,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new VerifySubMerchantBffCommand { ProviderProfileId = providerProfileId }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/providers/{id}/sub-merchant/reject — → Rejected (typed reason body).</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/reject")]
+    [ProducesResponseType(typeof(ProviderSubMerchantOnboardingResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderSubMerchantOnboardingResult?>> RejectSubMerchant(
+        long providerProfileId,
+        [FromBody] RejectSubMerchantBffRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new RejectSubMerchantBffCommand
+        {
+            ProviderProfileId = providerProfileId, Reason = body?.Reason,
+        }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    // ─── BE-P3 PlatformFeeRule CRUD ───────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/platform-fee/resolve — point-in-time fee preview.</summary>
+    [HttpGet("platform-fee/resolve")]
+    [ProducesResponseType(typeof(PlatformFeeResolveBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeResolveBffResult?>> ResolvePlatformFee(
+        [FromQuery] string currencyCode = "TRY",
+        [FromQuery] string? categoryCode = null,
+        [FromQuery] string? customerType = null,
+        [FromQuery] decimal customerPayableServiceAmount = 0m,
+        CancellationToken ct = default)
+    {
+        var r = await _cqrs.ProcessAsync(new ResolvePlatformFeeBffQuery
+        {
+            CurrencyCode = currencyCode, CategoryCode = categoryCode,
+            CustomerType = customerType, CustomerPayableServiceAmount = customerPayableServiceAmount,
+        }, ct);
+        return SetResponse(r?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/platform-fee/rules — create a platform-fee rule.</summary>
+    [HttpPost("platform-fee/rules")]
+    [ProducesResponseType(typeof(PlatformFeeRuleCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeRuleCreateBffResult?>> CreatePlatformFeeRule(
+        [FromBody] CreatePlatformFeeRuleBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreatePlatformFeeRuleBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/platform-fee/rules/{id} — update a platform-fee rule.</summary>
+    [HttpPut("platform-fee/rules/{id:long}")]
+    [ProducesResponseType(typeof(PlatformFeeRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeRuleMutateBffResult?>> UpdatePlatformFeeRule(
+        long id, [FromBody] UpdatePlatformFeeRuleBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdatePlatformFeeRuleBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/platform-fee/rules/{id}/deactivate.</summary>
+    [HttpPost("platform-fee/rules/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(PlatformFeeRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeRuleMutateBffResult?>> DeactivatePlatformFeeRule(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivatePlatformFeeRuleBffCommand { Id = id }, ct))?.Result);
+
+    // ─── BE-P4 ProviderPlanPrice CRUD ─────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/plan-prices/plan/{planId} — all versioned prices for a plan.</summary>
+    [HttpGet("plan-prices/plan/{planId:long}")]
+    [ProducesResponseType(typeof(List<ProviderPlanPriceBffDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<ProviderPlanPriceBffDto>?>> GetProviderPlanPrices(
+        long planId, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetProviderPlanPricesBffQuery { ProviderPlanId = planId }, ct))?.Items);
+
+    /// <summary>GET api/v1/admin-panel/payment/plan-prices/resolve — point-in-time price (resolver dev query).</summary>
+    [HttpGet("plan-prices/resolve")]
+    [ProducesResponseType(typeof(ProviderPlanPriceBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderPlanPriceBffDto?>> ResolveProviderPlanPrice(
+        [FromQuery] long providerPlanId,
+        [FromQuery] string currencyCode = "TRY",
+        [FromQuery] string billingPeriod = "Monthly",
+        [FromQuery] DateTime? atUtc = null,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ResolveProviderPlanPriceBffQuery
+        {
+            ProviderPlanId = providerPlanId, CurrencyCode = currencyCode, BillingPeriod = billingPeriod, AtUtc = atUtc,
+        }, ct))?.Result);
+
+    /// <summary>GET api/v1/admin-panel/payment/plan-prices/upcoming-changes — renewals with an upcoming price change.</summary>
+    [HttpGet("plan-prices/upcoming-changes")]
+    [ProducesResponseType(typeof(List<UpcomingPriceChangeBffItem>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<UpcomingPriceChangeBffItem>?>> GetUpcomingPlanPriceChanges(
+        [FromQuery] int withinDays = 14, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetUpcomingPlanPriceChangesBffQuery { WithinDays = withinDays }, ct))?.Items);
+
+    /// <summary>POST api/v1/admin-panel/payment/plan-prices — create a versioned plan price.</summary>
+    [HttpPost("plan-prices")]
+    [ProducesResponseType(typeof(ProviderPlanPriceCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderPlanPriceCreateBffResult?>> CreateProviderPlanPrice(
+        [FromBody] CreateProviderPlanPriceBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreateProviderPlanPriceBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/plan-prices/{id} — update a plan price.</summary>
+    [HttpPut("plan-prices/{id:long}")]
+    [ProducesResponseType(typeof(ProviderPlanPriceMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderPlanPriceMutateBffResult?>> UpdateProviderPlanPrice(
+        long id, [FromBody] UpdateProviderPlanPriceBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdateProviderPlanPriceBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/plan-prices/{id}/deactivate.</summary>
+    [HttpPost("plan-prices/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(ProviderPlanPriceMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderPlanPriceMutateBffResult?>> DeactivateProviderPlanPrice(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivateProviderPlanPriceBffCommand { Id = id }, ct))?.Result);
+
+    // ─── BE-P5 ProfitProtectionPolicy CRUD ────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/profit-protection/resolve — active policy preview.</summary>
+    [HttpGet("profit-protection/resolve")]
+    [ProducesResponseType(typeof(ProfitProtectionPolicyResolveBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfitProtectionPolicyResolveBffResult?>> ResolveProfitProtectionPolicy(
+        [FromQuery] string currencyCode = "TRY", [FromQuery] DateTime? atUtc = null, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ResolveProfitProtectionPolicyBffQuery { CurrencyCode = currencyCode, AtUtc = atUtc }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/profit-protection/policies — create a policy.</summary>
+    [HttpPost("profit-protection/policies")]
+    [ProducesResponseType(typeof(ProfitProtectionPolicyCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfitProtectionPolicyCreateBffResult?>> CreateProfitProtectionPolicy(
+        [FromBody] CreateProfitProtectionPolicyBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreateProfitProtectionPolicyBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/profit-protection/policies/{id} — update a policy.</summary>
+    [HttpPut("profit-protection/policies/{id:long}")]
+    [ProducesResponseType(typeof(ProfitProtectionPolicyMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfitProtectionPolicyMutateBffResult?>> UpdateProfitProtectionPolicy(
+        long id, [FromBody] UpdateProfitProtectionPolicyBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdateProfitProtectionPolicyBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/profit-protection/policies/{id}/deactivate.</summary>
+    [HttpPost("profit-protection/policies/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(ProfitProtectionPolicyMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfitProtectionPolicyMutateBffResult?>> DeactivateProfitProtectionPolicy(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivateProfitProtectionPolicyBffCommand { Id = id }, ct))?.Result);
+
+    // ─── BE-P6 CustomerDiscountRule + CustomerBenefitBudgetPolicy CRUD ─────────
+
+    /// <summary>GET api/v1/admin-panel/payment/customer-discounts/resolve — discount + funding preview.</summary>
+    [HttpGet("customer-discounts/resolve")]
+    [ProducesResponseType(typeof(CustomerDiscountResolveBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerDiscountResolveBffResult?>> ResolveCustomerDiscount(
+        [FromQuery] long? customerPlanId = null,
+        [FromQuery] string? categoryCode = null,
+        [FromQuery] string currencyCode = "TRY",
+        [FromQuery] decimal serviceBaseAmount = 0m,
+        [FromQuery] bool providerConsent = false,
+        [FromQuery] long? participantPlanSubscriptionId = null,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ResolveCustomerDiscountBffQuery
+        {
+            CustomerPlanId = customerPlanId, CategoryCode = categoryCode, CurrencyCode = currencyCode,
+            ServiceBaseAmount = serviceBaseAmount, ProviderConsent = providerConsent,
+            ParticipantPlanSubscriptionId = participantPlanSubscriptionId,
+        }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/customer-discounts/rules — create a discount rule.</summary>
+    [HttpPost("customer-discounts/rules")]
+    [ProducesResponseType(typeof(CustomerDiscountRuleCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerDiscountRuleCreateBffResult?>> CreateCustomerDiscountRule(
+        [FromBody] CreateCustomerDiscountRuleBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreateCustomerDiscountRuleBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/customer-discounts/rules/{id} — update a discount rule.</summary>
+    [HttpPut("customer-discounts/rules/{id:long}")]
+    [ProducesResponseType(typeof(CustomerDiscountRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerDiscountRuleMutateBffResult?>> UpdateCustomerDiscountRule(
+        long id, [FromBody] UpdateCustomerDiscountRuleBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdateCustomerDiscountRuleBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/customer-discounts/rules/{id}/deactivate.</summary>
+    [HttpPost("customer-discounts/rules/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(CustomerDiscountRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerDiscountRuleMutateBffResult?>> DeactivateCustomerDiscountRule(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivateCustomerDiscountRuleBffCommand { Id = id }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/benefit-budget/policies — create a per-plan budget policy.</summary>
+    [HttpPost("benefit-budget/policies")]
+    [ProducesResponseType(typeof(CustomerBenefitBudgetPolicyCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerBenefitBudgetPolicyCreateBffResult?>> CreateCustomerBenefitBudgetPolicy(
+        [FromBody] CreateCustomerBenefitBudgetPolicyBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreateCustomerBenefitBudgetPolicyBffCommand { Body = body }, ct))?.Result);
+
+    // ─── BE-P7 ProviderCommissionBenefitRule + entitlement ────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/commission-benefits/resolve — effective-commission preview.</summary>
+    [HttpGet("commission-benefits/resolve")]
+    [ProducesResponseType(typeof(EffectiveCommissionResolveBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<EffectiveCommissionResolveBffResult?>> ResolveEffectiveCommission(
+        [FromQuery] long providerProfileId,
+        [FromQuery] long? providerPlanId = null,
+        [FromQuery] string? categoryCode = null,
+        [FromQuery] decimal serviceAmount = 0m,
+        [FromQuery] string currencyCode = "TRY",
+        [FromQuery] decimal? eligibleGmvRemaining = null,
+        [FromQuery] decimal planFloorRate = 0m,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ResolveEffectiveCommissionBffQuery
+        {
+            ProviderProfileId = providerProfileId, ProviderPlanId = providerPlanId, CategoryCode = categoryCode,
+            ServiceAmount = serviceAmount, CurrencyCode = currencyCode,
+            EligibleGmvRemaining = eligibleGmvRemaining, PlanFloorRate = planFloorRate,
+        }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/commission-benefits/rules — create a benefit rule.</summary>
+    [HttpPost("commission-benefits/rules")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitRuleCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitRuleCreateBffResult?>> CreateProviderCommissionBenefitRule(
+        [FromBody] CreateProviderCommissionBenefitRuleBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreateProviderCommissionBenefitRuleBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/commission-benefits/rules/{id} — update a benefit rule.</summary>
+    [HttpPut("commission-benefits/rules/{id:long}")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitRuleMutateBffResult?>> UpdateProviderCommissionBenefitRule(
+        long id, [FromBody] UpdateProviderCommissionBenefitRuleBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdateProviderCommissionBenefitRuleBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/commission-benefits/rules/{id}/deactivate.</summary>
+    [HttpPost("commission-benefits/rules/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitRuleMutateBffResult?>> DeactivateProviderCommissionBenefitRule(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivateProviderCommissionBenefitRuleBffCommand { Id = id }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/commission-benefits/entitlements — grant an entitlement.</summary>
+    [HttpPost("commission-benefits/entitlements")]
+    [ProducesResponseType(typeof(GrantEntitlementBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GrantEntitlementBffResult?>> GrantCommissionBenefitEntitlement(
+        [FromBody] GrantProviderCommissionBenefitEntitlementBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GrantProviderCommissionBenefitEntitlementBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/commission-benefits/entitlements/{id}/revoke.</summary>
+    [HttpPost("commission-benefits/entitlements/{id:long}/revoke")]
+    [ProducesResponseType(typeof(RevokeEntitlementBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RevokeEntitlementBffResult?>> RevokeCommissionBenefitEntitlement(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new RevokeProviderCommissionBenefitEntitlementBffCommand { Id = id }, ct))?.Result);
+
     // ─── Invoices ─────────────────────────────────────────────────────────────
 
     /// <summary>POST api/v1/admin-panel/payment/invoices — create draft invoice</summary>
@@ -839,5 +1122,196 @@ public sealed class AdminPaymentController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new DeactivateParticipantPlanBffCommand { Id = id }, ct);
         return SetResponse(result);
     }
+
+    // ─── P11 Premium admin — products ─────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/premium/products — all premium products.</summary>
+    [HttpGet("admin/premium/products")]
+    [ProducesResponseType(typeof(List<PremiumProductAdminDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<PremiumProductAdminDto>?>> GetPremiumProducts(
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetPremiumProductsBffQuery(), ct))?.Items);
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/premium/products/{id}.</summary>
+    [HttpGet("admin/premium/products/{id:long}")]
+    [ProducesResponseType(typeof(PremiumProductAdminDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumProductAdminDto?>> GetPremiumProductById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetPremiumProductByIdBffQuery { Id = id }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/premium/products — create a premium product.</summary>
+    [HttpPost("admin/premium/products")]
+    [ProducesResponseType(typeof(PremiumMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumMutateResultDto?>> CreatePremiumProduct(
+        [FromBody] CreatePremiumProductBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreatePremiumProductBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/admin/premium/products/{id} — update a premium product.</summary>
+    [HttpPut("admin/premium/products/{id:long}")]
+    [ProducesResponseType(typeof(PremiumMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumMutateResultDto?>> UpdatePremiumProduct(
+        long id, [FromBody] UpdatePremiumProductBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdatePremiumProductBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/premium/products/{id}/activate.</summary>
+    [HttpPost("admin/premium/products/{id:long}/activate")]
+    [ProducesResponseType(typeof(PremiumMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumMutateResultDto?>> ActivatePremiumProduct(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ActivatePremiumProductBffCommand { Id = id }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/premium/products/{id}/deactivate.</summary>
+    [HttpPost("admin/premium/products/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(PremiumMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumMutateResultDto?>> DeactivatePremiumProduct(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivatePremiumProductBffCommand { Id = id }, ct))?.Result);
+
+    // ─── P11 Premium admin — prices ───────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/premium/products/{productId}/prices — versioned prices.</summary>
+    [HttpGet("admin/premium/products/{productId:long}/prices")]
+    [ProducesResponseType(typeof(List<PremiumProductPriceAdminDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<PremiumProductPriceAdminDto>?>> GetPremiumProductPrices(
+        long productId, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetPremiumProductPricesBffQuery { ProductId = productId }, ct))?.Items);
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/premium/products/{productId}/prices/resolve — point-in-time price.</summary>
+    [HttpGet("admin/premium/products/{productId:long}/prices/resolve")]
+    [ProducesResponseType(typeof(PremiumProductPriceAdminDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumProductPriceAdminDto?>> ResolvePremiumProductPrice(
+        long productId,
+        [FromQuery] string currencyCode = "TRY",
+        [FromQuery] DateTime? atUtc = null,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ResolvePremiumProductPriceBffQuery
+        {
+            ProductId = productId, CurrencyCode = currencyCode, AtUtc = atUtc,
+        }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/premium/prices — create a versioned premium price.</summary>
+    [HttpPost("admin/premium/prices")]
+    [ProducesResponseType(typeof(PremiumMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumMutateResultDto?>> CreatePremiumProductPrice(
+        [FromBody] CreatePremiumProductPriceBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreatePremiumProductPriceBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/admin/premium/prices/{id} — update a premium price.</summary>
+    [HttpPut("admin/premium/prices/{id:long}")]
+    [ProducesResponseType(typeof(PremiumMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumMutateResultDto?>> UpdatePremiumProductPrice(
+        long id, [FromBody] UpdatePremiumProductPriceBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdatePremiumProductPriceBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/premium/prices/{id}/deactivate.</summary>
+    [HttpPost("admin/premium/prices/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(PremiumMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PremiumMutateResultDto?>> DeactivatePremiumProductPrice(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivatePremiumProductPriceBffCommand { Id = id }, ct))?.Result);
+
+    // ─── P10 RefundAllocationPolicy ───────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/refund-allocation-policies — all policies.</summary>
+    [HttpGet("admin/refund-allocation-policies")]
+    [ProducesResponseType(typeof(List<RefundAllocationPolicyAdminDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<RefundAllocationPolicyAdminDto>?>> GetRefundAllocationPolicies(
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetRefundAllocationPoliciesBffQuery(), ct))?.Items);
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/refund-allocation-policies/resolve — active policy preview.</summary>
+    [HttpGet("admin/refund-allocation-policies/resolve")]
+    [ProducesResponseType(typeof(RefundAllocationPolicyAdminDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RefundAllocationPolicyAdminDto?>> ResolveRefundAllocationPolicy(
+        [FromQuery] string currencyCode = "TRY",
+        [FromQuery] DateTime? atUtc = null,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ResolveRefundAllocationPolicyBffQuery { CurrencyCode = currencyCode, AtUtc = atUtc }, ct))?.Result);
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/refund-allocation-policies/{id}.</summary>
+    [HttpGet("admin/refund-allocation-policies/{id:long}")]
+    [ProducesResponseType(typeof(RefundAllocationPolicyAdminDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RefundAllocationPolicyAdminDto?>> GetRefundAllocationPolicyById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetRefundAllocationPolicyByIdBffQuery { Id = id }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/refund-allocation-policies — create a policy.</summary>
+    [HttpPost("admin/refund-allocation-policies")]
+    [ProducesResponseType(typeof(RefundAllocationPolicyMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RefundAllocationPolicyMutateResultDto?>> CreateRefundAllocationPolicy(
+        [FromBody] CreateRefundAllocationPolicyBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreateRefundAllocationPolicyBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/admin/refund-allocation-policies/{id} — update a policy.</summary>
+    [HttpPut("admin/refund-allocation-policies/{id:long}")]
+    [ProducesResponseType(typeof(RefundAllocationPolicyMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RefundAllocationPolicyMutateResultDto?>> UpdateRefundAllocationPolicy(
+        long id, [FromBody] UpdateRefundAllocationPolicyBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdateRefundAllocationPolicyBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/refund-allocation-policies/{id}/deactivate.</summary>
+    [HttpPost("admin/refund-allocation-policies/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(RefundAllocationPolicyMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RefundAllocationPolicyMutateResultDto?>> DeactivateRefundAllocationPolicy(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new DeactivateRefundAllocationPolicyBffCommand { Id = id }, ct))?.Result);
+
+    // ─── P10 Refund / Chargeback queues ───────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/refund-queue — paged refund queue.</summary>
+    [HttpGet("admin/refund-queue")]
+    [ProducesResponseType(typeof(RefundQueuePagedDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RefundQueuePagedDto?>> GetRefundQueue(
+        [FromQuery] RefundCause? cause = null,
+        [FromQuery] ReleaseState? releaseState = null,
+        [FromQuery] TransactionRefundStatus? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetRefundQueueBffQuery
+        {
+            Cause = cause, ReleaseState = releaseState, Status = status, Page = page, PageSize = pageSize,
+        }, ct))?.Result);
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/chargeback-queue — paged chargeback queue.</summary>
+    [HttpGet("admin/chargeback-queue")]
+    [ProducesResponseType(typeof(ChargebackQueuePagedDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ChargebackQueuePagedDto?>> GetChargebackQueue(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetChargebackQueueBffQuery { Page = page, PageSize = pageSize }, ct))?.Result);
+
+    // ─── P10 ProviderBalance ledger ───────────────────────────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/provider-balances — paged provider-balance ledger.</summary>
+    [HttpGet("admin/provider-balances")]
+    [ProducesResponseType(typeof(ProviderBalancePagedDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderBalancePagedDto?>> GetProviderBalances(
+        [FromQuery] string? currency = null,
+        [FromQuery] bool onlyNegative = false,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetProviderBalancesBffQuery
+        {
+            Currency = currency, OnlyNegative = onlyNegative, Page = page, PageSize = pageSize,
+        }, ct))?.Result);
+
+    /// <summary>GET api/v1/admin-panel/payment/admin/provider-balances/{providerProfileId} — single provider balance.</summary>
+    [HttpGet("admin/provider-balances/{providerProfileId:long}")]
+    [ProducesResponseType(typeof(ProviderBalanceAdminDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderBalanceAdminDto?>> GetProviderBalance(
+        long providerProfileId,
+        [FromQuery] string currency = "TRY",
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetProviderBalanceBffQuery { ProviderProfileId = providerProfileId, Currency = currency }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/admin/provider-balances/{providerProfileId}/adjust — manual adjustment.</summary>
+    [HttpPost("admin/provider-balances/{providerProfileId:long}/adjust")]
+    [ProducesResponseType(typeof(ProviderBalanceAdjustResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderBalanceAdjustResultDto?>> AdjustProviderBalance(
+        long providerProfileId, [FromBody] AdjustProviderBalanceBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new AdjustProviderBalanceBffCommand { ProviderProfileId = providerProfileId, Body = body }, ct))?.Result);
 
 }

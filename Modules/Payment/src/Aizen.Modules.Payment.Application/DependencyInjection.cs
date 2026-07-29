@@ -20,6 +20,10 @@ public static class DependencyInjection
         services.Configure<IyzicoConfiguration>(
             configuration.GetSection("Iyzico"));
 
+        // ── BE-P9 auth-mode policy (Capture default / PreAuth per category) ────
+        services.Configure<Gateway.PaymentAuthModeOptions>(
+            configuration.GetSection(Gateway.PaymentAuthModeOptions.SectionName));
+
         // ── Iyzico typed HTTP client ───────────────────────────────────────────
         services.AddHttpClient<IyzicoHttpClient>((sp, client) =>
         {
@@ -44,6 +48,34 @@ public static class DependencyInjection
 
         // ── Commission calculator ─────────────────────────────────────────────
         services.AddScoped<CommissionCalculationService>();
+
+        // ── Platform fee calculator (BE-P3) ───────────────────────────────────
+        services.AddScoped<PlatformFeeCalculationService>();
+
+        // ── Profit protection engine wiring (BE-P5) ───────────────────────────
+        services.AddScoped<ProfitProtectionCalculationService>();
+
+        // ── Customer discount + benefit budget (BE-P6) ────────────────────────
+        services.AddScoped<CustomerDiscountBenefitService>();
+        services.AddScoped<CustomerBenefitBudgetService>();
+
+        // ── Provider commission benefit (BE-P7) ───────────────────────────────
+        services.AddScoped<ProviderCommissionBenefitService>();
+        services.AddScoped<CommissionBenefitEntitlementService>();
+
+        // ── SR acceptance economics combiner (BE-P8) ──────────────────────────
+        services.AddScoped<ServiceRequestPaymentEconomicsCalculationService>();
+
+        // ── Refund allocation orchestration (BE-P10) ──────────────────────────
+        services.AddScoped<RefundAllocationService>();
+        services.AddScoped<ProviderNegativeBalanceService>();
+
+        // ── Premium offer-boost orchestration (BE-P11) ────────────────────────
+        services.AddScoped<PremiumBoostService>();
+
+        // ── Financial reporting ledger posting + backfill (BE-P12) ────────────
+        services.AddScoped<FinancialLedgerPostingService>();
+        services.AddScoped<FinancialLedgerBackfillService>();
 
         // ── Invoice number generator ──────────────────────────────────────────
         services.AddScoped<InvoiceNumberService>();

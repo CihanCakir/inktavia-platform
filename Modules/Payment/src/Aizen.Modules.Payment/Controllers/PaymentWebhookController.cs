@@ -33,21 +33,29 @@ public sealed class PaymentWebhookController : ControllerBase
     public async Task<IActionResult> IyzicoWebhook(
         [FromForm] string? token,
         [FromForm] string? status,
+        [FromForm] string? iyziEventType,
+        [FromForm] string? iyziPaymentId,
+        [FromForm] string? paymentConversationId,
+        [FromForm] string? iyziReferenceCode,
         CancellationToken ct)
     {
-        var signature = Request.Headers.TryGetValue("x-iyz-signature", out var sig)
-            ? sig.ToString()
-            : null;
+        // BE-P9-fix §2: the CheckoutForm webhook signature is in X-IYZ-SIGNATURE-V3 (V1/V2 deprecated).
+        var signature = Request.Headers.TryGetValue("X-IYZ-SIGNATURE-V3", out var v3) ? v3.ToString()
+                      : Request.Headers.TryGetValue("x-iyz-signature", out var sig) ? sig.ToString()
+                      : null;
 
-        var headers = Request.Headers
-            .ToDictionary(h => h.Key, h => h.Value.ToString());
+        var headers = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
 
         await _sender.Send(new ProcessIyzicoWebhookCommand
         {
-            Token     = token,
-            Status    = status,
-            Signature = signature,
-            Headers   = headers,
+            Token                 = token,
+            Status                = status,
+            Signature             = signature,
+            IyziEventType         = iyziEventType,
+            IyziPaymentId         = iyziPaymentId,
+            PaymentConversationId = paymentConversationId,
+            IyziReferenceCode     = iyziReferenceCode,
+            Headers               = headers,
         }, ct);
 
         return Ok();

@@ -9,4 +9,10 @@ public sealed class UpsertProviderPaymentProfileCommand : AizenCommand<ProviderP
     public string  Iban              { get; init; } = default!;
     public string? LegalName         { get; init; }
     public string? TaxNumber         { get; init; }
+
+    // ── BE-I1 type-varied KYC (additive, optional) ──
+    public string? SubMerchantType   { get; init; }
+    public string? IdentityNumber    { get; init; }
+    public string? TaxOffice         { get; init; }
+    public string? LegalCompanyTitle { get; init; }
 }

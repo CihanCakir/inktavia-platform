@@ -38,6 +38,15 @@ public sealed class UpdateCommissionRuleCommandHandler
             request.Priority,
             request.Notes);
 
+        // §3 fail-loud conflict guard: reject if the updated window/priority now overlaps another active rule
+        // with the same scope-key (self excluded by Id).
+        var conflict = await _rules.FindOverlappingActiveRuleAsync(rule, ct);
+        if (conflict is not null)
+            throw new AizenBusinessException(
+                (int)PaymentErrorCode.CommissionRuleConflict,
+                $"The update would conflict with an existing active commission rule (Id={conflict.Id}, " +
+                $"RuleCode={conflict.RuleCode}) sharing the same scope, priority, and an overlapping window.");
+
         _rules.Update(rule);
         // SaveChanges handled by AizenCommandHandlerDecorator.
 

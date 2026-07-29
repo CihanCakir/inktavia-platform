@@ -19,5 +19,9 @@ public sealed class ProviderPaymentProfileConfiguration : IEntityTypeConfigurati
         b.Property(x => x.LegalName).HasMaxLength(300);
         b.Property(x => x.TaxNumber).HasMaxLength(50);
         b.Property(x => x.Status).HasMaxLength(20).IsRequired();
+
+        // BE-I1 onboarding lifecycle (legacy rows default NotStarted; migration backfills from key/VerifiedAt/Status).
+        b.Property(x => x.OnboardingStatus).HasConversion<int>().IsRequired()
+            .HasDefaultValue(Aizen.Modules.Payment.Abstraction.Enum.ProviderSubMerchantOnboardingStatus.NotStarted);
     }
 }

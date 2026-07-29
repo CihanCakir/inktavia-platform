@@ -22,6 +22,12 @@ public sealed class PaymentApplyResult
     /// <summary>Internal transaction ID linked to this gateway reference. Resolved from DB lookup.</summary>
     public long?           TransactionId        { get; init; }
 
-    /// <summary>Iyzico payment transaction ID (different from our internal ID).</summary>
+    /// <summary>Iyzico per-item paymentTransactionId (the approve/refund target — NOT the payment-level id).</summary>
     public string?         GatewayTransactionId { get; init; }
+
+    /// <summary>BE-P9-fix §6: the sub-merchant payout amount from the CF-retrieve item breakdown.</summary>
+    public decimal?        SubMerchantPayoutAmount { get; init; }
+
+    /// <summary>BE-P9-fix §6: item transactionStatus (1 = held, 2 = released, 0 = fraud review, -1 = rejected).</summary>
+    public int?            SettlementStatus     { get; init; }
 }

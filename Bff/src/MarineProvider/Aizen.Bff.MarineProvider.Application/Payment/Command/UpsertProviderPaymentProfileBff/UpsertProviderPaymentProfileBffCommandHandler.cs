@@ -27,6 +27,10 @@ public sealed class UpsertProviderPaymentProfileBffCommandHandler
             Iban      = cmd.Iban,
             LegalName = cmd.LegalName,
             TaxNumber = cmd.TaxNumber,
+            SubMerchantType   = cmd.SubMerchantType,
+            IdentityNumber    = cmd.IdentityNumber,
+            TaxOffice         = cmd.TaxOffice,
+            LegalCompanyTitle = cmd.LegalCompanyTitle,
         })).Body;
     }
 }

@@ -71,6 +71,19 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
     /// </summary>
     public CommercialModel? CommercialModel { get; private set; }
 
+    // ── Line-level commission dimensions (BE-P2, §20.11) ─────────────────────
+    /// <summary>
+    /// Line kind this rule applies to (Labor/Part/Travel/PassThrough). Null = any line type.
+    /// A rule with a non-null LineType only matches a request that supplies the same LineType.
+    /// </summary>
+    public LineType?              LineType              { get; private set; }
+
+    /// <summary>
+    /// Commission eligibility this rule applies to (Commissionable/NonCommissionable). Null = any.
+    /// Lets a non-commissionable pass-through line resolve to a different rule than a commissionable line.
+    /// </summary>
+    public CommissionEligibility? CommissionEligibility { get; private set; }
+
     private CommissionRuleEntity() { }
 
     // ── Factory methods ───────────────────────────────────────────────────────
@@ -270,6 +283,29 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
         ContextType  = contextType;
         ProductCode  = productCode?.ToUpperInvariant();
         SalesChannel = salesChannel;
+    }
+
+    /// <summary>
+    /// Sets the line-level commission dimensions (BE-P2, §20.11) after any factory method.
+    /// Allows scoping a rule to a specific LineType and/or CommissionEligibility.
+    /// </summary>
+    public void SetLineDimensions(LineType? lineType, CommissionEligibility? commissionEligibility)
+    {
+        LineType              = lineType;
+        CommissionEligibility = commissionEligibility;
+    }
+
+    /// <summary>
+    /// Sets the combined primary scope (Provider / Plan / Category) that drives the 8-level specificity
+    /// matrix (§13.7). Unlike the single-dimension factory methods, this lets a rule declare more than one
+    /// primary dimension at once (e.g. a Provider+Plan+Category rule), which the resolver ranks above the
+    /// narrower single-dimension rules. Only the supplied (non-omitted) dimensions are changed.
+    /// </summary>
+    public void SetPrimaryScope(long? providerProfileId, long? providerPlanId, string? categoryCode)
+    {
+        ProviderProfileId = providerProfileId;
+        ProviderPlanId    = providerPlanId;
+        CategoryCode      = categoryCode;
     }
 
     public bool IsEffective(DateTime atUtc) =>

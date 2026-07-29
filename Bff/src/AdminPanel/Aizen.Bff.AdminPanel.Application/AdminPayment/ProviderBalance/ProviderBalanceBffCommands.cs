@@ -1,0 +1,27 @@
+using Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Core.CQRS.Handler;
+using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Payment.Abstraction.Dto;
+
+namespace Aizen.Bff.AdminPanel.Application.AdminPayment.ProviderBalance;
+
+// ─── Adjust balance ──────────────────────────────────────────────────────────
+public sealed class AdjustProviderBalanceBffCommand : AizenCommand<AdjustProviderBalanceBffResponse>
+{
+    public long                           ProviderProfileId { get; init; }
+    public AdjustProviderBalanceBffRequest Body             { get; init; } = default!;
+}
+public sealed class AdjustProviderBalanceBffResponse { public ProviderBalanceAdjustResultDto Result { get; init; } = default!; }
+
+[DocumentationInfo("Adjust provider balance BFF command handler (P10)",
+    "Forwards a manual signed balance adjustment (POST /admin/provider-balances/{providerProfileId}/adjust).")]
+public sealed class AdjustProviderBalanceBffCommandHandler
+    : AizenCommandHandler<AdjustProviderBalanceBffCommand, AdjustProviderBalanceBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public AdjustProviderBalanceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<AdjustProviderBalanceBffResponse?> Handle(AdjustProviderBalanceBffCommand request, CancellationToken ct)
+        => new() { Result = await _payment.AdjustProviderBalanceAsync(request.ProviderProfileId, request.Body, ct) };
+}

@@ -74,8 +74,14 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public PaymentTransactionStatus Status        { get; private set; }
     public string  GatewayProvider                { get; private set; } = default!;
     public string? GatewayReference               { get; private set; }
+    /// <summary>BE-P9-fix §6 — the iyzico per-item paymentTransactionId (approve/refund target), captured from CF-retrieve.</summary>
+    public string? GatewayItemTransactionId       { get; private set; }
+    /// <summary>BE-P9-fix §6 — the sub-merchant payout amount from the CF-retrieve item breakdown (audit/settlement).</summary>
+    public decimal? SubMerchantPayoutAmount        { get; private set; }
     public string  IdempotencyKey                 { get; private set; } = default!;
     public bool    EscrowRequired                 { get; private set; }
+    /// <summary>BE-P9 — the resolved iyzico auth-mode snapshot for this transaction (audit). Default Capture.</summary>
+    public PaymentAuthMode AuthMode               { get; private set; } = PaymentAuthMode.Capture;
 
     // ── Capture / Release lifecycle ───────────────────────────────────────────
     public DateTime? CapturedAt  { get; private set; }
@@ -100,6 +106,14 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
 
     // ── Admin ─────────────────────────────────────────────────────────────────
     public string? AdminNote { get; private set; }
+
+    // ── Economics snapshot link (BE-P1) ────────────────────────────────────────
+    /// <summary>
+    /// Nullable FK to the immutable <c>PaymentEconomicsSnapshotEntity</c> that captures this transaction's
+    /// authoritative economics. NULL on legacy rows (no retroactive snapshots) and until P8 populates it.
+    /// Set once via <see cref="LinkEconomicsSnapshot"/>; never overwritten.
+    /// </summary>
+    public long? EconomicsSnapshotId { get; private set; }
 
     // ── Navigation ────────────────────────────────────────────────────────────
     private readonly List<TransactionRefundRecord> _refundRecords = [];
@@ -126,10 +140,12 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
         string currencyCode,
         string gatewayProvider,
         string idempotencyKey,
-        bool escrowRequired)
+        bool escrowRequired,
+        PaymentAuthMode authMode = PaymentAuthMode.Capture)
     {
         return new PaymentTransactionEntity
         {
+            AuthMode               = authMode,
             TransactionCode        = transactionCode,
             TransactionType        = transactionType,
             ContextType            = contextType,
@@ -168,6 +184,25 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
         Status           = PaymentTransactionStatus.Captured;
         GatewayReference = gatewayReference;
         CapturedAt       = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// BE-P11 — attaches the gateway reference (checkout token) to a still-<b>PendingIntent</b> transaction so the later
+    /// success webhook can locate it by reference and capture it. Used by the two-phase premium-boost checkout (the money
+    /// is not collected until the webhook). Does NOT transition the status.
+    /// </summary>
+    public void AttachGatewayReference(string gatewayReference)
+    {
+        if (Status != PaymentTransactionStatus.PendingIntent)
+            throw new AizenBusinessException((int)PaymentErrorCode.TransactionInvalidState);
+        GatewayReference = gatewayReference;
+    }
+
+    /// <summary>BE-P9-fix §6 — records the iyzico per-item breakdown captured from CF-retrieve (for approve/refund/settlement).</summary>
+    public void RecordGatewayItemBreakdown(string? itemTransactionId, decimal? subMerchantPayoutAmount)
+    {
+        if (!string.IsNullOrWhiteSpace(itemTransactionId)) GatewayItemTransactionId = itemTransactionId;
+        if (subMerchantPayoutAmount.HasValue)              SubMerchantPayoutAmount  = subMerchantPayoutAmount;
     }
 
     // ── Release ───────────────────────────────────────────────────────────────
@@ -338,5 +373,20 @@ public sealed class PaymentTransactionEntity : AizenEntityWithAudit
     public void MarkFailed()
     {
         Status = PaymentTransactionStatus.Failed;
+    }
+
+    // ── Economics snapshot link (BE-P1) ────────────────────────────────────────
+
+    /// <summary>
+    /// Links this transaction to its immutable economics snapshot. Settable exactly once:
+    /// a second call (with a different id) is a guarded error, since the snapshot is the
+    /// single canonical record and must not be silently re-pointed.
+    /// </summary>
+    public void LinkEconomicsSnapshot(long snapshotId)
+    {
+        if (EconomicsSnapshotId.HasValue && EconomicsSnapshotId.Value != snapshotId)
+            throw new AizenBusinessException((int)PaymentErrorCode.EconomicsSnapshotAlreadyLinked);
+
+        EconomicsSnapshotId = snapshotId;
     }
 }

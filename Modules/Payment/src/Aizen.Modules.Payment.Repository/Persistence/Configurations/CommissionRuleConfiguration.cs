@@ -37,10 +37,19 @@ public sealed class CommissionRuleConfiguration : IEntityTypeConfiguration<Commi
         b.Property(x => x.CurrencyCode).HasMaxLength(10);        // null = any currency
         b.Property(x => x.CommercialModel).HasConversion<int>(); // null = any commercial model
 
+        // ── BE-P2: Line-level commission dimensions (§20.11) ─────────────────
+        b.Property(x => x.LineType).HasConversion<int>();              // null = any line type
+        b.Property(x => x.CommissionEligibility).HasConversion<int>(); // null = any eligibility
+
         // ── Indexes ─────────────────────────────────────────────────────────
         b.HasIndex(x => x.RuleType);
         b.HasIndex(x => x.Status);
         b.HasIndex(x => x.RuleCode).IsUnique().HasFilter("\"RuleCode\" IS NOT NULL");
         b.HasIndex(x => new { x.ContextType, x.SalesChannel, x.Status });  // Phase 0: channel rule resolution queries
+
+        // ── BE-P2: resolution support indexes (§7) ───────────────────────────
+        b.HasIndex(x => new { x.IsActive, x.EffectiveFrom, x.EffectiveTo }); // active-window candidate scan
+        b.HasIndex(x => new { x.RuleType, x.ProviderPlanId });               // Plan-tier resolution
+        b.HasIndex(x => new { x.RuleType, x.CategoryCode });                 // Category resolution
     }
 }

@@ -22,6 +22,18 @@ public sealed class ServiceRequestOfferItemEntityConfiguration : IEntityTypeConf
         builder.Property(x => x.TaxAmount).HasPrecision(18, 2);
         builder.Property(x => x.LineTotal).HasPrecision(18, 2);
         builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+
+        // ── Line economics (BE-S1) ─────────────────────────────────────────────
+        builder.Property(x => x.PricingMethod).HasConversion<int>().IsRequired().HasDefaultValue(Aizen.Modules.ServiceRequest.Abstraction.Enum.PricingMethod.Fixed);
+        builder.Property(x => x.CommissionEligibility).HasConversion<int>().IsRequired().HasDefaultValue(Aizen.Modules.ServiceRequest.Abstraction.Enum.LineCommissionEligibility.InheritFromCategory);
+        builder.Property(x => x.CommissionBaseAmount).HasPrecision(18, 4).IsRequired().HasDefaultValue(0m);
+
+        // ── Customer discount funding (BE-S6) ──
+        builder.Property(x => x.LineDiscountEligibility).HasConversion<int>().IsRequired().HasDefaultValue(Aizen.Modules.ServiceRequest.Abstraction.Enum.LineDiscountEligibility.InheritFromCategory);
+        builder.Property(x => x.CustomerDiscountAmount).HasPrecision(18, 2).IsRequired().HasDefaultValue(0m);
+        builder.Property(x => x.PlatformFundedDiscountAmount).HasPrecision(18, 2).IsRequired().HasDefaultValue(0m);
+        builder.Property(x => x.ProviderFundedDiscountAmount).HasPrecision(18, 2).IsRequired().HasDefaultValue(0m);
+
         builder.HasIndex(x => x.ServiceRequestOfferId);
     }
 }

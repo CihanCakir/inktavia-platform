@@ -37,6 +37,10 @@ namespace Aizen.Modules.Payment.Abstraction.Model
         public static TransactionContext ForCargoDry(long kitId) =>
             new() { Type = TransactionContextType.CargoDry, SubType = TransactionContextSubType.Kit, GeneralId = kitId };
 
+        // ── Premium (BE-P11) — offer-scoped boost purchase ────────────────────
+        public static TransactionContext ForPremiumOffer(long offerId) =>
+            new() { Type = TransactionContextType.Premium, SubType = TransactionContextSubType.Offer, GeneralId = offerId };
+
         public static TransactionContext ForProviderSubscription(long providerProfileId, long planId) =>
             new() { Type = TransactionContextType.Subscription, SubType = TransactionContextSubType.PlanTier, GeneralId = providerProfileId, SubId = planId };
 

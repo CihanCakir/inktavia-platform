@@ -1,19 +1,20 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Core.Messagebus.Abstraction.Senders;
-using Aizen.Modules.Payment.Abstraction.Enum;
-using Aizen.Modules.Payment.Abstraction.Model;
-using PaymentRoot = Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.RemoteCall;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
+using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferCommissionPreview;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
 using Microsoft.Extensions.Logging;
+using SrEnum = Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Offer;
 
@@ -53,6 +54,34 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         var rawToken     = _info.UserInfoAccessor.UserInfo.AccessToken; // forwarded to Payment module
         var prevStatus   = sr.Status;
 
+        // ── BE-P8: acceptance economics + escrow BEFORE committing acceptance ──────────────────
+        // Run the Payment combiner (plan → S7 commission → P3 fee → P5 gate → S8 snapshot → escrow).
+        // On Rejected/ConfigurationError we BLOCK acceptance (throw) — no half-accepted offer, no escrow.
+        // The whole SR command is transactional, so throwing here rolls back everything.
+        var economicsRequest = BuildEconomicsRequest(sr, offer);
+        var economics = await _paymentRemoteCall.CalculateServiceRequestEconomicsAsync(
+            economicsRequest, $"Bearer {rawToken}", cancellationToken);
+
+        // BE-I1: a non-split-eligible provider is a distinct hard block (surface ProviderNotSplitEligible).
+        if (!economics.ProviderSplitEligible)
+        {
+            _logger.LogWarning(
+                "Offer acceptance blocked for SR {SrId} Offer {OfferId}: provider not split-eligible — {Reason}",
+                sr.Id, offer.Id, economics.Reason);
+            throw new AizenBusinessException(
+                (int)Aizen.Modules.Payment.Abstraction.Enum.PaymentErrorCode.ProviderNotSplitEligible);
+        }
+
+        if (!economics.CanProceed)
+        {
+            _logger.LogWarning(
+                "Offer acceptance blocked for SR {SrId} Offer {OfferId}: {Decision} — {Reason}",
+                sr.Id, offer.Id, economics.Decision, economics.Reason);
+            throw new AizenBusinessException(
+                (int)Aizen.Modules.Payment.Abstraction.Enum.PaymentErrorCode.ServiceRequestEconomicsRejected);
+        }
+
+        // Approved / ApprovedWithAdjustment — commit acceptance using the snapshot's amounts (§19.11).
         offer.Accept();
         _offerRepository.Update(offer);
 
@@ -62,46 +91,14 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
             "Offer accepted", currentUserId, ServiceRequestActorType.Owner);
         sr.AddStatusHistory(history);
 
-        // ── Payment escrow creation ──────────────────────────────────────────
-        // IdempotencyKey guarantees no double-charge on retry.
-        // PayerProfileId = OwnerUserId (MVP assumption: userId == profileId for owners)
-        // Post-MVP: resolve actual ParticipantProfileId from Identity module.
-        try
-        {
-            var escrowRequest = new CreateEscrowRemoteCallRequest
-            {
-                IdempotencyKey     = $"SR-{sr.Id}-OFFER-{offer.Id}",
-                Context            = TransactionContext.ForServiceRequest(sr.Id, offer.Id),
-                TransactionType    = PaymentRoot.TransactionType.ServiceRequestEscrow,
-                PayerProfileId     = sr.OwnerUserId,          // MVP: userId as profileId
-                RecipientProfileId = offer.ProviderProfileId,
-                GrossAmount        = offer.TotalAmount,
-                DiscountAmount     = 0m,
-                CurrencyCode       = offer.CurrencyCode,
-                ProviderPlanId     = null,                     // resolved dynamically in Payment module
-                CategoryCode       = sr.ServiceCategoryCode,
-                EscrowRequired     = true,
-            };
+        if (economics.TransactionId is { } txId)
+            sr.SetPaymentTransaction(txId);
 
-            var escrowResult = await _paymentRemoteCall.CreateEscrowAsync(
-                escrowRequest,
-                $"Bearer {rawToken}",
-                cancellationToken);
-
-            sr.SetPaymentTransaction(escrowResult.TransactionId);
-
-            _logger.LogInformation(
-                "Escrow created for SR {SrId} Offer {OfferId}: TransactionId={TxId} Amount={Amount} {Currency}",
-                sr.Id, offer.Id, escrowResult.TransactionId, offer.TotalAmount, offer.CurrencyCode);
-        }
-        catch (Exception ex)
-        {
-            // Log and continue — escrow failure does not roll back offer acceptance in MVP.
-            // Post-MVP: implement compensation (reject offer if escrow fails).
-            _logger.LogError(ex,
-                "Escrow creation failed for SR {SrId} Offer {OfferId}. Offer accepted but no escrow held.",
-                sr.Id, offer.Id);
-        }
+        _logger.LogInformation(
+            "Escrow created for SR {SrId} Offer {OfferId}: TransactionId={TxId} Snapshot={SnapId} " +
+            "CustomerTotal={Total} ProviderNet={Net} {Currency}",
+            sr.Id, offer.Id, economics.TransactionId, economics.EconomicsSnapshotId,
+            economics.CustomerTotalAmount, economics.ProviderNetTotal, offer.CurrencyCode);
 
         _srRepository.Update(sr);
 
@@ -135,5 +132,51 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         }
 
         return new AcceptServiceRequestOfferResponse(offer.Id, sr.Id);
+    }
+
+    // ── SR → Payment P8 request mapping (mirrors the S7 preview projection; Discount items excluded) ─────────
+    /// <summary>
+    /// Maps the accepted offer's priced lines to the BE-P8 acceptance-economics request. LineType/eligibility reuse the
+    /// S7 preview maps; <c>ItemType</c>/<c>PricingMethod</c> are the raw SR enum ints (as S8 stores). Per line:
+    /// <c>LineGrossBeforeDiscount = LineProviderRevenue = Max(LineSubtotal − DiscountAmount, 0)</c> (post-provider-discount,
+    /// pre-tax); <c>LineVat = TaxAmount</c>. Idempotency key = <c>SR-{srId}-OFFER-{offerId}</c>.
+    /// </summary>
+    public static CalculateServiceRequestEconomicsRemoteCallRequest BuildEconomicsRequest(
+        ServiceRequestEntity sr, ServiceRequestOfferEntity offer)
+    {
+        var lines = offer.Items
+            .Where(i => i.ItemType != SrEnum.ServiceRequestOfferItemType.Discount)
+            .Select(i =>
+            {
+                var providerRevenue = Math.Max(i.LineSubtotal - i.DiscountAmount, 0m);
+                return new CalculateServiceRequestEconomicsLineDto
+                {
+                    LineRef                 = i.Id.ToString(),
+                    ItemType                = (int)i.ItemType,
+                    PricingMethod           = (int)i.PricingMethod,
+                    CommissionLineType      = GetOfferCommissionPreviewQueryHandler.MapLineType(i.ItemType),
+                    CommissionEligibility   = GetOfferCommissionPreviewQueryHandler.MapEligibility(i.CommissionEligibility),
+                    ProductCode             = null,
+                    LineGrossBeforeDiscount = providerRevenue,
+                    LineVat                 = i.TaxAmount,
+                    CommissionBaseAmount    = i.CommissionBaseAmount,
+                    LineProviderRevenue     = providerRevenue,
+                    DiscountEligible        = i.LineDiscountEligibility != SrEnum.LineDiscountEligibility.Exempt,   // BE-S6
+                };
+            })
+            .ToList();
+
+        return new CalculateServiceRequestEconomicsRemoteCallRequest
+        {
+            IdempotencyKey    = $"SR-{sr.Id}-OFFER-{offer.Id}",
+            ServiceRequestId  = sr.Id,
+            OfferId           = offer.Id,
+            ProviderProfileId = offer.ProviderProfileId,
+            CustomerProfileId = sr.OwnerUserId,
+            CustomerPlanId    = null,
+            CategoryCode      = sr.ServiceCategoryCode,
+            CurrencyCode      = offer.CurrencyCode,
+            Lines             = lines,
+        };
     }
 }

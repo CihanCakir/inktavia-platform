@@ -1,4 +1,5 @@
 using Aizen.Modules.Payment.Abstraction;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Interface;
 using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction.Request;
@@ -47,21 +48,22 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
         CheckoutInitInput input, CancellationToken ct = default)
     {
         var grossStr  = FormatAmount(input.GrossAmount);
-        var netStr    = FormatAmount(input.ProviderNetAmount);
         var buyerId   = input.PayerProfileId.ToString();
         var basketId  = $"TXN-{input.TransactionId}";
 
-        // Build basket item with sub-merchant split
-        var basketItem = new IyzicoBasketItem
-        {
-            Id              = basketId,
-            Name            = input.Description ?? $"Service Request Payment",
-            Category1       = "Marine Services",
-            ItemType        = "VIRTUAL",
-            Price           = grossStr,
-            SubMerchantKey  = input.SubMerchantKey,   // null for non-marketplace payments
-            SubMerchantPrice = input.SubMerchantKey is not null ? netStr : null,
-        };
+        // BE-P9 §3 — build the basket from the snapshot figures (CustomerTotal / ProviderNetTotal, NOT offer.TotalAmount).
+        var requireSplit = !string.IsNullOrWhiteSpace(input.SubMerchantKey);
+        var basketItems  = IyzicoBasketBuilder.BuildSingle(
+            basketId, input.Description ?? "Service Request Payment",
+            input.GrossAmount, input.ProviderNetAmount, input.SubMerchantKey);
+
+        // BE-P9 §2 — pre-send split-math guard (zero tolerance): a mis-split throws BEFORE any iyzico call.
+        IyzicoSplitMathGuard.Verify(
+            customerTotal:    input.GrossAmount,
+            providerNetTotal: input.ProviderNetAmount,
+            basket:           basketItems,
+            requireSplit:     requireSplit,
+            expectedRetained: input.ExpectedRetainedAmount);
 
         // MVP buyer: minimal — post-MVP enrich from Identity module
         var buyer = new IyzicoBuyer
@@ -95,9 +97,12 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
             Buyer           = buyer,
             ShippingAddress = address,
             BillingAddress  = address,
-            BasketItems     = [basketItem],
+            BasketItems     = basketItems,
         };
 
+        // TODO(P9-PreAuth): when auth-mode = PreAuth, switch the init endpoint to
+        // /payment/iyzipos/checkoutform/initialize/preauth/ecom and add PostAuthAsync(/payment/postauth) + a 25-day BKM
+        // close guard. Capture is the MVP default (see BE-P9 PaymentAuthMode). Not built here.
         var response = await _client.InitializeCheckoutFormAsync(checkoutRequest, ct);
 
         if (response is null || !response.IsSuccess)
@@ -141,21 +146,20 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
     public async Task<PaymentApplyResult> HandleWebhookAsync(
         ProviderWebhookInput input, CancellationToken ct = default)
     {
-        // Validate webhook signature if configured
-        if (!string.IsNullOrEmpty(input.Signature))
+        // BE-P9-fix §2: validate the HPP webhook V3 signature (X-IYZ-SIGNATURE-V3). Mandatory in production.
+        var eventType = input.IyziEventType ?? "CHECKOUT_FORM_AUTH";
+        var status    = input.Status ?? "SUCCESS";
+        if (!_client.ValidateHppWebhookSignatureV3(
+                eventType, input.IyziPaymentId, input.GatewayReference, input.PaymentConversationId, status,
+                input.Signature, input.IsProduction))
         {
-            if (!_client.ValidateWebhookSignature(input.GatewayReference, input.Signature))
+            _logger.LogWarning("Iyzico webhook V3 signature mismatch. Token={Token}", input.GatewayReference);
+            return new PaymentApplyResult
             {
-                _logger.LogWarning(
-                    "Iyzico webhook HMAC mismatch. Token={Token}", input.GatewayReference);
-
-                return new PaymentApplyResult
-                {
-                    GatewayReference = input.GatewayReference,
-                    IsSuccess        = false,
-                    ErrorMessage     = "Webhook HMAC validation failed.",
-                };
-            }
+                GatewayReference = input.GatewayReference,
+                IsSuccess        = false,
+                ErrorMessage     = "Webhook X-IYZ-SIGNATURE-V3 validation failed.",
+            };
         }
 
         // Retrieve the payment form result to confirm status
@@ -167,6 +171,17 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
         };
 
         var response = await _client.RetrieveCheckoutFormAsync(retrieveRequest, ct);
+
+        // BE-P9-fix §3: validate the CF-retrieve response signature (integrity — reject a tampered/forged retrieve).
+        if (response is not null && response.IsSuccess && !_client.ValidateCheckoutRetrieveSignature(response))
+        {
+            _logger.LogWarning("Iyzico CF-retrieve response signature mismatch. Token={Token}", input.GatewayReference);
+            return new PaymentApplyResult
+            {
+                GatewayReference = input.GatewayReference, IsSuccess = false,
+                ErrorMessage = "CF-retrieve response signature validation failed.",
+            };
+        }
 
         if (response is null || !response.IsSuccess || response.PaymentStatus != "SUCCESS")
         {
@@ -186,20 +201,23 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
         }
 
         var paidAmount = TryParseDecimal(response.PaidPrice);
-        // Capture the Iyzico paymentTransactionId for marketplace approval on release
-        var iyzicoTxId = response.PaymentItems?.FirstOrDefault()?.PaymentTransactionId;
+        // BE-P9-fix §6: capture the per-item breakdown — the item paymentTransactionId (approve/refund target),
+        // sub-merchant payout, and transactionStatus (1 = held, 2 = released).
+        var item = response.PaymentItems?.FirstOrDefault();
 
         _logger.LogInformation(
-            "Iyzico payment confirmed. Token={Token} PaidAmount={Amount} IyzicoTxId={IyzicoTxId}",
-            input.GatewayReference, paidAmount, iyzicoTxId);
+            "Iyzico payment confirmed. Token={Token} PaidAmount={Amount} ItemTxId={IyzicoTxId} Status={Status}",
+            input.GatewayReference, paidAmount, item?.PaymentTransactionId, item?.TransactionStatus);
 
         return new PaymentApplyResult
         {
-            GatewayReference     = input.GatewayReference,
-            IsSuccess            = true,
-            PaidAmount           = paidAmount,
-            CurrencyCode         = response.Currency ?? "TRY",
-            GatewayTransactionId = iyzicoTxId,
+            GatewayReference        = input.GatewayReference,
+            IsSuccess               = true,
+            PaidAmount              = paidAmount,
+            CurrencyCode            = response.Currency ?? "TRY",
+            GatewayTransactionId    = item?.PaymentTransactionId,
+            SubMerchantPayoutAmount = item?.SubMerchantPayoutAmount,
+            SettlementStatus        = item?.TransactionStatus,
         };
     }
 
@@ -216,34 +234,36 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
     public async Task<PayoutResult> ReleaseEscrowAsync(
         ReleaseEscrowInput input, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(input.GatewayReference))
+        // BE-P9-fix §4: approve is item-level via the stored CF-retrieve item paymentTransactionId (NOT the checkout token).
+        var itemTxId = input.GatewayItemTransactionId;
+        if (string.IsNullOrEmpty(itemTxId))
         {
             _logger.LogWarning(
-                "Iyzico escrow release skipped — no gateway reference. TransactionId={Id}",
+                "Iyzico escrow release skipped — no item paymentTransactionId stored. TransactionId={Id}",
                 input.TransactionId);
 
             return new PayoutResult
             {
                 Processed = false,
-                Note      = "Missing Iyzico paymentTransactionId — manual payout required.",
+                Note      = "Missing Iyzico item paymentTransactionId — manual payout required.",
             };
         }
 
-        var approvalRequest = new IyzicoApprovalRequest
+        var approvalRequest = new IyzicoItemApproveRequest
         {
-            Locale                = _config.Locale,
-            ConversationId        = $"REL-{input.TransactionId}",
-            PaymentTransactionId  = input.GatewayReference,
+            Locale               = _config.Locale,
+            ConversationId       = $"REL-{input.TransactionId}",
+            PaymentTransactionId = itemTxId,
         };
 
-        var response = await _client.ApproveMarketplacePaymentAsync(approvalRequest, ct);
+        var response = await _client.ApproveItemAsync(approvalRequest, ct);
 
         if (response is null || !response.IsSuccess)
         {
             var errMsg = response?.ErrorMessage ?? "Iyzico approval returned null.";
             _logger.LogError(
-                "Iyzico marketplace approval failed. TransactionId={Id} IyzicoTxId={IyzicoTxId} Error={Error}",
-                input.TransactionId, input.GatewayReference, errMsg);
+                "Iyzico item approval failed. TransactionId={Id} ItemTxId={IyzicoTxId} Error={Error}",
+                input.TransactionId, itemTxId, errMsg);
 
             return new PayoutResult
             {
@@ -254,13 +274,13 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
         }
 
         _logger.LogInformation(
-            "Iyzico marketplace approval succeeded. TransactionId={Id} IyzicoTxId={IyzicoTxId} ProviderNet={Net}",
-            input.TransactionId, input.GatewayReference, input.ProviderNetAmount);
+            "Iyzico item approval succeeded. TransactionId={Id} ItemTxId={IyzicoTxId} ProviderNet={Net}",
+            input.TransactionId, itemTxId, input.ProviderNetAmount);
 
         return new PayoutResult
         {
             Processed       = true,
-            GatewayPayoutId = response.PaymentTransactionId ?? input.GatewayReference,
+            GatewayPayoutId = response.PaymentTransactionId ?? itemTxId,
             Note            = input.AdminNote ?? "Iyzico marketplace payout approved.",
         };
     }
@@ -269,16 +289,25 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
 
     public async Task<RefundResult> RefundAsync(RefundInput input, CancellationToken ct = default)
     {
+        // BE-P9-fix §8: item-level refund via the stored item paymentTransactionId + a mapped reason.
         var refundRequest = new IyzicoRefundRequest
         {
             Locale               = _config.Locale,
             ConversationId       = $"RFD-{input.TransactionId}",
-            PaymentTransactionId = input.GatewayReference,  // Iyzico payment transaction ID
+            PaymentTransactionId = input.GatewayItemTransactionId ?? input.GatewayReference,
             Price                = FormatAmount(input.RefundAmount),
             Currency             = input.Currency,
+            Reason               = MapRefundReason(input.Reason),
         };
 
         var response = await _client.RefundAsync(refundRequest, ct);
+
+        // BE-P9-fix §3: validate the refund response signature before trusting it.
+        if (response is not null && response.IsSuccess && !_client.ValidateRefundSignature(response))
+        {
+            _logger.LogWarning("Iyzico refund response signature mismatch. TransactionId={Id}", input.TransactionId);
+            return new RefundResult { Processed = false, GatewayRefundReference = null, RefundedAmount = 0m };
+        }
 
         if (response is null || !response.IsSuccess)
         {
@@ -308,6 +337,16 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
             RefundedAmount         = refundedAmount,
         };
     }
+
+    // BE-P9-fix §8: map the domain refund reason to iyzico's {OTHER, FRAUD, BUYER_REQUEST, DOUBLE_PAYMENT}.
+    private static string MapRefundReason(RefundReason reason) => reason switch
+    {
+        RefundReason.FraudConfirmed  => IyzicoRefundReason.Fraud,
+        RefundReason.DuplicateCharge => IyzicoRefundReason.DoublePayment,
+        RefundReason.UserCancel or RefundReason.ServiceNotDelivered or RefundReason.MutualAgreement
+            or RefundReason.ServiceRequestCancelled or RefundReason.ProviderFailedToDeliver => IyzicoRefundReason.BuyerRequest,
+        _ => IyzicoRefundReason.Other,
+    };
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

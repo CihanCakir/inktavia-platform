@@ -20,17 +20,28 @@ public sealed class RegisterSubMerchantCommandHandler
 {
     private readonly IProviderPaymentProfileRepository          _profiles;
     private readonly IyzicoHttpClient                           _iyzicoClient;
+    private readonly string                                     _encryptionKey;
     private readonly ILogger<RegisterSubMerchantCommandHandler> _logger;
 
     public RegisterSubMerchantCommandHandler(
         IAizenUnitOfWork<PaymentDbContext>               unitOfWork,
         IProviderPaymentProfileRepository                profiles,
         IyzicoHttpClient                                 iyzicoClient,
+        Microsoft.Extensions.Configuration.IConfiguration configuration,
         ILogger<RegisterSubMerchantCommandHandler>       logger)
     {
-        _profiles     = profiles;
-        _iyzicoClient = iyzicoClient;
-        _logger       = logger;
+        _profiles      = profiles;
+        _iyzicoClient  = iyzicoClient;
+        _encryptionKey = configuration["Payment:IbanEncryptionKey"] ?? "default-dev-key-change-in-prod!!";
+        _logger        = logger;
+    }
+
+    // BE-P9-fix §5: store the IBAN on the profile so IsSplitEligible (which now requires an IBAN) holds after registration.
+    private void StoreIban(Domain.Entities.PaymentProfile.ProviderPaymentProfileEntity profile, string iban)
+    {
+        var normalized = iban.Trim().ToUpperInvariant().Replace(" ", "");
+        if (normalized.Length < 4) return;
+        profile.UpdateIban(Aizen.Core.Security.AizenSecurityHelper.EncryptByAES(normalized, _encryptionKey), normalized[^4..]);
     }
 
     public override async Task<RegisterSubMerchantResult?> Handle(
@@ -49,25 +60,22 @@ public sealed class RegisterSubMerchantCommandHandler
                 existing.GatewayProvider);
         }
 
-        // Build Iyzico sub-merchant request
-        var iyzReq = new IyzicoSubMerchantRequest
-        {
-            Locale                = "tr",
-            ConversationId        = $"SM-{request.ProviderProfileId}",
-            SubMerchantExternalId = $"PROV-{request.ProviderProfileId}",
-            SubMerchantType       = request.SubMerchantType,
-            Address               = request.Address,
-            ContactName           = request.ContactName ?? request.LegalName,
-            ContactSurname        = request.ContactSurname ?? string.Empty,
-            Email                 = request.Email,
-            GsmNumber             = request.GsmNumber,
-            Name                  = request.LegalName,
-            Iban                  = request.Iban,
-            TaxOffice             = request.TaxOffice,
-            TaxNumber             = request.TaxNumber,
-            LegalCompanyTitle     = request.LegalName,
-            Currency              = "TRY",
-        };
+        // BE-P9-fix §5: build a type-varied sub-merchant request (fail-loud on a missing required field; no hardcoded TCKN).
+        var iyzReq = IyzicoSubMerchantRequestBuilder.Build(new SubMerchantOnboardingData(
+            SubMerchantType:       request.SubMerchantType,
+            SubMerchantExternalId: $"PROV-{request.ProviderProfileId}",
+            Name:                  request.LegalName,
+            Email:                 request.Email,
+            Address:               request.Address,
+            GsmNumber:             request.GsmNumber,
+            ContactName:           request.ContactName ?? request.LegalName,
+            ContactSurname:        request.ContactSurname,
+            IdentityNumber:        request.IdentityNumber,
+            TaxOffice:             request.TaxOffice,
+            TaxNumber:             request.TaxNumber,
+            LegalCompanyTitle:     request.LegalName,
+            Iban:                  request.Iban,
+            ConversationId:        $"SM-{request.ProviderProfileId}"));
 
         var response = await _iyzicoClient.CreateSubMerchantAsync(iyzReq, ct);
 
@@ -92,7 +100,9 @@ public sealed class RegisterSubMerchantCommandHandler
                 legalName:         request.LegalName,
                 taxNumber:         request.TaxNumber);
 
-            profile.RegisterSubMerchant(response.SubMerchantKey, null);
+            // BE-I1: advance the onboarding lifecycle → SubMerchantCreated (split-eligible). Idempotent.
+            profile.MarkSubMerchantCreated(response.SubMerchantKey, null);
+            StoreIban(profile, request.Iban);
             await _profiles.AddAsync(profile, ct);
             // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
@@ -103,7 +113,9 @@ public sealed class RegisterSubMerchantCommandHandler
         }
         else
         {
-            existing.RegisterSubMerchant(response.SubMerchantKey, null);
+            // BE-I1: advance the onboarding lifecycle → SubMerchantCreated (split-eligible). Idempotent, no regression.
+            existing.MarkSubMerchantCreated(response.SubMerchantKey, null);
+            StoreIban(existing, request.Iban);
             _profiles.Update(existing);
             // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 

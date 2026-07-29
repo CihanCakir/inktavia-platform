@@ -34,4 +34,49 @@ public interface IPaymentModuleRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] ReleaseEscrowRemoteCallRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resolves per-line commissions for an offer's priced lines (BE-S7) via the BE-P2 CommissionRule dimensions.
+    /// Pure / read-only / idempotent — no state written, no applied-count bump (that is P8). Used by ServiceRequest
+    /// as a compute-on-demand offer-builder preview. Propagates CommissionRuleConflict on a fail-loud tie.
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/commission/resolve-lines")]
+    Task<ResolveLineCommissionsRemoteCallResponse> ResolveLineCommissionsAsync(
+        [AizenRemoteCallBody] ResolveLineCommissionsRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BE-P8 — the acceptance-time economics combiner. In ONE idempotent operation: resolves the provider's active plan,
+    /// runs the §19.9 order (S7 line commission → P3 platform fee → P5 profit-protection gate → S8 immutable snapshot),
+    /// and — only on an approving decision — creates the escrow (gross = CustomerTotal, split = ProviderNet), links
+    /// <c>transaction.EconomicsSnapshotId</c>, and bumps applied-count once (P2 MarkApplied). On Rejected/ConfigurationError
+    /// no snapshot/escrow is created and the caller must block acceptance. Idempotent on <c>SR-{srId}-OFFER-{offerId}</c>.
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/service-request/calculate-economics")]
+    Task<CalculateServiceRequestEconomicsRemoteCallResponse> CalculateServiceRequestEconomicsAsync(
+        [AizenRemoteCallBody] CalculateServiceRequestEconomicsRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BE-I1 — reads whether a provider has a split-eligible sub-merchant (a created/verified sub-merchant with a key).
+    /// Pure read. Lets ServiceRequest surface eligibility (e.g. flag a non-payable provider) before the hard P8 gate.
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/provider/split-eligibility")]
+    Task<GetProviderSplitEligibilityRemoteCallResponse> GetProviderSplitEligibilityAsync(
+        [AizenRemoteCallBody] GetProviderSplitEligibilityRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BE-S6 — resolves the P6 CustomerDiscountRule for an offer's customer/category/currency and returns the requested
+    /// discount + funding split params (flattened). Pure read / compute-on-demand — no persistence, no budget, no snapshot.
+    /// The SR offer-builder allocates the requested amount per line + applies the funding split.
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/discount/resolve-customer-discount")]
+    Task<ResolveCustomerDiscountRemoteCallResponse> ResolveCustomerDiscountAsync(
+        [AizenRemoteCallBody] ResolveCustomerDiscountRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
 }

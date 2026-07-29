@@ -6,6 +6,8 @@ public sealed class RefundInput
 {
     public required long    TransactionId      { get; init; }
     public required string  GatewayReference   { get; init; }
+    /// <summary>BE-P9-fix §8: the CF-retrieve item paymentTransactionId (refund target).</summary>
+    public string?          GatewayItemTransactionId { get; init; }
     public required decimal RefundAmount       { get; init; }
     public required string  Currency           { get; init; }
     public          RefundReason Reason        { get; init; } = RefundReason.UserCancel;

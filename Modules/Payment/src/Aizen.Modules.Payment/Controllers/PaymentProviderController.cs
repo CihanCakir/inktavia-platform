@@ -15,6 +15,9 @@ using Aizen.Modules.Payment.Application.Queries.GetProviderInvoicePdfUrl;
 using Aizen.Modules.Payment.Application.Queries.GetProviderPayoutReceiptUrl;
 using Aizen.Modules.Payment.Application.Queries.GetProviderSubscription;
 using Aizen.Modules.Payment.Application.Queries.GetProviderPlans;
+using Aizen.Modules.Payment.Application.Commands.PurchaseOfferBoost;
+using Aizen.Modules.Payment.Application.Queries.GetActiveBoostForOffer;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -177,7 +180,49 @@ public sealed class PaymentProviderController : AizenWebApiController
                 Iban      = body.Iban,
                 LegalName = body.LegalName,
                 TaxNumber = body.TaxNumber,
+                SubMerchantType   = body.SubMerchantType,
+                IdentityNumber    = body.IdentityNumber,
+                TaxOffice         = body.TaxOffice,
+                LegalCompanyTitle = body.LegalCompanyTitle,
             }, ct);
         return SetResponse(result);
+    }
+
+    // ── BE-P11 premium offer boost (non-marketplace; by-subject) ──────────────
+
+    /// <summary>Initiates an OFFER_BOOST_7D purchase for one of the provider's offers (Pending; entitlement activates on the webhook).</summary>
+    [HttpPost("offer-boost")]
+    [ProducesResponseType(typeof(PurchaseOfferBoostResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PurchaseOfferBoostResult?>> PurchaseOfferBoost(
+        [FromBody] PurchaseOfferBoostRequest body, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<PurchaseOfferBoostResult>(new PurchaseOfferBoostCommand
+        {
+            ProviderProfileId = pid,
+            OfferId           = body.OfferId,
+            CurrencyCode      = string.IsNullOrWhiteSpace(body.CurrencyCode) ? "TRY" : body.CurrencyCode,
+        }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>The current active boost entitlement for an offer (expiry window), or IsBoosted=false.</summary>
+    [HttpGet("offers/{offerId:long}/boost-status")]
+    [ProducesResponseType(typeof(OfferBoostStatusDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<OfferBoostStatusDto?>> GetOfferBoostStatus(long offerId, CancellationToken ct = default)
+    {
+        ResolveProviderProfileId();   // enforce provider identity (by-subject)
+        var r = await _cqrs.ProcessAsync<ActiveBoostResult>(new GetActiveBoostForOfferQuery { OfferId = offerId }, ct);
+        var dto = r is null ? new OfferBoostStatusDto { IsBoosted = false } : new OfferBoostStatusDto
+        {
+            IsBoosted         = r.IsBoosted,
+            EntitlementId     = r.EntitlementId,
+            ProviderProfileId = r.ProviderProfileId,
+            ProductCode       = r.ProductCode,
+            Status            = r.Status?.ToString(),
+            StartsAt          = r.StartsAt,
+            ExpiresAt         = r.ExpiresAt,
+        };
+        return SetResponse(dto);
     }
 }

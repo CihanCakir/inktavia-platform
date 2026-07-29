@@ -5,6 +5,7 @@ using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Application.Services;
+using Aizen.Modules.Payment.Domain.Entities.RefundAllocation;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Aizen.Modules.Payment.Repository.Persistence;
@@ -20,6 +21,8 @@ public sealed class RefundPaymentCommandHandler
 {
     private readonly IPaymentTransactionRepository        _transactions;
     private readonly PaymentGatewayResolver               _gatewayResolver;
+    private readonly RefundAllocationService              _allocationService;
+    private readonly PremiumBoostService                  _premiumBoost;
     private readonly IAizenMessagePublisher               _publisher;
     private readonly ILogger<RefundPaymentCommandHandler> _logger;
 
@@ -27,13 +30,17 @@ public sealed class RefundPaymentCommandHandler
         IAizenUnitOfWork<PaymentDbContext>       unitOfWork,
         IPaymentTransactionRepository            transactions,
         PaymentGatewayResolver                   gatewayResolver,
+        RefundAllocationService                  allocationService,
+        PremiumBoostService                      premiumBoost,
         IAizenMessagePublisher                   publisher,
         ILogger<RefundPaymentCommandHandler>     logger)
     {
-        _transactions    = transactions;
-        _gatewayResolver = gatewayResolver;
-        _publisher       = publisher;
-        _logger          = logger;
+        _transactions      = transactions;
+        _gatewayResolver   = gatewayResolver;
+        _allocationService = allocationService;
+        _premiumBoost      = premiumBoost;
+        _publisher         = publisher;
+        _logger            = logger;
     }
 
     public override async Task<RefundPaymentResult?> Handle(
@@ -47,12 +54,13 @@ public sealed class RefundPaymentCommandHandler
         var gateway = _gatewayResolver.Resolve();
         var gatewayResult = await gateway.RefundAsync(new RefundInput
         {
-            TransactionId    = tx.Id,
-            GatewayReference = tx.GatewayReference ?? string.Empty,
-            RefundAmount     = request.RefundAmount,
-            Currency         = tx.CurrencyCode,
-            Reason           = request.Reason,
-            AdminNote        = request.AdminNote,
+            TransactionId            = tx.Id,
+            GatewayReference         = tx.GatewayReference ?? string.Empty,
+            GatewayItemTransactionId = tx.GatewayItemTransactionId,   // BE-P9-fix §8: item refund target
+            RefundAmount             = request.RefundAmount,
+            Currency                 = tx.CurrencyCode,
+            Reason                   = request.Reason,
+            AdminNote                = request.AdminNote,
         }, ct);
 
         if (!gatewayResult.Processed)
@@ -78,6 +86,26 @@ public sealed class RefundPaymentCommandHandler
         // ── Apply to parent transaction (updates TotalRefundedAmount + Status) ─
         tx.ApplyRefund(record);
         _transactions.Update(tx);
+
+        if (tx.TransactionType == Aizen.Modules.Payment.Abstraction.TransactionType.PremiumBoostPurchase)
+        {
+            // ── BE-P11 §9.2: a boost refund is a NON-MARKETPLACE refund (no snapshot, no ProviderNegativeBalance — the money
+            //    was Inktavia's premium revenue). Mark the purchase Refunded + Revoke the entitlement + reverse the premium
+            //    revenue ledger (BE-P12). Idempotent. ──
+            await _premiumBoost.OnBoostRefundedAsync(tx, $"Boost refund ({request.Reason})", ct);
+        }
+        else
+        {
+            // ── BE-P10: snapshot-driven allocation + release-before/after recovery + benefit restore ──
+            // Every reversal is derived from the immutable economics snapshot (§7.5). Returns null on the legacy
+            // path (no linked snapshot) so pre-P8 transactions still refund exactly as before.
+            await _allocationService.ApplyAsync(
+                tx, record,
+                requestedRefundAmount: request.RefundAmount,
+                cause:                 RefundCauseMap.FromReason(request.Reason),
+                restoreBenefit:        true,
+                ct:                    ct);
+        }
         // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
         // ── Publish event ─────────────────────────────────────────────────────

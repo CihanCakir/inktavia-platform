@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Message;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Model.Result;
 
 namespace Aizen.Modules.Payment.Application.Commands.SubscribeProviderPlan;
@@ -20,4 +21,7 @@ public sealed class SubscribeProviderPlanCommand : AizenCommand<SubscribeProvide
     public required DateTime PeriodEnd            { get; init; }
     public bool             AutoRenew             { get; init; } = false;
     public long?            PaymentTransactionId  { get; init; }
+
+    /// <summary>Billing cadence used to resolve the authoritative ProviderPlanPrice (BE-P4). Defaults to Monthly.</summary>
+    public BillingPeriod    BillingPeriod         { get; init; } = BillingPeriod.Monthly;
 }

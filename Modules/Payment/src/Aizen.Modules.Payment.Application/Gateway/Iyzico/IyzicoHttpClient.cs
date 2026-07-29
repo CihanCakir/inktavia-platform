@@ -49,17 +49,26 @@ public sealed class IyzicoHttpClient
 
     // ── Sub-merchant ──────────────────────────────────────────────────────────
 
+    /// <summary>Create a sub-merchant. BE-P9-fix §5: the body is type-varied (PERSONAL/PRIVATE_COMPANY/LIMITED) upstream.</summary>
     public Task<IyzicoSubMerchantResponse?> CreateSubMerchantAsync(
         IyzicoSubMerchantRequest request, CancellationToken ct = default)
         => PostAsync<IyzicoSubMerchantRequest, IyzicoSubMerchantResponse>(
-            "/v2/submerchants", request, ct);
+            "/onboarding/submerchant", request, ct);
 
-    // ── Marketplace approval ──────────────────────────────────────────────────
+    /// <summary>BE-P9-fix §5: update a sub-merchant (PUT /onboarding/submerchant — NO subMerchantType; subMerchantKey + iban).</summary>
+    public Task<IyzicoSubMerchantResponse?> UpdateSubMerchantAsync(
+        IyzicoUpdateSubMerchantRequest request, CancellationToken ct = default)
+        => PutAsync<IyzicoUpdateSubMerchantRequest, IyzicoSubMerchantResponse>(
+            "/onboarding/submerchant", request, ct);
 
-    public Task<IyzicoApprovalResponse?> ApproveMarketplacePaymentAsync(
-        IyzicoApprovalRequest request, CancellationToken ct = default)
-        => PostAsync<IyzicoApprovalRequest, IyzicoApprovalResponse>(
-            "/payment/marketplace/approval", request, ct);
+    /// <summary>BE-P9-fix §5: retrieve a sub-merchant's full detail by external id (POST /onboarding/submerchant/detail).</summary>
+    public Task<IyzicoSubMerchantDetailResponse?> GetSubMerchantDetailAsync(
+        IyzicoSubMerchantDetailRequest request, CancellationToken ct = default)
+        => PostAsync<IyzicoSubMerchantDetailRequest, IyzicoSubMerchantDetailResponse>(
+            "/onboarding/submerchant/detail", request, ct);
+
+    // ── Marketplace approval is item-level only (BE-P9-fix §4): /payment/marketplace/approval does not exist (404). ──
+    // ApproveItemAsync (below) is the correct path; ApproveMarketplacePaymentAsync was removed.
 
     // ── Refund ────────────────────────────────────────────────────────────────
 
@@ -68,17 +77,50 @@ public sealed class IyzicoHttpClient
         => PostAsync<IyzicoRefundRequest, IyzicoRefundResponse>(
             "/payment/refund", request, ct);
 
+    // ── BE-P9 item-level marketplace operations (§10, §21) ─────────────────────
+
+    /// <summary>Approve a single basket item's sub-merchant split (partial/native). Idempotent on iyzico's side.</summary>
+    public Task<IyzicoItemApproveResponse?> ApproveItemAsync(
+        IyzicoItemApproveRequest request, CancellationToken ct = default)
+        => PostAsync<IyzicoItemApproveRequest, IyzicoItemApproveResponse>(
+            "/payment/iyzipos/item/approve", request, ct);
+
+    /// <summary>Disapprove a single basket item's sub-merchant split.</summary>
+    public Task<IyzicoItemDisapproveResponse?> DisapproveItemAsync(
+        IyzicoItemDisapproveRequest request, CancellationToken ct = default)
+        => PostAsync<IyzicoItemDisapproveRequest, IyzicoItemDisapproveResponse>(
+            "/payment/iyzipos/item/disapprove", request, ct);
+
+    /// <summary>Update a sub-merchant's share on a basket item (change-order / partial per §20.13/§21). PUT /payment/item.</summary>
+    public Task<IyzicoUpdateItemResponse?> UpdateSubMerchantShareAsync(
+        IyzicoUpdateItemRequest request, CancellationToken ct = default)
+        => PutAsync<IyzicoUpdateItemRequest, IyzicoUpdateItemResponse>(
+            "/payment/item", request, ct);
+
     // ── Core HTTP helper ──────────────────────────────────────────────────────
 
-    private async Task<TResponse?> PostAsync<TRequest, TResponse>(
+    private Task<TResponse?> PostAsync<TRequest, TResponse>(
         string path, TRequest body, CancellationToken ct)
+        where TResponse : class
+        => SendJsonAsync<TRequest, TResponse>(HttpMethod.Post, path, body, ct);
+
+    // BE-P9 — same IYZWSv2 signing, PUT verb (for /payment/item).
+    private Task<TResponse?> PutAsync<TRequest, TResponse>(
+        string path, TRequest body, CancellationToken ct)
+        where TResponse : class
+        => SendJsonAsync<TRequest, TResponse>(HttpMethod.Put, path, body, ct);
+
+    private async Task<TResponse?> SendJsonAsync<TRequest, TResponse>(
+        HttpMethod method, string path, TRequest body, CancellationToken ct)
         where TResponse : class
     {
         var bodyJson   = JsonSerializer.Serialize(body, JsonOpts);
         var randomKey  = Guid.NewGuid().ToString("N");
-        var authHeader = BuildAuthHeader(randomKey, bodyJson);
+        // BE-P9-fix §1: IYZWSv2 signs randomKey + uriPath + body → HEX; uriPath (query-less) MUST be included.
+        var authHeader = IyzicoSignatureHelper.BuildAuthorizationHeader(
+            _config.ApiKey, _config.SecretKey, path, randomKey, bodyJson);
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, path)
+        using var request = new HttpRequestMessage(method, path)
         {
             Content = new StringContent(bodyJson, Encoding.UTF8, "application/json"),
         };
@@ -120,37 +162,46 @@ public sealed class IyzicoHttpClient
         }
     }
 
+    // BE-P9-fix §1: request signing moved to the pure, unit-provable IyzicoSignatureHelper (randomKey+uriPath+body → HEX).
+
     /// <summary>
-    /// Builds the IYZWSv2 Authorization header.
-    /// Format: IYZWSv2 {base64(apiKey:randomKey:hmac)}
-    /// where hmac = base64(HMAC-SHA256(secretKey, apiKey + randomKey + requestBody))
+    /// BE-P9-fix §2 — validates the CheckoutForm webhook <c>X-IYZ-SIGNATURE-V3</c> (HPP HMACSHA256-HEX over
+    /// <c>secretKey + iyziEventType + iyziPaymentId + token + paymentConversationId + status</c>). The dev-bypass (empty
+    /// signing secret → accept) is allowed ONLY outside production — <paramref name="isProduction"/> forces validation.
     /// </summary>
-    private string BuildAuthHeader(string randomKey, string bodyJson)
+    public bool ValidateHppWebhookSignatureV3(
+        string iyziEventType, string? iyziPaymentId, string token, string? paymentConversationId, string status,
+        string? headerSignature, bool isProduction)
     {
-        var payload   = _config.ApiKey + randomKey + bodyJson;
-        var hmacBytes = HMACSHA256.HashData(
-            Encoding.UTF8.GetBytes(_config.SecretKey),
-            Encoding.UTF8.GetBytes(payload));
-        var hmacB64   = Convert.ToBase64String(hmacBytes);
+        if (string.IsNullOrEmpty(_config.SecretKey))
+        {
+            if (isProduction) return false;   // never silently accept in prod
+            _logger.LogWarning("Iyzico webhook signature NOT validated — no secret configured (non-prod dev bypass).");
+            return true;
+        }
+        if (string.IsNullOrEmpty(headerSignature)) return false;
 
-        var authValue = $"{_config.ApiKey}:{randomKey}:{hmacB64}";
-        var authB64   = Convert.ToBase64String(Encoding.UTF8.GetBytes(authValue));
-
-        return $"IYZWSv2 {authB64}";
+        return IyzicoSignatureHelper.ValidateHppWebhookSignatureV3(
+            _config.SecretKey, iyziEventType, iyziPaymentId, token, paymentConversationId, status, headerSignature);
     }
 
     /// <summary>
-    /// Validates the HMAC-SHA256 signature Iyzico sends in webhook payloads.
-    /// Iyzico webhook signature = SHA256(secretKey + token)
+    /// BE-P9-fix §3 — validates a CF-retrieve response <c>signature</c>
+    /// (paymentStatus, paymentId, currency, basketId, conversationId, paidPrice, price, token — prices trailing-zero trimmed).
     /// </summary>
-    public bool ValidateWebhookSignature(string token, string signature)
+    public bool ValidateCheckoutRetrieveSignature(IyzicoRetrieveCheckoutResponse r)
     {
-        if (string.IsNullOrEmpty(_config.WebhookSecret)) return true; // dev-mode: skip validation
+        if (string.IsNullOrEmpty(_config.SecretKey)) return true;   // dev: no secret → skip (guarded by env upstream)
+        return IyzicoSignatureHelper.ValidateResponseSignature(_config.SecretKey, r.Signature,
+            r.PaymentStatus ?? "", r.PaymentId ?? "", r.Currency ?? "", r.BasketId ?? "", r.ConversationId ?? "",
+            IyzicoSignatureHelper.TrimPrice(r.PaidPrice), IyzicoSignatureHelper.TrimPrice(r.Price), r.Token ?? "");
+    }
 
-        var expected = Convert.ToBase64String(
-            SHA256.HashData(
-                Encoding.UTF8.GetBytes(_config.WebhookSecret + token)));
-
-        return string.Equals(expected, signature, StringComparison.OrdinalIgnoreCase);
+    /// <summary>BE-P9-fix §3 — validates a refund response <c>signature</c> (paymentId, price, currency, conversationId).</summary>
+    public bool ValidateRefundSignature(IyzicoRefundResponse r)
+    {
+        if (string.IsNullOrEmpty(_config.SecretKey)) return true;
+        return IyzicoSignatureHelper.ValidateResponseSignature(_config.SecretKey, r.Signature,
+            r.PaymentId ?? "", IyzicoSignatureHelper.TrimPrice(r.Price), r.Currency ?? "", r.ConversationId ?? "");
     }
 }

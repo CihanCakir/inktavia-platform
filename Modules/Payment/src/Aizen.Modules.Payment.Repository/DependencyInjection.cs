@@ -20,10 +20,45 @@ public static class DependencyInjection
         services.AddScoped<IParticipantPlanRepository,       ParticipantPlanRepository>();
         services.AddScoped<IPayoutRecordRepository,          PayoutRecordRepository>();
         services.AddScoped<IProviderPaymentProfileRepository, ProviderPaymentProfileRepository>();
+        // ── Economics ledger (BE-P1) ──────────────────────────────────────────
+        services.AddScoped<IPaymentEconomicsSnapshotRepository, PaymentEconomicsSnapshotRepository>();
+        // ── Platform fee rules (BE-P3) ────────────────────────────────────────
+        services.AddScoped<IPlatformFeeRuleRepository,          PlatformFeeRuleRepository>();
+        // ── Provider plan prices (BE-P4) ──────────────────────────────────────
+        services.AddScoped<IProviderPlanPriceRepository,        ProviderPlanPriceRepository>();
+        // ── Profit protection (BE-P5) ─────────────────────────────────────────
+        services.AddScoped<IProfitProtectionPolicyRepository,         ProfitProtectionPolicyRepository>();
+        services.AddScoped<IProfitProtectionEvaluationLogRepository,  ProfitProtectionEvaluationLogRepository>();
+        // ── Customer discount + benefit budget (BE-P6) ────────────────────────
+        services.AddScoped<ICustomerDiscountRuleRepository,          CustomerDiscountRuleRepository>();
+        services.AddScoped<ICustomerBenefitBudgetRepository,         CustomerBenefitBudgetRepository>();
+        services.AddScoped<ICustomerBenefitBudgetPolicyRepository,   CustomerBenefitBudgetPolicyRepository>();
+        // ── Provider commission benefit (BE-P7) ───────────────────────────────
+        services.AddScoped<IProviderCommissionBenefitRuleRepository,        ProviderCommissionBenefitRuleRepository>();
+        services.AddScoped<IProviderCommissionBenefitEntitlementRepository, ProviderCommissionBenefitEntitlementRepository>();
+        // ── Refund allocation + provider balance + chargeback (BE-P10) ────────
+        services.AddScoped<IRefundAllocationPolicyRepository, RefundAllocationPolicyRepository>();
+        services.AddScoped<IRefundAllocationRepository,       RefundAllocationRepository>();
+        services.AddScoped<IProviderBalanceRepository,        ProviderBalanceRepository>();
+        services.AddScoped<IChargebackRecordRepository,       ChargebackRecordRepository>();
+        // ── Premium product / price / purchase / entitlement (BE-P11) ─────────
+        services.AddScoped<IPremiumProductRepository,        PremiumProductRepository>();
+        services.AddScoped<IPremiumProductPriceRepository,   PremiumProductPriceRepository>();
+        services.AddScoped<IPremiumPurchaseRepository,       PremiumPurchaseRepository>();
+        services.AddScoped<IPremiumEntitlementRepository,    PremiumEntitlementRepository>();
+        // ── Financial reporting ledger (BE-P12) ───────────────────────────────
+        services.AddScoped<IFinancialLedgerRepository,       FinancialLedgerRepository>();
         // ── Invoice subsystem ─────────────────────────────────────────────────
         services.AddScoped<IInvoiceRepository,               InvoiceRepository>();
         services.AddScoped<IInvoiceNumberSequenceRepository, InvoiceNumberSequenceRepository>();
+        services.AddScoped<RefundAllocationPolicySeed>();
+        services.AddScoped<PremiumProductSeed>();
         services.AddScoped<PaymentPlanSeed>();
+        services.AddScoped<PlatformFeeRuleSeed>();
+        services.AddScoped<ProviderPlanPriceSeed>();
+        services.AddScoped<ProfitProtectionPolicySeed>();
+        services.AddScoped<CustomerDiscountBenefitSeed>();
+        services.AddScoped<ProviderCommissionBenefitSeed>();
         // ── Mock / demo seeds (dev + local only) ─────────────────────────────
         services.AddScoped<PaymentTransactionMockSeed>();
         services.AddScoped<PayoutRecordMockSeed>();
@@ -46,6 +81,36 @@ public static class DependencyInjection
         // Phase 1: plans + commission rules (non-mock, always runs)
         var planSeeder = scope.ServiceProvider.GetRequiredService<PaymentPlanSeed>();
         await planSeeder.SeedAsync(ct);
+
+        // Phase 1b: platform fee rules (non-mock, always runs, idempotent — BE-P3)
+        var platformFeeSeeder = scope.ServiceProvider.GetRequiredService<PlatformFeeRuleSeed>();
+        await platformFeeSeeder.SeedAsync(ct);
+
+        // Phase 1c: provider plan prices (non-mock, always runs, idempotent — BE-P4). Runs after PaymentPlanSeed
+        // so provider plan PKs exist.
+        var planPriceSeeder = scope.ServiceProvider.GetRequiredService<ProviderPlanPriceSeed>();
+        await planPriceSeeder.SeedAsync(ct);
+
+        // Phase 1d: profit protection policy (non-mock, always runs, idempotent — BE-P5)
+        var profitProtectionSeeder = scope.ServiceProvider.GetRequiredService<ProfitProtectionPolicySeed>();
+        await profitProtectionSeeder.SeedAsync(ct);
+
+        // Phase 1e: customer discount reconciliation + benefit budget policies (idempotent — BE-P6).
+        // Runs after PaymentPlanSeed so participant plan PKs exist.
+        var customerDiscountSeeder = scope.ServiceProvider.GetRequiredService<CustomerDiscountBenefitSeed>();
+        await customerDiscountSeeder.SeedAsync(ct);
+
+        // Phase 1f: provider commission benefit — disabled example only (benefits OFF by default — BE-P7)
+        var commissionBenefitSeeder = scope.ServiceProvider.GetRequiredService<ProviderCommissionBenefitSeed>();
+        await commissionBenefitSeeder.SeedAsync(ct);
+
+        // Phase 1g: refund-allocation policy (non-mock, always runs, idempotent — BE-P10)
+        var refundAllocationSeeder = scope.ServiceProvider.GetRequiredService<RefundAllocationPolicySeed>();
+        await refundAllocationSeeder.SeedAsync(ct);
+
+        // Phase 1h: premium product OFFER_BOOST_7D + launch price (non-mock, always runs, idempotent — BE-P11)
+        var premiumSeeder = scope.ServiceProvider.GetRequiredService<PremiumProductSeed>();
+        await premiumSeeder.SeedAsync(ct);
 
         // Phase 2: mock transaction data (all idempotent — safe to call in dev/local)
         var txSeeder  = scope.ServiceProvider.GetRequiredService<PaymentTransactionMockSeed>();

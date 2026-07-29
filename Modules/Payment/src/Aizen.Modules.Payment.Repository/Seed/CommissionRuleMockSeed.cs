@@ -33,6 +33,17 @@ public sealed class CommissionRuleMockSeed
 
         var existingSet = new HashSet<string>(existing, StringComparer.OrdinalIgnoreCase);
 
+        // BE-P2 reconciliation: demote a previously-seeded X91 global to Low so it cannot tie with the
+        // authoritative Standard seed global under the new Priority-aware engine.
+        var x91 = await _db.CommissionRules.FirstOrDefaultAsync(r => r.RuleCode == "CR-2024-X91", ct);
+        if (x91 is not null && x91.Priority != CommissionRulePriority.Low)
+        {
+            x91.Update(x91.CommissionRate, x91.EffectiveFrom, x91.EffectiveTo,
+                CommissionRulePriority.Low, x91.Notes);
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("CommissionRuleMockSeed: demoted CR-2024-X91 global to Low priority.");
+        }
+
         var rules = BuildRules(existingSet);
         if (rules.Count == 0)
         {
@@ -51,14 +62,16 @@ public sealed class CommissionRuleMockSeed
         var list = new List<CommissionRuleEntity>();
         var now  = DateTime.UtcNow;
 
-        // ── CR-2024-X91 — Global Active (standard base rate) ─────────────────
+        // ── CR-2024-X91 — Global demo rule (Low priority) ────────────────────
+        // BE-P2: kept at LOW priority so it never ties with the authoritative Standard seed global under
+        // the new Priority-aware resolution engine (§13.7). The Standard global (0.15) deterministically wins.
         if (!existingCodes.Contains("CR-2024-X91"))
             list.Add(CommissionRuleEntity.CreateGlobal(
                 rate:          0.12m,
                 effectiveFrom: new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 effectiveTo:   null,
-                priority:      CommissionRulePriority.Standard,
-                notes:         "Platform-wide base commission rate. Applies to all transactions not covered by a more specific rule.",
+                priority:      CommissionRulePriority.Low,
+                notes:         "Demo global rule (Low priority). Superseded by the Standard authoritative global.",
                 ruleCode:      "CR-2024-X91"));
 
         // ── CR-2024-M04 — Plan rule (Marina Pro plan override) ───────────────

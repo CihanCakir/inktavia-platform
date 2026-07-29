@@ -32,6 +32,12 @@ public sealed class TransactionRefundRecord : AizenEntityWithAudit
     public RefundReason           Reason       { get; private set; }
     public TransactionRefundStatus Status      { get; private set; }
 
+    // ── BE-P10: allocation + cause/release-state + benefit-restore-once guard ──
+    public RefundCause?   Cause                 { get; private set; }
+    public ReleaseState?  ReleaseState          { get; private set; }
+    public long?          RefundAllocationId    { get; private set; }
+    public bool           BenefitRestoreApplied { get; private set; }
+
     // ── Amount ────────────────────────────────────────────────────────────────
     public decimal Amount                 { get; private set; }
     public string  CurrencyCode           { get; private set; } = "TRY";
@@ -126,5 +132,21 @@ public sealed class TransactionRefundRecord : AizenEntityWithAudit
         ReversedAt         = DateTime.UtcNow;
         ReversalReason     = reversalReason;
         ReversalAdminNote  = adminNote;
+    }
+
+    /// <summary>BE-P10 §7.5 — links the persisted 9-amount allocation + records the economic cause + release state.</summary>
+    public void SetAllocation(RefundCause cause, ReleaseState releaseState, long refundAllocationId)
+    {
+        Cause              = cause;
+        ReleaseState       = releaseState;
+        RefundAllocationId = refundAllocationId;
+    }
+
+    /// <summary>BE-P10 §19.15 — marks the benefit/entitlement restore as applied EXACTLY ONCE (idempotent per refund).</summary>
+    public void MarkBenefitRestoreApplied()
+    {
+        if (BenefitRestoreApplied)
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundRestoreAlreadyApplied);
+        BenefitRestoreApplied = true;
     }
 }

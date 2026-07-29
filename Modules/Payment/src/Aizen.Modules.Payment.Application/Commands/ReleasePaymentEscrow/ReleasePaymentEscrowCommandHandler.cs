@@ -44,10 +44,11 @@ public sealed class ReleasePaymentEscrowCommandHandler
         var gateway = _gatewayResolver.Resolve();
         var payoutResult = await gateway.ReleaseEscrowAsync(new ReleaseEscrowInput
         {
-            TransactionId     = tx.Id,
-            GatewayReference  = tx.GatewayReference ?? string.Empty,
-            ProviderNetAmount = tx.NetPayoutAmount,
-            AdminNote         = request.AdminNote,
+            TransactionId            = tx.Id,
+            GatewayReference         = tx.GatewayReference ?? string.Empty,
+            GatewayItemTransactionId = tx.GatewayItemTransactionId,   // BE-P9-fix §4: item approve target
+            ProviderNetAmount        = tx.NetPayoutAmount,
+            AdminNote                = request.AdminNote,
         }, ct);
 
         if (!payoutResult.Processed)

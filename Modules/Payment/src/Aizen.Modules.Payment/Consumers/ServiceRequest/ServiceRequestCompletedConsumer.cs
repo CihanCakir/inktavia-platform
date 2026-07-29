@@ -79,10 +79,11 @@ public sealed class ServiceRequestCompletedConsumer
         var gateway = _gatewayResolver.Resolve();
         var payoutResult = await gateway.ReleaseEscrowAsync(new ReleaseEscrowInput
         {
-            TransactionId     = tx.Id,
-            GatewayReference  = tx.GatewayReference ?? string.Empty,
-            ProviderNetAmount = tx.NetPayoutAmount,
-            AdminNote         = message.AdminNote ?? $"SR {message.ServiceRequestId} completed. Auto-release.",
+            TransactionId            = tx.Id,
+            GatewayReference         = tx.GatewayReference ?? string.Empty,
+            GatewayItemTransactionId = tx.GatewayItemTransactionId,   // BE-P9-fix §4
+            ProviderNetAmount        = tx.NetPayoutAmount,
+            AdminNote                = message.AdminNote ?? $"SR {message.ServiceRequestId} completed. Auto-release.",
         }, ct);
 
         if (!payoutResult.Processed)

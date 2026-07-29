@@ -31,6 +31,12 @@ public sealed class CheckoutInitInput
     /// <summary>Net amount the provider receives after commission. Used for Iyzico basket split.</summary>
     public decimal          ProviderNetAmount  { get; init; }
 
+    /// <summary>
+    /// BE-P9 — the snapshot's retained amount (PlatformGrossShare = CustomerTotal − ProviderNet = commission + platform fee
+    /// (+ service VAT)), an independent third value the pre-send split-math guard cross-checks. Null → not asserted.
+    /// </summary>
+    public decimal?         ExpectedRetainedAmount { get; init; }
+
     /// <summary>Transaction context (type + SR id + offer id).</summary>
     public required TransactionContext Context { get; init; }
 

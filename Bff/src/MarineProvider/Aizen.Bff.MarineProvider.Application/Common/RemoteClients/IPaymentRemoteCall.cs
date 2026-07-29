@@ -1,6 +1,7 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Dto;
+using Aizen.Modules.Payment.Abstraction.Model.Result;
 using Aizen.Modules.Payment.Abstraction.Request;
 
 namespace Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
@@ -47,4 +48,12 @@ public interface IPaymentRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/payment/provider/payouts/{id}/receipt-url")]
     Task<AizenApiResponse<ProviderFilePdfUrlDto>> GetPayoutReceiptUrl(long id);
+
+    // ── BE-P11 premium offer boost (by-subject) ───────────────────────────────
+    [AizenRemoteCallPost("/api/v1/payment/provider/offer-boost")]
+    Task<AizenApiResponse<PurchaseOfferBoostResult>> PurchaseOfferBoost(
+        [AizenRemoteCallBody] PurchaseOfferBoostRequest body);
+
+    [AizenRemoteCallGet("/api/v1/payment/provider/offers/{offerId}/boost-status")]
+    Task<AizenApiResponse<OfferBoostStatusDto>> GetOfferBoostStatus(long offerId);
 }

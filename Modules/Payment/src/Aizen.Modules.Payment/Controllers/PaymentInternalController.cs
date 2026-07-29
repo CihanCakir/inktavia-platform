@@ -1,7 +1,11 @@
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
+using Aizen.Modules.Payment.Application.Commands.CalculateServiceRequestEconomics;
 using Aizen.Modules.Payment.Application.Commands.CreatePaymentEscrow;
 using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
+using Aizen.Modules.Payment.Application.Queries.GetProviderSplitEligibility;
+using Aizen.Modules.Payment.Application.Queries.ResolveCustomerDiscountForOffer;
+using Aizen.Modules.Payment.Application.Queries.ResolveLineCommissions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -66,4 +70,41 @@ public sealed class PaymentInternalController : ControllerBase
         }, ct);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Resolves per-line commissions for an offer's priced lines (BE-S7). Read-only / idempotent — pure resolution,
+    /// no state written, no applied-count bump. Called by ServiceRequest as an offer-builder preview.
+    /// </summary>
+    [HttpPost("commission/resolve-lines")]
+    public async Task<IActionResult> ResolveLineCommissions(
+        [FromBody] Abstraction.RemoteCall.Requests.ResolveLineCommissionsRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new ResolveLineCommissionsQuery { Request = request }, ct));
+
+    /// <summary>
+    /// BE-P8 — acceptance-time economics: runs the §19.9 combiner and, on an approving decision, creates the escrow
+    /// (gross = CustomerTotal, split = ProviderNet) + immutable snapshot and bumps applied-count once. Idempotent.
+    /// Called by ServiceRequest at offer acceptance; on Rejected/ConfigurationError the caller blocks acceptance.
+    /// </summary>
+    [HttpPost("service-request/calculate-economics")]
+    public async Task<IActionResult> CalculateServiceRequestEconomics(
+        [FromBody] CalculateServiceRequestEconomicsRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new CalculateServiceRequestEconomicsCommand { Request = request }, ct));
+
+    /// <summary>
+    /// BE-I1 — reads whether a provider has a split-eligible sub-merchant (the P9 gate signal). Pure read. Called by
+    /// ServiceRequest to surface/flag a non-payable provider before the hard acceptance gate.
+    /// </summary>
+    [HttpPost("provider/split-eligibility")]
+    public async Task<IActionResult> GetProviderSplitEligibility(
+        [FromBody] GetProviderSplitEligibilityRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new GetProviderSplitEligibilityQuery { Request = request }, ct));
+
+    /// <summary>
+    /// BE-S6 — resolves the P6 customer-discount rule + requested amount + funding split for an offer. Pure read /
+    /// compute-on-demand (no persistence/budget/snapshot). Called by ServiceRequest's offer-builder discount preview.
+    /// </summary>
+    [HttpPost("discount/resolve-customer-discount")]
+    public async Task<IActionResult> ResolveCustomerDiscount(
+        [FromBody] ResolveCustomerDiscountRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new ResolveCustomerDiscountForOfferQuery { Request = request }, ct));
 }

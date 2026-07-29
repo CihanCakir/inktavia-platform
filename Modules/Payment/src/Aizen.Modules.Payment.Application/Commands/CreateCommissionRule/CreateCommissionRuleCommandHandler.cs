@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Domain.Entities.Commission;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
@@ -76,6 +77,18 @@ public sealed class CreateCommissionRuleCommandHandler
         // Apply optional Phase 5 labeling fields
         if (request.RuleName is not null || request.CurrencyCode is not null || request.CommercialModel.HasValue)
             rule.SetMetadata(request.RuleName, request.CurrencyCode, request.CommercialModel);
+
+        // Apply optional BE-P2 line-level dimensions (§20.11)
+        if (request.LineType.HasValue || request.CommissionEligibility.HasValue)
+            rule.SetLineDimensions(request.LineType, request.CommissionEligibility);
+
+        // §3 fail-loud conflict guard: reject an overlapping active rule with the same scope-key + priority.
+        var conflict = await _rules.FindOverlappingActiveRuleAsync(rule, ct);
+        if (conflict is not null)
+            throw new AizenBusinessException(
+                (int)PaymentErrorCode.CommissionRuleConflict,
+                $"A conflicting active commission rule already exists (Id={conflict.Id}, RuleCode={conflict.RuleCode}) " +
+                "with the same scope, priority, and an overlapping effective window.");
 
         await _rules.AddAsync(rule, ct);
         // SaveChanges handled by AizenCommandHandlerDecorator.

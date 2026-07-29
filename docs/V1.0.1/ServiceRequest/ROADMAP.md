@@ -1,0 +1,77 @@
+# ServiceRequest Modülü — V1.0.1 Roadmap
+> Itemized (kalem bazlı) deniz-servisi teklif ekonomisi + dispute case. Kanonik: `../COMMISSION_PACKAGE_PRICING.md` §20–§21.
+> **Reuse (yeniden yazma):** `ServiceRequestOfferEntity`/`ServiceRequestOfferItemEntity`/`OfferCalculationService`/
+> `ProviderOfferTemplate` + escrow/completion/work-logs/evidence altyapısı — **genişlet**. Her faz → `BE_S<n>_*.md`.
+
+## Backend fazları
+| Faz | Kapsam | Kanonik § | Bağımlılık |
+|---|---|---|---|
+| **S1** | OfferItem/Offer **ekonomi + `PricingMethod`** + `ServiceRequestOfferItemType` enum genişletme (Consumable/Travel/ExternalService/EquipmentRental/MarinaOrLiftFee/OtherApprovedExpense) + `OfferCalculationService` **line ekonomisi** | §20.3–20.5 | Payment P2 |
+| **S2** | `PricingAttributeDefinition`/`Value` + validation (category/template bazlı; motor/tekne/boya değişkenleri) | §20.6 | — |
+| **S3** | **Provider price book** (`ProviderPriceBookEntry` veya `ProviderOfferTemplate` genişletme) + **FX snapshot köprüsü** (EUR/USD→settlement TL, kabul sonrası re-valuation yok) | §20.7 | RefData R1 |
+| **S4** | `TravelPricingRule` + **server-side mesafe** doğrulama + snapshot (client finansal kaynak değil) | §20.8 | Identity I2 |
+| **S5** | `PartCommercialTerm` (supplier/dealer margin, funded splits, **MinProviderReceivable**; maliyet gizliliği) | §20.9 | — |
+| **S6** | **Line-level indirim** eligibility + funding allocation (order-level voucher deterministik allocation) | §20.10 | Payment P6 |
+| **S7** | **Line-level komisyon** eligibility/base (Payment `CommissionRule` boyutlarıyla çözülür; toplam = line toplamı) | §20.11 | Payment P2 |
+| **S8** | **Line snapshots** (`OfferLineEconomicsSnapshot`/Discount/Commission/Travel/Attribute) → aggregate türetme + **8 eşitlik** (0 tolerans) | §20.15 | S1–S7, Payment P1 |
+| **S9** | **Line-level profit protection** entegrasyonu + transaction kapıları (bir kalemin zararı diğerinde saklanamaz) | §20.12 | Payment P5, S8 |
+| **S10** | **Kabul akışı**: `CalculateServiceRequestPaymentEconomics` çağrısı → snapshot → checkout başlat | §20.16, §19.9 | Payment P8, P9 |
+| **S11** | `OfferType` (Fixed/Estimate/RequiresInspection/T&M) + **`ServiceChangeOrder`/`OfferRevision`/`ExtraWorkApproval`** (kabul sonrası snapshot değişmez; müşteri onayı) | §20.13 | S10 |
+| **S12** | **Periyodik bakım**: `RecommendedIntervalMonths`/`LastPerformedAt`/`NextDueAt`/`ReminderLeadDays` (CargoDry'den ayrı) | §20.14 | Notification N2 |
+| **S13** | **`ServiceRequestDispute`** case + `OpenDispute` + **Dispute Case agregasyonu** (mevcut work-log/evidence/mesaj) | §21.5–21.6 | Payment P10 |
+
+## Durum / sıralama kararı (2026-07-28)
+Payment P1–P7 ✅ bitti; kritik yol gereği **P8'den önce SR itemized çekirdeği** gerekiyor. Karar: **dar çekirdek
+`S1 → S7 → S8 → P8`**; S2 (attribute) / S3 (price-book+FX) / S4 (travel) / S5 (part-terms) / S6 (line-discount-funding)
+**sonra girdi olarak** eklenir (P8 satırda ne varsa okur). Mevcut zemin doğrulandı: offer/item zaten itemized
+(`LineSubtotal/TaxAmount/LineTotal/DiscountAmount` + tip-toplamları), `OfferCalculationService` server-authoritative
+(pro-rata indirim + line tax), accept handler escrow + `ServiceRequestOfferAcceptedMessage` publish ediyor (P8/S10 hook).
+- **BE-S1 ✅ TAMAM** (2026-07-28, 15 test): item-type genişletme (Consumable=9..OtherApprovedExpense=14, Other'a roll) + `PricingMethod` (descriptive, math değişmedi) + per-line `LineCommissionEligibility` (default-by-role, admin-tunable + override) + computed `CommissionBaseAmount` (Eligible=pre-tax post-discount, Exempt=0) + offer `CommissionBaseTotal` (Σ, `≤ Subtotal` guard) via `OfferCalculationService` line-economics pass (tax pass sonrası, mevcut math'e dokunmadan). Migration `AddOfferLineEconomics` + backfill. **Flag:** FluentValidation yerine mevcut handler-guard (`SaveOfferDraft.ValidateItems`) genişletildi — SR offer item'da FV yok, kullanılmayan pipeline eklemekten kaçınıldı (proje pattern'i). Enum default-0 trap nullable ile çözüldü. ProviderNet/PlatformContribution per line YOK (S7/S6). Sonraki: **BE-S7**.
+- **BE-S1 promptu (arşiv)** (`BE_S1_OFFER_LINE_ECONOMICS.md`): item-type genişletme (Consumable/Travel/ExternalService/
+  EquipmentRental/MarinaOrLiftFee/OtherApprovedExpense=9..14) + `PricingMethod` (descriptive, math değişmez) + per-line
+  `CommissionEligibility` (Eligible/Exempt/InheritFromCategory, default ItemType rolüne göre ama admin-tunable) + computed
+  `CommissionBaseAmount` (Eligible = pre-tax post-discount `Max(LineSubtotal−proRataDiscount,0)`, Exempt = 0) + offer
+  `CommissionBaseTotal` (≤ Subtotal) — `OfferCalculationService` line-economics pass'i mevcut math'e dokunmadan ekliyor.
+  Rate/amount YOK (S7), funding YOK (S6), snapshot YOK (S8), FX/TL YOK (S3), acceptance/Payment değişmez.
+- **BE-S7 ✅ TAMAM** (2026-07-28, 177 test): Payment'ta `LineCommissionResolver` (BE-P2 per-line, tek aktif-rule load; Exempt→0/providerNet=tam satır, Eligible→Round(base×rate), InheritFromCategory→cat/plan/global; Σ per-line=transaction, per-line yuvarlama korunur — 20.02 not blended 20.01; conflict propagate; NO MarkApplied) + `GetActiveAtAsync` repo read + typed remote-call `ResolveLineCommissions` internal `[Authorize]` (401 canlı kanıtlı) + SR `GetOfferCommissionPreviewQuery` (persistence yok, migration yok, yalnız Payment.Abstraction). **Flag→P8 gereksinimi:** resolver pure kaldı (plan id caller'dan) — **P8 kabul anında provider aktif planını authoritative çözüp resolver'a geçmeli (null'a güvenme)**; FE preview de plan id geçmeli yoksa yanlış oran. Sonraki: **BE-S8**.
+- **BE-S8 ✅ TAMAM** (2026-07-28, 164 test: 24 BE-P1 + 15 yeni): 3 immutable child (OfferLineEconomics/CommissionAllocation/DiscountAllocation, FK→snapshot Restrict, no-mutator, internal Create, ItemType/PricingMethod raw SR enum int → cross-module enum dep yok) + `CreateFromLines` (aggregate yalnız satır toplamı, 5 decomposition kolonu) + 8 eşitlik 0-tolerans (her tamper ayrı exception) + **BE-P1 uzlaştırma kanıtlı: aggregate `CommissionRateSnapshot` reporting-only (amount/base 4dp), bağlayıcı=line-sum — 0.39 vs 0.38 divergent gösterildi**. Migration `AddLineEconomicsSnapshots` (3 tablo + 5 kolon NOT NULL DEFAULT 0). Discount 0 (S6), Travel(S4)/Attribute(S2) reserved. Pure — acceptance/MarkApplied YOK (P8). **Narrow P8 çekirdeği tamam (S1+S7+S8). Sonraki: BE-P8.**
+- **BE-S6 ✅ TAMAM** (2026-07-28): `LineDiscountEligibility` (default-by-role, exempt→indirim yok) + `OfferCustomerDiscountAllocator` (pure, deterministik pro-rata eligible pre-tax base, remainder en büyük line → `Σ==requested` tam, clamp, funding Platform/Provider[consent honoured, yoksa düşer]/Shared/Supplier=0) + calc pre-tax uygulama + tax recompute (taban+KDV+`CommissionBaseAmount` düşer; narrow-core byte-identical) + preview `GetOfferCustomerDiscountPreviewQuery` → yeni `IPaymentModuleRemoteCall.ResolveCustomerDiscountAsync` [Authorize] → `ResolveCustomerDiscountForOfferQuery` (mevcut P6 `ResolveCustomerDiscountQuery` ayrı, dokunulmadı) compute-on-demand + migration `AddOfferLineCustomerDiscount` (7 kolon) + backfill. Sonraki: **P8-wiring**.
+- **BE-S6 promptu (arşiv)** (`BE_S6_LINE_DISCOUNT_FUNDING.md`) — P8 fast-follow'un 1. yarısı (S6 → P8-wiring): per-line
+  `LineDiscountEligibility` (default-by-role, exempt→indirim yok §20.10) + **deterministik allocation** (eligible line
+  pre-tax base'e pro-rata, remainder en büyük line'da → `Σ == requested` tam, funding Platform/Provider[consent yoksa
+  düşer]/Shared) + **pre-tax uygulama + tax recompute** (indirim taban+KDV+`CommissionBase`'i düşürür; indirimin KDV bazı
+  S6'da karara bağlandı, **platform-fee base KDV sorusu P8-wiring/YMM'ye bırakıldı**) + `OfferCalculationService` genişletme
+  + **P6-resolving preview** (S7 pattern, `ResolveCustomerDiscount` remote-call, persistence/budget/snapshot YOK).
+  Budget reserve/consume + P7 effective rate + DiscountAllocationSnapshot doldurma + non-zero 8-eşitlik = **P8-wiring**.
+- **BE-S8 promptu (arşiv)** (`BE_S8_LINE_SNAPSHOTS_AGGREGATE.md`): BE-P1'in immutable/validating-factory pattern'i satır
+  granülaritesine → immutable `OfferLineEconomicsSnapshot`/`CommissionAllocationSnapshot`/`DiscountAllocationSnapshot`
+  (FK→`PaymentEconomicsSnapshot`, insert-only) + `CreateFromLines` factory (aggregate **yalnız satır toplamlarından türetilir**)
+  + **8 eşitlik 0-tolerans** (§20.15) + §20.15 aggregate decomposition alanları. **BE-P1 uzlaştırma:** aggregate
+  `CommissionRate` reporting-only effective rate'e (`amount/base`), bağlayıcı invariant line-sum (`Σ line commission`) —
+  BE-P1'in `Round(base×rate)` kuralıyla çelişki yaratmadan, dokümante edilmiş dar değişiklik. Travel snapshot=S4,
+  attribute snapshot=S2 (**reserve, S8'de yapılmaz**); discount allocation modellenir ama narrow-core'da 0 (S6 doldurur).
+  Pure/structural — acceptance/resolver/checkout/MarkApplied YOK (hepsi P8). Sonraki: **BE-P8**.
+- **BE-S7 promptu (arşiv)** (`BE_S7_LINE_COMMISSION_RESOLUTION.md`): **Payment'ta** line-set komisyon resolver (BE-P2
+  `CommissionRuleResolver`'ı satır kümesine genişletir; per-line commissionable/base/resolvedRate/commissionAmount/
+  providerNet, **Σ line commission = transaction commission** §20.15, per-line yuvarlama korunur → P8/S8 mutabakatı) +
+  `Payment.Abstraction` internal remote-call `ResolveLineCommissions` (mevcut `IPaymentModuleRemoteCall` escrow pattern'i,
+  typed DTO, service-to-service `[Authorize]`) + **SR compute-on-demand önizleme** (offer builder şeffaflığı; authoritative
+  persistence YOK, SR migration YOK). Exempt/pass-through (Travel/MarinaFee) → rate 0, providerNet = tam satır. Pure, no
+  MarkApplied (P8). Tax pre-tax, KDV=YMM açık. SR yalnız `Payment.Abstraction` referanslar (boundary korunur).
+
+## FE — Provider portalı (`inktavia-marine-provider-web`) → `FE_PROVIDER_*.md`
+- **Teklif oluşturma ekranı (en büyük FE işi):** kalem ekleme (tür + pricing method + attribute), **price-book otomatik
+  doldurma**, **travel otomatik hesap**, net/KDV/brüt **canlı**, per-line komisyon/net şeffaf, OfferType seçimi ·
+  **change-order** akışı · recurring/next-due görünümü · dispute durumu.
+
+## FE — Admin panel (`react-admin-panel-foundation`) → `FE_ADMIN_*.md`
+- `PricingAttributeDefinition` · Provider price book · `TravelPricingRule` · `PartCommercialTerm` · recurring policy ·
+  **Dispute Case inceleme + item-level release/refund/partial + audit** · change-order inceleme.
+
+## Customer surface (açık nokta)
+İşi onayla / itiraz et aksiyonu + tamamlama kanıtı görünümü + checkout kırılımı → **müşteri app'i bağlı repolarda yok**
+(§21.10/§21.12). Karar bekliyor.
+
+## Açık kararlar (ServiceRequest)
+km oranı/tek-yön/ücretsiz-km · örnek fiyatlar (seed değil) · %10–20 parça indirimi · %30 ticari alan %20/%10 · komisyonun
+parça/ulaşım kalemlerine uygulanması · zehirli boya 24 ay tüm müşteriler mi · teklif net mi brüt mü duyurulacak (§20.20).
