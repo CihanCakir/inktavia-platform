@@ -2,6 +2,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
+using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
@@ -27,6 +28,11 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
         [Refit.Query] string? email           = null,
         [Refit.Query] int     pageIndex       = 0,
         [Refit.Query] int     pageSize        = 20);
+
+    // Generic Keycloak subject → Identity numeric user id (service-token authorized, IdentityRead). Used to resolve
+    // the acting admin's numeric user id for the BFF identity assertion — mirrors the provider's by-subject lookup.
+    [AizenRemoteCallGet("/api/v1/identity/users/by-subject/{keycloakSubject}")]
+    Task<AizenApiResponse<UserBySubjectDto>> GetUserByKeycloakSubject(string keycloakSubject);
 
     [AizenRemoteCallGet("/api/v1/identity/profiles/{profileId}")]
     Task<AizenApiResponse<ProfileDetailResult>> GetProfileById(Guid profileId);
@@ -112,6 +118,20 @@ public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/auth/password/change")]
     Task<AizenApiResponse<ChangePasswordDto>> ChangePassword(
         [AizenRemoteCallBody] ChangePasswordRequest request);
+
+    // ── Admin OTP → Keycloak login (delegated to Identity; mirrors provider-otp-login) ──
+    // Mints a Keycloak token with the "Admin" realm role and returns a LoginTicket for the handoff — NOT an HS256 token.
+    [AizenRemoteCallPost("/api/v1/identity/auth/admin-otp-login/request")]
+    Task<AizenApiResponse<RequestProviderOtpLoginResponse>> RequestAdminOtpLogin(
+        [AizenRemoteCallBody] RequestProviderOtpLoginRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/admin-otp-login/verify")]
+    Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> VerifyAdminOtpLogin(
+        [AizenRemoteCallBody] VerifyProviderOtpLoginRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/admin-otp-login/resend")]
+    Task<AizenApiResponse<ResendProviderOtpLoginResponse>> ResendAdminOtpLogin(
+        [AizenRemoteCallBody] ResendProviderOtpLoginRequest request);
 
     [AizenRemoteCallGet("/api/v1/identity/admin/users/profiles/bulk")]
     Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByUserIds(

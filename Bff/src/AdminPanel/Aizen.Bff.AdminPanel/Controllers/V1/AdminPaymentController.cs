@@ -662,6 +662,46 @@ public sealed class AdminPaymentController : AizenWebApiController
 
     // ─── BE-P3 PlatformFeeRule CRUD ───────────────────────────────────────────
 
+    /// <summary>GET api/v1/admin-panel/payment/platform-fee/rules/stats — KPI strip.</summary>
+    [HttpGet("platform-fee/rules/stats")]
+    [ProducesResponseType(typeof(PlatformFeeRuleStatsBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeRuleStatsBffDto?>> GetPlatformFeeRuleStats(
+        CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetPlatformFeeRuleStatsBffQuery(), ct))?.Stats);
+
+    /// <summary>GET api/v1/admin-panel/payment/platform-fee/rules — paged list with filters.</summary>
+    [HttpGet("platform-fee/rules")]
+    [ProducesResponseType(typeof(PlatformFeeRulesListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeRulesListBffResult>> GetPlatformFeeRules(
+        [FromQuery] string?  model        = null,
+        [FromQuery] string?  status       = null,
+        [FromQuery] string?  currencyCode = null,
+        [FromQuery] string?  categoryCode = null,
+        [FromQuery] string?  customerType = null,
+        [FromQuery] int      page         = 1,
+        [FromQuery] int      pageSize     = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetPlatformFeeRulesListBffQuery
+        {
+            Model        = model,
+            Status       = status,
+            CurrencyCode = currencyCode,
+            CategoryCode = categoryCode,
+            CustomerType = customerType,
+            Page         = page,
+            PageSize     = pageSize,
+        }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/platform-fee/rules/{id} — single rule detail.</summary>
+    [HttpGet("platform-fee/rules/{id:long}")]
+    [ProducesResponseType(typeof(PlatformFeeRuleDetailBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeRuleDetailBffDto?>> GetPlatformFeeRuleById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetPlatformFeeRuleDetailBffQuery { Id = id }, ct))?.Rule);
+
     /// <summary>GET api/v1/admin-panel/payment/platform-fee/resolve — point-in-time fee preview.</summary>
     [HttpGet("platform-fee/resolve")]
     [ProducesResponseType(typeof(PlatformFeeResolveBffResult), StatusCodes.Status200OK)]
@@ -700,6 +740,13 @@ public sealed class AdminPaymentController : AizenWebApiController
     public async Task<AizenApiResponse<PlatformFeeRuleMutateBffResult?>> DeactivatePlatformFeeRule(
         long id, CancellationToken ct = default)
         => SetResponse((await _cqrs.ProcessAsync(new DeactivatePlatformFeeRuleBffCommand { Id = id }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/platform-fee/rules/{id}/reactivate — re-activate an Inactive rule.</summary>
+    [HttpPost("platform-fee/rules/{id:long}/reactivate")]
+    [ProducesResponseType(typeof(PlatformFeeRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PlatformFeeRuleMutateBffResult?>> ReactivatePlatformFeeRule(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ReactivatePlatformFeeRuleBffCommand { Id = id }, ct))?.Result);
 
     // ─── BE-P4 ProviderPlanPrice CRUD ─────────────────────────────────────────
 
@@ -782,6 +829,38 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id, CancellationToken ct = default)
         => SetResponse((await _cqrs.ProcessAsync(new DeactivateProfitProtectionPolicyBffCommand { Id = id }, ct))?.Result);
 
+    /// <summary>GET api/v1/admin-panel/payment/profit-protection/policies — version history (no paging), optional filters.</summary>
+    [HttpGet("profit-protection/policies")]
+    [ProducesResponseType(typeof(ProfitProtectionPolicyListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfitProtectionPolicyListBffResult>> GetProfitProtectionPolicies(
+        [FromQuery] string? currencyCode = null,
+        [FromQuery] string? status       = null,
+        [FromQuery] bool?   isActive     = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetProfitProtectionPoliciesListBffQuery
+        {
+            CurrencyCode = currencyCode,
+            Status       = status,
+            IsActive     = isActive,
+        }, ct);
+        return SetResponse(result?.Result ?? new ProfitProtectionPolicyListBffResult(new(), 0));
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/profit-protection/policies/{id} — single policy detail.</summary>
+    [HttpGet("profit-protection/policies/{id:long}")]
+    [ProducesResponseType(typeof(ProfitProtectionPolicyDetailBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfitProtectionPolicyDetailBffDto?>> GetProfitProtectionPolicyById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetProfitProtectionPolicyDetailBffQuery { Id = id }, ct))?.Policy);
+
+    /// <summary>POST api/v1/admin-panel/payment/profit-protection/policies/{id}/reactivate — re-activate an Inactive policy.</summary>
+    [HttpPost("profit-protection/policies/{id:long}/reactivate")]
+    [ProducesResponseType(typeof(ProfitProtectionPolicyMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfitProtectionPolicyMutateBffResult?>> ReactivateProfitProtectionPolicy(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ReactivateProfitProtectionPolicyBffCommand { Id = id }, ct))?.Result);
+
     // ─── BE-P6 CustomerDiscountRule + CustomerBenefitBudgetPolicy CRUD ─────────
 
     /// <summary>GET api/v1/admin-panel/payment/customer-discounts/resolve — discount + funding preview.</summary>
@@ -823,12 +902,73 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id, CancellationToken ct = default)
         => SetResponse((await _cqrs.ProcessAsync(new DeactivateCustomerDiscountRuleBffCommand { Id = id }, ct))?.Result);
 
+    /// <summary>GET api/v1/admin-panel/payment/customer-discounts/rules — rule list (no paging), optional filters.</summary>
+    [HttpGet("customer-discounts/rules")]
+    [ProducesResponseType(typeof(CustomerDiscountRuleListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerDiscountRuleListBffResult>> GetCustomerDiscountRules(
+        [FromQuery] long?   customerPlanId = null,
+        [FromQuery] string? categoryCode   = null,
+        [FromQuery] string? currencyCode   = null,
+        [FromQuery] string? fundingMode    = null,
+        [FromQuery] bool?   isActive       = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetCustomerDiscountRulesListBffQuery
+        {
+            CustomerPlanId = customerPlanId,
+            CategoryCode   = categoryCode,
+            CurrencyCode   = currencyCode,
+            FundingMode    = fundingMode,
+            IsActive       = isActive,
+        }, ct);
+        return SetResponse(result?.Result ?? new CustomerDiscountRuleListBffResult(new(), 0));
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/customer-discounts/rules/{id} — single rule detail.</summary>
+    [HttpGet("customer-discounts/rules/{id:long}")]
+    [ProducesResponseType(typeof(CustomerDiscountRuleDetailBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerDiscountRuleDetailBffDto?>> GetCustomerDiscountRuleById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetCustomerDiscountRuleDetailBffQuery { Id = id }, ct))?.Rule);
+
+    /// <summary>POST api/v1/admin-panel/payment/customer-discounts/rules/{id}/reactivate — re-activate an Inactive rule.</summary>
+    [HttpPost("customer-discounts/rules/{id:long}/reactivate")]
+    [ProducesResponseType(typeof(CustomerDiscountRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerDiscountRuleMutateBffResult?>> ReactivateCustomerDiscountRule(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ReactivateCustomerDiscountRuleBffCommand { Id = id }, ct))?.Result);
+
     /// <summary>POST api/v1/admin-panel/payment/benefit-budget/policies — create a per-plan budget policy.</summary>
     [HttpPost("benefit-budget/policies")]
     [ProducesResponseType(typeof(CustomerBenefitBudgetPolicyCreateBffResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CustomerBenefitBudgetPolicyCreateBffResult?>> CreateCustomerBenefitBudgetPolicy(
         [FromBody] CreateCustomerBenefitBudgetPolicyBffRequest body, CancellationToken ct = default)
         => SetResponse((await _cqrs.ProcessAsync(new CreateCustomerBenefitBudgetPolicyBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>GET api/v1/admin-panel/payment/benefit-budget/policies — per-plan policy list (no paging), optional filters.</summary>
+    [HttpGet("benefit-budget/policies")]
+    [ProducesResponseType(typeof(CustomerBenefitBudgetPolicyListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerBenefitBudgetPolicyListBffResult>> GetCustomerBenefitBudgetPolicies(
+        [FromQuery] long?   customerPlanId = null,
+        [FromQuery] string? currencyCode   = null,
+        [FromQuery] bool?   isActive       = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetCustomerBenefitBudgetPoliciesListBffQuery
+        {
+            CustomerPlanId = customerPlanId,
+            CurrencyCode   = currencyCode,
+            IsActive       = isActive,
+        }, ct);
+        return SetResponse(result?.Result ?? new CustomerBenefitBudgetPolicyListBffResult(new(), 0));
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/benefit-budget/policies/{id} — single policy detail.</summary>
+    [HttpGet("benefit-budget/policies/{id:long}")]
+    [ProducesResponseType(typeof(CustomerBenefitBudgetPolicyDetailBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CustomerBenefitBudgetPolicyDetailBffDto?>> GetCustomerBenefitBudgetPolicyById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetCustomerBenefitBudgetPolicyDetailBffQuery { Id = id }, ct))?.Policy);
 
     // ─── BE-P7 ProviderCommissionBenefitRule + entitlement ────────────────────
 

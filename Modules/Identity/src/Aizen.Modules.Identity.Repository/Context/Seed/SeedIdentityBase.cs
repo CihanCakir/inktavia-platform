@@ -108,6 +108,60 @@ namespace Aizen.Modules.Identity.Repository.Context.Seed
 
             // Admin rol ataması (custom UserRoleEntity nedeniyle DbContext üzerinden)
             await EnsureUserInRoleAsync(db, admin, "Admin", ct);
+
+            // OTP-ready admin: ensure KeycloakSubjectId + Admin profile (Dev/Local only)
+            var env = cfg["ASPNETCORE_ENVIRONMENT"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            if (env is "Local" or "Development")
+            {
+                // Set a KeycloakSubjectId if missing (dev placeholder or from config)
+                if (string.IsNullOrWhiteSpace(admin.KeycloakSubjectId))
+                {
+                    var configuredSub = cfg["Seed:Admin:KeycloakSubjectId"];
+                    if (string.IsNullOrWhiteSpace(configuredSub))
+                    {
+                        // Stable dev placeholder — Kickoff 2 must replace with the real Keycloak subject id
+                        configuredSub = "00000000-0000-0000-0000-admin0000001";
+                        // Log warning at console since ILogger is not available in static seed
+                        Console.WriteLine(
+                            "[WARN] SeedIdentityBase: Admin user assigned dev-placeholder KeycloakSubjectId. " +
+                            "Kickoff 2 must replace it with the real Keycloak subject id of the admin user.");
+                    }
+
+                    admin.SetKeycloakSubjectId(configuredSub);
+                    await userManager.UpdateAsync(admin);
+                }
+
+                // Ensure Admin profile exists (WorkshopRoleContext.Admin)
+                var hasAdminProfile = await db.UserProfiles
+                    .AnyAsync(p => p.UserId == admin.Id && p.RoleContext == WorkshopRoleContext.Admin, ct);
+
+                if (!hasAdminProfile)
+                {
+                    var adminProfile = UserProfileEntity.Create(
+                        userId: admin.Id,
+                        firstName: adminFirst,
+                        lastName: adminLast,
+                        taxpayerType: TaxpayerType.Individual
+                    );
+                    adminProfile.RoleContext = WorkshopRoleContext.Admin;
+
+                    db.UserProfiles.Add(adminProfile);
+                    await db.SaveChangesAsync(ct);
+
+                    admin.AddProfile(adminProfile, markAsActive: false);
+                    db.Update(admin);
+                    await db.SaveChangesAsync(ct);
+                }
+
+                // If admin email is the OTP-ready one, make sure it's set
+                var otpAdminEmail = cfg["Seed:Admin:Email"] ?? "admin@inktavia.local";
+                if (!string.Equals(otpAdminEmail, "admin@inktavia.local", StringComparison.OrdinalIgnoreCase)
+                    && admin.Email != null
+                    && string.Equals(admin.Email, otpAdminEmail, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Email already matches, nothing to do
+                }
+            }
         }
 
         // ---------- helpers ----------

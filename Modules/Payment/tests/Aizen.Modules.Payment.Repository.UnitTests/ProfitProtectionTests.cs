@@ -100,8 +100,77 @@ public sealed class ProfitProtectionTests
         (await db.ProfitProtectionPolicies.CountAsync()).Should().Be(1);
     }
 
-    private static ProfitProtectionPolicyEntity MakePolicy(DateTime from, string code)
+    // ── Admin list / detail / reactivate surface (BE-P5 P5 additions) ────────────
+
+    [Fact]
+    public async Task GetByIdAsync_Returns_Policy_And_Null_When_Missing()
+    {
+        await using var db = NewDb();
+        var p = MakePolicy(DateTime.UtcNow.AddDays(-1), "PPOL-DETAIL", "TRY");
+        db.ProfitProtectionPolicies.Add(p);
+        await db.SaveChangesAsync();
+
+        var repo = new ProfitProtectionPolicyRepository(db);
+
+        (await repo.GetByIdAsync(p.Id))!.PolicyCode.Should().Be("PPOL-DETAIL");
+        (await repo.GetByIdAsync(999_999)).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_Returns_Every_Version_For_The_History()
+    {
+        await using var db = NewDb();
+        db.ProfitProtectionPolicies.Add(MakePolicy(DateTime.UtcNow.AddDays(-10), "PPOL-USD", "USD"));
+        db.ProfitProtectionPolicies.Add(MakePolicy(DateTime.UtcNow.AddDays(-5),  "PPOL-TRY1", "TRY"));
+        var inactive = MakePolicy(DateTime.UtcNow.AddDays(-20), "PPOL-TRY0", "TRY");
+        inactive.Deactivate();
+        db.ProfitProtectionPolicies.Add(inactive);
+        await db.SaveChangesAsync();
+
+        var repo = new ProfitProtectionPolicyRepository(db);
+        var all = await repo.GetAllAsync();
+
+        all.Should().HaveCount(3, "the version history includes inactive/historical versions, not just the active one");
+    }
+
+    // Reactivate re-runs the single-active guard: an inactive policy that would collide when reactivated.
+    [Fact]
+    public async Task FindOverlappingActivePolicyAsync_Detects_Reactivation_Conflict()
+    {
+        await using var db = NewDb();
+        var from = DateTime.UtcNow.AddDays(-1);
+        var active = MakePolicy(from, "PPOL-ACTIVE", "TRY");             // active TRY policy, open window
+        var toReactivate = MakePolicy(from, "PPOL-INACTIVE", "TRY");     // same currency + overlapping window
+        toReactivate.Deactivate();
+        db.ProfitProtectionPolicies.Add(active);
+        db.ProfitProtectionPolicies.Add(toReactivate);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var repo = new ProfitProtectionPolicyRepository(db);
+
+        // The reactivate handler runs exactly this guard before flipping IsActive back on.
+        var conflict = await repo.FindOverlappingActivePolicyAsync(toReactivate);
+
+        conflict.Should().NotBeNull();
+        conflict!.PolicyCode.Should().Be("PPOL-ACTIVE");
+    }
+
+    [Fact]
+    public void Reactivate_Sets_Active_And_Rederives_Status()
+    {
+        var p = MakePolicy(DateTime.UtcNow.AddDays(-1), "PPOL-RE", "TRY");
+        p.Deactivate();
+        p.IsActive.Should().BeFalse();
+
+        p.Reactivate();
+
+        p.IsActive.Should().BeTrue();
+        p.Status.Should().Be(CommissionRuleStatus.Active);
+    }
+
+    private static ProfitProtectionPolicyEntity MakePolicy(DateTime from, string code, string currency = "TRY")
         => ProfitProtectionPolicyEntity.Create(
-            "TRY", 0m, 0m, 0m, 0m, 10m, 0.01m, 0.029m, 0.25m, 0.005m, 0m, 0m, 0.5m,
+            currency, 0m, 0m, 0m, 0m, 10m, 0.01m, 0.029m, 0.25m, 0.005m, 0m, 0m, 0.5m,
             ProfitProtectionAdjustmentOrder.PlatformDiscountThenCommissionBenefit, from, null, code);
 }

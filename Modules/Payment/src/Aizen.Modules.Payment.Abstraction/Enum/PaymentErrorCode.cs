@@ -49,6 +49,7 @@ public enum PaymentErrorCode
     PlatformFeeRuleConflict              = 5041,   // ≥2 rules tie on (specificity, priority) at resolve, or an overlapping active rule at create/update
     PlatformFeeRuleNotFound              = 5042,   // No rule for the given id / no rule (incl. Global) matched the context
     PlatformFeeRuleInvalid               = 5043,   // Model-incoherent rule (e.g. Percentage without Rate, bounds with Min > Max)
+    PlatformFeeRuleNotInactive           = 5047,   // Reactivate attempted on a non-Inactive platform fee rule
 
     // ── Provider plan price versioning (BE-P4) ────────────────────────────────
     ProviderPlanPriceConflict            = 5044,   // >1 active price at an instant, or an overlapping range at create/update
@@ -59,6 +60,7 @@ public enum PaymentErrorCode
     ProfitProtectionPolicyConflict       = 5050,   // >1 active policy for a currency at an instant, or an overlapping range at create/update
     ProfitProtectionPolicyNotFound       = 5051,   // No active policy resolves for the (currency, instant) → ConfigurationError at the engine
     ProfitProtectionPolicyInvalid        = 5052,   // Model-incoherent policy (e.g. negative rate/amount, share outside [0,1])
+    ProfitProtectionPolicyNotInactive    = 5053,   // Reactivate attempted on a non-Inactive profit-protection policy
 
     // ── Customer discount + benefit budget (BE-P6) ────────────────────────────
     CustomerDiscountRuleConflict         = 5060,   // ≥2 rules tie on (specificity, priority) at resolve, or an overlapping active rule at create/update
@@ -70,6 +72,7 @@ public enum PaymentErrorCode
     CustomerBenefitReservationNotFound   = 5066,   // No reservation for the id
     CustomerBenefitReservationInvalidState = 5067, // Consume/Release attempted from a non-Reserved state
     CustomerBenefitBudgetPolicyConflict  = 5068,   // >1 active budget policy for a (plan, currency), or overlap at create/update
+    CustomerDiscountRuleNotInactive      = 5069,   // Reactivate attempted on a non-Inactive customer discount rule
 
     // ── Provider commission benefit (BE-P7) ───────────────────────────────────
     ProviderCommissionBenefitRuleConflict         = 5070,   // ≥2 exclusive/non-stackable benefits tie, or an overlapping active rule at create/update

@@ -50,6 +50,7 @@ namespace Aizen.Modules.Identity.Repository
             services.AddScoped<IOAuthProviderClient, OAuthProviderClient>();
             services.AddScoped<IOrganizerRegistrationDomainService, OrganizerRegistrationDomainService>();
             services.AddScoped<IOrganizerKeycloakProvisioningDomainService, OrganizerKeycloakProvisioningDomainService>();
+            services.AddScoped<IAdminKeycloakProvisioningDomainService, AdminKeycloakProvisioningDomainService>();
             services.AddScoped<IVenueRegistrationDomainService, VenueRegistrationDomainService>();
 
             // Provider onboarding
@@ -79,6 +80,7 @@ namespace Aizen.Modules.Identity.Repository
                     configuration.GetSection(OtpLoginOptions.SectionName));
             }
             services.AddScoped<IProviderOtpLoginDomainService, ProviderOtpLoginDomainService>();
+            services.AddScoped<IAdminOtpLoginDomainService, AdminOtpLoginDomainService>();
 
             // OTP login ticket (single-use HMAC-SHA256 signed tickets)
             if (configuration is not null)

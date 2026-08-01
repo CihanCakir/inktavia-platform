@@ -62,3 +62,23 @@ public sealed class DeactivateProfitProtectionPolicyBffCommandHandler
     public override async Task<DeactivateProfitProtectionPolicyBffResponse?> Handle(DeactivateProfitProtectionPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivateProfitProtectionPolicyAsync(request.Id, ct) };
 }
+
+// ─── Reactivate ──────────────────────────────────────────────────────────────
+public sealed class ReactivateProfitProtectionPolicyBffCommand : AizenCommand<ReactivateProfitProtectionPolicyBffResponse>
+{
+    public long Id { get; init; }
+}
+public sealed class ReactivateProfitProtectionPolicyBffResponse { public ProfitProtectionPolicyMutateBffResult Result { get; init; } = default!; }
+
+[DocumentationInfo("Reactivate profit-protection policy BFF command handler (BE-P5)",
+    "Forwards a reactivate (POST /profit-protection/policies/{id}/reactivate). The module re-runs the single-active " +
+    "overlap guard for the currency, so ProfitProtectionPolicyConflict may surface through the envelope.")]
+public sealed class ReactivateProfitProtectionPolicyBffCommandHandler
+    : AizenCommandHandler<ReactivateProfitProtectionPolicyBffCommand, ReactivateProfitProtectionPolicyBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public ReactivateProfitProtectionPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ReactivateProfitProtectionPolicyBffResponse?> Handle(ReactivateProfitProtectionPolicyBffCommand request, CancellationToken ct)
+        => new() { Result = await _payment.ReactivateProfitProtectionPolicyAsync(request.Id, ct) };
+}

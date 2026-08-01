@@ -1,7 +1,11 @@
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Application.Commands.CreatePlatformFeeRule;
 using Aizen.Modules.Payment.Application.Commands.DeactivatePlatformFeeRule;
+using Aizen.Modules.Payment.Application.Commands.ReactivatePlatformFeeRule;
 using Aizen.Modules.Payment.Application.Commands.UpdatePlatformFeeRule;
+using Aizen.Modules.Payment.Application.Queries.GetPlatformFeeRuleById;
+using Aizen.Modules.Payment.Application.Queries.GetPlatformFeeRulesList;
+using Aizen.Modules.Payment.Application.Queries.GetPlatformFeeRuleStats;
 using Aizen.Modules.Payment.Application.Queries.ResolvePlatformFee;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +20,49 @@ public sealed class PlatformFeeRuleController : ControllerBase
 {
     private readonly ISender _sender;
     public PlatformFeeRuleController(ISender sender) => _sender = sender;
+
+    // ── Queries: list / detail / stats ──────────────────────────────────────────
+
+    /// <summary>Returns a paged list of platform fee rules with optional filters.</summary>
+    [HttpGet("rules")]
+    public async Task<IActionResult> GetList(
+        [FromQuery] PlatformFeeModel?     model        = null,
+        [FromQuery] CommissionRuleStatus? status       = null,
+        [FromQuery] string?               currencyCode = null,
+        [FromQuery] string?               categoryCode = null,
+        [FromQuery] string?               customerType = null,
+        [FromQuery] int                   page         = 1,
+        [FromQuery] int                   pageSize     = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetPlatformFeeRulesListQuery
+        {
+            Model        = model,
+            Status       = status,
+            CurrencyCode = currencyCode,
+            CategoryCode = categoryCode,
+            CustomerType = customerType,
+            Page         = page,
+            PageSize     = pageSize,
+        }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>Returns the full detail of a single platform fee rule by ID.</summary>
+    [HttpGet("rules/{id:long}")]
+    public async Task<IActionResult> GetById(long id, CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetPlatformFeeRuleByIdQuery { Id = id }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>Returns KPI statistics for the platform fee rules dashboard strip.</summary>
+    [HttpGet("rules/stats")]
+    public async Task<IActionResult> GetStats(CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetPlatformFeeRuleStatsQuery(), ct);
+        return Ok(result);
+    }
 
     // ── Query: resolve (admin/dev preview) ──────────────────────────────────────
 
@@ -56,4 +103,9 @@ public sealed class PlatformFeeRuleController : ControllerBase
     [HttpPost("rules/{id:long}/deactivate")]
     public async Task<IActionResult> Deactivate(long id, CancellationToken ct = default)
         => Ok(await _sender.Send(new DeactivatePlatformFeeRuleCommand { Id = id }, ct));
+
+    /// <summary>Admin re-activates an Inactive platform fee rule (re-checks the effective-window conflict guard).</summary>
+    [HttpPost("rules/{id:long}/reactivate")]
+    public async Task<IActionResult> Reactivate(long id, CancellationToken ct = default)
+        => Ok(await _sender.Send(new ReactivatePlatformFeeRuleCommand { Id = id }, ct));
 }

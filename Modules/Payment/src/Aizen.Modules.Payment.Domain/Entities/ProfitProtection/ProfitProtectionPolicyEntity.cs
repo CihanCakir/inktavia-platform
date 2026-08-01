@@ -145,6 +145,12 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
         Status   = CommissionRuleStatus.Inactive;
     }
 
+    public void Reactivate()
+    {
+        IsActive = true;
+        Status   = DeriveStatus(EffectiveFrom, EffectiveTo);
+    }
+
     public void SetPolicyCode(string policyCode) => PolicyCode = policyCode;
 
     public bool IsEffective(DateTime atUtc) =>

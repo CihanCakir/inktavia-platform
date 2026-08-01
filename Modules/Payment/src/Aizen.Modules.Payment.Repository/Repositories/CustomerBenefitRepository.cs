@@ -86,6 +86,9 @@ public sealed class CustomerBenefitBudgetPolicyRepository : ICustomerBenefitBudg
     public Task<CustomerBenefitBudgetPolicyEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.CustomerBenefitBudgetPolicies.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<List<CustomerBenefitBudgetPolicyEntity>> GetAllAsync(CancellationToken ct = default)
+        => _db.CustomerBenefitBudgetPolicies.OrderByDescending(x => x.EffectiveFrom).ToListAsync(ct);
+
     public Task AddAsync(CustomerBenefitBudgetPolicyEntity entity, CancellationToken ct = default)
         => _db.CustomerBenefitBudgetPolicies.AddAsync(entity, ct).AsTask();
 

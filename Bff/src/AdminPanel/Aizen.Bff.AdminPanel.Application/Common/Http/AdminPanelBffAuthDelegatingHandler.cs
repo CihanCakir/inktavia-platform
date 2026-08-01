@@ -1,28 +1,30 @@
+using Aizen.Bff.AdminPanel.Application.Common.Options;
 using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.Http;
 
 /// <summary>
-/// Centralized outgoing auth header handler for all BFF → downstream microservice calls.
+/// Outgoing auth handler for the AdminPanel BFF → internal module calls. A byte-for-byte mirror of the MarineProvider
+/// BFF's <c>MarineProviderBffAuthDelegatingHandler</c> (minus the provider profile id — an admin is not a provider):
 ///
-/// Sets two headers automatically on every outgoing Refit request:
-///   • Authorization: Bearer {keycloak_service_token}   — machine-to-machine service account token
-///   • X-Aizen-User-Token: {identity_user_access_token} — caller's identity JWT (populated by
-///       AizenUserInfoMiddleware from the incoming X-Aizen-User-Token header).
+///   • Authorization: Bearer {keycloak_service_token} — machine-to-machine client_credentials token (per-module
+///       audiences baked into the admin-panel-bff client), when no Authorization is already present.
+///   • X-Aizen-Bff-Assertion + X-Aizen-User-Id — a trusted-BFF identity assertion, sent ONLY when a module-assertion
+///       secret is configured AND the admin identity has been resolved to a numeric user id this request. Audit only:
+///       admin module endpoints authorize on the service token's Admin role, not on this header.
 ///
-/// Headers are skipped if already present on the outgoing request or if the value is empty
-/// (e.g. unauthenticated/anonymous calls where UserInfo.AccessToken is not set).
+/// It never forwards an Identity X-Aizen-User-Token and never fabricates an Identity JWT — the human Keycloak token
+/// stays inbound-only.
 ///
-/// Register as Transient. Resolves scoped services via IHttpContextAccessor.RequestServices
-/// to avoid captive dependency issues — same pattern as AuthorizationForwardingHandler.
+/// Register as Transient; resolves scoped services via IHttpContextAccessor.RequestServices.
 /// </summary>
 [DocumentationInfo("Admin panel BFF auth delegating handler",
-    "Injects Authorization (Keycloak service token) and X-Aizen-User-Token (identity JWT) " +
-    "into all outgoing downstream HTTP calls. Replaces explicit per-method auth header " +
-    "parameters across all IAizenRemoteCall-derived interfaces.")]
+    "Injects Authorization (Keycloak service token) and, when configured, the trusted-BFF identity assertion " +
+    "(X-Aizen-Bff-Assertion + X-Aizen-User-Id) into all outgoing downstream HTTP calls. Never forwards the user JWT.")]
 public sealed class AdminPanelBffAuthDelegatingHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(
@@ -30,27 +32,28 @@ public sealed class AdminPanelBffAuthDelegatingHandler(IHttpContextAccessor http
     {
         var context = httpContextAccessor.HttpContext;
 
-        if (context is not null)
+        if (context is not null && !request.Headers.Contains("Authorization"))
         {
-            // ── 1. Service-to-service token (Keycloak client_credentials) ──────────
-            if (!request.Headers.Contains("Authorization"))
+            var tokenProvider = context.RequestServices
+                .GetRequiredService<IAdminPanelBffKeycloakServiceTokenProvider>();
+
+            var serviceToken = await tokenProvider.GetAccessTokenAsync(cancellationToken);
+            request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {serviceToken}");
+        }
+
+        if (context is not null && !request.Headers.Contains(AizenAuthHeaders.BffAssertion))
+        {
+            var secret = context.RequestServices
+                .GetRequiredService<IOptions<AdminPanelKeycloakOptions>>().Value.ModuleAssertionSecret;
+            var resolver = context.RequestServices.GetRequiredService<IAdminIdentityResolver>();
+            var holder = context.RequestServices.GetRequiredService<IAdminIdentityHolder>();
+
+            await resolver.ResolveAsync(cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(secret) && holder.Resolved && holder.UserId is > 0)
             {
-                var tokenProvider = context.RequestServices
-                    .GetRequiredService<IAdminPanelBffKeycloakServiceTokenProvider>();
-
-                var serviceToken = await tokenProvider.GetAccessTokenAsync(cancellationToken);
-                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {serviceToken}");
-            }
-
-            // ── 2. Identity user token (from IAizenUserInfoAccessor, set by AizenUserInfoMiddleware) ──
-            if (!request.Headers.Contains("X-Aizen-User-Token"))
-            {
-                var userInfoAccessor = context.RequestServices
-                    .GetRequiredService<IAizenUserInfoAccessor>();
-
-                var userToken = userInfoAccessor.UserInfo?.AccessToken;
-                if (!string.IsNullOrWhiteSpace(userToken))
-                    request.Headers.TryAddWithoutValidation("X-Aizen-User-Token", userToken);
+                request.Headers.TryAddWithoutValidation(AizenAuthHeaders.BffAssertion, secret);
+                request.Headers.TryAddWithoutValidation(AizenAuthHeaders.AssertedUserId, holder.UserId!.Value.ToString());
             }
         }
 

@@ -4,7 +4,7 @@ using Aizen.Core.RemoteCall.Abstraction;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
-[DocumentationInfo("Notification user BFF remote call", "Forwards authenticated user's notification inbox requests to the Notification module. Uses AuthorizationForwardingHandler to propagate the user's Bearer token.")]
+[DocumentationInfo("Notification user BFF remote call", "Forwards admin notification inbox requests to the Notification module. Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are injected by AdminPanelBffAuthDelegatingHandler.")]
 public interface INotificationBffRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/notification/notifications")]

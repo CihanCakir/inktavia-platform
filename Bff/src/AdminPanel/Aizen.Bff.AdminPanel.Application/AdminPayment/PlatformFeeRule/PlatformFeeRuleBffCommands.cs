@@ -63,3 +63,23 @@ public sealed class DeactivatePlatformFeeRuleBffCommandHandler
     public override async Task<DeactivatePlatformFeeRuleBffResponse?> Handle(DeactivatePlatformFeeRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivatePlatformFeeRuleAsync(request.Id, ct) };
 }
+
+// ─── Reactivate ──────────────────────────────────────────────────────────────
+public sealed class ReactivatePlatformFeeRuleBffCommand : AizenCommand<ReactivatePlatformFeeRuleBffResponse>
+{
+    public long Id { get; init; }
+}
+public sealed class ReactivatePlatformFeeRuleBffResponse { public PlatformFeeRuleMutateBffResult Result { get; init; } = default!; }
+
+[DocumentationInfo("Reactivate platform-fee rule BFF command handler (BE-P3)",
+    "Forwards a reactivate (POST /platform-fee/rules/{id}/reactivate). A PlatformFeeRuleConflict/NotInactive surfaces " +
+    "through the envelope (fail-loud) when reactivation would collide with an active rule.")]
+public sealed class ReactivatePlatformFeeRuleBffCommandHandler
+    : AizenCommandHandler<ReactivatePlatformFeeRuleBffCommand, ReactivatePlatformFeeRuleBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public ReactivatePlatformFeeRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ReactivatePlatformFeeRuleBffResponse?> Handle(ReactivatePlatformFeeRuleBffCommand request, CancellationToken ct)
+        => new() { Result = await _payment.ReactivatePlatformFeeRuleAsync(request.Id, ct) };
+}

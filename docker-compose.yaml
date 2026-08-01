@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-aizen}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aizenpw}
-      POSTGRES_DB: ${POSTGRES_DB:-aizen}
+      POSTGRES_DB: ${POSTGRES_DB:-inktavia_store}
     ports:
       - "5432:5432"
     volumes:
@@ -139,10 +139,24 @@ services:
       MessageBroker__QueueSettings__Port: 5672
       MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
       MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
-      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
-      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
-      KEYCLOAK_AUDIENCE: bff-adminpanel
-      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # ── Admin BFF inbound auth: Keycloak RS256 (mirrors MarineProviderKeycloak) ──
+      AdminPanelKeycloak__BaseUrl: http://keycloak:8080
+      AdminPanelKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      AdminPanelKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      AdminPanelKeycloak__Realm: inktavia-realm
+      AdminPanelKeycloak__Audience: admin-panel-bff
+      AdminPanelKeycloak__RequireHttpsMetadata: "false"
+      AdminPanelKeycloak__AdminClientId: admin-panel-bff
+      AdminPanelKeycloak__AdminClientSecret: ${KEYCLOAK_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      AdminPanelKeycloak__AdminPanelClientId: admin-panel-web
+      AdminPanelKeycloak__AdminPanelBffClientId: admin-panel-bff
+      AdminPanelKeycloak__AdminRole: Admin
+      # Trusted-BFF identity assertion (audit only). Empty = disabled. Must match each module's BffAssertion__SharedSecret.
+      # X-Aizen-User-Id is resolved via Keycloak subject → Identity by-subject lookup (no user-id claim mapper needed).
+      AdminPanelKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      # ── BFF→module Keycloak service token ──
+      KeycloakServiceToken__Authority: http://keycloak:8080/realms/inktavia-realm
+      KeycloakServiceToken__TokenEndpoint: http://keycloak:8080/realms/inktavia-realm/protocol/openid-connect/token
       KeycloakServiceToken__ClientSecret: ${KEYCLOAK_BFF_CLIENT_SECRET:-local-dev-only-change-me}
       RemoteCalls__IIdentityAdminBffRemoteCall__BaseUrl: http://identity-api:8080
       RemoteCalls__IVesselAdminBffRemoteCall__BaseUrl: http://vessel-api:8080
@@ -338,7 +352,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Identity: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Identity: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Redis__Host: redis:6379
       Identity__Authority: http://keycloak:8080/realms/${KC_REALM:-inktavia-realm}
       Messaging__RabbitMQ__Host: rabbitmq
@@ -360,6 +374,7 @@ services:
       # Trusted-BFF identity assertion (module side). Empty = disabled. Must match the BFF's ModuleAssertionSecret.
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
       IdentityKeycloak__ProviderPendingRole: provider_pending
       IdentityKeycloak__ProviderUserRole: provider_user
       IdentityKeycloak__ProviderRestrictedRole: provider_restricted
@@ -406,7 +421,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
@@ -418,7 +433,7 @@ services:
       KEYCLOAK_AUDIENCE: reference-data-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       DatabaseSettings__ReferenceData__Type: PostgreSQL
-      DatabaseSettings__ReferenceData__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__ReferenceData__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=12
       ReferenceDataSeed__Enabled: "true"
       ReferenceDataSeed__SeedEfEntities: "true"
@@ -440,7 +455,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
       Messaging__RabbitMQ__Port: 5672
@@ -473,7 +488,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
@@ -483,7 +498,7 @@ services:
       KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       DatabaseSettings__FileStorage__Type: PostgreSQL
-      DatabaseSettings__FileStorage__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__FileStorage__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       KEYCLOAK_AUDIENCE: file-storage-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       S3ObjectStorage__Provider: MinIO
@@ -497,6 +512,7 @@ services:
       S3ObjectStorage__UseHttp: "true"
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
     ports:
       - "7106:8080"
     networks: [aizen]
@@ -515,7 +531,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
@@ -532,6 +548,7 @@ services:
       # Trusted-BFF identity assertion (Phase 32): accept X-Aizen-Provider-Profile-Id from the MarineProvider BFF.
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
       # Redis backplane for SignalR (ServiceRequestHub).
       Realtime__SignalR__UseRedisBackplane: "true"
       Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
@@ -554,7 +571,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__CargoDry: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__CargoDry: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       ConnectionStrings__CargoDryMongo: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       MongoDb__DatabaseName: aizen_cargodry
       DistributedCache__InstanceName: "CargoDry:"
@@ -574,6 +591,7 @@ services:
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
       ElasticApm__Enabled: "false"
     ports:
       - "7108:8080"
@@ -593,7 +611,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Messaging: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Messaging: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       DistributedCache__InstanceName: "Messaging:"
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=13
@@ -627,9 +645,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Notification: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Notification: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       DatabaseSettings__Notification__Type: PostgreSQL
-      DatabaseSettings__Notification__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__Notification__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       DistributedCache__InstanceName: "Notification:"
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=13
       MessageBroker__QueueSettings__HostName: rabbitmq
@@ -645,6 +663,7 @@ services:
       # resolve the asserted identity (UserId + ProviderProfileId). Mirrors cargodry-api.
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
       ElasticApm__Enabled: "false"
       Email__Host: ${SMTP_HOST:-}
       Email__Port: ${SMTP_PORT:-587}
@@ -677,8 +696,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      DatabaseSettings__Payment__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
-      DatabaseSettings__PaymentScheduler__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__Payment__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__PaymentScheduler__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       DistributedCache__InstanceName: "Payment:"
       DistributedCache__Configuration: redis:6379,abortConnect=False,defaultDatabase=14
       MessageBroker__QueueSettings__HostName: rabbitmq
@@ -704,6 +723,7 @@ services:
       ElasticApm__Enabled: "false"
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
       RemoteCalls__IPaymentFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       Payment__IbanEncryptionKey: ${PAYMENT_IBAN_ENCRYPTION_KEY:-local-dev-iban-key-change-me!!!!!}
     ports:

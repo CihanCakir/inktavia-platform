@@ -32,6 +32,7 @@ public interface ICustomerBenefitBudgetPolicyRepository
         CustomerBenefitBudgetPolicyEntity candidate, CancellationToken ct = default);
 
     Task<CustomerBenefitBudgetPolicyEntity?> GetByIdAsync(long id, CancellationToken ct = default);
+    Task<List<CustomerBenefitBudgetPolicyEntity>> GetAllAsync(CancellationToken ct = default);
 
     Task AddAsync(CustomerBenefitBudgetPolicyEntity entity, CancellationToken ct = default);
     void Update(CustomerBenefitBudgetPolicyEntity entity);

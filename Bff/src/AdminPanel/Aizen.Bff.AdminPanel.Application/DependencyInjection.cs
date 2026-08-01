@@ -16,8 +16,8 @@ namespace Aizen.Bff.AdminPanel.Application;
 [DocumentationInfo("Admin Panel BFF DI registration",
     "Registers BFF remote call interfaces and application-layer services. " +
     "All downstream HTTP calls are routed through AdminPanelBffAuthDelegatingHandler which " +
-    "automatically injects Authorization (Keycloak service token) and X-Aizen-User-Token " +
-    "(identity JWT from IAizenUserInfoAccessor). AuthorizationForwardingHandler is no longer used.")]
+    "injects Authorization (Keycloak service token) and, when configured, the trusted-BFF identity assertion " +
+    "(X-Aizen-Bff-Assertion + X-Aizen-User-Id from IAdminIdentityHolder). The user JWT is never forwarded.")]
 public static class DependencyInjection
 {
     public static IServiceCollection AddAdminPanelBffApplication(
@@ -26,15 +26,32 @@ public static class DependencyInjection
     {
         services.AddAizenCache(configuration);
 
+        services.AddHttpContextAccessor();
+
         services.AddOptions<KeycloakServiceTokenOptions>()
             .Bind(configuration.GetSection(KeycloakServiceTokenOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        // AdminPanelKeycloak options — supplies the module-assertion shared secret to the outgoing auth handler.
+        services.AddOptions<AdminPanelKeycloakOptions>()
+            .Bind(configuration.GetSection(AdminPanelKeycloakOptions.SectionName));
+
         services.AddScoped<IAdminPanelBffKeycloakServiceTokenProvider, AdminPanelBffKeycloakServiceTokenProvider>();
+
+        // Per-request admin identity (UserId only) + by-subject resolver — mirrors the provider's
+        // IProviderContext/IProviderIdentityHolder/ProviderProfileResolver, used to assert the acting admin to modules.
+        services.AddScoped<IAdminContext, AdminContext>();
+        services.AddScoped<IAdminIdentityHolder, AdminIdentityHolder>();
+        services.AddScoped<IAdminIdentityResolver, AdminIdentityResolver>();
 
         // Central auth handler — wired into every downstream HttpClient.
         services.AddTransient<AdminPanelBffAuthDelegatingHandler>();
+
+        // Fail-envelope fidelity handler — wired ONLY into the Payment remote client (FIX_RULE_CONFLICT_ENVELOPE):
+        // converts a Payment-module fail envelope into an AizenBusinessException so *RuleConflict/*Invalid reach the
+        // FE as a structured 400 (typed conflict banner) instead of a generic 500. Not used by any other module client.
+        services.AddTransient<AdminPaymentBffFailEnvelopeHandler>();
 
         // ── Remote call registrations ──────────────────────────────────────────
 
@@ -77,7 +94,8 @@ public static class DependencyInjection
 
         services.AddTransient<IAdminPaymentBffRemoteCall>(provider =>
             CreateRemoteCall<IAdminPaymentBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IAdminPaymentBffRemoteCall))));
+                CreateHttpClient(provider, nameof(IAdminPaymentBffRemoteCall),
+                    innerHandler: provider.GetRequiredService<AdminPaymentBffFailEnvelopeHandler>())));
 
         services.AddTransient<IAdminProfilePerformanceBffRemoteCall>(provider =>
             CreateRemoteCall<IAdminProfilePerformanceBffRemoteCall>(
@@ -89,14 +107,25 @@ public static class DependencyInjection
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Builds an HttpClient with <see cref="AdminPanelBffAuthDelegatingHandler"/> as the outermost
-    /// handler and <see cref="HttpClientHandler"/> as the inner transport.
-    /// BaseAddress is resolved from <see cref="RemoteCallConfigurations"/>.
+    /// Builds an HttpClient with <see cref="AdminPanelBffAuthDelegatingHandler"/> as the outermost handler and
+    /// <see cref="HttpClientHandler"/> as the inner transport. When <paramref name="innerHandler"/> is supplied it is
+    /// spliced between the auth handler and the transport (auth → inner → transport) — used by the Payment client to
+    /// carry the fail-envelope fidelity handler. BaseAddress is resolved from <see cref="RemoteCallConfigurations"/>.
     /// </summary>
-    private static HttpClient CreateHttpClient(IServiceProvider provider, string clientName)
+    private static HttpClient CreateHttpClient(
+        IServiceProvider provider, string clientName, DelegatingHandler? innerHandler = null)
     {
         var authHandler = provider.GetRequiredService<AdminPanelBffAuthDelegatingHandler>();
-        authHandler.InnerHandler = new HttpClientHandler();
+
+        if (innerHandler is not null)
+        {
+            innerHandler.InnerHandler = new HttpClientHandler();
+            authHandler.InnerHandler = innerHandler;
+        }
+        else
+        {
+            authHandler.InnerHandler = new HttpClientHandler();
+        }
 
         var configs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
         configs.TryGetValue(clientName, out var cfg);

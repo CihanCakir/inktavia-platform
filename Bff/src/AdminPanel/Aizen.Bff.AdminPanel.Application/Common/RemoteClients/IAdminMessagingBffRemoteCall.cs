@@ -6,7 +6,7 @@ using Refit;
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
 [DocumentationInfo("Admin messaging BFF remote call",
-    "Defines BFF-to-Messaging module calls. Auth headers (Authorization + X-Aizen-User-Token) are " +
+    "Defines BFF-to-Messaging module calls. Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are " +
     "injected automatically by AdminPanelBffAuthDelegatingHandler.")]
 public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
 {

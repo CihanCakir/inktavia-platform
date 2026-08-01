@@ -8,7 +8,7 @@ using Refit;
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
 [DocumentationInfo("CargoDry admin BFF remote call",
-    "Defines BFF-to-CargoDry calls. Auth headers (Authorization + X-Aizen-User-Token) are " +
+    "Defines BFF-to-CargoDry calls. Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are " +
     "injected automatically by AdminPanelBffAuthDelegatingHandler. " +
     "Public onboarding endpoints have no auth requirement but still pass through the handler safely.")]
 public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall

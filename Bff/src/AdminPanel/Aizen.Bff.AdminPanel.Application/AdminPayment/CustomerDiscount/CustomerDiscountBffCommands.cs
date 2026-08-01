@@ -63,6 +63,26 @@ public sealed class DeactivateCustomerDiscountRuleBffCommandHandler
         => new() { Result = await _payment.DeactivateCustomerDiscountRuleAsync(request.Id, ct) };
 }
 
+// ─── CustomerDiscountRule: Reactivate ────────────────────────────────────────
+public sealed class ReactivateCustomerDiscountRuleBffCommand : AizenCommand<ReactivateCustomerDiscountRuleBffResponse>
+{
+    public long Id { get; init; }
+}
+public sealed class ReactivateCustomerDiscountRuleBffResponse { public CustomerDiscountRuleMutateBffResult Result { get; init; } = default!; }
+
+[DocumentationInfo("Reactivate customer-discount rule BFF command handler (BE-P6)",
+    "Forwards a reactivate (POST /customer-discounts/rules/{id}/reactivate). The module re-runs the specificity/overlap " +
+    "guard, so CustomerDiscountRuleConflict may surface through the envelope.")]
+public sealed class ReactivateCustomerDiscountRuleBffCommandHandler
+    : AizenCommandHandler<ReactivateCustomerDiscountRuleBffCommand, ReactivateCustomerDiscountRuleBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public ReactivateCustomerDiscountRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ReactivateCustomerDiscountRuleBffResponse?> Handle(ReactivateCustomerDiscountRuleBffCommand request, CancellationToken ct)
+        => new() { Result = await _payment.ReactivateCustomerDiscountRuleAsync(request.Id, ct) };
+}
+
 // ─── CustomerBenefitBudgetPolicy: Create (per plan) ──────────────────────────
 public sealed class CreateCustomerBenefitBudgetPolicyBffCommand : AizenCommand<CreateCustomerBenefitBudgetPolicyBffResponse>
 {

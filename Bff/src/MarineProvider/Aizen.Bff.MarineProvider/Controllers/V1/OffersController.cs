@@ -1,7 +1,9 @@
 using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Application.Offers;
+using Aizen.Bff.MarineProvider.Application.Offers.Contracts;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
@@ -60,6 +62,39 @@ public sealed class OffersController : AizenWebApiController
     public async Task<AizenApiResponse<PreviewOfferResponse?>> PreviewOffer(
         long serviceRequestId, [FromBody] SaveOfferDraftRequest body, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new PreviewOfferBffCommand { ServiceRequestId = serviceRequestId, Body = body }, ct));
+
+    /// <summary>
+    /// BE-S7 offer-builder commission preview: per-line resolved rate/commission/provider-net + transaction totals.
+    /// Compute-on-demand (nothing persisted); provider resolved by-subject. Optional providerPlanId for plan-tier rates.
+    /// </summary>
+    [HttpPost("offers/commission-preview")]
+    [ProducesResponseType(typeof(ResolveLineCommissionsRemoteCallResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolveLineCommissionsRemoteCallResponse?>> GetOfferCommissionPreview(
+        [FromBody] OfferCommissionPreviewBffRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetOfferCommissionPreviewBffQuery
+        {
+            ProviderPlanId      = body.ProviderPlanId,
+            CurrencyCode        = body.CurrencyCode,
+            OfferDiscountAmount = body.OfferDiscountAmount,
+            Lines               = body.Lines,
+        }, ct));
+
+    /// <summary>
+    /// BE-S6 offer-builder customer-discount preview: resolved rule + requested discount + funding split.
+    /// BFF computes EligibleServiceBaseAmount from raw line inputs (server owns totals).
+    /// </summary>
+    [HttpPost("offers/customer-discount-preview")]
+    [ProducesResponseType(typeof(ResolveCustomerDiscountRemoteCallResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolveCustomerDiscountRemoteCallResponse?>> GetOfferCustomerDiscountPreview(
+        [FromBody] OfferCustomerDiscountPreviewBffRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetOfferCustomerDiscountPreviewBffQuery
+        {
+            CustomerPlanId      = body.CustomerPlanId,
+            CategoryCode        = body.CategoryCode,
+            CurrencyCode        = body.CurrencyCode,
+            OfferDiscountAmount = body.OfferDiscountAmount,
+            Lines               = body.Lines,
+        }, ct));
 
     /// <summary>Draft -> Submitted. Idempotent on idempotency key.</summary>
     [HttpPost("service-requests/{serviceRequestId:long}/offer/{offerId:long}/submit")]

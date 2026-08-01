@@ -1,3 +1,4 @@
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Payment.Abstraction;
@@ -13,7 +14,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("Admin payment BFF remote call",
     "Defines BFF-to-Payment module calls for transaction monitoring, payout management, " +
     "subscription oversight, plan reads, commission lookup, and invoice management. " +
-    "Auth headers (Authorization + X-Aizen-User-Token) are injected automatically " +
+    "Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are injected automatically " +
     "by AdminPanelBffAuthDelegatingHandler.")]
 public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
 {
@@ -377,6 +378,27 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         [Query] int                pageSize      = 50,
         CancellationToken ct = default);
 
+    // ── Financial reporting: §15 summary + ledger drill-down (BE-P12) ─────────
+
+    [AizenRemoteCallGet("/api/v1/payment/finance/reports/financial-summary")]
+    Task<FinancialSummaryReportBffDto> GetFinancialSummaryReportAsync(
+        [Query] DateTime from,
+        [Query] DateTime to,
+        [Query] string   currency = "TRY",
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/finance/reports/ledger-entries")]
+    Task<LedgerEntriesPageBffDto> GetLedgerEntriesAsync(
+        [Query] LedgerAccountLine? accountLine       = null,
+        [Query] LedgerSourceType?  sourceType        = null,
+        [Query] long?              providerProfileId = null,
+        [Query] DateTime?          from              = null,
+        [Query] DateTime?          to                = null,
+        [Query] string?            currency          = null,
+        [Query] int                page              = 1,
+        [Query] int                pageSize          = 50,
+        CancellationToken ct = default);
+
     // ── Finance CSV Export (Phase 16G) ────────────────────────────────────────
 
     [AizenRemoteCallGet("/api/v1/payment/finance/reports/invoice-statement/export")]
@@ -438,6 +460,31 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
         long id,
         CancellationToken ct = default);
 
+    [AizenRemoteCallGet("/api/v1/payment/platform-fee/rules")]
+    Task<PlatformFeeRulesListBffResult> ListPlatformFeeRulesAsync(
+        [Query] string?  model        = null,
+        [Query] string?  status       = null,
+        [Query] string?  currencyCode = null,
+        [Query] string?  categoryCode = null,
+        [Query] string?  customerType = null,
+        [Query] int      page         = 1,
+        [Query] int      pageSize     = 20,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/platform-fee/rules/stats")]
+    Task<PlatformFeeRuleStatsBffDto> GetPlatformFeeRuleStatsAsync(
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/platform-fee/rules/{id}")]
+    Task<PlatformFeeRuleDetailBffDto?> GetPlatformFeeRuleDetailAsync(
+        long id,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/platform-fee/rules/{id}/reactivate")]
+    Task<PlatformFeeRuleMutateBffResult> ReactivatePlatformFeeRuleAsync(
+        long id,
+        CancellationToken ct = default);
+
     // ─── BE-P4 ProviderPlanPrice CRUD (module: /api/v1/payment/plan-prices) ───
 
     [AizenRemoteCallGet("/api/v1/payment/plan-prices/plan/{planId}")]
@@ -486,6 +533,19 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/payment/profit-protection/policies/{id}/deactivate")]
     Task<ProfitProtectionPolicyMutateBffResult> DeactivateProfitProtectionPolicyAsync(long id, CancellationToken ct = default);
 
+    [AizenRemoteCallGet("/api/v1/payment/profit-protection/policies")]
+    Task<ProfitProtectionPolicyListBffResult> ListProfitProtectionPoliciesAsync(
+        [Query] string? currencyCode = null,
+        [Query] string? status       = null,
+        [Query] bool?   isActive     = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/profit-protection/policies/{id}")]
+    Task<ProfitProtectionPolicyDetailBffDto?> GetProfitProtectionPolicyDetailAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/profit-protection/policies/{id}/reactivate")]
+    Task<ProfitProtectionPolicyMutateBffResult> ReactivateProfitProtectionPolicyAsync(long id, CancellationToken ct = default);
+
     // ─── BE-P6 CustomerDiscountRule CRUD (module: /api/v1/payment/customer-discounts) ──
 
     [AizenRemoteCallGet("/api/v1/payment/customer-discounts/resolve")]
@@ -509,11 +569,36 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/payment/customer-discounts/rules/{id}/deactivate")]
     Task<CustomerDiscountRuleMutateBffResult> DeactivateCustomerDiscountRuleAsync(long id, CancellationToken ct = default);
 
+    [AizenRemoteCallGet("/api/v1/payment/customer-discounts/rules")]
+    Task<CustomerDiscountRuleListBffResult> ListCustomerDiscountRulesAsync(
+        [Query] long?   customerPlanId = null,
+        [Query] string? categoryCode   = null,
+        [Query] string? currencyCode   = null,
+        [Query] string? fundingMode    = null,
+        [Query] bool?   isActive       = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/customer-discounts/rules/{id}")]
+    Task<CustomerDiscountRuleDetailBffDto?> GetCustomerDiscountRuleDetailAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/customer-discounts/rules/{id}/reactivate")]
+    Task<CustomerDiscountRuleMutateBffResult> ReactivateCustomerDiscountRuleAsync(long id, CancellationToken ct = default);
+
     // ─── BE-P6 CustomerBenefitBudgetPolicy (module: /api/v1/payment/benefit-budget) ──
 
     [AizenRemoteCallPost("/api/v1/payment/benefit-budget/policies")]
     Task<CustomerBenefitBudgetPolicyCreateBffResult> CreateCustomerBenefitBudgetPolicyAsync(
         [AizenRemoteCallBody] CreateCustomerBenefitBudgetPolicyBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/benefit-budget/policies")]
+    Task<CustomerBenefitBudgetPolicyListBffResult> ListCustomerBenefitBudgetPoliciesAsync(
+        [Query] long?   customerPlanId = null,
+        [Query] string? currencyCode   = null,
+        [Query] bool?   isActive       = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/benefit-budget/policies/{id}")]
+    Task<CustomerBenefitBudgetPolicyDetailBffDto?> GetCustomerBenefitBudgetPolicyDetailAsync(long id, CancellationToken ct = default);
 
     // ─── BE-P7 ProviderCommissionBenefitRule + entitlement (module: /api/v1/payment/commission-benefits) ──
 

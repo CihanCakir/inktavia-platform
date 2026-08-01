@@ -6,6 +6,9 @@ using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetCargoDryCommissionR
 using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetCargoDryRenewalReconciliationBff;
 using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetCargoDrySettlementReconciliationBff;
 using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetPaymentInvoiceStatementBff;
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetFinancialSummaryReportBff;
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetLedgerEntriesBff;
+using Aizen.Bff.AdminPanel.Application.AdminFinance.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
@@ -298,5 +301,61 @@ public sealed class AdminFinanceController : AizenWebApiController
         }, ct);
 
         return File(result!.Bytes, result.ContentType, result.FileName);
+    }
+
+    // ── Financial reporting: §15 summary + ledger drill-down (BE-P12) ─────────
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/finance/reports/financial-summary
+    /// §15 period summary: revenue/expense totals + NetMarketplaceContribution + per-line breakdown. VAT liability +
+    /// provider-funded discount are surfaced separately (never in the Inktavia P&amp;L, §19.17). Read-only.
+    /// </summary>
+    [HttpGet("reports/financial-summary")]
+    public async Task<AizenApiResponse<FinancialSummaryReportBffDto>> GetFinancialSummaryReport(
+        [FromQuery] DateTime from,
+        [FromQuery] DateTime to,
+        [FromQuery] string   currency = "TRY",
+        CancellationToken     ct       = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetFinancialSummaryReportBffQuery
+        {
+            From     = from,
+            To       = to,
+            Currency = currency,
+        }, ct);
+
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// GET /api/v1/admin-panel/finance/reports/ledger-entries
+    /// Paged audit drill-down over the append-only financial ledger, filterable by account line / source / provider /
+    /// period. Read-only.
+    /// </summary>
+    [HttpGet("reports/ledger-entries")]
+    public async Task<AizenApiResponse<LedgerEntriesPageBffDto>> GetLedgerEntries(
+        [FromQuery] LedgerAccountLine? accountLine       = null,
+        [FromQuery] LedgerSourceType?  sourceType        = null,
+        [FromQuery] long?              providerProfileId = null,
+        [FromQuery] DateTime?          from              = null,
+        [FromQuery] DateTime?          to                = null,
+        [FromQuery] string?            currency          = null,
+        [FromQuery] int                page              = 1,
+        [FromQuery] int                pageSize          = 50,
+        CancellationToken              ct                = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetLedgerEntriesBffQuery
+        {
+            AccountLine       = accountLine,
+            SourceType        = sourceType,
+            ProviderProfileId = providerProfileId,
+            From              = from,
+            To                = to,
+            Currency          = currency,
+            Page              = page,
+            PageSize          = pageSize,
+        }, ct);
+
+        return SetResponse(result);
     }
 }

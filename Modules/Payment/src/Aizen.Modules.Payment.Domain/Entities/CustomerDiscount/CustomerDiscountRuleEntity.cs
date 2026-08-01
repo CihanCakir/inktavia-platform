@@ -130,6 +130,12 @@ public sealed class CustomerDiscountRuleEntity : AizenEntityWithAudit
         Status   = CommissionRuleStatus.Inactive;
     }
 
+    public void Reactivate()
+    {
+        IsActive = true;
+        Status   = DeriveStatus(EffectiveFrom, EffectiveTo);
+    }
+
     public void SetRuleCode(string ruleCode) => RuleCode = ruleCode;
 
     public bool IsEffective(DateTime atUtc) =>

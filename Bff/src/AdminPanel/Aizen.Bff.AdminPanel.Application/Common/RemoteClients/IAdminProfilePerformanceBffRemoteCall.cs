@@ -9,7 +9,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
     "Covers snapshot reads, tier listing, score history, decision logs, risk signals, " +
     "score components, admin mutation endpoints (recalculate, raise/resolve risk signal), " +
     "and Phase 21 priority preview. " +
-    "Auth headers (Authorization + X-Aizen-User-Token) are injected automatically " +
+    "Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are injected automatically " +
     "by AdminPanelBffAuthDelegatingHandler. " +
     "Phase 20/21 rule: BFF is proxy-only — no score calculation occurs here.")]
 public interface IAdminProfilePerformanceBffRemoteCall : IAizenRemoteCall
