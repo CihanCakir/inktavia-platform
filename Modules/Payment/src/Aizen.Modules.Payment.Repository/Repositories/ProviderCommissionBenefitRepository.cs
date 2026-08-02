@@ -75,6 +75,10 @@ public sealed class ProviderCommissionBenefitEntitlementRepository : IProviderCo
     public Task<ProviderCommissionBenefitEntitlementEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.ProviderCommissionBenefitEntitlements.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<List<ProviderCommissionBenefitEntitlementEntity>> GetAllAsync(CancellationToken ct = default)
+        => _db.ProviderCommissionBenefitEntitlements.AsNoTracking()
+              .OrderByDescending(x => x.GrantedFrom).ToListAsync(ct);
+
     public Task<ProviderCommissionBenefitEntitlementEntity?> GetActiveByProviderAndRuleAsync(
         long providerProfileId, long benefitRuleId, DateTime atUtc, CancellationToken ct = default)
         => _db.ProviderCommissionBenefitEntitlements.FirstOrDefaultAsync(x =>

@@ -1026,6 +1026,69 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id, CancellationToken ct = default)
         => SetResponse((await _cqrs.ProcessAsync(new RevokeProviderCommissionBenefitEntitlementBffCommand { Id = id }, ct))?.Result);
 
+    /// <summary>GET api/v1/admin-panel/payment/commission-benefits/rules — benefit rule list (no paging), optional filters.</summary>
+    [HttpGet("commission-benefits/rules")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitRuleListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitRuleListBffResult>> GetProviderCommissionBenefitRules(
+        [FromQuery] long?   providerProfileId = null,
+        [FromQuery] long?   providerPlanId    = null,
+        [FromQuery] string? categoryCode      = null,
+        [FromQuery] string? currencyCode      = null,
+        [FromQuery] bool?   stackable         = null,
+        [FromQuery] bool?   isActive          = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetProviderCommissionBenefitRulesListBffQuery
+        {
+            ProviderProfileId = providerProfileId,
+            ProviderPlanId    = providerPlanId,
+            CategoryCode      = categoryCode,
+            CurrencyCode      = currencyCode,
+            Stackable         = stackable,
+            IsActive          = isActive,
+        }, ct);
+        return SetResponse(result ?? new ProviderCommissionBenefitRuleListBffResult(new(), 0));
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/commission-benefits/rules/{id} — single benefit rule detail.</summary>
+    [HttpGet("commission-benefits/rules/{id:long}")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitRuleDetailBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitRuleDetailBffDto?>> GetProviderCommissionBenefitRuleById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetProviderCommissionBenefitRuleDetailBffQuery { Id = id }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/commission-benefits/rules/{id}/reactivate — re-activate an Inactive benefit rule.</summary>
+    [HttpPost("commission-benefits/rules/{id:long}/reactivate")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitRuleMutateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitRuleMutateBffResult?>> ReactivateProviderCommissionBenefitRule(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ReactivateProviderCommissionBenefitRuleBffCommand { Id = id }, ct))?.Result);
+
+    /// <summary>GET api/v1/admin-panel/payment/commission-benefits/entitlements — granted entitlement list (no paging).</summary>
+    [HttpGet("commission-benefits/entitlements")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitEntitlementListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitEntitlementListBffResult>> GetProviderCommissionBenefitEntitlements(
+        [FromQuery] long? providerProfileId = null,
+        [FromQuery] long? benefitRuleId     = null,
+        [FromQuery] bool? isActive          = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetProviderCommissionBenefitEntitlementsListBffQuery
+        {
+            ProviderProfileId = providerProfileId,
+            BenefitRuleId     = benefitRuleId,
+            IsActive          = isActive,
+        }, ct);
+        return SetResponse(result ?? new ProviderCommissionBenefitEntitlementListBffResult(new(), 0));
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/commission-benefits/entitlements/{id} — single entitlement detail.</summary>
+    [HttpGet("commission-benefits/entitlements/{id:long}")]
+    [ProducesResponseType(typeof(ProviderCommissionBenefitEntitlementDetailBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderCommissionBenefitEntitlementDetailBffDto?>> GetProviderCommissionBenefitEntitlementById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetProviderCommissionBenefitEntitlementDetailBffQuery { Id = id }, ct))?.Result);
+
     // ─── Invoices ─────────────────────────────────────────────────────────────
 
     /// <summary>POST api/v1/admin-panel/payment/invoices — create draft invoice</summary>

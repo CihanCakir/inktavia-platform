@@ -44,6 +44,101 @@ public sealed class ProviderCommissionBenefitTests
         (await db.ProviderCommissionBenefitRules.CountAsync()).Should().Be(1);
     }
 
+    // ── Rule repo: GetById / GetAll (incl. inactive) / Reactivate / overlap guard ─
+
+    private static ProviderCommissionBenefitRuleEntity NewRule(
+        long? plan = null, string? cat = null, bool stackable = true, bool exclusive = false,
+        DateTime? from = null, DateTime? to = null)
+        => ProviderCommissionBenefitRuleEntity.Create(
+            ruleCode: null, ruleName: "r", providerProfileId: null, providerPlanId: plan,
+            applicableCategoryCodes: cat is null ? null : new[] { cat },
+            adjustmentPercentagePoints: -0.0100m, minimumCommissionRate: 0.0800m,
+            maximumDiscountAmount: null, maximumEligibleGmv: null, usageLimit: null,
+            stackable: stackable, exclusive: exclusive,
+            priority: CommissionRulePriority.Standard,
+            effectiveFrom: from ?? From, effectiveTo: to, currencyCode: "TRY", notes: null);
+
+    [Fact]
+    public async Task Rule_GetById_Hit_And_Null()
+    {
+        await using var db = NewInMemoryDb();
+        var repo = new ProviderCommissionBenefitRuleRepository(db);
+        var rule = NewRule(plan: 2);
+        await repo.AddAsync(rule);
+        await repo.SaveChangesAsync();
+
+        (await repo.GetByIdAsync(rule.Id)).Should().NotBeNull();
+        (await repo.GetByIdAsync(999999)).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Rule_GetAll_Includes_Inactive()
+    {
+        await using var db = NewInMemoryDb();
+        var repo = new ProviderCommissionBenefitRuleRepository(db);
+        var active   = NewRule(plan: 2);
+        var inactive = NewRule(plan: 3);
+        inactive.Deactivate();
+        await repo.AddAsync(active);
+        await repo.AddAsync(inactive);
+        await repo.SaveChangesAsync();
+
+        var all = await repo.GetAllAsync();
+        all.Should().HaveCount(2, "GetAll returns inactive rules too (the admin list shows Inactive)");
+    }
+
+    [Fact]
+    public void Rule_Reactivate_ReDerives_Status_From_Effective_Dates()
+    {
+        var rule = NewRule(plan: 2, from: DateTime.UtcNow.AddDays(-1));
+        rule.Deactivate();
+        rule.Status.Should().Be(CommissionRuleStatus.Inactive);
+
+        rule.Reactivate();
+        rule.IsActive.Should().BeTrue();
+        rule.Status.Should().Be(CommissionRuleStatus.Active, "an effective-now rule re-derives to Active");
+    }
+
+    [Fact]
+    public async Task Rule_Reactivate_Overlap_Is_A_Conflict()
+    {
+        await using var db = NewInMemoryDb();
+        var repo = new ProviderCommissionBenefitRuleRepository(db);
+
+        var active = NewRule(plan: 2);            // stays active
+        var toReactivate = NewRule(plan: 2);      // same scope + priority + window
+        toReactivate.Deactivate();
+        await repo.AddAsync(active);
+        await repo.AddAsync(toReactivate);
+        await repo.SaveChangesAsync();
+
+        // Re-running the overlap guard against the (would-be re-activated) rule finds the active one.
+        var conflict = await repo.FindOverlappingActiveRuleAsync(toReactivate);
+        conflict.Should().NotBeNull();
+        conflict!.Id.Should().Be(active.Id);
+    }
+
+    // ── Entitlement repo: GetById / GetAll ──────────────────────────────────────
+
+    [Fact]
+    public async Task Entitlement_GetAll_And_GetById()
+    {
+        await using var db = NewInMemoryDb();
+        var repo = new ProviderCommissionBenefitEntitlementRepository(db);
+        var e1 = ProviderCommissionBenefitEntitlementEntity.Grant("PCE-1", 7, 1, From, null, 3, 1000m);
+        var e2 = ProviderCommissionBenefitEntitlementEntity.Grant("PCE-2", 8, 1, From.AddDays(1), null, null, null);
+        await repo.AddEntitlementAsync(e1);
+        await repo.AddEntitlementAsync(e2);
+        await repo.SaveChangesAsync();
+
+        var all = await repo.GetAllAsync();
+        all.Should().HaveCount(2);
+        all.First().GrantedFrom.Should().Be(e2.GrantedFrom, "GetAll orders by GrantedFrom desc (newest grant first)");
+
+        (await repo.GetByIdAsync(e1.Id)).Should().NotBeNull();
+        (await repo.GetByIdAsync(999999)).Should().BeNull();
+    }
+
     // ── Entitlement service: reserve / consume / release / exhausted / idempotent ─
 
     private static async Task<(PaymentDbContext db, long entId)> SeedEntitlement(long? usageLimit, decimal? maxGmv)

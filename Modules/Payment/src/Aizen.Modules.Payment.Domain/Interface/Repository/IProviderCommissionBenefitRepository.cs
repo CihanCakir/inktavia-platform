@@ -26,6 +26,7 @@ public interface IProviderCommissionBenefitRuleRepository
 public interface IProviderCommissionBenefitEntitlementRepository
 {
     Task<ProviderCommissionBenefitEntitlementEntity?> GetByIdAsync(long id, CancellationToken ct = default);
+    Task<List<ProviderCommissionBenefitEntitlementEntity>> GetAllAsync(CancellationToken ct = default);
 
     Task<ProviderCommissionBenefitEntitlementEntity?> GetActiveByProviderAndRuleAsync(
         long providerProfileId, long benefitRuleId, DateTime atUtc, CancellationToken ct = default);

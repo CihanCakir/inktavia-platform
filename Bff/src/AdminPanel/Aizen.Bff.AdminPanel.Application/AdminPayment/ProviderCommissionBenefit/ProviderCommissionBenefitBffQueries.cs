@@ -31,3 +31,89 @@ public sealed class ResolveEffectiveCommissionBffQueryHandler
             request.ProviderProfileId, request.ProviderPlanId, request.CategoryCode, request.ServiceAmount,
             request.CurrencyCode, request.EligibleGmvRemaining, request.PlanFloorRate, ct) };
 }
+
+// ─── Rule: List ──────────────────────────────────────────────────────────────
+public sealed class GetProviderCommissionBenefitRulesListBffQuery : AizenQuery<ProviderCommissionBenefitRuleListBffResult>
+{
+    public long?   ProviderProfileId { get; init; }
+    public long?   ProviderPlanId    { get; init; }
+    public string? CategoryCode      { get; init; }
+    public string? CurrencyCode      { get; init; }
+    public bool?   Stackable         { get; init; }
+    public bool?   IsActive          { get; init; }
+}
+
+[DocumentationInfo("List provider-commission-benefit rules BFF query handler (BE-P7)",
+    "Lists benefit rules (GET /commission-benefits/rules) with optional filters. Falls back to an empty list if the module returns null.")]
+public sealed class GetProviderCommissionBenefitRulesListBffQueryHandler
+    : AizenQueryHandler<GetProviderCommissionBenefitRulesListBffQuery, ProviderCommissionBenefitRuleListBffResult>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public GetProviderCommissionBenefitRulesListBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ProviderCommissionBenefitRuleListBffResult?> Handle(GetProviderCommissionBenefitRulesListBffQuery request, CancellationToken ct)
+        => await _payment.ListProviderCommissionBenefitRulesAsync(
+               request.ProviderProfileId, request.ProviderPlanId, request.CategoryCode,
+               request.CurrencyCode, request.Stackable, request.IsActive, ct)
+           ?? new ProviderCommissionBenefitRuleListBffResult(new(), 0);
+}
+
+// ─── Rule: Detail ────────────────────────────────────────────────────────────
+public sealed class GetProviderCommissionBenefitRuleDetailBffQuery : AizenQuery<ProviderCommissionBenefitRuleDetailBffResponse>
+{
+    public long Id { get; init; }
+}
+public sealed class ProviderCommissionBenefitRuleDetailBffResponse { public ProviderCommissionBenefitRuleDetailBffDto? Result { get; init; } }
+
+[DocumentationInfo("Detail provider-commission-benefit rule BFF query handler (BE-P7)",
+    "Returns a single benefit rule (GET /commission-benefits/rules/{id}). Read-only.")]
+public sealed class GetProviderCommissionBenefitRuleDetailBffQueryHandler
+    : AizenQueryHandler<GetProviderCommissionBenefitRuleDetailBffQuery, ProviderCommissionBenefitRuleDetailBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public GetProviderCommissionBenefitRuleDetailBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ProviderCommissionBenefitRuleDetailBffResponse?> Handle(GetProviderCommissionBenefitRuleDetailBffQuery request, CancellationToken ct)
+        => new() { Result = await _payment.GetProviderCommissionBenefitRuleDetailAsync(request.Id, ct) };
+}
+
+// ─── Entitlement: List ───────────────────────────────────────────────────────
+public sealed class GetProviderCommissionBenefitEntitlementsListBffQuery : AizenQuery<ProviderCommissionBenefitEntitlementListBffResult>
+{
+    public long? ProviderProfileId { get; init; }
+    public long? BenefitRuleId     { get; init; }
+    public bool? IsActive          { get; init; }
+}
+
+[DocumentationInfo("List provider-commission-benefit entitlements BFF query handler (BE-P7)",
+    "Lists granted entitlements (GET /commission-benefits/entitlements) with optional filters. Empty-list fallback on null.")]
+public sealed class GetProviderCommissionBenefitEntitlementsListBffQueryHandler
+    : AizenQueryHandler<GetProviderCommissionBenefitEntitlementsListBffQuery, ProviderCommissionBenefitEntitlementListBffResult>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public GetProviderCommissionBenefitEntitlementsListBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ProviderCommissionBenefitEntitlementListBffResult?> Handle(GetProviderCommissionBenefitEntitlementsListBffQuery request, CancellationToken ct)
+        => await _payment.ListProviderCommissionBenefitEntitlementsAsync(
+               request.ProviderProfileId, request.BenefitRuleId, request.IsActive, ct)
+           ?? new ProviderCommissionBenefitEntitlementListBffResult(new(), 0);
+}
+
+// ─── Entitlement: Detail ─────────────────────────────────────────────────────
+public sealed class GetProviderCommissionBenefitEntitlementDetailBffQuery : AizenQuery<ProviderCommissionBenefitEntitlementDetailBffResponse>
+{
+    public long Id { get; init; }
+}
+public sealed class ProviderCommissionBenefitEntitlementDetailBffResponse { public ProviderCommissionBenefitEntitlementDetailBffDto? Result { get; init; } }
+
+[DocumentationInfo("Detail provider-commission-benefit entitlement BFF query handler (BE-P7)",
+    "Returns a single entitlement (GET /commission-benefits/entitlements/{id}). Read-only.")]
+public sealed class GetProviderCommissionBenefitEntitlementDetailBffQueryHandler
+    : AizenQueryHandler<GetProviderCommissionBenefitEntitlementDetailBffQuery, ProviderCommissionBenefitEntitlementDetailBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public GetProviderCommissionBenefitEntitlementDetailBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ProviderCommissionBenefitEntitlementDetailBffResponse?> Handle(GetProviderCommissionBenefitEntitlementDetailBffQuery request, CancellationToken ct)
+        => new() { Result = await _payment.GetProviderCommissionBenefitEntitlementDetailAsync(request.Id, ct) };
+}

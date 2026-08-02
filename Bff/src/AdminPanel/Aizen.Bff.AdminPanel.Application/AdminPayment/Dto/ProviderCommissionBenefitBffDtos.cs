@@ -42,6 +42,130 @@ public sealed record UpdateProviderCommissionBenefitRuleBffRequest(
 public sealed record ProviderCommissionBenefitRuleCreateBffResult(long Id, string RuleCode);
 public sealed record ProviderCommissionBenefitRuleMutateBffResult(long Id, string? RuleCode);
 
+// ─── Rule list / detail (enum fields are strings — the module serializes enum names) ──
+
+/// <summary>A provider-commission-benefit rule as it appears in the admin list / detail.</summary>
+public sealed record ProviderCommissionBenefitRuleListItemBffDto(
+    long          Id,
+    string?       RuleCode,
+    string?       RuleName,
+    long?         ProviderProfileId,
+    long?         ProviderPlanId,
+    List<string>  ApplicableCategoryCodes,
+    string        CurrencyCode,
+    decimal       AdjustmentPercentagePoints,
+    decimal       MinimumCommissionRate,
+    decimal?      MaximumDiscountAmount,
+    decimal?      MaximumEligibleGMV,
+    long?         UsageLimit,
+    bool          Stackable,
+    bool          Exclusive,
+    string        Priority,              // CommissionRulePriority name
+    DateTime      EffectiveFrom,
+    DateTime?     EffectiveTo,
+    string        Status,                // "Active" | "Scheduled" | "Expired" | "Inactive"
+    bool          IsActive,
+    string?       Notes,
+    long?         CreateUserId,
+    DateTime?     CreateDate,
+    long?         ModifyUserId,
+    DateTime?     ModifyDate
+);
+
+/// <summary>Provider-commission-benefit rule list response (no paging — rules are few).</summary>
+public sealed record ProviderCommissionBenefitRuleListBffResult(
+    List<ProviderCommissionBenefitRuleListItemBffDto> Items,
+    int                                               Total
+);
+
+/// <summary>Full detail of a single provider-commission-benefit rule (same shape as the list item).</summary>
+public sealed record ProviderCommissionBenefitRuleDetailBffDto(
+    long          Id,
+    string?       RuleCode,
+    string?       RuleName,
+    long?         ProviderProfileId,
+    long?         ProviderPlanId,
+    List<string>  ApplicableCategoryCodes,
+    string        CurrencyCode,
+    decimal       AdjustmentPercentagePoints,
+    decimal       MinimumCommissionRate,
+    decimal?      MaximumDiscountAmount,
+    decimal?      MaximumEligibleGMV,
+    long?         UsageLimit,
+    bool          Stackable,
+    bool          Exclusive,
+    string        Priority,
+    DateTime      EffectiveFrom,
+    DateTime?     EffectiveTo,
+    string        Status,
+    bool          IsActive,
+    string?       Notes,
+    long?         CreateUserId,
+    DateTime?     CreateDate,
+    long?         ModifyUserId,
+    DateTime?     ModifyDate
+);
+
+// ─── Entitlement list / detail ────────────────────────────────────────────────
+
+/// <summary>A provider-commission-benefit entitlement as it appears in the admin list / detail (usage counters read-only).</summary>
+public sealed record ProviderCommissionBenefitEntitlementListItemBffDto(
+    long      Id,
+    string?   EntitlementCode,
+    long      ProviderProfileId,
+    long      BenefitRuleId,
+    string?   BenefitRuleCode,
+    string?   BenefitRuleName,
+    DateTime  GrantedFrom,
+    DateTime? GrantedTo,
+    long?     UsageLimit,
+    long      UsedCount,
+    long      ReservedCount,
+    long?     RemainingUsage,
+    decimal?  MaximumEligibleGMV,
+    decimal   ConsumedGMV,
+    decimal   ReservedGMV,
+    decimal?  RemainingGmv,
+    string    Status,                // "Active" | "Exhausted" | "Expired" | "Revoked"
+    bool      IsActive,
+    long?     CreateUserId,
+    DateTime? CreateDate,
+    long?     ModifyUserId,
+    DateTime? ModifyDate
+);
+
+/// <summary>Provider-commission-benefit entitlement list response (no paging).</summary>
+public sealed record ProviderCommissionBenefitEntitlementListBffResult(
+    List<ProviderCommissionBenefitEntitlementListItemBffDto> Items,
+    int                                                      Total
+);
+
+/// <summary>Full detail of a single entitlement (same shape as the list item).</summary>
+public sealed record ProviderCommissionBenefitEntitlementDetailBffDto(
+    long      Id,
+    string?   EntitlementCode,
+    long      ProviderProfileId,
+    long      BenefitRuleId,
+    string?   BenefitRuleCode,
+    string?   BenefitRuleName,
+    DateTime  GrantedFrom,
+    DateTime? GrantedTo,
+    long?     UsageLimit,
+    long      UsedCount,
+    long      ReservedCount,
+    long?     RemainingUsage,
+    decimal?  MaximumEligibleGMV,
+    decimal   ConsumedGMV,
+    decimal   ReservedGMV,
+    decimal?  RemainingGmv,
+    string    Status,
+    bool      IsActive,
+    long?     CreateUserId,
+    DateTime? CreateDate,
+    long?     ModifyUserId,
+    DateTime? ModifyDate
+);
+
 /// <summary>Grant a provider an entitlement to a benefit rule.</summary>
 public sealed record GrantProviderCommissionBenefitEntitlementBffRequest(
     long      ProviderProfileId,

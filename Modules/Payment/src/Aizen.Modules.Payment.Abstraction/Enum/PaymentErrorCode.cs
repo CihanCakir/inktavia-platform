@@ -84,6 +84,7 @@ public enum PaymentErrorCode
     ProviderCommissionBenefitUsageNotFound        = 5076,   // No usage ledger row for the id
     ProviderCommissionBenefitUsageInvalidState    = 5077,   // Consume/Release from a non-Reserved usage state
     ProviderCommissionBelowFloor                  = 5078,   // Effective rate would fall below the plan/system floor without an admin ProviderOverride
+    ProviderCommissionBenefitRuleNotInactive      = 5079,   // Reactivate attempted on a non-Inactive provider commission benefit rule
 
     // ── SR acceptance economics (BE-P8) ───────────────────────────────────────
     ServiceRequestEconomicsRejected               = 5080,   // Profit-protection gate rejected the acceptance economics — no snapshot/escrow, acceptance blocked

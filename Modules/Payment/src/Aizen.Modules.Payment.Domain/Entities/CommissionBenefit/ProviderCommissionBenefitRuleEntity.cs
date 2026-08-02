@@ -115,6 +115,13 @@ public sealed class ProviderCommissionBenefitRuleEntity : AizenEntityWithAudit
         Status   = CommissionRuleStatus.Inactive;
     }
 
+    /// <summary>Admin re-enables an Inactive rule: re-derives Status from the effective dates (mirrors P5/P6).</summary>
+    public void Reactivate()
+    {
+        IsActive = true;
+        Status   = DeriveStatus(EffectiveFrom, EffectiveTo);
+    }
+
     public void SetRuleCode(string ruleCode) => RuleCode = ruleCode;
 
     public bool IsEffective(DateTime atUtc) =>

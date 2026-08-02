@@ -63,6 +63,25 @@ public sealed class DeactivateProviderCommissionBenefitRuleBffCommandHandler
         => new() { Result = await _payment.DeactivateProviderCommissionBenefitRuleAsync(request.Id, ct) };
 }
 
+// ─── Rule: Reactivate ────────────────────────────────────────────────────────
+public sealed class ReactivateProviderCommissionBenefitRuleBffCommand : AizenCommand<ReactivateProviderCommissionBenefitRuleBffResponse>
+{
+    public long Id { get; init; }
+}
+public sealed class ReactivateProviderCommissionBenefitRuleBffResponse { public ProviderCommissionBenefitRuleMutateBffResult Result { get; init; } = default!; }
+
+[DocumentationInfo("Reactivate provider-commission-benefit rule BFF command handler (BE-P7)",
+    "Forwards a reactivate (POST /commission-benefits/rules/{id}/reactivate). Overlap re-check → 5070 conflict via the envelope.")]
+public sealed class ReactivateProviderCommissionBenefitRuleBffCommandHandler
+    : AizenCommandHandler<ReactivateProviderCommissionBenefitRuleBffCommand, ReactivateProviderCommissionBenefitRuleBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public ReactivateProviderCommissionBenefitRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ReactivateProviderCommissionBenefitRuleBffResponse?> Handle(ReactivateProviderCommissionBenefitRuleBffCommand request, CancellationToken ct)
+        => new() { Result = await _payment.ReactivateProviderCommissionBenefitRuleAsync(request.Id, ct) };
+}
+
 // ─── Entitlement: Grant ──────────────────────────────────────────────────────
 public sealed class GrantProviderCommissionBenefitEntitlementBffCommand : AizenCommand<GrantProviderCommissionBenefitEntitlementBffResponse>
 {

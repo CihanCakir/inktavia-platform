@@ -631,6 +631,32 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/payment/commission-benefits/entitlements/{id}/revoke")]
     Task<RevokeEntitlementBffResult> RevokeProviderCommissionBenefitEntitlementAsync(long id, CancellationToken ct = default);
 
+    [AizenRemoteCallGet("/api/v1/payment/commission-benefits/rules")]
+    Task<ProviderCommissionBenefitRuleListBffResult> ListProviderCommissionBenefitRulesAsync(
+        [Query] long?   providerProfileId = null,
+        [Query] long?   providerPlanId    = null,
+        [Query] string? categoryCode      = null,
+        [Query] string? currencyCode      = null,
+        [Query] bool?   stackable         = null,
+        [Query] bool?   isActive          = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/commission-benefits/rules/{id}")]
+    Task<ProviderCommissionBenefitRuleDetailBffDto?> GetProviderCommissionBenefitRuleDetailAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/commission-benefits/rules/{id}/reactivate")]
+    Task<ProviderCommissionBenefitRuleMutateBffResult> ReactivateProviderCommissionBenefitRuleAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/commission-benefits/entitlements")]
+    Task<ProviderCommissionBenefitEntitlementListBffResult> ListProviderCommissionBenefitEntitlementsAsync(
+        [Query] long? providerProfileId = null,
+        [Query] long? benefitRuleId     = null,
+        [Query] bool? isActive          = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/commission-benefits/entitlements/{id}")]
+    Task<ProviderCommissionBenefitEntitlementDetailBffDto?> GetProviderCommissionBenefitEntitlementDetailAsync(long id, CancellationToken ct = default);
+
     // ─── P11 Premium admin (module: /api/v1/payment/admin/premium) ────────────
 
     [AizenRemoteCallGet("/api/v1/payment/admin/premium/products")]
