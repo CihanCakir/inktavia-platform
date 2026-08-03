@@ -52,8 +52,19 @@ public static class AuthenticationExtensions
                 options.Events = new JwtBearerEvents
                 {
                     OnTokenValidated = MapKeycloakRealmRoles,
-                    // Default JwtBearer: the human Keycloak token is read from the Authorization: Bearer header. There is
-                    // no admin SignalR hub, so (unlike the provider) there is no query-string WebSocket branch.
+
+                    // The admin SPA connects to the BFF-hosted SignalR hub (/hubs/admin-messaging). A browser
+                    // WebSocket cannot send an Authorization header, so SignalR passes the token as `?access_token=…`.
+                    // Honour it ONLY for hub paths (/hubs/*) — never for the REST API, where a token in the URL would
+                    // leak into logs, referrers and history. Mirrors the MarineProvider BFF.
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                            context.Token = accessToken;
+                        return Task.CompletedTask;
+                    },
                 };
             });
 

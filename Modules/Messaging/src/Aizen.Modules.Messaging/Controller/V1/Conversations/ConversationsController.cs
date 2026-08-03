@@ -28,6 +28,11 @@ public sealed class ConversationsController : AizenWebApiController
         _cqrs = cqrs;
     }
 
+    // The detail endpoint is the admin-facing read path (participant apps use by-context). Admins must see
+    // internal notes and moderated/blocked messages (redacted); non-admins must not. Mirror the same role
+    // check ServiceRequestMessageController uses.
+    private bool IsAdmin => ContextAccessor.HttpContext!.User.IsInRole("Admin");
+
     [HttpGet]
     [ProducesResponseType(typeof(GetConversationListResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetConversationListResponse?>> GetList(
@@ -48,7 +53,7 @@ public sealed class ConversationsController : AizenWebApiController
         [FromRoute] long id, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<GetConversationDetailResponse>(
-            new GetConversationDetailQuery(id), ct);
+            new GetConversationDetailQuery(id, IsAdmin), ct);
         return SetResponse(result);
     }
 

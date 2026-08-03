@@ -1,6 +1,7 @@
 using Aizen.Bff.MarineProvider.Application.Common.Services;
+using Aizen.Core.Realtime.Abstraction.Interfaces;
+using Aizen.Core.Realtime.Hubs;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Bff.MarineProvider.Realtime;
@@ -16,23 +17,37 @@ namespace Aizen.Bff.MarineProvider.Realtime;
 ///
 /// Group membership is decided by the SERVER, from the resolved profile — never from anything the client sends.
 /// There is deliberately no "subscribe to group X" method on this hub.
+///
+/// Built on the framework's <see cref="DomainHubBase"/> (ADR: BFF-hosted edge on Aizen.Core.Realtime, modules
+/// publish-only). The routing that used to live in per-event hand-rolled consumers now lives in the single
+/// <see cref="ProviderEventSocketMapper"/>; this type is only the connection/identity boundary.
+///
+/// NOTE on group prefixes: the framework's socket manager routes a group broadcast to a hub by parsing the group
+/// name's prefix (up to the first ':') as the domain key. This hub joins TWO prefixes — "provider:{id}" and
+/// "city:{code}" — so it is registered under BOTH the "provider" and "city" domain keys in Program.cs. Without the
+/// "city" registration every city-targeted event (ServiceRequestPublished/Updated/Cancelled/UrgencyChanged) would
+/// silently fail to route. <see cref="DomainName"/> itself is informational and does not drive routing.
 /// </summary>
 [Authorize]
-public sealed class ProviderRealtimeHub : Hub
+public sealed class ProviderRealtimeHub : DomainHubBase
 {
     private readonly IProviderProfileResolver _resolver;
     private readonly IProviderIdentityHolder _identityHolder;
     private readonly ILogger<ProviderRealtimeHub> _logger;
 
     public ProviderRealtimeHub(
+        IRealtimePublisher publisher,
         IProviderProfileResolver resolver,
         IProviderIdentityHolder identityHolder,
         ILogger<ProviderRealtimeHub> logger)
+        : base(publisher)
     {
         _resolver = resolver;
         _identityHolder = identityHolder;
         _logger = logger;
     }
+
+    public override string DomainName => "provider";
 
     /// <summary>Every event addressed to one provider.</summary>
     public static string ProviderGroup(long providerProfileId) => $"provider:{providerProfileId}";

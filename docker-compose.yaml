@@ -166,6 +166,13 @@ services:
       RemoteCalls__IAdminCargoDryBffRemoteCall__BaseUrl: http://cargodry-api:8080
       RemoteCalls__IAdminMessagingBffRemoteCall__BaseUrl: http://messaging-api:8080
       RemoteCalls__INotificationBffRemoteCall__BaseUrl: http://notification-api:8080
+      # ── Realtime edge (BFF-hosted SignalR on Aizen.Core.Realtime) ──
+      # Redis backplane (required for k8s multi-replica; group broadcasts must reach all pods).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=14
+      # CORS: the admin SPA connects to /hubs/admin-messaging with the Keycloak bearer; its browser origin must
+      # be allow-listed (credentials required). Dev: admin-web dev server. k8s: the admin-web ingress host(s).
+      Realtime__SignalR__AllowedOrigins__0: ${ADMIN_WEB_ORIGIN:-http://localhost:3000}
       RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl: http://notification-api:8080
       RemoteCalls__IAdminPaymentBffRemoteCall__BaseUrl: http://payment-api:8080
     ports:

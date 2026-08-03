@@ -14,6 +14,8 @@
     <ProjectReference Include="../../../../Core/Starter/src/Aizen.Core.Starter/Aizen.Core.Starter.csproj" />
     <ProjectReference Include="../../../../Core/Starter/src/Aizen.Core.Starter.Bff/Aizen.Core.Starter.Bff.csproj" />
     <ProjectReference Include="../../../../Core/Api/src/Aizen.Core.Api/Aizen.Core.Api.csproj" />
+    <ProjectReference Include="../../../../Core/Realtime/src/Aizen.Core.Realtime/Aizen.Core.Realtime.csproj" />
+    <ProjectReference Include="../../../../Core/Realtime/src/Aizen.Core.Realtime.Abstraction/Aizen.Core.Realtime.Abstraction.csproj" />
     <ProjectReference Include="../Aizen.Bff.MarineProvider.Application/Aizen.Bff.MarineProvider.Application.csproj" />
     <ProjectReference Include="../../../../Modules/Notification/src/Aizen.Modules.Notification.Abstraction/Aizen.Modules.Notification.Abstraction.csproj" />
   </ItemGroup>

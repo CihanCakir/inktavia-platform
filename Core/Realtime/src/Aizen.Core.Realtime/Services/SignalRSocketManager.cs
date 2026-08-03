@@ -60,25 +60,34 @@ namespace Aizen.Core.Realtime.Services
             return _sp.GetService(hubContextType);
         }
 
+        // The resolved hub context is an INTERNAL HubContext<THub> (Microsoft.AspNetCore.SignalR.Internal).
+        // `dynamic` cannot reach its members across assemblies (the binder honours accessibility and throws
+        // RuntimeBinderException: 'object' does not contain a definition for 'Clients'). We therefore read the
+        // public IHubContext<THub>.Clients property (public interface member) reflectively to obtain the PUBLIC
+        // IHubClients, then call the instance method SendCoreAsync (NOT the SendAsync extension methods, which
+        // dynamic also cannot dispatch). Both previous failure modes silently dropped ALL realtime delivery.
+        private static IHubClients? GetHubClients(object hubContext)
+            => hubContext.GetType().GetProperty("Clients")?.GetValue(hubContext) as IHubClients;
+
         private Task InvokeGroupSendAsync(object hubContext, string groupName, string method, object payload, CancellationToken ct)
         {
-            if (hubContext == null) return Task.CompletedTask;
-            dynamic ctx = hubContext;
-            return (Task)ctx.Clients.Group(groupName).SendAsync(method, payload, ct);
+            var clients = GetHubClients(hubContext);
+            if (clients == null) return Task.CompletedTask;
+            return clients.Group(groupName).SendCoreAsync(method, new[] { payload }, ct);
         }
 
         private Task InvokeUserSendAsync(object hubContext, string userId, string method, object payload, CancellationToken ct)
         {
-            if (hubContext == null) return Task.CompletedTask;
-            dynamic ctx = hubContext;
-            return (Task)ctx.Clients.User(userId).SendAsync(method, payload, ct);
+            var clients = GetHubClients(hubContext);
+            if (clients == null) return Task.CompletedTask;
+            return clients.User(userId).SendCoreAsync(method, new[] { payload }, ct);
         }
 
         private Task InvokeClientSendAsync(object hubContext, string connectionId, string method, object payload, CancellationToken ct)
         {
-            if (hubContext == null) return Task.CompletedTask;
-            dynamic ctx = hubContext;
-            return (Task)ctx.Clients.Client(connectionId).SendAsync(method, payload, ct);
+            var clients = GetHubClients(hubContext);
+            if (clients == null) return Task.CompletedTask;
+            return clients.Client(connectionId).SendCoreAsync(method, new[] { payload }, ct);
         }
 
         public async Task SendToConnectionAsync(string connectionId, RealtimeMessage message, string? tenantId = null, CancellationToken ct = default)
@@ -233,27 +242,20 @@ namespace Aizen.Core.Realtime.Services
 
         private async Task<RealtimeMessage?> RunFiltersAsync(string? tenantId, RealtimeMessage message)
         {
-            if (_filters.TryGetValue(tenantId, out var list))
+            // ConcurrentDictionary forbids null keys: TryGetValue(null) throws ArgumentNullException.
+            // tenantId is null for every non-tenant-scoped send (e.g. all messaging events), so this
+            // previously threw and — swallowed by the callers' catch blocks — silently dropped ALL
+            // realtime delivery. Filters are only ever registered under a non-null tenantId, so guard it.
+            if (string.IsNullOrEmpty(tenantId) || !_filters.TryGetValue(tenantId, out var list))
+                return message;
+
+            var current = message;
+            foreach (var f in list)
             {
-                var current = message;
-                foreach (var f in list)
-                {
-                    current = await f(current);
-                    if (current == null) return null;
-                }
-                return current;
+                current = await f(current);
+                if (current == null) return null;
             }
-            if (_filters.TryGetValue(null, out var global))
-            {
-                var current = message;
-                foreach (var f in global)
-                {
-                    current = await f(current);
-                    if (current == null) return null;
-                }
-                return current;
-            }
-            return message;
+            return current;
         }
 
         private static string ParseDomainFromStream(string stream)

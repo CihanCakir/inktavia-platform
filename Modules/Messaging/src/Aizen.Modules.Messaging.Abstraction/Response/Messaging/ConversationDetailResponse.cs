@@ -30,6 +30,7 @@ public sealed record ChatMessageDto
     public string Type                      { get; init; } = string.Empty;
     public bool IsInternalNote              { get; init; }
     public string ModerationStatus          { get; init; } = string.Empty;
+    public string? ModerationReason         { get; init; }
     public DateTimeOffset Timestamp         { get; init; }
     public List<AttachmentDto> Attachments  { get; init; } = [];
     public LocationContentDto? Location     { get; init; }

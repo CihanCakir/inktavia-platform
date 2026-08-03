@@ -1,3 +1,4 @@
+using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
@@ -12,8 +13,12 @@ public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
 {
     // ─── Conversations ────────────────────────────────────────────────────────
 
+    // The Messaging module controllers return the AizenApiResponse envelope ({ header, body }) via SetResponse —
+    // unlike Payment's admin controllers which return the payload bare. So these remote calls must deserialize the
+    // ENVELOPE (AizenApiResponse<T>); returning the bare T made Refit find no top-level fields → empty/total:0.
+    // Mirrors IVesselAdminBffRemoteCall (the Vessel module wraps the same way). The controller unwraps .Body.
     [AizenRemoteCallGet("/api/v1/conversations")]
-    Task<GetConversationListResponse> GetConversationsAsync(
+    Task<AizenApiResponse<GetConversationListResponse>> GetConversationsAsync(
         [Query] string? status,
         [Query] string? contextType,
         [Query] int     skip,
@@ -21,14 +26,14 @@ public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
         CancellationToken ct = default);
 
     [AizenRemoteCallGet("/api/v1/conversations/{id}")]
-    Task<GetConversationDetailResponse> GetConversationAsync(
+    Task<AizenApiResponse<GetConversationDetailResponse>> GetConversationAsync(
         long id,
         CancellationToken ct = default);
 
     // ─── Messages ─────────────────────────────────────────────────────────────
 
     [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages")]
-    Task<SendMessageResponse> SendMessageAsync(
+    Task<AizenApiResponse<SendMessageResponse>> SendMessageAsync(
         long conversationId,
         [AizenRemoteCallBody] SendMessageRequest body,
         CancellationToken ct = default);
@@ -47,7 +52,7 @@ public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
     // ─── Moderation ───────────────────────────────────────────────────────────
 
     [AizenRemoteCallGet("/api/v1/moderation/queue")]
-    Task<GetModerationQueueResponse> GetModerationQueueAsync(
+    Task<AizenApiResponse<GetModerationQueueResponse>> GetModerationQueueAsync(
         [Query] int skip,
         [Query] int take,
         CancellationToken ct = default);

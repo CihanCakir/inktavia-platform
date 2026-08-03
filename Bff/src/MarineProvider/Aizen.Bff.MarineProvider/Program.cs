@@ -3,10 +3,13 @@ using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Extensions;
 using Aizen.Bff.MarineProvider.Realtime;
 using Aizen.Core.Cache.Extension;
+using Aizen.Core.Realtime.Abstraction.Interfaces;
+using Aizen.Core.Realtime.Extensions;
 using Aizen.Core.Starter;
 using Aizen.Core.Starter.Bff;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection;
 using System.Threading.RateLimiting;
 
 var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
@@ -64,18 +67,31 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
-// ── Realtime (SignalR) ────────────────────────────────────────────────────────
+// ── Realtime edge (ADR: BFF-hosted, on Aizen.Core.Realtime, modules publish-only) ─────────────
 // The hub lives on the BFF, not on a module: the browser only ever authenticates against the BFF, and the group a
-// connection joins is decided server-side from the resolved provider profile.
+// connection joins is decided server-side from the resolved provider profile. Migrated off the hand-rolled
+// AddSignalR + per-event consumers onto the shared framework (mirrors admin messaging W1) — one realtime style.
 //
 // Redis backplane is REQUIRED for Kubernetes multi-replica: without it, a RabbitMQ consumer on pod B pushes to
 // pod B's hub context, but the provider's WebSocket is on pod A — the event is silently dropped. With the
-// backplane, SignalR re-broadcasts across all pods. Uses a separate Redis DB from the cache so FLUSHDB on the
-// cache cannot take realtime down.
-var signalRBuilder = builder.Services.AddSignalR();
-var signalRRedisConn = builder.Configuration["Realtime:SignalR:RedisConnectionString"];
-if (!string.IsNullOrWhiteSpace(signalRRedisConn))
-    signalRBuilder.AddStackExchangeRedis(signalRRedisConn);
+// backplane, SignalR re-broadcasts across all pods. AddAizenRealtime reads Realtime:SignalR:* — the compose/k8s
+// env already sets UseRedisBackplane=true + RedisConnectionString (a separate Redis DB from the cache so FLUSHDB
+// on the cache cannot take realtime down). CORS stays the shared BFF policy applied before auth (above).
+//
+// Keep module-mapper auto-discovery OFF: this BFF supplies its own mapper and must not pull module types into
+// its container.
+builder.Services.AddAizenRealtime(builder.Configuration, o => o.RegisterModuleMappers = false);
+
+// The provider hub is registered under BOTH domain keys it broadcasts to. The framework's socket manager resolves
+// the target hub by parsing a group name's prefix (up to the first ':'): "provider:{id}" → "provider" and
+// "city:{code}" → "city". Registering only "provider" would silently break every city-targeted event
+// (ServiceRequestPublished/Updated/Cancelled/UrgencyChanged). Both keys map to the same ProviderRealtimeHub.
+builder.Services.AddDomainHub<ProviderRealtimeHub>("provider");
+builder.Services.AddDomainHub<ProviderRealtimeHub>("city");
+
+// The only per-surface routing declaration (ADR layer-2): module bus event → frame + target group(s). Singleton
+// because the framework's RealtimeIngressService (which consumes the single IEventSocketMapper) is a singleton.
+builder.Services.AddSingleton<IEventSocketMapper, ProviderEventSocketMapper>();
 
 // ── IP Rate Limiting (password recovery abuse protection) ─────────────────────
 var rlConfig = builder.Configuration.GetSection("RateLimiting:PasswordRecovery");

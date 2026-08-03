@@ -26,10 +26,11 @@ public sealed class MessagingMockDataSeeder
         await _db.Conversations.AddAsync(conv1, ct);
         await _db.SaveChangesAsync(ct);
 
+        // No Admin participant is seeded: admins aren't parties to a conversation — the admin-role bypass in
+        // SendMessageCommandHandler lets them intervene without a participant row.
         var conv1p1 = ConversationParticipantEntity.Create(conv1.Id, 10001, "Julian Vane",  MessagingParticipantRole.Owner);
         var conv1p2 = ConversationParticipantEntity.Create(conv1.Id, 10011, "Aria Voss",    MessagingParticipantRole.Provider);
-        var conv1p3 = ConversationParticipantEntity.Create(conv1.Id, 1,     "Admin",        MessagingParticipantRole.Admin);
-        await _db.ConversationParticipants.AddRangeAsync([conv1p1, conv1p2, conv1p3], ct);
+        await _db.ConversationParticipants.AddRangeAsync([conv1p1, conv1p2], ct);
 
         var msg1_1 = ConversationMessageEntity.Create(conv1.Id, 10001, "Julian Vane",
             MessagingParticipantRole.Owner,
@@ -64,8 +65,7 @@ public sealed class MessagingMockDataSeeder
 
         var conv2p1 = ConversationParticipantEntity.Create(conv2.Id, 10002, "Marco Russo",   MessagingParticipantRole.Owner);
         var conv2p2 = ConversationParticipantEntity.Create(conv2.Id, 10012, "Nico Hartmann", MessagingParticipantRole.Provider);
-        var conv2p3 = ConversationParticipantEntity.Create(conv2.Id, 1,     "Admin",         MessagingParticipantRole.Admin);
-        await _db.ConversationParticipants.AddRangeAsync([conv2p1, conv2p2, conv2p3], ct);
+        await _db.ConversationParticipants.AddRangeAsync([conv2p1, conv2p2], ct);
 
         var msg2_1 = ConversationMessageEntity.Create(conv2.Id, 10012, "Nico Hartmann",
             MessagingParticipantRole.Provider,

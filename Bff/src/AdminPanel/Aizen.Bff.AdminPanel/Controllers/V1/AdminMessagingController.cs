@@ -36,8 +36,10 @@ public sealed class AdminMessagingController : AizenWebApiController
         [FromQuery] int     take        = 20,
         CancellationToken ct            = default)
     {
+        // The remote call already returns the module's AizenApiResponse envelope; pass it straight through
+        // (do NOT SetResponse again — that would double-wrap). This preserves the module's header + body.
         var result = await _messaging.GetConversationsAsync(status, contextType, skip, take, ct);
-        return SetResponse(result);
+        return result;
     }
 
     /// <summary>GET api/v1/admin-panel/messaging/conversations/{id}</summary>
@@ -48,7 +50,7 @@ public sealed class AdminMessagingController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _messaging.GetConversationAsync(id, ct);
-        return SetResponse(result);
+        return result;
     }
 
     // ─── Messages ─────────────────────────────────────────────────────────────
@@ -62,7 +64,7 @@ public sealed class AdminMessagingController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _messaging.SendMessageAsync(id, body, ct);
-        return SetResponse(result);
+        return result;
     }
 
     /// <summary>PATCH api/v1/admin-panel/messaging/conversations/{id}/mark-read</summary>
@@ -97,7 +99,7 @@ public sealed class AdminMessagingController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _messaging.GetModerationQueueAsync(skip, take, ct);
-        return SetResponse(result);
+        return result;
     }
 
     /// <summary>PATCH api/v1/admin-panel/messaging/moderation/messages/{id}</summary>
