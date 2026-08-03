@@ -98,10 +98,18 @@ a thin bus event onto the same proven edge.
 untouched; no split-brain). Runtime wiring confirmed in the redeployed BFF log:
 `Configured endpoint AdminMessagingModerationRealtime, Consumer: …AdminMessagingModerationRealtimeConsumer`.
 
-**On-screen two-admin-session UI proof:** PENDING — the admin browser session expired (~2h in-memory token) before
-this shot; re-login needed. The path is deployed and the new consumer is confirmed hosted; the socket→refetch delivery
-is the same edge already proven live in Part 0. Will capture the two-session queue-updates-live transcript once the
-admin is re-authenticated.
+**On-screen two-admin-session UI proof (VERIFIED live):** Two admin sessions on `/app/messages/moderation`. Tab B
+(passive viewer, freshly loaded so its 30s poll timer had just reset — baseline **KUYRUKTA 15 / İŞARETLİ 14**). From
+Tab A I clicked **Block** ("Engelle") on the top flagged message. Within ~1–2s — far faster than the 30s poll — Tab B,
+**untouched**, refetched live: **KUYRUKTA 15→14, İŞARETLİ 14→13**, and the blocked row dropped off the queue. This
+exercises the full new path end-to-end: `ModerateMessageCommandHandler → MessagingModerationEventMessage (bus) →
+AdminMessagingModerationRealtimeConsumer → "ModerationEvent" frame → useMessagingHub → modQueue refetch`. (The queue
+query is `WHERE ModerationStatus IN (3,2)` = Flagged/PendingReview, so a Blocked verdict correctly leaves the queue.)
+Runtime consumer hosting was also confirmed in the redeployed BFF log
+(`Configured endpoint AdminMessagingModerationRealtime, Consumer: …AdminMessagingModerationRealtimeConsumer`).
+
+Note: this proof blocked one already-flagged test message in the #990101 test-vehicle conversation (which is
+deliberately kept as W1 test scaffolding and is out of Part 4's reset scope).
 
 ---
 
