@@ -22,7 +22,9 @@ public sealed class GetChannelUsageReportQueryHandler
         // Channel volume
         var byChannel = await _db.Conversations
             .AsNoTracking()
-            .Where(c => c.CreateDate >= from.DateTime && c.CreateDate <= to.DateTime && !c.IsDeleted)
+            // CreateDate is a timestamptz column; DateTimeOffset.DateTime yields Kind=Unspecified which Npgsql rejects.
+            // Use UtcDateTime (Kind=Utc). The SentAt filters below compare DateTimeOffset directly, so they're unaffected.
+            .Where(c => c.CreateDate >= from.UtcDateTime && c.CreateDate <= to.UtcDateTime && !c.IsDeleted)
             .GroupBy(c => c.ContextType)
             .Select(g => new
             {
@@ -42,27 +44,42 @@ public sealed class GetChannelUsageReportQueryHandler
                 : 0
         )).ToList();
 
-        // Daily trend
-        var dailyTrend = await _db.ConversationMessages
+        // Daily trend + peak hours — aggregate in memory (like the provider report does). Npgsql cannot
+        // translate DateOnly/hour truncation (.Date/.Hour) over the timestamptz columns, so we pull the raw
+        // timestamps for the range and bucket them client-side by their UTC day / UTC hour.
+        var messageSentAts = await _db.ConversationMessages
             .AsNoTracking()
             .Where(m => m.SentAt >= from && m.SentAt <= to && !m.IsDeleted)
-            .GroupBy(m => m.SentAt.Date)
-            .OrderBy(g => g.Key)
-            .Select(g => new DailyMessageVolumeDto(
-                DateOnly.FromDateTime(g.Key),
-                g.Count(),
-                _db.Conversations.Count(c => c.CreateDate!.Value.Date == g.Key && !c.IsDeleted)
-            ))
+            .Select(m => m.SentAt)
             .ToListAsync(ct);
 
-        // Peak hours (UTC)
-        var peakHours = await _db.ConversationMessages
+        var newConversationDates = await _db.Conversations
             .AsNoTracking()
-            .Where(m => m.SentAt >= from && m.SentAt <= to && !m.IsDeleted)
-            .GroupBy(m => m.SentAt.Hour)
+            .Where(c => c.CreateDate != null
+                     && c.CreateDate >= from.UtcDateTime
+                     && c.CreateDate <= to.UtcDateTime
+                     && !c.IsDeleted)
+            .Select(c => c.CreateDate!.Value)
+            .ToListAsync(ct);
+
+        var newConversationsByDay = newConversationDates
+            .GroupBy(d => DateOnly.FromDateTime(d))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var dailyTrend = messageSentAts
+            .GroupBy(ts => DateOnly.FromDateTime(ts.UtcDateTime))
+            .OrderBy(g => g.Key)
+            .Select(g => new DailyMessageVolumeDto(
+                g.Key,
+                g.Count(),
+                newConversationsByDay.TryGetValue(g.Key, out var n) ? n : 0))
+            .ToList();
+
+        var peakHours = messageSentAts
+            .GroupBy(ts => ts.UtcDateTime.Hour)
             .OrderBy(g => g.Key)
             .Select(g => new PeakHourDto(g.Key, g.Count()))
-            .ToListAsync(ct);
+            .ToList();
 
         return new GetChannelUsageReportResponse(
             channelDtos, dailyTrend, peakHours, DateTimeOffset.UtcNow);

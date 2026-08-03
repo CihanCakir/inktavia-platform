@@ -1,3 +1,4 @@
+using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
@@ -130,11 +131,12 @@ public sealed class AdminMessagingController : AizenWebApiController
 
     /// <summary>
     /// GET api/v1/admin-panel/messaging/reports
-    /// Merges provider-response-time and channel-usage into one response object.
+    /// Fans out provider-response-time + channel-usage, unwraps each module envelope, and merges
+    /// them into one typed <see cref="MessagingReportsBffResponse"/> (no anonymous object / raw envelope leakage).
     /// </summary>
     [HttpGet("reports")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> GetReports(
+    [ProducesResponseType(typeof(MessagingReportsBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MessagingReportsBffResponse>> GetReports(
         [FromQuery] string? from = null,
         [FromQuery] string? to   = null,
         CancellationToken ct     = default)
@@ -144,12 +146,17 @@ public sealed class AdminMessagingController : AizenWebApiController
 
         await Task.WhenAll(providerTask, channelTask);
 
-        var merged = (object)new
-        {
-            providerResponseTime = await providerTask,
-            channelUsage         = await channelTask,
-            generatedAt          = DateTimeOffset.UtcNow.ToString("O")
-        };
+        // Unwrap the wrapped module envelopes (.Body) — never surface { header, body } to the FE.
+        var provider = (await providerTask).Body;
+        var channel  = (await channelTask).Body;
+
+        var merged = new MessagingReportsBffResponse(
+            ProviderResponseTime: provider?.Items ?? new List<ProviderResponseTimeItem>(),
+            ChannelUsage: new ChannelUsageBff(
+                ByChannel:  channel?.ByChannel  ?? new List<ChannelVolumeItem>(),
+                DailyTrend: channel?.DailyTrend ?? new List<DailyMessageVolumeItem>(),
+                PeakHours:  channel?.PeakHours  ?? new List<PeakHourItem>()),
+            GeneratedAt: DateTimeOffset.UtcNow);
 
         return SetResponse(merged);
     }

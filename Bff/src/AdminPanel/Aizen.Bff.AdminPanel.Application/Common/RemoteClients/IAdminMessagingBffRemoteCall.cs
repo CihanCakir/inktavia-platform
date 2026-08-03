@@ -1,3 +1,4 @@
+using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
@@ -71,14 +72,18 @@ public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
 
     // ─── Reporting ────────────────────────────────────────────────────────────
 
+    // Same wrapped-vs-bare lesson as the conversation/moderation calls above: MessagingReportingController
+    // returns the AizenApiResponse envelope via SetResponse, so these must deserialize AizenApiResponse<T>
+    // (returning bare object silently yielded the whole { header, body } envelope to the FE). The controller
+    // unwraps each .Body and merges them into MessagingReportsBffResponse.
     [AizenRemoteCallGet("/api/v1/reporting/messaging/provider-response-time")]
-    Task<object> GetProviderResponseTimeAsync(
+    Task<AizenApiResponse<ProviderResponseTimeReportBody>> GetProviderResponseTimeAsync(
         [Query] string? from,
         [Query] string? to,
         CancellationToken ct = default);
 
     [AizenRemoteCallGet("/api/v1/reporting/messaging/channel-usage")]
-    Task<object> GetChannelUsageAsync(
+    Task<AizenApiResponse<ChannelUsageReportBody>> GetChannelUsageAsync(
         [Query] string? from,
         [Query] string? to,
         CancellationToken ct = default);
