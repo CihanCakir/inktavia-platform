@@ -117,3 +117,36 @@ public sealed class DeactivateRefundAllocationPolicyCommandHandler
         return new RefundAllocationPolicyMutateResultDto(policy.Id, policy.PolicyCode);
     }
 }
+
+// ─── Reactivate ──────────────────────────────────────────────────────────────
+public sealed class ReactivateRefundAllocationPolicyCommand : AizenCommand<RefundAllocationPolicyMutateResultDto>
+{
+    public long Id { get; init; }
+}
+
+public sealed class ReactivateRefundAllocationPolicyCommandHandler
+    : AizenCommandHandler<ReactivateRefundAllocationPolicyCommand, RefundAllocationPolicyMutateResultDto>
+{
+    private readonly IRefundAllocationPolicyRepository _policies;
+    public ReactivateRefundAllocationPolicyCommandHandler(IRefundAllocationPolicyRepository policies) => _policies = policies;
+
+    public override async Task<RefundAllocationPolicyMutateResultDto?> Handle(ReactivateRefundAllocationPolicyCommand r, CancellationToken ct)
+    {
+        var policy = await _policies.GetByIdAsync(r.Id, ct)
+            ?? throw new AizenBusinessException((int)PaymentErrorCode.RefundAllocationPolicyInvalid, $"Refund-allocation policy {r.Id} not found.");
+
+        if (policy.Status != CommissionRuleStatus.Inactive)
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundAllocationPolicyInvalid,
+                $"Only a deactivated policy can be reactivated (policy {policy.Id} is {policy.Status}).");
+
+        // §7.2 fail-loud: reactivation must not overlap another active policy for the currency (checked before mutating).
+        var existingActive = (await _policies.GetAllAsync(ct)).Where(p => p.IsActive && p.CurrencyCode == policy.CurrencyCode);
+        if (RefundAllocationPolicyResolver.FindOverlappingConflict(policy, existingActive) is not null)
+            throw new AizenBusinessException((int)PaymentErrorCode.RefundAllocationPolicyConflict,
+                $"Reactivation would overlap an active refund-allocation policy for currency {policy.CurrencyCode}.");
+
+        policy.Reactivate();
+        _policies.Update(policy);
+        return new RefundAllocationPolicyMutateResultDto(policy.Id, policy.PolicyCode);
+    }
+}

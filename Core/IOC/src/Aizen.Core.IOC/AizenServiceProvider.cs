@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Aizen.Core.IOC;
 
 public class AizenServiceProvider : IServiceProvider, ISupportRequiredService, IServiceProviderIsService,
-    IDisposable, IAsyncDisposable
+    IKeyedServiceProvider, IDisposable, IAsyncDisposable
 {
     private readonly AutofacServiceProvider _autofacServiceProvider;
     public AizenServiceProvider(AutofacServiceProvider autofacServiceProvider)
@@ -34,6 +34,22 @@ public class AizenServiceProvider : IServiceProvider, ISupportRequiredService, I
     {
         return _autofacServiceProvider.IsService(serviceType);
     }
+
+    public object? GetKeyedService(Type serviceType, object? serviceKey)
+    {
+        return KeyedProvider.GetKeyedService(serviceType, serviceKey);
+    }
+
+    public object GetRequiredKeyedService(Type serviceType, object? serviceKey)
+    {
+        return KeyedProvider.GetRequiredKeyedService(serviceType, serviceKey);
+    }
+
+    private IKeyedServiceProvider KeyedProvider =>
+        _autofacServiceProvider as IKeyedServiceProvider
+        ?? throw new InvalidOperationException(
+            "The underlying AutofacServiceProvider does not support keyed services. " +
+            "Ensure Autofac.Extensions.DependencyInjection 9.0.0+ is referenced.");
 
     public void Dispose()
     {

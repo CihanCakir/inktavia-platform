@@ -1459,6 +1459,13 @@ public sealed class AdminPaymentController : AizenWebApiController
         long id, CancellationToken ct = default)
         => SetResponse((await _cqrs.ProcessAsync(new DeactivateRefundAllocationPolicyBffCommand { Id = id }, ct))?.Result);
 
+    /// <summary>POST api/v1/admin-panel/payment/admin/refund-allocation-policies/{id}/reactivate.</summary>
+    [HttpPost("admin/refund-allocation-policies/{id:long}/reactivate")]
+    [ProducesResponseType(typeof(RefundAllocationPolicyMutateResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RefundAllocationPolicyMutateResultDto?>> ReactivateRefundAllocationPolicy(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new ReactivateRefundAllocationPolicyBffCommand { Id = id }, ct))?.Result);
+
     // ─── P10 Refund / Chargeback queues ───────────────────────────────────────
 
     /// <summary>GET api/v1/admin-panel/payment/admin/refund-queue — paged refund queue.</summary>

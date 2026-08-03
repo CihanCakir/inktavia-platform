@@ -109,8 +109,10 @@ public sealed class PaymentFinanceController : ControllerBase
             AccountLine       = accountLine,
             SourceType        = sourceType,
             ProviderProfileId = providerProfileId,
-            From              = from,
-            To                = to,
+            // Query-string DateTimes bind with Kind=Unspecified; force UTC before they reach the
+            // 'timestamp with time zone' column (mirrors the financial-summary endpoint above).
+            From              = from is { } f ? DateTime.SpecifyKind(f, DateTimeKind.Utc) : null,
+            To                = to   is { } tt ? DateTime.SpecifyKind(tt, DateTimeKind.Utc) : null,
             Currency          = currency,
             Page              = page,
             PageSize          = pageSize,

@@ -725,6 +725,9 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/payment/admin/refund-allocation-policies/{id}/deactivate")]
     Task<RefundAllocationPolicyMutateResultDto> DeactivateRefundAllocationPolicyAsync(long id, CancellationToken ct = default);
 
+    [AizenRemoteCallPost("/api/v1/payment/admin/refund-allocation-policies/{id}/reactivate")]
+    Task<RefundAllocationPolicyMutateResultDto> ReactivateRefundAllocationPolicyAsync(long id, CancellationToken ct = default);
+
     // ─── P10 Refund / Chargeback queues (module: /api/v1/payment/admin) ───────
 
     [AizenRemoteCallGet("/api/v1/payment/admin/refund-queue")]

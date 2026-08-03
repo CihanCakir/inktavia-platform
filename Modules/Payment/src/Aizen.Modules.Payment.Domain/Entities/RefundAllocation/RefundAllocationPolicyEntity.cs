@@ -72,6 +72,11 @@ public sealed class RefundAllocationPolicyEntity : AizenEntityWithAudit
         IsActive && EffectiveFrom <= atUtc && (EffectiveTo == null || EffectiveTo > atUtc);
 
     public void Deactivate() { IsActive = false; Status = CommissionRuleStatus.Inactive; }
+
+    /// <summary>Admin re-activation of a manually-deactivated policy — restores IsActive and re-derives Status from the
+    /// effective window. The single-active-per-currency overlap guard is re-run by the command handler before persisting.</summary>
+    public void Reactivate() { IsActive = true; Status = DeriveStatus(EffectiveFrom, EffectiveTo); }
+
     public void SetPolicyCode(string policyCode) => PolicyCode = policyCode;
 
     /// <summary>BE-P11/P10 admin edit — the tunable header fields (negative-balance limit, effective window, notes). Per-cause

@@ -14,6 +14,7 @@ public class AizenServiceProviderFactory : IServiceProviderFactory<ContainerBuil
             .As<IServiceProvider>()
             .As<ISupportRequiredService>()
             .As<IServiceProviderIsService>()
+            .As<IKeyedServiceProvider>()
             .ExternallyOwned();
 
         builder.RegisterType<AizenServiceScopeFactory>()

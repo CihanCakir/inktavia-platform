@@ -51,6 +51,10 @@ public sealed class RefundAdminController : ControllerBase
     public async Task<IActionResult> DeactivatePolicy(long id, CancellationToken ct)
         => Ok(await _sender.Send(new DeactivateRefundAllocationPolicyCommand { Id = id }, ct));
 
+    [HttpPost("refund-allocation-policies/{id:long}/reactivate")]
+    public async Task<IActionResult> ReactivatePolicy(long id, CancellationToken ct)
+        => Ok(await _sender.Send(new ReactivateRefundAllocationPolicyCommand { Id = id }, ct));
+
     // ── Refund / chargeback queues ────────────────────────────────────────────
 
     [HttpGet("refund-queue")]

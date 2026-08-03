@@ -66,6 +66,8 @@ public static class DependencyInjection
         services.AddScoped<TransactionRefundMockSeed>();
         services.AddScoped<CommissionRuleMockSeed>();
         services.AddScoped<InvoiceMockSeed>();
+        services.AddScoped<Provider2PositiveBranchMockSeed>();
+        services.AddScoped<SubMerchantOnboardingMockSeed>();
 
         return services;
     }
@@ -135,5 +137,14 @@ public static class DependencyInjection
         // Phase 7: invoice mock data (provider2 settlement statement)
         var invoiceSeeder = scope.ServiceProvider.GetRequiredService<InvoiceMockSeed>();
         await invoiceSeeder.SeedAsync(ct);
+
+        // Phase 8: Provider2 Wave B positive branches — economics snapshot (Part A) + disputed/refund + over-limit
+        // negative balance (Part C). Must run after transactions (own tx codes) and refunds. Idempotent, demo-only.
+        var waveBSeeder = scope.ServiceProvider.GetRequiredService<Provider2PositiveBranchMockSeed>();
+        await waveBSeeder.SeedAsync(ct);
+
+        // Phase 9: sub-merchant onboarding demo profiles for the BE-I1 admin KYC queue (idempotent, demo-only).
+        var subMerchantSeeder = scope.ServiceProvider.GetRequiredService<SubMerchantOnboardingMockSeed>();
+        await subMerchantSeeder.SeedAsync(ct);
     }
 }

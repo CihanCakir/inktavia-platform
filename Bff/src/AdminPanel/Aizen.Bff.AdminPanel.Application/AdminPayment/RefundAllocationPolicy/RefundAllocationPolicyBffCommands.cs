@@ -63,3 +63,23 @@ public sealed class DeactivateRefundAllocationPolicyBffCommandHandler
     public override async Task<DeactivateRefundAllocationPolicyBffResponse?> Handle(DeactivateRefundAllocationPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivateRefundAllocationPolicyAsync(request.Id, ct) };
 }
+
+// ─── Reactivate ──────────────────────────────────────────────────────────────
+public sealed class ReactivateRefundAllocationPolicyBffCommand : AizenCommand<ReactivateRefundAllocationPolicyBffResponse>
+{
+    public long Id { get; init; }
+}
+public sealed class ReactivateRefundAllocationPolicyBffResponse { public RefundAllocationPolicyMutateResultDto Result { get; init; } = default!; }
+
+[DocumentationInfo("Reactivate refund-allocation policy BFF command handler (P10)",
+    "Forwards a reactivate (POST /admin/refund-allocation-policies/{id}/reactivate). A RefundAllocationPolicyConflict " +
+    "surfaces through the envelope (fail-loud) when reactivation would overlap an active policy for the currency.")]
+public sealed class ReactivateRefundAllocationPolicyBffCommandHandler
+    : AizenCommandHandler<ReactivateRefundAllocationPolicyBffCommand, ReactivateRefundAllocationPolicyBffResponse>
+{
+    private readonly IAdminPaymentBffRemoteCall _payment;
+    public ReactivateRefundAllocationPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+
+    public override async Task<ReactivateRefundAllocationPolicyBffResponse?> Handle(ReactivateRefundAllocationPolicyBffCommand request, CancellationToken ct)
+        => new() { Result = await _payment.ReactivateRefundAllocationPolicyAsync(request.Id, ct) };
+}

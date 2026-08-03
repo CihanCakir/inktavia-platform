@@ -23,6 +23,8 @@
     <ProjectReference Include="..\..\src\Aizen.Modules.Payment.Domain\Aizen.Modules.Payment.Domain.csproj" />
     <!-- BE-P9: gateway guard/builder/resolver + item-ops client tests live in the Application layer. -->
     <ProjectReference Include="..\..\src\Aizen.Modules.Payment.Application\Aizen.Modules.Payment.Application.csproj" />
+    <!-- FIX_KEYED_SERVICE_DI: regression test resolves keyed IPaymentGatewayProvider through the Aizen container. -->
+    <ProjectReference Include="..\..\..\..\Core\IOC\src\Aizen.Core.IOC\Aizen.Core.IOC.csproj" />
   </ItemGroup>
 
 </Project>
