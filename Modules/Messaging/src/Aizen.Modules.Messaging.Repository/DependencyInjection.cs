@@ -7,6 +7,7 @@ using Aizen.Modules.Messaging.Repository.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.Messaging.Repository;
 
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IConversationMessageRepository, ConversationMessageRepository>();
         services.AddScoped<IMessageContentPolicy, MessageContentPolicyService>();
         services.AddScoped<MessagingMockDataSeeder>();
+        services.AddScoped<ServiceRequestChatBackfiller>();
 
         return services;
     }
@@ -43,6 +45,20 @@ public static class DependencyInjection
         {
             var seeder = scope.ServiceProvider.GetRequiredService<MessagingMockDataSeeder>();
             await seeder.SeedAsync(ct);
+
+            // SPIKE P1: one-time, idempotent backfill of ServiceRequest chat into the canonical Messaging store.
+            // Safe to run every dev boot (dedupes per message). Phase 2 replaces this dev-gate with an explicit flag.
+            // Guarded: a backfill failure must never take down messaging-api startup.
+            try
+            {
+                var backfiller = scope.ServiceProvider.GetRequiredService<ServiceRequestChatBackfiller>();
+                await backfiller.BackfillAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                var log = scope.ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger("MessagingBackfill");
+                log?.LogError(ex, "[SR→Messaging backfill] aborted (non-fatal); messaging-api continues");
+            }
         }
     }
 }

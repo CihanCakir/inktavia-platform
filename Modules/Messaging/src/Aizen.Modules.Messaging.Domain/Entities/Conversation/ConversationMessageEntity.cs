@@ -30,7 +30,8 @@ public sealed class ConversationMessageEntity : AizenEntityWithAudit
         MessagingParticipantRole senderRole,
         string content,
         MessageType type = MessageType.Text,
-        bool isInternalNote = false)
+        bool isInternalNote = false,
+        DateTimeOffset? sentAt = null)
     {
         return new ConversationMessageEntity
         {
@@ -42,7 +43,8 @@ public sealed class ConversationMessageEntity : AizenEntityWithAudit
             Type             = type,
             IsInternalNote   = isInternalNote,
             ModerationStatus = MessageModerationStatus.Allowed,
-            SentAt           = DateTimeOffset.UtcNow,
+            // Defaults to now for live sends; the backfill passes the original source timestamp (UTC) to preserve history.
+            SentAt           = sentAt ?? DateTimeOffset.UtcNow,
             IsActive         = true,
         };
     }
