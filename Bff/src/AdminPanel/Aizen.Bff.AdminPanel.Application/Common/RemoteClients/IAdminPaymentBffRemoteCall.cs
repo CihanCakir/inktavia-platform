@@ -135,10 +135,12 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/payment/provider-plans")]
     Task<List<ProviderPlanBffDto>> GetProviderPlansAsync(
+        [Query] bool includeInactive = false,
         CancellationToken ct = default);
 
     [AizenRemoteCallGet("/api/v1/payment/participant-plans")]
     Task<List<ParticipantPlanBffDto>> GetParticipantPlansAsync(
+        [Query] bool includeInactive = false,
         CancellationToken ct = default);
 
     // ─── Commission ───────────────────────────────────────────────────────────

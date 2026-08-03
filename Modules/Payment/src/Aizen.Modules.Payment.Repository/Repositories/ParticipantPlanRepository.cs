@@ -15,6 +15,9 @@ public sealed class ParticipantPlanRepository : IParticipantPlanRepository
     public Task<List<ParticipantPlanEntity>> GetAllActiveAsync(CancellationToken ct)
         => _db.ParticipantPlans.Where(x => x.IsActive).OrderBy(x => x.SortOrder).ToListAsync(ct);
 
+    public Task<List<ParticipantPlanEntity>> GetAllAsync(CancellationToken ct)
+        => _db.ParticipantPlans.OrderBy(x => x.SortOrder).ToListAsync(ct);
+
     public Task<ParticipantPlanEntity?> GetByIdAsync(long id, CancellationToken ct)
         => _db.ParticipantPlans.FirstOrDefaultAsync(x => x.Id == id, ct);
 

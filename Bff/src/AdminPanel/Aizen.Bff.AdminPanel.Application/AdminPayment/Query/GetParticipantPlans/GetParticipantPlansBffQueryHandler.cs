@@ -16,7 +16,8 @@ public sealed class GetParticipantPlansBffQueryHandler
     public override async Task<GetParticipantPlansBffResponse> Handle(
         GetParticipantPlansBffQuery request, CancellationToken ct)
     {
-        var plans = await _remote.GetParticipantPlansAsync(ct);
+        // Admin management surface must see inactive plans too (public marketing GET stays active-only).
+        var plans = await _remote.GetParticipantPlansAsync(includeInactive: true, ct: ct);
         return new GetParticipantPlansBffResponse { Plans = plans };
     }
 }

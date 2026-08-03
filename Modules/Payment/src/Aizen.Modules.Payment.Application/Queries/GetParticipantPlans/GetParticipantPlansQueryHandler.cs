@@ -16,7 +16,9 @@ public sealed class GetParticipantPlansQueryHandler
     public override async Task<List<ParticipantPlanDto>?> Handle(
         GetParticipantPlansQuery request, CancellationToken ct)
     {
-        var plans = await _plans.GetAllActiveAsync(ct);
+        var plans = request.IncludeInactive
+            ? await _plans.GetAllAsync(ct)
+            : await _plans.GetAllActiveAsync(ct);
         return plans.Select(p => new ParticipantPlanDto(
             p.Id, p.PlanCode, p.Name, p.Description,
             p.MonthlyPriceTRY, p.AnnualPriceTRY, p.TrialDays, p.BadgeLabel,

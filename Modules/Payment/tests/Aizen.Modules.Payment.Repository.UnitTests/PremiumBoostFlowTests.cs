@@ -1,6 +1,7 @@
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Application.Commands.CapturePayment;
 using Aizen.Modules.Payment.Application.Gateway.Iyzico;
 using Aizen.Modules.Payment.Application.Gateway.Iyzico.Models;
 using Aizen.Modules.Payment.Application.Services;
@@ -105,6 +106,83 @@ public sealed class PremiumBoostFlowTests
         await svc.OnBoostPaidAsync(tx, CancellationToken.None);
         await db.SaveChangesAsync();
         (await db.PremiumEntitlements.CountAsync()).Should().Be(1, "duplicate webhook must be idempotent (unique PremiumPurchaseId)");
+    }
+
+    // ── Manual capture → Active (gateway-agnostic activation) ───────────────────
+    // FIX_BOOST_ACTIVATE_MANUAL_GATEWAY: the manual admin capture path must fire OnBoostPaidAsync just like the iyzico
+    // webhook, so a boost activates under PAYMENT_GATEWAY_ACTIVE=manual (no iyzico). A second capture is a no-op.
+
+    [Fact]
+    public async Task ManualCapture_OfBoostTx_ActivatesOneEntitlement_AndSecondCaptureIsNoOp()
+    {
+        await using var db = NewDb();
+        await SeedAsync(db);
+        var (purchase, tx) = await InitiatePurchaseAsync(db);
+
+        var handler = new CapturePaymentCommandHandler(
+            unitOfWork: null!,   // unused by the handler body (SaveChanges is the decorator's job)
+            new PaymentTransactionRepository(db),
+            NewService(db),
+            NullLogger<CapturePaymentCommandHandler>.Instance);
+
+        var cmd = new CapturePaymentCommand
+        {
+            TransactionId    = tx.Id,
+            GatewayReference = $"MANUAL-CAP-{tx.Id}",
+            PaidAmount       = 149.90m,
+            CurrencyCode     = "TRY",
+        };
+
+        // First capture → captures the tx AND activates exactly one entitlement; purchase → Paid.
+        var first = await handler.Handle(cmd, CancellationToken.None);
+        await db.SaveChangesAsync();   // the AizenCommandHandlerDecorator saves in production; the test does it explicitly
+
+        first!.WasAlreadyCaptured.Should().BeFalse();
+        var e = await db.PremiumEntitlements.AsNoTracking().SingleAsync();
+        e.Status.Should().Be(PremiumEntitlementStatus.Active);
+        e.ContextRef.Should().Be(OfferId);
+        e.ExpiresAt!.Value.Should().BeCloseTo(e.StartsAt!.Value.AddDays(7), TimeSpan.FromMinutes(1));   // now → now+7d
+        (await db.PremiumPurchases.AsNoTracking().FirstAsync(x => x.Id == purchase.Id)).Status
+            .Should().Be(PremiumPurchaseStatus.Paid);
+
+        // Second capture on the same tx → idempotent (CapturedAt guard); NO duplicate entitlement.
+        var second = await handler.Handle(cmd, CancellationToken.None);
+        await db.SaveChangesAsync();
+        second!.WasAlreadyCaptured.Should().BeTrue();
+        (await db.PremiumEntitlements.CountAsync()).Should().Be(1, "a second capture must not create a duplicate entitlement");
+    }
+
+    // ── Non-boost capture activates nothing ─────────────────────────────────────
+
+    [Fact]
+    public async Task ManualCapture_OfNonBoostTx_ActivatesNoEntitlement()
+    {
+        await using var db = NewDb();
+        await SeedAsync(db);
+
+        var tx = PaymentTransactionEntity.Create(
+            transactionCode: $"TXN-{Guid.NewGuid():N}"[..20], transactionType: TransactionType.ServiceRequestEscrow,
+            contextType: TransactionContextType.ServiceRequest, contextId: 7001, contextSubId: null,
+            payerProfileId: ProviderId, recipientProfileId: 999, grossAmount: 500m,
+            commissionAmount: 50m, commissionRateSnapshot: 0.10m, vatOnCommission: 0m, netPayoutAmount: 450m,
+            discountAmount: 0m, currencyCode: "TRY", gatewayProvider: "manual",
+            idempotencyKey: $"SR-{Guid.NewGuid():N}"[..20], escrowRequired: true);
+        db.Transactions.Add(tx);
+        await db.SaveChangesAsync();
+
+        var handler = new CapturePaymentCommandHandler(
+            unitOfWork: null!, new PaymentTransactionRepository(db), NewService(db),
+            NullLogger<CapturePaymentCommandHandler>.Instance);
+
+        var result = await handler.Handle(new CapturePaymentCommand
+        {
+            TransactionId = tx.Id, GatewayReference = $"MANUAL-CAP-{tx.Id}", PaidAmount = 500m, CurrencyCode = "TRY",
+        }, CancellationToken.None);
+        await db.SaveChangesAsync();
+
+        result!.WasAlreadyCaptured.Should().BeFalse();
+        (await db.Transactions.AsNoTracking().FirstAsync(x => x.Id == tx.Id)).CapturedAt.Should().NotBeNull();
+        (await db.PremiumEntitlements.CountAsync()).Should().Be(0, "a non-boost capture must not touch premium boost");
     }
 
     // ── Refund → Revoked, no ProviderNegativeBalance ────────────────────────────

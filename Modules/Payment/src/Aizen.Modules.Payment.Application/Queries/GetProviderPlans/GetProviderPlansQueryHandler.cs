@@ -26,7 +26,9 @@ public sealed class GetProviderPlansQueryHandler
         GetProviderPlansQuery request, CancellationToken ct)
     {
         var now       = DateTime.UtcNow;
-        var plans     = await _repo.GetAllActiveAsync(ct);
+        var plans     = request.IncludeInactive
+            ? await _repo.GetAllAsync(ct)
+            : await _repo.GetAllActiveAsync(ct);
         var activeSub = await _repo.GetActiveSubscriptionAsync(request.ProviderProfileId, now, ct);
 
         var result = new List<ProviderPlanDto>(plans.Count);
@@ -48,6 +50,7 @@ public sealed class GetProviderPlansQueryHandler
                 HasPriorityBoost = p.HasPriorityBoost,
                 HasFullAnalytics = p.HasFullAnalytics,
                 SortOrder        = p.SortOrder,
+                IsActive         = p.IsActive,
                 IsCurrent        = activeSub != null && p.Id == activeSub.ProviderPlanId,
                 Features         = p.FeatureItems?.Select(f => f.Text).ToList() ?? [],
                 ActivePrice      = GetProviderSubscriptionQueryHandler.MapActivePrice(activeNow),

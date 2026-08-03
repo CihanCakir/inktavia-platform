@@ -2,6 +2,7 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Aizen.Modules.Payment.Repository.Persistence;
 using Microsoft.Extensions.Logging;
@@ -15,14 +16,17 @@ public sealed class CapturePaymentCommandHandler
     : AizenCommandHandler<CapturePaymentCommand, CapturePaymentResult>
 {
     private readonly IPaymentTransactionRepository          _transactions;
+    private readonly PremiumBoostService                    _premiumBoost;
     private readonly ILogger<CapturePaymentCommandHandler> _logger;
 
     public CapturePaymentCommandHandler(
         IAizenUnitOfWork<PaymentDbContext>     unitOfWork,
         IPaymentTransactionRepository          transactions,
+        PremiumBoostService                    premiumBoost,
         ILogger<CapturePaymentCommandHandler>  logger)
     {
         _transactions = transactions;
+        _premiumBoost = premiumBoost;
         _logger       = logger;
     }
 
@@ -56,6 +60,12 @@ public sealed class CapturePaymentCommandHandler
 
         tx.Capture(request.GatewayReference);
         _transactions.Update(tx);
+
+        // BE-P11 §9.2: a paid premium boost → mark the purchase Paid + create & Activate the single entitlement.
+        // Gateway-agnostic (mirrors the iyzico webhook branch); idempotent (unique PremiumPurchaseId + the CapturedAt
+        // guard above short-circuits a duplicate capture). Non-boost transactions are unaffected.
+        if (tx.TransactionType == Abstraction.TransactionType.PremiumBoostPurchase)
+            await _premiumBoost.OnBoostPaidAsync(tx, ct);
         // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
 
         _logger.LogInformation(

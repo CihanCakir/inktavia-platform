@@ -53,6 +53,7 @@ public sealed class ProviderPlanDto
     public bool    HasPriorityBoost{ get; init; }
     public bool    HasFullAnalytics{ get; init; }
     public int     SortOrder       { get; init; }
+    public bool    IsActive        { get; init; }
     public bool    IsCurrent       { get; init; }
     public List<string> Features   { get; init; } = [];
 

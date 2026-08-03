@@ -12,6 +12,7 @@ namespace Aizen.Modules.Payment.Controllers;
 
 [ApiController]
 [Route("api/v1/payment/provider-plans")]
+[Authorize(Roles = "Admin")] // Writes require Admin; GETs opt out with [AllowAnonymous]
 public sealed class ProviderPlanController : ControllerBase
 {
     private readonly ISender _sender;
@@ -19,9 +20,9 @@ public sealed class ProviderPlanController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous] // Plans are publicly visible for marketing/pricing pages
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll([FromQuery] bool includeInactive = false, CancellationToken ct = default)
     {
-        var result = await _sender.Send(new GetProviderPlansQuery(), ct);
+        var result = await _sender.Send(new GetProviderPlansQuery { IncludeInactive = includeInactive }, ct);
         return Ok(result);
     }
 
@@ -35,7 +36,6 @@ public sealed class ProviderPlanController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "AdminPanelAccess")]
     public async Task<IActionResult> Create([FromBody] CreateProviderPlanCommand command, CancellationToken ct)
     {
         var result = await _sender.Send(command, ct);
@@ -47,7 +47,6 @@ public sealed class ProviderPlanController : ControllerBase
     /// PlanCode is immutable after creation.
     /// </summary>
     [HttpPut("{id:long}")]
-    [Authorize(Policy = "AdminPanelAccess")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateProviderPlanCommand command, CancellationToken ct)
     {
         var enriched = new UpdateProviderPlanCommand
@@ -75,7 +74,6 @@ public sealed class ProviderPlanController : ControllerBase
     /// Sets IsActive=true. Does NOT create subscriptions or trigger billing.
     /// </summary>
     [HttpPost("{id:long}/activate")]
-    [Authorize(Policy = "AdminPanelAccess")]
     public async Task<IActionResult> Activate(long id, CancellationToken ct)
     {
         var result = await _sender.Send(new ActivateProviderPlanCommand { Id = id }, ct);
@@ -86,7 +84,6 @@ public sealed class ProviderPlanController : ControllerBase
     /// Sets IsActive=false. Does NOT cancel existing subscriptions or affect billing.
     /// </summary>
     [HttpPost("{id:long}/deactivate")]
-    [Authorize(Policy = "AdminPanelAccess")]
     public async Task<IActionResult> Deactivate(long id, CancellationToken ct)
     {
         var result = await _sender.Send(new DeactivateProviderPlanCommand { Id = id }, ct);

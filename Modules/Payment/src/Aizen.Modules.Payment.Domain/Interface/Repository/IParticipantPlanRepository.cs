@@ -6,6 +6,7 @@ namespace Aizen.Modules.Payment.Domain.Interface.Repository;
 public interface IParticipantPlanRepository
 {
     Task<List<ParticipantPlanEntity>>  GetAllActiveAsync(CancellationToken ct = default);
+    Task<List<ParticipantPlanEntity>>  GetAllAsync(CancellationToken ct = default);
     Task<ParticipantPlanEntity?>       GetByIdAsync(long id, CancellationToken ct = default);
     Task<ParticipantPlanEntity?>       GetByCodeAsync(string planCode, CancellationToken ct = default);
     Task<bool>                         ExistsByCodeAsync(string planCode, CancellationToken ct = default);

@@ -15,6 +15,9 @@ public sealed class ProviderPlanRepository : IProviderPlanRepository
     public Task<List<ProviderPlanEntity>> GetAllActiveAsync(CancellationToken ct)
         => _db.ProviderPlans.Where(x => x.IsActive).OrderBy(x => x.SortOrder).ToListAsync(ct);
 
+    public Task<List<ProviderPlanEntity>> GetAllAsync(CancellationToken ct)
+        => _db.ProviderPlans.OrderBy(x => x.SortOrder).ToListAsync(ct);
+
     public Task<ProviderPlanEntity?> GetByIdAsync(long id, CancellationToken ct)
         => _db.ProviderPlans.FirstOrDefaultAsync(x => x.Id == id, ct);
 

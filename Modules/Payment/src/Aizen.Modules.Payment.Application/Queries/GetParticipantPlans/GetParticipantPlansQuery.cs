@@ -3,7 +3,11 @@ using Aizen.Modules.Payment.Domain.Entities.Plan;
 
 namespace Aizen.Modules.Payment.Application.Queries.GetParticipantPlans;
 
-public sealed class GetParticipantPlansQuery : AizenQuery<List<ParticipantPlanDto>> { }
+public sealed class GetParticipantPlansQuery : AizenQuery<List<ParticipantPlanDto>>
+{
+    /// <summary>When true, returns inactive plans too (admin management). Default false = public active-only.</summary>
+    public bool IncludeInactive { get; init; }
+}
 
 public sealed record ParticipantPlanDto(
     long    Id,
