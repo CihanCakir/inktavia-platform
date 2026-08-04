@@ -241,6 +241,54 @@ services:
       - "${BFF_MARINEPROVIDER_PORT:-17002}:8080"
     networks: [aizen]
 
+  bff-marine-mobile:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.Marine.Participant.Mobile
+    container_name: bff-marine-mobile
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - redis
+      - identity-api
+      - reference-data-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # Inbound auth (Keycloak full IdP). Authority = browser-facing issuer; MetadataAddress = in-cluster JWKS.
+      MarineMobileKeycloak__BaseUrl: http://keycloak:8080
+      MarineMobileKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineMobileKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineMobileKeycloak__Realm: inktavia-realm
+      MarineMobileKeycloak__Audience: marine-mobile-bff
+      MarineMobileKeycloak__RequireHttpsMetadata: "false"
+      MarineMobileKeycloak__AdminClientId: marine-mobile-bff
+      MarineMobileKeycloak__AdminClientSecret: ${KEYCLOAK_MARINE_MOBILE_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineMobileKeycloak__ClientId: inktavia-mobile
+      MarineMobileKeycloak__BffClientId: marine-mobile-bff
+      MarineMobileKeycloak__MobileUserRole: mobile_user
+      MarineMobileKeycloak__ParticipantProfileIdAttributeName: participant_profile_id
+      MarineMobileKeycloak__VerifyEmailRedirectUri: ${MARINE_MOBILE_BASE:-http://localhost:19006}/auth/verify-callback
+      # BFF -> module calls (Keycloak service token injected by the delegating handler)
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity.
+      MarineMobileKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      RateLimiting__PasswordRecovery__PermitPerWindow: 10
+      RateLimiting__PasswordRecovery__WindowSeconds: 300
+      # Redis - backs BFF distributed-cache needs (separate DB from other BFFs).
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=16
+      # CORS: mobile client origin(s) allowed to call the BFF cross-origin.
+      Cors__AllowedOrigins__0: ${MARINE_MOBILE_BASE:-http://localhost:19006}
+    ports:
+      - "${BFF_MARINE_MOBILE_PORT:-17003}:8080"
+    networks: [aizen]
+
+
   # Example modules (expand as needed)
   # Second replica of the BFF — ONLY for proving the Redis SignalR backplane locally.
   # In Kubernetes this is just `replicas: 2`; docker-compose cannot scale a service that pins
