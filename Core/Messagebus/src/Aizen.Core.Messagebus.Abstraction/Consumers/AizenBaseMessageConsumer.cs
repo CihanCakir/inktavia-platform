@@ -30,14 +30,18 @@ namespace Aizen.Core.Messagebus.Abstraction.Consumers
                 var result = await this.ExecutePrepareMessage(payload.Message, CancellationToken.None);
                 if (result)
                 {
-                    await context.Publish(new AizenCommitMessage<TMessage>
+                    // WS2 exactly-once: Commit must reach ONLY the consumer that prepared. Publishing the
+                    // commit fans it to the shared {TMessage}.AizenCommitMessage exchange → every K consumer of
+                    // TMessage runs ExecuteCommitMessage (P executions). Send it DIRECTED to this consumer's own
+                    // receive queue instead → P≡1 by construction. Prepare fan-out is intentionally left as-is.
+                    await SendToOwnEndpoint(context, new AizenCommitMessage<TMessage>
                         {Id = payload.Id, Message = payload.Message});
                 }
             }
             catch (Exception ex)
             {
                 Elastic.Apm.Agent.Tracer.CurrentTransaction?.CaptureException(ex);
-                await context.Publish(new AizenRollbackMessage<TMessage>
+                await SendToOwnEndpoint(context, new AizenRollbackMessage<TMessage>
                 {
                     Id = payload.Id, Message = payload.Message, Exception = new AizenMessageError
                     {
@@ -59,7 +63,8 @@ namespace Aizen.Core.Messagebus.Abstraction.Consumers
             catch (Exception ex)
             {
                 Elastic.Apm.Agent.Tracer.CurrentTransaction?.CaptureException(ex);
-                await context.Publish(new AizenRollbackMessage<TMessage>
+                // WS2: keep the Rollback 1:1 with the preparing consumer too — directed, not fanned.
+                await SendToOwnEndpoint(context, new AizenRollbackMessage<TMessage>
                 {
                     Id = payload.Id, Message = payload.Message, Exception = new AizenMessageError
                     {
@@ -69,6 +74,18 @@ namespace Aizen.Core.Messagebus.Abstraction.Consumers
                     }
                 });
             }
+        }
+
+        // WS2 exactly-once: dispatch a wrapper message DIRECTED to this consumer's own receive queue
+        // (context.ReceiveContext.InputAddress) instead of publishing it to the shared, consumer-agnostic
+        // exchange. Only the consumer that prepared receives its Commit/Rollback → no cross-consumer fan-out.
+        // The queue is shared by a service's replicas, so a directed send is still picked up by exactly one
+        // replica (competing consumers) → exactly-once with N replicas.
+        private static async Task SendToOwnEndpoint<T>(ConsumeContext context, T message)
+            where T : class
+        {
+            var endpoint = await context.GetSendEndpoint(context.ReceiveContext.InputAddress);
+            await endpoint.Send(message);
         }
 
         public async Task Consume(ConsumeContext<AizenRollbackMessage<TMessage>> context)

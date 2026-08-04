@@ -34,8 +34,14 @@ namespace Aizen.Core.Messagebus.Abstraction.Consumers
                 var result = await this.ExecutePrepareMessage(payload.Message, CancellationToken.None);
                 if (result)
                 {
-                    var commitResponse = await _requestClientForCommitMessage.GetResponse<TResult>(
-                        new AizenCommitMessage<TMessage>
+                    // WS2 exactly-once: request the Commit DIRECTED to this consumer's own receive queue
+                    // instead of via the DI request client, which publishes to the shared
+                    // {TMessage}.AizenCommitMessage exchange → fans to every K consumer of TMessage → P
+                    // executions of ExecuteCommitMessage. A per-address request client targets only the
+                    // preparing consumer's queue → P≡1, while preserving the GetResponse<TResult> correlation
+                    // (request/response correlates on RequestId, independent of destination).
+                    var commitResponse = await CreateOwnEndpointClient<AizenCommitMessage<TMessage>>(context)
+                        .GetResponse<TResult>(new AizenCommitMessage<TMessage>
                             {Id = payload.Id, Message = payload.Message});
                     await context.RespondAsync(commitResponse.Message);
                 }
@@ -46,8 +52,9 @@ namespace Aizen.Core.Messagebus.Abstraction.Consumers
             }
             catch (Exception ex)
             {
-                var rollbackResponse = await _requestClientForRollbackMessage.GetResponse<TResult>(
-                    new AizenRollbackMessage<TMessage>
+                // WS2: keep the Rollback 1:1 with the preparing consumer too — directed, not fanned.
+                var rollbackResponse = await CreateOwnEndpointClient<AizenRollbackMessage<TMessage>>(context)
+                    .GetResponse<TResult>(new AizenRollbackMessage<TMessage>
                     {
                         Id = payload.Id, Message = payload.Message, Exception = new AizenMessageError
                         {
@@ -72,8 +79,9 @@ namespace Aizen.Core.Messagebus.Abstraction.Consumers
             }
             catch (Exception ex)
             {
-                var rollbackResponse = await _requestClientForRollbackMessage.GetResponse<TResult>(
-                    new AizenRollbackMessage<TMessage>
+                // WS2: Commit-failure Rollback stays directed to the preparing consumer's own queue.
+                var rollbackResponse = await CreateOwnEndpointClient<AizenRollbackMessage<TMessage>>(context)
+                    .GetResponse<TResult>(new AizenRollbackMessage<TMessage>
                     {
                         Id = payload.Id, Message = payload.Message,
                         Exception = new AizenMessageError
@@ -86,6 +94,16 @@ namespace Aizen.Core.Messagebus.Abstraction.Consumers
                 await context.RespondAsync(rollbackResponse.Message);
             }
         }
+
+        // WS2 exactly-once: build a request client bound to this consumer's OWN receive queue
+        // (context.ReceiveContext.InputAddress) so the Commit/Rollback request is delivered only to the
+        // consumer that prepared — never fanned to the other K-1 consumers of TMessage. The queue is shared by
+        // a service's replicas, so the directed request is still handled by exactly one replica (competing
+        // consumers) → exactly-once with N replicas. GetResponse<TResult> correlation is unaffected (RequestId).
+        private IRequestClient<T> CreateOwnEndpointClient<T>(ConsumeContext context)
+            where T : class
+            => ServiceProvider.GetRequiredService<IBus>()
+                .CreateRequestClient<T>(context.ReceiveContext.InputAddress);
 
         public async Task Consume(ConsumeContext<AizenRollbackMessage<TMessage>> context)
         {
