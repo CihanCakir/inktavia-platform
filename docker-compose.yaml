@@ -220,6 +220,8 @@ services:
       # BFF → module calls (Keycloak service token injected by the delegating handler)
       RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
       RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Phase 3 — provider reads conversations/threads from the unified Messaging module
+      RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
       RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
@@ -289,6 +291,8 @@ services:
       # BFF → module calls (Keycloak service token injected by the delegating handler)
       RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
       RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Phase 3 — provider reads conversations/threads from the unified Messaging module
+      RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
       RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
@@ -631,6 +635,12 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: messaging-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Trusted-BFF identity assertion (module side). Empty = disabled. Must match the BFF's ModuleAssertionSecret.
+      # Phase 3: required so the MarineProvider BFF's X-Aizen-User-Id assertion resolves the provider identity that
+      # scopes the participant-scoped conversation reads (/conversations/mine + /by-context/mine).
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
       ElasticApm__Enabled: "false"
       # Redis backplane for SignalR (MessagingHub).
       Realtime__SignalR__UseRedisBackplane: "true"

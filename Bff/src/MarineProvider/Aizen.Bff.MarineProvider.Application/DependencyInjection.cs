@@ -49,6 +49,11 @@ public static class DependencyInjection
             CreateRemoteCall<IServiceRequestRemoteCall>(
                 CreateHttpClient(provider, nameof(IServiceRequestRemoteCall))));
 
+        // Phase 3 — provider READS conversations/threads from the unified Messaging module (writes stay on SR).
+        services.AddTransient<IMessagingRemoteCall>(provider =>
+            CreateRemoteCall<IMessagingRemoteCall>(
+                CreateHttpClient(provider, nameof(IMessagingRemoteCall))));
+
         services.AddTransient<IFileStorageRemoteCall>(provider =>
             CreateRemoteCall<IFileStorageRemoteCall>(
                 CreateHttpClient(provider, nameof(IFileStorageRemoteCall))));

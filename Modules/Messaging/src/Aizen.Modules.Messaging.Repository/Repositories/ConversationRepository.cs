@@ -36,6 +36,56 @@ public sealed class ConversationRepository : IConversationRepository
             .ToListAsync(ct);
     }
 
+    // ── PARTICIPANT-SCOPED reads (Phase 3) — mirror GetListAsync but add a participant filter so a caller sees
+    // only its own conversations. The admin unscoped GetListAsync/CountAsync are deliberately left untouched. ──
+
+    public async Task<IReadOnlyList<ConversationEntity>> GetListForParticipantAsync(
+        long userId,
+        MessagingContextType? contextType,
+        int skip, int take,
+        CancellationToken ct = default)
+    {
+        var query = _db.Conversations
+            .AsNoTracking()
+            .Include(x => x.Participants)
+            .Where(x => !x.IsDeleted)
+            .Where(x => x.Participants.Any(p => p.UserId == userId));
+
+        if (contextType.HasValue)
+            query = query.Where(x => x.ContextType == contextType.Value);
+
+        return await query
+            .OrderByDescending(x => x.LastMessageAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+    }
+
+    public Task<int> CountForParticipantAsync(
+        long userId, MessagingContextType? contextType, CancellationToken ct = default)
+    {
+        var query = _db.Conversations
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted)
+            .Where(x => x.Participants.Any(p => p.UserId == userId));
+
+        if (contextType.HasValue)
+            query = query.Where(x => x.ContextType == contextType.Value);
+
+        return query.CountAsync(ct);
+    }
+
+    public Task<ConversationEntity?> GetByContextWithMessagesAsync(
+        MessagingContextType contextType, long contextId, CancellationToken ct = default)
+        => _db.Conversations
+            .Include(x => x.Participants)
+            .Include(x => x.Messages)
+                .ThenInclude(m => m.Attachments)
+            .FirstOrDefaultAsync(x =>
+                x.ContextType == contextType &&
+                x.ContextId   == contextId   &&
+                !x.IsDeleted, ct);
+
     public Task<ConversationEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.Conversations
             .Include(x => x.Participants)

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Data;
 using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
@@ -37,6 +38,10 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
 
     public override Task<bool> ExecutePrepareMessage(SrEvent message, CancellationToken ct) => Task.FromResult(true);
 
+    // Per-service-request serialization gate (see ExecuteCommitMessage). Static: shared across the singleton
+    // consumer's concurrent invocations in this process.
+    private static readonly ConcurrentDictionary<long, SemaphoreSlim> _srGates = new();
+
     public override async Task ExecuteCommitMessage(SrEvent m, CancellationToken ct)
     {
         // Nothing to mirror for an empty-content event with no attachment/location (a stray/thin/legacy publish) —
@@ -47,6 +52,26 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
             return;
         }
 
+        // Serialize concurrent commit deliveries for the SAME service request. The two-phase bus can deliver the
+        // commit for one SR message more than once, concurrently (each consumer of the SR event republishes a commit
+        // onto the shared exchange), and the in-memory dedup in SyncOneAsync is TOCTOU-racy across concurrent
+        // invocations — without this gate both invocations load conv.Messages before either saves, so both insert
+        // (observed: two identical rows in the same thread). A per-SR SemaphoreSlim closes the window on the
+        // single-replica messaging-api; a DB unique index on the message key is the durable multi-replica fix.
+        var gate = _srGates.GetOrAdd(m.ServiceRequestId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(ct);
+        try
+        {
+            await SyncOneAsync(m, ct);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    private async Task SyncOneAsync(SrEvent m, CancellationToken ct)
+    {
         var db = _sp.GetRequiredService<MessagingDbContext>();
         var names = _sp.GetRequiredService<MessagingUserNameResolver>();
         var publisher = _sp.GetRequiredService<IAizenMessagePublisher>();
@@ -105,8 +130,22 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
         db.Conversations.Update(conv);
         await db.SaveChangesAsync(ct);
 
-        // Fire the admin realtime edge. RecipientUserIds EMPTY → Notification's consumer returns early (no new/duplicate
-        // notification), while the admin socket mapper broadcasts to the admin group regardless of recipients.
+        // Persistent notifications: mirror the module's SendMessageCommandHandler — RecipientUserIds =
+        // conversation participants MINUS the sender. Only REAL Owner/Provider chat messages notify; System /
+        // lifecycle messages (JOB_STARTED, OFFER_ACCEPTED, …) and Admin messages stay silent to avoid notification
+        // noise. The System pseudo-participant (UserId 0) is never a notification target. The dedupe-skip path
+        // already returned above, so redelivery/backfill never double-notifies. Admin realtime is unaffected: the
+        // admin socket mapper broadcasts on this same event regardless of RecipientUserIds (System messages publish
+        // with empty recipients → Notification's consumer returns early, admin still sees them live).
+        var recipientUserIds =
+            m.SenderType is ServiceRequestMessageSenderType.Owner or ServiceRequestMessageSenderType.Provider
+                ? conv.Participants
+                    .Where(p => p.UserId != m.SenderUserId && p.UserId != 0)
+                    .Select(p => p.UserId)
+                    .Distinct()
+                    .ToList()
+                : new List<long>();
+
         await publisher.PublishAsync(new MessagingMessageSentMessage
         {
             ConversationId    = conv.Id,
@@ -115,7 +154,7 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
             SenderName        = senderName ?? ServiceRequestMessageMapping.RoleName((MessagingParticipantRole)srType),
             ContextType       = MessagingContextType.ServiceRequest,
             ContextId         = m.ServiceRequestId,
-            RecipientUserIds  = new List<long>(),
+            RecipientUserIds  = recipientUserIds,
             IsInternalNote    = false,
             SentAt            = sentAt,
         }, ct);

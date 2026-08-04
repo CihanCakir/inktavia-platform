@@ -13,6 +13,25 @@ public interface IConversationRepository
         int take,
         CancellationToken ct = default);
 
+    // ── PARTICIPANT-SCOPED reads (Phase 3 provider read cutover) — the caller sees ONLY conversations it
+    // participates in. Additive; the admin unscoped GetListAsync/CountAsync above are untouched. ──
+
+    /// <summary>Conversations where <paramref name="userId"/> is a participant, newest-message first.</summary>
+    Task<IReadOnlyList<ConversationEntity>> GetListForParticipantAsync(
+        long userId,
+        MessagingContextType? contextType,
+        int skip,
+        int take,
+        CancellationToken ct = default);
+
+    /// <summary>Total conversations where <paramref name="userId"/> is a participant (for pagination).</summary>
+    Task<int> CountForParticipantAsync(
+        long userId, MessagingContextType? contextType, CancellationToken ct = default);
+
+    /// <summary>By-context lookup that ALSO loads Messages (+ attachments) — the thread read for participant apps.</summary>
+    Task<ConversationEntity?> GetByContextWithMessagesAsync(
+        MessagingContextType contextType, long contextId, CancellationToken ct = default);
+
     Task<ConversationEntity?> GetByIdAsync(long id, CancellationToken ct = default);
 
     Task<ConversationEntity?> GetByIdWithMessagesAsync(long id, CancellationToken ct = default);

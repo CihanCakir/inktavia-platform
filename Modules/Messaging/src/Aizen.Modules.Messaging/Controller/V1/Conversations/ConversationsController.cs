@@ -7,6 +7,8 @@ using Aizen.Modules.Messaging.Application.Command.CreateConversation;
 using Aizen.Modules.Messaging.Application.Query.GetConversationByContext;
 using Aizen.Modules.Messaging.Application.Query.GetConversationDetail;
 using Aizen.Modules.Messaging.Application.Query.GetConversationList;
+using Aizen.Modules.Messaging.Application.Query.GetMyConversationByContext;
+using Aizen.Modules.Messaging.Application.Query.GetMyConversations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -66,6 +68,36 @@ public sealed class ConversationsController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetConversationDetailResponse>(
             new GetConversationByContextQuery(contextType, contextId), ct);
+        return SetResponse(result);
+    }
+
+    // ── PARTICIPANT-SCOPED read path (Phase 3 provider read cutover) ──
+    // These are the endpoints participant apps (provider portal via its BFF) call. Scope = the authenticated
+    // caller (resolved in the handler from the request principal); no user id is ever accepted from the client,
+    // so a caller can only ever see conversations it participates in. The admin unscoped GetList above is unchanged.
+
+    [HttpGet("mine")]
+    [ProducesResponseType(typeof(GetConversationListResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetConversationListResponse?>> GetMine(
+        [FromQuery] MessagingContextType? contextType,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetConversationListResponse>(
+            new GetMyConversationsQuery(contextType, skip, take), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("by-context/mine")]
+    [ProducesResponseType(typeof(GetConversationDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetConversationDetailResponse?>> GetMineByContext(
+        [FromQuery] MessagingContextType contextType,
+        [FromQuery] long contextId,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetConversationDetailResponse>(
+            new GetMyConversationByContextQuery(contextType, contextId), ct);
         return SetResponse(result);
     }
 
