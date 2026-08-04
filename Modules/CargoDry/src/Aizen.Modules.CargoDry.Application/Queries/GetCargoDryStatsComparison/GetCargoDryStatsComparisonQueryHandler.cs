@@ -61,7 +61,9 @@ public sealed class GetCargoDryStatsComparisonQueryHandler
                                      && k.ManufacturedAt < curStart);
 
         // Today's activations vs same calendar day 30d ago
-        var todayStart     = new DateTimeOffset(now.Date, TimeSpan.Zero);
+        // Build UTC midnight explicitly from UTC components (now is DateTimeOffset.UtcNow) — avoids .Date's
+        // Kind=Unspecified footgun and keeps the boundary correct regardless of server locale.
+        var todayStart     = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.Zero);
         var todayEnd       = todayStart.AddDays(1);
         var priorDayStart  = todayStart.AddDays(-30);
         var priorDayEnd    = todayStart.AddDays(-29);

@@ -30,7 +30,8 @@ public sealed class GetProviderJobsWorkloadQueryHandler
             throw new AizenBusinessException("Provider identity could not be resolved.");
 
         var weeks = Math.Clamp(request.Weeks, 1, 12);
-        var today = DateTime.UtcNow.Date;
+        // UtcNow.Date is Kind=Unspecified — force Utc so windowEnd can be used in the timestamptz WHERE below.
+        var today = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
         var weekStart = today.AddDays(-(((int)today.DayOfWeek + 6) % 7)); // Monday
         var windowEnd = weekStart.AddDays(weeks * 7);
 

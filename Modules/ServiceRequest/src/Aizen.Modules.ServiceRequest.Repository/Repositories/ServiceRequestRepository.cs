@@ -314,7 +314,8 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
                 x.LocationLongitude >= bMinLng && x.LocationLongitude <= bMaxLng);
         }
 
-        var todayUtc = DateTime.UtcNow.Date;
+        // UtcNow.Date is Kind=Unspecified — force Utc for the x.PublishedAt >= todayUtc timestamptz comparison below.
+        var todayUtc = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
 
         return await query
             .Take(501)
@@ -368,7 +369,8 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
                 x.LocationLongitude >= bMinLng && x.LocationLongitude <= bMaxLng);
         }
 
-        var todayUtc = DateTime.UtcNow.Date;
+        // UtcNow.Date is Kind=Unspecified — force Utc for the x.PublishedAt >= todayUtc timestamptz comparison below.
+        var todayUtc = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
 
         var openCount = await query.CountAsync(ct);
         var publishedTodayCount = await query.CountAsync(x => x.PublishedAt >= todayUtc, ct);

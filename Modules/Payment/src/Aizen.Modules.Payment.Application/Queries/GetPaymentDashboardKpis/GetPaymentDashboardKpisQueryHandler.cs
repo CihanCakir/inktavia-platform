@@ -27,7 +27,8 @@ public sealed class GetPaymentDashboardKpisQueryHandler
         GetPaymentDashboardKpisQuery request, CancellationToken ct)
     {
         var now           = DateTime.UtcNow;
-        var todayStart    = now.Date;
+        // .Date returns Kind=Unspecified — force Utc so it can be written to the timestamptz CreateDate filter.
+        var todayStart    = DateTime.SpecifyKind(now.Date, DateTimeKind.Utc);
         var todayEnd      = todayStart.AddDays(1);
         var yesterdayStart = todayStart.AddDays(-1);
         var yesterdayEnd  = todayStart;

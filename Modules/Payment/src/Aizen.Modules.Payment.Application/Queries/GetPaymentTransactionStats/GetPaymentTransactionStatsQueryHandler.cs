@@ -22,7 +22,8 @@ public sealed class GetPaymentTransactionStatsQueryHandler
         GetPaymentTransactionStatsQuery request, CancellationToken ct)
     {
         var now            = DateTime.UtcNow;
-        var todayStart     = now.Date;
+        // .Date returns Kind=Unspecified — force Utc so it can be written to the timestamptz CreateDate filter.
+        var todayStart     = DateTime.SpecifyKind(now.Date, DateTimeKind.Utc);
         var yesterdayStart = todayStart.AddDays(-1);
 
         // All captured transactions (for net liquidity + fleet ROI)
