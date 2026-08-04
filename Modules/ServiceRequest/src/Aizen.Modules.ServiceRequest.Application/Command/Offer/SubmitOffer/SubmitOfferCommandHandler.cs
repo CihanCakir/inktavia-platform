@@ -1,7 +1,9 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Services;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -29,6 +31,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
     private readonly IAizenInfoAccessor _info;
     private readonly OfferCalculationService _calculation;
     private readonly UnitCodeValidator _unitCodeValidator;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public SubmitOfferCommandHandler(
         IServiceRequestRepository srRepository,
@@ -36,7 +39,8 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         IServiceRequestMessageRepository messageRepository,
         IAizenInfoAccessor info,
         OfferCalculationService calculation,
-        UnitCodeValidator unitCodeValidator)
+        UnitCodeValidator unitCodeValidator,
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository;
         _offerRepository = offerRepository;
@@ -44,6 +48,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         _info = info;
         _calculation = calculation;
         _unitCodeValidator = unitCodeValidator;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<SubmitOfferResponse?> Handle(SubmitOfferCommand command, CancellationToken ct)
@@ -108,6 +113,20 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
                 $"offer:{offer.Id}|{offer.GrandTotal:F2} {offer.CurrencyCode}",
                 null);
             await _messageRepository.AddAsync(offerMessage, ct);
+
+            // Phase-2 live-sync: publish the (enriched) event so the offer message mirrors into the Messaging store.
+            // The provider realtime mapper ignores Provider-sender events (no self-notify); Notification doesn't consume this.
+            await _messagePublisher.PublishAsync(new ServiceRequestMessageSentMessage
+            {
+                ServiceRequestId = sr.Id,
+                MessageId = offerMessage.Id,
+                SenderUserId = currentUserId,
+                SenderType = ServiceRequestMessageSenderType.Provider,
+                ProviderProfileId = offer.ProviderProfileId,
+                Content = offerMessage.Content,
+                MessageType = offerMessage.MessageType,
+                OccurredAt = DateTimeOffset.UtcNow,
+            }, ct);
         }
 
         return new SubmitOfferResponse(offer.ToDto());

@@ -1,6 +1,7 @@
 using System.Data;
 using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Domain.Entities.Conversation;
+using Aizen.Modules.Messaging.Domain.Mapping;
 using Aizen.Modules.Messaging.Repository.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -94,29 +95,20 @@ public sealed class ServiceRequestChatBackfiller
             result.ConversationsReused++;
         }
 
-        // Natural-key dedupe over the ORIGINAL timestamp (no message-level external id exists on the target).
+        // Idempotency via the SHARED mapper's key (identical to the live-sync consumer, so the two converge).
         var seen = new HashSet<string>(
-            conv!.Messages.Select(m => MessageKey(m.SenderUserId, m.SentAt, m.Content)));
+            conv!.Messages.Select(m => ServiceRequestMessageMapping.MessageKey(m.SenderUserId, m.SentAt, m.Content)));
 
         var insertedHere = 0;
         foreach (var sm in chat.Messages) // already ordered by CreateDate, Id
         {
             var sentAt = new DateTimeOffset(DateTime.SpecifyKind(sm.CreateDate, DateTimeKind.Utc));
-            var key = MessageKey(sm.SenderUserId, sentAt, sm.Content);
+            var key = ServiceRequestMessageMapping.MessageKey(sm.SenderUserId, sentAt, sm.Content);
             if (!seen.Add(key)) { result.MessagesSkipped++; continue; }
 
-            var role = (MessagingParticipantRole)sm.SenderType; // SR 1-4 == Messaging 1-4
-            var type = MapMessageType(sm.MessageType);
-
-            var msg = ConversationMessageEntity.Create(
-                conv.Id, sm.SenderUserId, RoleName(role), role, sm.Content, type, isInternalNote: false, sentAt: sentAt);
-
-            if (sm.AttachmentFileId is { } fileId)
-            {
-                var fileRef = fileId.ToString();
-                msg.AddAttachment(MessageAttachmentEntity.Create(
-                    0, fileRef, type == MessageType.MediaAttachment ? "image" : "document", fileRef));
-            }
+            // senderName null → role placeholder; the name-fix pass + live-sync populate real names.
+            var msg = ServiceRequestMessageMapping.MapMessage(
+                conv.Id, sm.SenderUserId, sm.SenderType, sm.MessageType, sm.Content, sm.AttachmentFileId, sentAt, senderName: null);
 
             conv.AddMessage(msg);
             result.MessagesInserted++;
@@ -132,31 +124,6 @@ public sealed class ServiceRequestChatBackfiller
 
         await _db.SaveChangesAsync(ct);
     }
-
-    private static string MessageKey(long senderUserId, DateTimeOffset sentAt, string content)
-        => $"{senderUserId}|{sentAt.UtcTicks}|{content}";
-
-    // SR ServiceRequestMessageType → Messaging MessageType. Offer(4) has no direct equivalent → StatusChange (system line).
-    private static MessageType MapMessageType(int srType) => srType switch
-    {
-        1 => MessageType.Text,
-        2 => MessageType.SystemNotification,
-        3 => MessageType.StatusChange,
-        4 => MessageType.StatusChange, // Offer
-        5 => MessageType.MediaAttachment, // Image
-        6 => MessageType.Location,
-        _ => MessageType.Text,
-    };
-
-    // Display-name enrichment (from Identity/Profile) is deferred to Phase 2; use the role as a stable placeholder.
-    private static string RoleName(MessagingParticipantRole role) => role switch
-    {
-        MessagingParticipantRole.Owner    => "Owner",
-        MessagingParticipantRole.Provider => "Provider",
-        MessagingParticipantRole.Admin    => "Admin",
-        MessagingParticipantRole.System   => "System",
-        _ => role.ToString(),
-    };
 
     // ── Read side: raw SQL over the shared inktavia_store DB (servicerequest schema). READ-ONLY. ──────────────────
     private async Task<List<SrChat>> ReadServiceRequestChatsAsync(CancellationToken ct)

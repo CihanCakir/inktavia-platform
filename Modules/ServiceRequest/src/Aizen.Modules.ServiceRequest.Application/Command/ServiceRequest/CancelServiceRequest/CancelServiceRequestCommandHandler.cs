@@ -59,6 +59,19 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
                 entity.Id, currentUserId, ServiceRequestMessageSenderType.System,
                 ServiceRequestMessageType.StatusChange, "CONVERSATION_CLOSED", null);
             await _msgRepository.AddAsync(sysMsg, cancellationToken);
+
+            // Phase-2 live-sync: mirror the system message into the Messaging store (provider id resolved by the sync).
+            await _messagePublisher.PublishAsync(new ServiceRequestMessageSentMessage
+            {
+                ServiceRequestId = entity.Id,
+                MessageId = sysMsg.Id,
+                SenderUserId = currentUserId,
+                SenderType = ServiceRequestMessageSenderType.System,
+                ProviderProfileId = null,
+                Content = sysMsg.Content,
+                MessageType = sysMsg.MessageType,
+                OccurredAt = DateTimeOffset.UtcNow,
+            }, cancellationToken);
         }
 
         return new CancelServiceRequestResponse(entity.Id);

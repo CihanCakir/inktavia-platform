@@ -8,6 +8,9 @@
 <ItemGroup>
     <ProjectReference
       Include="..\..\..\..\Modules\Identity\src\Aizen.Modules.Identity.Abstraction\Aizen.Modules.Identity.Abstraction.csproj" />
+    <!-- Phase-2 transitional: the Messaging live-sync consumer references the SR chat event contract (abstraction only). -->
+    <ProjectReference
+      Include="..\..\..\..\Modules\ServiceRequest\src\Aizen.Modules.ServiceRequest.Abstraction\Aizen.Modules.ServiceRequest.Abstraction.csproj" />
     <ProjectReference
       Include="..\..\..\..\Core\Starter\src\Aizen.Core.Starter\Aizen.Core.Starter.csproj" />
     <ProjectReference

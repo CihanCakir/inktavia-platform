@@ -22,6 +22,8 @@ public static class DependencyInjection
         services.AddScoped<IMessageContentPolicy, MessageContentPolicyService>();
         services.AddScoped<MessagingMockDataSeeder>();
         services.AddScoped<ServiceRequestChatBackfiller>();
+        services.AddScoped<MessagingUserNameResolver>();
+        services.AddScoped<ServiceRequestChatNameFixer>();
 
         return services;
     }
@@ -53,6 +55,10 @@ public static class DependencyInjection
             {
                 var backfiller = scope.ServiceProvider.GetRequiredService<ServiceRequestChatBackfiller>();
                 await backfiller.BackfillAsync(ct);
+
+                // Phase-2 Part C: replace the backfill's role-placeholder names with real names (idempotent).
+                var nameFixer = scope.ServiceProvider.GetRequiredService<ServiceRequestChatNameFixer>();
+                await nameFixer.FixAsync(ct);
             }
             catch (Exception ex)
             {

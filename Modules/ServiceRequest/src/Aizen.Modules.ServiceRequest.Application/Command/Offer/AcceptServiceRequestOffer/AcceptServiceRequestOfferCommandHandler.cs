@@ -127,7 +127,8 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
             await _messagePublisher.PublishAsync(new Abstraction.Message.ServiceRequestMessageSentMessage
             {
                 ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
-                SenderType = ServiceRequestMessageSenderType.System, ProviderProfileId = offer.ProviderProfileId
+                SenderType = ServiceRequestMessageSenderType.System, ProviderProfileId = offer.ProviderProfileId,
+                Content = sysMsg.Content, MessageType = sysMsg.MessageType, OccurredAt = DateTimeOffset.UtcNow
             }, cancellationToken);
         }
 

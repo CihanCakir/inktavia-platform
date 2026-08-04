@@ -96,7 +96,15 @@ public sealed class SendServiceRequestMessageCommandHandler : AizenCommandHandle
             MessageId = message.Id,
             SenderUserId = currentUserId,
             SenderType = request.SenderType,
-            ProviderProfileId = providerProfileId
+            ProviderProfileId = providerProfileId,
+            // Additive enrichment for the Messaging live-sync (self-describing; no callback into SR needed).
+            Content = message.Content,
+            MessageType = message.MessageType,
+            AttachmentFileId = message.AttachmentFileId,
+            LocationLat = message.LocationLat,
+            LocationLng = message.LocationLng,
+            LocationLabel = message.LocationLabel,
+            OccurredAt = DateTimeOffset.UtcNow,
         }, cancellationToken);
 
         return new SendServiceRequestMessageResponse(message.ToDto());

@@ -81,7 +81,8 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
             {
                 ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
                 SenderType = ServiceRequestMessageSenderType.System,
-                ProviderProfileId = providerProfileId
+                ProviderProfileId = providerProfileId,
+                Content = sysMsg.Content, MessageType = sysMsg.MessageType, OccurredAt = DateTimeOffset.UtcNow
             }, cancellationToken);
         }
 

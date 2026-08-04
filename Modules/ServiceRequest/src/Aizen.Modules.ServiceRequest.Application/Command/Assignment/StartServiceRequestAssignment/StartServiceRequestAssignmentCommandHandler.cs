@@ -82,7 +82,8 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
             {
                 ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
                 SenderType = ServiceRequestMessageSenderType.System,
-                ProviderProfileId = assignment.ProviderProfileId
+                ProviderProfileId = assignment.ProviderProfileId,
+                Content = sysMsg.Content, MessageType = sysMsg.MessageType, OccurredAt = DateTimeOffset.UtcNow
             }, cancellationToken);
         }
 
