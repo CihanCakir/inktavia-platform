@@ -21,3 +21,9 @@ public sealed class NotificationListBffDto
     public int                      Total       { get; init; }
     public int                      UnreadCount { get; init; }
 }
+
+[DocumentationInfo("Notification unread-count BFF DTO", "Badge count for the authenticated user's notification bell.")]
+public sealed class NotificationUnreadCountBffDto
+{
+    public int UnreadCount { get; init; }
+}

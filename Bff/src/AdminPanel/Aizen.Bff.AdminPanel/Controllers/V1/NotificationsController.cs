@@ -8,7 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/notifications")]
+// Under /admin-panel like every other admin BFF controller — the admin-web httpClient baseURL is
+// /api/v1/admin-panel, so a bare /api/v1/notifications route is unreachable (the FE's calls 404'd, which is
+// why the notification inbox + badge were empty). Aligns with AdminMessagingController's /admin-panel/messaging.
+[Route("api/v1/admin-panel/notifications")]
 [Tags("Notifications")]
 [Authorize]
 public sealed class NotificationsController : AizenWebApiController
@@ -33,6 +36,19 @@ public sealed class NotificationsController : AizenWebApiController
     {
         var result = await _remote.GetMyNotificationsAsync(skip, take, ct);
         return SetResponse(result.Body);
+    }
+
+    /// <summary>
+    /// GET /api/v1/notifications/unread-count — the badge count for the authenticated admin. The Notification module
+    /// has no dedicated count endpoint; the unread count rides on the list response (Redis-cached per recipient), so
+    /// fetch a minimal page and surface just the count. Shape matches the FE <c>NotificationUnreadCountDto</c>.
+    /// </summary>
+    [HttpGet("unread-count")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationUnreadCountBffDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationUnreadCountBffDto>> GetUnreadCount(CancellationToken ct)
+    {
+        var result = await _remote.GetMyNotificationsAsync(0, 1, ct);
+        return SetResponse(new NotificationUnreadCountBffDto { UnreadCount = result.Body?.UnreadCount ?? 0 });
     }
 
     /// <summary>PATCH /api/v1/notifications/{id}/read — mark a single notification as read</summary>

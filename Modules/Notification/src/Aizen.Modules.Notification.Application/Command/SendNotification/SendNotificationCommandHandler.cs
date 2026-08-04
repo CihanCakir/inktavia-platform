@@ -1,7 +1,9 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Notification.Abstraction.Enum;
+using Aizen.Modules.Notification.Abstraction.Message;
 using Aizen.Modules.Notification.Abstraction.Response;
 using Aizen.Modules.Notification.Domain.Entities;
 using Aizen.Modules.Notification.Domain.Interface.Repository;
@@ -18,6 +20,7 @@ public sealed class SendNotificationCommandHandler
     private readonly INotificationDispatcher         _dispatcher;
     private readonly ITemplateInterpolator           _interpolator;
     private readonly IAizenDistributedCache           _cache;
+    private readonly IAizenMessagePublisher          _publisher;
     private readonly ILogger<SendNotificationCommandHandler> _logger;
 
     public SendNotificationCommandHandler(
@@ -26,6 +29,7 @@ public sealed class SendNotificationCommandHandler
         INotificationDispatcher dispatcher,
         ITemplateInterpolator interpolator,
         IAizenDistributedCache cache,
+        IAizenMessagePublisher publisher,
         ILogger<SendNotificationCommandHandler> logger)
     {
         _notificationRepository = notificationRepository;
@@ -33,6 +37,7 @@ public sealed class SendNotificationCommandHandler
         _dispatcher             = dispatcher;
         _interpolator           = interpolator;
         _cache                  = cache;
+        _publisher              = publisher;
         _logger                 = logger;
     }
 
@@ -85,6 +90,35 @@ public sealed class SendNotificationCommandHandler
 
         // Bump recipient's cache generation so their notification list refreshes
         await BumpGenerationAsync(request.RecipientUserId, cancellationToken);
+
+        // Realtime edge (ADR: BFF-hosted hubs, modules publish-only). Publish a thin "notification created" event so a
+        // BFF-hosted notification hub can push a live badge refresh to THIS recipient. In-app only — Email/SMS do not
+        // drive the in-app badge. The frame carries no body; the BFF maps it to a per-recipient refetch hint. Best-effort:
+        // a bus hiccup must never fail the notification write (the REST inbox/badge poll still reflects it).
+        if (request.Channel == NotificationChannel.InApp)
+        {
+            try
+            {
+                await _publisher.PublishAsync(new NotificationSentMessage
+                {
+                    NotificationId  = entity.Id,
+                    RecipientUserId = request.RecipientUserId,
+                    Type            = request.Type,
+                    Channel         = request.Channel,
+                    Status          = entity.Status,
+                    Title           = title,
+                    SentAt          = DateTimeOffset.UtcNow,
+                    ReferenceType   = request.ReferenceType,
+                    ReferenceId     = request.ReferenceId,
+                }, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to publish NotificationSentMessage for NotificationId={Id}; live badge refresh skipped.",
+                    entity.Id);
+            }
+        }
 
         return new SendNotificationResponse
         {

@@ -124,7 +124,8 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
         var srType = (int)m.SenderType; // SR 1-4 == Messaging role 1-4
         var srMsgType = m.MessageType.HasValue ? (int)m.MessageType.Value : 1;
         var msg = ServiceRequestMessageMapping.MapMessage(
-            conv.Id, m.SenderUserId, srType, srMsgType, content, m.AttachmentFileId, sentAt, senderName);
+            conv.Id, m.SenderUserId, srType, srMsgType, content, m.AttachmentFileId, sentAt, senderName,
+            m.LocationLat, m.LocationLng, m.LocationLabel);
         conv.AddMessage(msg);
         conv.MarkReadByAdmin();
         db.Conversations.Update(conv);

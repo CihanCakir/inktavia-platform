@@ -12,4 +12,9 @@ public sealed class NotificationSentMessage : AizenBaseMessage
     public NotificationStatus  Status          { get; set; }
     public string              Title           { get; set; } = default!;
     public DateTimeOffset      SentAt          { get; set; }
+
+    // The reference the notification points at (e.g. ReferenceType "Message", ReferenceId = Messaging conversation id).
+    // Carried on the thin realtime frame so a BFF-hosted notification hub can drive a deep-link without a second lookup.
+    public string?             ReferenceType   { get; set; }
+    public long?               ReferenceId     { get; set; }
 }

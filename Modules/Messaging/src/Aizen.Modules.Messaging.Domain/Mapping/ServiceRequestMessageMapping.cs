@@ -54,11 +54,24 @@ public static class ServiceRequestMessageMapping
         string content,
         Guid? attachmentFileId,
         DateTimeOffset sentAt,
-        string? senderName)
+        string? senderName,
+        decimal? locationLat = null,
+        decimal? locationLng = null,
+        string? locationLabel = null)
     {
         var role = (MessagingParticipantRole)srSenderType;
         var type = MapMessageType(srMessageType);
         var name = string.IsNullOrWhiteSpace(senderName) ? RoleName(role) : senderName!.Trim();
+
+        // Location messages carry their payload in Content as JSON ({lat,lng,label}) — that's what the read side
+        // (ToDto → ParseLocation → LocationContentDto) expects. The SR side stores only a "lat,lng"/label string in
+        // Content, so rebuild the JSON here from the event's discrete lat/lng; otherwise a synced SR location would
+        // render as plain text in the admin audit instead of a map bubble.
+        if (type == MessageType.Location && locationLat is { } lat && locationLng is { } lng)
+        {
+            var label = string.IsNullOrWhiteSpace(locationLabel) ? content : locationLabel!.Trim();
+            content = BuildLocationJson(lat, lng, label);
+        }
 
         var msg = ConversationMessageEntity.Create(
             conversationId, senderUserId, name, role, content, type, isInternalNote: false, sentAt: sentAt);
@@ -72,4 +85,11 @@ public static class ServiceRequestMessageMapping
 
         return msg;
     }
+
+    // Matches the JSON shape ParseLocation reads (lat/lng/label). Invariant culture so the decimal separator is a
+    // dot regardless of server locale, and JSON-escape the label so a quote/backslash in it can't break the payload.
+    private static string BuildLocationJson(decimal lat, decimal lng, string label)
+        => $"{{\"lat\":{lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},"
+         + $"\"lng\":{lng.ToString(System.Globalization.CultureInfo.InvariantCulture)},"
+         + $"\"label\":{System.Text.Json.JsonSerializer.Serialize(label ?? string.Empty)}}}";
 }

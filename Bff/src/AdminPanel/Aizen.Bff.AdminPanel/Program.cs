@@ -66,6 +66,9 @@ if (realtimeOrigins is { Length: > 0 })
 // module types into its container.
 builder.Services.AddAizenRealtime(builder.Configuration, o => o.RegisterModuleMappers = false);
 builder.Services.AddDomainHub<AdminMessagingHub>("admin-messaging");
+// Second BFF-hosted hub: the live notification badge (replaces the unreachable module /hubs/notification). Its
+// per-user group prefix ("admin-notification") must be registered so the socket manager can route to it.
+builder.Services.AddDomainHub<AdminNotificationHub>("admin-notification");
 
 // The only per-surface routing declaration (ADR layer-2). Singleton because the framework's
 // RealtimeIngressService (which consumes the single IEventSocketMapper) is registered as a singleton.
@@ -75,6 +78,7 @@ var app = builder.Build();
 
 // The browser authenticates only against the BFF and connects only here — never to a module hub.
 app.MapHub<AdminMessagingHub>("/hubs/admin-messaging");
+app.MapHub<AdminNotificationHub>("/hubs/admin-notification");
 
 app.Run();
 
