@@ -28,6 +28,15 @@ public interface IInvoiceRepository
 
     Task<InvoiceHeaderEntity?> GetByTransactionIdAsync(long transactionId, CancellationToken ct = default);
 
+    /// <summary>
+    /// WS1 idempotency guard: true if a non-deleted invoice of the given <paramref name="type"/> already
+    /// exists for the payment transaction. Mirrors the (PaymentTransactionId, InvoiceType) natural key
+    /// enforced by the partial-unique DB index — used as the commit-level short-circuit in the
+    /// subscription + commission invoice consumers.
+    /// </summary>
+    Task<bool> ExistsByTransactionIdAndTypeAsync(
+        long transactionId, InvoiceType type, CancellationToken ct = default);
+
     // ── Paged lists ───────────────────────────────────────────────────────────
 
     /// <summary>Admin paged list with all filter options.</summary>

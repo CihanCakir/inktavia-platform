@@ -6,6 +6,7 @@ using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Invoice;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -109,6 +110,18 @@ public sealed class ParticipantSubscriptionPaymentSucceededConsumer
     public override async Task ExecuteCommitMessage(
         PaymentCapturedMessage message, CancellationToken ct)
     {
+        // ── WS1 PART C: commit-level idempotency (mirror of the partial-unique DB index) ──────
+        // Re-check the natural key so a duplicate two-phase commit copy returns without issuing a second
+        // SubscriptionInvoice / invoice number / outbound event. See the provider consumer for the rationale.
+        if (await _invoices.ExistsByTransactionIdAndTypeAsync(
+                message.TransactionId, InvoiceType.SubscriptionInvoice, ct))
+        {
+            _logger.LogInformation(
+                "ParticipantSubscriptionPaymentSucceededConsumer: SubscriptionInvoice already exists for " +
+                "TxId={TxId}. Commit idempotent skip.", message.TransactionId);
+            return;
+        }
+
         var kdvRate  = _config.GetValue<decimal>("Payment:DefaultKdvRate", 0.20m);
         var dueDays  = _config.GetValue<int>("Payment:SubscriptionDueDays", 7);
 
@@ -204,7 +217,19 @@ public sealed class ParticipantSubscriptionPaymentSucceededConsumer
         _invoices.Update(invoice);
 
         // Second SaveChanges: saves the issued invoice.
-        await _invoices.SaveChangesAsync(ct);
+        // WS1: partial-unique index on (PaymentTransactionId, InvoiceType) is the race backstop.
+        try
+        {
+            await _invoices.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (PaymentIdempotency.IsUniqueViolation(ex))
+        {
+            _logger.LogWarning(
+                "ParticipantSubscriptionPaymentSucceededConsumer: concurrent commit already issued a " +
+                "SubscriptionInvoice for TxId={TxId} (unique-violation swallowed). Idempotent skip.",
+                message.TransactionId);
+            return;
+        }
 
         _logger.LogInformation(
             "ParticipantSubscriptionInvoice issued. Number={Number} ProfileId={ProfileId} " +

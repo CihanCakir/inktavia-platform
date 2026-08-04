@@ -8,6 +8,7 @@ using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Payout;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -71,12 +72,47 @@ public sealed class ServiceRequestCompletedConsumer
 
         if (tx is null || tx.Status == PaymentTransactionStatus.Released) return;
 
+        // ── WS1 PART C: commit-level idempotency (mirror of the partial-unique DB index) ──────
+        // A non-Failed payout already claiming this transaction means a prior (or concurrent) commit copy
+        // owns the release — skip so we never issue a second gateway payout.
+        if (await _payouts.ActivePayoutExistsAsync(tx.Id, ct))
+        {
+            _logger.LogInformation(
+                "ServiceRequestCompletedConsumer: an active payout already exists for Tx {TxId}. " +
+                "Commit idempotent skip.", tx.Id);
+            return;
+        }
+
         _logger.LogInformation(
             "ServiceRequestCompletedConsumer: releasing escrow for SR {SRId} → Tx {TxId}",
             message.ServiceRequestId, tx.Id);
 
-        // ── Gateway call ──────────────────────────────────────────────────────
+        // ── WS1 PART B: persist the payout marker BEFORE the gateway call (fix the Tier-2 TOCTOU) ──
+        // Insert the PayoutRecord in Pending state first. Its partial-unique index on PaymentTransactionId
+        // means a concurrent second commit copy loses the insert race and returns here WITHOUT calling the
+        // gateway — so the external escrow release happens at most once, no matter how many commit copies race.
         var gateway = _gatewayResolver.Resolve();
+        var payout = PayoutRecordEntity.Create(
+            providerProfileId:    tx.RecipientProfileId ?? 0,
+            paymentTransactionId: tx.Id,
+            amount:               tx.NetPayoutAmount,
+            currencyCode:         tx.CurrencyCode,
+            gatewayProvider:      gateway.ProviderKey);   // status = Pending (marker)
+
+        await _payouts.AddAsync(payout, ct);
+        try
+        {
+            await _payouts.SaveChangesAsync(ct);   // claims the natural key
+        }
+        catch (DbUpdateException ex) when (PaymentIdempotency.IsUniqueViolation(ex))
+        {
+            _logger.LogWarning(
+                "ServiceRequestCompletedConsumer: concurrent commit already claimed the payout for Tx {TxId} " +
+                "(unique-violation swallowed). Skipping gateway release — idempotent.", tx.Id);
+            return;
+        }
+
+        // ── Gateway call — only the marker-holder reaches here ────────────────
         var payoutResult = await gateway.ReleaseEscrowAsync(new ReleaseEscrowInput
         {
             TransactionId            = tx.Id,
@@ -88,25 +124,19 @@ public sealed class ServiceRequestCompletedConsumer
 
         if (!payoutResult.Processed)
         {
+            // Mark the marker Failed → excluded from the partial-unique index so a later message can retry.
+            payout.MarkFailed("Gateway escrow release rejected.");
+            await _payouts.SaveChangesAsync(ct);
             _logger.LogError(
-                "ServiceRequestCompletedConsumer: gateway release failed for Tx {TxId}. Will retry on next message.",
-                tx.Id);
+                "ServiceRequestCompletedConsumer: gateway release failed for Tx {TxId}. " +
+                "Payout marker marked Failed; will retry on next message.", tx.Id);
             return;
         }
 
-        // ── Persist state changes ─────────────────────────────────────────────
+        // ── Gateway succeeded → finalize the marker + release the transaction ──
+        payout.MarkCompleted(payoutResult.GatewayPayoutId, message.AdminNote);
         tx.Release();
         _transactions.Update(tx);
-
-        var payout = PayoutRecordEntity.Create(
-            providerProfileId:    tx.RecipientProfileId ?? 0,
-            paymentTransactionId: tx.Id,
-            amount:               tx.NetPayoutAmount,
-            currencyCode:         tx.CurrencyCode,
-            gatewayProvider:      gateway.ProviderKey);
-
-        payout.MarkCompleted(payoutResult.GatewayPayoutId, message.AdminNote);
-        await _payouts.AddAsync(payout, ct);
 
         // Consumers are NOT wrapped by AizenCommandHandlerDecorator — must call SaveChanges directly.
         await _transactions.SaveChangesAsync(ct);

@@ -101,7 +101,13 @@ public sealed class InvoiceHeaderConfiguration : IEntityTypeConfiguration<Invoic
         b.HasIndex(x => x.Status);
         b.HasIndex(x => x.InvoiceType);
         b.HasIndex(x => x.BuyerUserId);
-        b.HasIndex(x => x.PaymentTransactionId).HasFilter("\"PaymentTransactionId\" IS NOT NULL");
+        // WS1 financial defense-in-depth: partial UNIQUE — at most one auto-issued financial invoice
+        // per payment transaction. Filtered to the two consumer-issued types (InvoiceType 2=CommissionInvoice,
+        // 3=SubscriptionInvoice) so it cannot false-collide with CreditNote / SalesInvoice / CargoDry /
+        // manual drafts that legitimately reference the same PaymentTransactionId.
+        b.HasIndex(x => x.PaymentTransactionId)
+            .IsUnique()
+            .HasFilter("\"PaymentTransactionId\" IS NOT NULL AND \"InvoiceType\" IN (2, 3)");
         b.HasIndex(x => x.OriginalInvoiceId).HasFilter("\"OriginalInvoiceId\" IS NOT NULL");
         b.HasIndex(x => new { x.Status, x.DueDateUtc });   // InvoiceOverdueCheckJob
     }

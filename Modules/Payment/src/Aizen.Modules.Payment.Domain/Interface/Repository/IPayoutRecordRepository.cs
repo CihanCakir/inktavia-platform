@@ -9,6 +9,14 @@ public interface IPayoutRecordRepository
     Task<PayoutRecordEntity?> GetByTransactionIdAsync(long transactionId, CancellationToken ct = default);
 
     /// <summary>
+    /// WS1 idempotency guard: true if a non-Failed payout already exists for the transaction. Mirrors the
+    /// partial-unique DB index (PaymentTransactionId WHERE NOT NULL AND Status&lt;&gt;Failed) — used as the
+    /// commit-level short-circuit in ServiceRequestCompletedConsumer so a duplicate two-phase commit skips
+    /// the gateway escrow release.
+    /// </summary>
+    Task<bool> ActivePayoutExistsAsync(long transactionId, CancellationToken ct = default);
+
+    /// <summary>
     /// Returns the first active payout record matching the given source type and source Id.
     /// Used for idempotency in cross-module payout preparation flows (Phase 4B).
     /// </summary>

@@ -33,6 +33,13 @@ public sealed class InvoiceRepository : IInvoiceRepository
         => _db.InvoiceHeaders
             .FirstOrDefaultAsync(x => x.PaymentTransactionId == transactionId && !x.IsDeleted, ct);
 
+    public Task<bool> ExistsByTransactionIdAndTypeAsync(
+        long transactionId, InvoiceType type, CancellationToken ct = default)
+        => _db.InvoiceHeaders
+            .AnyAsync(x => x.PaymentTransactionId == transactionId
+                        && x.InvoiceType == type
+                        && !x.IsDeleted, ct);
+
     // ── Paged lists ───────────────────────────────────────────────────────────
 
     public async Task<(List<InvoiceHeaderEntity> Items, int Total)> GetPagedAsync(

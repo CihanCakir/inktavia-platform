@@ -41,5 +41,15 @@ public sealed class PayoutRecordConfiguration : IEntityTypeConfiguration<PayoutR
         // Composite index for idempotency lookup by source
         b.HasIndex(x => new { x.SourceType, x.SourceId })
          .HasDatabaseName("IX_payout_records_SourceType_SourceId");
+
+        // WS1 financial defense-in-depth: partial UNIQUE — at most one non-Failed payout per released
+        // transaction (escrow-release payouts have a non-null PaymentTransactionId; CargoDry settlement
+        // payouts are NULL and excluded). Status<>4 (Failed) excludes rejected attempts so a retry after a
+        // gateway failure can re-claim the key. Backstops the money-after-persist reorder against the
+        // two-phase double-commit.
+        b.HasIndex(x => x.PaymentTransactionId)
+         .IsUnique()
+         .HasFilter("\"PaymentTransactionId\" IS NOT NULL AND \"Status\" <> 4")
+         .HasDatabaseName("UX_payout_records_PaymentTransactionId_Active");
     }
 }

@@ -7,6 +7,7 @@ using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -118,8 +119,22 @@ public sealed class CargoDryKitRenewalPaymentConsumer
 
         await _transactions.AddAsync(transaction, ct);
 
-        // Consumers are NOT wrapped by AizenCommandHandlerDecorator — must save explicitly
-        await _transactions.SaveChangesAsync(ct);
+        // Consumers are NOT wrapped by AizenCommandHandlerDecorator — must save explicitly.
+        // WS1: the renewal charge is recorded by an internal Capture (no external gateway money movement),
+        // and the transactions.IdempotencyKey unique index (RENEWAL-{KitCode}-{yyyyMM}) is the duplicate-proof
+        // natural key. If a concurrent commit copy won the insert, swallow the unique-violation as benign.
+        try
+        {
+            await _transactions.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (PaymentIdempotency.IsUniqueViolation(ex))
+        {
+            _logger.LogWarning(
+                "CargoDryKitRenewalPaymentConsumer: concurrent commit already recorded the renewal charge for " +
+                "Kit {KitCode} key={Key} (unique-violation swallowed). Idempotent skip.",
+                message.KitCode, idempotencyKey);
+            return;
+        }
 
         _logger.LogInformation(
             "CargoDry renewal payment recorded. KitId={KitId} KitCode={KitCode} Amount={Amount} TxCode={Code}",

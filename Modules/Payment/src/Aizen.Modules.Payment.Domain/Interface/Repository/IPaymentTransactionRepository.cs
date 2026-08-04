@@ -100,6 +100,13 @@ public interface IPaymentTransactionRepository
     /// </summary>
     Task AddRefundRecordAsync(TransactionRefundRecord record, CancellationToken ct = default);
 
+    /// <summary>
+    /// WS1 idempotency guard: true if a non-Failed FULL refund (RefundType.Full) already exists for the
+    /// transaction. Mirrors the partial-unique DB index (PaymentTransactionId WHERE RefundType=1 AND
+    /// Status&lt;&gt;Failed) — used as the commit-level short-circuit in ServiceRequestCancelledConsumer.
+    /// </summary>
+    Task<bool> FullRefundExistsAsync(long transactionId, CancellationToken ct = default);
+
     // ── Transaction mutations ─────────────────────────────────────────────────
 
     Task AddAsync(PaymentTransactionEntity entity, CancellationToken ct = default);

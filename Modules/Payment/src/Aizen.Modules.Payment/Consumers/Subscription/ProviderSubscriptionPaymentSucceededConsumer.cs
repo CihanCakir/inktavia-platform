@@ -6,6 +6,7 @@ using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Invoice;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -101,6 +102,20 @@ public sealed class ProviderSubscriptionPaymentSucceededConsumer
     public override async Task ExecuteCommitMessage(
         PaymentCapturedMessage message, CancellationToken ct)
     {
+        // ── WS1 PART C: commit-level idempotency (mirror of the partial-unique DB index) ──────
+        // The two-phase double-commit can deliver a second commit copy of this event. The Prepare guard
+        // only gates *this* consumer's own commit publish; the duplicate commit was published by another
+        // same-message consumer and reaches this queue regardless. Re-check the natural key here so the
+        // duplicate returns without issuing a second SubscriptionInvoice / invoice number / outbound event.
+        if (await _invoices.ExistsByTransactionIdAndTypeAsync(
+                message.TransactionId, InvoiceType.SubscriptionInvoice, ct))
+        {
+            _logger.LogInformation(
+                "ProviderSubscriptionPaymentSucceededConsumer: SubscriptionInvoice already exists for " +
+                "TxId={TxId}. Commit idempotent skip.", message.TransactionId);
+            return;
+        }
+
         var kdvRate      = _config.GetValue<decimal>("Payment:DefaultKdvRate", 0.20m);
         var dueDays      = _config.GetValue<int>("Payment:SubscriptionDueDays", 7);
 
@@ -193,7 +208,20 @@ public sealed class ProviderSubscriptionPaymentSucceededConsumer
         _invoices.Update(invoice);
 
         // Second SaveChanges: saves the issued invoice.
-        await _invoices.SaveChangesAsync(ct);
+        // WS1: the partial-unique index on (PaymentTransactionId, InvoiceType) is the race backstop — if a
+        // concurrent commit copy won the insert, swallow the unique-violation as benign (already processed).
+        try
+        {
+            await _invoices.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (PaymentIdempotency.IsUniqueViolation(ex))
+        {
+            _logger.LogWarning(
+                "ProviderSubscriptionPaymentSucceededConsumer: concurrent commit already issued a " +
+                "SubscriptionInvoice for TxId={TxId} (unique-violation swallowed). Idempotent skip.",
+                message.TransactionId);
+            return;
+        }
 
         _logger.LogInformation(
             "SubscriptionInvoice issued. Number={Number} ProfileId={ProfileId} PlanCode={Code} " +

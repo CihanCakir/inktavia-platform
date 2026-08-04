@@ -143,6 +143,12 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
     public Task AddRefundRecordAsync(TransactionRefundRecord record, CancellationToken ct)
         => _db.TransactionRefunds.AddAsync(record, ct).AsTask();
 
+    public Task<bool> FullRefundExistsAsync(long transactionId, CancellationToken ct)
+        => _db.TransactionRefunds
+              .AnyAsync(r => r.PaymentTransactionId == transactionId
+                          && r.RefundType == RefundType.Full
+                          && r.Status != TransactionRefundStatus.Failed, ct);
+
     // ── Transaction mutations ─────────────────────────────────────────────────
 
     public Task AddAsync(PaymentTransactionEntity entity, CancellationToken ct)

@@ -6,6 +6,7 @@ using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Invoice;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -98,6 +99,18 @@ public sealed class ServiceRequestPaymentReleasedConsumer
     public override async Task ExecuteCommitMessage(
         PaymentEscrowReleasedMessage message, CancellationToken ct)
     {
+        // ── WS1 PART C: commit-level idempotency (mirror of the partial-unique DB index) ──────
+        // A duplicate two-phase commit copy of this event must not issue a second CommissionInvoice /
+        // invoice number / InvoiceIssuedMessage (commission revenue). Re-check the natural key here.
+        if (await _invoices.ExistsByTransactionIdAndTypeAsync(
+                message.TransactionId, InvoiceType.CommissionInvoice, ct))
+        {
+            _logger.LogInformation(
+                "ServiceRequestPaymentReleasedConsumer: CommissionInvoice already exists for TxId={TxId}. " +
+                "Commit idempotent skip.", message.TransactionId);
+            return;
+        }
+
         var kdvRate = _config.GetValue<decimal>("Payment:DefaultKdvRate", 0.20m);
 
         // ── Reconstruct line amounts from gross CommissionAmount ──────────────
@@ -163,7 +176,18 @@ public sealed class ServiceRequestPaymentReleasedConsumer
         _invoices.Update(invoice);
 
         // Consumers must call SaveChangesAsync directly — no decorator wrapping.
-        await _invoices.SaveChangesAsync(ct);
+        // WS1: partial-unique index on (PaymentTransactionId, InvoiceType) is the race backstop.
+        try
+        {
+            await _invoices.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (PaymentIdempotency.IsUniqueViolation(ex))
+        {
+            _logger.LogWarning(
+                "ServiceRequestPaymentReleasedConsumer: concurrent commit already issued a CommissionInvoice " +
+                "for TxId={TxId} (unique-violation swallowed). Idempotent skip.", message.TransactionId);
+            return;
+        }
 
         _logger.LogInformation(
             "CommissionInvoice auto-issued. Number={Number} TxId={TxId} SR={SrId} Amount={Amount} {Currency}",

@@ -8,6 +8,7 @@ using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -75,11 +76,49 @@ public sealed class ServiceRequestCancelledConsumer
 
         if (tx is null || tx.Status != PaymentTransactionStatus.Captured) return;
 
+        // ── WS1 PART C: commit-level idempotency (mirror of the partial-unique DB index) ──────
+        // A non-Failed full refund already claiming this transaction means a prior (or concurrent) commit
+        // copy owns the refund — skip so we never issue a second gateway refund.
+        if (await _transactions.FullRefundExistsAsync(tx.Id, ct))
+        {
+            _logger.LogInformation(
+                "ServiceRequestCancelledConsumer: a full refund already exists for Tx {TxId}. " +
+                "Commit idempotent skip.", tx.Id);
+            return;
+        }
+
         _logger.LogInformation(
             "ServiceRequestCancelledConsumer: triggering full refund for SR {SRId} → Tx {TxId} Amount {Amount}",
             message.ServiceRequestId, tx.Id, tx.GrossAmount);
 
-        // ── Gateway call ──────────────────────────────────────────────────────
+        // ── WS1 PART B: persist the refund marker BEFORE the gateway call (fix the Tier-2 TOCTOU) ──
+        // Insert the refund record in Pending state first. Its partial-unique index on (PaymentTransactionId,
+        // RefundType=Full) means a concurrent second commit copy loses the insert race and returns here
+        // WITHOUT calling the gateway — so the external refund happens at most once.
+        var refundCode = $"REF-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}"[..22].ToUpperInvariant();
+        var record = TransactionRefundRecord.Create(
+            paymentTransactionId: tx.Id,
+            refundCode:           refundCode,
+            amount:               tx.GrossAmount,
+            currencyCode:         tx.CurrencyCode,
+            refundType:           RefundType.Full,
+            reason:               RefundReason.ServiceRequestCancelled,
+            adminNote:            $"SR {message.ServiceRequestId} auto-refund.");   // status = Pending (marker)
+
+        await _transactions.AddRefundRecordAsync(record, ct);
+        try
+        {
+            await _transactions.SaveChangesAsync(ct);   // claims the natural key
+        }
+        catch (DbUpdateException ex) when (PaymentIdempotency.IsUniqueViolation(ex))
+        {
+            _logger.LogWarning(
+                "ServiceRequestCancelledConsumer: concurrent commit already claimed the refund for Tx {TxId} " +
+                "(unique-violation swallowed). Skipping gateway refund — idempotent.", tx.Id);
+            return;
+        }
+
+        // ── Gateway call — only the marker-holder reaches here ────────────────
         var gateway = _gatewayResolver.Resolve();
         var gatewayResult = await gateway.RefundAsync(new RefundInput
         {
@@ -94,30 +133,20 @@ public sealed class ServiceRequestCancelledConsumer
 
         if (!gatewayResult.Processed)
         {
+            // Mark the marker Failed → excluded from the partial-unique index so a later message can retry.
+            record.MarkFailed("Gateway refund rejected.");
+            await _transactions.SaveChangesAsync(ct);
             _logger.LogError(
-                "ServiceRequestCancelledConsumer: gateway refund rejected for Tx {TxId}.",
-                tx.Id);
+                "ServiceRequestCancelledConsumer: gateway refund rejected for Tx {TxId}. " +
+                "Refund marker marked Failed; will retry on next message.", tx.Id);
             return;
         }
 
-        // ── Create refund record ──────────────────────────────────────────────
-        var refundCode = $"REF-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}"[..22].ToUpperInvariant();
-        var record = TransactionRefundRecord.Create(
-            paymentTransactionId: tx.Id,
-            refundCode:           refundCode,
-            amount:               tx.GrossAmount,
-            currencyCode:         tx.CurrencyCode,
-            refundType:           RefundType.Full,
-            reason:               RefundReason.ServiceRequestCancelled,
-            adminNote:            $"SR {message.ServiceRequestId} auto-refund.");
-
+        // ── Gateway succeeded → finalize the marker + apply to parent transaction ──
         record.MarkProcessed(
             gatewayRefundReference: gatewayResult.GatewayRefundReference,
             adminNote:              null);
 
-        await _transactions.AddRefundRecordAsync(record, ct);
-
-        // ── Apply to parent transaction ───────────────────────────────────────
         tx.ApplyRefund(record);
         _transactions.Update(tx);
 

@@ -53,5 +53,14 @@ public sealed class TransactionRefundRecordConfiguration : IEntityTypeConfigurat
         // ── Indexes ───────────────────────────────────────────────────────────
         b.HasIndex(x => x.PaymentTransactionId);
         b.HasIndex(x => x.Status);
+
+        // WS1 financial defense-in-depth: partial UNIQUE — at most one non-Failed FULL refund per
+        // transaction (RefundType 1=Full). Partial refunds (RefundType 2) are unconstrained — a
+        // transaction may legitimately have several. Status<>4 (Failed) excludes rejected attempts so a
+        // retry after a gateway failure can re-claim the key. Backstops the SR-cancellation refund
+        // money-after-persist reorder against the two-phase double-commit.
+        b.HasIndex(x => x.PaymentTransactionId, "UX_transaction_refund_records_FullRefund_Active")
+            .IsUnique()
+            .HasFilter("\"RefundType\" = 1 AND \"Status\" <> 4");
     }
 }
