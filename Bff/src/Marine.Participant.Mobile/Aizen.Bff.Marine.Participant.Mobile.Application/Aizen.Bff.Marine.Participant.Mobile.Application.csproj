@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall/Aizen.Core.RemoteCall.csproj" />
+    <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/InfoAccessor/src/Aizen.Core.InfoAccessor.Abstraction/Aizen.Core.InfoAccessor.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Api/src/Aizen.Core.Api.Abstraction/Aizen.Core.Api.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Validation/src/Aizen.Core.Validation/Aizen.Core.Validation.csproj" />
+    <ProjectReference Include="../../../../Modules/Identity/src/Aizen.Modules.Identity.Abstraction/Aizen.Modules.Identity.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/ServiceRequest/src/Aizen.Modules.ServiceRequest.Abstraction/Aizen.Modules.ServiceRequest.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/Messaging/src/Aizen.Modules.Messaging.Abstraction/Aizen.Modules.Messaging.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/FileStorage/src/Aizen.Modules.FileStorage.Abstraction/Aizen.Modules.FileStorage.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/ReferenceData/src/Aizen.Modules.ReferenceData.Abstraction/Aizen.Modules.ReferenceData.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/Vessel/src/Aizen.Modules.Vessel.Abstraction/Aizen.Modules.Vessel.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/CargoDry/src/Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/Notification/src/Aizen.Modules.Notification.Abstraction/Aizen.Modules.Notification.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Common/src/Aizen.Core.Common.Abstraction/Aizen.Core.Common.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache.Abstraction/Aizen.Core.Cache.Abstraction.csproj" />
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
+
+</Project>
