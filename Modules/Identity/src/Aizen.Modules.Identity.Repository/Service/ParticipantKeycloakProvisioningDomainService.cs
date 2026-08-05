@@ -125,6 +125,30 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
                 createdProfile = true;
             }
 
+            // Optional (M2d social): idempotently record the external-login link for this user.
+            if (!string.IsNullOrWhiteSpace(model.ExternalProvider) && !string.IsNullOrWhiteSpace(model.ExternalProviderUserId))
+            {
+                var provider = model.ExternalProvider.Trim().ToLowerInvariant() == "apple"
+                    ? LoginType.Apple : LoginType.Google;
+                var providerUserId = model.ExternalProviderUserId.Trim();
+
+                var existingLink = await _db.UserExternalLoginEntities.FirstOrDefaultAsync(
+                    x => x.Provider == provider && x.ProviderUserId == providerUserId && !x.IsDeleted, cancellationToken);
+
+                if (existingLink is null)
+                {
+                    var link = UserExternalLoginEntity.Create(user.Id, provider, providerUserId, email, scope: null);
+                    await _db.UserExternalLoginEntities.AddAsync(link, cancellationToken);
+                }
+                else if (existingLink.UserId == user.Id)
+                {
+                    existingLink.Update(providerUserId, email, existingLink.Scope);
+                    _db.UserExternalLoginEntities.Update(existingLink);
+                }
+                // (A link owned by a different user is left untouched — email unification already resolved
+                //  the correct Keycloak user upstream; we never re-point an existing social link.)
+            }
+
             await _db.SaveChangesAsync(cancellationToken);
 
             return new ParticipantKeycloakProvisionResult(

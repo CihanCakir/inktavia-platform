@@ -33,8 +33,10 @@ public sealed class LookupJsonSeedService
 
     public async Task SeedGroupsAsync(CancellationToken cancellationToken = default)
     {
-        if (await _dbContext.LookupGroups.AnyAsync(cancellationToken)) return;
-
+        // Idempotency is per-code (the code→entity upsert below), so the loop runs on every startup:
+        // existing groups are updated in place and newly added codes (e.g. the R4 marine pricing groups)
+        // are inserted even on an already-seeded DB. New groups only ever attach to an existing/earlier
+        // parent, so the tree's parent-child + circular-reference guards remain intact.
         var models = await _reader.ReadListAsync<LookupGroupSeedModel>("Lookup/lookup-groups.json", cancellationToken: cancellationToken);
 
         // Build a map for quick code→entity lookup after insertion
@@ -97,8 +99,9 @@ public sealed class LookupJsonSeedService
 
     public async Task SeedItemsAsync(CancellationToken cancellationToken = default)
     {
-        if (await _dbContext.LookupItems.AnyAsync(cancellationToken)) return;
-
+        // Idempotency is per (group, code) via ExistsByCodeInGroupAsync below, so the loop runs on every
+        // startup: existing items are updated in place and newly added items (e.g. the R4 marine pricing
+        // attribute values) are inserted even on an already-seeded DB.
         var models = await _reader.ReadListAsync<LookupItemSeedModel>("Lookup/lookup-items.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)

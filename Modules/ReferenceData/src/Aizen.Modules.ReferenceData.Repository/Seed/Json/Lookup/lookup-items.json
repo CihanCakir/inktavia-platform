@@ -49,5 +49,27 @@
   { "groupCode": "PAYMENT_STATUS", "code": "FAILED",              "name": "Failed",              "description": null, "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true },
   { "groupCode": "PAYMENT_STATUS", "code": "CANCELED",            "name": "Canceled",            "description": null, "iconKey": null, "colorCode": "#9E9E9E", "sortOrder": 4, "isDefault": false, "isActive": true },
   { "groupCode": "PAYMENT_STATUS", "code": "REFUNDED",            "name": "Refunded",            "description": null, "iconKey": null, "colorCode": "#2196F3", "sortOrder": 5, "isDefault": false, "isActive": true },
-  { "groupCode": "PAYMENT_STATUS", "code": "PARTIALLY_REFUNDED",  "name": "Partially Refunded",  "description": null, "iconKey": null, "colorCode": "#03A9F4", "sortOrder": 6, "isDefault": false, "isActive": true }
+  { "groupCode": "PAYMENT_STATUS", "code": "PARTIALLY_REFUNDED",  "name": "Partially Refunded",  "description": null, "iconKey": null, "colorCode": "#03A9F4", "sortOrder": 6, "isDefault": false, "isActive": true },
+
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "INBOARD",    "name": "İçten Takma",  "description": "Inboard",    "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "OUTBOARD",   "name": "Kıçtan Takma", "description": "Outboard",   "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "STERNDRIVE", "name": "Kıç Tahrik",   "description": "Sterndrive", "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "SHAFT",      "name": "Şaft Tahrik",  "description": "Shaft drive","iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "POD",        "name": "Pod Tahrik",   "description": "Pod drive",  "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "ENGINE_CLASS", "code": "V6",     "name": "V6",     "description": "V6 engine",     "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "V8",     "name": "V8",     "description": "V8 engine",     "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": true,  "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "V12",    "name": "V12",    "description": "V12 engine",    "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "V16",    "name": "V16",    "description": "V16 engine",    "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "INLINE", "name": "Sıralı", "description": "Inline engine", "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "PAINT_TYPE", "code": "ANTIFOULING", "name": "Zehirli Boya (Antifouling)", "description": "Antifouling", "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "EPOXY",       "name": "Epoksi",                     "description": "Epoxy",       "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "TOPCOAT",     "name": "Son Kat",                    "description": "Topcoat",     "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "PRIMER",      "name": "Astar",                      "description": "Primer",      "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "GELCOAT",     "name": "Jelkot",                     "description": "Gelcoat",     "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "WORK_DIFFICULTY", "code": "EASY",   "name": "Kolay", "description": "Easy",   "iconKey": null, "colorCode": "#4CAF50", "sortOrder": 1, "isDefault": false, "isActive": true },
+  { "groupCode": "WORK_DIFFICULTY", "code": "MEDIUM", "name": "Orta",  "description": "Medium", "iconKey": null, "colorCode": "#FF9800", "sortOrder": 2, "isDefault": true,  "isActive": true },
+  { "groupCode": "WORK_DIFFICULTY", "code": "HARD",   "name": "Zor",   "description": "Hard",   "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true }
 ]

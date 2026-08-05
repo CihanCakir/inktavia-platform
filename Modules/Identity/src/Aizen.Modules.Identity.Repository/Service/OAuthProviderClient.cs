@@ -188,6 +188,70 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
             );
         }
 
+        // === NATIVE (mobile SDK) id_token doğrulama (JWKS + aud ∈ NativeAudiences; nonce yalnızca varsa) ===
+        public async Task<ValidatedIdTokenDto> ValidateNativeIdTokenAsync(string provider, string idToken, string? nonce, CancellationToken ct)
+        {
+            var isGoogle = IsGoogle(provider);
+            var issuer = isGoogle ? (_opt.Google.NativeIssuer ?? _opt.Google.Issuer) : (_opt.Apple.NativeIssuer ?? _opt.Apple.Issuer);
+            var audiences = isGoogle ? _opt.Google.NativeAudiences : _opt.Apple.NativeAudiences;
+            var jwksUrl = isGoogle ? _opt.Google.NativeJwksUrl : _opt.Apple.NativeJwksUrl;
+            var jwksInline = isGoogle ? _opt.Google.NativeJwksInline : _opt.Apple.NativeJwksInline;
+
+            if (audiences is null || audiences.Length == 0)
+                throw new SecurityException($"No native audiences configured for {provider}.");
+
+            // JWKS: pinned inline (test/high-security) OR fetched + cached from the provider.
+            var keys = !string.IsNullOrWhiteSpace(jwksInline)
+                ? new JsonWebKeySet(jwksInline)
+                : await GetOrFetchJwksAsync(jwksUrl, ct);
+
+            var handler = new JsonWebTokenHandler();
+            var tvp = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKeyResolver = (_, _, kid, _) =>
+                    keys.GetSigningKeys().Where(k => (k is JsonWebKey jwk) ? jwk.Kid == kid : true),
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudiences = audiences,          // aud ∈ configured native audiences
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(2)
+            };
+
+            var result = handler.ValidateToken(idToken, tvp);
+            if (!result.IsValid)
+                throw new SecurityException($"native id_token invalid: {result.Exception?.Message}");
+
+            var jwt = (JsonWebToken)result.SecurityToken!;
+
+            // Nonce: only enforced when the caller supplied one AND the token carries one.
+            if (!string.IsNullOrEmpty(nonce))
+            {
+                var tokenNonce = jwt.TryGetPayloadValue("nonce", out string? tn) ? tn : null;
+                if (!string.Equals(tokenNonce, nonce, StringComparison.Ordinal))
+                    throw new SecurityException("nonce mismatch");
+            }
+
+            var sub = jwt.Subject!;
+            jwt.TryGetPayloadValue("email", out string? email);
+
+            bool emailVerified = false;
+            if (jwt.TryGetPayloadValue("email_verified", out object? ev))
+                emailVerified = ev switch { bool b => b, string s => s is "true" or "1", _ => false };
+
+            jwt.TryGetPayloadValue("name", out string? name);
+
+            return new ValidatedIdTokenDto(
+                Sub: sub,
+                Email: email,
+                EmailVerified: emailVerified,
+                Name: name,
+                Issuer: jwt.Issuer,
+                Nonce: nonce ?? string.Empty
+            );
+        }
+
         // === Apple client_secret (ES256) ===
         private string CreateAppleClientSecret()
         {

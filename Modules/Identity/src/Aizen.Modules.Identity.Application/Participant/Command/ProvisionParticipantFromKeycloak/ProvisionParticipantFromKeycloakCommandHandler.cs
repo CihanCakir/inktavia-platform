@@ -25,7 +25,9 @@ public sealed class ProvisionParticipantFromKeycloakCommandHandler
             FirstName = request.FirstName,
             LastName = request.LastName,
             ContactPhone = request.ContactPhone,
-            EmailVerified = request.EmailVerified
+            EmailVerified = request.EmailVerified,
+            ExternalProvider = request.ExternalProvider,
+            ExternalProviderUserId = request.ExternalProviderUserId
         }, cancellationToken);
 
         return new ProvisionParticipantFromKeycloakResult

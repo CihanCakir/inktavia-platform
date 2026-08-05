@@ -18,7 +18,7 @@ public sealed class UpdateMeasurementUnitCommandHandler : AizenCommandHandler<Up
     public override async Task<MeasurementUnitDto?> Handle(UpdateMeasurementUnitCommand request, CancellationToken cancellationToken)
     {
         var result = await _service.UpdateAsync(request.Id, request.Name, request.Symbol, request.ConversionFactorToBase, request.BaseUnitCode, request.IsActive, cancellationToken);
-        await _invalidation.InvalidateMeasurementUnitAsync(request.Id, cancellationToken);
+        await _invalidation.InvalidateMeasurementUnitAsync(request.Id, cancellationToken: cancellationToken);
         return result;
     }
 }

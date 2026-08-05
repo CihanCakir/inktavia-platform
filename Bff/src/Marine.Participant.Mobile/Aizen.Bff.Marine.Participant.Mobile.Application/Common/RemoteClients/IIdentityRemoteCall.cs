@@ -102,6 +102,11 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/identity/participant/profiles/by-subject/{keycloakSubject}")]
     Task<AizenApiResponse<OrganizerProfileDetailDto>> GetParticipantProfileByKeycloakSubject(string keycloakSubject);
 
+    // Validate a native Google/Apple id_token (JWKS + iss/aud/exp) → verified claims (M2d social).
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-social-validate")]
+    Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Dto.Participant.ParticipantSocialValidateResult>> ValidateParticipantSocial(
+        [AizenRemoteCallBody] MobileSocialValidateRequest request);
+
     // ── Onboarding (delegated to Identity) ──────────────────────────────────────
 
     [AizenRemoteCallGet("/api/v1/identity/provider-onboarding/{profileId}")]
@@ -150,6 +155,18 @@ public sealed class MobileParticipantProvisionRequest
     public string? LastName { get; set; }
     public string? ContactPhone { get; set; }
     public bool? EmailVerified { get; set; }
+    // Optional (M2d social): record an idempotent external-login link.
+    public string? ExternalProvider { get; set; }
+    public string? ExternalProviderUserId { get; set; }
+}
+
+/// <summary>Body for POST /api/v1/identity/auth/participant-social-validate.</summary>
+public sealed class MobileSocialValidateRequest
+{
+    public string Provider { get; set; } = default!;   // "google" | "apple"
+    public string IdToken { get; set; } = default!;
+    public string? Nonce { get; set; }
+    public string? FullName { get; set; }
 }
 
 public sealed class ParticipantMarkPhoneVerifiedResult

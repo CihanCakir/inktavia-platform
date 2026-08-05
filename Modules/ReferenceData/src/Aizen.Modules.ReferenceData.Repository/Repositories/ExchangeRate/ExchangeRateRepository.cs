@@ -48,6 +48,17 @@ public sealed class ExchangeRateRepository : IExchangeRateRepository
         return await query.OrderByDescending(x => x.RateDate).ToListAsync(cancellationToken);
     }
 
+    public Task<ExchangeRateHistoryEntity?> GetRateAsOfAsync(string fromCurrencyCode, string toCurrencyCode, DateTime asOfUtc, CancellationToken cancellationToken = default)
+    {
+        var fromCode = fromCurrencyCode.Trim().ToUpperInvariant();
+        var toCode = toCurrencyCode.Trim().ToUpperInvariant();
+
+        return _dbContext.ExchangeRateHistories.AsNoTracking()
+            .Where(x => x.FromCurrencyCode == fromCode && x.ToCurrencyCode == toCode && x.RateDate <= asOfUtc)
+            .OrderByDescending(x => x.RateDate)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public Task AddAsync(ExchangeRateEntity entity, CancellationToken cancellationToken = default)
         => _dbContext.ExchangeRates.AddAsync(entity, cancellationToken).AsTask();
 

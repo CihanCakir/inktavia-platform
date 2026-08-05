@@ -53,4 +53,12 @@ public sealed class MeasurementController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<MeasurementUnitDto?>(new GetMeasurementUnitDetailQuery(id), ct);
         return SetResponse(result);
     }
+
+    [HttpGet("by-code/{code}")]
+    [ProducesResponseType(typeof(MeasurementUnitDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MeasurementUnitDto?>> GetByCode([FromRoute] string code, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<MeasurementUnitDto?>(new GetMeasurementUnitByCodeQuery(code), ct);
+        return SetResponse(result);
+    }
 }

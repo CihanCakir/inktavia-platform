@@ -72,6 +72,12 @@ public sealed class MeasurementReferenceService : IMeasurementReferenceService
         return entity?.ToDto();
     }
 
+    public async Task<MeasurementUnitDto?> GetByCodeAsync(string code, CancellationToken cancellationToken = default)
+    {
+        var entity = await _repo.GetByCodeAsync(code, cancellationToken);
+        return entity?.ToDto();
+    }
+
     public async Task<IReadOnlyList<MeasurementUnitDto>> GetByTypeAsync(MeasurementUnitType unitType, bool onlyActive, CancellationToken cancellationToken = default)
     {
         var list = await _repo.GetByTypeAsync(unitType, onlyActive, cancellationToken);

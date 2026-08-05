@@ -36,6 +36,14 @@ public sealed class ExchangeRateController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("resolve")]
+    [ProducesResponseType(typeof(ExchangeRateResolveDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ExchangeRateResolveDto>> Resolve([FromQuery] string fromCurrencyCode, [FromQuery] string toCurrencyCode, [FromQuery] DateTimeOffset asOfUtc, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ExchangeRateResolveDto>(new ResolveExchangeRateQuery(fromCurrencyCode, toCurrencyCode, asOfUtc), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("history")]
     [ProducesResponseType(typeof(IReadOnlyList<ExchangeRateHistoryDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<IReadOnlyList<ExchangeRateHistoryDto>>> GetHistory([FromQuery] string fromCurrencyCode, [FromQuery] string toCurrencyCode, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, CancellationToken ct = default)

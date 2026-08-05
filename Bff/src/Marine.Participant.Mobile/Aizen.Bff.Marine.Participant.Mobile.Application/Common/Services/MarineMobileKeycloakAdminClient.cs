@@ -11,7 +11,7 @@ public sealed record KeycloakUserRef(string Id, string? Email, string? Username,
 
 public sealed record CreateKeycloakUserRequest(
     string Email,
-    string Password,
+    string? Password,   // null for social sign-in (no local password)
     string? FirstName,
     string? LastName,
     IDictionary<string, string>? Attributes);
@@ -91,10 +91,13 @@ internal sealed class MarineMobileKeycloakAdminClient : IMarineMobileKeycloakAdm
             EmailVerified = true,
             FirstName = request.FirstName,
             LastName = request.LastName,
-            Credentials = new List<CredentialRepresentation>
-            {
-                new() { Type = "password", Value = request.Password, Temporary = false }
-            },
+            // Social sign-in creates a password-less Keycloak user (Password == null → no credentials).
+            Credentials = string.IsNullOrEmpty(request.Password)
+                ? null
+                : new List<CredentialRepresentation>
+                {
+                    new() { Type = "password", Value = request.Password, Temporary = false }
+                },
             Attributes = request.Attributes?.ToDictionary(kv => kv.Key, kv => new List<string> { kv.Value })
         };
 

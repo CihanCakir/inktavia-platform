@@ -116,6 +116,28 @@ public sealed class AuthController : AizenWebApiController
         return SetResponse(result);
     }
 
+    /// <summary>Native Google sign-in (validate id_token, unify by email) → inktavia-mobile tokens. Invalid → 401.</summary>
+    [HttpPost("/api/v1/mobile/auth/google")]
+    [ProducesResponseType(typeof(MobileAuthTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Google([FromBody] MobileGoogleLoginRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new SocialLoginParticipantCommand { Provider = "google", IdToken = request.IdToken }, ct);
+        return result is null ? Unauthorized(Fail("Google sign-in could not be verified.")) : Ok(SetResponse(result));
+    }
+
+    /// <summary>Native Apple sign-in (validate identityToken, unify by email) → inktavia-mobile tokens. Invalid → 401.</summary>
+    [HttpPost("/api/v1/mobile/auth/apple")]
+    [ProducesResponseType(typeof(MobileAuthTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Apple([FromBody] MobileAppleLoginRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new SocialLoginParticipantCommand { Provider = "apple", IdToken = request.IdentityToken, FullName = request.FullName }, ct);
+        return result is null ? Unauthorized(Fail("Apple sign-in could not be verified.")) : Ok(SetResponse(result));
+    }
+
     private static AizenApiResponse<MobileAuthTokenResponse> Fail(string message) =>
         new(AizenResponseHeader.Fail(new AizenBusinessException(message)), null!);
 }

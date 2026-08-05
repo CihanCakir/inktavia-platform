@@ -29,6 +29,19 @@ public sealed class MobileLogoutRequest
     public string RefreshToken { get; set; } = default!;
 }
 
+/// <summary>Native Google sign-in: the app posts the Google SDK id_token.</summary>
+public sealed class MobileGoogleLoginRequest
+{
+    public string IdToken { get; set; } = default!;
+}
+
+/// <summary>Native Apple sign-in: the app posts the Apple SDK identityToken (+ fullName on first auth only).</summary>
+public sealed class MobileAppleLoginRequest
+{
+    public string IdentityToken { get; set; } = default!;
+    public string? FullName { get; set; }
+}
+
 // ── Responses (BFF → mobile app) ──────────────────────────────────────────────
 
 /// <summary>Real Keycloak tokens (inktavia-mobile), identical shape across OTP/password/refresh.</summary>

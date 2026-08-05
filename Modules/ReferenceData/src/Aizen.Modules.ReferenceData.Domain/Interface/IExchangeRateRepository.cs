@@ -7,6 +7,8 @@ public interface IExchangeRateRepository
     Task<ExchangeRateEntity?> GetCurrentRateAsync(string fromCurrencyCode, string toCurrencyCode, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ExchangeRateEntity>> GetRatesByCurrencyAsync(string currencyCode, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ExchangeRateHistoryEntity>> GetHistoryAsync(string fromCurrencyCode, string toCurrencyCode, DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken = default);
+    /// <summary>R1 — latest history row effective at or before <paramref name="asOfUtc"/> (null if none).</summary>
+    Task<ExchangeRateHistoryEntity?> GetRateAsOfAsync(string fromCurrencyCode, string toCurrencyCode, DateTime asOfUtc, CancellationToken cancellationToken = default);
     Task AddAsync(ExchangeRateEntity entity, CancellationToken cancellationToken = default);
     Task AddHistoryAsync(ExchangeRateHistoryEntity entity, CancellationToken cancellationToken = default);
     void Update(ExchangeRateEntity entity);

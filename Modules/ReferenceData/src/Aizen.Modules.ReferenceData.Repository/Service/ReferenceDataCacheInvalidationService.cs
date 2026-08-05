@@ -59,6 +59,12 @@ public sealed class ReferenceDataCacheInvalidationService : IReferenceDataCacheI
             await _cache.RemoveNoHash(HandlerKey("GetExchangeRateQueryHandler", $"FromCurrencyCode_{fromCode}|ToCurrencyCode_{toCode}|"));
             await _cache.RemoveNoHash(HandlerKey("GetExchangeRatesByCurrencyQueryHandler", $"CurrencyCode_{fromCode}|"));
             await _cache.RemoveNoHash(HandlerKey("GetExchangeRatesByCurrencyQueryHandler", $"CurrencyCode_{toCode}|"));
+
+            // R1 ResolveExchangeRate is keyed by from/to/as-of-day. A rate upsert most affects
+            // "as of now" resolutions, so invalidate the current UTC day's key. Past-day keys are
+            // immutable in the append-only history; the 15-min TTL bounds any residual staleness.
+            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            await _cache.RemoveNoHash(HandlerKey("ResolveExchangeRateQueryHandler", $"FromCurrencyCode_{fromCode}|ToCurrencyCode_{toCode}|AsOfDay_{today}|"));
         }
         // TODO: Wildcard removal is not supported — full exchange-rate cache flush requires knowing all pairs
     }
@@ -90,12 +96,14 @@ public sealed class ReferenceDataCacheInvalidationService : IReferenceDataCacheI
 
     // ─── Measurement ─────────────────────────────────────────────────────────
 
-    public async Task InvalidateMeasurementUnitAsync(long? id = null, CancellationToken cancellationToken = default)
+    public async Task InvalidateMeasurementUnitAsync(long? id = null, string? code = null, CancellationToken cancellationToken = default)
     {
         await _cache.RemoveNoHash(HandlerKey("GetMeasurementUnitListQueryHandler", "OnlyActive_True|"));
         await _cache.RemoveNoHash(HandlerKey("GetMeasurementUnitListQueryHandler", "OnlyActive_False|"));
         if (id.HasValue)
             await _cache.RemoveNoHash(HandlerKey("GetMeasurementUnitDetailQueryHandler", $"Id_{id.Value}|"));
+        if (code != null)
+            await _cache.RemoveNoHash(HandlerKey("GetMeasurementUnitByCodeQueryHandler", $"Code_{code}|"));
         // TODO: GetMeasurementUnitsByTypeQueryHandler — unit type is not available in the invalidation context
     }
 

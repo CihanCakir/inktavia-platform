@@ -63,6 +63,14 @@ public sealed class ExchangeRateReferenceService : IExchangeRateReferenceService
         return entity?.ToDto();
     }
 
+    public async Task<ExchangeRateResolveDto> ResolveRateAsync(string fromCurrencyCode, string toCurrencyCode, DateTimeOffset asOfUtc, CancellationToken cancellationToken = default)
+    {
+        // UTC-safe: force Kind=Utc for the timestamptz comparison (matches the global UTC read/write rule).
+        var asOf = asOfUtc.UtcDateTime;
+        var entity = await _repo.GetRateAsOfAsync(fromCurrencyCode, toCurrencyCode, asOf, cancellationToken);
+        return entity.ToResolveDto(fromCurrencyCode, toCurrencyCode, asOfUtc);
+    }
+
     public async Task<IReadOnlyList<ExchangeRateHistoryDto>> GetHistoryAsync(string fromCurrencyCode, string toCurrencyCode, DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken = default)
     {
         var list = await _repo.GetHistoryAsync(fromCurrencyCode, toCurrencyCode, startDate, endDate, cancellationToken);
