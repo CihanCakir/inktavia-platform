@@ -30,4 +30,12 @@ public interface INotificationRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/notification/notifications/vapid-public-key")]
     Task<AizenApiResponse<VapidPublicKeyResponse>> GetVapidPublicKey();
+
+    // ─── N-B notification preferences ────────────────────────────────────────────
+    [AizenRemoteCallGet("/api/v1/notification/notifications/preferences")]
+    Task<AizenApiResponse<NotificationPreferencesResponse>> GetPreferences();
+
+    [AizenRemoteCallPut("/api/v1/notification/notifications/preferences")]
+    Task<AizenApiResponse<NotificationPreferencesResponse>> UpdatePreference(
+        [AizenRemoteCallBody] UpdateNotificationPreferenceRequest body);
 }

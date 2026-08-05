@@ -105,4 +105,26 @@ public sealed class NotificationsController : AizenWebApiController
         var result = await _remote.DeactivateWebPushSubscriptionAsync(body, ct);
         return SetResponse(result.Body);
     }
+
+    // ─── N-B notification preferences ────────────────────────────────────────────
+
+    /// <summary>GET /api/v1/admin-panel/notifications/preferences — the category×channel matrix for the admin</summary>
+    [HttpGet("preferences")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationPreferencesResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationPreferencesResponse>> GetPreferences(CancellationToken ct)
+    {
+        var result = await _remote.GetPreferencesAsync(ct);
+        return SetResponse(result.Body);
+    }
+
+    /// <summary>PUT /api/v1/admin-panel/notifications/preferences — toggle one category×channel cell</summary>
+    [HttpPut("preferences")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationPreferencesResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationPreferencesResponse>> UpdatePreference(
+        [FromBody] UpdateNotificationPreferenceRequest body,
+        CancellationToken ct)
+    {
+        var result = await _remote.UpdatePreferenceAsync(body, ct);
+        return SetResponse(result.Body);
+    }
 }

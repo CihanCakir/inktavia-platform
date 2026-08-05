@@ -161,6 +161,82 @@ namespace Aizen.Modules.Identity.Repository.Context.Seed
                 {
                     // Email already matches, nothing to do
                 }
+
+                // ---- OTP-ready PARTICIPANT (mobile) — Dev/Local only ----------------------------------
+                // M2a verification enabler: ensure one participant is OTP-login-ready with a real (or
+                // dev-placeholder) KeycloakSubjectId linked in Identity + an active Participant profile.
+                // Linking the REAL Keycloak subject is M2d provisioning; this is a minimal DEV-only seed
+                // link so the Identity-only request→verify→consume log test can run. The email defaults to
+                // mobile.user@inktavia.com, the Keycloak seed user that already holds the mobile_user role.
+                var participantEmail = cfg["Seed:Participant:Email"] ?? "mobile.user@inktavia.com";
+                var participantPass = cfg["Seed:Participant:Password"] ?? "Password123!";
+                var participantFirst = cfg["Seed:Participant:FirstName"] ?? "Mobile";
+                var participantLast = cfg["Seed:Participant:LastName"] ?? "User";
+
+                var participant = await userManager.FindByEmailAsync(participantEmail);
+                if (participant is null)
+                {
+                    participant = UserEntity.CreateLocal(
+                        email: participantEmail,
+                        phone: null,
+                        passwordHash: "",
+                        loginType: LoginType.Email
+                    );
+                    participant.EmailConfirmed = true;
+
+                    var createRes = await userManager.CreateAsync(participant, participantPass);
+                    if (!createRes.Succeeded)
+                        throw new Exception("Participant user creation failed: " + string.Join(", ", createRes.Errors.Select(e => e.Description)));
+
+                    participant = await userManager.FindByEmailAsync(participantEmail);
+                }
+                else if (!participant.EmailConfirmed)
+                {
+                    participant.EmailConfirmed = true;
+                    await userManager.UpdateAsync(participant);
+                }
+
+                // Consumer role (participant/mobile user)
+                await EnsureUserInRoleAsync(db, participant!, "Consumer", ct);
+
+                // Active Participant profile (the OTP-login gate)
+                var hasParticipantProfile = await db.UserProfiles
+                    .AnyAsync(p => p.UserId == participant!.Id && p.RoleContext == WorkshopRoleContext.Participant, ct);
+
+                if (!hasParticipantProfile)
+                {
+                    var participantProfile = UserProfileEntity.Create(
+                        userId: participant!.Id,
+                        firstName: participantFirst,
+                        lastName: participantLast,
+                        taxpayerType: TaxpayerType.Individual
+                    );
+                    participantProfile.RoleContext = WorkshopRoleContext.Participant;
+
+                    db.UserProfiles.Add(participantProfile);
+                    await db.SaveChangesAsync(ct);
+
+                    participant!.AddProfile(participantProfile, markAsActive: true);
+                    db.Update(participant);
+                    await db.SaveChangesAsync(ct);
+                }
+
+                // KeycloakSubjectId if missing (dev placeholder or from config)
+                if (string.IsNullOrWhiteSpace(participant!.KeycloakSubjectId))
+                {
+                    var configuredSub = cfg["Seed:Participant:KeycloakSubjectId"];
+                    if (string.IsNullOrWhiteSpace(configuredSub))
+                    {
+                        // Stable dev placeholder — M2d provisioning must replace with the real Keycloak subject id
+                        configuredSub = "00000000-0000-0000-0000-participant1";
+                        Console.WriteLine(
+                            "[WARN] SeedIdentityBase: Participant user assigned dev-placeholder KeycloakSubjectId. " +
+                            "M2d provisioning must replace it with the real Keycloak subject id of the mobile user.");
+                    }
+
+                    participant.SetKeycloakSubjectId(configuredSub);
+                    await userManager.UpdateAsync(participant);
+                }
             }
         }
 

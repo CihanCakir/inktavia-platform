@@ -38,4 +38,13 @@ public interface INotificationBffRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<PushSubscriptionResponse>> DeactivateWebPushSubscriptionAsync(
         [AizenRemoteCallBody] PushUnsubscribeRequest body,
         CancellationToken ct = default);
+
+    // ─── N-B notification preferences ────────────────────────────────────────────
+    [AizenRemoteCallGet("/api/v1/notification/notifications/preferences")]
+    Task<AizenApiResponse<NotificationPreferencesResponse>> GetPreferencesAsync(CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/notification/notifications/preferences")]
+    Task<AizenApiResponse<NotificationPreferencesResponse>> UpdatePreferenceAsync(
+        [AizenRemoteCallBody] UpdateNotificationPreferenceRequest body,
+        CancellationToken ct = default);
 }

@@ -7,6 +7,8 @@ using Aizen.Modules.Notification.Application.Command.DeactivateWebPushSubscripti
 using Aizen.Modules.Notification.Application.Command.MarkNotificationAsRead;
 using Aizen.Modules.Notification.Application.Command.RegisterDeviceToken;
 using Aizen.Modules.Notification.Application.Command.RegisterWebPushSubscription;
+using Aizen.Modules.Notification.Application.Command.UpdateNotificationPreference;
+using Aizen.Modules.Notification.Application.Query.GetNotificationPreferences;
 using Aizen.Modules.Notification.Application.Query.GetUserNotifications;
 using Aizen.Modules.Notification.Application.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -76,4 +78,24 @@ public sealed class NotificationsController : AizenWebApiController
         [FromBody] RegisterDeviceTokenRequest body, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync<DeviceTokenResponse>(
                new RegisterDeviceTokenCommand { DeviceToken = body.DeviceToken, Platform = body.Platform }, ct));
+
+    // ─── N-B notification preferences ────────────────────────────────────────────
+
+    [HttpGet("preferences")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationPreferencesResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationPreferencesResponse?>> GetPreferences(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<NotificationPreferencesResponse>(
+               new GetNotificationPreferencesQuery(), ct));
+
+    [HttpPut("preferences")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationPreferencesResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationPreferencesResponse?>> UpdatePreference(
+        [FromBody] UpdateNotificationPreferenceRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync<NotificationPreferencesResponse>(
+               new UpdateNotificationPreferenceCommand
+               {
+                   Category = body.Category,
+                   Channel  = body.Channel,
+                   Enabled  = body.Enabled,
+               }, ct));
 }

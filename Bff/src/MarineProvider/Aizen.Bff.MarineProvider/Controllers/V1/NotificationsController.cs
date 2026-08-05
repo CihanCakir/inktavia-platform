@@ -61,4 +61,22 @@ public sealed class NotificationsController : AizenWebApiController
         {
             Endpoint = body.Endpoint,
         }, ct));
+
+    // ─── N-B notification preferences ────────────────────────────────────────────
+
+    [HttpGet("preferences")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationPreferencesResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationPreferencesResponse?>> GetPreferences(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetNotificationPreferencesBffQuery(), ct));
+
+    [HttpPut("preferences")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationPreferencesResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationPreferencesResponse?>> UpdatePreference(
+        [FromBody] UpdateNotificationPreferenceRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new UpdateNotificationPreferenceBffCommand
+        {
+            Category = body.Category,
+            Channel  = body.Channel,
+            Enabled  = body.Enabled,
+        }, ct));
 }

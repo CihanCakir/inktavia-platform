@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
+using Aizen.Modules.Notification.Abstraction;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Abstraction.Message;
 using Aizen.Modules.Notification.Application.Services;
@@ -31,16 +32,18 @@ namespace Aizen.Modules.Notification.Consumers.Notification;
 public sealed class NotificationSentPushConsumer
     : AizenBaseMessageConsumer<NotificationSentMessage>
 {
-    private readonly IUserDeviceTokenRepository _tokenRepository;
-    private readonly INotificationRepository    _notificationRepository;
-    private readonly IPushSender                _pushSender;
-    private readonly VapidOptions               _vapid;
+    private readonly IUserDeviceTokenRepository        _tokenRepository;
+    private readonly INotificationRepository           _notificationRepository;
+    private readonly INotificationPreferenceRepository _preferenceRepository;
+    private readonly IPushSender                       _pushSender;
+    private readonly VapidOptions                      _vapid;
     private readonly ILogger<NotificationSentPushConsumer> _logger;
 
     public NotificationSentPushConsumer(IServiceProvider sp) : base(sp)
     {
         _tokenRepository        = sp.GetRequiredService<IUserDeviceTokenRepository>();
         _notificationRepository = sp.GetRequiredService<INotificationRepository>();
+        _preferenceRepository   = sp.GetRequiredService<INotificationPreferenceRepository>();
         _pushSender             = sp.GetRequiredService<IPushSender>();
         _vapid                  = sp.GetRequiredService<IOptions<VapidOptions>>().Value;
         _logger                 = sp.GetRequiredService<ILogger<NotificationSentPushConsumer>>();
@@ -55,6 +58,23 @@ public sealed class NotificationSentPushConsumer
         if (string.IsNullOrWhiteSpace(_vapid.PublicKey) || string.IsNullOrWhiteSpace(_vapid.PrivateKey))
         {
             _logger.LogDebug("VAPID not configured; web push skipped for NotificationId={Id}.", message.NotificationId);
+            return;
+        }
+
+        // N-B preference gate: skip the push if the recipient muted this category's Push channel. The in-app inbox row
+        // + live badge already persisted (this consumer only sends push), so muting push never hides the notification.
+        // Locked cells (InApp baseline, Account/security) always resolve enabled — see NotificationPreferencePolicy.
+        var category = NotificationCategoryMap.Resolve(message.Type);
+        var storedPrefs = await _preferenceRepository.GetByUserAsync(message.RecipientUserId, ct);
+        var storedPush = storedPrefs
+            .Where(p => p.Category == category && p.Channel == NotificationChannel.Push)
+            .Select(p => (bool?)p.Enabled)
+            .FirstOrDefault();
+        if (!NotificationPreferencePolicy.Resolve(category, NotificationChannel.Push, storedPush))
+        {
+            _logger.LogDebug(
+                "Push muted for UserId={UserId} category={Category}; push skipped for NotificationId={Id} (in-app unaffected).",
+                message.RecipientUserId, category, message.NotificationId);
             return;
         }
 

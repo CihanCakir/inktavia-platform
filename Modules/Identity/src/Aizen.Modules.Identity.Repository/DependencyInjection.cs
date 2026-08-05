@@ -81,6 +81,7 @@ namespace Aizen.Modules.Identity.Repository
             }
             services.AddScoped<IProviderOtpLoginDomainService, ProviderOtpLoginDomainService>();
             services.AddScoped<IAdminOtpLoginDomainService, AdminOtpLoginDomainService>();
+            services.AddScoped<IParticipantOtpLoginDomainService, ParticipantOtpLoginDomainService>();
 
             // OTP login ticket (single-use HMAC-SHA256 signed tickets)
             if (configuration is not null)

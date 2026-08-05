@@ -2,6 +2,7 @@ using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Messagebus.Abstraction.Senders;
+using Aizen.Modules.Notification.Abstraction;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Abstraction.Message;
 using Aizen.Modules.Notification.Abstraction.Response;
@@ -15,17 +16,19 @@ namespace Aizen.Modules.Notification.Application.Command.SendNotification;
 public sealed class SendNotificationCommandHandler
     : AizenCommandHandler<SendNotificationCommand, SendNotificationResponse>
 {
-    private readonly INotificationRepository         _notificationRepository;
-    private readonly INotificationTemplateRepository _templateRepository;
-    private readonly INotificationDispatcher         _dispatcher;
-    private readonly ITemplateInterpolator           _interpolator;
-    private readonly IAizenDistributedCache           _cache;
-    private readonly IAizenMessagePublisher          _publisher;
+    private readonly INotificationRepository           _notificationRepository;
+    private readonly INotificationTemplateRepository   _templateRepository;
+    private readonly INotificationPreferenceRepository _preferenceRepository;
+    private readonly INotificationDispatcher           _dispatcher;
+    private readonly ITemplateInterpolator             _interpolator;
+    private readonly IAizenDistributedCache            _cache;
+    private readonly IAizenMessagePublisher            _publisher;
     private readonly ILogger<SendNotificationCommandHandler> _logger;
 
     public SendNotificationCommandHandler(
         INotificationRepository notificationRepository,
         INotificationTemplateRepository templateRepository,
+        INotificationPreferenceRepository preferenceRepository,
         INotificationDispatcher dispatcher,
         ITemplateInterpolator interpolator,
         IAizenDistributedCache cache,
@@ -34,6 +37,7 @@ public sealed class SendNotificationCommandHandler
     {
         _notificationRepository = notificationRepository;
         _templateRepository     = templateRepository;
+        _preferenceRepository   = preferenceRepository;
         _dispatcher             = dispatcher;
         _interpolator           = interpolator;
         _cache                  = cache;
@@ -53,6 +57,25 @@ public sealed class SendNotificationCommandHandler
                 "No active notification template found for Type={Type} Channel={Channel}. Skipping.",
                 request.Type, request.Channel);
             return new SendNotificationResponse { NotificationId = 0, Dispatched = false };
+        }
+
+        // N-B preference gate — Email only. InApp is the always-on baseline; Push is gated in
+        // NotificationSentPushConsumer (so its in-app row still persists). Security/Account emails always deliver.
+        if (request.Channel == NotificationChannel.Email)
+        {
+            var emailCategory = NotificationCategoryMap.Resolve(request.Type);
+            var prefs = await _preferenceRepository.GetByUserAsync(request.RecipientUserId, cancellationToken);
+            var storedEmail = prefs
+                .Where(p => p.Category == emailCategory && p.Channel == NotificationChannel.Email)
+                .Select(p => (bool?)p.Enabled)
+                .FirstOrDefault();
+            if (!NotificationPreferencePolicy.Resolve(emailCategory, NotificationChannel.Email, storedEmail))
+            {
+                _logger.LogInformation(
+                    "Email muted for UserId={Uid} category={Cat}; email notification skipped for Type={Type}.",
+                    request.RecipientUserId, emailCategory, request.Type);
+                return new SendNotificationResponse { NotificationId = 0, Dispatched = false };
+            }
         }
 
         var title = _interpolator.Interpolate(template.TitleTemplate, request.Variables);

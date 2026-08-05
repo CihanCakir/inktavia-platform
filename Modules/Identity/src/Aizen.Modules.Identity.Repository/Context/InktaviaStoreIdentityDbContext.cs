@@ -46,6 +46,7 @@ namespace Aizen.Modules.Identity.Repository.Context
         public DbSet<ProviderPasswordRecoveryRequestEntity> ProviderPasswordRecoveryRequests { get; set; } = null!;
         public DbSet<ProviderOtpLoginRequestEntity> ProviderOtpLoginRequests { get; set; } = null!;
         public DbSet<AdminOtpLoginRequestEntity> AdminOtpLoginRequests { get; set; } = null!;
+        public DbSet<ParticipantOtpLoginRequestEntity> ParticipantOtpLoginRequests { get; set; } = null!;
         public DbSet<ProviderOnboardingEntity> ProviderOnboarding { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -67,6 +68,7 @@ namespace Aizen.Modules.Identity.Repository.Context
             modelBuilder.ApplyConfiguration(new ProviderPasswordRecoveryRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new AdminOtpLoginRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ParticipantOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderOnboardingEntityConfiguration());
         }
 
