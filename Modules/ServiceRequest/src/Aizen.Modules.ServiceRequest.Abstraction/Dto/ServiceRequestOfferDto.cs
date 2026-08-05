@@ -36,6 +36,10 @@ public sealed class ServiceRequestOfferDto
     public DateTime? ViewedAt { get; set; }
 
     public List<ServiceRequestOfferItemDto> Items { get; set; } = new();
+
+    /// <summary>BE-S3 — offer-level FX rate snapshots (one per non-TRY source currency); empty for a TRY-only offer.</summary>
+    public List<OfferFxSnapshotDto> FxSnapshots { get; set; } = new();
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

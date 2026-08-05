@@ -1,6 +1,9 @@
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
+using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.PricingAttributes;
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
+using Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Pricing;
 using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Abstraction;
@@ -51,6 +54,32 @@ public sealed class ServiceRequestsController : AizenWebApiController
             new GetAdminServiceRequestListQuery(status, vesselId, ownerUserId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
+
+    // ── S2a — pricing attribute definitions (admin CRUD) ─────────────────────────────────────────────────
+    [HttpGet("service-requests/pricing-attributes")]
+    [ProducesResponseType(typeof(List<PricingAttributeDefinitionDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<PricingAttributeDefinitionDto>>> GetPricingAttributes(
+        [FromQuery] string? serviceCategoryCode = null, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(
+            new ListPricingAttributesQuery { ServiceCategoryCode = serviceCategoryCode }, ct));
+
+    [HttpPost("service-requests/pricing-attributes")]
+    [ProducesResponseType(typeof(PricingAttributeDefinitionDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PricingAttributeDefinitionDto>> CreatePricingAttribute(
+        [FromBody] PricingAttributeDefinitionRequest request, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new CreatePricingAttributeCommand { Request = request }, ct));
+
+    [HttpPut("service-requests/pricing-attributes/{id:long}")]
+    [ProducesResponseType(typeof(PricingAttributeDefinitionDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PricingAttributeDefinitionDto>> UpdatePricingAttribute(
+        long id, [FromBody] PricingAttributeDefinitionRequest request, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new UpdatePricingAttributeCommand { Id = id, Request = request }, ct));
+
+    [HttpDelete("service-requests/pricing-attributes/{id:long}")]
+    [ProducesResponseType(typeof(DeletePricingAttributeResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DeletePricingAttributeResult>> DeletePricingAttribute(
+        long id, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new DeletePricingAttributeCommand { Id = id }, ct));
 
     [HttpGet("service-requests/by-vessel/{vesselId:long}/history")]
     [ProducesResponseType(typeof(ServiceRequestVesselHistoryBffResponse), StatusCodes.Status200OK)]

@@ -121,6 +121,18 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         long serviceRequestId, long offerId,
         [AizenRemoteCallBody] SubmitOfferRequest body);
 
+    // --- S2 pricing attributes (provider) ---
+    [AizenRemoteCallGet("/api/v1/service-requests/provider/service-requests/{serviceRequestId}/applicable-pricing-attributes")]
+    Task<AizenApiResponse<List<Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing.ApplicablePricingAttributeDto>>> GetApplicablePricingAttributes(long serviceRequestId);
+
+    [AizenRemoteCallGet("/api/v1/service-requests/provider/offers/{offerId}/items/{itemId}/attributes")]
+    Task<AizenApiResponse<List<Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing.PricingAttributeValueDto>>> GetOfferLineAttributes(long offerId, long itemId);
+
+    [AizenRemoteCallPut("/api/v1/service-requests/provider/offers/{offerId}/items/{itemId}/attributes")]
+    Task<AizenApiResponse<List<Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing.PricingAttributeValueDto>>> SetOfferLineAttributes(
+        long offerId, long itemId,
+        [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Pricing.SetOfferLineAttributesRequest body);
+
     // --- Conversations ---
     [AizenRemoteCallGet("/api/v1/service-requests/provider/conversations")]
     Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.Message.GetProviderConversationsResponse>> GetProviderConversations();

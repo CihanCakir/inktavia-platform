@@ -118,6 +118,23 @@ public interface IServiceRequestAdminBffRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<ReleasePaymentResponse>> ReleaseServiceRequestPayment(
         long serviceRequestId);
 
+    // --- S2 pricing attribute definitions (admin CRUD) ---
+    [AizenRemoteCallGet("/api/v1/admin/service-requests/pricing-attributes")]
+    Task<AizenApiResponse<List<Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing.PricingAttributeDefinitionDto>>> GetAdminPricingAttributes(
+        [Refit.Query] string? serviceCategoryCode = null);
+
+    [AizenRemoteCallPost("/api/v1/admin/service-requests/pricing-attributes")]
+    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing.PricingAttributeDefinitionDto>> CreateAdminPricingAttribute(
+        [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Pricing.PricingAttributeDefinitionRequest request);
+
+    [AizenRemoteCallPut("/api/v1/admin/service-requests/pricing-attributes/{id}")]
+    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing.PricingAttributeDefinitionDto>> UpdateAdminPricingAttribute(
+        long id, [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Pricing.PricingAttributeDefinitionRequest request);
+
+    // Module DELETE deactivates (keeps the code) and returns an ad-hoc { header:{ isSuccess } } — bind as a plain Task.
+    [AizenRemoteCallDelete("/api/v1/admin/service-requests/pricing-attributes/{id}")]
+    Task DeleteAdminPricingAttribute(long id);
+
     [AizenRemoteCallGet("/api/v1/messages/conversations")]
     Task<AizenApiResponse<GetConversationListResponse>> GetAdminConversations(
         [Refit.Query] string? filter);

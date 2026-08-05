@@ -120,6 +120,14 @@ public static class ServiceRequestMappingExtensions
         SubmittedAt = entity.SubmittedAt,
         ViewedAt = entity.ViewedAt,
         Items = entity.Items.Select(i => i.ToDto()).ToList(),
+        // BE-S3 — offer-level FX rate snapshots (empty for a TRY-only offer)
+        FxSnapshots = entity.FxSnapshots.Select(f => new Abstraction.Dto.OfferFxSnapshotDto
+        {
+            SourceCurrencyCode     = f.SourceCurrencyCode,
+            SettlementCurrencyCode = f.SettlementCurrencyCode,
+            Rate                   = f.Rate,
+            RateDate               = f.RateDate,
+        }).ToList(),
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
     };

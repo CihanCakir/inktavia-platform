@@ -28,6 +28,7 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
             .Include(x => x.Attachments)
             .Include(x => x.Messages)
             .Include(x => x.Offers).ThenInclude(o => o.Items)
+            .Include(x => x.Offers).ThenInclude(o => o.FxSnapshots)   // BE-S3 — offer-level frozen FX rate rows
             .Include(x => x.Assignment).ThenInclude(a => a!.WorkLogs)
             .Include(x => x.Completion)
             .Include(x => x.Dispute)
