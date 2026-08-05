@@ -142,3 +142,46 @@ Still not driven (need TTL waits / backend orchestration / another OTP; low-risk
 - §7 recovery `<12` / mismatch client validation + reuse-token (needs another recovery OTP to reach the New Password screen; happy-path ≥12 already verified).
 - §3 expired-OTP true TTL expiry.
 - §8 network-off (can't toggle simulator network without dropping the device bridge).
+
+### Option A closed + un-drivable items resolved (2026-08-06)
+
+- **§7 recovery client validation — ✅ VERIFIED on-device.** On the New Password screen: short password (`Short1!`) → "Password must be at least 12 characters" (SAVE blocked); valid ≥12 New (`ValidPass123!`, Strong) with a different Confirm (`Different456!`) → "Passwords do not match" (SAVE blocked). No valid password submitted → account password unchanged.
+
+**Genuinely not drivable in this harness (Expo Go + remote-controlled simulator) — resolution for each:**
+- **§5 token-refresh (happy + fail)** — requires forcing access-token expiry (Keycloak access-token lifespan, ~5 min default) or revoking the refresh token, plus network inspection to confirm the silent refresh fired. Not practical to drive via screen automation. The interceptor logic (401 → refresh-once → retry, per-request loop guard, shared in-flight refresh, never on auth endpoints) was **code-verified in the auth-wiring slice**. To drive it live: temporarily set the realm access-token lifespan to ~60s, log in, wait ~70s, open Profile (triggers `/me`) → should stay logged in (refresh fired); then revoke the session server-side and repeat → should log out cleanly. **Deferred to a dev-build/backend-assisted pass.**
+- **§3 expired-OTP (true TTL)** — shares the verified "Invalid or expired code." path; proving true TTL expiry needs a multi-minute wait. **Deferred (low value).**
+- **§8 network-off** — the iOS simulator shares the Mac network; toggling it off would drop the device-control bridge itself. **Verify on a real device (airplane mode).**
+- **§1/§6 full process-kill persistence** — simulator kill/relaunch gestures (Cmd+R/Cmd+D/home-swipe) don't reliably fire in this harness. Cold-start hydration (secure-store → `/me`) is already proven (mock→real reload). **Verify with a manual kill-relaunch on a dev build / real device.**
+
+**Net:** every item that can be exercised through the UI on this build has been driven and passes. The four above are environment-bound (TTL waits / network toggle / native process-kill) or already code-verified, and belong to the pre-release manual pass on a dev build / real device.
+
+---
+
+## QA DEBT — outstanding (carry forward)
+
+Items that could NOT be exercised on this build/harness (Expo Go + remote-controlled simulator). Each is either environment-bound (TTL waits / network toggle / native process-kill / native modules) or already code-verified. Close them in the pre-release manual pass on a **dev build / real device**.
+
+- ⬜ **[DEBT-1] Token-refresh — happy path** (§5). 401 → silent refresh-once → retry → stays logged in. *How to close:* temporarily set the realm access-token lifespan to ~60s, log in, wait ~70s, open Profile (triggers `/me`) → must stay logged in. *Status:* interceptor logic code-verified; live run pending. *Priority: high.*
+- ⬜ **[DEBT-2] Token-refresh — fail → logout** (§5). Refresh fails → app logs out cleanly (no loop/hang). *How to close:* revoke the user's session/refresh token server-side, then trigger a protected call. *Priority: high.*
+- ⬜ **[DEBT-3] Full social login — Google + Apple** (§4). Native picker → authenticated via BFF (`/mobile/auth/google|apple`, already built). *How to close:* dev build (`expo prebuild` + `run:ios`, or EAS dev build) with native modules + real `EXPO_PUBLIC_GOOGLE_IOS/ANDROID/WEB_CLIENT_ID` + Apple "Sign in with Apple" entitlement. *Status:* graceful-when-unavailable ✅; real sign-in pending build/keys. *Priority: high (blocks social release).*
+- ⬜ **[DEBT-4] Session persistence — full process-kill** (§1/§6). Login → kill app → relaunch → still logged in; logout → kill → relaunch → auth stack. *How to close:* real kill-relaunch on a dev build / real device. *Status:* cold-start hydration (secure-store→/me) proven; process-kill pending. *Priority: medium.*
+- ⬜ **[DEBT-5] Expired-OTP — true TTL** (§3). Wait past the OTP TTL, then verify → "expired" error. *Status:* shares the verified "Invalid or expired code." path. *Priority: low.*
+- ⬜ **[DEBT-6] Network-off graceful** (§8). Airplane mode mid-flow → graceful error, recoverable on retry. *How to close:* real device airplane mode. *Priority: medium.*
+- ⬜ **[DEBT-7] Recovery resetToken single-use reuse** (§7). Reuse a consumed `resetToken` → clean error. *Status:* verified server-side in BE_M2f; on-device reuse not driven. *Priority: low.*
+
+All other auth items are ✅ verified (see sections above + the "Manual on-device round" and "Resolution" blocks).
+---
+
+## QA DEBT — outstanding (carry forward)
+
+Items that could NOT be exercised on this build/harness (Expo Go + remote-controlled simulator). Each is either environment-bound (TTL waits / network toggle / native process-kill / native modules) or already code-verified. Close them in the pre-release manual pass on a **dev build / real device**.
+
+- ⬜ **[DEBT-1] Token-refresh — happy path** (§5). 401 → silent refresh-once → retry → stays logged in. *How to close:* temporarily set the realm access-token lifespan to ~60s, log in, wait ~70s, open Profile (triggers `/me`) → must stay logged in. *Status:* interceptor logic code-verified; live run pending. *Priority: high.*
+- ⬜ **[DEBT-2] Token-refresh — fail → logout** (§5). Refresh fails → app logs out cleanly (no loop/hang). *How to close:* revoke the user's session/refresh token server-side, then trigger a protected call. *Priority: high.*
+- ⬜ **[DEBT-3] Full social login — Google + Apple** (§4). Native picker → authenticated via BFF (`/mobile/auth/google|apple`, already built). *How to close:* dev build (`expo prebuild` + `run:ios`, or EAS dev build) with native modules + real `EXPO_PUBLIC_GOOGLE_IOS/ANDROID/WEB_CLIENT_ID` + Apple "Sign in with Apple" entitlement. *Status:* graceful-when-unavailable OK; real sign-in pending build/keys. *Priority: high (blocks social release).*
+- ⬜ **[DEBT-4] Session persistence — full process-kill** (§1/§6). Login→kill→relaunch→still logged in; logout→kill→relaunch→auth stack. *How to close:* real kill-relaunch on a dev build / real device. *Status:* cold-start hydration (secure-store→/me) proven; process-kill pending. *Priority: medium.*
+- ⬜ **[DEBT-5] Expired-OTP — true TTL** (§3). Wait past the OTP TTL, then verify → "expired" error. *Status:* shares the verified "Invalid or expired code." path. *Priority: low.*
+- ⬜ **[DEBT-6] Network-off graceful** (§8). Airplane mode mid-flow → graceful error, recoverable on retry. *How to close:* real device airplane mode. *Priority: medium.*
+- ⬜ **[DEBT-7] Recovery resetToken single-use reuse** (§7). Reuse a consumed `resetToken` → clean error. *Status:* verified server-side in BE_M2f; on-device reuse not driven. *Priority: low.*
+
+All other auth items are ✅ verified (see sections above + the "Manual on-device round" and "Resolution" blocks).

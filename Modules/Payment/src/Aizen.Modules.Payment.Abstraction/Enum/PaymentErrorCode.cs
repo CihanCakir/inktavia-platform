@@ -119,6 +119,12 @@ public enum PaymentErrorCode
     PremiumDuplicateActiveBoost                   = 5114,   // A Pending/Active boost already exists for (provider, offer)
     PremiumProductNotFound                        = 5115,   // OFFER_BOOST_7D product missing / inactive
 
+    // ── Part commercial terms (BE-S5, §20.9) ──────────────────────────────────
+    PartCommercialTermConflict           = 5120,   // ≥2 terms tie on (specificity, priority) at resolve, or an overlapping active version at create/update
+    PartCommercialTermNotFound           = 5121,   // No term for the given id
+    PartCommercialTermInvalid            = 5122,   // Model-incoherent term (negative money, Σfunded > maxDiscountable, maxCustomerDiscount > maxDiscountable, bad dates)
+    PartCommercialTermNotInactive        = 5124,   // Reactivate attempted on a non-Inactive part commercial term
+
     // ── Payout admin operations ───────────────────────────────────────────────
     PayoutInvalidStateForHold            = 5035,
     PayoutInvalidStateForApproval        = 5036,

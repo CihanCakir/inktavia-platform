@@ -7,6 +7,7 @@ using Aizen.Modules.ServiceRequest.Application.Command.Offer.SaveOfferDraft;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.PreviewOffer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
 using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferCommissionPreview;
+using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferPartTermsPreview;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -67,6 +68,21 @@ public sealed class ServiceRequestOfferController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<ResolveLineCommissionsRemoteCallResponse>(
             new GetOfferCommissionPreviewQuery(offerId, providerPlanId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-S5c offer-builder part-terms preview: the cost-free allowance (max customer discount + funded split +
+    /// min-receivable) per Product/Consumable line. Compute-on-demand (nothing persisted). Never returns supplier cost /
+    /// dealer margin — only the derived caps (§20.9 confidentiality).
+    /// </summary>
+    [HttpGet("{offerId:long}/part-terms-preview")]
+    [ProducesResponseType(typeof(ResolvePartLineAllowancesRemoteCallResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolvePartLineAllowancesRemoteCallResponse?>> PartTermsPreview(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ResolvePartLineAllowancesRemoteCallResponse>(
+            new GetOfferPartTermsPreviewQuery(offerId), ct);
         return SetResponse(result);
     }
 

@@ -6,6 +6,7 @@ using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
 using Aizen.Modules.Payment.Application.Queries.GetProviderSplitEligibility;
 using Aizen.Modules.Payment.Application.Queries.ResolveCustomerDiscountForOffer;
 using Aizen.Modules.Payment.Application.Queries.ResolveLineCommissions;
+using Aizen.Modules.Payment.Application.Queries.ResolvePartLineAllowances;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -107,4 +108,14 @@ public sealed class PaymentInternalController : ControllerBase
     public async Task<IActionResult> ResolveCustomerDiscount(
         [FromBody] ResolveCustomerDiscountRemoteCallRequest request, CancellationToken ct)
         => Ok(await _sender.Send(new ResolveCustomerDiscountForOfferQuery { Request = request }, ct));
+
+    /// <summary>
+    /// BE-S5c — resolves the cost-free part-line allowance (max discount + funded split + min-receivable) for an offer's
+    /// Product/Consumable lines. Pure read / compute-on-demand — no persistence. The response carries NO supplier cost or
+    /// dealer margin (§20.9 confidentiality). Called by ServiceRequest's offer-builder part-terms preview.
+    /// </summary>
+    [HttpPost("part-terms/resolve-lines")]
+    public async Task<IActionResult> ResolvePartLineAllowances(
+        [FromBody] ResolvePartLineAllowancesRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new ResolvePartLineAllowancesQuery { Request = request }, ct));
 }

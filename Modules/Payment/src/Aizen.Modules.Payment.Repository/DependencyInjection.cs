@@ -46,6 +46,8 @@ public static class DependencyInjection
         services.AddScoped<IPremiumProductPriceRepository,   PremiumProductPriceRepository>();
         services.AddScoped<IPremiumPurchaseRepository,       PremiumPurchaseRepository>();
         services.AddScoped<IPremiumEntitlementRepository,    PremiumEntitlementRepository>();
+        // ── Part commercial terms (BE-S5) ─────────────────────────────────────
+        services.AddScoped<IPartCommercialTermRepository,    PartCommercialTermRepository>();
         // ── Financial reporting ledger (BE-P12) ───────────────────────────────
         services.AddScoped<IFinancialLedgerRepository,       FinancialLedgerRepository>();
         // ── Invoice subsystem ─────────────────────────────────────────────────
@@ -59,6 +61,7 @@ public static class DependencyInjection
         services.AddScoped<ProfitProtectionPolicySeed>();
         services.AddScoped<CustomerDiscountBenefitSeed>();
         services.AddScoped<ProviderCommissionBenefitSeed>();
+        services.AddScoped<PartCommercialTermSeed>();
         // ── Mock / demo seeds (dev + local only) ─────────────────────────────
         services.AddScoped<PaymentTransactionMockSeed>();
         services.AddScoped<PayoutRecordMockSeed>();
@@ -105,6 +108,10 @@ public static class DependencyInjection
         // Phase 1f: provider commission benefit — disabled example only (benefits OFF by default — BE-P7)
         var commissionBenefitSeeder = scope.ServiceProvider.GetRequiredService<ProviderCommissionBenefitSeed>();
         await commissionBenefitSeeder.SeedAsync(ct);
+
+        // Phase 1f2: part commercial terms (non-mock, always runs, idempotent — BE-S5). Defines/resolves only (S9 applies).
+        var partTermSeeder = scope.ServiceProvider.GetRequiredService<PartCommercialTermSeed>();
+        await partTermSeeder.SeedAsync(ct);
 
         // Phase 1g: refund-allocation policy (non-mock, always runs, idempotent — BE-P10)
         var refundAllocationSeeder = scope.ServiceProvider.GetRequiredService<RefundAllocationPolicySeed>();

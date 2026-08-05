@@ -10,6 +10,7 @@ using Aizen.Modules.Payment.Domain.Entities.Economics;
 using Aizen.Modules.Payment.Domain.Entities.Invoice;
 using Aizen.Modules.Payment.Domain.Entities.PaymentProfile;
 using Aizen.Modules.Payment.Domain.Entities.Payout;
+using Aizen.Modules.Payment.Domain.Entities.PartCommercialTerm;
 using Aizen.Modules.Payment.Domain.Entities.PlatformFee;
 using Aizen.Modules.Payment.Domain.Entities.Plan;
 using Aizen.Modules.Payment.Domain.Entities.ProfitProtection;
@@ -78,6 +79,9 @@ public sealed class PaymentDbContext : AizenDbContext
 
     // ── Financial reporting ledger (BE-P12) ────────────────────────────────────
     public DbSet<FinancialLedgerEntryEntity>        FinancialLedgerEntries        => Set<FinancialLedgerEntryEntity>();
+
+    // ── Part commercial terms (BE-S5, §20.9) — versioned/scoped; cost fields are Payment-internal ─────────────
+    public DbSet<PartCommercialTermEntity>          PartCommercialTerms           => Set<PartCommercialTermEntity>();
 
     // ── Premium product / price / purchase / entitlement (BE-P11) ──────────────
     public DbSet<PremiumProductEntity>              PremiumProducts               => Set<PremiumProductEntity>();

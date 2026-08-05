@@ -79,4 +79,16 @@ public interface IPaymentModuleRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] ResolveCustomerDiscountRemoteCallRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BE-S5c — resolves the cost-free part-line allowance (max allowed discount + funded split + min-receivable) for an offer's
+    /// Product/Consumable lines from the versioned/scoped PartCommercialTerm. Pure read / compute-on-demand — no persistence.
+    /// The response carries <b>no</b> supplier cost or dealer margin (cost confidentiality, §20.9). Propagates
+    /// PartCommercialTermConflict on a fail-loud tie. Used by ServiceRequest as an offer-builder preview and (later) by S9.
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/part-terms/resolve-lines")]
+    Task<ResolvePartLineAllowancesRemoteCallResponse> ResolvePartLineAllowancesAsync(
+        [AizenRemoteCallBody] ResolvePartLineAllowancesRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
 }
