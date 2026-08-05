@@ -273,6 +273,10 @@ services:
       MarineMobileKeycloak__MobileUserRole: mobile_user
       MarineMobileKeycloak__ParticipantProfileIdAttributeName: participant_profile_id
       MarineMobileKeycloak__VerifyEmailRedirectUri: ${MARINE_MOBILE_BASE:-http://localhost:19006}/auth/verify-callback
+      # Server-side native ticket→session handoff redirect (registered on inktavia-mobile by keycloak init.sh).
+      # Never actually called back — the BFF reads the code from the authorize 302 — but must match a
+      # registered redirect_uri and be identical in the authorize + token requests.
+      MarineMobileKeycloak__BffRedirectUri: ${MARINE_MOBILE_BFF_REDIRECT_URI:-http://localhost:17003/auth/callback}
       # BFF -> module calls (Keycloak service token injected by the delegating handler)
       RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
       RemoteCalls__IReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
@@ -741,6 +745,8 @@ services:
       Vapid__Subject: ${VAPID_SUBJECT:-}
       Vapid__PublicKey: ${VAPID_PUBLIC_KEY:-}
       Vapid__PrivateKey: ${VAPID_PRIVATE_KEY:-}
+      # N-C region fan-out — resolve area-eligible providers from Identity I2 read-model (internal call)
+      RemoteCalls__INotificationIdentityRemoteCall__BaseUrl: http://identity-api:8080
       # Redis backplane for SignalR (NotificationHub).
       Realtime__SignalR__UseRedisBackplane: "true"
       Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15

@@ -28,6 +28,8 @@ namespace Aizen.Modules.Identity.Repository
             services.AddScoped<IUserLoginTokenRepository, UserLoginTokenRepository>();
             services.AddScoped<IUserMessagePermissionRepository, UserMessagePermissionRepository>();
             services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+            services.AddScoped<IProviderServiceCategoryRepository, ProviderServiceCategoryRepository>();
+            services.AddScoped<Context.Seed.ProviderEligibilityBackfillSeeder>();
             services.AddScoped<IUserRepository, UserRepository>();
 
             return services;
@@ -123,6 +125,11 @@ namespace Aizen.Modules.Identity.Repository
             // Run mock data seeder
             var mockSeeder = scope.ServiceProvider.GetRequiredService<IdentityMockDataSeeder>();
             await mockSeeder.SeedAsync(ct);
+
+            // I2 — idempotent backfill of provider City + service categories from onboarding drafts.
+            var eligibilityBackfill = scope.ServiceProvider
+                .GetRequiredService<Context.Seed.ProviderEligibilityBackfillSeeder>();
+            await eligibilityBackfill.SeedAsync(ct);
         }
     }
 

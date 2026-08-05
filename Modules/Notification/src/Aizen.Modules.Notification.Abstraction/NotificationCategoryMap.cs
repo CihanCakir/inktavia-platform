@@ -17,7 +17,7 @@ public static class NotificationCategoryMap
             200 or 201                 => NotificationCategory.Messages,        // NewMessage / MessageBlocked
             >= 100 and <= 132          => NotificationCategory.ServiceRequests, // SR / offer / assignment / completion
             140 or 141                 => NotificationCategory.Disputes,
-            >= 150 and <= 156          => NotificationCategory.Payments,
+            >= 150 and <= 159          => NotificationCategory.Payments,   // incl. 157 PaymentAuthorized (PreAuth, N-C)
             >= 300 and <= 309          => NotificationCategory.CargoDry,
             >= 400 and <= 411          => NotificationCategory.Account,          // profile + auth/OTP (security)
             900                        => NotificationCategory.Broadcast,

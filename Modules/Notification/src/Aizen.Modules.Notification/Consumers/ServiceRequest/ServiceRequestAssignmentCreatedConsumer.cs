@@ -37,7 +37,8 @@ public sealed class ServiceRequestAssignmentCreatedConsumer
 
         await _sender.Send(new SendNotificationCommand
         {
-            RecipientUserId = message.ProviderUserId,
+            // Key by ProviderProfileId (where the provider inbox + push pipeline look), not the raw ProviderUserId. C2 fix.
+            RecipientUserId = message.ProviderProfileId,
             Type            = NotificationType.AssignmentCreated,
             Channel         = NotificationChannel.InApp,
             Variables       = variables,

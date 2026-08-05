@@ -6,6 +6,7 @@ using Aizen.Modules.Identity.Domain.Entities.UserAgreement;
 using Aizen.Modules.Identity.Domain.Entities.UserExternalLogin;
 using Aizen.Modules.Identity.Domain.Entities.OtpLogin;
 using Aizen.Modules.Identity.Domain.Entities.Onboarding;
+using Aizen.Modules.Identity.Domain.Entities.ProviderServiceCategory;
 using Aizen.Modules.Identity.Domain.Entities.PasswordRecovery;
 using Aizen.Modules.Identity.Domain.Entities.UserValidation;
 
@@ -48,6 +49,7 @@ namespace Aizen.Modules.Identity.Repository.Context
         public DbSet<AdminOtpLoginRequestEntity> AdminOtpLoginRequests { get; set; } = null!;
         public DbSet<ParticipantOtpLoginRequestEntity> ParticipantOtpLoginRequests { get; set; } = null!;
         public DbSet<ProviderOnboardingEntity> ProviderOnboarding { get; set; } = null!;
+        public DbSet<ProviderServiceCategoryEntity> ProviderServiceCategories { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,6 +72,7 @@ namespace Aizen.Modules.Identity.Repository.Context
             modelBuilder.ApplyConfiguration(new AdminOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ParticipantOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderOnboardingEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ProviderServiceCategoryEntityConfiguration());
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

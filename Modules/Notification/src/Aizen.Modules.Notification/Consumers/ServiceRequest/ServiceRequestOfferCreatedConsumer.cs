@@ -28,7 +28,10 @@ public sealed class ServiceRequestOfferCreatedConsumer
     {
         await _sender.Send(new SendNotificationCommand
         {
-            RecipientUserId = message.ProviderUserId,
+            // Providers' notifications/tokens/preferences are keyed by ProviderProfileId (the id the provider inbox +
+            // push pipeline resolve — see GetUserNotifications / N-A / N-B). Using the raw ProviderUserId would file the
+            // notification where the provider never queries (invisible inbox row, no push). C2 recipient fix.
+            RecipientUserId = message.ProviderProfileId,
             Type            = NotificationType.OfferCreated,
             Channel         = NotificationChannel.InApp,
             Variables = new Dictionary<string, string>

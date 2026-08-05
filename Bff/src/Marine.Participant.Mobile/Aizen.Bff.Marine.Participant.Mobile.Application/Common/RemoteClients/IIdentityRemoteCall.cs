@@ -72,6 +72,20 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<ResendProviderOtpLoginResponse>> ResendProviderOtpLogin(
         [AizenRemoteCallBody] ResendProviderOtpLoginRequest request);
 
+    // ── Participant (mobile) OTP Login (M2a Identity routes; reuse the shared OTP-login DTOs) ─────
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-otp-login/request")]
+    Task<AizenApiResponse<RequestProviderOtpLoginResponse>> RequestParticipantOtpLogin(
+        [AizenRemoteCallBody] RequestProviderOtpLoginRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-otp-login/verify")]
+    Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> VerifyParticipantOtpLogin(
+        [AizenRemoteCallBody] VerifyProviderOtpLoginRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-otp-login/resend")]
+    Task<AizenApiResponse<ResendProviderOtpLoginResponse>> ResendParticipantOtpLogin(
+        [AizenRemoteCallBody] ResendProviderOtpLoginRequest request);
+
     // ── Onboarding (delegated to Identity) ──────────────────────────────────────
 
     [AizenRemoteCallGet("/api/v1/identity/provider-onboarding/{profileId}")]

@@ -221,22 +221,88 @@ namespace Aizen.Modules.Identity.Repository.Context.Seed
                     await db.SaveChangesAsync(ct);
                 }
 
-                // KeycloakSubjectId if missing (dev placeholder or from config)
-                if (string.IsNullOrWhiteSpace(participant!.KeycloakSubjectId))
+                // KeycloakSubjectId (M2c): resolve the REAL Keycloak subject of the mobile user so the OTP
+                // SPI can resolve the user at handoff (the M2a placeholder can't be resolved — this is what
+                // blocked M2b's final step). Best-effort admin lookup; falls back to config/placeholder.
+                var realSubject = await ResolveKeycloakSubjectByEmailAsync(cfg, participantEmail, ct);
+                if (!string.IsNullOrWhiteSpace(realSubject))
                 {
+                    if (!string.Equals(participant!.KeycloakSubjectId, realSubject, StringComparison.Ordinal))
+                    {
+                        participant.SetKeycloakSubjectId(realSubject!);
+                        await userManager.UpdateAsync(participant);
+                        var masked = realSubject!.Length >= 8 ? realSubject[..8] + "…" : "…";
+                        Console.WriteLine($"[SEED] Participant linked to real Keycloak subject ({masked}) for {participantEmail}.");
+                    }
+                }
+                else if (string.IsNullOrWhiteSpace(participant!.KeycloakSubjectId))
+                {
+                    // Lookup unavailable and nothing set yet — config value, else the stable dev placeholder.
                     var configuredSub = cfg["Seed:Participant:KeycloakSubjectId"];
                     if (string.IsNullOrWhiteSpace(configuredSub))
                     {
-                        // Stable dev placeholder — M2d provisioning must replace with the real Keycloak subject id
                         configuredSub = "00000000-0000-0000-0000-participant1";
                         Console.WriteLine(
-                            "[WARN] SeedIdentityBase: Participant user assigned dev-placeholder KeycloakSubjectId. " +
-                            "M2d provisioning must replace it with the real Keycloak subject id of the mobile user.");
+                            "[WARN] SeedIdentityBase: could not resolve the real Keycloak subject for the mobile user; " +
+                            "assigned dev-placeholder KeycloakSubjectId (OTP handoff will fail user-resolution until linked).");
                     }
 
                     participant.SetKeycloakSubjectId(configuredSub);
                     await userManager.UpdateAsync(participant);
                 }
+            }
+        }
+
+        // Best-effort DEV lookup of a Keycloak user's subject id by email via the Admin API, using the
+        // Identity module's configured Keycloak admin service account (IdentityKeycloak:*). Returns null on
+        // any failure so seeding never breaks. No secrets/tokens are logged.
+        private static async Task<string?> ResolveKeycloakSubjectByEmailAsync(
+            IConfiguration cfg, string email, CancellationToken ct)
+        {
+            try
+            {
+                var baseUrl = (cfg["IdentityKeycloak:BaseUrl"] ?? "http://keycloak:8080").TrimEnd('/');
+                var realm = cfg["IdentityKeycloak:Realm"] ?? "inktavia-realm";
+                var clientId = cfg["IdentityKeycloak:AdminClientId"];
+                var clientSecret = cfg["IdentityKeycloak:AdminClientSecret"];
+                if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+                    return null;
+
+                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+
+                using var tokenContent = new System.Net.Http.FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = "client_credentials",
+                    ["client_id"] = clientId!,
+                    ["client_secret"] = clientSecret!,
+                });
+                using var tokenResp = await http.PostAsync(
+                    $"{baseUrl}/realms/{realm}/protocol/openid-connect/token", tokenContent, ct);
+                if (!tokenResp.IsSuccessStatusCode) return null;
+
+                using var tokenDoc = System.Text.Json.JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync(ct));
+                if (!tokenDoc.RootElement.TryGetProperty("access_token", out var atEl)) return null;
+                var accessToken = atEl.GetString();
+                if (string.IsNullOrEmpty(accessToken)) return null;
+
+                using var usersReq = new System.Net.Http.HttpRequestMessage(
+                    System.Net.Http.HttpMethod.Get,
+                    $"{baseUrl}/admin/realms/{realm}/users?email={Uri.EscapeDataString(email)}&exact=true");
+                usersReq.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                using var usersResp = await http.SendAsync(usersReq, ct);
+                if (!usersResp.IsSuccessStatusCode) return null;
+
+                using var usersDoc = System.Text.Json.JsonDocument.Parse(await usersResp.Content.ReadAsStringAsync(ct));
+                if (usersDoc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array) return null;
+                foreach (var u in usersDoc.RootElement.EnumerateArray())
+                    if (u.TryGetProperty("id", out var idEl))
+                        return idEl.GetString();
+
+                return null;
+            }
+            catch
+            {
+                return null;
             }
         }
 

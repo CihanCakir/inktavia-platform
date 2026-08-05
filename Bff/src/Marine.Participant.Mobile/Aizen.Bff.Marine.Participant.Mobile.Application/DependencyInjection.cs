@@ -37,6 +37,18 @@ public static class DependencyInjection
         services.AddScoped<IParticipantIdentityHolder, ParticipantIdentityHolder>();
         services.AddSingleton<IParticipantKeycloakServiceTokenProvider, ParticipantKeycloakServiceTokenProvider>();
 
+        // Native ticket→session handoff (OIDC auth-code + PKCE vs. the public inktavia-mobile client).
+        // Its HttpClient MUST NOT auto-follow redirects — the BFF reads the authorization `code` out of
+        // the authorize 302 Location itself.
+        services.AddHttpClient(ParticipantSessionHandoff.HttpClientName)
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                AllowAutoRedirect = false,
+                UseCookies = true,
+                CookieContainer = new System.Net.CookieContainer(),
+            });
+        services.AddScoped<IParticipantSessionHandoff, ParticipantSessionHandoff>();
+
         // Central outgoing auth handler wired into every downstream Refit client.
         services.AddTransient<MarineMobileBffAuthDelegatingHandler>();
 

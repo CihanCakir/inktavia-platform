@@ -53,12 +53,22 @@ public sealed class MarineMobileKeycloakOptions
     public string? VerifyEmailRedirectUri { get; set; }
 
     /// <summary>
+    /// Redirect URI the BFF presents to Keycloak during the native ticket→session handoff
+    /// (server-side authorization-code + PKCE). It is never actually called back — the BFF reads the
+    /// <c>code</c> out of the authorize 302 itself — but it must be a registered redirect on the
+    /// <see cref="ClientId"/> (inktavia-mobile) client and identical in the authorize + token requests.
+    /// </summary>
+    public string BffRedirectUri { get; set; } = "http://localhost:17003/auth/callback";
+
+    /// <summary>
     /// Shared secret sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity
     /// (must match each module's BffAssertion:SharedSecret). Empty = no assertion headers are sent.
     /// </summary>
     public string? ModuleAssertionSecret { get; set; }
 
     public string TokenEndpoint => $"{BaseUrl.TrimEnd('/')}/realms/{Realm}/protocol/openid-connect/token";
+
+    public string AuthorizeEndpoint => $"{BaseUrl.TrimEnd('/')}/realms/{Realm}/protocol/openid-connect/auth";
 
     public string AdminApiBaseUrl => $"{BaseUrl.TrimEnd('/')}/admin/realms/{Realm}";
 }

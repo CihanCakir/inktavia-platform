@@ -17,6 +17,7 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
 {
     private readonly IProviderOnboardingRepository _repo;
     private readonly IUserProfileRepository _profileRepo;
+    private readonly IProviderServiceCategoryRepository _categories;
     private readonly IdentityDbContext _db;
     private readonly IIdentityReferenceDataRemoteCall _referenceData;
     private readonly ILogger<ProviderOnboardingDomainService> _logger;
@@ -26,12 +27,14 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
     public ProviderOnboardingDomainService(
         IProviderOnboardingRepository repo,
         IUserProfileRepository profileRepo,
+        IProviderServiceCategoryRepository categories,
         IdentityDbContext db,
         IIdentityReferenceDataRemoteCall referenceData,
         ILogger<ProviderOnboardingDomainService> logger)
     {
         _repo = repo;
         _profileRepo = profileRepo;
+        _categories = categories;
         _db = db;
         _referenceData = referenceData;
         _logger = logger;
@@ -151,6 +154,11 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
         {
             MirrorDraftToProfile(draft, profile);
             _profileRepo.UpdateProfileAsync(profile);
+
+            // I2 — normalize the provider's declared service categories (ServiceCapabilities.selectedServiceCategoryIds)
+            // into the queryable provider_service_categories table so GetProvidersForArea can match by category.
+            var categoryCodes = ExtractServiceCategoryCodes(draft);
+            await _categories.ReplaceForProfileAsync(profileId, profile.UserId, categoryCodes, ct);
         }
 
         await _db.SaveChangesAsync(ct);
@@ -205,6 +213,28 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
             if (!string.IsNullOrWhiteSpace(cityCode))
                 profile.SetLocation(cityCode.Trim().ToUpperInvariant(), countryCode?.Trim().ToUpperInvariant() ?? profile.Country);
         }
+    }
+
+    /// <summary>
+    /// Extracts the provider's declared service category codes from the onboarding draft
+    /// (ServiceCapabilities.selectedServiceCategoryIds, a string array of onboarding category ids, e.g. "hull-paint").
+    /// These are a fixed onboarding vocabulary (no ReferenceData lookup group exists for them yet); stored normalized.
+    /// </summary>
+    private static IReadOnlyList<string> ExtractServiceCategoryCodes(Dictionary<string, JsonElement> draft)
+    {
+        if (!draft.TryGetValue("ServiceCapabilities", out var sc) || sc.ValueKind != JsonValueKind.Object)
+            return Array.Empty<string>();
+        if (!sc.TryGetProperty("selectedServiceCategoryIds", out var arr) || arr.ValueKind != JsonValueKind.Array)
+            return Array.Empty<string>();
+
+        var codes = new List<string>();
+        foreach (var el in arr.EnumerateArray())
+        {
+            if (el.ValueKind != JsonValueKind.String) continue;
+            var v = el.GetString();
+            if (!string.IsNullOrWhiteSpace(v)) codes.Add(v);
+        }
+        return codes;
     }
 
     /// <summary>

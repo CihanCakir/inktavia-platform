@@ -38,6 +38,12 @@ public sealed class NotificationTemplateSeed
             "New Service Request: {{requestCode}}",
             "A new service request {{requestCode}} has been created for {{serviceName}}."),
 
+        // N-C region fan-out — provider-facing "new job in your area".
+        NotificationTemplateEntity.Create("SR_AREA_OPPORTUNITY_INAPP", "Service Request in Your Area (In-App)",
+            NotificationType.ServiceRequestAreaOpportunity, NotificationChannel.InApp,
+            "Bölgende yeni iş talebi",
+            "Bölgende yeni iş talebi: {{title}} ({{requestCode}})."),
+
         NotificationTemplateEntity.Create("SR_STATUS_CHANGED_INAPP", "Service Request Status Changed (In-App)",
             NotificationType.ServiceRequestStatusChanged, NotificationChannel.InApp,
             "Request {{requestCode}} Status Updated",
@@ -72,6 +78,12 @@ public sealed class NotificationTemplateSeed
             NotificationType.PaymentReleased, NotificationChannel.InApp,
             "Payment Released: Request #{{serviceRequestId}}",
             "Payment for service request #{{serviceRequestId}} has been released."),
+
+        // N-C latent (Payment BE-P9 PreAuth) — template ready so PaymentAuthorizedConsumer renders once P9 fires it.
+        NotificationTemplateEntity.Create("PAYMENT_AUTHORIZED_INAPP", "Payment Authorized / PreAuth Hold (In-App)",
+            NotificationType.PaymentAuthorized, NotificationChannel.InApp,
+            "Ödeme Provizyonda",
+            "{{amount}} {{currency}} tutarında provizyon alındı (işlem {{transactionCode}})."),
 
         NotificationTemplateEntity.Create("MSG_NEW_MESSAGE_INAPP", "New Message (In-App)",
             NotificationType.NewMessageReceived, NotificationChannel.InApp,

@@ -4,6 +4,9 @@ public enum NotificationType
 {
     ServiceRequestCreated        = 100,
     ServiceRequestStatusChanged  = 101,
+    /// <summary>N-C — "Bölgende yeni iş talebi": a new service request opened in a provider's operating city/category.
+    /// ServiceRequests category (100–132) so it inherits N-B ServiceRequests gating.</summary>
+    ServiceRequestAreaOpportunity = 102,
     OfferCreated                 = 110,
     OfferAccepted                = 111,
     OfferRejected                = 112,
@@ -22,6 +25,9 @@ public enum NotificationType
     PaymentReminderDue           = 154,
     PayoutCompleted              = 155,
     PaymentFailed                = 156,
+    /// <summary>"Ödeme Provizyonda" — a PreAuth/authorization hold was placed (payment authorized, not yet captured).
+    /// Latent: fires only once Payment BE-P9 PreAuth mode publishes a PaymentAuthorizedMessage. Payments category.</summary>
+    PaymentAuthorized            = 157,
     NewMessageReceived           = 200,
     MessageBlocked               = 201,
     CargoDryKitActivated         = 300,

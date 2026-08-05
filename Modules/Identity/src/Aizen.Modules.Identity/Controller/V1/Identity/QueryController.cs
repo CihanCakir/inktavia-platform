@@ -2,6 +2,8 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
+using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
+using Aizen.Modules.Identity.Application.ProviderEligibility.GetProvidersForArea;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
 using Aizen.Modules.Identity.Abstraction.Request.Common;
@@ -277,6 +279,25 @@ public sealed class QueryController : AizenWebApiController
     {
         var result = await _sender.ProcessAsync(
             new GetOrganizerProfileListQuery(req.FirstName, req.LastName, req.ApprovalStatus), ct);
+        return SetResponse(result);
+    }
+
+    // ─── I2 provider-eligibility read-model (internal) ───────────────────────────
+    // Returns active+approved provider profile/user ids operating in a city (+ optional category). Internal,
+    // module-to-module read (called by the Notification worker for N-C region fan-out, and travel S4). Follows the
+    // established internal-read pattern (ReferenceData LocationController): [AllowAnonymous] because these Aizen module
+    // APIs have no public ingress — only the BFFs are admitted by the cluster NetworkPolicy. Returns ids only (no PII).
+    [HttpGet("providers/for-area")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IList<ProviderForAreaDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IList<ProviderForAreaDto>>> GetProvidersForArea(
+        [FromQuery] string cityCode,
+        [FromQuery] string? categoryCode = null,
+        [FromQuery] int take = 500,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(
+            new GetProvidersForAreaQuery { CityCode = cityCode, CategoryCode = categoryCode, Take = take }, ct);
         return SetResponse(result);
     }
 }
