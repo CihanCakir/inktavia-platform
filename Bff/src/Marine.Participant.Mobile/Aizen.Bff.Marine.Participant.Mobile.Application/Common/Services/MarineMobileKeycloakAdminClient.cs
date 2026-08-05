@@ -29,8 +29,6 @@ public interface IMarineMobileKeycloakAdminClient
     Task SetUserAttributeAsync(string userId, string attributeName, string attributeValue, CancellationToken cancellationToken = default);
     Task AssignRealmRoleAsync(string userId, string roleName, CancellationToken cancellationToken = default);
     Task SendVerifyEmailAsync(string userId, CancellationToken cancellationToken = default);
-    /// <summary>Clear the user's required actions (so the courtesy verify-email does not gate login/session).</summary>
-    Task ClearRequiredActionsAsync(string userId, CancellationToken cancellationToken = default);
 }
 
 internal sealed class MarineMobileKeycloakAdminClient : IMarineMobileKeycloakAdminClient
@@ -87,7 +85,10 @@ internal sealed class MarineMobileKeycloakAdminClient : IMarineMobileKeycloakAdm
             Username = request.Email,
             Email = request.Email,
             Enabled = true,
-            EmailVerified = false,
+            // Created email-verified: this realm enforces VERIFY_EMAIL/VERIFY_PROFILE for unverified users,
+            // which would gate the immediate session mint + every login. The locked decision is "session
+            // immediately, login not gated on email verification".
+            EmailVerified = true,
             FirstName = request.FirstName,
             LastName = request.LastName,
             Credentials = new List<CredentialRepresentation>
@@ -113,8 +114,9 @@ internal sealed class MarineMobileKeycloakAdminClient : IMarineMobileKeycloakAdm
     {
         var client = await CreateClientAsync(cancellationToken);
 
-        // Merge onto existing attributes, then PUT a MINIMAL body (only `attributes`). Re-sending the full
-        // GET'd representation trips Keycloak 25's declarative user-profile validation (400).
+        // GET then PUT a CONTROLLED body: re-include the managed identity fields (email/first/last) —
+        // omitting them makes Keycloak 25's declarative user profile CLEAR them — plus only the target
+        // attribute. Re-sending the *full* GET'd representation instead trips declarative validation (400).
         var current = await client.GetFromJsonAsync<UserRepresentation>(
                           $"{_options.AdminApiBaseUrl}/users/{userId}", Json, cancellationToken)
                       ?? throw new InvalidOperationException("Keycloak user not found for attribute update.");
@@ -123,7 +125,8 @@ internal sealed class MarineMobileKeycloakAdminClient : IMarineMobileKeycloakAdm
         attributes[attributeName] = new List<string> { attributeValue };
 
         var response = await client.PutAsJsonAsync($"{_options.AdminApiBaseUrl}/users/{userId}",
-            new { attributes }, Json, cancellationToken);
+            new { email = current.Email, firstName = current.FirstName, lastName = current.LastName, attributes },
+            Json, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
@@ -155,17 +158,6 @@ internal sealed class MarineMobileKeycloakAdminClient : IMarineMobileKeycloakAdm
             url += "?" + string.Join("&", query);
 
         var response = await client.PutAsJsonAsync(url, new[] { "VERIFY_EMAIL" }, Json, cancellationToken);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task ClearRequiredActionsAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        var client = await CreateClientAsync(cancellationToken);
-
-        // Minimal PUT (only `requiredActions`) — avoids re-sending attributes/computed fields that trip
-        // Keycloak 25's declarative user-profile validation (400).
-        var response = await client.PutAsJsonAsync($"{_options.AdminApiBaseUrl}/users/{userId}",
-            new { requiredActions = Array.Empty<string>() }, Json, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 

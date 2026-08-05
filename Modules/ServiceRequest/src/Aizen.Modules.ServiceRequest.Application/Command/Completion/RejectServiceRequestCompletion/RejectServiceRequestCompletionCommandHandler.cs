@@ -38,7 +38,7 @@ public sealed class RejectServiceRequestCompletionCommandHandler : AizenCommandH
             ?? throw new InvalidOperationException($"No completion found for ServiceRequest {request.ServiceRequestId}.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        completion.RejectByOwner(currentUserId, request.Request.ReviewNotes);
+        completion.RejectByOwner(currentUserId, request.Request.ReviewNotes, request.Request.ReasonCode);
         _completionRepository.Update(completion);
 
         var prevStatus = sr.Status;
@@ -59,7 +59,8 @@ public sealed class RejectServiceRequestCompletionCommandHandler : AizenCommandH
             CompletionId = completion.Id,
             ProviderUserId = completion.ProviderUserId,
             OwnerUserId = currentUserId,
-            ReviewNotes = request.Request.ReviewNotes
+            ReviewNotes = request.Request.ReviewNotes,
+            ReasonCode = request.Request.ReasonCode
         }, cancellationToken);
 
         return new RejectServiceRequestCompletionResponse(completion.Id);

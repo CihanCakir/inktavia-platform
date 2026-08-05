@@ -31,7 +31,10 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public string? OwnerNotes { get; private set; }
     public DateTime? ExpiresAt { get; private set; }
     public DateTime? CancelledAt { get; private set; }
+    /// <summary>Free-text cancel note (N-E: the ReasonNote; the structured reason lives in <see cref="CancelReasonCode"/>).</summary>
     public string? CancelReason { get; private set; }
+    /// <summary>N-E structured cancel reason. Null for rows cancelled before the taxonomy existed (backfilled to Other).</summary>
+    public ServiceRequestCancelReason? CancelReasonCode { get; private set; }
     public long? CancelledByUserId { get; private set; }
 
     public string? Category { get; private set; }
@@ -165,11 +168,12 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
         PublishedAt ??= DateTime.UtcNow;
     }
 
-    public void Cancel(long cancelledByUserId, string? reason)
+    public void Cancel(long cancelledByUserId, string? reason, ServiceRequestCancelReason? reasonCode = null)
     {
         Status = ServiceRequestStatus.Cancelled;
         CancelledAt = DateTime.UtcNow;
         CancelReason = reason;
+        CancelReasonCode = reasonCode;
         CancelledByUserId = cancelledByUserId;
         IsActive = false;
     }

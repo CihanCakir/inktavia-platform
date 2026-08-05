@@ -32,7 +32,7 @@ public sealed class RejectServiceRequestAssignmentCommandHandler : AizenCommandH
             ?? throw new InvalidOperationException($"ServiceRequest {assignment.ServiceRequestId} not found.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        assignment.Reject(request.Request.Reason);
+        assignment.Reject(request.Request.Reason, request.Request.ReasonCode);
         _assignmentRepository.Update(assignment);
 
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, assignment.ProviderProfileId,

@@ -23,5 +23,12 @@ public sealed class ServiceRequestCancelledMessage : AizenBaseMessage
     /// <summary>Reason passed to the refund flow.</summary>
     public string CancellationReason { get; init; } = "ServiceRequestCancelled";
 
+    /// <summary>
+    /// N-E — mapped Payment <c>RefundReason</c> (int value) derived from the SR structured cancel reason.
+    /// Drives <c>RefundCauseMap.FromReason</c> → allocation deterministically. 0 / unset ⇒ fall back to
+    /// <c>RefundReason.ServiceRequestCancelled</c>.
+    /// </summary>
+    public int RefundReasonCode { get; init; }
+
     public DateTime CancelledAtUtc { get; init; }
 }

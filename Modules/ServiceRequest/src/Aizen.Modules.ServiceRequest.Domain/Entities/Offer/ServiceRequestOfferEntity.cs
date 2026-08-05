@@ -19,7 +19,10 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     public DateTime? ExpiresAt { get; private set; }
     public DateTime? AcceptedAt { get; private set; }
     public DateTime? RejectedAt { get; private set; }
+    /// <summary>Free-text reject note (N-E: the ReasonNote; the structured reason lives in <see cref="RejectReasonCode"/>).</summary>
     public string? RejectionReason { get; private set; }
+    /// <summary>N-E structured reject reason (owner). Null for pre-taxonomy rows (backfilled to Other).</summary>
+    public OfferRejectReason? RejectReasonCode { get; private set; }
     public DateTime? WithdrawnAt { get; private set; }
     public string? WithdrawalReason { get; private set; }
 
@@ -127,11 +130,12 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
         AcceptedAt = DateTime.UtcNow;
     }
 
-    public void Reject(string? reason)
+    public void Reject(string? reason, OfferRejectReason? reasonCode = null)
     {
         Status = ServiceRequestOfferStatus.Rejected;
         RejectedAt = DateTime.UtcNow;
         RejectionReason = reason;
+        RejectReasonCode = reasonCode;
     }
 
     public void Withdraw(string? reason)

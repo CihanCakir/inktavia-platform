@@ -2,6 +2,7 @@ using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Application.Jobs;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Assignment;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Jobs;
@@ -69,6 +70,13 @@ public sealed class JobsController : AizenWebApiController
     public async Task<AizenApiResponse<JobSuccessResult>> CompleteJob(
         [FromRoute] long assignmentId, [FromBody] SubmitServiceRequestCompletionRequest body, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new CompleteJobBffCommand { AssignmentId = assignmentId, Body = body }, ct));
+
+    /// <summary>N-E — reject the assigned job with a structured reason (+ optional note).</summary>
+    [HttpPost("{assignmentId:long}/reject")]
+    [ProducesResponseType(typeof(JobSuccessResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<JobSuccessResult>> RejectJob(
+        [FromRoute] long assignmentId, [FromBody] RejectServiceRequestAssignmentRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new RejectJobBffCommand { AssignmentId = assignmentId, Body = body }, ct));
 
     /// <summary>Global status counts for the KPI board + donut (not paged).</summary>
     [HttpGet("summary")]

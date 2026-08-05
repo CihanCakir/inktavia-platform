@@ -16,6 +16,8 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
     public DateTime? ReviewedAt { get; private set; }
     public long? ReviewedByUserId { get; private set; }
     public string? ReviewNotes { get; private set; }
+    /// <summary>N-E structured reason when the owner rejects the completion. Null otherwise / for pre-taxonomy rows.</summary>
+    public CompletionRejectReason? RejectReasonCode { get; private set; }
     public int? ClientRating { get; private set; }
 
     public ServiceRequestCompletionEntity() { }
@@ -48,12 +50,13 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
         ReviewNotes = reviewNotes;
     }
 
-    public void RejectByOwner(long reviewerUserId, string? reviewNotes)
+    public void RejectByOwner(long reviewerUserId, string? reviewNotes, CompletionRejectReason? reasonCode = null)
     {
         Status = ServiceRequestCompletionStatus.RejectedByOwner;
         ReviewedAt = DateTime.UtcNow;
         ReviewedByUserId = reviewerUserId;
         ReviewNotes = reviewNotes;
+        RejectReasonCode = reasonCode;
     }
 
     public void DisputeByOwner(long reviewerUserId, string? reviewNotes)

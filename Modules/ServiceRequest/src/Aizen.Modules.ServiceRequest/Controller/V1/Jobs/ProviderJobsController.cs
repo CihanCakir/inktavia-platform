@@ -95,6 +95,19 @@ public sealed class ProviderJobsController : AizenWebApiController
         return Ok(new { Header = new { IsSuccess = true }, Body = result });
     }
 
+    // N-E — provider rejects an assigned job with a structured reason (+ optional note). Provider identity is taken
+    // from the trusted request context; the reject command resolves the parent SR from the assignment itself.
+    [HttpPost("jobs/{assignmentId:long}/reject")]
+    public async Task<IActionResult> RejectJob(
+        [FromRoute] long assignmentId,
+        [FromBody] Abstraction.Request.Assignment.RejectServiceRequestAssignmentRequest req,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<Abstraction.Response.Assignment.RejectServiceRequestAssignmentResponse>(
+            new Application.Command.Assignment.RejectServiceRequestAssignmentCommand(assignmentId, req), ct);
+        return Ok(new { Header = new { IsSuccess = true }, Body = new { AssignmentId = result?.AssignmentId } });
+    }
+
     [HttpGet("jobs/{assignmentId:long}/work-logs")]
     public async Task<AizenApiResponse<Abstraction.Response.WorkLog.GetServiceRequestWorkLogsResponse?>> GetWorkLogs(
         [FromRoute] long assignmentId, CancellationToken ct = default)

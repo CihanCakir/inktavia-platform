@@ -6,6 +6,7 @@ using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Application.Services;
+using Aizen.Modules.Payment.Domain.Entities.RefundAllocation;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,14 @@ public sealed class ServiceRequestCancelledConsumer
 
         if (tx is null || tx.Status != PaymentTransactionStatus.Captured) return;
 
+        // ── N-E: the SR structured cancel reason is mapped upstream to a RefundReason and rides the message. Route it
+        // through RefundCauseMap so the P10 allocation is picked deterministically (no free-text guessing). 0/unset ⇒
+        // fall back to the generic SR-cancel reason for backward compatibility with any un-upgraded publisher.
+        var mappedReason = message.RefundReasonCode > 0
+            ? (RefundReason)message.RefundReasonCode
+            : RefundReason.ServiceRequestCancelled;
+        var mappedCause = RefundCauseMap.FromReason(mappedReason);
+
         // ── WS1 PART C: commit-level idempotency (mirror of the partial-unique DB index) ──────
         // A non-Failed full refund already claiming this transaction means a prior (or concurrent) commit
         // copy owns the refund — skip so we never issue a second gateway refund.
@@ -102,7 +111,7 @@ public sealed class ServiceRequestCancelledConsumer
             amount:               tx.GrossAmount,
             currencyCode:         tx.CurrencyCode,
             refundType:           RefundType.Full,
-            reason:               RefundReason.ServiceRequestCancelled,
+            reason:               mappedReason,
             adminNote:            $"SR {message.ServiceRequestId} auto-refund.");   // status = Pending (marker)
 
         await _transactions.AddRefundRecordAsync(record, ct);
@@ -127,7 +136,7 @@ public sealed class ServiceRequestCancelledConsumer
             GatewayItemTransactionId = tx.GatewayItemTransactionId,   // BE-P9-fix §8
             RefundAmount             = tx.GrossAmount,
             Currency                 = tx.CurrencyCode,
-            Reason                   = RefundReason.ServiceRequestCancelled,
+            Reason                   = mappedReason,
             AdminNote        = $"SR {message.ServiceRequestId} cancelled on {message.CancelledAtUtc:u}. Auto-refund.",
         }, ct);
 
@@ -150,12 +159,13 @@ public sealed class ServiceRequestCancelledConsumer
         tx.ApplyRefund(record);
         _transactions.Update(tx);
 
-        // ── BE-P10: snapshot-driven allocation. SR cancellation on a Captured (escrow, pre-release) transaction is a
-        // release-before refund (§7.2) → cancel provider net + commission, no settlement. Cause = CustomerCancelledBeforeWork.
+        // ── BE-P10: snapshot-driven allocation. N-E — the cause is derived from the SR structured cancel reason
+        // (mappedReason → RefundCauseMap). A generic owner-cancel still resolves to CustomerCancelledBeforeWork, but a
+        // provider-fault or duplicate-charge reason now drives its own allocation deterministically.
         await _allocationService.ApplyAsync(
             tx, record,
             requestedRefundAmount: tx.GrossAmount,
-            cause:                 RefundCause.CustomerCancelledBeforeWork,
+            cause:                 mappedCause,
             restoreBenefit:        true,
             ct:                    ct);
 
@@ -175,7 +185,7 @@ public sealed class ServiceRequestCancelledConsumer
             OriginalAmount  = tx.GrossAmount,
             CurrencyCode    = tx.CurrencyCode,
             IsPartial       = false,
-            Reason          = RefundReason.ServiceRequestCancelled.ToString(),
+            Reason          = mappedReason.ToString(),
             RefundedAtUtc   = DateTime.UtcNow,
         }, ct).ContinueWith(t =>
         {

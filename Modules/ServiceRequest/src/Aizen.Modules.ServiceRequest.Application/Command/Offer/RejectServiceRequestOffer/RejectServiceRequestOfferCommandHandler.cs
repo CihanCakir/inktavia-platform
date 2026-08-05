@@ -37,7 +37,7 @@ public sealed class RejectServiceRequestOfferCommandHandler : AizenCommandHandle
             ?? throw new InvalidOperationException($"Offer {request.Request.OfferId} not found.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        offer.Reject(request.Request.Reason);
+        offer.Reject(request.Request.Reason, request.Request.ReasonCode);
         _offerRepository.Update(offer);
 
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, offer.ProviderProfileId,
@@ -50,7 +50,8 @@ public sealed class RejectServiceRequestOfferCommandHandler : AizenCommandHandle
             OfferId = offer.Id,
             OwnerUserId = currentUserId,
             ProviderProfileId = offer.ProviderProfileId,
-            Reason = request.Request.Reason
+            Reason = request.Request.Reason,
+            ReasonCode = request.Request.ReasonCode
         }, cancellationToken);
 
         return new RejectServiceRequestOfferResponse(offer.Id);

@@ -64,6 +64,9 @@ public sealed class RegisterParticipantCommandHandler
             throw new AizenBusinessException("Account could not be created. Please try again.");
         }
 
+        // (The user is created email-verified in CreateUserAsync — see the note there — so the immediate
+        //  session mint and future logins are not gated by this realm's VERIFY_EMAIL/VERIFY_PROFILE.)
+
         // 2) Provision/link the Identity Participant profile (idempotent).
         long? participantProfileId = null;
         try
@@ -109,23 +112,8 @@ public sealed class RegisterParticipantCommandHandler
             throw new AizenBusinessException("Account setup could not be completed. Please try again.");
         }
 
-        // 5) Send the verify-email as a NON-BLOCKING courtesy. execute-actions-email adds a VERIFY_EMAIL
-        //    required action which Keycloak would otherwise enforce at the immediate session mint AND at every
-        //    future login — so we clear the user's required actions right after (email still delivered; login
-        //    is not gated, per the locked decision + realm verifyEmail=false).
-        try
-        {
-            await _keycloak.SendVerifyEmailAsync(sub, ct);
-            await _keycloak.ClearRequiredActionsAsync(sub, ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Sending verify-email failed for {Sub} (non-blocking).", sub);
-            // Ensure the session mint is never gated even if the email step half-failed.
-            try { await _keycloak.ClearRequiredActionsAsync(sub, ct); } catch { /* best-effort */ }
-        }
-
-        // 6) Mint the session the uniform way: login_ticket for the new sub → handoff → inktavia-mobile tokens.
+        // 5) Mint the session the uniform way FIRST — on a clean user (no required actions) — so the SPI
+        //    handoff completes: login_ticket for the new sub → handoff → inktavia-mobile tokens.
         var ticket = await _identity.MintParticipantLoginTicket(
             new Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.MintParticipantTicketRequest { Sub = sub });
         var loginTicket = ticket?.Body?.LoginTicket;
@@ -133,6 +121,14 @@ public sealed class RegisterParticipantCommandHandler
             throw new AizenBusinessException("Account created but sign-in could not be completed. Please sign in.");
 
         var tokens = await _handoff.ExchangeAsync(loginTicket, ct);
+
+        // NOTE on email verification: the locked decision assumed realm verifyEmail=false + a non-blocking
+        // "courtesy" verify-email. In practice this realm ENFORCES VERIFY_EMAIL for unverified users (the
+        // authorize 302s to login-actions/required-action=VERIFY_EMAIL), which would gate both this session
+        // mint and every future login. To honor the decision's intent ("session immediately, login not
+        // gated"), the participant is created email-verified (step 1b) and the execute-actions-email courtesy
+        // is intentionally omitted here — sending it would only re-add the blocking required action.
+
         return new MobileAuthTokenResponse
         {
             AccessToken = tokens.AccessToken,

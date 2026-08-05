@@ -39,6 +39,11 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     Task CompleteJob(long assignmentId,
         [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Completion.SubmitServiceRequestCompletionRequest body);
 
+    // N-E — provider rejects an assigned job with a structured reason + optional note.
+    [AizenRemoteCallPost("/api/v1/service-requests/provider/jobs/{assignmentId}/reject")]
+    Task RejectJob(long assignmentId,
+        [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Assignment.RejectServiceRequestAssignmentRequest body);
+
     [AizenRemoteCallGet("/api/v1/service-requests/provider/jobs/{assignmentId}/work-logs")]
     Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog.GetServiceRequestWorkLogsResponse>> GetWorkLogs(long assignmentId);
 
