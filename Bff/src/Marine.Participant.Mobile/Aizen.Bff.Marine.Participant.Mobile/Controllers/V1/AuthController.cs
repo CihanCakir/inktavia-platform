@@ -1,6 +1,7 @@
 using Aizen.Bff.Marine.Participant.Mobile.Application.Auth;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Auth;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Auth.OtpLogin;
+using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Auth.Password;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.Infrastructure.Exception;
@@ -136,6 +137,58 @@ public sealed class AuthController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(
             new SocialLoginParticipantCommand { Provider = "apple", IdToken = request.IdentityToken, FullName = request.FullName }, ct);
         return result is null ? Unauthorized(Fail("Apple sign-in could not be verified.")) : Ok(SetResponse(result));
+    }
+
+    // ── Password recovery (forgot → verify-otp → set-new-password) ────────────────────────────────
+
+    /// <summary>Start recovery for an email/phone identifier. Anti-enumeration: always 200 with a resetRequestId.</summary>
+    [HttpPost("/api/v1/mobile/auth/forgot-password")]
+    [ProducesResponseType(typeof(MobileForgotPasswordResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileForgotPasswordResponse>> ForgotPassword(
+        [FromBody] MobileForgotPasswordRequest request, CancellationToken ct)
+    {
+        var command = new ForgotParticipantPasswordCommand { Identifier = request.Identifier };
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Verify the recovery OTP → single-use reset token. Wrong/expired code → business error.</summary>
+    [HttpPost("/api/v1/mobile/auth/verify-otp")]
+    [ProducesResponseType(typeof(MobileVerifyPasswordOtpResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileVerifyPasswordOtpResponse>> VerifyPasswordOtp(
+        [FromBody] MobileVerifyPasswordOtpRequest request, CancellationToken ct)
+    {
+        var command = new VerifyParticipantPasswordOtpCommand
+        { ResetRequestId = request.ResetRequestId, OtpCode = request.OtpCode };
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Set the new password using the reset token (resets Keycloak + revokes sessions). Reused/expired → business error.</summary>
+    [HttpPost("/api/v1/mobile/auth/set-new-password")]
+    [ProducesResponseType(typeof(MobileSetNewPasswordResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileSetNewPasswordResponse>> SetNewPassword(
+        [FromBody] MobileSetNewPasswordRequest request, CancellationToken ct)
+    {
+        var command = new SetNewParticipantPasswordCommand
+        {
+            ResetToken = request.ResetToken,
+            NewPassword = request.NewPassword,
+            ConfirmPassword = request.ConfirmPassword,
+        };
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Resend the recovery OTP for an in-flight resetRequestId (honors the Identity cooldown).</summary>
+    [HttpPost("/api/v1/mobile/auth/forgot-password/resend")]
+    [ProducesResponseType(typeof(MobileResendPasswordOtpResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileResendPasswordOtpResponse>> ResendPasswordOtp(
+        [FromBody] MobileResendPasswordOtpRequest request, CancellationToken ct)
+    {
+        var command = new ResendParticipantPasswordOtpCommand { ResetRequestId = request.ResetRequestId };
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
     }
 
     private static AizenApiResponse<MobileAuthTokenResponse> Fail(string message) =>

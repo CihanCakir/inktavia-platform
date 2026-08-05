@@ -36,6 +36,39 @@ public sealed class OfferLineEconomicsSnapshotConfiguration : IEntityTypeConfigu
 
         b.HasIndex(x => x.EconomicsSnapshotId);
         b.HasIndex(x => new { x.EconomicsSnapshotId, x.LineRef });
+
+        // S2d — attribute snapshots are children of THIS line snapshot (FK, OnDelete Restrict).
+        b.HasMany(x => x.AttributeSnapshots)
+            .WithOne()
+            .HasForeignKey(a => a.OfferLineEconomicsSnapshotId)
+            .OnDelete(DeleteBehavior.Restrict);
+        b.Metadata.FindNavigation(nameof(OfferLineEconomicsSnapshotEntity.AttributeSnapshots))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+    }
+}
+
+/// <summary>
+/// S2d — EF mapping for the immutable per-attribute line snapshot (§20.6/§20.15). FK → offer_line_economics_snapshots
+/// (OnDelete Restrict, configured on the line side). Descriptive metadata, not part of the money math.
+/// </summary>
+public sealed class OfferLineAttributeSnapshotConfiguration : IEntityTypeConfiguration<OfferLineAttributeSnapshotEntity>
+{
+    public void Configure(EntityTypeBuilder<OfferLineAttributeSnapshotEntity> b)
+    {
+        b.ToTable("offer_line_attribute_snapshots");
+        b.HasKey(x => x.Id);
+
+        b.Property(x => x.OfferLineEconomicsSnapshotId).IsRequired();
+        b.Property(x => x.DefinitionCode).HasMaxLength(100).IsRequired();
+        b.Property(x => x.DataType).IsRequired();
+        b.Property(x => x.ValueLookupItemCode).HasMaxLength(100);
+        b.Property(x => x.ValueLookupItemLabel).HasMaxLength(200);
+        b.Property(x => x.ValueNumber).HasColumnType("numeric(18,4)");
+        b.Property(x => x.ValueText).HasMaxLength(1000);
+        b.Property(x => x.SortOrder).IsRequired();
+
+        b.HasIndex(x => x.OfferLineEconomicsSnapshotId);
+        b.HasIndex(x => new { x.OfferLineEconomicsSnapshotId, x.DefinitionCode });
     }
 }
 

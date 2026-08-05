@@ -58,6 +58,24 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<ResendProviderPasswordRecoveryOtpResponse>> ResendProviderPasswordRecoveryOtp(
         [AizenRemoteCallBody] ResendProviderPasswordRecoveryOtpRequest request);
 
+    // ── Participant (mobile) Password Recovery (M2f Identity routes; reuse the shared recovery DTOs) ─────
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-password-recovery/request")]
+    Task<AizenApiResponse<RequestProviderPasswordRecoveryResponse>> RequestParticipantPasswordRecovery(
+        [AizenRemoteCallBody] RequestProviderPasswordRecoveryRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-password-recovery/verify-otp")]
+    Task<AizenApiResponse<VerifyProviderPasswordRecoveryOtpResponse>> VerifyParticipantPasswordRecoveryOtp(
+        [AizenRemoteCallBody] VerifyProviderPasswordRecoveryOtpRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-password-recovery/reset")]
+    Task<AizenApiResponse<ResetProviderPasswordResponse>> ResetParticipantPassword(
+        [AizenRemoteCallBody] ResetProviderPasswordRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-password-recovery/resend-otp")]
+    Task<AizenApiResponse<ResendProviderPasswordRecoveryOtpResponse>> ResendParticipantPasswordRecoveryOtp(
+        [AizenRemoteCallBody] ResendProviderPasswordRecoveryOtpRequest request);
+
     // ── OTP Login (delegated to Identity) ───────────────────────────────────────
 
     [AizenRemoteCallPost("/api/v1/identity/auth/provider-otp-login/request")]

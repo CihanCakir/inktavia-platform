@@ -27,7 +27,9 @@ public sealed record ServiceRequestEconomicsLine(
     string?                   RuleCode,
     // ── BE-S6 / BE-P7 (optional; defaults preserve the narrow-core path) ──
     bool                      DiscountEligible       = true,
-    decimal?                  EffectiveCommissionRate = null);
+    decimal?                  EffectiveCommissionRate = null,
+    // ── S2d pricing attributes (descriptive; carried straight through to the line snapshot) ──
+    IReadOnlyList<LineAttributeSnapshotInput>? Attributes = null);
 
 /// <summary>BE-P8b — the resolved P6 customer discount + funding to apply (authoritative). BudgetRemaining caps platform funding.</summary>
 public sealed record ServiceRequestCustomerDiscountInput(
@@ -214,7 +216,8 @@ public static class ServiceRequestEconomicsCombiner
                 GrossBeforeDiscount: gross, CustomerDiscount: dc, ProviderFundedDiscount: dp, PlatformFundedDiscount: dpl,
                 CommissionEligibility: l.CommissionEligibility, CommissionBase: cbase, CommissionRate: effRate,
                 CommissionAmount: comm, ProviderNet: pnet, LineVat: vat, LineTotal: lineTot,
-                RuleId: null, RuleCode: l.RuleCode, Commissionable: l.Commissionable, SortOrder: order++));
+                RuleId: null, RuleCode: l.RuleCode, Commissionable: l.Commissionable, SortOrder: order++,
+                Attributes: l.Attributes));   // S2d — descriptive, passed through untouched
 
             if (l.Commissionable && !string.IsNullOrWhiteSpace(l.RuleCode) && !codes.Contains(l.RuleCode!))
                 codes.Add(l.RuleCode!);

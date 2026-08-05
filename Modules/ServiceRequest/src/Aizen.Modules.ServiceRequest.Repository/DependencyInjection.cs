@@ -1,6 +1,7 @@
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
 using Aizen.Modules.ServiceRequest.Repository.Repositories;
+using Aizen.Modules.ServiceRequest.Repository.Seed;
 using Aizen.Modules.ServiceRequest.Repository.Seed.MockData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServiceRequestServices(this IServiceCollection services)
     {
+        services.AddScoped<PricingAttributeDefinitionSeeder>();
         return services;
     }
 
@@ -54,6 +56,10 @@ public static class DependencyInjection
         var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(ct);
         if (pendingMigrations.Any())
             await dbContext.Database.MigrateAsync(ct);
+
+        // S2a — idempotent marine pricing attribute definitions (dedupe by code; runs regardless of mock toggle).
+        var pricingSeeder = scope.ServiceProvider.GetRequiredService<PricingAttributeDefinitionSeeder>();
+        await pricingSeeder.SeedAsync(ct);
 
         // Run mock data seeder
         var mockSeeder = scope.ServiceProvider.GetRequiredService<ServiceRequestMockDataSeeder>();

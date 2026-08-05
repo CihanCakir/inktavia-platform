@@ -69,6 +69,9 @@ namespace Aizen.Modules.Identity.Repository
             }
             services.AddScoped<IIdentityKeycloakPasswordService, IdentityKeycloakPasswordService>();
             services.AddScoped<IProviderPasswordRecoveryDomainService, ProviderPasswordRecoveryDomainService>();
+            // Participant (mobile) recovery mirrors the provider vertical — reuses the shared options,
+            // Keycloak password service and notifier registered here; only the domain service differs.
+            services.AddScoped<IParticipantPasswordRecoveryDomainService, ParticipantPasswordRecoveryDomainService>();
 
             var deliveryMode = configuration?.GetValue<string>("PasswordRecovery:DeliveryMode") ?? "Notification";
             if (deliveryMode.Equals("Logging", StringComparison.OrdinalIgnoreCase))

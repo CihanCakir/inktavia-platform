@@ -14,6 +14,24 @@ public interface IServiceRequestReferenceDataRemoteCall : IAizenRemoteCall
     // R1 — point-in-time FX resolve for the S3 offer-creation snapshot (no re-valuation after acceptance).
     [AizenRemoteCallGet("/api/v1/reference-data/exchange-rates/resolve?fromCurrencyCode={fromCurrencyCode}&toCurrencyCode={toCurrencyCode}&asOfUtc={asOfUtc}")]
     Task<AizenApiResponse<SrExchangeRateResolveDto>> ResolveExchangeRate(string fromCurrencyCode, string toCurrencyCode, DateTimeOffset asOfUtc);
+
+    // S2c — R4 marine lookup items for a group (drives S2a definition group-resolution, S2b value validation, and the
+    // S2d acceptance-snapshot label). Reuses the existing GetLookupItemsByGroup query. Envelope-correct; an unknown group
+    // resolves to an empty Body (the ReferenceData query never throws for a missing group) — the caller treats
+    // empty-for-a-Lookup as "unknown group" and fails loud.
+    [AizenRemoteCallGet("/api/v1/reference-data/lookup-groups/lookup-items/{groupCode}?onlyActive={onlyActive}")]
+    Task<AizenApiResponse<List<SrLookupItemDto>>> GetLookupItemsByGroup(string groupCode, bool onlyActive);
+}
+
+/// <summary>S2c — minimal projection of an R4 lookup item. <see cref="Code"/> is the language-neutral key; per the R4
+/// convention <see cref="Name"/> is the Turkish display label and <see cref="Description"/> the English one.</summary>
+public sealed class SrLookupItemDto
+{
+    public string Code { get; set; } = default!;
+    public string GroupCode { get; set; } = default!;
+    public string Name { get; set; } = default!;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
 }
 
 public sealed class SrCityValidationDto

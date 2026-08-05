@@ -28,6 +28,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IPaymentModuleRemoteCall _paymentRemoteCall;
     private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly Services.Pricing.PricingAttributeSnapshotResolver _pricingSnapshotResolver;
     private readonly ILogger<AcceptServiceRequestOfferCommandHandler> _logger;
 
     public AcceptServiceRequestOfferCommandHandler(
@@ -36,11 +37,13 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
         IPaymentModuleRemoteCall paymentRemoteCall,
         IAizenMessagePublisher messagePublisher,
+        Services.Pricing.PricingAttributeSnapshotResolver pricingSnapshotResolver,
         ILogger<AcceptServiceRequestOfferCommandHandler> logger)
     {
         _srRepository = srRepository; _offerRepository = offerRepository; _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
-        _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher; _logger = logger;
+        _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher;
+        _pricingSnapshotResolver = pricingSnapshotResolver; _logger = logger;
     }
 
     public override async Task<AcceptServiceRequestOfferResponse?> Handle(AcceptServiceRequestOfferCommand request, CancellationToken cancellationToken)
@@ -58,7 +61,9 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         // Run the Payment combiner (plan → S7 commission → P3 fee → P5 gate → S8 snapshot → escrow).
         // On Rejected/ConfigurationError we BLOCK acceptance (throw) — no half-accepted offer, no escrow.
         // The whole SR command is transactional, so throwing here rolls back everything.
-        var economicsRequest = BuildEconomicsRequest(sr, offer);
+        // S2d — resolve each line's pricing attribute values (+ denormalized labels) to snapshot at acceptance.
+        var attributesByLineRef = await _pricingSnapshotResolver.ResolveForOfferAsync(offer, cancellationToken);
+        var economicsRequest = BuildEconomicsRequest(sr, offer, attributesByLineRef);
         var economics = await _paymentRemoteCall.CalculateServiceRequestEconomicsAsync(
             economicsRequest, $"Bearer {rawToken}", cancellationToken);
 
@@ -143,16 +148,18 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     /// pre-tax); <c>LineVat = TaxAmount</c>. Idempotency key = <c>SR-{srId}-OFFER-{offerId}</c>.
     /// </summary>
     public static CalculateServiceRequestEconomicsRemoteCallRequest BuildEconomicsRequest(
-        ServiceRequestEntity sr, ServiceRequestOfferEntity offer)
+        ServiceRequestEntity sr, ServiceRequestOfferEntity offer,
+        IReadOnlyDictionary<string, List<CalculateServiceRequestEconomicsAttributeDto>>? attributesByLineRef = null)
     {
         var lines = offer.Items
             .Where(i => i.ItemType != SrEnum.ServiceRequestOfferItemType.Discount)
             .Select(i =>
             {
                 var providerRevenue = Math.Max(i.LineSubtotal - i.DiscountAmount, 0m);
+                var lineRef = i.Id.ToString();
                 return new CalculateServiceRequestEconomicsLineDto
                 {
-                    LineRef                 = i.Id.ToString(),
+                    LineRef                 = lineRef,
                     ItemType                = (int)i.ItemType,
                     PricingMethod           = (int)i.PricingMethod,
                     CommissionLineType      = GetOfferCommissionPreviewQueryHandler.MapLineType(i.ItemType),
@@ -163,6 +170,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
                     CommissionBaseAmount    = i.CommissionBaseAmount,
                     LineProviderRevenue     = providerRevenue,
                     DiscountEligible        = i.LineDiscountEligibility != SrEnum.LineDiscountEligibility.Exempt,   // BE-S6
+                    Attributes              = attributesByLineRef?.GetValueOrDefault(lineRef) ?? new(),            // S2d
                 };
             })
             .ToList();

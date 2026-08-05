@@ -45,6 +45,7 @@ namespace Aizen.Modules.Identity.Repository.Context
         public DbSet<VerificationDocumentEntity> VerificationDocuments { get; set; } = null!;
         public DbSet<RiskSignalEntity> RiskSignals { get; set; } = null!;
         public DbSet<ProviderPasswordRecoveryRequestEntity> ProviderPasswordRecoveryRequests { get; set; } = null!;
+        public DbSet<ParticipantPasswordRecoveryRequestEntity> ParticipantPasswordRecoveryRequests { get; set; } = null!;
         public DbSet<ProviderOtpLoginRequestEntity> ProviderOtpLoginRequests { get; set; } = null!;
         public DbSet<AdminOtpLoginRequestEntity> AdminOtpLoginRequests { get; set; } = null!;
         public DbSet<ParticipantOtpLoginRequestEntity> ParticipantOtpLoginRequests { get; set; } = null!;
@@ -68,6 +69,7 @@ namespace Aizen.Modules.Identity.Repository.Context
             modelBuilder.ApplyConfiguration(new VerificationDocumentEntityConfiguration());
             modelBuilder.ApplyConfiguration(new RiskSignalEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderPasswordRecoveryRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ParticipantPasswordRecoveryRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new AdminOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ParticipantOtpLoginRequestEntityConfiguration());

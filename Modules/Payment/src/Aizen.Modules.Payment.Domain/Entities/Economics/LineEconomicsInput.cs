@@ -25,7 +25,25 @@ public sealed record LineEconomicsInput(
     long?                     RuleId,
     string?                   RuleCode,
     bool                      Commissionable,
-    int                       SortOrder = 0);
+    int                       SortOrder = 0,
+    // ── S2d (descriptive; NOT part of the money math or the 8 equalities) ──
+    IReadOnlyList<LineAttributeSnapshotInput>? Attributes = null);
+
+/// <summary>
+/// S2d — one pricing attribute value to snapshot on a line at acceptance (§20.6). Carried from ServiceRequest through the
+/// acceptance-economics request, resolved (label denormalized) SR-side. <see cref="DataType"/> is the raw SR
+/// <c>PricingAttributeDataType</c> int. Descriptive metadata — the factory attaches it to the line snapshot without any
+/// re-valuation and it never enters a sum or invariant.
+/// </summary>
+public sealed record LineAttributeSnapshotInput(
+    string   DefinitionCode,
+    int      DataType,
+    string?  ValueLookupItemCode,
+    string?  ValueLookupItemLabel,
+    decimal? ValueNumber,
+    string?  ValueText,
+    bool?    ValueBool,
+    int      SortOrder = 0);
 
 /// <summary>Resolved platform fee bundle (from P3) passed to the line-first factory.</summary>
 public sealed record PlatformFeeInput(

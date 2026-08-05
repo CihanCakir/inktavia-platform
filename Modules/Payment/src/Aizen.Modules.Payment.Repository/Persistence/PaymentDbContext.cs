@@ -42,6 +42,8 @@ public sealed class PaymentDbContext : AizenDbContext
     public DbSet<OfferLineEconomicsSnapshotEntity> OfferLineEconomicsSnapshots => Set<OfferLineEconomicsSnapshotEntity>();
     public DbSet<CommissionAllocationSnapshotEntity> CommissionAllocationSnapshots => Set<CommissionAllocationSnapshotEntity>();
     public DbSet<DiscountAllocationSnapshotEntity> DiscountAllocationSnapshots => Set<DiscountAllocationSnapshotEntity>();
+    // S2d — per-attribute line snapshot children (§20.6)
+    public DbSet<OfferLineAttributeSnapshotEntity> OfferLineAttributeSnapshots => Set<OfferLineAttributeSnapshotEntity>();
 
     // ── Platform fee rules (BE-P3) ────────────────────────────────────────────
     public DbSet<PlatformFeeRuleEntity>           PlatformFeeRules      => Set<PlatformFeeRuleEntity>();

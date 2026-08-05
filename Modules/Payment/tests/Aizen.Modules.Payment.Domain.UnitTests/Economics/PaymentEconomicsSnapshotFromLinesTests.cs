@@ -228,6 +228,7 @@ public sealed class PaymentEconomicsSnapshotFromLinesTests
     [InlineData(typeof(OfferLineEconomicsSnapshotEntity))]
     [InlineData(typeof(CommissionAllocationSnapshotEntity))]
     [InlineData(typeof(DiscountAllocationSnapshotEntity))]
+    [InlineData(typeof(OfferLineAttributeSnapshotEntity))]
     public void LineChildren_Expose_No_Public_Setters_Or_Mutators(Type t)
     {
         var settable = t.GetProperties(BindingFlags.Public | BindingFlags.Instance)

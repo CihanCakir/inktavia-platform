@@ -34,14 +34,20 @@ public sealed class OfferLineEconomicsSnapshotEntity : AizenEntityWithAudit
     public string                   CurrencyCode                 { get; private set; } = "TRY";
     public int                      SortOrder                    { get; private set; }
 
+    // ── S2d pricing attribute snapshots (§20.6/§20.15) — immutable, insert-only; descriptive, NOT in the money math ──
+    private readonly List<OfferLineAttributeSnapshotEntity> _attributeSnapshots = new();
+    public IReadOnlyCollection<OfferLineAttributeSnapshotEntity> AttributeSnapshots => _attributeSnapshots.AsReadOnly();
+
     private OfferLineEconomicsSnapshotEntity() { }
 
     internal static OfferLineEconomicsSnapshotEntity Create(
         string lineRef, int itemType, int pricingMethod,
         decimal lineGrossBeforeDiscount, decimal customerDiscount, decimal providerFundedDiscount, decimal platformFundedDiscount,
         LineCommissionEligibility commissionEligibility, decimal commissionBase, decimal commissionRate, decimal commissionAmount,
-        decimal providerNet, decimal lineVat, decimal lineTotal, string currencyCode, int sortOrder)
-        => new()
+        decimal providerNet, decimal lineVat, decimal lineTotal, string currencyCode, int sortOrder,
+        IReadOnlyList<OfferLineAttributeSnapshotEntity>? attributeSnapshots = null)
+    {
+        var entity = new OfferLineEconomicsSnapshotEntity
         {
             LineRef                      = lineRef,
             ItemType                     = itemType,
@@ -61,4 +67,8 @@ public sealed class OfferLineEconomicsSnapshotEntity : AizenEntityWithAudit
             SortOrder                    = sortOrder,
             IsActive                     = true,
         };
+        if (attributeSnapshots is { Count: > 0 })
+            entity._attributeSnapshots.AddRange(attributeSnapshots);
+        return entity;
+    }
 }

@@ -114,13 +114,19 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
             decimal? effRate = adjustmentPp != 0m && r.Commissionable
                 ? Math.Max(r.ResolvedRate + adjustmentPp, 0m)
                 : (decimal?)null;
+            // S2d — carry the line's pricing attributes through untouched (resolved SR-side; descriptive only).
+            var attributes = l.Attributes is { Count: > 0 }
+                ? l.Attributes.Select(a => new LineAttributeSnapshotInput(
+                    a.DefinitionCode, a.DataType, a.ValueLookupItemCode, a.ValueLookupItemLabel,
+                    a.ValueNumber, a.ValueText, a.ValueBool, a.SortOrder)).ToList()
+                : null;
             return new ServiceRequestEconomicsLine(
                 LineRef: l.LineRef, ItemType: l.ItemType, PricingMethod: l.PricingMethod,
                 CommissionEligibility: l.CommissionEligibility,
                 LineGrossBeforeDiscount: l.LineGrossBeforeDiscount, LineVat: l.LineVat,
                 Commissionable: r.Commissionable, CommissionBase: r.CommissionBaseAmount, ResolvedRate: r.ResolvedRate,
                 CommissionAmount: r.CommissionAmount, ProviderNet: r.ProviderNet, RuleCode: r.RuleCode,
-                DiscountEligible: l.DiscountEligible, EffectiveCommissionRate: effRate);
+                DiscountEligible: l.DiscountEligible, EffectiveCommissionRate: effRate, Attributes: attributes);
         }).ToList();
 
         // ── The ONE combiner (allocates discount pre-tax, P7 rate, P5 gate + safe-max recompute, S8 snapshot) ──

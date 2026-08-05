@@ -956,6 +956,89 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.ToTable("discount_allocation_snapshots", "payment");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.Economics.OfferLineAttributeSnapshotEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("DataType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DefinitionCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OfferLineEconomicsSnapshotId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool?>("ValueBool")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ValueLookupItemCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ValueLookupItemLabel")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal?>("ValueNumber")
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<string>("ValueText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferLineEconomicsSnapshotId");
+
+                    b.HasIndex("OfferLineEconomicsSnapshotId", "DefinitionCode");
+
+                    b.ToTable("offer_line_attribute_snapshots", "payment");
+                });
+
             modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.Economics.OfferLineEconomicsSnapshotEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -4019,6 +4102,15 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.Economics.OfferLineAttributeSnapshotEntity", b =>
+                {
+                    b.HasOne("Aizen.Modules.Payment.Domain.Entities.Economics.OfferLineEconomicsSnapshotEntity", null)
+                        .WithMany("AttributeSnapshots")
+                        .HasForeignKey("OfferLineEconomicsSnapshotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.Economics.OfferLineEconomicsSnapshotEntity", b =>
                 {
                     b.HasOne("Aizen.Modules.Payment.Domain.Entities.Economics.PaymentEconomicsSnapshotEntity", null)
@@ -4107,6 +4199,11 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                         .IsRequired();
 
                     b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.Economics.OfferLineEconomicsSnapshotEntity", b =>
+                {
+                    b.Navigation("AttributeSnapshots");
                 });
 
             modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.Economics.PaymentEconomicsSnapshotEntity", b =>

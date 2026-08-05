@@ -7,6 +7,7 @@ using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Catalog;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Pricing;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkPhase;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,11 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<ProviderCatalogItemEntity> ProviderCatalogItems => Set<ProviderCatalogItemEntity>();
     public DbSet<ProviderOfferTemplateEntity> ProviderOfferTemplates => Set<ProviderOfferTemplateEntity>();
     public DbSet<ProviderOfferTemplateItemEntity> ProviderOfferTemplateItems => Set<ProviderOfferTemplateItemEntity>();
+
+    // ── Pricing attributes (BE-S2, §20.6) — descriptive metadata, not part of the line money math ──
+    public DbSet<PricingAttributeDefinitionEntity> PricingAttributeDefinitions => Set<PricingAttributeDefinitionEntity>();
+    public DbSet<PricingAttributeDefinitionCategoryEntity> PricingAttributeDefinitionCategories => Set<PricingAttributeDefinitionCategoryEntity>();
+    public DbSet<PricingAttributeValueEntity> PricingAttributeValues => Set<PricingAttributeValueEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

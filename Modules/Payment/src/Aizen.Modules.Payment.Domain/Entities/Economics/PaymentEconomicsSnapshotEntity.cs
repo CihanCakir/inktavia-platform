@@ -338,9 +338,18 @@ public sealed class PaymentEconomicsSnapshotEntity : AizenEntityWithAudit
             sumLineTotal      += lt;
             sumCommissionBase += cb;
 
+            // S2d — snapshot the line's pricing attributes (descriptive; no re-valuation, not in any sum/invariant).
+            List<OfferLineAttributeSnapshotEntity>? attributeSnapshots = null;
+            if (l.Attributes is { Count: > 0 })
+                attributeSnapshots = l.Attributes
+                    .Select(a => OfferLineAttributeSnapshotEntity.Create(
+                        a.DefinitionCode, a.DataType, a.ValueLookupItemCode, a.ValueLookupItemLabel,
+                        a.ValueNumber, a.ValueText, a.ValueBool, a.SortOrder))
+                    .ToList();
+
             offerLines.Add(OfferLineEconomicsSnapshotEntity.Create(
                 l.LineRef, l.ItemType, l.PricingMethod, gross, dc, dp, dpl, l.CommissionEligibility,
-                cb, cr, ca, pn, vat, lt, currencyCode, l.SortOrder));
+                cb, cr, ca, pn, vat, lt, currencyCode, l.SortOrder, attributeSnapshots));
 
             commissionAllocations.Add(CommissionAllocationSnapshotEntity.Create(
                 l.LineRef, l.RuleId, l.RuleCode, cb, cr, ca, l.Commissionable));

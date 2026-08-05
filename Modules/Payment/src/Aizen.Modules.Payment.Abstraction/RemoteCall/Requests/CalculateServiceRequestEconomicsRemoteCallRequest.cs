@@ -41,4 +41,22 @@ public sealed class CalculateServiceRequestEconomicsLineDto
     public required decimal                   LineProviderRevenue     { get; init; }
     /// <summary>BE-S6/P8b — eligible for a customer (platform/plan) discount. Default true; SR sets it from LineDiscountEligibility.</summary>
     public bool                               DiscountEligible        { get; init; } = true;
+    /// <summary>
+    /// S2d — the line's pricing attribute values (already resolved SR-side: item code + denormalized display label).
+    /// Descriptive metadata — Payment snapshots them alongside the line economics and never uses them in the money math.
+    /// </summary>
+    public List<CalculateServiceRequestEconomicsAttributeDto> Attributes { get; init; } = new();
+}
+
+/// <summary>S2d — one pricing attribute value to snapshot on a line at acceptance (§20.6).</summary>
+public sealed class CalculateServiceRequestEconomicsAttributeDto
+{
+    public required string   DefinitionCode       { get; init; }
+    public required int      DataType             { get; init; }   // raw SR PricingAttributeDataType
+    public string?           ValueLookupItemCode  { get; init; }
+    public string?           ValueLookupItemLabel { get; init; }   // denormalized display label (no re-lookup after acceptance)
+    public decimal?          ValueNumber          { get; init; }
+    public string?           ValueText            { get; init; }
+    public bool?             ValueBool            { get; init; }
+    public int               SortOrder            { get; init; }
 }

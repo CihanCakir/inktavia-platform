@@ -35,6 +35,12 @@ builder.Services.AddServiceRequestServices();
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.OfferCalculationService>();
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.UnitCodeValidator>();
 
+// ── Pricing attributes (BE-S2) ──
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.ReferenceDataLookupClient>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeDefinitionValidator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeValidator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeSnapshotResolver>();
+
 builder.Services.AddServiceRequestMockData(builder.Configuration);
 
 builder.Services.AddScoped<ServiceRequestRealtimePublisher>();
