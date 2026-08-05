@@ -53,5 +53,8 @@ public sealed class ServiceRequestOfferEntityConfiguration : IEntityTypeConfigur
         builder.HasIndex(x => x.ProviderProfileId);
         builder.HasIndex(x => x.Status);
         builder.HasMany(x => x.Items).WithOne(x => x.Offer).HasForeignKey(x => x.ServiceRequestOfferId).OnDelete(DeleteBehavior.Cascade);
+
+        // BE-S3b — offer-level FX rate snapshots (one per non-TRY source currency), replaced on re-submit.
+        builder.HasMany(x => x.FxSnapshots).WithOne(x => x.Offer).HasForeignKey(x => x.ServiceRequestOfferId).OnDelete(DeleteBehavior.Cascade);
     }
 }

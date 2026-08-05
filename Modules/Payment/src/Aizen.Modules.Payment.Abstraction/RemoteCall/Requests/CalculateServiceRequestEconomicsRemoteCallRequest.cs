@@ -46,6 +46,26 @@ public sealed class CalculateServiceRequestEconomicsLineDto
     /// Descriptive metadata — Payment snapshots them alongside the line economics and never uses them in the money math.
     /// </summary>
     public List<CalculateServiceRequestEconomicsAttributeDto> Attributes { get; init; } = new();
+
+    /// <summary>
+    /// S3 — the FX conversion applied to this line at offer-submit (source currency + price, the applied R1 rate, and the
+    /// resolved TRY unit price). Null ⇒ a settlement-native line (no conversion). Descriptive/frozen metadata — the
+    /// economics already runs on the converted TRY amounts; Payment persists this self-contained on the acceptance snapshot
+    /// so the accepted total never re-values against a later rate change.
+    /// </summary>
+    public CalculateServiceRequestEconomicsLineFxDto? Fx { get; init; }
+}
+
+/// <summary>S3 — the frozen per-line FX record threaded SR→Payment (self-contained; no re-resolve after acceptance).</summary>
+public sealed class CalculateServiceRequestEconomicsLineFxDto
+{
+    public required string   SourceCurrencyCode     { get; init; }
+    public required string   SettlementCurrencyCode { get; init; }
+    public required decimal  SourceUnitPrice        { get; init; }
+    public required decimal  AppliedRate            { get; init; }
+    public required DateTime RateDate               { get; init; }
+    /// <summary>The converted settlement-currency (TRY) unit price = round(SourceUnitPrice × AppliedRate).</summary>
+    public required decimal  ResolvedUnitPrice      { get; init; }
 }
 
 /// <summary>S2d — one pricing attribute value to snapshot on a line at acceptance (§20.6).</summary>

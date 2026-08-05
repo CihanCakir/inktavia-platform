@@ -120,13 +120,19 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
                     a.DefinitionCode, a.DataType, a.ValueLookupItemCode, a.ValueLookupItemLabel,
                     a.ValueNumber, a.ValueText, a.ValueBool, a.SortOrder)).ToList()
                 : null;
+            // S3 — carry the frozen FX record through untouched (resolved SR-side at submit; the amounts are already TRY).
+            var fx = l.Fx is null
+                ? null
+                : new LineFxSnapshotInput(
+                    l.Fx.SourceCurrencyCode, l.Fx.SettlementCurrencyCode, l.Fx.SourceUnitPrice,
+                    l.Fx.AppliedRate, l.Fx.RateDate, l.Fx.ResolvedUnitPrice);
             return new ServiceRequestEconomicsLine(
                 LineRef: l.LineRef, ItemType: l.ItemType, PricingMethod: l.PricingMethod,
                 CommissionEligibility: l.CommissionEligibility,
                 LineGrossBeforeDiscount: l.LineGrossBeforeDiscount, LineVat: l.LineVat,
                 Commissionable: r.Commissionable, CommissionBase: r.CommissionBaseAmount, ResolvedRate: r.ResolvedRate,
                 CommissionAmount: r.CommissionAmount, ProviderNet: r.ProviderNet, RuleCode: r.RuleCode,
-                DiscountEligible: l.DiscountEligible, EffectiveCommissionRate: effRate, Attributes: attributes);
+                DiscountEligible: l.DiscountEligible, EffectiveCommissionRate: effRate, Attributes: attributes, Fx: fx);
         }).ToList();
 
         // ── The ONE combiner (allocates discount pre-tax, P7 rate, P5 gate + safe-max recompute, S8 snapshot) ──

@@ -16,6 +16,7 @@ public sealed class ServiceRequestOfferRepository : IServiceRequestOfferReposito
     public Task<ServiceRequestOfferEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.ServiceRequestOffers
             .Include(x => x.Items)
+            .Include(x => x.FxSnapshots)   // BE-S3: the acceptance path reads the frozen rate per source currency
             .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, ct);
 
     public async Task<IReadOnlyList<ServiceRequestOfferEntity>> GetByServiceRequestIdAsync(long serviceRequestId, CancellationToken ct = default)

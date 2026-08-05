@@ -41,6 +41,11 @@ builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pri
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeValidator>();
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeSnapshotResolver>();
 
+// ── Offer FX (BE-S3) — submit-time foreign→TRY conversion + point-in-time rate snapshot ──
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Fx.IExchangeRateSource,
+    Aizen.Modules.ServiceRequest.Application.Services.Fx.ExchangeRateSource>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Fx.OfferFxResolver>();
+
 builder.Services.AddServiceRequestMockData(builder.Configuration);
 
 builder.Services.AddScoped<ServiceRequestRealtimePublisher>();

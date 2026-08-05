@@ -133,6 +133,10 @@ public static class ServiceRequestMappingExtensions
         Quantity = entity.Quantity,
         UnitPrice = entity.UnitPrice,
         CurrencyCode = entity.CurrencyCode,
+        // BE-S3 — surface both figures: source (foreign) + converted TRY. Non-null SourceUnitPrice ⇒ the line was converted.
+        SourceUnitPrice = entity.SourceUnitPrice,
+        SourceCurrencyCode = entity.SourceUnitPrice.HasValue ? entity.CurrencyCode : null,
+        SettlementCurrencyCode = Domain.Entities.Offer.OfferFxConstants.SettlementCurrency,
         SortOrder = entity.SortOrder,
         UnitCode = entity.UnitCode,
         TaxRate = entity.TaxRate,

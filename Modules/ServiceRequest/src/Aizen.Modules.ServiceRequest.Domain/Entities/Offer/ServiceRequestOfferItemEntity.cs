@@ -13,6 +13,17 @@ public sealed class ServiceRequestOfferItemEntity : AizenEntityWithAudit
     public decimal Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }
     public string CurrencyCode { get; private set; } = "USD";
+
+    /// <summary>
+    /// BE-S3 — the raw price the provider quoted in the source <see cref="CurrencyCode"/> before offer-submit converted it
+    /// to the settlement currency (TRY). <c>null</c> ⇒ the line is settlement-native (or pre-S3): <see cref="UnitPrice"/>
+    /// is the entered price and no FX conversion happened. Non-null ⇒ the line was converted at submit: <see cref="UnitPrice"/>
+    /// now holds the TRY amount the economics math uses, <see cref="CurrencyCode"/> is the source currency, and this holds
+    /// the original foreign figure (for the "500 EUR = 21.300 TRY" display). The rate that bridges them lives on the
+    /// offer-level <see cref="OfferFxSnapshotEntity"/> keyed by <see cref="CurrencyCode"/>.
+    /// </summary>
+    public decimal? SourceUnitPrice { get; private set; }
+
     public int SortOrder { get; private set; }
     public string? UnitCode { get; private set; }
     public decimal TaxRate { get; private set; }
@@ -160,6 +171,18 @@ public sealed class ServiceRequestOfferItemEntity : AizenEntityWithAudit
     public void SetComputedEconomics(decimal commissionBaseAmount)
     {
         CommissionBaseAmount = commissionBaseAmount;
+    }
+
+    /// <summary>
+    /// BE-S3a — converts a foreign-currency line to the settlement currency at submit. Preserves the source figure in
+    /// <see cref="SourceUnitPrice"/> and replaces <see cref="UnitPrice"/> with the converted (TRY) amount the economics
+    /// runs on. Called by the FX resolver only, before recalculation. Idempotent-safe: pass the original source price so a
+    /// re-submit converts from the source, never from a previously-converted value.
+    /// </summary>
+    public void ApplyFxConversion(decimal sourceUnitPrice, decimal convertedUnitPrice)
+    {
+        SourceUnitPrice = sourceUnitPrice;
+        UnitPrice       = convertedUnitPrice;
     }
 
     /// <summary>Allows an explicit per-line eligibility override (e.g. admin edit) before recalculation.</summary>

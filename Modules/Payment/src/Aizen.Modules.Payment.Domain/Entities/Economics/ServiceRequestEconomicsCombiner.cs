@@ -29,7 +29,9 @@ public sealed record ServiceRequestEconomicsLine(
     bool                      DiscountEligible       = true,
     decimal?                  EffectiveCommissionRate = null,
     // ── S2d pricing attributes (descriptive; carried straight through to the line snapshot) ──
-    IReadOnlyList<LineAttributeSnapshotInput>? Attributes = null);
+    IReadOnlyList<LineAttributeSnapshotInput>? Attributes = null,
+    // ── S3 frozen FX metadata (descriptive; carried straight through to the line snapshot) ──
+    LineFxSnapshotInput? Fx = null);
 
 /// <summary>BE-P8b — the resolved P6 customer discount + funding to apply (authoritative). BudgetRemaining caps platform funding.</summary>
 public sealed record ServiceRequestCustomerDiscountInput(
@@ -217,7 +219,8 @@ public static class ServiceRequestEconomicsCombiner
                 CommissionEligibility: l.CommissionEligibility, CommissionBase: cbase, CommissionRate: effRate,
                 CommissionAmount: comm, ProviderNet: pnet, LineVat: vat, LineTotal: lineTot,
                 RuleId: null, RuleCode: l.RuleCode, Commissionable: l.Commissionable, SortOrder: order++,
-                Attributes: l.Attributes));   // S2d — descriptive, passed through untouched
+                Attributes: l.Attributes,     // S2d — descriptive, passed through untouched
+                Fx: l.Fx));                   // S3  — frozen FX metadata, passed through untouched
 
             if (l.Commissionable && !string.IsNullOrWhiteSpace(l.RuleCode) && !codes.Contains(l.RuleCode!))
                 codes.Add(l.RuleCode!);

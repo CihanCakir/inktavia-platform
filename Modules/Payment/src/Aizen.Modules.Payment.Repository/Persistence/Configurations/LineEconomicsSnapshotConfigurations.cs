@@ -34,6 +34,13 @@ public sealed class OfferLineEconomicsSnapshotConfiguration : IEntityTypeConfigu
         b.Property(x => x.CurrencyCode).HasMaxLength(10).IsRequired();
         b.Property(x => x.SortOrder).IsRequired();
 
+        // ── S3 frozen FX metadata (§20.7) — all nullable (settlement-native lines = null; back-compat for existing rows) ──
+        b.Property(x => x.FxSourceCurrencyCode).HasMaxLength(10);
+        b.Property(x => x.FxSettlementCurrencyCode).HasMaxLength(10);
+        b.Property(x => x.FxSourceUnitPrice).HasColumnType("numeric(18,4)");
+        b.Property(x => x.FxAppliedRate).HasColumnType("numeric(18,6)");
+        b.Property(x => x.FxResolvedUnitPrice).HasColumnType("numeric(18,4)");
+
         b.HasIndex(x => x.EconomicsSnapshotId);
         b.HasIndex(x => new { x.EconomicsSnapshotId, x.LineRef });
 

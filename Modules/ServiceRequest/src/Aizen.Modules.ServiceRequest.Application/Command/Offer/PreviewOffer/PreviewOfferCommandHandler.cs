@@ -16,27 +16,23 @@ public sealed class PreviewOfferCommandHandler : AizenCommandHandler<PreviewOffe
 {
     private readonly IAizenInfoAccessor _info;
     private readonly OfferCalculationService _calculation;
+    private readonly Services.Fx.OfferFxResolver _fxResolver;
 
-    public PreviewOfferCommandHandler(IAizenInfoAccessor info, OfferCalculationService calculation)
+    public PreviewOfferCommandHandler(
+        IAizenInfoAccessor info, OfferCalculationService calculation, Services.Fx.OfferFxResolver fxResolver)
     {
         _info = info;
         _calculation = calculation;
+        _fxResolver = fxResolver;
     }
 
-    public override Task<PreviewOfferResponse?> Handle(PreviewOfferCommand command, CancellationToken ct)
+    public override async Task<PreviewOfferResponse?> Handle(PreviewOfferCommand command, CancellationToken ct)
     {
         var providerProfileId = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
         if (providerProfileId <= 0)
             throw new AizenBusinessException("Provider identity could not be resolved.");
 
         var req = command.Request;
-
-        // Validate mixed currency
-        var currencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { req.CurrencyCode.ToUpperInvariant() };
-        foreach (var item in req.Items)
-            currencies.Add(item.CurrencyCode.ToUpperInvariant());
-        if (currencies.Count > 1)
-            throw new AizenBusinessException("Mixed currencies are not allowed.");
 
         // Build a transient offer (not persisted)
         var offer = ServiceRequestOfferEntity.Create(
@@ -52,8 +48,14 @@ public sealed class PreviewOfferCommandHandler : AizenCommandHandler<PreviewOffe
         ));
 
         offer.ReplaceItems(items);
+
+        // BE-S3d — mixed source currencies are allowed now: each foreign line converts to TRY at the preview instant so the
+        // provider sees both the source figure ("500 EUR") and the TRY the customer will be charged. Fail-loud on a missing
+        // rate, same as submit; a TRY-only preview resolves nothing (byte-identical to pre-S3).
+        await _fxResolver.ResolveAndConvertAsync(offer, DateTime.UtcNow, ct);
+
         _calculation.Calculate(offer);
 
-        return Task.FromResult<PreviewOfferResponse?>(new PreviewOfferResponse(offer.ToDto()));
+        return new PreviewOfferResponse(offer.ToDto());
     }
 }

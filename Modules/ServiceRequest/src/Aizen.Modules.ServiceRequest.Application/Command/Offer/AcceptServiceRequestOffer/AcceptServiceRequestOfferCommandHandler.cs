@@ -151,6 +151,16 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         ServiceRequestEntity sr, ServiceRequestOfferEntity offer,
         IReadOnlyDictionary<string, List<CalculateServiceRequestEconomicsAttributeDto>>? attributesByLineRef = null)
     {
+        // S3 — the frozen submit-time rate per source currency (empty for a TRY-only offer). Keyed by source currency.
+        var fxByCurrency = offer.FxSnapshots
+            .GroupBy(f => f.SourceCurrencyCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        // S3 — once any line has been converted, the whole offer settles in TRY and the economics runs in TRY. An offer
+        // with no conversion (TRY-only, or a legacy pre-S3 offer) keeps its own currency verbatim — byte-identical passthrough.
+        var wasConverted = offer.FxSnapshots.Count > 0 || offer.Items.Any(i => i.SourceUnitPrice.HasValue);
+        var settlementCurrency = wasConverted ? Domain.Entities.Offer.OfferFxConstants.SettlementCurrency : offer.CurrencyCode;
+
         var lines = offer.Items
             .Where(i => i.ItemType != SrEnum.ServiceRequestOfferItemType.Discount)
             .Select(i =>
@@ -171,6 +181,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
                     LineProviderRevenue     = providerRevenue,
                     DiscountEligible        = i.LineDiscountEligibility != SrEnum.LineDiscountEligibility.Exempt,   // BE-S6
                     Attributes              = attributesByLineRef?.GetValueOrDefault(lineRef) ?? new(),            // S2d
+                    Fx                      = BuildLineFx(i, fxByCurrency),                                        // S3
                 };
             })
             .ToList();
@@ -184,8 +195,33 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
             CustomerProfileId = sr.OwnerUserId,
             CustomerPlanId    = null,
             CategoryCode      = sr.ServiceCategoryCode,
-            CurrencyCode      = offer.CurrencyCode,
+            CurrencyCode      = settlementCurrency,   // S3 — TRY once converted; the offer's own currency otherwise
             Lines             = lines,
+        };
+    }
+
+    /// <summary>
+    /// S3 — builds the frozen per-line FX record for the acceptance snapshot from the line's converted price + the offer's
+    /// submit-time rate snapshot (keyed by source currency). Null for a settlement-native line (no <c>SourceUnitPrice</c>) or
+    /// when — defensively — no rate row exists for the line's currency (the line economics is already TRY regardless).
+    /// </summary>
+    private static CalculateServiceRequestEconomicsLineFxDto? BuildLineFx(
+        ServiceRequestOfferItemEntity item,
+        IReadOnlyDictionary<string, Domain.Entities.Offer.OfferFxSnapshotEntity> fxByCurrency)
+    {
+        if (item.SourceUnitPrice is not { } sourceUnitPrice)
+            return null;   // settlement-native line — not converted
+        if (!fxByCurrency.TryGetValue((item.CurrencyCode ?? string.Empty).Trim().ToUpperInvariant(), out var fx))
+            return null;
+
+        return new CalculateServiceRequestEconomicsLineFxDto
+        {
+            SourceCurrencyCode     = fx.SourceCurrencyCode,
+            SettlementCurrencyCode = fx.SettlementCurrencyCode,
+            SourceUnitPrice        = sourceUnitPrice,
+            AppliedRate            = fx.Rate,
+            RateDate               = fx.RateDate,
+            ResolvedUnitPrice      = item.UnitPrice,   // the converted TRY unit price the economics ran on
         };
     }
 }

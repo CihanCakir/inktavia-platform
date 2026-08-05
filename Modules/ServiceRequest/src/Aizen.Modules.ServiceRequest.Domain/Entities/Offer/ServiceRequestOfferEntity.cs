@@ -70,6 +70,10 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     private readonly List<ServiceRequestOfferItemEntity> _items = new();
     public IReadOnlyCollection<ServiceRequestOfferItemEntity> Items => _items.AsReadOnly();
 
+    // ── BE-S3b — offer-level FX rate snapshots (one row per non-TRY source currency), written at submit ──
+    private readonly List<OfferFxSnapshotEntity> _fxSnapshots = new();
+    public IReadOnlyCollection<OfferFxSnapshotEntity> FxSnapshots => _fxSnapshots.AsReadOnly();
+
     public ServiceRequestOfferEntity() { }
 
     public static ServiceRequestOfferEntity Create(
@@ -233,4 +237,16 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
 
     public void AddItem(ServiceRequestOfferItemEntity item) => _items.Add(item);
     public void RecalculateTotal() => TotalAmount = _items.Sum(i => i.Quantity * i.UnitPrice);
+
+    /// <summary>
+    /// BE-S3b — atomically replaces the offer's FX rate snapshots (Draft-only; called by the FX resolver at submit). A
+    /// re-submit re-resolves and replaces; after acceptance the offer can no longer be Draft, so the rows are frozen.
+    /// </summary>
+    public void ReplaceFxSnapshots(IEnumerable<OfferFxSnapshotEntity> snapshots)
+    {
+        if (Status != ServiceRequestOfferStatus.Draft)
+            throw new InvalidOperationException($"Cannot modify FX snapshots on an offer in status {Status}.");
+        _fxSnapshots.Clear();
+        _fxSnapshots.AddRange(snapshots);
+    }
 }

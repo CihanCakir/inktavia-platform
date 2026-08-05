@@ -14,6 +14,8 @@ public sealed class ServiceRequestOfferItemEntityConfiguration : IEntityTypeConf
         builder.Property(x => x.Description).HasMaxLength(2000);
         builder.Property(x => x.Quantity).HasPrecision(12, 3);
         builder.Property(x => x.UnitPrice).IsRequired().HasPrecision(18, 4);
+        // BE-S3: raw foreign price before submit-time conversion; nullable → existing rows = TRY-native (back-compat).
+        builder.Property(x => x.SourceUnitPrice).HasPrecision(18, 4);
         builder.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(10);
         builder.Property(x => x.UnitCode).HasMaxLength(50);
         builder.Property(x => x.TaxRate).HasPrecision(9, 4);

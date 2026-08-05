@@ -32,6 +32,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
     private readonly OfferCalculationService _calculation;
     private readonly UnitCodeValidator _unitCodeValidator;
     private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly Services.Fx.OfferFxResolver _fxResolver;
 
     public SubmitOfferCommandHandler(
         IServiceRequestRepository srRepository,
@@ -40,7 +41,8 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         IAizenInfoAccessor info,
         OfferCalculationService calculation,
         UnitCodeValidator unitCodeValidator,
-        IAizenMessagePublisher messagePublisher)
+        IAizenMessagePublisher messagePublisher,
+        Services.Fx.OfferFxResolver fxResolver)
     {
         _srRepository = srRepository;
         _offerRepository = offerRepository;
@@ -49,6 +51,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         _calculation = calculation;
         _unitCodeValidator = unitCodeValidator;
         _messagePublisher = messagePublisher;
+        _fxResolver = fxResolver;
     }
 
     public override async Task<SubmitOfferResponse?> Handle(SubmitOfferCommand command, CancellationToken ct)
@@ -89,10 +92,15 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         if (pricedLines.Count == 0)
             throw new AizenBusinessException("SR_OFFER_EMPTY");
 
-        // Recalculate before submitting
+        // BE-S3a: resolve FX at the single submit instant and convert any foreign lines to TRY BEFORE the economics runs.
+        // Fail-loud (SR_FX_RATE_UNAVAILABLE) if a source currency has no effective rate. TRY-only offers resolve nothing.
+        var submitInstant = DateTime.UtcNow;
+        await _fxResolver.ResolveAndConvertAsync(offer, submitInstant, ct);
+
+        // Recalculate before submitting (runs on the now-TRY unit prices — the 8-equality is single-currency as always)
         _calculation.Calculate(offer);
 
-        offer.MarkSubmitted(DateTime.UtcNow);
+        offer.MarkSubmitted(submitInstant);
         _offerRepository.Update(offer);
 
         // Update SR status if needed

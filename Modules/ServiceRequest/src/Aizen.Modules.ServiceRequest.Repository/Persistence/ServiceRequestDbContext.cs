@@ -26,6 +26,7 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<ServiceRequestMessageEntity> ServiceRequestMessages => Set<ServiceRequestMessageEntity>();
     public DbSet<ServiceRequestOfferEntity> ServiceRequestOffers => Set<ServiceRequestOfferEntity>();
     public DbSet<ServiceRequestOfferItemEntity> ServiceRequestOfferItems => Set<ServiceRequestOfferItemEntity>();
+    public DbSet<OfferFxSnapshotEntity> OfferFxSnapshots => Set<OfferFxSnapshotEntity>();   // BE-S3b
     public DbSet<ServiceRequestAssignmentEntity> ServiceRequestAssignments => Set<ServiceRequestAssignmentEntity>();
     public DbSet<ServiceRequestWorkLogEntity> ServiceRequestWorkLogs => Set<ServiceRequestWorkLogEntity>();
     public DbSet<ServiceRequestCompletionEntity> ServiceRequestCompletions => Set<ServiceRequestCompletionEntity>();

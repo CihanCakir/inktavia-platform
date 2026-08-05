@@ -118,10 +118,10 @@ public sealed class SaveOfferDraftCommandHandler : AizenCommandHandler<SaveOffer
         if (req.Items.Count > 100)
             throw new AizenBusinessException("Maximum 100 items per offer.");
 
-        var currencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { req.CurrencyCode.ToUpperInvariant() };
+        // BE-S3 — mixed source currencies are ALLOWED: a line may be quoted in a foreign currency and is converted to the
+        // settlement currency (TRY) at offer-submit via the R1 point-in-time rate. The old single-currency guard is dropped.
         foreach (var item in req.Items)
         {
-            currencies.Add(item.CurrencyCode.ToUpperInvariant());
             if (item.ItemType != ServiceRequestOfferItemType.Discount)
             {
                 if (item.Quantity <= 0)
@@ -138,8 +138,5 @@ public sealed class SaveOfferDraftCommandHandler : AizenCommandHandler<SaveOffer
             if (item.CommissionEligibility is { } elig && !Enum.IsDefined(typeof(LineCommissionEligibility), elig))
                 throw new AizenBusinessException($"CommissionEligibility is invalid for item '{item.Title}'.");
         }
-
-        if (currencies.Count > 1)
-            throw new AizenBusinessException("Mixed currencies are not allowed. All items must use the same currency.");
     }
 }
