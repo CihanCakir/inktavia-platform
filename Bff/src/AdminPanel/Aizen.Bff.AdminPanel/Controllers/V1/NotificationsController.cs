@@ -1,6 +1,8 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Notifications.Dto;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Notification.Abstraction.Request;
+using Aizen.Modules.Notification.Abstraction.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -67,5 +69,40 @@ public sealed class NotificationsController : AizenWebApiController
     {
         await _remote.MarkAllReadAsync(ct);
         return NoContent();
+    }
+
+    // ─── Web push (N-A) ─────────────────────────────────────────────────────────
+    // Mirrors the MarineProvider BFF's push proxy. The module resolves the acting admin from the
+    // forwarded user assertion, so no identity is threaded here — just forward + unwrap the envelope.
+
+    /// <summary>GET /api/v1/admin-panel/notifications/vapid-public-key — VAPID public key for pushManager.subscribe</summary>
+    [HttpGet("vapid-public-key")]
+    [ProducesResponseType(typeof(AizenApiResponse<VapidPublicKeyResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<VapidPublicKeyResponse>> GetVapidPublicKey(CancellationToken ct)
+    {
+        var result = await _remote.GetVapidPublicKeyAsync(ct);
+        return SetResponse(result.Body);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/notifications/push-subscriptions — register the browser's WebPush subscription</summary>
+    [HttpPost("push-subscriptions")]
+    [ProducesResponseType(typeof(AizenApiResponse<PushSubscriptionResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PushSubscriptionResponse>> Subscribe(
+        [FromBody] PushSubscriptionRequest body,
+        CancellationToken ct)
+    {
+        var result = await _remote.RegisterWebPushSubscriptionAsync(body, ct);
+        return SetResponse(result.Body);
+    }
+
+    /// <summary>DELETE /api/v1/admin-panel/notifications/push-subscriptions — deactivate a WebPush subscription</summary>
+    [HttpDelete("push-subscriptions")]
+    [ProducesResponseType(typeof(AizenApiResponse<PushSubscriptionResponse>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PushSubscriptionResponse>> Unsubscribe(
+        [FromBody] PushUnsubscribeRequest body,
+        CancellationToken ct)
+    {
+        var result = await _remote.DeactivateWebPushSubscriptionAsync(body, ct);
+        return SetResponse(result.Body);
     }
 }

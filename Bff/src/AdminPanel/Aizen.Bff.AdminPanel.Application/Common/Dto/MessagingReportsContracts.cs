@@ -39,6 +39,18 @@ public sealed record DailyMessageVolumeItem(
 
 public sealed record PeakHourItem(int Hour, int MessageCount);
 
+// ─── Attachment upload-url contract (N0) ────────────────────────────────────
+// Mirror of the module's RequestAttachmentUploadUrlResponse, which lives in
+// Aizen.Modules.Messaging.Application (not referenced by the BFF). Same wrapped-vs-bare
+// lesson as the report DTOs: the module returns AizenApiResponse<T> via SetResponse, so the
+// remote call must deserialize AizenApiResponse<RequestAttachmentUploadUrlResponseBff>.
+// Returning bare Task<object> surfaced the whole { header, body } envelope to the FE → 500.
+public sealed record RequestAttachmentUploadUrlResponseBff(
+    Guid FileId,
+    string UploadSessionCode,
+    string UploadUrl,
+    DateTime ExpiresAt);
+
 // ─── Merged BFF response ────────────────────────────────────────────────────
 // GetReports fans the two module calls out, unwraps each envelope's .Body, and returns
 // this single typed record (no more anonymous object). FE consumes it as

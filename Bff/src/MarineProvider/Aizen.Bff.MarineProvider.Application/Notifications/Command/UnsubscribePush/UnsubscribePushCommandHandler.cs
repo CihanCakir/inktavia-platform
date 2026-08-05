@@ -2,6 +2,7 @@ using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.Notification.Abstraction.Request;
 using Aizen.Modules.Notification.Abstraction.Response;
 
 namespace Aizen.Bff.MarineProvider.Application.Notifications;
@@ -30,7 +31,7 @@ public sealed class UnsubscribePushCommandHandler
         if (_identityHolder.UserId is null or 0)
             throw new AizenBusinessException("Provider identity could not be resolved.");
 
-        return (await _notification.DeactivateWebPushSubscription(new DeactivateWebPushSubscriptionBffRequest
+        return (await _notification.DeactivateWebPushSubscription(new PushUnsubscribeRequest
         {
             Endpoint = request.Endpoint,
         })).Body;

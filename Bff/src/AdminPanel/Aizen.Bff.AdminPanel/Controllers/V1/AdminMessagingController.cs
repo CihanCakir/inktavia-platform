@@ -79,14 +79,16 @@ public sealed class AdminMessagingController : AizenWebApiController
 
     /// <summary>POST api/v1/admin-panel/messaging/conversations/{id}/attachment-upload-url</summary>
     [HttpPost("conversations/{id:long}/attachment-upload-url")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<object>> GetAttachmentUploadUrl(
+    [ProducesResponseType(typeof(RequestAttachmentUploadUrlResponseBff), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<RequestAttachmentUploadUrlResponseBff>> GetAttachmentUploadUrl(
         long id,
         [FromBody] AttachmentUploadUrlRequest body,
         CancellationToken ct = default)
     {
+        // The remote call already returns the module's AizenApiResponse envelope; pass it straight
+        // through (do NOT SetResponse again — that would double-wrap and 500 the FE).
         var result = await _messaging.GetAttachmentUploadUrlAsync(id, body, ct);
-        return SetResponse(result);
+        return result;
     }
 
     // ─── Moderation ───────────────────────────────────────────────────────────

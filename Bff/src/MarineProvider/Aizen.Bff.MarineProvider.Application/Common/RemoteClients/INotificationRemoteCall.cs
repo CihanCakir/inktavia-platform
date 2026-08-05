@@ -1,18 +1,22 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.Notification.Abstraction.Request;
 using Aizen.Modules.Notification.Abstraction.Response;
 
 namespace Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 
 public interface INotificationRemoteCall : IAizenRemoteCall
 {
+    // Body MUST be the module's nested PushSubscriptionRequest ({ endpoint, keys: { p256dh, auth } }).
+    // A flat { endpoint, p256dh, auth } body deserialized into the module DTO with a null Keys → the module's
+    // `body.Keys.P256dh` NRE'd → 500 on subscribe. This is the shape the module controller binds.
     [AizenRemoteCallPost("/api/v1/notification/notifications/push-subscriptions")]
     Task<AizenApiResponse<PushSubscriptionResponse>> RegisterWebPushSubscription(
-        [AizenRemoteCallBody] RegisterWebPushSubscriptionBffRequest body);
+        [AizenRemoteCallBody] PushSubscriptionRequest body);
 
     [AizenRemoteCallDelete("/api/v1/notification/notifications/push-subscriptions")]
     Task<AizenApiResponse<PushSubscriptionResponse>> DeactivateWebPushSubscription(
-        [AizenRemoteCallBody] DeactivateWebPushSubscriptionBffRequest body);
+        [AizenRemoteCallBody] PushUnsubscribeRequest body);
 
     [AizenRemoteCallGet("/api/v1/notification/notifications")]
     Task<AizenApiResponse<NotificationListResponse>> GetNotifications(
@@ -26,16 +30,4 @@ public interface INotificationRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/notification/notifications/vapid-public-key")]
     Task<AizenApiResponse<VapidPublicKeyResponse>> GetVapidPublicKey();
-}
-
-public sealed class RegisterWebPushSubscriptionBffRequest
-{
-    public string Endpoint { get; set; } = default!;
-    public string P256dh { get; set; } = default!;
-    public string Auth { get; set; } = default!;
-}
-
-public sealed class DeactivateWebPushSubscriptionBffRequest
-{
-    public string Endpoint { get; set; } = default!;
 }

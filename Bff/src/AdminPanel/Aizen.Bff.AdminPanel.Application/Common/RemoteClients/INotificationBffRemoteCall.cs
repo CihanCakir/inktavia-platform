@@ -1,6 +1,8 @@
 using Aizen.Bff.AdminPanel.Application.Notifications.Dto;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.Notification.Abstraction.Request;
+using Aizen.Modules.Notification.Abstraction.Response;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -18,4 +20,22 @@ public interface INotificationBffRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallPost("/api/v1/notification/notifications/mark-all-read")]
     Task<AizenApiResponse<object>> MarkAllReadAsync(CancellationToken ct = default);
+
+    // ─── Web push (N-A) ─────────────────────────────────────────────────────────
+    // The module resolves the subscribing/recipient identity from the forwarded user assertion
+    // (ProviderProfileId → UserId), same as the inbox calls above, so the token is stored against
+    // the admin's UserId. Envelope-correct (AizenApiResponse<T>); the controller unwraps .Body.
+
+    [AizenRemoteCallGet("/api/v1/notification/notifications/vapid-public-key")]
+    Task<AizenApiResponse<VapidPublicKeyResponse>> GetVapidPublicKeyAsync(CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/notification/notifications/push-subscriptions")]
+    Task<AizenApiResponse<PushSubscriptionResponse>> RegisterWebPushSubscriptionAsync(
+        [AizenRemoteCallBody] PushSubscriptionRequest body,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallDelete("/api/v1/notification/notifications/push-subscriptions")]
+    Task<AizenApiResponse<PushSubscriptionResponse>> DeactivateWebPushSubscriptionAsync(
+        [AizenRemoteCallBody] PushUnsubscribeRequest body,
+        CancellationToken ct = default);
 }

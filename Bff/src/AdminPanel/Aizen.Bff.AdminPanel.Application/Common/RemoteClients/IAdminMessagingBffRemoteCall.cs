@@ -44,8 +44,12 @@ public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
         long conversationId,
         CancellationToken ct = default);
 
+    // Same wrapped-vs-bare lesson as the conversation/reporting calls: the module returns the
+    // AizenApiResponse envelope via SetResponse, so this must deserialize AizenApiResponse<T>.
+    // The previous Task<object> surfaced the whole { header, body } envelope → the FE 500'd. The
+    // controller passes the envelope straight through (no re-wrap).
     [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages/attachment-upload-url")]
-    Task<object> GetAttachmentUploadUrlAsync(
+    Task<AizenApiResponse<RequestAttachmentUploadUrlResponseBff>> GetAttachmentUploadUrlAsync(
         long conversationId,
         [AizenRemoteCallBody] AttachmentUploadUrlRequest body,
         CancellationToken ct = default);
