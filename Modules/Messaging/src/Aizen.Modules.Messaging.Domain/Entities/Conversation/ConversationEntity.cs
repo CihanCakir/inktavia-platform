@@ -14,6 +14,8 @@ public sealed class ConversationEntity : AizenEntityWithAudit
     public int UnreadCountByAdmin            { get; private set; }
     public DateTimeOffset LastMessageAt      { get; private set; }
     public string LastMessagePreview         { get; private set; } = string.Empty;
+    /// <summary>N-D support reason/topic — set for <see cref="MessagingContextType.Support"/> conversations; null otherwise.</summary>
+    public SupportTopic? Topic               { get; private set; }
 
     private readonly List<ConversationParticipantEntity> _participants = new();
     public IReadOnlyCollection<ConversationParticipantEntity> Participants => _participants.AsReadOnly();
@@ -26,13 +28,15 @@ public sealed class ConversationEntity : AizenEntityWithAudit
     public static ConversationEntity Create(
         MessagingContextType contextType,
         long contextId,
-        string title)
+        string title,
+        SupportTopic? topic = null)
     {
         return new ConversationEntity
         {
             ContextType        = contextType,
             ContextId          = contextId,
             Title              = title.Trim(),
+            Topic              = topic,
             Status             = ConversationStatus.Active,
             UnreadCountByAdmin = 0,
             LastMessageAt      = DateTimeOffset.UtcNow,

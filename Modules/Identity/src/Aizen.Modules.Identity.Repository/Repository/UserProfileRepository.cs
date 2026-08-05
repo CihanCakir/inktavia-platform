@@ -60,6 +60,24 @@ namespace Aizen.Modules.Identity.Repository.Identity.Repository
                     cancellationToken);
         }
 
+        public async Task<UserProfileEntity?> GetParticipantProfileByKeycloakSubjectAsync(
+            string keycloakSubjectId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(keycloakSubjectId))
+                return null;
+
+            return await _dbContext.UserProfiles
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Include(p => p.VerificationDocuments)
+                .Include(p => p.RiskSignals)
+                .FirstOrDefaultAsync(
+                    p => p.RoleContext == WorkshopRoleContext.Participant
+                         && !p.IsDeleted
+                         && p.User.KeycloakSubjectId == keycloakSubjectId,
+                    cancellationToken);
+        }
+
         public async Task AddProfileAsync(UserProfileEntity profile)
         {
             await _dbContext.UserProfiles.AddAsync(profile);

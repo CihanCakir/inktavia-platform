@@ -16,6 +16,10 @@ public interface INotificationIdentityRemoteCall : IAizenRemoteCall
         [Refit.Query] string cityCode,
         [Refit.Query] string? categoryCode = null,
         [Refit.Query] int take = 500);
+
+    // N-D — admin user ids for the support-request fan-out.
+    [AizenRemoteCallGet("/api/v1/identity/admin/user-ids")]
+    Task<AizenApiResponse<List<long>>> GetAdminUserIds();
 }
 
 /// <summary>BFF/module-local mirror of Identity's ProviderForAreaDto (deserialized by JSON property name).</summary>

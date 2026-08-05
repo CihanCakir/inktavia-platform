@@ -18,6 +18,7 @@ public static class MessagingMappingExtensions
         Timestamp   = entity.LastMessageAt,
         UnreadCount = entity.UnreadCountByAdmin,
         Status      = entity.Status.ToString(),
+        Topic       = entity.Topic?.ToString(),
     };
 
     public static ChatMessageDto ToDto(this ConversationMessageEntity entity) => new()

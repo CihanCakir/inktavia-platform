@@ -3,6 +3,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
+using Aizen.Modules.Identity.Application.AdminUsers.GetAdminUserIds;
 using Aizen.Modules.Identity.Application.ProviderEligibility.GetProvidersForArea;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
@@ -298,6 +299,17 @@ public sealed class QueryController : AizenWebApiController
     {
         var result = await _sender.ProcessAsync(
             new GetProvidersForAreaQuery { CityCode = cityCode, CategoryCode = categoryCode, Take = take }, ct);
+        return SetResponse(result);
+    }
+
+    // N-D — internal read: numeric UserIds of admin users, for the support-request admin fan-out (ids only, no PII).
+    // Same internal-read pattern as providers/for-area (anonymous behind the cluster NetworkPolicy).
+    [HttpGet("admin/user-ids")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IList<long>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IList<long>>> GetAdminUserIds(CancellationToken ct)
+    {
+        var result = await _sender.ProcessAsync(new GetAdminUserIdsQuery(), ct);
         return SetResponse(result);
     }
 }

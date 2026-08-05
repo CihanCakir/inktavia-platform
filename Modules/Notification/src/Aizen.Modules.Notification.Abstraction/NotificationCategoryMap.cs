@@ -20,7 +20,7 @@ public static class NotificationCategoryMap
             >= 150 and <= 159          => NotificationCategory.Payments,   // incl. 157 PaymentAuthorized (PreAuth, N-C)
             >= 300 and <= 309          => NotificationCategory.CargoDry,
             >= 400 and <= 411          => NotificationCategory.Account,          // profile + auth/OTP (security)
-            900                        => NotificationCategory.Broadcast,
+            >= 900 and <= 999          => NotificationCategory.Broadcast,   // incl. 910 SupportRequestOpened (N-D)
             _                          => NotificationCategory.Account,          // unknown → treat as always-deliver
         };
     }

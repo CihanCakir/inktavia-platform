@@ -33,6 +33,12 @@ namespace Aizen.Modules.Identity.Domain.Interface
             string keycloakSubjectId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Verilen Keycloak subject'ine bağlı Participant profilini döner; bağlı değilse null.
+        /// </summary>
+        Task<UserProfileEntity?> GetParticipantProfileByKeycloakSubjectAsync(
+            string keycloakSubjectId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Yeni bir kullanıcı profili oluşturur.
         /// </summary>
         Task AddProfileAsync(UserProfileEntity profile);

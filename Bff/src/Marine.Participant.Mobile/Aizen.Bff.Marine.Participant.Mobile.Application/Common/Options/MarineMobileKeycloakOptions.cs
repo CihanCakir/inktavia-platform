@@ -70,5 +70,7 @@ public sealed class MarineMobileKeycloakOptions
 
     public string AuthorizeEndpoint => $"{BaseUrl.TrimEnd('/')}/realms/{Realm}/protocol/openid-connect/auth";
 
+    public string LogoutEndpoint => $"{BaseUrl.TrimEnd('/')}/realms/{Realm}/protocol/openid-connect/logout";
+
     public string AdminApiBaseUrl => $"{BaseUrl.TrimEnd('/')}/admin/realms/{Realm}";
 }

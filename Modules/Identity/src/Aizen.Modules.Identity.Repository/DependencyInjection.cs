@@ -52,6 +52,7 @@ namespace Aizen.Modules.Identity.Repository
             services.AddScoped<IOAuthProviderClient, OAuthProviderClient>();
             services.AddScoped<IOrganizerRegistrationDomainService, OrganizerRegistrationDomainService>();
             services.AddScoped<IOrganizerKeycloakProvisioningDomainService, OrganizerKeycloakProvisioningDomainService>();
+            services.AddScoped<IParticipantKeycloakProvisioningDomainService, ParticipantKeycloakProvisioningDomainService>();
             services.AddScoped<IAdminKeycloakProvisioningDomainService, AdminKeycloakProvisioningDomainService>();
             services.AddScoped<IVenueRegistrationDomainService, VenueRegistrationDomainService>();
 

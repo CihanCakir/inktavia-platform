@@ -86,6 +86,22 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<ResendProviderOtpLoginResponse>> ResendParticipantOtpLogin(
         [AizenRemoteCallBody] ResendProviderOtpLoginRequest request);
 
+    // ── Participant provisioning + session-mint (M2e; reused by M2d social) ───────────────────────
+
+    // Mint a single-use login_ticket for an already-authenticated participant subject (password/social).
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-otp-login/mint-ticket")]
+    Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.MintParticipantTicketResponse>> MintParticipantLoginTicket(
+        [AizenRemoteCallBody] Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.MintParticipantTicketRequest request);
+
+    // Idempotently provision/link a Participant profile for a Keycloak-authenticated user.
+    [AizenRemoteCallPost("/api/v1/identity/participant/provision-from-keycloak")]
+    Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Dto.Participant.ProvisionParticipantFromKeycloakResult>> ProvisionParticipantFromKeycloak(
+        [AizenRemoteCallBody] MobileParticipantProvisionRequest request);
+
+    // Resolve the Participant profile linked to a Keycloak subject (404/null when unlinked).
+    [AizenRemoteCallGet("/api/v1/identity/participant/profiles/by-subject/{keycloakSubject}")]
+    Task<AizenApiResponse<OrganizerProfileDetailDto>> GetParticipantProfileByKeycloakSubject(string keycloakSubject);
+
     // ── Onboarding (delegated to Identity) ──────────────────────────────────────
 
     [AizenRemoteCallGet("/api/v1/identity/provider-onboarding/{profileId}")]
@@ -122,6 +138,17 @@ public sealed class ParticipantProvisionFromKeycloakRequest
     public string? CompanyName { get; set; }
     public string? ContactPhone { get; set; }
     public string? TaxNo { get; set; }
+    public bool? EmailVerified { get; set; }
+}
+
+/// <summary>Body for POST /api/v1/identity/participant/provision-from-keycloak (matches the Identity command).</summary>
+public sealed class MobileParticipantProvisionRequest
+{
+    public string KeycloakSubjectId { get; set; } = default!;
+    public string Email { get; set; } = default!;
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? ContactPhone { get; set; }
     public bool? EmailVerified { get; set; }
 }
 

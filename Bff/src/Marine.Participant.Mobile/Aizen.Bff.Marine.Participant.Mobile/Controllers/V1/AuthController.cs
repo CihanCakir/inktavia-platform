@@ -1,7 +1,9 @@
 using Aizen.Bff.Marine.Participant.Mobile.Application.Auth;
+using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Auth;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Auth.OtpLogin;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Core.Infrastructure.Exception;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -63,4 +65,57 @@ public sealed class AuthController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(command, ct);
         return SetResponse(result);
     }
+
+    // ── Password account paths (absolute routes → /api/v1/mobile/auth/*) ──────────────────────────
+
+    /// <summary>Create an account (Keycloak user + linked Participant profile) and return a session.</summary>
+    [HttpPost("/api/v1/mobile/auth/register")]
+    [ProducesResponseType(typeof(MobileAuthTokenResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileAuthTokenResponse>> Register(
+        [FromBody] MobileRegisterRequest request, CancellationToken ct)
+    {
+        var command = new RegisterParticipantCommand
+        {
+            Email = request.Email, Password = request.Password,
+            FullName = request.FullName, Phone = request.Phone
+        };
+        var result = await _cqrs.ProcessAsync(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Email + password login → real Keycloak (inktavia-mobile) tokens. Invalid creds → 401.</summary>
+    [HttpPost("/api/v1/mobile/auth/login")]
+    [ProducesResponseType(typeof(MobileAuthTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Login([FromBody] MobileLoginRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new LoginParticipantCommand { Email = request.Email, Password = request.Password }, ct);
+        return result is null ? Unauthorized(Fail("Invalid email or password.")) : Ok(SetResponse(result));
+    }
+
+    /// <summary>Exchange a refresh token for new tokens. Invalid/expired → 401.</summary>
+    [HttpPost("/api/v1/mobile/auth/refresh")]
+    [ProducesResponseType(typeof(MobileAuthTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh([FromBody] MobileRefreshRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RefreshParticipantCommand { RefreshToken = request.RefreshToken }, ct);
+        return result is null ? Unauthorized(Fail("Session expired. Please sign in again.")) : Ok(SetResponse(result));
+    }
+
+    /// <summary>Revoke the refresh token / Keycloak session. Idempotent → 200.</summary>
+    [HttpPost("/api/v1/mobile/auth/logout")]
+    [ProducesResponseType(typeof(MobileLogoutResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileLogoutResponse>> Logout(
+        [FromBody] MobileLogoutRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new LogoutParticipantCommand { RefreshToken = request.RefreshToken }, ct);
+        return SetResponse(result);
+    }
+
+    private static AizenApiResponse<MobileAuthTokenResponse> Fail(string message) =>
+        new(AizenResponseHeader.Fail(new AizenBusinessException(message)), null!);
 }

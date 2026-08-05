@@ -23,4 +23,6 @@ public sealed record ConversationSummaryDto
     public DateTimeOffset Timestamp { get; init; }
     public int UnreadCount          { get; init; }
     public string Status            { get; init; } = string.Empty;
+    /// <summary>N-D support topic enum name (e.g. "Payment") for Support conversations; null otherwise.</summary>
+    public string? Topic            { get; init; }
 }

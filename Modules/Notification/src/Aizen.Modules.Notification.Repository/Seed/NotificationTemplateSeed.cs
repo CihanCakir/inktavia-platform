@@ -44,6 +44,12 @@ public sealed class NotificationTemplateSeed
             "Bölgende yeni iş talebi",
             "Bölgende yeni iş talebi: {{title}} ({{requestCode}})."),
 
+        // N-D live support — admin-facing "new support request".
+        NotificationTemplateEntity.Create("SUPPORT_REQUEST_OPENED_INAPP", "Support Request Opened (In-App)",
+            NotificationType.SupportRequestOpened, NotificationChannel.InApp,
+            "Yeni destek talebi: {{topic}}",
+            "{{requesterName}} yeni bir destek talebi açtı ({{topic}}): {{subject}}."),
+
         NotificationTemplateEntity.Create("SR_STATUS_CHANGED_INAPP", "Service Request Status Changed (In-App)",
             NotificationType.ServiceRequestStatusChanged, NotificationChannel.InApp,
             "Request {{requestCode}} Status Updated",

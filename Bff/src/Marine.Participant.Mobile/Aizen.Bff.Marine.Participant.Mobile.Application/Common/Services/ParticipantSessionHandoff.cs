@@ -34,19 +34,17 @@ public sealed class HandoffTokens
 
 internal sealed class ParticipantSessionHandoff : IParticipantSessionHandoff
 {
-    /// <summary>Named HttpClient with auto-redirect DISABLED so we can read the authorize 302 Location.</summary>
+    /// <summary>Named HttpClient (kept for DI compatibility); the handoff constructs its own client so that
+    /// auto-redirect is guaranteed OFF regardless of any HttpClientFactory default handler.</summary>
     public const string HttpClientName = "MarineMobileKeycloakOidc";
 
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly MarineMobileKeycloakOptions _options;
     private readonly ILogger<ParticipantSessionHandoff> _logger;
 
     public ParticipantSessionHandoff(
-        IHttpClientFactory httpClientFactory,
         IOptions<MarineMobileKeycloakOptions> options,
         ILogger<ParticipantSessionHandoff> logger)
     {
-        _httpClientFactory = httpClientFactory;
         _options = options.Value;
         _logger = logger;
     }
@@ -61,7 +59,15 @@ internal sealed class ParticipantSessionHandoff : IParticipantSessionHandoff
         var state = GenerateCodeVerifier(); // reuse the random generator; state only needs to be opaque
         var redirectUri = _options.BffRedirectUri;
 
-        var client = _httpClientFactory.CreateClient(HttpClientName);
+        // Own handler with auto-redirect OFF + isolated cookies — the BFF must READ the authorize 302
+        // Location itself (auto-follow would chase the unreachable redirect_uri host and fail).
+        using var handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = false,
+            UseCookies = true,
+            CookieContainer = new System.Net.CookieContainer(),
+        };
+        using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
 
         var code = await FollowAuthorizeToCodeAsync(client, codeChallenge, state, redirectUri, loginTicket, ct);
         if (string.IsNullOrEmpty(code))
@@ -100,9 +106,6 @@ internal sealed class ParticipantSessionHandoff : IParticipantSessionHandoff
                 or HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect)
             {
                 var location = resp.Headers.Location?.ToString();
-                _logger.LogInformation("OTP handoff DEBUG hop {Hop}: {Status} loc={LocPrefix} redirectUri={Redirect}",
-                    hop, (int)resp.StatusCode,
-                    location is null ? "<null>" : (location.Length > 60 ? location[..60] : location), redirectUri);
                 if (string.IsNullOrEmpty(location)) return null;
 
                 if (location.StartsWith(redirectUri, StringComparison.OrdinalIgnoreCase))

@@ -49,4 +49,6 @@ public enum NotificationType
     PasswordRecoveryOtp          = 410,
     OtpLoginCode                 = 411,
     AdminBroadcast               = 900,
+    /// <summary>N-D — a live-support request was opened; notifies admins. Broadcast category (N-B gated).</summary>
+    SupportRequestOpened         = 910,
 }

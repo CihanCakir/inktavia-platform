@@ -4,6 +4,7 @@ using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 using Aizen.Modules.Messaging.Application.Command.CreateConversation;
+using Aizen.Modules.Messaging.Application.Command.CreateSupportRequest;
 using Aizen.Modules.Messaging.Application.Query.GetConversationByContext;
 using Aizen.Modules.Messaging.Application.Query.GetConversationDetail;
 using Aizen.Modules.Messaging.Application.Query.GetConversationList;
@@ -112,6 +113,24 @@ public sealed class ConversationsController : AizenWebApiController
         var command = new CreateConversationCommand(
             request.ContextType, request.ContextId, request.Title, participants);
         var result = await _cqrs.ProcessAsync<CreateConversationResponse>(command, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST api/v1/conversations/support — open (or reuse) a live-support conversation (N-D).</summary>
+    [HttpPost("support")]
+    [ProducesResponseType(typeof(CreateSupportRequestResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CreateSupportRequestResponse?>> CreateSupportRequest(
+        [FromBody] CreateSupportRequestRequest request, CancellationToken ct = default)
+    {
+        var command = new CreateSupportRequestCommand
+        {
+            Topic                = request.Topic,
+            Subject              = request.Subject,
+            FirstMessage         = request.FirstMessage,
+            RequesterDisplayName = string.IsNullOrWhiteSpace(request.RequesterDisplayName) ? "Kullanıcı" : request.RequesterDisplayName!,
+            RequesterRole        = request.RequesterRole ?? MessagingParticipantRole.Owner,
+        };
+        var result = await _cqrs.ProcessAsync<CreateSupportRequestResponse>(command, ct);
         return SetResponse(result);
     }
 }

@@ -1,6 +1,7 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Messaging.Abstraction.Enum;
+using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 
 namespace Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
@@ -26,4 +27,26 @@ public interface IMessagingRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<GetConversationDetailResponse>> GetMyConversationByContext(
         [Refit.Query] MessagingContextType contextType,
         [Refit.Query] long contextId);
+
+    // ─── N-D live support (participant-scoped writes; the module resolves the requester from the assertion) ──────
+    [AizenRemoteCallPost("/api/v1/conversations/support")]
+    Task<AizenApiResponse<CreateSupportRequestResponse>> CreateSupportRequest(
+        [AizenRemoteCallBody] CreateSupportRequestRequest body);
+
+    [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages")]
+    Task<AizenApiResponse<SendMessageResponse>> SendMessage(
+        long conversationId,
+        [AizenRemoteCallBody] SendMessageRequest body);
+
+    [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages/attachment-upload-url")]
+    Task<AizenApiResponse<SupportAttachmentUploadUrlBff>> GetAttachmentUploadUrl(
+        long conversationId,
+        [AizenRemoteCallBody] AttachmentUploadUrlRequest body);
 }
+
+/// <summary>
+/// BFF-local mirror of the Messaging module's RequestAttachmentUploadUrlResponse (which lives in its .Application layer,
+/// not referenced by the BFF). Same wrapped-vs-bare lesson as N0 — the remote call must deserialize the envelope.
+/// </summary>
+public sealed record SupportAttachmentUploadUrlBff(
+    System.Guid FileId, string UploadSessionCode, string UploadUrl, System.DateTime ExpiresAt);

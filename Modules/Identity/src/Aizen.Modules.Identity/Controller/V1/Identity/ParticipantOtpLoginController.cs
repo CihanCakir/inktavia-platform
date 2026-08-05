@@ -76,4 +76,23 @@ public sealed class ParticipantOtpLoginController : AizenWebApiController
 
         return Ok(new { consumed = true, sub = result.Sub });
     }
+
+    /// <summary>
+    /// Server-to-server only (mobile BFF -> Identity, IdentityWrite). Mints a single-use login_ticket for an
+    /// already-authenticated participant subject — used by password/social sign-in, which have no OTP step, so
+    /// the BFF can run the SAME ParticipantSessionHandoff (auth-code+PKCE against inktavia-mobile) as OTP does.
+    /// </summary>
+    [HttpPost("mint-ticket")]
+    [ProducesResponseType(typeof(MintParticipantTicketResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MintParticipantTicketResponse>> MintTicket(
+        [FromBody] MintParticipantTicketRequest request, CancellationToken ct)
+    {
+        var ticketService = HttpContext.RequestServices.GetRequiredService<IProviderOtpLoginTicketService>();
+        var ticket = await ticketService.MintAsync(request.Sub, "inktavia-mobile", ct);
+        return SetResponse(new MintParticipantTicketResponse
+        {
+            LoginTicket = ticket.LoginTicket,
+            ExpiresInSeconds = ticket.ExpiresInSeconds,
+        });
+    }
 }

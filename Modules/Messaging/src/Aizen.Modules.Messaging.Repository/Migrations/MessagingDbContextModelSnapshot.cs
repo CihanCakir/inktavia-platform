@@ -87,6 +87,9 @@ namespace Aizen.Modules.Messaging.Repository.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<int?>("Topic")
+                        .HasColumnType("integer");
+
                     b.Property<int>("UnreadCountByAdmin")
                         .HasColumnType("integer");
 
@@ -97,6 +100,8 @@ namespace Aizen.Modules.Messaging.Repository.Migrations
                     b.HasIndex("LastMessageAt");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("Topic");
 
                     b.HasIndex("ContextType", "ContextId")
                         .IsUnique();
