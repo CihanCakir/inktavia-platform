@@ -29,7 +29,25 @@ public sealed record LineEconomicsInput(
     // ── S2d (descriptive; NOT part of the money math or the 8 equalities) ──
     IReadOnlyList<LineAttributeSnapshotInput>? Attributes = null,
     // ── S3 (frozen FX metadata; NOT part of the money math — the amounts above are already TRY) ──
-    LineFxSnapshotInput? Fx = null);
+    LineFxSnapshotInput? Fx = null,
+    // ── S4 (structured travel/mobilization derivation; descriptive — snapshotted beside the line, in no sum/invariant) ──
+    TravelSnapshotInput? Travel = null);
+
+/// <summary>
+/// S4 — the structured travel/mobilization derivation to snapshot for a Travel line at acceptance (§20.8). Carried from
+/// ServiceRequest through the acceptance-economics request, resolved (city labels denormalized) SR-side. <see cref="Method"/>
+/// is the raw SR <c>TravelPricingMethod</c> int. Descriptive — the factory materialises it as an immutable child of the
+/// aggregate snapshot (tamper-checked against the line total) and it never enters a sum or invariant.
+/// </summary>
+public sealed record TravelSnapshotInput(
+    int      Method,
+    string?  OriginCityCode,
+    string?  OriginCityLabel,
+    string?  DestinationCityCode,
+    string?  DestinationCityLabel,
+    decimal? DistanceKm,
+    decimal? PerKmRate,
+    string?  UnitCode);
 
 /// <summary>
 /// S3 — the frozen per-line FX record to snapshot at acceptance (§20.7). Carried from ServiceRequest through the

@@ -111,6 +111,12 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.MintParticipantTicketResponse>> MintParticipantLoginTicket(
         [AizenRemoteCallBody] Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.MintParticipantTicketRequest request);
 
+    // Resolve a login identifier (email|phone) → participant email (= Keycloak username) + subject, no OTP sent.
+    // Used by phone password-login to obtain the ROPC username (phone isn't stored in Keycloak).
+    [AizenRemoteCallPost("/api/v1/identity/auth/participant-otp-login/resolve-identifier")]
+    Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.ResolveParticipantIdentifierResponse>> ResolveParticipantIdentifier(
+        [AizenRemoteCallBody] Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.ResolveParticipantIdentifierRequest request);
+
     // Idempotently provision/link a Participant profile for a Keycloak-authenticated user.
     [AizenRemoteCallPost("/api/v1/identity/participant/provision-from-keycloak")]
     Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Dto.Participant.ProvisionParticipantFromKeycloakResult>> ProvisionParticipantFromKeycloak(

@@ -31,7 +31,9 @@ public sealed record ServiceRequestEconomicsLine(
     // ── S2d pricing attributes (descriptive; carried straight through to the line snapshot) ──
     IReadOnlyList<LineAttributeSnapshotInput>? Attributes = null,
     // ── S3 frozen FX metadata (descriptive; carried straight through to the line snapshot) ──
-    LineFxSnapshotInput? Fx = null);
+    LineFxSnapshotInput? Fx = null,
+    // ── S4 structured travel derivation (descriptive; carried straight through to the aggregate travel snapshot) ──
+    TravelSnapshotInput? Travel = null);
 
 /// <summary>BE-P8b — the resolved P6 customer discount + funding to apply (authoritative). BudgetRemaining caps platform funding.</summary>
 public sealed record ServiceRequestCustomerDiscountInput(
@@ -220,7 +222,8 @@ public static class ServiceRequestEconomicsCombiner
                 CommissionAmount: comm, ProviderNet: pnet, LineVat: vat, LineTotal: lineTot,
                 RuleId: null, RuleCode: l.RuleCode, Commissionable: l.Commissionable, SortOrder: order++,
                 Attributes: l.Attributes,     // S2d — descriptive, passed through untouched
-                Fx: l.Fx));                   // S3  — frozen FX metadata, passed through untouched
+                Fx: l.Fx,                     // S3  — frozen FX metadata, passed through untouched
+                Travel: l.Travel));           // S4  — structured travel derivation, passed through untouched
 
             if (l.Commissionable && !string.IsNullOrWhiteSpace(l.RuleCode) && !codes.Contains(l.RuleCode!))
                 codes.Add(l.RuleCode!);

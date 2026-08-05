@@ -63,29 +63,9 @@ public sealed class ParticipantOtpLoginDomainService : IParticipantOtpLoginDomai
             return syntheticResult;
         }
 
-        UserEntity? user = null;
-        try
-        {
-            if (channel == "email")
-                user = await _userManager.FindByEmailAsync(identifier.ToLowerInvariant());
-            else if (channel == "phone")
-            {
-                var normalized = NormalizePhone(identifier);
-                if (normalized is not null)
-                    user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == normalized, ct);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "OTP login: user lookup failed (channel {Channel}).", channel);
-        }
-
-        if (user is null || string.IsNullOrWhiteSpace(user.KeycloakSubjectId))
-            return syntheticResult;
-
-        // Participant gate: require an active Participant context (mirror of the provider Organizer gate)
-        var profile = await _profileRepo.GetActiveProfileIdAsync(user.Id, WorkshopRoleContext.Participant);
-        if (profile is null) return syntheticResult;
+        var lookup = await LookupActiveParticipantAsync(channel, identifier, ct);
+        if (lookup is null) return syntheticResult;
+        var (user, participantProfileId) = lookup.Value;
 
         var otp = PasswordRecoverySecurity.GenerateNumericOtp(_options.OtpLength);
         var (otpHash, otpSalt) = PasswordRecoverySecurity.Hash(otp);
@@ -93,8 +73,8 @@ public sealed class ParticipantOtpLoginDomainService : IParticipantOtpLoginDomai
 
         var entity = ParticipantOtpLoginRequestEntity.Create(
             loginRequestId: syntheticResult.LoginRequestId,
-            keycloakSubjectId: user.KeycloakSubjectId,
-            userId: user.Id, participantProfileId: profile.Id,
+            keycloakSubjectId: user.KeycloakSubjectId!,
+            userId: user.Id, participantProfileId: participantProfileId,
             channel: channel, targetHash: targetHash, maskedTarget: syntheticResult.MaskedTarget,
             otpHash: otpHash, otpSalt: otpSalt,
             otpExpiresAtUtc: DateTime.UtcNow.AddSeconds(_options.OtpTtlSeconds),
@@ -237,6 +217,62 @@ public sealed class ParticipantOtpLoginDomainService : IParticipantOtpLoginDomai
         }
 
         return response;
+    }
+
+    public async Task<ParticipantIdentifierResolution?> ResolveByIdentifierAsync(
+        string channel, string identifier, CancellationToken ct)
+    {
+        channel = channel.Trim().ToLowerInvariant();
+        identifier = identifier.Trim();
+
+        var lookup = await LookupActiveParticipantAsync(channel, identifier, ct);
+        if (lookup is null) return null;
+        var (user, participantProfileId) = lookup.Value;
+
+        // Keycloak's username IS the email; ROPC needs it. No email ⇒ can't authenticate.
+        if (string.IsNullOrWhiteSpace(user.Email)) return null;
+
+        return new ParticipantIdentifierResolution
+        {
+            Email = user.Email!,
+            KeycloakSubjectId = user.KeycloakSubjectId!,
+            ParticipantProfileId = participantProfileId,
+        };
+    }
+
+    /// <summary>
+    /// Shared identifier → active-participant lookup used by BOTH OTP-login request and password-login resolve:
+    /// email → FindByEmail, phone → NormalizePhone + PhoneNumber match, then the same active-Participant gate.
+    /// Returns null when no linked, gated participant matches. Never throws — a lookup error resolves to null.
+    /// </summary>
+    private async Task<(UserEntity user, long participantProfileId)?> LookupActiveParticipantAsync(
+        string channel, string identifier, CancellationToken ct)
+    {
+        UserEntity? user = null;
+        try
+        {
+            if (channel == "email")
+                user = await _userManager.FindByEmailAsync(identifier.ToLowerInvariant());
+            else if (channel == "phone")
+            {
+                var normalized = NormalizePhone(identifier);
+                if (normalized is not null)
+                    user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == normalized, ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "OTP login: user lookup failed (channel {Channel}).", channel);
+        }
+
+        if (user is null || string.IsNullOrWhiteSpace(user.KeycloakSubjectId))
+            return null;
+
+        // Participant gate: require an active Participant context (mirror of the provider Organizer gate)
+        var profile = await _profileRepo.GetActiveProfileIdAsync(user.Id, WorkshopRoleContext.Participant);
+        if (profile is null) return null;
+
+        return (user, profile.Id);
     }
 
     private async Task<bool> IsIdentifierThrottledAsync(string identifier)

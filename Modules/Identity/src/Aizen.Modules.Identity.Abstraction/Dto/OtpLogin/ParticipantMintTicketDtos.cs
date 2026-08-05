@@ -12,3 +12,18 @@ public sealed class MintParticipantTicketResponse
     public string LoginTicket { get; set; } = string.Empty;
     public int ExpiresInSeconds { get; set; }
 }
+
+/// <summary>Server-to-server: resolve a login identifier (email|phone) to the canonical participant email
+/// (= Keycloak username) + subject, WITHOUT sending an OTP. Used by phone password-login. IdentityWrite-only.</summary>
+public sealed class ResolveParticipantIdentifierRequest
+{
+    public string Channel { get; set; } = default!;    // "email" | "phone"
+    public string Identifier { get; set; } = default!;
+}
+
+public sealed class ResolveParticipantIdentifierResponse
+{
+    public bool Found { get; set; }
+    public string? Email { get; set; }
+    public string? KeycloakSubjectId { get; set; }
+}

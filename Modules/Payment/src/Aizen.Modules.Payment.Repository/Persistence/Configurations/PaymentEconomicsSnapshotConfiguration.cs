@@ -61,9 +61,12 @@ public sealed class PaymentEconomicsSnapshotConfiguration : IEntityTypeConfigura
         b.HasMany(x => x.OfferLines).WithOne().HasForeignKey(l => l.EconomicsSnapshotId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(x => x.CommissionAllocations).WithOne().HasForeignKey(l => l.EconomicsSnapshotId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(x => x.DiscountAllocations).WithOne().HasForeignKey(l => l.EconomicsSnapshotId).OnDelete(DeleteBehavior.Restrict);
+        // S4b — travel pricing snapshots are children of THIS aggregate snapshot (FK, OnDelete Restrict).
+        b.HasMany(x => x.TravelPricingSnapshots).WithOne().HasForeignKey(t => t.EconomicsSnapshotId).OnDelete(DeleteBehavior.Restrict);
         b.Metadata.FindNavigation(nameof(PaymentEconomicsSnapshotEntity.OfferLines))!.SetPropertyAccessMode(PropertyAccessMode.Field);
         b.Metadata.FindNavigation(nameof(PaymentEconomicsSnapshotEntity.CommissionAllocations))!.SetPropertyAccessMode(PropertyAccessMode.Field);
         b.Metadata.FindNavigation(nameof(PaymentEconomicsSnapshotEntity.DiscountAllocations))!.SetPropertyAccessMode(PropertyAccessMode.Field);
+        b.Metadata.FindNavigation(nameof(PaymentEconomicsSnapshotEntity.TravelPricingSnapshots))!.SetPropertyAccessMode(PropertyAccessMode.Field);
 
         // ── Indexes ─────────────────────────────────────────────────────────────
         b.HasIndex(x => new { x.ContextType, x.ContextId });

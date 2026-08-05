@@ -44,6 +44,9 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<PricingAttributeDefinitionCategoryEntity> PricingAttributeDefinitionCategories => Set<PricingAttributeDefinitionCategoryEntity>();
     public DbSet<PricingAttributeValueEntity> PricingAttributeValues => Set<PricingAttributeValueEntity>();
 
+    // ── Travel pricing detail (BE-S4a, §20.8) — descriptive derivation on the Travel line, not part of the line money math ──
+    public DbSet<TravelPricingDetailEntity> TravelPricingDetails => Set<TravelPricingDetailEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

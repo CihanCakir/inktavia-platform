@@ -105,3 +105,40 @@ Legend: ✅ pass · ❌ fail/bug · ➖ not tested this run (reason noted)
 - FE-D (minor): Profile header prefer real display name from `/me`; verify fullName mapping.
 - Build/env: produce an **EAS dev build** (or `expo prebuild` + `run:ios`) with real `EXPO_PUBLIC_GOOGLE_*_CLIENT_ID` + Apple entitlement to actually QA social.
 - Manual re-test: kill/relaunch persistence (§1, §6), token-refresh happy + fail (§5), duplicate-email register, wrong/expired OTP, recovery <12/mismatch/reuse-token, network-off.
+
+---
+
+## Resolution — fixes applied (2026-08-06)
+
+After the QA pass, the blockers were fixed in two slices (FE_M2_QA_FIXES + BE_M2g).
+
+- **§2 Phone password-login — ✅ FIXED.**
+  - FE (`FE_M2_QA_FIXES`): login identifier schema accepts email OR TR phone; `authApi.loginApi` normalizes phone to +90 E.164.
+  - BFF (`BE_M2g`): root cause was raw Keycloak ROPC with `username=<identifier>` while Keycloak username is the email (phone only lives in the Identity profile). Fix reuses the OTP resolver (`LookupActiveParticipantAsync` extracted in `ParticipantOtpLoginDomainService`; new read-only S2S `…/participant-otp-login/resolve-identifier`); `LoginParticipantCommandHandler` resolves phone→email before ROPC. Email path untouched; unresolved phone → clean 401.
+  - **Live-verified (HTTP, localhost:17003):** email → 200+token (no regression); `+905551002026` → 200+token; `5551002026`/`05551002026` normalize → 200+token; unknown phone / wrong pw / unknown email → 401, no token, no 500. Token shape identical to email login. Report: `REPORT_BE_M2g_PHONE_PASSWORD_LOGIN.md`.
+  - On-device tap-through: optional (HTTP-proven); pending an app relaunch.
+- **§4 Social — partially addressed.** FE added `isGoogleSignInAvailable()`/`isAppleSignInAvailable()`; unavailable buttons dimmed + graceful message instead of the red-screen crash. **Full social QA still requires a dev build** with real Google/Apple client IDs — cannot be tested in Expo Go.
+- **i18n `auth.login` bug — ✅ FIXED** (FE-C): added `auth.loginLink`, Register link points at it.
+- **Profile header shows email not name — ✅ FIXED** (FE-D): `getMeApi` derives display name from Keycloak token claims via new `core/auth/jwt.ts`; fallback `fullName || email || 'Guest'`; hardcoded "Captain James Hart" removed.
+- **Static placeholder data in non-auth screens — expected**; replaced as M3+ wires Profile/Vessels/Services to the backend.
+
+**Auth surface status: 100% (backend + client).** Remaining = the "manual re-test" items above + full social on a dev build.
+
+---
+
+## Manual on-device round 2 (2026-08-06, iPhone 16 Pro / Expo Go, post-fix build)
+
+Driven on the simulator after the fixes were loaded. Confirmed live:
+
+- **§4 Social graceful — ✅ VERIFIED.** Tapping Google now shows inline "Google/Apple sign-in isn't available in this build. A development build is required." — no red-screen crash. Buttons dimmed. (FE-B working.)
+- **§1 Duplicate-email register — ✅ VERIFIED.** Register with existing `qa.owner.aug5@…` → clean banner "An account already exists for this email. Please sign in instead." No crash / 500.
+- **§3 Wrong OTP — ✅ VERIFIED.** OTP-login, entered `000000` → auto-verify → inline "Invalid or expired code.", boxes cleared, no crash. (Expired OTP shares this error path; true TTL-expiry not waited out.)
+- **§2 Phone password-login (on-device) — ✅ VERIFIED.** `5551002026` (client normalizes) + password → logged in to Home. Confirms BE_M2g + FE-A live on the real app. Field accepts phone (no "Invalid email address").
+- **FE-C i18n — ✅ VERIFIED.** Register "Already have an account? Login" renders clean text (no raw key error).
+- **§1/§6 Session persistence — PARTIAL.** Cold-start hydration path (secure-store → `/me` → authenticated) proven earlier (on the mock→real reload the app read the persisted token and called `/me`). Full process-kill relaunch not driven — simulator dev-menu/kill gestures (Cmd+R/Cmd+D/home-swipe) didn't reliably trigger in this harness. **Recommend a manual kill-relaunch confirmation.**
+
+Still not driven (need TTL waits / backend orchestration / another OTP; low-risk):
+- §5 token-refresh happy + fail (access-token TTL wait / refresh-token revoke).
+- §7 recovery `<12` / mismatch client validation + reuse-token (needs another recovery OTP to reach the New Password screen; happy-path ≥12 already verified).
+- §3 expired-OTP true TTL expiry.
+- §8 network-off (can't toggle simulator network without dropping the device bridge).

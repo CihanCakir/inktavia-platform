@@ -126,13 +126,21 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
                 : new LineFxSnapshotInput(
                     l.Fx.SourceCurrencyCode, l.Fx.SettlementCurrencyCode, l.Fx.SourceUnitPrice,
                     l.Fx.AppliedRate, l.Fx.RateDate, l.Fx.ResolvedUnitPrice);
+            // S4 — carry the structured travel derivation through untouched (resolved SR-side; descriptive only).
+            var travel = l.Travel is null
+                ? null
+                : new TravelSnapshotInput(
+                    l.Travel.Method, l.Travel.OriginCityCode, l.Travel.OriginCityLabel,
+                    l.Travel.DestinationCityCode, l.Travel.DestinationCityLabel,
+                    l.Travel.DistanceKm, l.Travel.PerKmRate, l.Travel.UnitCode);
             return new ServiceRequestEconomicsLine(
                 LineRef: l.LineRef, ItemType: l.ItemType, PricingMethod: l.PricingMethod,
                 CommissionEligibility: l.CommissionEligibility,
                 LineGrossBeforeDiscount: l.LineGrossBeforeDiscount, LineVat: l.LineVat,
                 Commissionable: r.Commissionable, CommissionBase: r.CommissionBaseAmount, ResolvedRate: r.ResolvedRate,
                 CommissionAmount: r.CommissionAmount, ProviderNet: r.ProviderNet, RuleCode: r.RuleCode,
-                DiscountEligible: l.DiscountEligible, EffectiveCommissionRate: effRate, Attributes: attributes, Fx: fx);
+                DiscountEligible: l.DiscountEligible, EffectiveCommissionRate: effRate, Attributes: attributes, Fx: fx,
+                Travel: travel);
         }).ToList();
 
         // ── The ONE combiner (allocates discount pre-tax, P7 rate, P5 gate + safe-max recompute, S8 snapshot) ──

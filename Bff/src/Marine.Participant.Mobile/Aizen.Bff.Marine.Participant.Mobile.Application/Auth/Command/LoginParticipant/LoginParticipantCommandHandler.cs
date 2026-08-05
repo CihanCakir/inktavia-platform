@@ -35,12 +35,28 @@ public sealed class LoginParticipantCommandHandler
     public override async Task<MobileAuthTokenResponse?> Handle(
         LoginParticipantCommand request, CancellationToken ct)
     {
-        var email = (request.Email ?? string.Empty).Trim().ToLowerInvariant();
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(request.Password))
+        var identifier = (request.Email ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(request.Password))
             return null; // → 401
 
+        // The identifier field carries an email OR a phone. Keycloak's username is the email and the phone
+        // is NOT stored in Keycloak — so when a phone is supplied, resolve it to the participant's canonical
+        // email via Identity (the SAME lookup OTP-login uses) before the ROPC. Same '@'→email/else→phone
+        // rule the OTP endpoint uses. An unresolved phone yields invalid credentials (anti-enumeration; not 500).
+        var ropcUsername = identifier.ToLowerInvariant();
+        if (!identifier.Contains('@'))
+        {
+            var resolved = await _identity.ResolveParticipantIdentifier(
+                new Aizen.Modules.Identity.Abstraction.Dto.OtpLogin.ResolveParticipantIdentifierRequest
+                { Channel = "phone", Identifier = identifier });
+            var resolvedEmail = resolved?.Body?.Email;
+            if (string.IsNullOrWhiteSpace(resolvedEmail))
+                return null; // unknown phone → invalid credentials → 401
+            ropcUsername = resolvedEmail.Trim().ToLowerInvariant();
+        }
+
         // Verify credentials; token is discarded — we only take the sub.
-        var sub = await _auth.VerifyPasswordGetSubAsync(email, request.Password, ct);
+        var sub = await _auth.VerifyPasswordGetSubAsync(ropcUsername, request.Password, ct);
         if (string.IsNullOrEmpty(sub))
             return null; // invalid credentials → 401
 

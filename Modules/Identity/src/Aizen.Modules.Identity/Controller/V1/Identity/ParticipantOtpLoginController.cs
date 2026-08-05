@@ -95,4 +95,26 @@ public sealed class ParticipantOtpLoginController : AizenWebApiController
             ExpiresInSeconds = ticket.ExpiresInSeconds,
         });
     }
+
+    /// <summary>
+    /// Server-to-server only (mobile BFF -> Identity, IdentityWrite). Resolves a login identifier (email|phone)
+    /// to the participant's canonical email (= Keycloak username) + subject, WITHOUT sending an OTP — reuses the
+    /// SAME lookup + participant gate as OTP-login. Phone password-login uses this so it can run the Keycloak
+    /// ROPC (whose username is the email) even though the phone is not stored in Keycloak. Found=false when
+    /// no active participant matches (caller treats it as invalid credentials).
+    /// </summary>
+    [HttpPost("resolve-identifier")]
+    [ProducesResponseType(typeof(ResolveParticipantIdentifierResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolveParticipantIdentifierResponse>> ResolveIdentifier(
+        [FromBody] ResolveParticipantIdentifierRequest request, CancellationToken ct)
+    {
+        var service = HttpContext.RequestServices.GetRequiredService<IParticipantOtpLoginDomainService>();
+        var resolution = await service.ResolveByIdentifierAsync(request.Channel, request.Identifier, ct);
+        return SetResponse(new ResolveParticipantIdentifierResponse
+        {
+            Found = resolution is not null,
+            Email = resolution?.Email,
+            KeycloakSubjectId = resolution?.KeycloakSubjectId,
+        });
+    }
 }

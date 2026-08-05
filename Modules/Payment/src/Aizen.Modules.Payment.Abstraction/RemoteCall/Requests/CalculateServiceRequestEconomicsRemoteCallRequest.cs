@@ -54,6 +54,28 @@ public sealed class CalculateServiceRequestEconomicsLineDto
     /// so the accepted total never re-values against a later rate change.
     /// </summary>
     public CalculateServiceRequestEconomicsLineFxDto? Fx { get; init; }
+
+    /// <summary>
+    /// S4 — the structured travel/mobilization derivation for a Travel line (method, origin/destination city codes + denormalized
+    /// labels, provider-declared distance, per-km rate, KILOMETER unit). Null for a non-Travel line or a Travel line with no
+    /// detail. Descriptive/frozen — Payment snapshots it beside the line economics (the Travel line amount is already an Exempt
+    /// pass-through in the 8-equality); it enters no sum or invariant. The resolved travel amount is the line total (derived by
+    /// Payment) and tamper-checked against <c>Round(DistanceKm × PerKmRate)</c> for PerKm.
+    /// </summary>
+    public CalculateServiceRequestEconomicsTravelDto? Travel { get; init; }
+}
+
+/// <summary>S4 — the structured travel/mobilization derivation threaded SR→Payment (self-contained; no re-lookup after acceptance).</summary>
+public sealed class CalculateServiceRequestEconomicsTravelDto
+{
+    public required int      Method               { get; init; }   // raw SR TravelPricingMethod (1=FlatMobilization, 2=PerKm)
+    public string?           OriginCityCode       { get; init; }
+    public string?           OriginCityLabel      { get; init; }   // denormalized display label (no re-lookup after acceptance)
+    public string?           DestinationCityCode  { get; init; }
+    public string?           DestinationCityLabel { get; init; }   // denormalized display label
+    public decimal?          DistanceKm           { get; init; }
+    public decimal?          PerKmRate            { get; init; }
+    public string?           UnitCode             { get; init; }   // KILOMETER for PerKm
 }
 
 /// <summary>S3 — the frozen per-line FX record threaded SR→Payment (self-contained; no re-resolve after acceptance).</summary>

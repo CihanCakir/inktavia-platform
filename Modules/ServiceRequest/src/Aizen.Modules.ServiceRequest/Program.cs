@@ -41,6 +41,10 @@ builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pri
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeValidator>();
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeSnapshotResolver>();
 
+// ── Travel / mobilization pricing (BE-S4) ──
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Travel.TravelPricingValidator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Travel.TravelPricingSnapshotResolver>();
+
 // ── Offer FX (BE-S3) — submit-time foreign→TRY conversion + point-in-time rate snapshot ──
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Fx.IExchangeRateSource,
     Aizen.Modules.ServiceRequest.Application.Services.Fx.ExchangeRateSource>();

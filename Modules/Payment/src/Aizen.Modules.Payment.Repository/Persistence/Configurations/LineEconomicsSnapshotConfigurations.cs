@@ -101,6 +101,35 @@ public sealed class CommissionAllocationSnapshotConfiguration : IEntityTypeConfi
     }
 }
 
+/// <summary>
+/// S4b — EF mapping for the immutable travel/mobilization snapshot (§20.8). Child of payment_economics_snapshots (FK, OnDelete
+/// Restrict, configured on the aggregate side). Distance numeric(12,3); per-km rate + resolved amount numeric(18,4). Descriptive
+/// metadata, not part of the money math.
+/// </summary>
+public sealed class TravelPricingSnapshotConfiguration : IEntityTypeConfiguration<TravelPricingSnapshotEntity>
+{
+    public void Configure(EntityTypeBuilder<TravelPricingSnapshotEntity> b)
+    {
+        b.ToTable("travel_pricing_snapshots");
+        b.HasKey(x => x.Id);
+
+        b.Property(x => x.EconomicsSnapshotId).IsRequired();
+        b.Property(x => x.LineRef).HasMaxLength(100).IsRequired();
+        b.Property(x => x.Method).IsRequired();
+        b.Property(x => x.OriginCityCode).HasMaxLength(50);
+        b.Property(x => x.OriginCityLabel).HasMaxLength(200);
+        b.Property(x => x.DestinationCityCode).HasMaxLength(50);
+        b.Property(x => x.DestinationCityLabel).HasMaxLength(200);
+        b.Property(x => x.DistanceKm).HasColumnType("numeric(12,3)");
+        b.Property(x => x.PerKmRate).HasColumnType("numeric(18,4)");
+        b.Property(x => x.UnitCode).HasMaxLength(50);
+        b.Property(x => x.ResolvedTravelAmount).HasColumnType("numeric(18,4)").IsRequired();
+
+        b.HasIndex(x => x.EconomicsSnapshotId);
+        b.HasIndex(x => new { x.EconomicsSnapshotId, x.LineRef });
+    }
+}
+
 /// <summary>EF mapping for the immutable per-line discount funding allocation (§20.15) — 0 rows in the narrow core.</summary>
 public sealed class DiscountAllocationSnapshotConfiguration : IEntityTypeConfiguration<DiscountAllocationSnapshotEntity>
 {

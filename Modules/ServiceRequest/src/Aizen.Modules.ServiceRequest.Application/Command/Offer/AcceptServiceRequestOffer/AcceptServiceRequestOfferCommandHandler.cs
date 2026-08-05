@@ -29,6 +29,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly IPaymentModuleRemoteCall _paymentRemoteCall;
     private readonly IAizenMessagePublisher _messagePublisher;
     private readonly Services.Pricing.PricingAttributeSnapshotResolver _pricingSnapshotResolver;
+    private readonly Services.Travel.TravelPricingSnapshotResolver _travelSnapshotResolver;
     private readonly ILogger<AcceptServiceRequestOfferCommandHandler> _logger;
 
     public AcceptServiceRequestOfferCommandHandler(
@@ -38,12 +39,14 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         IPaymentModuleRemoteCall paymentRemoteCall,
         IAizenMessagePublisher messagePublisher,
         Services.Pricing.PricingAttributeSnapshotResolver pricingSnapshotResolver,
+        Services.Travel.TravelPricingSnapshotResolver travelSnapshotResolver,
         ILogger<AcceptServiceRequestOfferCommandHandler> logger)
     {
         _srRepository = srRepository; _offerRepository = offerRepository; _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher;
-        _pricingSnapshotResolver = pricingSnapshotResolver; _logger = logger;
+        _pricingSnapshotResolver = pricingSnapshotResolver; _travelSnapshotResolver = travelSnapshotResolver;
+        _logger = logger;
     }
 
     public override async Task<AcceptServiceRequestOfferResponse?> Handle(AcceptServiceRequestOfferCommand request, CancellationToken cancellationToken)
@@ -63,7 +66,9 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         // The whole SR command is transactional, so throwing here rolls back everything.
         // S2d — resolve each line's pricing attribute values (+ denormalized labels) to snapshot at acceptance.
         var attributesByLineRef = await _pricingSnapshotResolver.ResolveForOfferAsync(offer, cancellationToken);
-        var economicsRequest = BuildEconomicsRequest(sr, offer, attributesByLineRef);
+        // S4b — resolve each Travel line's derivation (+ denormalized city labels) to snapshot at acceptance.
+        var travelByLineRef = await _travelSnapshotResolver.ResolveForOfferAsync(offer, cancellationToken);
+        var economicsRequest = BuildEconomicsRequest(sr, offer, attributesByLineRef, travelByLineRef);
         var economics = await _paymentRemoteCall.CalculateServiceRequestEconomicsAsync(
             economicsRequest, $"Bearer {rawToken}", cancellationToken);
 
@@ -149,7 +154,8 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     /// </summary>
     public static CalculateServiceRequestEconomicsRemoteCallRequest BuildEconomicsRequest(
         ServiceRequestEntity sr, ServiceRequestOfferEntity offer,
-        IReadOnlyDictionary<string, List<CalculateServiceRequestEconomicsAttributeDto>>? attributesByLineRef = null)
+        IReadOnlyDictionary<string, List<CalculateServiceRequestEconomicsAttributeDto>>? attributesByLineRef = null,
+        IReadOnlyDictionary<string, CalculateServiceRequestEconomicsTravelDto>? travelByLineRef = null)
     {
         // S3 — the frozen submit-time rate per source currency (empty for a TRY-only offer). Keyed by source currency.
         var fxByCurrency = offer.FxSnapshots
@@ -182,6 +188,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
                     DiscountEligible        = i.LineDiscountEligibility != SrEnum.LineDiscountEligibility.Exempt,   // BE-S6
                     Attributes              = attributesByLineRef?.GetValueOrDefault(lineRef) ?? new(),            // S2d
                     Fx                      = BuildLineFx(i, fxByCurrency),                                        // S3
+                    Travel                  = travelByLineRef?.GetValueOrDefault(lineRef),                         // S4
                 };
             })
             .ToList();

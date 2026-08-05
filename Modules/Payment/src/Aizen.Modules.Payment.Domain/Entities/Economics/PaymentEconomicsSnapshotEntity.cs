@@ -95,8 +95,13 @@ public sealed class PaymentEconomicsSnapshotEntity : AizenEntityWithAudit
     private readonly List<DiscountAllocationSnapshotEntity> _discountAllocations = new();
     public IReadOnlyCollection<DiscountAllocationSnapshotEntity> DiscountAllocations => _discountAllocations.AsReadOnly();
 
+    // ── Travel pricing snapshot children (BE-S4b, §20.8) — immutable, insert-only; descriptive, in no sum/invariant ──
+    private readonly List<TravelPricingSnapshotEntity> _travelPricingSnapshots = new();
+    public IReadOnlyCollection<TravelPricingSnapshotEntity> TravelPricingSnapshots => _travelPricingSnapshots.AsReadOnly();
+
     // P10: settlement / RefundAllocation FKs to this snapshot are added in their own phase — not now.
-    // S4/S2: TravelPricingSnapshot / PricingAttributeSnapshot are RESERVED — not built here.
+    // S2: the PricingAttributeSnapshot slot is filled at the LINE level (OfferLineAttributeSnapshot, §20.6). S4 fills the
+    //     aggregate-level TravelPricingSnapshot slot above.
 
     private PaymentEconomicsSnapshotEntity() { }
 
@@ -289,6 +294,7 @@ public sealed class PaymentEconomicsSnapshotEntity : AizenEntityWithAudit
         var offerLines            = new List<OfferLineEconomicsSnapshotEntity>(lines.Count);
         var commissionAllocations = new List<CommissionAllocationSnapshotEntity>(lines.Count);
         var discountAllocations   = new List<DiscountAllocationSnapshotEntity>();
+        var travelSnapshots       = new List<TravelPricingSnapshotEntity>();
 
         foreach (var l in lines)
         {
@@ -354,6 +360,14 @@ public sealed class PaymentEconomicsSnapshotEntity : AizenEntityWithAudit
 
             commissionAllocations.Add(CommissionAllocationSnapshotEntity.Create(
                 l.LineRef, l.RuleId, l.RuleCode, cb, cr, ca, l.Commissionable));
+
+            // S4b — snapshot the Travel line's derivation (descriptive; not in any sum/invariant). The resolved travel amount
+            // is THIS line's gross (= the Travel line total); the factory tamper-checks it against Round(km × rate) for PerKm.
+            if (l.Travel is { } tr)
+                travelSnapshots.Add(TravelPricingSnapshotEntity.Create(
+                    l.LineRef, tr.Method, tr.OriginCityCode, tr.OriginCityLabel,
+                    tr.DestinationCityCode, tr.DestinationCityLabel, tr.DistanceKm, tr.PerKmRate, tr.UnitCode,
+                    resolvedTravelAmount: gross));
 
             // Discount allocations: only when a discount is actually funded (narrow core = none).
             if (dp > 0m) discountAllocations.Add(DiscountAllocationSnapshotEntity.Create(l.LineRef, CustomerDiscountFundingMode.ProviderFunded, dp, null));
@@ -429,6 +443,7 @@ public sealed class PaymentEconomicsSnapshotEntity : AizenEntityWithAudit
         snapshot._offerLines.AddRange(offerLines);
         snapshot._commissionAllocations.AddRange(commissionAllocations);
         snapshot._discountAllocations.AddRange(discountAllocations);
+        snapshot._travelPricingSnapshots.AddRange(travelSnapshots);   // S4b — descriptive children, in no sum/invariant
         return snapshot;
     }
 
