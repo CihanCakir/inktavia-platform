@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/vessels")]
 [Tags("Admin Panel - Vessels")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class VesselsController : AizenWebApiController
@@ -23,7 +23,7 @@ public sealed class VesselsController : AizenWebApiController
     public VesselsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("vessels")]
+    [HttpGet]
     [ProducesResponseType(typeof(AdminVesselListBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselListBffResponse>> GetVessels(
         [FromQuery] int pageIndex = 0,
@@ -42,7 +42,7 @@ public sealed class VesselsController : AizenWebApiController
 
     // Literal routes must be declared before parameterized routes to avoid ambiguity.
 
-    [HttpGet("vessels/register")]
+    [HttpGet("register")]
     [ProducesResponseType(typeof(AdminVesselRegisterBootstrapBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselRegisterBootstrapBffResponse>> GetVesselRegisterBootstrap(CancellationToken ct)
     {
@@ -50,7 +50,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("vessels/register")]
+    [HttpPost("register")]
     [ProducesResponseType(typeof(CreateVesselResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CreateVesselResponse>> RegisterVessel(
         [FromBody] RegisterAdminVesselBffRequest request, CancellationToken ct)
@@ -59,7 +59,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("vessels/form-options")]
+    [HttpGet("form-options")]
     [ProducesResponseType(typeof(AdminVesselFormOptionsResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselFormOptionsResponse>> GetFormOptions(CancellationToken ct)
     {
@@ -67,7 +67,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("vessels/{vesselId:long}/detail")]
+    [HttpGet("{vesselId:long}/detail")]
     [ProducesResponseType(typeof(AdminVesselDetailBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselDetailBffResponse>> GetVesselDetail(
         long vesselId, CancellationToken ct)
@@ -77,7 +77,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPatch("vessels/{vesselId:long}/archive")]
+    [HttpPatch("{vesselId:long}/archive")]
     [ProducesResponseType(typeof(ArchiveVesselResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ArchiveVesselResponse>> ArchiveVessel(
         long vesselId, [FromBody] ArchiveVesselRequest request, CancellationToken ct)
@@ -87,7 +87,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPatch("vessels/{vesselId:long}/restore")]
+    [HttpPatch("{vesselId:long}/restore")]
     [ProducesResponseType(typeof(RestoreVesselResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<RestoreVesselResponse>> RestoreVessel(
         long vesselId, CancellationToken ct)
@@ -97,7 +97,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPatch("vessels/{vesselId:long}/status")]
+    [HttpPatch("{vesselId:long}/status")]
     [ProducesResponseType(typeof(UpdateVesselStatusResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<UpdateVesselStatusResponse>> UpdateVesselStatus(
         long vesselId, [FromBody] UpdateVesselStatusRequest request, CancellationToken ct)
@@ -107,7 +107,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpDelete("vessels/{vesselId:long}/documents/{documentId:long}")]
+    [HttpDelete("{vesselId:long}/documents/{documentId:long}")]
     [ProducesResponseType(typeof(RemoveVesselDocumentResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<RemoveVesselDocumentResponse>> RemoveVesselDocument(
         long vesselId, long documentId, CancellationToken ct)
@@ -117,7 +117,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("vessels/{vesselId:long}")]
+    [HttpGet("{vesselId:long}")]
     [ProducesResponseType(typeof(GetVesselDetailResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(
         long vesselId, CancellationToken ct)
@@ -126,7 +126,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("vessels/{vesselId:long}/documents")]
+    [HttpGet("{vesselId:long}/documents")]
     [ProducesResponseType(typeof(AdminVesselDocumentsBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselDocumentsBffResponse>> GetVesselDocuments(
         long vesselId,
@@ -138,7 +138,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPut("vessels/{vesselId:long}")]
+    [HttpPut("{vesselId:long}")]
     [ProducesResponseType(typeof(UpdateVesselResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
         long vesselId, [FromBody] UpdateVesselRequest request, CancellationToken ct)
@@ -147,7 +147,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("vessels/{vesselId:long}/media")]
+    [HttpGet("{vesselId:long}/media")]
     [ProducesResponseType(typeof(AdminVesselMediaBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselMediaBffResponse>> GetVesselMedia(
         long vesselId,
@@ -161,7 +161,7 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("vessels/{vesselId:long}/status-history")]
+    [HttpGet("{vesselId:long}/status-history")]
     [ProducesResponseType(typeof(GetVesselStatusHistoryResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetVesselStatusHistoryResponse>> GetVesselStatusHistory(
         long vesselId,
