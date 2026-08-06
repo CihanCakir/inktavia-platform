@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
+using Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
 using Aizen.Core.CQRS.Message;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;

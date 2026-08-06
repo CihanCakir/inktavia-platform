@@ -1,7 +1,6 @@
-using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
-using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.PricingAttributes;
-using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
+using Aizen.Bff.AdminPanel.Application.ServiceRequests.Command;
+using Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
+using Aizen.Bff.AdminPanel.Application.ServiceRequests.Query;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Pricing;
 using Aizen.Bff.AdminPanel.Application.ProfilePerformance.Dto;
@@ -51,7 +50,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestListQuery(status, vesselId, ownerUserId, pageIndex, pageSize), ct);
+            new GetServiceRequestListBffQuery(status, vesselId, ownerUserId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -61,25 +60,25 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<List<PricingAttributeDefinitionDto>>> GetPricingAttributes(
         [FromQuery] string? serviceCategoryCode = null, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(
-            new ListPricingAttributesQuery { ServiceCategoryCode = serviceCategoryCode }, ct));
+            new ListPricingAttributesBffQuery { ServiceCategoryCode = serviceCategoryCode }, ct));
 
     [HttpPost("service-requests/pricing-attributes")]
     [ProducesResponseType(typeof(PricingAttributeDefinitionDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<PricingAttributeDefinitionDto>> CreatePricingAttribute(
         [FromBody] PricingAttributeDefinitionRequest request, CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new CreatePricingAttributeCommand { Request = request }, ct));
+        => SetResponse(await _cqrs.ProcessAsync(new CreatePricingAttributeBffCommand { Request = request }, ct));
 
     [HttpPut("service-requests/pricing-attributes/{id:long}")]
     [ProducesResponseType(typeof(PricingAttributeDefinitionDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<PricingAttributeDefinitionDto>> UpdatePricingAttribute(
         long id, [FromBody] PricingAttributeDefinitionRequest request, CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new UpdatePricingAttributeCommand { Id = id, Request = request }, ct));
+        => SetResponse(await _cqrs.ProcessAsync(new UpdatePricingAttributeBffCommand { Id = id, Request = request }, ct));
 
     [HttpDelete("service-requests/pricing-attributes/{id:long}")]
     [ProducesResponseType(typeof(DeletePricingAttributeResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<DeletePricingAttributeResult>> DeletePricingAttribute(
         long id, CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new DeletePricingAttributeCommand { Id = id }, ct));
+        => SetResponse(await _cqrs.ProcessAsync(new DeletePricingAttributeBffCommand { Id = id }, ct));
 
     [HttpGet("service-requests/by-vessel/{vesselId:long}/history")]
     [ProducesResponseType(typeof(ServiceRequestVesselHistoryBffResponse), StatusCodes.Status200OK)]
@@ -89,7 +88,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetServiceRequestsByVesselHistoryQuery(vesselId, take), ct);
+            new GetServiceRequestsByVesselHistoryBffQuery(vesselId, take), ct);
         return SetResponse(result);
     }
 
@@ -102,7 +101,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminDisputeListQuery(status, pageIndex, pageSize), ct);
+            new GetDisputeListBffQuery(status, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -112,7 +111,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestOperationDetailQuery(serviceRequestId), ct);
+            new GetServiceRequestOperationDetailBffQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -122,7 +121,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, [FromBody] CancelServiceRequestRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new CancelServiceRequestCommand(serviceRequestId, request), ct);
+            new CancelServiceRequestBffCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -132,7 +131,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, [FromBody] ApproveServiceRequestCompletionRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ApproveCompletionCommand(serviceRequestId, request), ct);
+            new ApproveCompletionBffCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -142,7 +141,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, [FromBody] RejectServiceRequestCompletionRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new RejectCompletionCommand(serviceRequestId, request), ct);
+            new RejectCompletionBffCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -153,7 +152,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         [FromBody] ChangeServiceRequestDisputeStatusRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ChangeDisputeStatusCommand(serviceRequestId, disputeId, request), ct);
+            new ChangeDisputeStatusBffCommand(serviceRequestId, disputeId, request), ct);
         return SetResponse(result);
     }
 
@@ -164,7 +163,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         [FromBody] ResolveServiceRequestDisputeRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ResolveDisputeCommand(serviceRequestId, disputeId, request), ct);
+            new ResolveDisputeBffCommand(serviceRequestId, disputeId, request), ct);
         return SetResponse(result);
     }
 
@@ -172,7 +171,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
     [ProducesResponseType(typeof(AdminServiceRequestFilterOptionsResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminServiceRequestFilterOptionsResponse>> GetFilterOptions(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminServiceRequestFilterOptionsQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetServiceRequestFilterOptionsBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -182,7 +181,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestTimelineQuery(serviceRequestId), ct);
+            new GetServiceRequestTimelineBffQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -192,7 +191,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, [FromBody] UpdateServiceRequestStatusRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new UpdateServiceRequestStatusCommand(serviceRequestId, request), ct);
+            new UpdateServiceRequestStatusBffCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -202,7 +201,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, [FromBody] AssignProviderRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new AssignServiceRequestProviderCommand(serviceRequestId, request), ct);
+            new AssignServiceRequestProviderBffCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -212,7 +211,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new CompleteServiceRequestAdminCommand(serviceRequestId), ct);
+            new CompleteServiceRequestBffCommand(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -222,7 +221,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, [FromBody] DisputeServiceRequestRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new DisputeServiceRequestAdminCommand(serviceRequestId, request), ct);
+            new DisputeServiceRequestBffCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -232,7 +231,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestOffersQuery(serviceRequestId), ct);
+            new GetServiceRequestOffersBffQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -260,7 +259,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, long offerId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new AcceptServiceRequestOfferAdminCommand(serviceRequestId, offerId), ct);
+            new AcceptServiceRequestOfferBffCommand(serviceRequestId, offerId), ct);
         return SetResponse(result);
     }
 
@@ -270,7 +269,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, long offerId, [FromBody] RejectServiceRequestOfferRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new RejectServiceRequestOfferAdminCommand(serviceRequestId, offerId, request), ct);
+            new RejectServiceRequestOfferBffCommand(serviceRequestId, offerId, request), ct);
         return SetResponse(result);
     }
 
@@ -280,7 +279,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminWorkLogsQuery(serviceRequestId), ct);
+            new GetWorkLogsBffQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -290,7 +289,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, [FromBody] AddWorkLogEntryRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new AddWorkLogEntryAdminCommand(serviceRequestId, request), ct);
+            new AddWorkLogEntryBffCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -300,7 +299,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, int phaseNumber, [FromBody] UpdateWorkPhaseRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new UpdateWorkPhaseAdminCommand(serviceRequestId, phaseNumber, request), ct);
+            new UpdateWorkPhaseBffCommand(serviceRequestId, phaseNumber, request), ct);
         return SetResponse(result);
     }
 
@@ -310,7 +309,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ReleasePaymentAdminCommand(serviceRequestId), ct);
+            new ReleasePaymentBffCommand(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -320,7 +319,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         [FromQuery] string? filter, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminConversationsQuery(filter), ct);
+            new GetConversationsBffQuery(filter), ct);
         return SetResponse(result);
     }
 
@@ -330,7 +329,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long conversationId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminConversationDetailQuery(conversationId), ct);
+            new GetConversationDetailBffQuery(conversationId), ct);
         return SetResponse(result);
     }
 }

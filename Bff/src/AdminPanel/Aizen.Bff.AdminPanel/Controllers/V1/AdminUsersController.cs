@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
+using Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 using Aizen.Core.CQRS.Abstraction;

@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
+using Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
