@@ -47,7 +47,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubMerchantOnboardingQue
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderPlanPrice;
 using Aizen.Bff.AdminPanel.Application.Payment.ProfitProtectionPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderCommissionBenefit;
-using Aizen.Bff.AdminPanel.Application.Payment.PremiumAdmin;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundAllocationPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundQueue;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderBalance;
@@ -100,6 +99,17 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPlatformFeeRuleDetail;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPlatformFeeRuleStats;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPlatformFeeRulesList;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolvePlatformFee;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.ActivatePremiumProduct;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreatePremiumProduct;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreatePremiumProductPrice;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivatePremiumProduct;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivatePremiumProductPrice;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdatePremiumProduct;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdatePremiumProductPrice;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPremiumProductById;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPremiumProductPrices;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPremiumProducts;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolvePremiumProductPrice;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
