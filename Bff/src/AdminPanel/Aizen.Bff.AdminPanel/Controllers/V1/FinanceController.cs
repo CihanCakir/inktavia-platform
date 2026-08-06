@@ -28,11 +28,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/finance")]
 [Tags("Admin Panel - Finance")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminFinanceController : AizenWebApiController
+public sealed class FinanceController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminFinanceController(
+    public FinanceController(
         IHttpContextAccessor httpContextAccessor,
         IAizenCQRSProcessor  cqrs)
         : base(httpContextAccessor)

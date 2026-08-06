@@ -13,11 +13,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/users/profile-approvals")]
 [Tags("Admin Panel - Profile Approvals")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminProfileApprovalsController : AizenWebApiController
+public sealed class ProfileApprovalsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminProfileApprovalsController(
+    public ProfileApprovalsController(
         IHttpContextAccessor httpContextAccessor,
         IAizenCQRSProcessor cqrsProcessor)
         : base(httpContextAccessor)

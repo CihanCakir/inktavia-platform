@@ -147,11 +147,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/payment")]
 [Tags("Admin Panel - Payment")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminPaymentController : AizenWebApiController
+public sealed class PaymentController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminPaymentController(
+    public PaymentController(
         IHttpContextAccessor  httpContextAccessor,
         IAizenCQRSProcessor   cqrs)
         : base(httpContextAccessor)

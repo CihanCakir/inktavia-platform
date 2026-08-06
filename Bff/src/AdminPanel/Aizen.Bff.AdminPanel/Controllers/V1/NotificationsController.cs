@@ -12,7 +12,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [ApiController]
 // Under /admin-panel like every other admin BFF controller — the admin-web httpClient baseURL is
 // /api/v1/admin-panel, so a bare /api/v1/notifications route is unreachable (the FE's calls 404'd, which is
-// why the notification inbox + badge were empty). Aligns with AdminMessagingController's /admin-panel/messaging.
+// why the notification inbox + badge were empty). Aligns with MessagingController's /admin-panel/messaging.
 [Route("api/v1/admin-panel/notifications")]
 [Tags("Notifications")]
 [Authorize]

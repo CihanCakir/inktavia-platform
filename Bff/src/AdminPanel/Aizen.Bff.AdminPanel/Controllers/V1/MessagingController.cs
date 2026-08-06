@@ -13,11 +13,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/messaging")]
 [Tags("Admin Panel - Messaging")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminMessagingController : AizenWebApiController
+public sealed class MessagingController : AizenWebApiController
 {
     private readonly IMessagingRemoteCall _messaging;
 
-    public AdminMessagingController(
+    public MessagingController(
         IHttpContextAccessor httpContextAccessor,
         IMessagingRemoteCall messaging)
         : base(httpContextAccessor)

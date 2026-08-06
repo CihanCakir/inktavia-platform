@@ -15,9 +15,9 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel")]
 [Tags("Admin Panel - Inactive Modules")]
 [AllowAnonymous]
-public sealed class AdminInactiveModulesController : AizenWebApiController
+public sealed class InactiveModulesController : AizenWebApiController
 {
-    public AdminInactiveModulesController(IHttpContextAccessor httpContextAccessor)
+    public InactiveModulesController(IHttpContextAccessor httpContextAccessor)
         : base(httpContextAccessor) { }
 
     // ─── Payment ─────────────────────────────────────────────────────────────

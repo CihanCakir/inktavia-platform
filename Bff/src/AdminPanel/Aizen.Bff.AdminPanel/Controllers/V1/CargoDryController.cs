@@ -84,11 +84,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/cargodry")]
 [Tags("Admin Panel - CargoDry")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminCargoDryController : AizenWebApiController
+public sealed class CargoDryController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminCargoDryController(
+    public CargoDryController(
         IHttpContextAccessor httpContextAccessor,
         IAizenCQRSProcessor  cqrs)
         : base(httpContextAccessor)

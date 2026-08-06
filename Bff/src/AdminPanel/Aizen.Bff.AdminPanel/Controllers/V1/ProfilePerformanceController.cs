@@ -29,11 +29,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/profile/performance")]
 [Tags("Admin Panel - Profile Performance")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminProfilePerformanceController : AizenWebApiController
+public sealed class ProfilePerformanceController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminProfilePerformanceController(
+    public ProfilePerformanceController(
         IHttpContextAccessor httpContextAccessor,
         IAizenCQRSProcessor  cqrs)
         : base(httpContextAccessor)

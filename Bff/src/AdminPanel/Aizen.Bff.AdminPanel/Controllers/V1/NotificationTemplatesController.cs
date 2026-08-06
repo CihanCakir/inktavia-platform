@@ -15,11 +15,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/notification-templates")]
 [Tags("Admin Panel - Notification Templates")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminNotificationTemplatesController : AizenWebApiController
+public sealed class NotificationTemplatesController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminNotificationTemplatesController(
+    public NotificationTemplatesController(
         IHttpContextAccessor httpContextAccessor,
         IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor)

@@ -19,11 +19,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Route("api/v1/admin-panel/providers")]
 [Tags("Admin Panel - Providers")]
 [Authorize(Policy = "AdminPanelAccess")]
-public sealed class AdminProvidersController : AizenWebApiController
+public sealed class ProvidersController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AdminProvidersController(
+    public ProvidersController(
         IHttpContextAccessor httpContextAccessor,
         IAizenCQRSProcessor  cqrsProcessor)
         : base(httpContextAccessor)
