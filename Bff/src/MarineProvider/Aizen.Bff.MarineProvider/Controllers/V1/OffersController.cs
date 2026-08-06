@@ -1,6 +1,7 @@
 using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Application.Offers;
 using Aizen.Bff.MarineProvider.Application.Offers.Contracts;
+using Aizen.Bff.MarineProvider.Application.PartTerms;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
@@ -95,6 +96,17 @@ public sealed class OffersController : AizenWebApiController
             OfferDiscountAmount = body.OfferDiscountAmount,
             Lines               = body.Lines,
         }, ct));
+
+    /// <summary>
+    /// BE-S5c offer-builder part-terms preview: the cost-free allowance (max customer discount + funded split +
+    /// min-receivable) per Product/Consumable line. Compute-on-demand (nothing persisted). Never returns supplier cost /
+    /// dealer margin — only the derived caps (§20.9 confidentiality).
+    /// </summary>
+    [HttpGet("service-requests/{serviceRequestId:long}/offers/{offerId:long}/part-terms-preview")]
+    [ProducesResponseType(typeof(ResolvePartLineAllowancesRemoteCallResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolvePartLineAllowancesRemoteCallResponse?>> GetOfferPartTermsPreview(
+        long serviceRequestId, long offerId, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetOfferPartTermsPreviewBffQuery { ServiceRequestId = serviceRequestId, OfferId = offerId }, ct));
 
     /// <summary>Draft -> Submitted. Idempotent on idempotency key.</summary>
     [HttpPost("service-requests/{serviceRequestId:long}/offer/{offerId:long}/submit")]

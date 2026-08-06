@@ -1,6 +1,7 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Pricing;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 
 namespace Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
@@ -23,4 +24,8 @@ public interface IServiceRequestRepository
     Task<ProviderDiscoverySummaryResponse> GetDiscoverySummaryAsync(long providerProfileId, ProviderServiceRequestDiscoveryFilter filter, CancellationToken ct = default);
     Task AddAsync(ServiceRequestEntity entity, CancellationToken ct = default);
     void Update(ServiceRequestEntity entity);
+
+    /// <summary>BE-S4 — travel-pricing details keyed by offer-item id, for the given offer items (Travel lines). Read-only.</summary>
+    Task<IReadOnlyDictionary<long, TravelPricingDetailEntity>> GetTravelPricingByOfferItemIdsAsync(
+        IReadOnlyCollection<long> offerItemIds, CancellationToken ct = default);
 }

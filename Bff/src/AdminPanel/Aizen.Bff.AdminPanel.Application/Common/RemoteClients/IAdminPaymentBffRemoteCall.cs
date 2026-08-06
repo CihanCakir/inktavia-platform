@@ -602,6 +602,35 @@ public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/payment/benefit-budget/policies/{id}")]
     Task<CustomerBenefitBudgetPolicyDetailBffDto?> GetCustomerBenefitBudgetPolicyDetailAsync(long id, CancellationToken ct = default);
 
+    // ─── BE-S5 PartCommercialTerm (module: /api/v1/payment/part-commercial-term) — ADMIN-ONLY, cost-bearing ──
+
+    [AizenRemoteCallGet("/api/v1/payment/part-commercial-term/rules")]
+    Task<PartCommercialTermListBffResult> ListPartCommercialTermsAsync(
+        [Query] string? brand             = null,
+        [Query] string? productCode       = null,
+        [Query] long?   providerProfileId = null,
+        [Query] string? categoryCode      = null,
+        [Query] string? currencyCode      = null,
+        [Query] bool?   isActive          = null,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/payment/part-commercial-term/rules/{id}")]
+    Task<PartCommercialTermBffDto?> GetPartCommercialTermDetailAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/part-commercial-term/rules")]
+    Task<PartCommercialTermCreateBffResult> CreatePartCommercialTermAsync(
+        [AizenRemoteCallBody] CreatePartCommercialTermBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/payment/part-commercial-term/rules/{id}")]
+    Task<PartCommercialTermUpdateBffResult> UpdatePartCommercialTermAsync(
+        long id, [AizenRemoteCallBody] UpdatePartCommercialTermBffRequest body, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/part-commercial-term/rules/{id}/deactivate")]
+    Task<bool> DeactivatePartCommercialTermAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/payment/part-commercial-term/rules/{id}/reactivate")]
+    Task<bool> ReactivatePartCommercialTermAsync(long id, CancellationToken ct = default);
+
     // ─── BE-P7 ProviderCommissionBenefitRule + entitlement (module: /api/v1/payment/commission-benefits) ──
 
     [AizenRemoteCallGet("/api/v1/payment/commission-benefits/resolve")]

@@ -48,6 +48,7 @@ using Aizen.Bff.AdminPanel.Application.AdminPayment.PlatformFeeRule;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.ProviderPlanPrice;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.ProfitProtectionPolicy;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.CustomerDiscount;
+using Aizen.Bff.AdminPanel.Application.AdminPayment.PartCommercialTerm;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.ProviderCommissionBenefit;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.PremiumAdmin;
 using Aizen.Bff.AdminPanel.Application.AdminPayment.RefundAllocationPolicy;
@@ -937,6 +938,67 @@ public sealed class AdminPaymentController : AizenWebApiController
     public async Task<AizenApiResponse<CustomerDiscountRuleMutateBffResult?>> ReactivateCustomerDiscountRule(
         long id, CancellationToken ct = default)
         => SetResponse((await _cqrs.ProcessAsync(new ReactivateCustomerDiscountRuleBffCommand { Id = id }, ct))?.Result);
+
+    // ─── BE-S5 PartCommercialTerm (admin-only, cost-bearing) ─────────────────────
+
+    /// <summary>GET api/v1/admin-panel/payment/part-commercial-term/rules — term list (no paging), optional scope filters.</summary>
+    [HttpGet("part-commercial-term/rules")]
+    [ProducesResponseType(typeof(PartCommercialTermListBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PartCommercialTermListBffResult>> GetPartCommercialTerms(
+        [FromQuery] string? brand             = null,
+        [FromQuery] string? productCode       = null,
+        [FromQuery] long?   providerProfileId = null,
+        [FromQuery] string? categoryCode      = null,
+        [FromQuery] string? currencyCode      = null,
+        [FromQuery] bool?   isActive          = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetPartCommercialTermsListBffQuery
+        {
+            Brand             = brand,
+            ProductCode       = productCode,
+            ProviderProfileId = providerProfileId,
+            CategoryCode      = categoryCode,
+            CurrencyCode      = currencyCode,
+            IsActive          = isActive,
+        }, ct);
+        return SetResponse(result?.Result ?? new PartCommercialTermListBffResult(new(), 0));
+    }
+
+    /// <summary>GET api/v1/admin-panel/payment/part-commercial-term/rules/{id} — single term detail (carries cost).</summary>
+    [HttpGet("part-commercial-term/rules/{id:long}")]
+    [ProducesResponseType(typeof(PartCommercialTermBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PartCommercialTermBffDto?>> GetPartCommercialTermById(
+        long id, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new GetPartCommercialTermDetailBffQuery { Id = id }, ct))?.Term);
+
+    /// <summary>POST api/v1/admin-panel/payment/part-commercial-term/rules — create (append a new version of) a term.</summary>
+    [HttpPost("part-commercial-term/rules")]
+    [ProducesResponseType(typeof(PartCommercialTermCreateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PartCommercialTermCreateBffResult?>> CreatePartCommercialTerm(
+        [FromBody] CreatePartCommercialTermBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new CreatePartCommercialTermBffCommand { Body = body }, ct))?.Result);
+
+    /// <summary>PUT api/v1/admin-panel/payment/part-commercial-term/rules/{id} — update a term in place (scope/version immutable).</summary>
+    [HttpPut("part-commercial-term/rules/{id:long}")]
+    [ProducesResponseType(typeof(PartCommercialTermUpdateBffResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PartCommercialTermUpdateBffResult?>> UpdatePartCommercialTerm(
+        long id, [FromBody] UpdatePartCommercialTermBffRequest body, CancellationToken ct = default)
+        => SetResponse((await _cqrs.ProcessAsync(new UpdatePartCommercialTermBffCommand { Id = id, Body = body }, ct))?.Result);
+
+    /// <summary>POST api/v1/admin-panel/payment/part-commercial-term/rules/{id}/deactivate.</summary>
+    [HttpPost("part-commercial-term/rules/{id:long}/deactivate")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PartCommercialTermDeactivateResult?>> DeactivatePartCommercialTerm(
+        long id, CancellationToken ct = default)
+        => SetResponse(new PartCommercialTermDeactivateResult((await _cqrs.ProcessAsync(new DeactivatePartCommercialTermBffCommand { Id = id }, ct))?.Result ?? false));
+
+    /// <summary>POST api/v1/admin-panel/payment/part-commercial-term/rules/{id}/reactivate — re-activate an Inactive term.</summary>
+    [HttpPost("part-commercial-term/rules/{id:long}/reactivate")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PartCommercialTermDeactivateResult?>> ReactivatePartCommercialTerm(
+        long id, CancellationToken ct = default)
+        => SetResponse(new PartCommercialTermDeactivateResult((await _cqrs.ProcessAsync(new ReactivatePartCommercialTermBffCommand { Id = id }, ct))?.Result ?? false));
 
     /// <summary>POST api/v1/admin-panel/payment/benefit-budget/policies — create a per-plan budget policy.</summary>
     [HttpPost("benefit-budget/policies")]

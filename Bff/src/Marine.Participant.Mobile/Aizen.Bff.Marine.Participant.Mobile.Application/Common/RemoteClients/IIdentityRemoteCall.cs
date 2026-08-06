@@ -126,6 +126,12 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/identity/participant/profiles/by-subject/{keycloakSubject}")]
     Task<AizenApiResponse<OrganizerProfileDetailDto>> GetParticipantProfileByKeycloakSubject(string keycloakSubject);
 
+    // Update the current participant's profile (Identity resolves the user from the BFF identity assertion).
+    // Writes the Identity profile table only — not Keycloak (M3a; phone/email are read-only auth identifiers).
+    [AizenRemoteCallPut("/api/v1/identity/participant/profile")]
+    Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Model.ProfileUpdateResult>> UpdateParticipantProfile(
+        [AizenRemoteCallBody] Aizen.Modules.Identity.Abstraction.Request.UpdateParticipantProfileRequest request);
+
     // Validate a native Google/Apple id_token (JWKS + iss/aud/exp) → verified claims (M2d social).
     [AizenRemoteCallPost("/api/v1/identity/auth/participant-social-validate")]
     Task<AizenApiResponse<Aizen.Modules.Identity.Abstraction.Dto.Participant.ParticipantSocialValidateResult>> ValidateParticipantSocial(

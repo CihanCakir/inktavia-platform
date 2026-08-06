@@ -438,6 +438,8 @@ services:
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
       BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # marine-mobile-bff asserts the participant identity for profile update (M3a); mirrors the provider/admin BFFs.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       IdentityKeycloak__ProviderPendingRole: provider_pending
       IdentityKeycloak__ProviderUserRole: provider_user
       IdentityKeycloak__ProviderRestrictedRole: provider_restricted

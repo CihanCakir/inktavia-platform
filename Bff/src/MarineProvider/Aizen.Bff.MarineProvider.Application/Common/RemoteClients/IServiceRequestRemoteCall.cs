@@ -133,6 +133,20 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         long offerId, long itemId,
         [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Pricing.SetOfferLineAttributesRequest body);
 
+    // --- S4 travel pricing (provider) ---
+    [AizenRemoteCallGet("/api/v1/service-requests/provider/offers/{offerId}/items/{itemId}/travel-pricing")]
+    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.Travel.TravelPricingDetailDto>> GetOfferLineTravelPricing(long offerId, long itemId);
+
+    [AizenRemoteCallPut("/api/v1/service-requests/provider/offers/{offerId}/items/{itemId}/travel-pricing")]
+    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.Travel.TravelPricingDetailDto>> SetOfferLineTravelPricing(
+        long offerId, long itemId,
+        [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Travel.SetOfferLineTravelPricingRequest body);
+
+    // --- S5 part-terms allowance preview (cost-free; never carries supplier cost / dealer margin) ---
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/offers/{offerId}/part-terms-preview")]
+    Task<AizenApiResponse<Aizen.Modules.Payment.Abstraction.RemoteCall.Responses.ResolvePartLineAllowancesRemoteCallResponse>> GetOfferPartTermsPreview(
+        long serviceRequestId, long offerId);
+
     // --- Conversations ---
     [AizenRemoteCallGet("/api/v1/service-requests/provider/conversations")]
     Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.Message.GetProviderConversationsResponse>> GetProviderConversations();

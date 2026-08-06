@@ -35,6 +35,7 @@ public static class DependencyInjection
 
         services.AddScoped<IParticipantContext, ParticipantContext>();
         services.AddScoped<IParticipantIdentityHolder, ParticipantIdentityHolder>();
+        services.AddScoped<IParticipantProfileResolver, ParticipantProfileResolver>();
         services.AddSingleton<IParticipantKeycloakServiceTokenProvider, ParticipantKeycloakServiceTokenProvider>();
 
         // Native ticket→session handoff (OIDC auth-code + PKCE vs. the public inktavia-mobile client).

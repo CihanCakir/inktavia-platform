@@ -4,6 +4,7 @@ using System.Text.Json;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Pricing;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
@@ -36,6 +37,17 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
 
     public Task<ServiceRequestEntity?> GetByCodeAsync(string requestCode, CancellationToken ct = default)
         => _db.ServiceRequests.FirstOrDefaultAsync(x => x.RequestCode == requestCode && !x.IsDeleted, ct);
+
+    public async Task<IReadOnlyDictionary<long, TravelPricingDetailEntity>> GetTravelPricingByOfferItemIdsAsync(
+        IReadOnlyCollection<long> offerItemIds, CancellationToken ct = default)
+    {
+        if (offerItemIds.Count == 0) return new Dictionary<long, TravelPricingDetailEntity>();
+        var rows = await _db.TravelPricingDetails
+            .AsNoTracking()
+            .Where(t => offerItemIds.Contains(t.OfferItemId))
+            .ToListAsync(ct);
+        return rows.ToDictionary(t => t.OfferItemId);
+    }
 
     public async Task<IReadOnlyList<ServiceRequestEntity>> GetByOwnerUserIdAsync(long ownerUserId, int skip, int take, CancellationToken ct = default)
         => await _db.ServiceRequests

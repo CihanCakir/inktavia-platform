@@ -71,5 +71,23 @@
 
   { "groupCode": "WORK_DIFFICULTY", "code": "EASY",   "name": "Kolay", "description": "Easy",   "iconKey": null, "colorCode": "#4CAF50", "sortOrder": 1, "isDefault": false, "isActive": true },
   { "groupCode": "WORK_DIFFICULTY", "code": "MEDIUM", "name": "Orta",  "description": "Medium", "iconKey": null, "colorCode": "#FF9800", "sortOrder": 2, "isDefault": true,  "isActive": true },
-  { "groupCode": "WORK_DIFFICULTY", "code": "HARD",   "name": "Zor",   "description": "Hard",   "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true }
+  { "groupCode": "WORK_DIFFICULTY", "code": "HARD",   "name": "Zor",   "description": "Hard",   "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true },
+
+  { "groupCode": "FUEL_TYPE", "code": "DIESEL",   "name": "Dizel",    "description": "Diesel",   "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "GASOLINE", "name": "Benzin",   "description": "Gasoline", "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "ELECTRIC", "name": "Elektrik", "description": "Electric", "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "HYBRID",   "name": "Hibrit",   "description": "Hybrid",   "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "LNG",      "name": "LNG",      "description": "LNG",      "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "ENGINE_TYPE", "code": "INBOARD",    "name": "İçten Takma",  "description": "Inboard",    "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "OUTBOARD",   "name": "Dıştan Takma", "description": "Outboard",   "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "STERNDRIVE", "name": "Kıç Tahrik",   "description": "Sterndrive", "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "JET_DRIVE",  "name": "Jet Tahrik",   "description": "Jet drive",  "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "SAIL",       "name": "Yelken",       "description": "Sail",       "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "HULL_MATERIAL", "code": "FIBERGLASS",   "name": "Fiberglas",    "description": "Fiberglass",    "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "STEEL",        "name": "Çelik",        "description": "Steel",         "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "ALUMINUM",     "name": "Alüminyum",    "description": "Aluminum",      "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "WOOD",         "name": "Ahşap",        "description": "Wood",          "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "CARBON_FIBER", "name": "Karbon Fiber", "description": "Carbon fiber",  "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true }
 ]

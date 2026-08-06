@@ -96,3 +96,29 @@ Depends on: nothing.
 ## Notes
 - **Home is multi-feature:** static blocks replaced incrementally across Phases 2 (vessel), 3 (cargodry), 5 (alerts) — not one phase. (`HomeScreen` + `HomeDashboardScreen`.)
 - **Backend gates FE:** today only auth exists; M3 next. Phase 0 proceeds immediately; Phases 1–6 unlock as each BFF milestone lands.
+
+---
+
+## Phase 0 — DONE (2026-08-06) + roadmap corrections
+
+Phase 0 executed (RN repo `docs/STATIC_TO_API_INVENTORY.md` is the finalized inventory). Scan corrected several assumptions above — these override the earlier Phase 0 text:
+
+- **Guardrails already existed** — `shared/components/feedback/{EmptyState,ErrorState(onRetry),LoadingOverlay}` + React Query v5 (QueryProvider + `queryKeys.ts`) were already wired. Added only the missing `shared/components/feedback/Loading.tsx` (inline spinner) + barrel `index.ts` + **`src/core/api/useApiQuery.ts`** (RQ read hook over httpClient + `normalizeEnvelope`; mock-flag-aware because the interceptor runs the envelope adapter on both real and mock responses — `normalizeEnvelope` confirmed the single adapter). **`useApiQuery` is the standard read hook for all wiring phases.**
+- **The real "static always shows" problem = a direct-import path, NOT the interceptor.** `src/app/config/mock/mockData.ts` has **9 live importers that render unconditionally even with mock OFF**. This direct-import path is what each feature phase must replace (swap the `mockData.ts` import → `useApiQuery`). The flag-gated `src/core/mock/` layer is the part that STAYS. **4 mock locations** total (core/mock, app/config/mock/mockData.ts, features/*/mock, inline `MOCK_*` blocks).
+- **commerce & discovery = empty placeholder stubs** (empty `screens/`, zero files, not routed) → **out of scope**, no phase. (Removes the earlier "Phase 4.5 TBD".)
+- **services vs service-requests** — both routed by `ServicesNavigator` (services = 3 redesign tab-root screens; service-requests = 11 lifecycle screens + components + mock). **Canonical home = `features/service-requests`**: in Phase 4, fold the 3 `services/` screens in and drop 2 orphaned duplicates.
+
+Net effect on later phases: each feature phase's FE step = "replace this feature's `mockData.ts` direct imports with `useApiQuery` + remove inline constants + add loading/empty/error via the existing feedback components".
+
+---
+
+## Phase 1 / M3a — DONE (2026-08-06) + recurring gotchas
+
+M3a (profile read/update + ProfileScreen wiring) live-verified. Reports: `REPORT_BE_M3a_PROFILE.md` + FE section in `STATIC_TO_API_INVENTORY.md`.
+
+**NEW RECURRING GOTCHAS — apply to every future mobile WRITE phase:**
+- **BffAssertion allow-list:** Identity's `AizenUserInfoMiddleware` only honors a BFF identity assertion whose service-token `azp` is in `BffAssertion__AllowedClientIds`. It listed only `provider-portal-bff`/`admin-panel-bff`; `marine-mobile-bff` was added (one env line on `identity-api`, docker-compose.yaml). **Every mobile write-phase that asserts identity to a NEW Identity module will 400 (Identity error 1102) until `marine-mobile-bff` is allow-listed there too.** Check this first on any new asserted PUT/POST.
+- **Profile update writes the Identity profile table only, NOT Keycloak** → the JWT `name` claim is **stale until re-login** (firstName/lastName reflect immediately in `/me`, but token-derived name lags). Declarative-profile GET→controlled-PUT gotcha is therefore N/A for profile updates.
+- **email/phone are read-only in mobile profile update** (auth identifiers; the Identity participant update has no phone field). If phone-edit is ever needed, it's a separate mechanism — revisit.
+
+**M3a pattern (reuse in later phases):** BFF resolves caller Keycloak subject → Identity by-subject → sets `IParticipantIdentityHolder` so the delegating handler attaches the BFF assertion → existing Identity endpoint targets the right participant → re-resolve & echo. FE: `feature/api/*Api.ts` + `useApiQuery(queryKeys.*)` read + `useMutation`→invalidate write, Loading/ErrorState guardrails, remove inline constants + `mockData.ts` import, add RegExp mock handlers so mock-ON renders identically.

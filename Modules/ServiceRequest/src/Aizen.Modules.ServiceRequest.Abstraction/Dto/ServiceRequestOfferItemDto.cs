@@ -1,3 +1,4 @@
+using Aizen.Modules.ServiceRequest.Abstraction.Dto.Travel;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Dto;
@@ -32,4 +33,9 @@ public sealed class ServiceRequestOfferItemDto
     public decimal TaxAmount { get; set; }
     public decimal LineTotal { get; set; }
     public decimal DiscountAmount { get; set; }
+
+    // ── BE-S4 — structured travel/mobilization detail on a Travel line (descriptive; null for non-Travel lines or when unset). ──
+    /// <summary>How the travel charge was derived (method, origin/dest city, distanceKm, perKmRate, unit). The resolved travel
+    /// amount is the line's own <see cref="LineTotal"/> (Travel is an Exempt pass-through — this never re-prices the line).</summary>
+    public TravelPricingDetailDto? Travel { get; set; }
 }
