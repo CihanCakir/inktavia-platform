@@ -44,7 +44,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.RejectSubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.VerifySubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubMerchantOnboardingQueue;
-using Aizen.Bff.AdminPanel.Application.Payment.RefundQueue;
 using Aizen.Modules.Payment.Abstraction.Dto;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCommissionRuleDetail;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCommissionRulesList;
@@ -139,6 +138,8 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateRefundAllocationPol
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetRefundAllocationPolicies;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetRefundAllocationPolicyById;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolveRefundAllocationPolicy;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetChargebackQueue;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetRefundQueue;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
