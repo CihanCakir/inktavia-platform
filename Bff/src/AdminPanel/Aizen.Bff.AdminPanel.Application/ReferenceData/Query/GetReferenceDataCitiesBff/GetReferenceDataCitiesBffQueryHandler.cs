@@ -1,20 +1,20 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
+namespace Aizen.Bff.AdminPanel.Application.ReferenceData.Query;
 
 [DocumentationInfo("GetReferenceDataCities handler", "Forwards admin city list request to the ReferenceData module.")]
-public sealed class GetReferenceDataCitiesQueryHandler
-    : AizenQueryHandler<GetReferenceDataCitiesQuery, CityListResult>
+public sealed class GetReferenceDataCitiesBffQueryHandler
+    : AizenQueryHandler<GetReferenceDataCitiesBffQuery, CityListResult>
 {
     private readonly IReferenceDataRemoteCall _referenceData;
 
-    public GetReferenceDataCitiesQueryHandler(IReferenceDataRemoteCall referenceData)
+    public GetReferenceDataCitiesBffQueryHandler(IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }
 
-    public override async Task<CityListResult> Handle(GetReferenceDataCitiesQuery request, CancellationToken ct)
+    public override async Task<CityListResult> Handle(GetReferenceDataCitiesBffQuery request, CancellationToken ct)
     {
 
         var response = await _referenceData.GetCities(

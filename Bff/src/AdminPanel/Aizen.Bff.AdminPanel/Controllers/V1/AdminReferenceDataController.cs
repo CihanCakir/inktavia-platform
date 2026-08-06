@@ -1,5 +1,5 @@
-using Aizen.Bff.AdminPanel.Application.AdminReferenceData.Command;
-using Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
+using Aizen.Bff.AdminPanel.Application.ReferenceData.Command;
+using Aizen.Bff.AdminPanel.Application.ReferenceData.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -32,7 +32,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(LookupGroupListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupListResult>> GetLookupGroups(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupsQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupsBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -40,7 +40,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(LookupGroupTreeResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupTreeResult>> GetLookupTree(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupTreeQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataLookupGroupTreeBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -50,7 +50,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         string groupCode, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetReferenceDataLookupItemsByGroupCodeQuery(groupCode), ct);
+            new GetReferenceDataLookupItemsByGroupCodeBffQuery(groupCode), ct);
         return SetResponse(result);
     }
 
@@ -59,7 +59,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(CurrencyListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CurrencyListResult>> GetCurrencies(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataCurrenciesQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataCurrenciesBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -68,7 +68,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(CountryListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CountryListResult>> GetCountries(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataCountriesQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataCountriesBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -78,7 +78,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         [FromRoute] string countryCode, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetReferenceDataCitiesQuery(countryCode), ct);
+            new GetReferenceDataCitiesBffQuery(countryCode), ct);
         return SetResponse(result);
     }
 
@@ -89,7 +89,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         [FromQuery] string? type, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetReferenceDataMeasurementUnitsQuery(type), ct);
+            new GetReferenceDataMeasurementUnitsBffQuery(type), ct);
         return SetResponse(result);
     }
 
@@ -98,7 +98,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     [ProducesResponseType(typeof(SystemParameterListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<SystemParameterListResult>> GetSystemParameters(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetReferenceDataSystemParametersQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetReferenceDataSystemParametersBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -108,7 +108,7 @@ public sealed class ReferenceDataController : AizenWebApiController
     public async Task<AizenApiResponse<LookupGroupDto>> CreateLookupGroup(
         [FromBody] CreateLookupGroupRequest request, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new CreateLookupGroupCommand(request), ct);
+        var result = await _cqrs.ProcessAsync(new CreateLookupGroupBffCommand(request), ct);
         return SetResponse(result);
     }
 
@@ -118,7 +118,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         string groupCode, [FromBody] CreateLookupItemRequest request, CancellationToken ct)
     {
         request.GroupCode = groupCode;
-        var result = await _cqrs.ProcessAsync(new CreateLookupItemCommand(request), ct);
+        var result = await _cqrs.ProcessAsync(new CreateLookupItemBffCommand(request), ct);
         return SetResponse(result);
     }
 }
