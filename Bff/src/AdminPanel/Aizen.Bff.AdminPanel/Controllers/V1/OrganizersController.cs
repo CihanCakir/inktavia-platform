@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/identity/organizers/profiles")]
 [Tags("Admin Panel - Organizers")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class OrganizersController : AizenWebApiController
@@ -20,7 +20,7 @@ public sealed class OrganizersController : AizenWebApiController
     public OrganizersController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("identity/organizers/profiles")]
+    [HttpGet]
     [ProducesResponseType(typeof(PagedOrganizerProfileResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<PagedOrganizerProfileResult>> SearchProfiles(
         [FromQuery] int     pageIndex      = 0,
@@ -37,7 +37,7 @@ public sealed class OrganizersController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("identity/organizers/profiles/{profileId:guid}")]
+    [HttpGet("{profileId:guid}")]
     [ProducesResponseType(typeof(OrganizerProfileResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<OrganizerProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
@@ -46,7 +46,7 @@ public sealed class OrganizersController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("identity/organizers/profiles/{profileId:guid}/with-user")]
+    [HttpGet("{profileId:guid}/with-user")]
     [ProducesResponseType(typeof(OrganizerProfileWithUserResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<OrganizerProfileWithUserResult>> GetProfileWithUser(
         Guid profileId, CancellationToken ct)
@@ -60,7 +60,7 @@ public sealed class OrganizersController : AizenWebApiController
     /// Uses long profileId matching Identity module's numeric PK.
     /// Route suffix /detail distinguishes from the Guid-based /with-user route above.
     /// </summary>
-    [HttpGet("identity/organizers/profiles/{profileId:long}/detail")]
+    [HttpGet("{profileId:long}/detail")]
     [ProducesResponseType(typeof(OrganizerProfileWithUserDetailDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<OrganizerProfileWithUserDetailDto>> GetProviderDirectoryDetail(
         long profileId, CancellationToken ct)
