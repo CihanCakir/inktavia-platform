@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Dto;
+using Aizen.Bff.AdminPanel.Application.ProfilePerformance.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;

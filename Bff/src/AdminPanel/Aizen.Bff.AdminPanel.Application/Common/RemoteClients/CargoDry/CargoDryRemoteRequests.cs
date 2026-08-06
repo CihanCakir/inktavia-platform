@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminCargoDry.Dto;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Dto;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 

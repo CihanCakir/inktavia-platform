@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Dto;
+using Aizen.Bff.AdminPanel.Application.ProfilePerformance.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;

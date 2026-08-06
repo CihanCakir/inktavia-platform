@@ -1,5 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminFinance.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
+using Aizen.Bff.AdminPanel.Application.Payment.Dto;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Dto;

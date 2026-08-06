@@ -4,7 +4,7 @@ using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.PricingAttributes;
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto.Pricing;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Pricing;
-using Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Dto;
+using Aizen.Bff.AdminPanel.Application.ProfilePerformance.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;

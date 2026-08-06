@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminPayment.Dto;
+using Aizen.Bff.AdminPanel.Application.Payment.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Modules.Payment.Abstraction.Model.Result;
 

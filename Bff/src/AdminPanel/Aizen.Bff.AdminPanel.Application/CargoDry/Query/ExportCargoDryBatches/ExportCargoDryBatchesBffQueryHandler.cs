@@ -1,0 +1,31 @@
+using Aizen.Bff.AdminPanel.Application.CargoDry.Dto;
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Core.CQRS.Handler;
+
+namespace Aizen.Bff.AdminPanel.Application.CargoDry.Query.ExportCargoDryBatches;
+
+[DocumentationInfo("Export CargoDry batches BFF query handler",
+    "Streams CSV from the module batch export endpoint and returns bytes for the controller to serve.")]
+public sealed class ExportCargoDryBatchesBffQueryHandler
+    : AizenQueryHandler<ExportCargoDryBatchesBffQuery, CargoDryExportBffResponse>
+{
+    private readonly ICargoDryRemoteCall _remote;
+
+    public ExportCargoDryBatchesBffQueryHandler(ICargoDryRemoteCall remote)
+        => _remote = remote;
+
+    public override async Task<CargoDryExportBffResponse> Handle(
+        ExportCargoDryBatchesBffQuery request, CancellationToken ct)
+    {
+        var upstream    = await _remote.ExportBatchesAsync(ct);
+        var bytes       = await upstream.Content.ReadAsByteArrayAsync(ct);
+        var contentType = upstream.Content.Headers.ContentType?.ToString() ?? "text/csv";
+
+        return new CargoDryExportBffResponse
+        {
+            Bytes       = bytes,
+            ContentType = contentType,
+            FileName    = $"cargodry-batches-{DateTimeOffset.UtcNow:yyyyMMdd}.csv",
+        };
+    }
+}

@@ -73,7 +73,7 @@ public sealed class GetProviderFinanceSummaryBffQueryHandler
         }
     }
 
-    private async Task<(Aizen.Bff.AdminPanel.Application.AdminPayment.Dto.PaymentPayoutListBffResult? Result, AdminBffWarning? Warning)>
+    private async Task<(Aizen.Bff.AdminPanel.Application.Payment.Dto.PaymentPayoutListBffResult? Result, AdminBffWarning? Warning)>
         FetchPayoutsSafeAsync(long providerProfileId, int pageSize, CancellationToken ct)
     {
         try
