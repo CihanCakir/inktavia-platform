@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/files")]
 [Tags("Admin Panel - Files")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class FilesController : AizenWebApiController
@@ -21,7 +21,7 @@ public sealed class FilesController : AizenWebApiController
     public FilesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("files/{fileId:guid}")]
+    [HttpGet("{fileId:guid}")]
     [ProducesResponseType(typeof(AdminFileReviewOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminFileReviewOverviewResponse>> GetFileReviewOverview(
         Guid fileId, CancellationToken ct)
@@ -31,7 +31,7 @@ public sealed class FilesController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("files/bulk-read-urls")]
+    [HttpPost("bulk-read-urls")]
     [ProducesResponseType(typeof(List<FileAccessUrlResult>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<List<FileAccessUrlResult>>> BulkGenerateReadUrls(
         [FromBody] BulkGenerateReadUrlsRequest request, CancellationToken ct)
@@ -41,7 +41,7 @@ public sealed class FilesController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpDelete("files/{fileId:guid}")]
+    [HttpDelete("{fileId:guid}")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> DeleteFile(
         Guid fileId, CancellationToken ct)
@@ -51,7 +51,7 @@ public sealed class FilesController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("files/{fileId:guid}/read-url")]
+    [HttpPost("{fileId:guid}/read-url")]
     [ProducesResponseType(typeof(FileAccessUrlResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileAccessUrlResult>> CreateFileReadUrl(
         Guid fileId, [FromBody] CreateReadUrlRequest request, CancellationToken ct)
@@ -61,7 +61,7 @@ public sealed class FilesController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPatch("files/{fileId:guid}/visibility")]
+    [HttpPatch("{fileId:guid}/visibility")]
     [ProducesResponseType(typeof(Aizen.Bff.AdminPanel.Application.Common.RemoteClients.EmptyResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<Aizen.Bff.AdminPanel.Application.Common.RemoteClients.EmptyResult>> UpdateVisibility(
         Guid fileId, [FromBody] UpdateVisibilityRequest request, CancellationToken ct)
