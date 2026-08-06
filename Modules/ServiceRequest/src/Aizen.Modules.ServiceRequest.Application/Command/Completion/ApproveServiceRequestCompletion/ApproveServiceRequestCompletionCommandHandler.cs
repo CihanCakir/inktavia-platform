@@ -41,7 +41,16 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
         var completion = await _completionRepository.GetByServiceRequestIdAsync(request.ServiceRequestId, cancellationToken)
             ?? throw new InvalidOperationException($"No completion found for ServiceRequest {request.ServiceRequestId}.");
 
-        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        // N3-C — the acting user is the JWT user on the owner path, or the configured system id on the auto-approval job.
+        var currentUserId = request.ActingUserIdOverride ?? _info.UserInfoAccessor.UserInfo.UserId;
+        var actorType     = request.ActorTypeOverride ?? ServiceRequestActorType.Owner;
+
+        // N3-C idempotency: only a still-pending (Submitted) completion is approvable. If the owner already
+        // approved/rejected/disputed (manual action before the deadline, or a duplicate/racy call), no-op — so the
+        // auto-approval job never double-approves and never re-publishes the approval event.
+        if (completion.Status != ServiceRequestCompletionStatus.Submitted)
+            return new ApproveServiceRequestCompletionResponse(completion.Id);
+
         completion.ApproveByOwner(currentUserId, request.Request.ReviewNotes);
         _completionRepository.Update(completion);
 
@@ -49,20 +58,20 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
         sr.ChangeStatus(ServiceRequestStatus.Completed);
         var history = ServiceRequestStatusHistoryEntity.Create(
             sr.Id, prevStatus, ServiceRequestStatus.Completed,
-            "Completion approved", currentUserId, ServiceRequestActorType.Owner);
+            "Completion approved", currentUserId, actorType);
         sr.AddStatusHistory(history);
         _srRepository.Update(sr);
 
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, null,
             ServiceRequestRealtimeEventType.CompletionApproved, completion.ToDto(),
-            currentUserId, ServiceRequestActorType.Owner, cancellationToken);
+            currentUserId, actorType, cancellationToken);
 
         await _messagePublisher.PublishAsync(new ServiceRequestCompletionApprovedMessage
         {
             ServiceRequestId = sr.Id,
             CompletionId = completion.Id,
             ProviderUserId = completion.ProviderUserId,
-            OwnerUserId = currentUserId
+            OwnerUserId = sr.OwnerUserId
         }, cancellationToken);
 
         // Lifecycle system message (idempotent)

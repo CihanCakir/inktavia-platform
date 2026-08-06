@@ -20,6 +20,13 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
     public CompletionRejectReason? RejectReasonCode { get; private set; }
     public int? ClientRating { get; private set; }
 
+    // ── N3-C — completion auto-approval (append-only; UTC) ──
+    /// <summary>UTC deadline after which a still-pending completion is auto-approved (= SubmittedAt + AutoApproveWindowDays).
+    /// Null for rows submitted before N3-C (never auto-approved).</summary>
+    public DateTime? AutoApproveAt { get; private set; }
+    /// <summary>UTC time the "approaching" reminder was sent — the once-guard so the reminder never re-fires.</summary>
+    public DateTime? AutoApproveReminderSentAt { get; private set; }
+
     public ServiceRequestCompletionEntity() { }
 
     public static ServiceRequestCompletionEntity Create(
@@ -74,4 +81,10 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
 
         ClientRating = rating;
     }
+
+    /// <summary>N3-C — freeze the auto-approval deadline at submission (SubmittedAt + window). UTC.</summary>
+    public void ScheduleAutoApproval(DateTime autoApproveAtUtc) => AutoApproveAt = autoApproveAtUtc;
+
+    /// <summary>N3-C — stamp that the approaching reminder was sent (once-guard).</summary>
+    public void MarkAutoApproveReminderSent() => AutoApproveReminderSentAt = DateTime.UtcNow;
 }

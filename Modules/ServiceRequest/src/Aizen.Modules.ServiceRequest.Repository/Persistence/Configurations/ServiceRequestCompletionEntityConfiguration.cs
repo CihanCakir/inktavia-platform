@@ -15,5 +15,7 @@ public sealed class ServiceRequestCompletionEntityConfiguration : IEntityTypeCon
         builder.Property(x => x.ClientRating);
         builder.HasIndex(x => x.ServiceRequestId).IsUnique();
         builder.HasIndex(x => x.Status);
+        // N3-C — the auto-approval job scans (Status, AutoApproveAt); index the deadline for the range read.
+        builder.HasIndex(x => x.AutoApproveAt);
     }
 }

@@ -1,5 +1,8 @@
+using Aizen.Core.Messagebus.Abstraction.Messages;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Application.Commands.RecordChargeback;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.Economics;
@@ -159,7 +162,8 @@ public sealed class RefundAllocationServiceTests
         var handler = new RecordChargebackCommandHandler(
             new PaymentTransactionRepository(db), new ChargebackRecordRepository(db),
             new PaymentEconomicsSnapshotRepository(db), new RefundAllocationPolicyRepository(db),
-            new ProviderBalanceRepository(db), NewPosting(db), NullLogger<RecordChargebackCommandHandler>.Instance);
+            new ProviderBalanceRepository(db), NewPosting(db), new RecordingPublisher(),
+            NullLogger<RecordChargebackCommandHandler>.Instance);
 
         var first = await handler.Handle(new RecordChargebackCommand
         {
@@ -188,5 +192,46 @@ public sealed class RefundAllocationServiceTests
         (await db.ChargebackRecords.CountAsync()).Should().Be(1);
         (await db.ProviderBalances.AsNoTracking().FirstAsync(x => x.ProviderProfileId == ProviderId)).Balance
             .Should().Be(-4400m, "a duplicate chargeback must not claw back a second time");
+    }
+
+    // ── N3-B: the chargeback publishes ONE PaymentChargebackRecordedMessage on the fresh path, none on the idempotent replay ──
+    [Fact]
+    public async Task Chargeback_PublishesEvent_OnlyOnFreshRecord()
+    {
+        await using var db = NewDb();
+        await SeedPolicyAsync(db);
+        var snap = Snapshot();
+        db.Add(snap); await db.SaveChangesAsync();
+        var tx = ReleasedTx(snap.Id);
+        db.Add(tx); await db.SaveChangesAsync();
+
+        var publisher = new RecordingPublisher();
+        var handler = new RecordChargebackCommandHandler(
+            new PaymentTransactionRepository(db), new ChargebackRecordRepository(db),
+            new PaymentEconomicsSnapshotRepository(db), new RefundAllocationPolicyRepository(db),
+            new ProviderBalanceRepository(db), NewPosting(db), publisher,
+            NullLogger<RecordChargebackCommandHandler>.Instance);
+
+        await handler.Handle(new RecordChargebackCommand
+        {
+            TransactionId = tx.Id, GatewayChargebackReference = "CB-EVT", ChargebackExpenseAmount = 10m,
+        }, CancellationToken.None);
+        await db.SaveChangesAsync();
+
+        var events = publisher.Published.OfType<PaymentChargebackRecordedMessage>().ToList();
+        events.Should().ContainSingle();
+        events[0].TransactionId.Should().Be(tx.Id);
+        events[0].GatewayChargebackReference.Should().Be("CB-EVT");
+        events[0].ProviderProfileId.Should().Be(ProviderId);
+
+        // Idempotent replay → no second event.
+        await handler.Handle(new RecordChargebackCommand
+        {
+            TransactionId = tx.Id, GatewayChargebackReference = "CB-EVT", ChargebackExpenseAmount = 10m,
+        }, CancellationToken.None);
+        await db.SaveChangesAsync();
+
+        publisher.Published.OfType<PaymentChargebackRecordedMessage>().Should().ContainSingle(
+            "a duplicate chargeback is idempotent and must not re-announce");
     }
 }

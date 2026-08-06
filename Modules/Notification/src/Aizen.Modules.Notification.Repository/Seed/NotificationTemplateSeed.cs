@@ -80,6 +80,24 @@ public sealed class NotificationTemplateSeed
             "Dispute Opened for Request #{{serviceRequestId}}",
             "A dispute has been opened for service request #{{serviceRequestId}}."),
 
+        // N3-A — dispute resolved (both parties). Outcome + amount rendered from the S13 resolution.
+        NotificationTemplateEntity.Create("SR_DISPUTE_RESOLVED_INAPP", "Dispute Resolved (In-App)",
+            NotificationType.DisputeResolved, NotificationChannel.InApp,
+            "İtiraz çözüldü — Talep #{{serviceRequestId}}",
+            "Talep #{{serviceRequestId}} için itiraz çözüldü: {{outcome}}{{refundSuffix}}."),
+
+        // N3-C — completion approved (provider-facing; fires on manual + auto approval).
+        NotificationTemplateEntity.Create("SR_COMPLETION_APPROVED_INAPP", "Completion Approved (In-App)",
+            NotificationType.CompletionApproved, NotificationChannel.InApp,
+            "İş onaylandı — Talep #{{serviceRequestId}}",
+            "Talep #{{serviceRequestId}} için tamamlama onaylandı. Ödemeniz kısa süre içinde serbest bırakılacaktır."),
+
+        // N3-C — auto-approve approaching reminder (owner-facing).
+        NotificationTemplateEntity.Create("SR_COMPLETION_AUTOAPPROVE_APPROACHING_INAPP", "Completion Auto-Approve Approaching (In-App)",
+            NotificationType.CompletionAutoApproveApproaching, NotificationChannel.InApp,
+            "İş otomatik onaylanmak üzere — Talep #{{serviceRequestId}}",
+            "Talep #{{serviceRequestId}} için tamamlama {{daysRemaining}} gün içinde otomatik onaylanacak. Lütfen inceleyin."),
+
         NotificationTemplateEntity.Create("SR_PAYMENT_RELEASED_INAPP", "Payment Released (In-App)",
             NotificationType.PaymentReleased, NotificationChannel.InApp,
             "Payment Released: Request #{{serviceRequestId}}",
@@ -90,6 +108,12 @@ public sealed class NotificationTemplateSeed
             NotificationType.PaymentAuthorized, NotificationChannel.InApp,
             "Ödeme Provizyonda",
             "{{amount}} {{currency}} tutarında provizyon alındı (işlem {{transactionCode}})."),
+
+        // N3-B — chargeback recorded (provider + admin). Provider sees the P10 clawback / negative-balance impact.
+        NotificationTemplateEntity.Create("PAYMENT_CHARGEBACK_RECORDED_INAPP", "Chargeback Recorded (In-App)",
+            NotificationType.ChargebackRecorded, NotificationChannel.InApp,
+            "Ters ibraz kaydedildi",
+            "{{amount}} {{currency}} tutarında bir ters ibraz kaydedildi (işlem {{transactionCode}}, ref {{gatewayRef}})."),
 
         NotificationTemplateEntity.Create("MSG_NEW_MESSAGE_INAPP", "New Message (In-App)",
             NotificationType.NewMessageReceived, NotificationChannel.InApp,

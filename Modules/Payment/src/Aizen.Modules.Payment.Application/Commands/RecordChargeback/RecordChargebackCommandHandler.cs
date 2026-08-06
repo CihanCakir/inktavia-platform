@@ -1,6 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Abstraction.Model.Result;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.RefundAllocation;
@@ -23,6 +25,7 @@ public sealed class RecordChargebackCommandHandler
     private readonly IRefundAllocationPolicyRepository    _policies;
     private readonly IProviderBalanceRepository           _balances;
     private readonly FinancialLedgerPostingService        _ledgerPosting;
+    private readonly IAizenMessagePublisher               _publisher;
     private readonly ILogger<RecordChargebackCommandHandler> _logger;
 
     public RecordChargebackCommandHandler(
@@ -32,6 +35,7 @@ public sealed class RecordChargebackCommandHandler
         IRefundAllocationPolicyRepository    policies,
         IProviderBalanceRepository           balances,
         FinancialLedgerPostingService        ledgerPosting,
+        IAizenMessagePublisher               publisher,
         ILogger<RecordChargebackCommandHandler> logger)
     {
         _transactions = transactions;
@@ -40,6 +44,7 @@ public sealed class RecordChargebackCommandHandler
         _policies     = policies;
         _balances     = balances;
         _ledgerPosting = ledgerPosting;
+        _publisher    = publisher;
         _logger       = logger;
     }
 
@@ -131,6 +136,27 @@ public sealed class RecordChargebackCommandHandler
         _logger.LogInformation(
             "Chargeback recorded. Tx={TxId} GatewayRef={Ref} Amount={Amt} Recovered={Rec} RemainingNeg={Neg} Expense={Exp}",
             tx.Id, request.GatewayChargebackReference, chargebackAmount, providerRecovered, remainingNegative, expense);
+
+        // ── N3-B: announce the (fresh) chargeback so Notification can alert the provider + admins. Fire-and-forget;
+        //    only reached on the new-record path (the idempotent duplicate returned earlier), so no double-publish. ──
+        _ = _publisher.PublishAsync(new PaymentChargebackRecordedMessage
+        {
+            TransactionId              = tx.Id,
+            TransactionCode            = tx.TransactionCode,
+            ContextType                = tx.ContextType,
+            ContextId                  = tx.ContextId,
+            ContextSubId               = tx.ContextSubId,
+            ProviderProfileId          = tx.RecipientProfileId ?? 0,
+            PayerProfileId             = tx.PayerProfileId,
+            Amount                     = chargebackAmount,
+            CurrencyCode               = tx.CurrencyCode,
+            GatewayChargebackReference = request.GatewayChargebackReference,
+            ReceivedAtUtc              = now,
+        }, ct).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+                _logger.LogError(t.Exception, "Failed to publish PaymentChargebackRecordedMessage for Tx {TxId}", tx.Id);
+        }, TaskContinuationOptions.OnlyOnFaulted);
 
         return new RecordChargebackResult(
             record.Id, tx.Id, request.GatewayChargebackReference, chargebackAmount,

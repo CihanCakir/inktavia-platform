@@ -5,11 +5,13 @@ using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
+using Aizen.Modules.ServiceRequest.Application.Completion;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Microsoft.Extensions.Configuration;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Completion;
 
@@ -22,15 +24,17 @@ public sealed class SubmitServiceRequestCompletionCommandHandler : AizenCommandH
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly IConfiguration _config;
 
     public SubmitServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestAssignmentRepository assignmentRepository,
         IServiceRequestCompletionRepository completionRepository, IAizenInfoAccessor info,
-        ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher)
+        ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher,
+        IConfiguration config)
     {
         _srRepository = srRepository; _assignmentRepository = assignmentRepository;
         _completionRepository = completionRepository; _info = info; _realtimePublisher = realtimePublisher;
-        _messagePublisher = messagePublisher;
+        _messagePublisher = messagePublisher; _config = config;
     }
 
     public override async Task<SubmitServiceRequestCompletionResponse?> Handle(SubmitServiceRequestCompletionCommand request, CancellationToken cancellationToken)
@@ -62,6 +66,11 @@ public sealed class SubmitServiceRequestCompletionCommandHandler : AizenCommandH
 
         var completion = ServiceRequestCompletionEntity.Create(
             sr.Id, assignment.Id, currentUserId, req.CompletionNotes, req.EvidenceFileId);
+
+        // N3-C — freeze the auto-approval deadline at submission (SubmittedAt + configured window). UTC.
+        var windowDays = CompletionAutoApprovalOptions.WindowDays(_config);
+        completion.ScheduleAutoApproval(
+            CompletionAutoApprovalOptions.ComputeAutoApproveAt(completion.SubmittedAt, windowDays));
 
         await _completionRepository.AddAsync(completion, cancellationToken);
 

@@ -16,6 +16,10 @@
   (dispute case, abonelik, teklif). Ayrı büyük FE işi yok.
 - **Admin panel:** dispute/chargeback **uyarı kuyruğu** bildirim tetikleriyle beslenir (Payment/SR admin ekranlarıyla).
 
+## Durum
+- **N3 (dispute/chargeback/auto-approve) ✅** (2026-08, UNCOMMITTED) — teslim platformu (N0–N-E) hazırdı; N3 eksik tip+tetikleri ekledi: `ServiceRequestDisputeResolvedConsumer`→141 owner+provider (S13 mesajı) + DisputeOpened targeting fix (owner+provider+admin); `PaymentChargebackRecordedMessage`+`NotificationType.ChargebackRecorded=159`+consumer→provider+admin; completion auto-approval (`AutoApproveAt`+`CompletionAutoApprovalJob` Hangfire hourly: 133 approaching reminder + deadline'da `ApproveServiceRequestCompletionCommand` system-actor reuse); `CompletionApprovedConsumer`→131. Hepsi N-B preference/channel'dan geçiyor; category map ≤139. **BULGU:** completion onayı escrow'u SENKRON bırakmaz (decoupled `ServiceRequestCompletedConsumer`+`PaymentAutoReleaseEligibilityJob`); auto-approval onay komutunu birebir reuse→manuel ile aynı ödeme sonucu. **Gotcha:** template'siz tip sessiz no-op→131/133/141/159 seed. Test: SR 116, Payment 79, Notification.Abstraction 5. Rapor `REPORT_N3.md`.
+- **N1** (renewal fiyat, P4 hazır) + **N2** (S12'ye bağlı) + **N4** (opsiyonel, P6/P11 hazır) kaldı.
+
 ## Açık kararlar (Notification)
 - Kanal önceliği (in-app / push / e-posta / SMS) kalem bazında · oto-onay hatırlatma zamanlaması (3./6. gün öneri) ·
   chargeback bildiriminin müşteriye gidip gitmeyeceği.

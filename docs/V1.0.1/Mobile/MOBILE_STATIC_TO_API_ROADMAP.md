@@ -179,3 +179,32 @@ Follow-ups (separate tickets): FileStorage `FileCacheInvalidationService` likely
 
 ## ⚠️ ACTIVE BLOCKER — mobile vessel create↔read identity split (next, before M4c)
 Surfaced during the cache fix: the vessel **create** path commits the row under one participant identity, but the **list read** scopes by a DIFFERENT identity → `GET /mobile/vessels` returns 0 after a successful create, AND the BFF create wrapper reports failure though the module commits. So M4b's create loop is NOT actually working for the user (couldn't demo list-row freshness for the cache fix for this reason). Fix = make create-owner id == list-scope id (one canonical participant resolution end-to-end) + fix the wrapper's false-failure. This is what unblocks the real create→Home-card/picker payoff.
+
+## Running order (confirmed 2026-08-06)
+1. **Vessel create↔read identity-split fix** (active blocker — completes M4b create loop) — prompt `REPORT_BE_M4b_IDENTITY_FIX`.
+2. **FileStorage cache-invalidation audit+fix** — QUEUED for the **M4e boundary** (before vessel documents), so docs/media land on correct caching. Prompt ready (`REPORT_FILESTORAGE_CACHE_INVALIDATION_FIX`). Audit-then-fix; only READ-query invalidations, preserve the legit un-prefixed trio.
+3. M4c edit → M4d archive/status(+FE-local active) → M4e documents → M4f media/list-cover.
+
+---
+
+## CORRECTION + M4b create loop DONE (2026-08-06), commit acfce8c
+
+**The "identity split" blocker was a MISDIAGNOSIS.** Live tracing showed create-owner id, read-scope id, and the ownership gate ALL resolve to the same `IAizenInfoAccessor.UserInfo.UserId` (qa.owner.aug5 = UserId 100029 / ProfileId 100030). No identity split ever existed.
+
+**Real root cause — cache PAGE-SIZE mismatch (a layer beyond the e1899af key-format fix):** vessel list results are cached per `(UserId, PageIndex, PageSize)`, and `InvalidateUserVesselListAsync` evicts ONLY the default page `(0,20)`. But the mobile BFF read at non-default sizes (list 100, detail-gate 200, wrapper re-read 200) → the write's invalidation never touched the pages the BFF actually read → stale list + a stale re-read whose name-match failed → false "could not be created".
+
+**Fix (mobile BFF only, 4 files, identity untouched):** (1) align all mobile GetUserVessels reads to the module default page `(0,20)` — the exact key the write path invalidates (safe: observed max 4 vessels/user); (2) kill the wrapper false-failure by recovering the committed id from the created vessel's globally-unique `VesselCode` (fresh code = guaranteed cache-miss → DB-fresh id) via a new `GetVesselByCode` remote call, instead of re-scoping the caller's paged list. Verified live, no DB11 flush: create→200→immediate list (5 vessels)→gated detail (spec+engine)→2nd create ok→foreign still "not found".
+
+**REUSABLE LESSON (applies to every module list read, M4c/M4d/M5/M6…):** cache invalidation is **page-scoped**. A read MUST use the same `(PageIndex,PageSize)` key the write invalidates (default `(0,20)`), OR invalidation must wildcard/loop across pages. Key-format correctness (e1899af) is necessary but NOT sufficient — page params must match too.
+
+**Tech-debt (not reachable today):** a user with >20 vessels needs real pagination + looped/wildcard invalidation, or a dedicated is-owner module check for the detail gate (the `(0,20)` page-scan would otherwise deny vessel #21+). File as its own ticket when pagination is built.
+
+## M4b: DONE ✅ (create loop live). Next → M4c (edit).
+
+---
+
+## Phase 2 / M4c — DONE (2026-08-06), commits BE 28eb43a / FE 54f59dd
+Vessel edit live: `PUT /mobile/vessels/{id}` composite handler orchestrating module update-core → upsert-spec → update-engine (primary engine id from detail). **Patch-at-BFF**: reads current detail, merges partial input over it (module core-update is full/null-overwriting). M4b lessons applied (ownership-gated `(0,20)`, returns updated vessel by id, page-scope-correct invalidation → detail/list/Home fresh, no flush). FE `EditVesselScreen` reuses Add-Vessel components + M3b lookups + countries, prefilled; the dead Edit FAB is now wired; mock PUT parity. Verified: core+spec+engine change reflects immediately; partial patch (only cabinCount) preserves others; foreign-id → clean not-found; tsc 0. Report: `Vessel/REPORT_BE_M4c_VESSELS_EDIT.md`.
+**REUSABLE GOTCHA:** ASP.NET treats non-nullable code props (VesselTypeCode/EngineTypeCode/FuelTypeCode) as **implicitly required** → they block partial/patch payloads. Update/patch endpoints need **dedicated all-optional input types** (applies to every future edit/patch: M5/M6…).
+
+## Next → M4d (archive/status + set-active as FE-local)

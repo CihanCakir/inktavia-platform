@@ -1,3 +1,4 @@
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
@@ -20,4 +21,17 @@ public sealed class ServiceRequestCompletionRepository : IServiceRequestCompleti
         => _db.ServiceRequestCompletions.AddAsync(entity, ct).AsTask();
 
     public void Update(ServiceRequestCompletionEntity entity) => _db.ServiceRequestCompletions.Update(entity);
+
+    public async Task<IReadOnlyList<ServiceRequestCompletionEntity>> GetPendingAutoApproveCandidatesAsync(
+        DateTime cutoffUtc, int maxBatch, CancellationToken ct = default)
+        => await _db.ServiceRequestCompletions
+            .Where(x => !x.IsDeleted
+                     && x.Status == ServiceRequestCompletionStatus.Submitted
+                     && x.AutoApproveAt != null
+                     && x.AutoApproveAt <= cutoffUtc)
+            .OrderBy(x => x.AutoApproveAt)
+            .Take(maxBatch)
+            .ToListAsync(ct);
+
+    public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }

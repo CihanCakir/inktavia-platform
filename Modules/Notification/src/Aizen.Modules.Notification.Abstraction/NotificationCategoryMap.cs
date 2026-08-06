@@ -15,7 +15,7 @@ public static class NotificationCategoryMap
         return code switch
         {
             200 or 201                 => NotificationCategory.Messages,        // NewMessage / MessageBlocked
-            >= 100 and <= 132          => NotificationCategory.ServiceRequests, // SR / offer / assignment / completion
+            >= 100 and <= 139          => NotificationCategory.ServiceRequests, // SR / offer / assignment / completion (incl. 133 auto-approve-approaching, N3-C)
             140 or 141                 => NotificationCategory.Disputes,
             >= 150 and <= 159          => NotificationCategory.Payments,   // incl. 157 PaymentAuthorized (PreAuth, N-C)
             >= 300 and <= 309          => NotificationCategory.CargoDry,

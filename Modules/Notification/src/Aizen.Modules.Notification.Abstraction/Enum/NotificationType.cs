@@ -16,6 +16,9 @@ public enum NotificationType
     CompletionSubmitted          = 130,
     CompletionApproved           = 131,
     CompletionRejected           = 132,
+    /// <summary>N3-C — "İş {n} gün içinde otomatik onaylanacak": the completion auto-approval deadline is approaching;
+    /// nudges the owner to review. ServiceRequests category (100–139) so it inherits N-B ServiceRequests gating.</summary>
+    CompletionAutoApproveApproaching = 133,
     DisputeOpened                = 140,
     DisputeResolved              = 141,
     PaymentReleased              = 150,
@@ -28,6 +31,9 @@ public enum NotificationType
     /// <summary>"Ödeme Provizyonda" — a PreAuth/authorization hold was placed (payment authorized, not yet captured).
     /// Latent: fires only once Payment BE-P9 PreAuth mode publishes a PaymentAuthorizedMessage. Payments category.</summary>
     PaymentAuthorized            = 157,
+    /// <summary>N3-B — a gateway chargeback was recorded against a provider's transaction (P10 clawback / negative-balance
+    /// impact). Notifies the provider + admins. Payments category (150–159, N-B gated).</summary>
+    ChargebackRecorded           = 159,
     NewMessageReceived           = 200,
     MessageBlocked               = 201,
     CargoDryKitActivated         = 300,
