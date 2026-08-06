@@ -1,7 +1,7 @@
 using Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminProviders.Dto;
+namespace Aizen.Bff.AdminPanel.Application.Providers.Dto;
 
 [DocumentationInfo("Provider service requests BFF response",
     "Paged service request list for the provider operational detail panel. " +

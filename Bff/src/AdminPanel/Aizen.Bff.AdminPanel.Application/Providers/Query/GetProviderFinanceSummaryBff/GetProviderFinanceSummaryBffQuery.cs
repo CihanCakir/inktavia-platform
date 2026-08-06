@@ -1,7 +1,7 @@
-using Aizen.Bff.AdminPanel.Application.AdminProviders.Dto;
+using Aizen.Bff.AdminPanel.Application.Providers.Dto;
 using Aizen.Core.CQRS.Message;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminProviders.Query;
+namespace Aizen.Bff.AdminPanel.Application.Providers.Query;
 
 [DocumentationInfo("Get provider finance summary BFF query",
     "Composite finance summary for a provider. Composed from: " +

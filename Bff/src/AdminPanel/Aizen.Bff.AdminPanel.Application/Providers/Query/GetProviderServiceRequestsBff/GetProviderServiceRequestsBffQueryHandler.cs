@@ -1,10 +1,10 @@
-using Aizen.Bff.AdminPanel.Application.AdminProviders.Dto;
+using Aizen.Bff.AdminPanel.Application.Providers.Dto;
 using Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminProviders.Query;
+namespace Aizen.Bff.AdminPanel.Application.Providers.Query;
 
 [DocumentationInfo("Get provider service requests BFF query handler",
     "Fetches service requests assigned to a specific provider by passing providerProfileId to the " +

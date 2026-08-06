@@ -1,10 +1,10 @@
-using Aizen.Bff.AdminPanel.Application.AdminProviders.Dto;
+using Aizen.Bff.AdminPanel.Application.Providers.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminProviders.Query;
+namespace Aizen.Bff.AdminPanel.Application.Providers.Query;
 
 [DocumentationInfo("Get provider finance summary BFF query handler",
     "Fetches provider subscription and payout data in parallel. " +

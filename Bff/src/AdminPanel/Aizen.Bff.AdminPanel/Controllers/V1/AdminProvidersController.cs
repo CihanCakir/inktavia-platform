@@ -1,6 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Identity.Query;
-using Aizen.Bff.AdminPanel.Application.AdminProviders.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminProviders.Query;
+using Aizen.Bff.AdminPanel.Application.Providers.Dto;
+using Aizen.Bff.AdminPanel.Application.Providers.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;

@@ -1,11 +1,11 @@
-using Aizen.Bff.AdminPanel.Application.AdminDashboard.Dto;
+using Aizen.Bff.AdminPanel.Application.Dashboard.Dto;
 using Aizen.Core.CQRS.Message;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminDashboard.Query;
+namespace Aizen.Bff.AdminPanel.Application.Dashboard.Query;
 
-public sealed class GetAdminDashboardOverviewQuery : AizenQuery<AdminDashboardOverviewResponse>
+public sealed class GetDashboardOverviewBffQuery : AizenQuery<AdminDashboardOverviewResponse>
 {
-    public GetAdminDashboardOverviewQuery()
+    public GetDashboardOverviewBffQuery()
     {
     }
 }

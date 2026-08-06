@@ -2,7 +2,7 @@ using Aizen.Bff.AdminPanel.Application.Payment.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Modules.Payment.Abstraction.Model.Result;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminProviders.Dto;
+namespace Aizen.Bff.AdminPanel.Application.Providers.Dto;
 
 [DocumentationInfo("Provider finance summary BFF response",
     "Composite finance summary for the provider operational detail panel. " +

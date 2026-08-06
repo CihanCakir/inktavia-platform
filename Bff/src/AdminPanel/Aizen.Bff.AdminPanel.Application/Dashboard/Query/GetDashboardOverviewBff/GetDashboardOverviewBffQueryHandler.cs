@@ -1,19 +1,19 @@
-using Aizen.Bff.AdminPanel.Application.AdminDashboard.Dto;
+using Aizen.Bff.AdminPanel.Application.Dashboard.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminDashboard.Query;
+namespace Aizen.Bff.AdminPanel.Application.Dashboard.Query;
 
 [DocumentationInfo("Get admin dashboard overview query handler", "Aggregates vessel counts, service request counts, open disputes and pending profile approvals from multiple downstream modules.")]
-public sealed class GetAdminDashboardOverviewQueryHandler
-    : AizenQueryHandler<GetAdminDashboardOverviewQuery, AdminDashboardOverviewResponse>
+public sealed class GetDashboardOverviewBffQueryHandler
+    : AizenQueryHandler<GetDashboardOverviewBffQuery, AdminDashboardOverviewResponse>
 {
     private readonly IIdentityRemoteCall _identity;
     private readonly IVesselRemoteCall _vessel;
     private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public GetAdminDashboardOverviewQueryHandler(
+    public GetDashboardOverviewBffQueryHandler(
         IIdentityRemoteCall identity,
         IVesselRemoteCall vessel,
         IServiceRequestRemoteCall serviceRequest)
@@ -24,7 +24,7 @@ public sealed class GetAdminDashboardOverviewQueryHandler
     }
 
     public override async Task<AdminDashboardOverviewResponse?> Handle(
-        GetAdminDashboardOverviewQuery request, CancellationToken cancellationToken)
+        GetDashboardOverviewBffQuery request, CancellationToken cancellationToken)
     {
         var response = new AdminDashboardOverviewResponse();
 
