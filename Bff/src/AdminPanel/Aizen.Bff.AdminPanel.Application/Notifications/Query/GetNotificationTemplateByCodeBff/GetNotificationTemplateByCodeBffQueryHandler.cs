@@ -2,7 +2,7 @@ using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Notification.Abstraction.Dto;
 
-namespace Aizen.Bff.AdminPanel.Application.NotificationTemplates.Query;
+namespace Aizen.Bff.AdminPanel.Application.Notifications.Query;
 
 [DocumentationInfo("Get admin notification template by code query handler", "Fetches a single notification template by its code from the Notification module.")]
 public sealed class GetNotificationTemplateByCodeBffQueryHandler

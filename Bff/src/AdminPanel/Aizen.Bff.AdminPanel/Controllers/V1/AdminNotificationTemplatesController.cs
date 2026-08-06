@@ -1,5 +1,5 @@
-using Aizen.Bff.AdminPanel.Application.NotificationTemplates.Command;
-using Aizen.Bff.AdminPanel.Application.NotificationTemplates.Query;
+using Aizen.Bff.AdminPanel.Application.Notifications.Command;
+using Aizen.Bff.AdminPanel.Application.Notifications.Query;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;

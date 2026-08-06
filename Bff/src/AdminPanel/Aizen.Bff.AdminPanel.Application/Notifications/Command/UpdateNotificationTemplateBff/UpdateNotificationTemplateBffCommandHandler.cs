@@ -2,7 +2,7 @@ using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 
-namespace Aizen.Bff.AdminPanel.Application.NotificationTemplates.Command;
+namespace Aizen.Bff.AdminPanel.Application.Notifications.Command;
 
 [DocumentationInfo("Update notification template command handler", "Updates an existing notification template via the Notification module.")]
 public sealed class UpdateNotificationTemplateBffCommandHandler
