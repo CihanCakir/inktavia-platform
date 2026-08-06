@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/identity/participant/profiles")]
 [Tags("Admin Panel - Participants")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class ParticipantsController : AizenWebApiController
@@ -19,7 +19,7 @@ public sealed class ParticipantsController : AizenWebApiController
     public ParticipantsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("identity/participant/profiles")]
+    [HttpGet]
     [ProducesResponseType(typeof(PagedParticipantProfileResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<PagedParticipantProfileResult>> SearchProfiles(
         [FromQuery] int pageIndex = 0,
@@ -30,7 +30,7 @@ public sealed class ParticipantsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("identity/participant/profiles/{profileId:guid}")]
+    [HttpGet("{profileId:guid}")]
     [ProducesResponseType(typeof(ParticipantProfileResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ParticipantProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
