@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/identity")]
 [Tags("Admin Panel - Identity")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class IdentityController : AizenWebApiController
@@ -22,7 +22,7 @@ public sealed class IdentityController : AizenWebApiController
     public IdentityController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("identity/profiles")]
+    [HttpGet("profiles")]
     [ProducesResponseType(typeof(AdminUserOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserOverviewResponse>> GetProfiles(
         [FromQuery] string? roleContext,
@@ -36,7 +36,7 @@ public sealed class IdentityController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("identity/profiles/{profileId:guid}")]
+    [HttpGet("profiles/{profileId:guid}")]
     [ProducesResponseType(typeof(ProfileDetailResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProfileDetailResult>> GetProfileDetail(
         Guid profileId,
@@ -48,7 +48,7 @@ public sealed class IdentityController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("identity/organizers/{userId:long}/profiles/{profileId:guid}/approve")]
+    [HttpPost("organizers/{userId:long}/profiles/{profileId:guid}/approve")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> ApproveOrganizerProfile(
         long userId, Guid profileId, CancellationToken ct)
@@ -58,7 +58,7 @@ public sealed class IdentityController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("identity/organizers/{userId:long}/profiles/{profileId:guid}/reject")]
+    [HttpPost("organizers/{userId:long}/profiles/{profileId:guid}/reject")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> RejectOrganizerProfile(
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
@@ -68,7 +68,7 @@ public sealed class IdentityController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("identity/venues/{userId:long}/profiles/{profileId:guid}/approve")]
+    [HttpPost("venues/{userId:long}/profiles/{profileId:guid}/approve")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> ApproveVenueProfile(
         long userId, Guid profileId, CancellationToken ct)
@@ -78,7 +78,7 @@ public sealed class IdentityController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("identity/venues/{userId:long}/profiles/{profileId:guid}/reject")]
+    [HttpPost("venues/{userId:long}/profiles/{profileId:guid}/reject")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> RejectVenueProfile(
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
@@ -88,7 +88,7 @@ public sealed class IdentityController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("identity/profiles/{profileId:guid}/with-roles")]
+    [HttpGet("profiles/{profileId:guid}/with-roles")]
     [ProducesResponseType(typeof(ProfileWithRolesResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProfileWithRolesResult>> GetProfileWithRoles(
         Guid profileId, CancellationToken ct)
