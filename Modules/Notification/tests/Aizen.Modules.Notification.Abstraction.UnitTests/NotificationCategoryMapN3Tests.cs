@@ -13,6 +13,7 @@ public sealed class NotificationCategoryMapN3Tests
 {
     [Theory]
     [InlineData(NotificationType.CompletionApproved,            NotificationCategory.ServiceRequests)] // 131
+    [InlineData(NotificationType.MaintenanceReminderDue,        NotificationCategory.ServiceRequests)] // 103 (N2)
     [InlineData(NotificationType.CompletionAutoApproveApproaching, NotificationCategory.ServiceRequests)] // 133 (N3-C)
     [InlineData(NotificationType.DisputeResolved,              NotificationCategory.Disputes)]         // 141 (N3-A)
     [InlineData(NotificationType.ChargebackRecorded,           NotificationCategory.Payments)]         // 159 (N3-B)

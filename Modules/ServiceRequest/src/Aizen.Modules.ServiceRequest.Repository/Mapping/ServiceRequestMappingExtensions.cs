@@ -2,6 +2,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Maintenance;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
@@ -332,6 +333,22 @@ public static class ServiceRequestMappingExtensions
             AttachmentCount = entity.Attachments.Count(a => !a.IsDeleted)
         };
     }
+
+    public static MaintenanceScheduleDto ToDto(this MaintenanceScheduleEntity entity) => new()
+    {
+        Id = entity.Id,
+        VesselId = entity.VesselId,
+        OwnerUserId = entity.OwnerUserId,
+        ServiceCategoryCode = entity.ServiceCategoryCode,
+        ServiceTypeCode = entity.ServiceTypeCode,
+        RecommendedIntervalMonths = entity.RecommendedIntervalMonths,
+        ReminderLeadDays = entity.ReminderLeadDays,
+        LastPerformedAt = entity.LastPerformedAt,
+        NextDueAt = entity.NextDueAt,
+        ReminderSentAt = entity.ReminderSentAt,
+        IsActive = entity.IsActive,
+        Notes = entity.Notes
+    };
 
     /// <summary>
     /// Snaps a coordinate to a ~500m grid with deterministic per-row jitter.

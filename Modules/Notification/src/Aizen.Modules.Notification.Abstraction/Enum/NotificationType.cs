@@ -7,6 +7,9 @@ public enum NotificationType
     /// <summary>N-C — "Bölgende yeni iş talebi": a new service request opened in a provider's operating city/category.
     /// ServiceRequests category (100–132) so it inherits N-B ServiceRequests gating.</summary>
     ServiceRequestAreaOpportunity = 102,
+    /// <summary>N2 — "{vessel} için {kategori} bakımı {tarih} tarihinde — planlayın": a recurring maintenance schedule
+    /// (S12) is due soon; nudges the owner. ServiceRequests category (100–139) so it inherits N-B ServiceRequests gating.</summary>
+    MaintenanceReminderDue       = 103,
     OfferCreated                 = 110,
     OfferAccepted                = 111,
     OfferRejected                = 112,

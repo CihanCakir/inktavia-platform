@@ -231,3 +231,23 @@ Vessel documents live: DOCUMENT_TYPE seeded (7 items; needed a `--no-cache` refe
 **⚠️ Inherited M3c SERVER-SIDE RELAY** (multipart through the BFF) because Step 0.5 (upload-pattern decision) wasn't run. Bytes pass through the BFF — fine for avatars/small docs, risky for large docs/photos.
 
 ## → BEFORE M4f: MOBILE UPLOAD-PATTERN DECISION (read-only) — decide client-side-presigned vs server-side-relay for the whole file surface, since M4f media would otherwise lock in server-side relay for photos.
+
+---
+
+## Mobile upload-pattern DECISION — APPROVED (2026-08-06): client-side presigned direct-to-storage
+Findings: the **public presigned PUT already exists** — `ServerSideUpload=false` (default) signs against `PublicServiceUrl` (http://localhost:9000, device-reachable, port-published, `MINIO_PUBLIC_URL`-configurable); read URLs already use it (M4e download proved it). Working routes = the mobile BFF's own `/api/v1/upload-sessions` (+ `/complete`, which verifies the object exists → safe for client uploads). AdminPanel's client-side design is wired to a dead `/file-storage/*` prefix (scaffolding). **The M3c/M4e server-side relay was an unnecessary inheritance.** Doc: `Core/REPORT_MOBILE_UPLOAD_PATTERN_DECISION.md`.
+**DECISION (approved): all mobile file uploads = CLIENT-SIDE PRESIGNED direct-to-storage** (BFF issues session+URL+code; RN client PUTs bytes straight to storage with exact Content-Type; BFF completes+attaches — bytes never traverse the BFF). No new infra. **Prereq: set `MINIO_PUBLIC_URL` to a device-reachable host for physical-device/prod** (simulator localhost:9000 works).
+Plan: **M4f establishes the flow** (media + reusable RN `directUpload` helper + list-cover fix); then a **retrofit slice** migrates M4e docs (medium — 50MB PDFs off BFF memory) + M3c avatar (opportunistic — 10MB) onto the helper and removes the relay.
+
+## → M4f (media/photos + client-side presigned + list-cover enrichment) is next.
+
+---
+
+## Phase 2 / M4f — DONE (2026-08-06) → M4 (VESSELS) CLOSED ✅
+Client-side presigned proven: photo byte PUT hits `localhost:9000` (PublicServiceUrl), NEVER the BFF; BFF only brokers session→complete(magic-byte verified)→attach. Reusable `directUpload` primitive (`/mobile/uploads/session|complete`). Media CRUD + set-cover (owner-gated, consumer-side invalidation); first photo auto-covers; **list-cover enrichment done** (`GetUserVesselsQueryHandler` coverMediaUrl populated → Home card/list show a real cover). FE VesselGallery (picker→directUpload→attach, thumbnails, cover badge, set-cover/delete); tsc 0. Prereq: `MINIO_PUBLIC_URL` device-reachable for physical/prod (simulator localhost:9000 works). Report: `Vessel/REPORT_BE_M4f_VESSELS_MEDIA.md`.
+
+**M4 Vessels = create/read/edit/archive+status/documents/media all real. Static 'Sea Serenity'/82%/18°C gone.**
+
+## Remaining before M5:
+- **Retrofit slice**: move M4e docs + M3c avatar onto the `directUpload` client-side-presigned helper; drop the server-side relay.
+## Then → M5 (CargoDry): Home 'Protected 85%' card + cargodry screens → real.

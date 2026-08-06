@@ -1,24 +1,37 @@
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Abstraction.Handler;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Enum;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
+using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Application.Query.Vessel;
 
-[DocumentationInfo("Get User Vessels Query Handler", "Returns a paged list of vessels owned by the user; cached for 10 minutes.")]
+[DocumentationInfo("Get User Vessels Query Handler", "Returns a paged list of vessels owned by the user; cover populated from the vessel's cover photo as a pre-signed URL; cached for 10 minutes.")]
 public sealed class GetUserVesselsQueryHandler : AizenQueryHandler<GetUserVesselsQuery, GetUserVesselsResponse>, IAizenQueryHandlerCacheable
 {
-    private readonly IAizenUnitOfWork<VesselDbContext> _uow;
+    // Resolve the cover read URL with a TTL comfortably above the 10-min list cache so a cached list never serves
+    // an expired cover URL.
+    private static readonly TimeSpan CoverUrlTtl = TimeSpan.FromMinutes(30);
 
-    public GetUserVesselsQueryHandler(IAizenUnitOfWork<VesselDbContext> uow)
+    private readonly IAizenUnitOfWork<VesselDbContext> _uow;
+    private readonly IVesselFileStorageService _fileStorage;
+    private readonly IAizenInfoAccessor _info;
+
+    public GetUserVesselsQueryHandler(
+        IAizenUnitOfWork<VesselDbContext> uow,
+        IVesselFileStorageService fileStorage,
+        IAizenInfoAccessor info)
     {
         _uow = uow;
+        _fileStorage = fileStorage;
+        _info = info;
     }
 
     public override async Task<GetUserVesselsResponse?> Handle(GetUserVesselsQuery request, CancellationToken cancellationToken)
@@ -47,7 +60,49 @@ public sealed class GetUserVesselsQueryHandler : AizenQueryHandler<GetUserVessel
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
 
-        return new GetUserVesselsResponse((Paginate<VesselListItemDto>)result);
+        var paged = (Paginate<VesselListItemDto>)result;
+        // Items are materialized reference types — mutating them updates what `paged` returns.
+        await PopulateCoverUrlsAsync(paged.Items.ToList(), cancellationToken);
+
+        return new GetUserVesselsResponse(paged);
+    }
+
+    // Populate CoverMediaUrl from each vessel's active cover photo, resolved to a pre-signed read URL. Kept as a
+    // separate step (the presigned URL cannot be produced inside the EF projection) — a small, module-consistent
+    // enrichment (the field was hardcoded null), so the list / Home card / picker render a real cover.
+    private async Task PopulateCoverUrlsAsync(IList<VesselListItemDto> items, CancellationToken ct)
+    {
+        if (items is null || items.Count == 0) return;
+
+        var vesselIds = items.Select(i => i.Id).ToList();
+        var mediaRepo = _uow.GetRepository<VesselMediaEntity>();
+        var covers = await mediaRepo.GetPagedListAsync<CoverProjection>(
+            selector: m => new CoverProjection { VesselId = m.VesselId, FileId = m.FileId },
+            predicate: m => vesselIds.Contains(m.VesselId) && m.IsCover && m.IsActive && m.FileId != null,
+            orderBy: q => q.OrderBy(m => m.VesselId),
+            pageIndex: 0,
+            pageSize: vesselIds.Count,
+            cancellationToken: ct);
+
+        var coverByVessel = ((Paginate<CoverProjection>)covers).Items
+            .Where(c => c.FileId.HasValue)
+            .GroupBy(c => c.VesselId)
+            .ToDictionary(g => g.Key, g => g.First().FileId!.Value);
+        if (coverByVessel.Count == 0) return;
+
+        var accessToken = _info.UserInfoAccessor.UserInfo.AccessToken;
+        foreach (var item in items)
+        {
+            if (!coverByVessel.TryGetValue(item.Id, out var fileId)) continue;
+            var url = await _fileStorage.CreateReadUrlAsync(fileId, CoverUrlTtl, accessToken, ct);
+            if (url is not null) item.CoverMediaUrl = url.ReadUrl;
+        }
+    }
+
+    private sealed class CoverProjection
+    {
+        public long VesselId { get; set; }
+        public Guid? FileId { get; set; }
     }
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;

@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IServiceRequestWorkLogRepository, ServiceRequestWorkLogRepository>();
         services.AddScoped<IServiceRequestCompletionRepository, ServiceRequestCompletionRepository>();
         services.AddScoped<IServiceRequestDisputeRepository, ServiceRequestDisputeRepository>();
+        services.AddScoped<IMaintenanceScheduleRepository, MaintenanceScheduleRepository>();   // S12
         services.AddScoped<IWorkPhaseRepository, WorkPhaseRepository>();
         services.AddScoped<IServiceRequestConversationRepository, ServiceRequestConversationRepository>();
 

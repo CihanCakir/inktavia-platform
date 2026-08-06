@@ -46,6 +46,8 @@ public sealed class RemoveVesselMediaCommandHandler : AizenCommandHandler<Remove
         _mediaRepository.Update(media);
 
         await _invalidation.InvalidateMediaAsync(media.VesselId, cancellationToken);
+        // Removing a photo may drop the cover — evict the user list so the list/Home cover updates immediately (M4f).
+        await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
         await _publisher.PublishAsync(new VesselMediaRemovedMessage
         {

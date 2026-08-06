@@ -98,6 +98,12 @@ public sealed class NotificationTemplateSeed
             "İş otomatik onaylanmak üzere — Talep #{{serviceRequestId}}",
             "Talep #{{serviceRequestId}} için tamamlama {{daysRemaining}} gün içinde otomatik onaylanacak. Lütfen inceleyin."),
 
+        // N2 — recurring maintenance due reminder (owner-facing). Without this template the type is a silent no-op.
+        NotificationTemplateEntity.Create("SR_MAINTENANCE_REMINDER_DUE_INAPP", "Maintenance Reminder Due (In-App)",
+            NotificationType.MaintenanceReminderDue, NotificationChannel.InApp,
+            "Bakım hatırlatması — {{vessel}}",
+            "{{vessel}} için {{category}} bakımı {{date}} tarihinde planlanmalı. Lütfen bir servis talebi oluşturun."),
+
         NotificationTemplateEntity.Create("SR_PAYMENT_RELEASED_INAPP", "Payment Released (In-App)",
             NotificationType.PaymentReleased, NotificationChannel.InApp,
             "Payment Released: Request #{{serviceRequestId}}",

@@ -2,10 +2,12 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Request.Document;
 using Aizen.Modules.Vessel.Abstraction.Request.Engine;
+using Aizen.Modules.Vessel.Abstraction.Request.Media;
 using Aizen.Modules.Vessel.Abstraction.Request.Specification;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
 using Aizen.Modules.Vessel.Abstraction.Response.Engine;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 using Aizen.Modules.Vessel.Abstraction.Response.Specification;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
@@ -95,4 +97,26 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     // Remove a document (module invalidates the documents read).
     [AizenRemoteCallDelete("/api/v1/vessels/{vesselId}/documents/{documentId}")]
     Task<AizenApiResponse<RemoveVesselDocumentResponse>> RemoveVesselDocument(long vesselId, long documentId);
+
+    // ── M4f media / photos (owner-gated by the module's EnsureCanEditAsync on add/remove/set-cover) ──────
+    // List the vessel's media. As with documents, the BFF reads the DEFAULT includeAccessUrls=false page (the key
+    // InvalidateMediaAsync evicts) and resolves each item's presigned read URL itself.
+    [AizenRemoteCallGet("/api/v1/vessels/{vesselId}/media")]
+    Task<AizenApiResponse<GetVesselMediaResponse>> GetVesselMedia(
+        long vesselId,
+        [Refit.Query] int pageIndex = 0, [Refit.Query] int pageSize = 20,
+        [Refit.Query] bool includeAccessUrls = false, [Refit.Query] int accessUrlExpiresInMinutes = 15);
+
+    // Attach an already-uploaded file (client-side presigned, then completed) as a vessel photo.
+    [AizenRemoteCallPost("/api/v1/vessels/{vesselId}/media")]
+    Task<AizenApiResponse<AddVesselMediaResponse>> AddVesselMedia(
+        long vesselId, [AizenRemoteCallBody] AddVesselMediaRequest request);
+
+    // Remove a media item (module deactivates + invalidates media/list/detail).
+    [AizenRemoteCallDelete("/api/v1/vessels/{vesselId}/media/{mediaId}")]
+    Task<AizenApiResponse<RemoveVesselMediaResponse>> RemoveVesselMedia(long vesselId, long mediaId);
+
+    // Set a media item as the cover (module clears other covers + invalidates media/list/detail).
+    [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/media/{mediaId}/set-cover")]
+    Task<AizenApiResponse<SetCoverVesselMediaResponse>> SetCoverVesselMedia(long vesselId, long mediaId);
 }

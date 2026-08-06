@@ -3,6 +3,7 @@ using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Conversation;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Maintenance;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
@@ -31,6 +32,7 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<ServiceRequestWorkLogEntity> ServiceRequestWorkLogs => Set<ServiceRequestWorkLogEntity>();
     public DbSet<ServiceRequestCompletionEntity> ServiceRequestCompletions => Set<ServiceRequestCompletionEntity>();
     public DbSet<ServiceRequestDisputeEntity> ServiceRequestDisputes => Set<ServiceRequestDisputeEntity>();
+    public DbSet<MaintenanceScheduleEntity> MaintenanceSchedules => Set<MaintenanceScheduleEntity>();   // S12
     public DbSet<WorkPhaseEntity> WorkPhases => Set<WorkPhaseEntity>();
     public DbSet<ServiceRequestConversationEntity> Conversations => Set<ServiceRequestConversationEntity>();
     public DbSet<ConversationMessageEntity> ConversationMessages => Set<ConversationMessageEntity>();

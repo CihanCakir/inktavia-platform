@@ -50,6 +50,9 @@ public sealed class SetCoverVesselMediaCommandHandler : AizenCommandHandler<SetC
 
         await _invalidation.InvalidateMediaAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
+        // The user vessel list carries the cover URL (M4f) — evict it so the new cover shows on the list/Home card
+        // immediately (the list is keyed by the owner's UserId; the participant edits their own vessel).
+        await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
         await _publisher.PublishAsync(new VesselCoverMediaChangedMessage
         {
