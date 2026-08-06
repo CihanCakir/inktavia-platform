@@ -63,6 +63,11 @@ public static class DependencyInjection
             CreateRemoteCall<IFileStorageRemoteCall>(
                 CreateHttpClient(provider, nameof(IFileStorageRemoteCall))));
 
+        // Vessel module (M4a reads + M4b create trio). Base URL from RemoteCalls:IVesselRemoteCall:BaseUrl.
+        services.AddTransient<IVesselRemoteCall>(provider =>
+            CreateRemoteCall<IVesselRemoteCall>(
+                CreateHttpClient(provider, nameof(IVesselRemoteCall))));
+
         return services;
     }
 

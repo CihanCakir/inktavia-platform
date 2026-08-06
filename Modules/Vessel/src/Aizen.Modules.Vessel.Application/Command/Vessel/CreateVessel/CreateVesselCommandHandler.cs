@@ -54,10 +54,11 @@ public sealed class CreateVesselCommandHandler : AizenCommandHandler<CreateVesse
             request.Request.HomeMarinaName,
             request.Request.Visibility);
 
-        await _vesselRepository.AddAsync(entity, cancellationToken);
+        // Attach the primary owner through the aggregate so EF assigns the VesselId FK from the vessel's
+        // generated key on save (a separate scalar-FK insert captured VesselId before persist → FK violation).
+        entity.AddOwner(currentUserId, null, VesselOwnershipRole.PrimaryOwner, true);
 
-        var owner = VesselOwnerEntity.Create(entity.Id, currentUserId, null, VesselOwnershipRole.PrimaryOwner, true);
-        await _ownerRepository.AddAsync(owner, cancellationToken);
+        await _vesselRepository.AddAsync(entity, cancellationToken);
 
         await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 

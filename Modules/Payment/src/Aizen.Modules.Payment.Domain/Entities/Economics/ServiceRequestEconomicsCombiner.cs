@@ -33,7 +33,10 @@ public sealed record ServiceRequestEconomicsLine(
     // ── S3 frozen FX metadata (descriptive; carried straight through to the line snapshot) ──
     LineFxSnapshotInput? Fx = null,
     // ── S4 structured travel derivation (descriptive; carried straight through to the aggregate travel snapshot) ──
-    TravelSnapshotInput? Travel = null);
+    TravelSnapshotInput? Travel = null,
+    // ── BE-S9 (§20.12) — true for a part line (Product/Consumable): its line floors come from the S5 allowance, not the
+    //    policy defaults. Classified SR-side/at the combiner boundary; default false keeps legacy callers non-part. ──
+    bool IsPartLine = false);
 
 /// <summary>BE-P8b — the resolved P6 customer discount + funding to apply (authoritative). BudgetRemaining caps platform funding.</summary>
 public sealed record ServiceRequestCustomerDiscountInput(
@@ -63,7 +66,13 @@ public sealed record ServiceRequestEconomicsResult(
     decimal                         TotalProviderFundedDiscount  = 0m,
     decimal                         ProviderCommissionBenefitCost = 0m,
     long?                           DiscountRuleId               = null,
-    bool                            DiscountAdjusted             = false)
+    bool                            DiscountAdjusted             = false,
+    // ── BE-S9 (§20.12) — the line-level protection verdict. On a line breach LineProtectionFailed is true and the
+    //    Decision is Rejected/ConfigurationError with Snapshot null (before the §19.2 transaction gates even run). On a
+    //    pass these are the descriptive per-line results captured on the accepted offer. Numbers are unchanged. ──
+    bool                            LineProtectionFailed         = false,
+    int?                            LineProtectionErrorCode      = null,
+    IReadOnlyList<LineProfitProtectionResult>? LineProtectionResults = null)
 {
     public bool CanProceed => Decision is ProfitProtectionDecisionState.Approved
                                        or ProfitProtectionDecisionState.ApprovedWithAdjustment;
@@ -87,7 +96,9 @@ public static class ServiceRequestEconomicsCombiner
         PlatformFeeBreakdown              platformFee,
         ProfitProtectionPolicyEntity?     policy,
         DateTime                          createdAtUtc,
-        ServiceRequestCustomerDiscountInput? customerDiscount = null)
+        ServiceRequestCustomerDiscountInput? customerDiscount = null,
+        // ── BE-S9 (§20.12) — the cost-free S5 allowance per PART line (keyed by LineRef). Absent → non-part lines only. ──
+        IReadOnlyDictionary<string, LinePartAllowance>? partAllowances = null)
     {
         if (lines is null || lines.Count == 0)
             throw new PaymentEconomicsInvariantException("P8 requires at least one offer line.");
@@ -103,6 +114,7 @@ public static class ServiceRequestEconomicsCombiner
 
         // ── Pass 1: compute economics with the (budget-capped) requested discount ──
         var pass1 = ComputeLines(lines, platformFeeRule, platformFee, customerDiscount, requested);
+        var allowances = partAllowances ?? EmptyAllowances;
 
         var ctx = BuildContext(currencyCode, pass1, customerDiscount);
         var evaluation = ProfitProtectionEngine.Evaluate(ctx, policy);
@@ -132,10 +144,45 @@ public static class ServiceRequestEconomicsCombiner
             }
         }
 
+        // ── BE-S9 (§20.12): LINE-level profit protection — each line must independently clear its own floor on the FINAL
+        //    committed economics. NO netting: a profitable line can NOT rescue a loss line; a line breach short-circuits to
+        //    Rejected / ConfigurationError (per-line reason) → no snapshot, no escrow, SR acceptance rolls back — even though
+        //    the transaction gate passed. It is evaluated on the post-safe-max-adjustment numbers (identical to pass1 when
+        //    there is no adjustment) so it protects what actually commits and never rejects an offer the platform legitimately
+        //    trimmed to safe-max; the adjustment only raises ProviderNet / lowers funded discounts, so it can only help a line. ──
+        var finalLineEval = LineProfitProtectionEngine.Evaluate(
+            BuildLineProtectionInputs(lines, final), policy, allowances, final.FeeNet, final.BenefitCost);
+        if (!finalLineEval.Passed)
+            return new ServiceRequestEconomicsResult(
+                finalLineEval.State, finalLineEval.Reason ?? finalLineEval.State.ToString(),
+                final.OriginalServiceGross, final.CustomerPayable, final.CustomerTotal, final.ProviderNetTotal,
+                final.FeeNet, final.FeeGross, final.TransactionCommission, Snapshot: null, AppliedRuleCodes: [],
+                TotalCustomerDiscount: final.TotalCustomerDiscount,
+                TotalPlatformFundedDiscount: final.TotalPlatform,
+                TotalProviderFundedDiscount: final.TotalProvider,
+                ProviderCommissionBenefitCost: final.BenefitCost,
+                DiscountRuleId: customerDiscount?.DiscountRuleId,
+                LineProtectionFailed: true,
+                LineProtectionErrorCode: finalLineEval.PrimaryErrorCode,
+                LineProtectionResults: finalLineEval.Lines);
+
+        // Descriptive per-line record for the passing offer (folded onto the S8 line snapshot; enters no sum/invariant).
+        var protectionByRef = finalLineEval.Lines.ToDictionary(x => x.LineRef);
+        var recordedLines = final.LineInputs
+            .Select(li => protectionByRef.TryGetValue(li.LineRef, out var pr)
+                ? li with
+                {
+                    LineMinProviderReceivableApplied = pr.ProviderMinimumReceivableApplied,
+                    LinePlatformContribution         = pr.LinePlatformContribution,
+                    LineProfitProtectionPassed       = pr.Passed,
+                }
+                : li)
+            .ToList();
+
         var snapshot = PaymentEconomicsSnapshotEntity.CreateFromLines(
             contextId:                    serviceRequestId,
             currencyCode:                 currencyCode,
-            lines:                        final.LineInputs,
+            lines:                        recordedLines,
             platformFee:                  final.FeeInput(platformFeeRule),
             customerPayableServiceAmount: final.CustomerPayable,
             createdAtUtc:                 createdAtUtc);
@@ -149,7 +196,34 @@ public static class ServiceRequestEconomicsCombiner
             TotalProviderFundedDiscount: final.TotalProvider,
             ProviderCommissionBenefitCost: final.BenefitCost,
             DiscountRuleId: customerDiscount?.DiscountRuleId,
-            DiscountAdjusted: adjusted);
+            DiscountAdjusted: adjusted,
+            LineProtectionResults: finalLineEval.Lines);
+    }
+
+    // ── BE-S9 helpers ────────────────────────────────────────────────────────────
+    private static readonly IReadOnlyDictionary<string, LinePartAllowance> EmptyAllowances
+        = new Dictionary<string, LinePartAllowance>();
+
+    /// <summary>Zip the pass's per-line economics with the source lines into the pure line-protection engine inputs (index-aligned).</summary>
+    private static List<LineProfitProtectionLineInput> BuildLineProtectionInputs(
+        IReadOnlyList<ServiceRequestEconomicsLine> lines, Pass pass)
+    {
+        var list = new List<LineProfitProtectionLineInput>(lines.Count);
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var li = pass.LineInputs[i];
+            list.Add(new LineProfitProtectionLineInput(
+                LineRef:                li.LineRef,
+                IsPartLine:             lines[i].IsPartLine,
+                ProviderNet:            li.ProviderNet,
+                ProviderFundedDiscount: li.ProviderFundedDiscount,
+                PlatformFundedDiscount: li.PlatformFundedDiscount,
+                ResolvedRate:           lines[i].ResolvedRate,        // the S7 BASE rate (P7 floor contract)
+                CommissionNetRevenue:   li.CommissionAmount,
+                CommissionBase:         li.CommissionBase,
+                LineBase:               li.GrossBeforeDiscount));
+        }
+        return list;
     }
 
     // ── One economics pass over the lines for a given requested discount (pure) ─────────────────────────

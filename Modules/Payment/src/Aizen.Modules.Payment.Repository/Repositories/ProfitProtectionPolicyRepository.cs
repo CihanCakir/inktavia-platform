@@ -69,3 +69,15 @@ public sealed class ProfitProtectionEvaluationLogRepository : IProfitProtectionE
 
     public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }
+
+/// <summary>BE-S9 — insert-only persistence for <see cref="LineProfitProtectionEvaluationLogEntity"/>.</summary>
+public sealed class LineProfitProtectionEvaluationLogRepository : ILineProfitProtectionEvaluationLogRepository
+{
+    private readonly PaymentDbContext _db;
+    public LineProfitProtectionEvaluationLogRepository(PaymentDbContext db) => _db = db;
+
+    public Task AddAsync(LineProfitProtectionEvaluationLogEntity entity, CancellationToken ct = default)
+        => _db.LineProfitProtectionEvaluationLogs.AddAsync(entity, ct).AsTask();
+
+    public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
+}

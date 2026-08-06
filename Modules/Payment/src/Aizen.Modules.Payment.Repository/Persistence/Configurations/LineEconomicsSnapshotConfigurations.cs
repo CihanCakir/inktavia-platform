@@ -34,6 +34,11 @@ public sealed class OfferLineEconomicsSnapshotConfiguration : IEntityTypeConfigu
         b.Property(x => x.CurrencyCode).HasMaxLength(10).IsRequired();
         b.Property(x => x.SortOrder).IsRequired();
 
+        // ── BE-S9 line-level profit-protection record (§20.12) — descriptive; back-compat default (contribution 0, passed) for existing rows ──
+        b.Property(x => x.LineMinProviderReceivableApplied).HasColumnType("numeric(18,4)").IsRequired().HasDefaultValue(0m);
+        b.Property(x => x.LinePlatformContribution).HasColumnType("numeric(18,4)").IsRequired().HasDefaultValue(0m);
+        b.Property(x => x.LineProfitProtectionPassed).IsRequired().HasDefaultValue(true);
+
         // ── S3 frozen FX metadata (§20.7) — all nullable (settlement-native lines = null; back-compat for existing rows) ──
         b.Property(x => x.FxSourceCurrencyCode).HasMaxLength(10);
         b.Property(x => x.FxSettlementCurrencyCode).HasMaxLength(10);

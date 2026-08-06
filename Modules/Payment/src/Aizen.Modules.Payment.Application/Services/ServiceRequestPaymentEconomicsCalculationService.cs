@@ -5,7 +5,9 @@ using Aizen.Modules.Payment.Domain.Entities.Commission;
 using Aizen.Modules.Payment.Domain.Entities.CommissionBenefit;
 using Aizen.Modules.Payment.Domain.Entities.CustomerDiscount;
 using Aizen.Modules.Payment.Domain.Entities.Economics;
+using Aizen.Modules.Payment.Domain.Entities.PartCommercialTerm;
 using Aizen.Modules.Payment.Domain.Entities.PlatformFee;
+using Aizen.Modules.Payment.Domain.Entities.ProfitProtection;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Microsoft.Extensions.Logging;
 
@@ -42,6 +44,7 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
     private readonly ICustomerBenefitBudgetRepository  _budgets;
     private readonly ProviderCommissionBenefitService  _benefits;
     private readonly IProviderCommissionBenefitEntitlementRepository _entitlements;
+    private readonly IPartCommercialTermRepository     _partTerms;   // BE-S9: cost-free part-line allowance floors (S5)
     private readonly ILogger<ServiceRequestPaymentEconomicsCalculationService> _logger;
 
     public ServiceRequestPaymentEconomicsCalculationService(
@@ -53,6 +56,7 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
         ICustomerBenefitBudgetRepository  budgets,
         ProviderCommissionBenefitService  benefits,
         IProviderCommissionBenefitEntitlementRepository entitlements,
+        IPartCommercialTermRepository     partTerms,
         ILogger<ServiceRequestPaymentEconomicsCalculationService> logger)
     {
         _providerPlans   = providerPlans;
@@ -63,8 +67,15 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
         _budgets         = budgets;
         _benefits        = benefits;
         _entitlements    = entitlements;
+        _partTerms       = partTerms;
         _logger          = logger;
     }
+
+    // BE-S9 (§20.12) — Payment holds the SR item type opaquely as a raw int; part lines (whose line floors come from the
+    // S5 allowance, not the policy defaults) are Product(2) / Consumable(9), mirroring the SR classification.
+    private const int ItemTypeProduct    = 2;
+    private const int ItemTypeConsumable = 9;
+    private static bool IsPartLine(int itemType) => itemType is ItemTypeProduct or ItemTypeConsumable;
 
     public async Task<ServiceRequestEconomicsServiceResult> CalculateAsync(
         CalculateServiceRequestEconomicsRemoteCallRequest request, CancellationToken ct = default)
@@ -107,6 +118,11 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
         // ── §19.9-11: profit-protection policy (BE-P5) ──
         var policy = await _policies.ResolveAsync(request.CurrencyCode, now, ct);
 
+        // ── BE-S9 (§20.12): resolve the cost-free S5 allowance floor set for the PART lines (Product/Consumable). Consumed
+        //    by the line-level gate inside the combiner — S9 never re-derives cost. Missing term ⇒ Found=false ⇒ the engine
+        //    raises ConfigurationError for that line. ──
+        var partAllowances = await ResolvePartLineAllowancesAsync(request, now, ct);
+
         // ── Build combiner lines (with discount eligibility + P7 effective rate) ──
         var combinerLines = request.Lines.Select(l =>
         {
@@ -140,14 +156,16 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
                 Commissionable: r.Commissionable, CommissionBase: r.CommissionBaseAmount, ResolvedRate: r.ResolvedRate,
                 CommissionAmount: r.CommissionAmount, ProviderNet: r.ProviderNet, RuleCode: r.RuleCode,
                 DiscountEligible: l.DiscountEligible, EffectiveCommissionRate: effRate, Attributes: attributes, Fx: fx,
-                Travel: travel);
+                Travel: travel,
+                IsPartLine: IsPartLine(l.ItemType));   // BE-S9 — part lines take their line floors from the S5 allowance
         }).ToList();
 
-        // ── The ONE combiner (allocates discount pre-tax, P7 rate, P5 gate + safe-max recompute, S8 snapshot) ──
+        // ── The ONE combiner (allocates discount pre-tax, P7 rate, S9 line gate → P5 transaction gate + safe-max recompute, S8 snapshot) ──
         var core = ServiceRequestEconomicsCombiner.Combine(
             serviceRequestId: request.ServiceRequestId, currencyCode: request.CurrencyCode,
             lines: combinerLines, platformFeeRule: fee.Resolution, platformFee: fee.Breakdown,
-            policy: policy, createdAtUtc: now, customerDiscount: discountInput);
+            policy: policy, createdAtUtc: now, customerDiscount: discountInput,
+            partAllowances: partAllowances);
 
         // ── Applied RuleCodes → RuleIds (for MarkApplied) ──
         var ruleIdByCode = activeRules.Where(x => !string.IsNullOrWhiteSpace(x.RuleCode))
@@ -231,5 +249,39 @@ public sealed class ServiceRequestPaymentEconomicsCalculationService
         var ent = await _entitlements.GetActiveByProviderAndRuleAsync(
             request.ProviderProfileId, eff.AppliedBenefitRuleIds[0], now, ct);
         return (adjustmentPp, ent?.Id, eff.BenefitedServiceAmount);
+    }
+
+    // BE-S9 (§20.12) — resolve the cost-free S5 line-floor set for each PART line (Product/Consumable), keyed by LineRef.
+    // Mirrors the ResolvePartLineAllowancesQueryHandler resolution (load the active terms once, resolve the most-specific
+    // term per line via the pure resolver), then projects ONLY the cost-free floors the line gate needs — the confidential
+    // SupplierListPrice / ProviderDealerMargin never leave the module. A part line with no resolved term ⇒ Found=false ⇒
+    // the engine raises ConfigurationError (missing allowance). Non-part lines are absent (they use the policy defaults).
+    private async Task<IReadOnlyDictionary<string, LinePartAllowance>> ResolvePartLineAllowancesAsync(
+        CalculateServiceRequestEconomicsRemoteCallRequest request, DateTime now, CancellationToken ct)
+    {
+        var partLines = request.Lines.Where(l => IsPartLine(l.ItemType)).ToList();
+        if (partLines.Count == 0) return new Dictionary<string, LinePartAllowance>();
+
+        var active = await _partTerms.GetActiveAtAsync(request.CurrencyCode, now, ct);
+        var map = new Dictionary<string, LinePartAllowance>(partLines.Count);
+        foreach (var l in partLines)
+        {
+            // Pure resolution (may throw PartCommercialTermConflict on a fail-loud tie — propagate).
+            var term = PartCommercialTermResolver.Resolve(active, new PartCommercialTermResolveContext(
+                ProductCode:       l.ProductCode,
+                ProviderProfileId: request.ProviderProfileId,
+                Brand:             null,
+                CategoryCode:      request.CategoryCode,
+                CurrencyCode:      request.CurrencyCode));
+
+            map[l.LineRef] = term is null
+                ? new LinePartAllowance(Found: false, 0m, 0m, 0m)
+                : new LinePartAllowance(
+                    Found: true,
+                    MinimumProviderReceivable:     term.MinimumProviderReceivable,
+                    AllowedProviderFundedDiscount: term.ProviderFundedAmount,
+                    AllowedPlatformFundedDiscount: term.PlatformFundedAmount);
+        }
+        return map;
     }
 }

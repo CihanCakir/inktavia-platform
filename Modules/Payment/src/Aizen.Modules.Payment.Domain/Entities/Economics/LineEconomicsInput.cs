@@ -31,7 +31,12 @@ public sealed record LineEconomicsInput(
     // ── S3 (frozen FX metadata; NOT part of the money math — the amounts above are already TRY) ──
     LineFxSnapshotInput? Fx = null,
     // ── S4 (structured travel/mobilization derivation; descriptive — snapshotted beside the line, in no sum/invariant) ──
-    TravelSnapshotInput? Travel = null);
+    TravelSnapshotInput? Travel = null,
+    // ── BE-S9 (§20.12) line-level profit-protection record (descriptive; on approval only). NOT in the money math or the
+    //    8 equalities — the min-receivable floor applied to the line, its computed platform contribution, and the pass flag. ──
+    decimal LineMinProviderReceivableApplied = 0m,
+    decimal LinePlatformContribution         = 0m,
+    bool    LineProfitProtectionPassed       = true);
 
 /// <summary>
 /// S4 — the structured travel/mobilization derivation to snapshot for a Travel line at acceptance (§20.8). Carried from

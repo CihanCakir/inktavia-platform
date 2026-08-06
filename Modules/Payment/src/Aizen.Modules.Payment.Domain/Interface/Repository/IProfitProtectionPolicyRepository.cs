@@ -31,3 +31,10 @@ public interface IProfitProtectionEvaluationLogRepository
     Task AddAsync(ProfitProtectionEvaluationLogEntity entity, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }
+
+/// <summary>BE-S9 (§20.12) — insert-only audit for non-Approved LINE-level profit-protection decisions.</summary>
+public interface ILineProfitProtectionEvaluationLogRepository
+{
+    Task AddAsync(LineProfitProtectionEvaluationLogEntity entity, CancellationToken ct = default);
+    Task SaveChangesAsync(CancellationToken ct = default);
+}

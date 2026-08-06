@@ -38,6 +38,21 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
     /// </summary>
     public decimal CustomerSideVariableCostShareRate { get; private set; }
 
+    // ── BE-S9 line-level profit-protection defaults (§20.12) — the NON-PART line floor set + the negative-contribution
+    //    ban knobs. Part lines take their floors from the S5 PartLineAllowanceDto instead; these apply to every other line.
+    //    All admin-tunable, NO hardcoded constant in the engine. Launch defaults are a no-op (caps 100%, floors 0) so an
+    //    offer whose lines already clear is byte-identical to pre-S9; admin tightens them. ──
+    public decimal DefaultLineMinProviderReceivableRate    { get; private set; }   // × line gross (non-part min-receivable)
+    public decimal DefaultLineMinProviderReceivableAmount  { get; private set; }   // floor = Max(amount, gross × rate)
+    public decimal DefaultAllowedProviderFundedDiscountRate { get; private set; }  // × line gross (non-part provider-funded cap)
+    public decimal DefaultAllowedPlatformFundedDiscountRate { get; private set; }  // × line gross (non-part platform-funded cap)
+    public decimal LineCommissionFloorRate                 { get; private set; }   // per-line commission-rate floor (all lines; reuses P7 semantics)
+    public decimal MinLinePlatformContributionRate         { get; private set; }   // × line gross → min required line platform contribution (≥0)
+    /// <summary>When true, a line may run below its min platform contribution up to <see cref="StrategicLossExceptionMaxLineDeficit"/> (logged, never silent). Default false.</summary>
+    public bool    StrategicLossExceptionEnabled           { get; private set; }
+    /// <summary>The versioned per-line contribution-deficit an active strategic-loss exception may absorb. 0 = no loss permitted even when enabled.</summary>
+    public decimal StrategicLossExceptionMaxLineDeficit    { get; private set; }
+
     // ── Adjustment order (§19.11) ───────────────────────────────────────────────
     public ProfitProtectionAdjustmentOrder AdjustmentOrder { get; private set; }
 
@@ -65,13 +80,25 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
         decimal  customerSideVariableCostShareRate,
         ProfitProtectionAdjustmentOrder adjustmentOrder,
         DateTime effectiveFrom, DateTime? effectiveTo,
-        string?  policyCode, string? policyName = null, string? notes = null)
+        string?  policyCode, string? policyName = null, string? notes = null,
+        // ── BE-S9 line-level defaults (optional; launch no-op → caps 100%, floors 0, exception off) ──
+        decimal  defaultLineMinProviderReceivableRate    = 0m,
+        decimal  defaultLineMinProviderReceivableAmount  = 0m,
+        decimal  defaultAllowedProviderFundedDiscountRate = 1m,
+        decimal  defaultAllowedPlatformFundedDiscountRate = 1m,
+        decimal  lineCommissionFloorRate                 = 0m,
+        decimal  minLinePlatformContributionRate         = 0m,
+        bool     strategicLossExceptionEnabled           = false,
+        decimal  strategicLossExceptionMaxLineDeficit    = 0m)
     {
         Validate(
             minCustomerSideAmount, minCustomerSideRate, minProviderSideAmount, minProviderSideRate,
             minTransactionAmount, minTransactionRate, paymentProcessingExpenseRate, paymentProcessingFixed,
             refundRiskReserveRate, otherVariableExpenseRate, otherVariableExpenseFixed,
-            customerSideVariableCostShareRate, effectiveFrom, effectiveTo);
+            customerSideVariableCostShareRate, effectiveFrom, effectiveTo,
+            defaultLineMinProviderReceivableRate, defaultLineMinProviderReceivableAmount,
+            defaultAllowedProviderFundedDiscountRate, defaultAllowedPlatformFundedDiscountRate,
+            lineCommissionFloorRate, minLinePlatformContributionRate, strategicLossExceptionMaxLineDeficit);
 
         return new ProfitProtectionPolicyEntity
         {
@@ -88,6 +115,14 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
             OtherVariableExpenseRate          = otherVariableExpenseRate,
             OtherVariableExpenseFixed         = otherVariableExpenseFixed,
             CustomerSideVariableCostShareRate = customerSideVariableCostShareRate,
+            DefaultLineMinProviderReceivableRate    = defaultLineMinProviderReceivableRate,
+            DefaultLineMinProviderReceivableAmount  = defaultLineMinProviderReceivableAmount,
+            DefaultAllowedProviderFundedDiscountRate = defaultAllowedProviderFundedDiscountRate,
+            DefaultAllowedPlatformFundedDiscountRate = defaultAllowedPlatformFundedDiscountRate,
+            LineCommissionFloorRate           = lineCommissionFloorRate,
+            MinLinePlatformContributionRate   = minLinePlatformContributionRate,
+            StrategicLossExceptionEnabled     = strategicLossExceptionEnabled,
+            StrategicLossExceptionMaxLineDeficit = strategicLossExceptionMaxLineDeficit,
             AdjustmentOrder                   = adjustmentOrder,
             EffectiveFrom                     = effectiveFrom,
             EffectiveTo                       = effectiveTo,
@@ -111,13 +146,34 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
         decimal customerSideVariableCostShareRate,
         ProfitProtectionAdjustmentOrder adjustmentOrder,
         DateTime effectiveFrom, DateTime? effectiveTo,
-        string? policyName, string? notes)
+        string? policyName, string? notes,
+        // ── BE-S9 line-level defaults (optional; unchanged when not supplied) ──
+        decimal? defaultLineMinProviderReceivableRate    = null,
+        decimal? defaultLineMinProviderReceivableAmount  = null,
+        decimal? defaultAllowedProviderFundedDiscountRate = null,
+        decimal? defaultAllowedPlatformFundedDiscountRate = null,
+        decimal? lineCommissionFloorRate                 = null,
+        decimal? minLinePlatformContributionRate         = null,
+        bool?    strategicLossExceptionEnabled           = null,
+        decimal? strategicLossExceptionMaxLineDeficit    = null)
     {
+        // Fall back to the current value when the caller omits a line-level field (keeps the P5 admin update path additive).
+        var s9MinRecvRate   = defaultLineMinProviderReceivableRate    ?? DefaultLineMinProviderReceivableRate;
+        var s9MinRecvAmount = defaultLineMinProviderReceivableAmount  ?? DefaultLineMinProviderReceivableAmount;
+        var s9ProvCapRate   = defaultAllowedProviderFundedDiscountRate ?? DefaultAllowedProviderFundedDiscountRate;
+        var s9PlatCapRate   = defaultAllowedPlatformFundedDiscountRate ?? DefaultAllowedPlatformFundedDiscountRate;
+        var s9CommFloor     = lineCommissionFloorRate                 ?? LineCommissionFloorRate;
+        var s9MinContrib    = minLinePlatformContributionRate         ?? MinLinePlatformContributionRate;
+        var s9LossEnabled   = strategicLossExceptionEnabled           ?? StrategicLossExceptionEnabled;
+        var s9LossDeficit   = strategicLossExceptionMaxLineDeficit    ?? StrategicLossExceptionMaxLineDeficit;
+
         Validate(
             minCustomerSideAmount, minCustomerSideRate, minProviderSideAmount, minProviderSideRate,
             minTransactionAmount, minTransactionRate, paymentProcessingExpenseRate, paymentProcessingFixed,
             refundRiskReserveRate, otherVariableExpenseRate, otherVariableExpenseFixed,
-            customerSideVariableCostShareRate, effectiveFrom, effectiveTo);
+            customerSideVariableCostShareRate, effectiveFrom, effectiveTo,
+            s9MinRecvRate, s9MinRecvAmount, s9ProvCapRate, s9PlatCapRate,
+            s9CommFloor, s9MinContrib, s9LossDeficit);
 
         MinCustomerSideContributionAmount = minCustomerSideAmount;
         MinCustomerSideContributionRate   = minCustomerSideRate;
@@ -131,6 +187,14 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
         OtherVariableExpenseRate          = otherVariableExpenseRate;
         OtherVariableExpenseFixed         = otherVariableExpenseFixed;
         CustomerSideVariableCostShareRate = customerSideVariableCostShareRate;
+        DefaultLineMinProviderReceivableRate    = s9MinRecvRate;
+        DefaultLineMinProviderReceivableAmount  = s9MinRecvAmount;
+        DefaultAllowedProviderFundedDiscountRate = s9ProvCapRate;
+        DefaultAllowedPlatformFundedDiscountRate = s9PlatCapRate;
+        LineCommissionFloorRate           = s9CommFloor;
+        MinLinePlatformContributionRate   = s9MinContrib;
+        StrategicLossExceptionEnabled     = s9LossEnabled;
+        StrategicLossExceptionMaxLineDeficit = s9LossDeficit;
         AdjustmentOrder                   = adjustmentOrder;
         EffectiveFrom                     = effectiveFrom;
         EffectiveTo                       = effectiveTo;
@@ -164,7 +228,11 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
         decimal minTransactionAmount,  decimal minTransactionRate,
         decimal paymentProcessingExpenseRate, decimal paymentProcessingFixed,
         decimal refundRiskReserveRate, decimal otherVariableExpenseRate, decimal otherVariableExpenseFixed,
-        decimal customerSideVariableCostShareRate, DateTime effectiveFrom, DateTime? effectiveTo)
+        decimal customerSideVariableCostShareRate, DateTime effectiveFrom, DateTime? effectiveTo,
+        decimal defaultLineMinProviderReceivableRate, decimal defaultLineMinProviderReceivableAmount,
+        decimal defaultAllowedProviderFundedDiscountRate, decimal defaultAllowedPlatformFundedDiscountRate,
+        decimal lineCommissionFloorRate, decimal minLinePlatformContributionRate,
+        decimal strategicLossExceptionMaxLineDeficit)
     {
         void NonNegative(decimal v, string n)
         {
@@ -183,6 +251,15 @@ public sealed class ProfitProtectionPolicyEntity : AizenEntityWithAudit
         NonNegative(refundRiskReserveRate,        nameof(refundRiskReserveRate));
         NonNegative(otherVariableExpenseRate,     nameof(otherVariableExpenseRate));
         NonNegative(otherVariableExpenseFixed,    nameof(otherVariableExpenseFixed));
+
+        // BE-S9 line-level defaults — all ≥ 0 (a rate may exceed 1 only conceptually; caps default to 1 = 100%).
+        NonNegative(defaultLineMinProviderReceivableRate,    nameof(defaultLineMinProviderReceivableRate));
+        NonNegative(defaultLineMinProviderReceivableAmount,  nameof(defaultLineMinProviderReceivableAmount));
+        NonNegative(defaultAllowedProviderFundedDiscountRate, nameof(defaultAllowedProviderFundedDiscountRate));
+        NonNegative(defaultAllowedPlatformFundedDiscountRate, nameof(defaultAllowedPlatformFundedDiscountRate));
+        NonNegative(lineCommissionFloorRate,                 nameof(lineCommissionFloorRate));
+        NonNegative(minLinePlatformContributionRate,         nameof(minLinePlatformContributionRate));
+        NonNegative(strategicLossExceptionMaxLineDeficit,    nameof(strategicLossExceptionMaxLineDeficit));
 
         if (customerSideVariableCostShareRate is < 0m or > 1m)
             throw new AizenBusinessException(

@@ -35,6 +35,14 @@ public sealed class OfferLineEconomicsSnapshotEntity : AizenEntityWithAudit
     public string                   CurrencyCode                 { get; private set; } = "TRY";
     public int                      SortOrder                    { get; private set; }
 
+    // ── BE-S9 line-level profit protection (§20.12) — descriptive, insert-only; NOT in the money math or the 8 equalities.
+    //    Recorded on approval: the provider-minimum-receivable floor applied to the line (part: S5; else policy), the line's
+    //    computed platform contribution, and whether the line cleared its own floor. Line-level gating happens BEFORE the
+    //    transaction gates; on failure NO snapshot is written (the LineProfitProtectionEvaluationLog is the record). ──
+    public decimal                  LineMinProviderReceivableApplied { get; private set; }
+    public decimal                  LinePlatformContribution         { get; private set; }
+    public bool                     LineProfitProtectionPassed       { get; private set; } = true;
+
     // ── S3 frozen FX metadata (§20.7) — null for a settlement-native line. Self-contained (source ccy + price + applied
     //    rate + rate date + resolved TRY unit price); descriptive, NOT part of the money math or the 8 equalities. The
     //    line amounts above are already TRY. After acceptance this is never re-resolved — a later rate change cannot move
@@ -58,7 +66,11 @@ public sealed class OfferLineEconomicsSnapshotEntity : AizenEntityWithAudit
         LineCommissionEligibility commissionEligibility, decimal commissionBase, decimal commissionRate, decimal commissionAmount,
         decimal providerNet, decimal lineVat, decimal lineTotal, string currencyCode, int sortOrder,
         IReadOnlyList<OfferLineAttributeSnapshotEntity>? attributeSnapshots = null,
-        LineFxSnapshotInput? fx = null)
+        LineFxSnapshotInput? fx = null,
+        // ── BE-S9 descriptive line-level protection record (defaults preserve the pre-S9 line snapshot) ──
+        decimal lineMinProviderReceivableApplied = 0m,
+        decimal linePlatformContribution = 0m,
+        bool lineProfitProtectionPassed = true)
     {
         var entity = new OfferLineEconomicsSnapshotEntity
         {
@@ -78,6 +90,9 @@ public sealed class OfferLineEconomicsSnapshotEntity : AizenEntityWithAudit
             LineTotalAmount              = lineTotal,
             CurrencyCode                 = currencyCode.ToUpperInvariant(),
             SortOrder                    = sortOrder,
+            LineMinProviderReceivableApplied = lineMinProviderReceivableApplied,
+            LinePlatformContribution         = linePlatformContribution,
+            LineProfitProtectionPassed       = lineProfitProtectionPassed,
             IsActive                     = true,
         };
         if (attributeSnapshots is { Count: > 0 })

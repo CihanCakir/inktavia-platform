@@ -6,6 +6,7 @@ using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Aizen.Modules.Payment.Application.Gateway;
 using Aizen.Modules.Payment.Application.Services;
+using Aizen.Modules.Payment.Domain.Entities.ProfitProtection;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,7 @@ public sealed class CalculateServiceRequestEconomicsCommandHandler
     private readonly CommissionBenefitEntitlementService              _entitlementService;
     private readonly ProviderNegativeBalanceService                   _negativeBalance;
     private readonly FinancialLedgerPostingService                    _ledgerPosting;
+    private readonly ILineProfitProtectionEvaluationLogRepository     _lineProtectionLogs;   // BE-S9
     private readonly IOptions<PaymentAuthModeOptions>                 _authModeOptions;
     private readonly ILogger<CalculateServiceRequestEconomicsCommandHandler> _logger;
 
@@ -44,6 +46,7 @@ public sealed class CalculateServiceRequestEconomicsCommandHandler
         CommissionBenefitEntitlementService              entitlementService,
         ProviderNegativeBalanceService                   negativeBalance,
         FinancialLedgerPostingService                    ledgerPosting,
+        ILineProfitProtectionEvaluationLogRepository     lineProtectionLogs,
         IOptions<PaymentAuthModeOptions>                 authModeOptions,
         ILogger<CalculateServiceRequestEconomicsCommandHandler> logger)
     {
@@ -57,6 +60,7 @@ public sealed class CalculateServiceRequestEconomicsCommandHandler
         _entitlementService = entitlementService;
         _negativeBalance    = negativeBalance;
         _ledgerPosting      = ledgerPosting;
+        _lineProtectionLogs = lineProtectionLogs;
         _authModeOptions    = authModeOptions;
         _logger             = logger;
     }
@@ -127,6 +131,22 @@ public sealed class CalculateServiceRequestEconomicsCommandHandler
 
         // ── §19.9-12 gate: Rejected/ConfigurationError → NO snapshot, NO escrow. Return the decision. ──
         if (!core.CanProceed || core.Snapshot is null)
+        {
+            // ── BE-S9 (§20.12): a LINE-level failure is audited to its own insert-only log (mirrors P5's non-Approved log;
+            //    no snapshot is written on failure). The transaction-level path is unchanged. ──
+            if (core.LineProtectionFailed && core.LineProtectionResults is { Count: > 0 })
+            {
+                var eval = new LineProfitProtectionEvaluation(
+                    Passed: false, State: core.Decision, Lines: core.LineProtectionResults,
+                    PrimaryErrorCode: core.LineProtectionErrorCode, Reason: core.Reason);
+                await _lineProtectionLogs.AddAsync(LineProfitProtectionEvaluationLogEntity.Create(
+                    request.ServiceRequestId, request.OfferId, request.CurrencyCode, policyId: null, eval, DateTime.UtcNow), ct);
+                await _lineProtectionLogs.SaveChangesAsync(ct);
+                _logger.LogWarning(
+                    "P8 blocked by S9 line-level profit protection. SR={SrId} Offer={OfferId} Decision={Decision} Code={Code} — {Reason}",
+                    request.ServiceRequestId, request.OfferId, core.Decision, core.LineProtectionErrorCode, core.Reason);
+            }
+
             return new CalculateServiceRequestEconomicsRemoteCallResponse
             {
                 Decision               = core.Decision,
@@ -137,6 +157,7 @@ public sealed class CalculateServiceRequestEconomicsCommandHandler
                 PlatformFeeGross       = core.PlatformFeeGross,
                 TransactionCommission  = core.TransactionCommission,
             };
+        }
 
         // ── Persist the immutable snapshot first to materialise its Id (atomic — the handler is transactional) ──
         var snapshot = core.Snapshot;

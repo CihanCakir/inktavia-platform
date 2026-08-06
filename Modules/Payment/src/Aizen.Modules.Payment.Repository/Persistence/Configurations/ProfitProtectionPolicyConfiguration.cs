@@ -37,6 +37,17 @@ public sealed class ProfitProtectionPolicyConfiguration : IEntityTypeConfigurati
                  })
             b.Property(rate).HasColumnType("numeric(9,4)").IsRequired();
 
+        // ── BE-S9 line-level defaults (§20.12) — back-compat defaults make the line gate a no-op for existing rows
+        //    (caps 100%, floors 0, exception off) so an already-clearing offer is byte-identical to pre-S9. ──
+        b.Property(x => x.DefaultLineMinProviderReceivableAmount).HasColumnType("numeric(18,4)").IsRequired().HasDefaultValue(0m);
+        b.Property(x => x.StrategicLossExceptionMaxLineDeficit).HasColumnType("numeric(18,4)").IsRequired().HasDefaultValue(0m);
+        b.Property(x => x.DefaultLineMinProviderReceivableRate).HasColumnType("numeric(9,4)").IsRequired().HasDefaultValue(0m);
+        b.Property(x => x.DefaultAllowedProviderFundedDiscountRate).HasColumnType("numeric(9,4)").IsRequired().HasDefaultValue(1m);
+        b.Property(x => x.DefaultAllowedPlatformFundedDiscountRate).HasColumnType("numeric(9,4)").IsRequired().HasDefaultValue(1m);
+        b.Property(x => x.LineCommissionFloorRate).HasColumnType("numeric(9,4)").IsRequired().HasDefaultValue(0m);
+        b.Property(x => x.MinLinePlatformContributionRate).HasColumnType("numeric(9,4)").IsRequired().HasDefaultValue(0m);
+        b.Property(x => x.StrategicLossExceptionEnabled).IsRequired().HasDefaultValue(false);
+
         b.Property(x => x.AdjustmentOrder).HasConversion<int>().IsRequired();
         b.Property(x => x.CurrencyCode).HasMaxLength(10).IsRequired();
         b.Property(x => x.EffectiveFrom).IsRequired();

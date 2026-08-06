@@ -122,3 +122,41 @@ M3a (profile read/update + ProfileScreen wiring) live-verified. Reports: `REPORT
 - **email/phone are read-only in mobile profile update** (auth identifiers; the Identity participant update has no phone field). If phone-edit is ever needed, it's a separate mechanism — revisit.
 
 **M3a pattern (reuse in later phases):** BFF resolves caller Keycloak subject → Identity by-subject → sets `IParticipantIdentityHolder` so the delegating handler attaches the BFF assertion → existing Identity endpoint targets the right participant → re-resolve & echo. FE: `feature/api/*Api.ts` + `useApiQuery(queryKeys.*)` read + `useMutation`→invalidate write, Loading/ErrorState guardrails, remove inline constants + `mockData.ts` import, add RegExp mock handlers so mock-ON renders identically.
+
+---
+
+## Phase 2 / M4a — DONE (2026-08-06)
+
+M4a (vessels read + FE wiring) live-verified. Report: `REPORT_BE_M4a_VESSELS_READ.md`. App now shows an honest "no vessels yet" empty state for qa.owner.aug5 (no more fake Sea Serenity / 82% / 18°C). BFF: `GET /mobile/vessels` (subject-scoped) + `/{id}` (BFF ownership-gated → clean "not found", never 500 or cross-participant leak).
+
+**NEW RECURRING GOTCHAS:**
+- **Module scoping via `User.FindFirstValue(NameIdentifier)` BREAKS under the BFF assertion** — the service token's `sub` is a GUID (→ FormatException/0), and the assertion only populates the InfoAccessor, not the ClaimsPrincipal. **Any module read/handler that scopes to the current user must read `IAizenInfoAccessor.UserInfo.UserId`, not the ClaimsPrincipal.** (VesselController.CurrentUserId needed this 1-property fix.) Expect the same in future scoped modules.
+- **A target module with NO BffAssertion config at all silently rejects the assertion** (CurrentUserId=0). `vessel-api` had none → added full block (`SharedSecret` + `AllowedClientIds__0: marine-mobile-bff`). Check every new scoped-read/write target module has the block, not just the allow-list entry.
+- **Vessel reads are Redis-cached (DB 11)** — flush after DB seeding (cf. reference DB 12, session DB 13). 
+- **⚠️ External auto-commit reverted a needed config edit** (`vessel-api` compose block) once mid-session → **re-verify env after every redeploy** until the source of the external commits is found. This can silently undo BffAssertion/env fixes.
+
+## Next: M4b (vessel create/update)
+- **STEP 0 — seed countries** (only TR exists) + flush reference Redis DB 12, so the flag/country picker works.
+- BFF create + update vessel (WRITE → vessel-api BffAssertion block now exists from M4a); FE AddVessel* multi-step + VesselDetail edit → real; consumes M3b lookups (type/fuel/engine/hull) + countries.
+
+---
+
+## CONVENTION UPDATE (2026-08-06)
+- **Reports go under `docs/V1.0.1/Mobile/<Module>/`** (per-module folder, e.g. `Vessel/`, `Profile/`, `Auth/`). New slice reports follow this; existing flat reports may be moved into their module folder for consistency.
+
+## M4 plan REVISED from `docs/V1.0.1/Mobile/VESSEL_FE_BE_GAP.md` (supersedes guessed M4b/M4c)
+
+Gap-analysis key findings:
+- Participant **writes already EXIST in the Vessel module** (create, update, spec, engines, docs, media, archive, status) and are **assertion-compatible** → work = **EXPOSE to the mobile BFF**, not build. M4a shipped only 2 reads.
+- **Provider BFF is NOT a mirror** (no vessel controller, only a batch `/summary`) → reference = the **module endpoints + M4a `ParticipantProfileResolver`**, not "mirror provider".
+- **FE create wizard is FAKE** — collects basic/technical/engine/documents but sends only basicInfo to an in-memory mock; specs/engine/uploads silently dropped. **#1 fix.**
+- **"Active vessel" has no backend anchor** (owner/engine `IsPrimary` are different) → implement as **FE-local persisted choice**, not a backend field.
+- **List under-populated**: module `GetUserVesselsQueryHandler` hardcodes `CoverMediaUrl=null` + omits length/marina → small module fix for cover (M4f). Step-1 flag is free-text vs a country code (countries lookup delivered-not-wired in M3b → wire in M4b).
+
+Revised slice sequence:
+- **M4b — create** (core + spec + engine, BFF-orchestrated; wire flag→countries; fix the fake wizard to send all steps).
+- **M4c — edit** (update path).
+- **M4d — archive/status** (+ set-active as FE-local persisted).
+- **M4e — documents** (file-storage upload; DOCUMENT_TYPE seed dep).
+- **M4f — photos/media** (+ list cover enrichment module fix).
+- Ownership/invitations + CargoDry link = later / product-decision.

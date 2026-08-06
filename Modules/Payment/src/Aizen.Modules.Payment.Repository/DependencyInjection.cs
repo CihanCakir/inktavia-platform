@@ -29,6 +29,7 @@ public static class DependencyInjection
         // ── Profit protection (BE-P5) ─────────────────────────────────────────
         services.AddScoped<IProfitProtectionPolicyRepository,         ProfitProtectionPolicyRepository>();
         services.AddScoped<IProfitProtectionEvaluationLogRepository,  ProfitProtectionEvaluationLogRepository>();
+        services.AddScoped<ILineProfitProtectionEvaluationLogRepository, LineProfitProtectionEvaluationLogRepository>();
         // ── Customer discount + benefit budget (BE-P6) ────────────────────────
         services.AddScoped<ICustomerDiscountRuleRepository,          CustomerDiscountRuleRepository>();
         services.AddScoped<ICustomerBenefitBudgetRepository,         CustomerBenefitBudgetRepository>();

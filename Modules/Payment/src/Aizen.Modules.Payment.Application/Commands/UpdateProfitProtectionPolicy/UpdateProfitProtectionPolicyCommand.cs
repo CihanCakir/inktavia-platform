@@ -21,6 +21,16 @@ public sealed class UpdateProfitProtectionPolicyCommand : AizenCommand<UpdatePro
     public decimal OtherVariableExpenseFixed    { get; init; }
     public decimal CustomerSideVariableCostShareRate { get; init; } = 0.5m;
 
+    // ── BE-S9 line-level defaults (§20.12; admin-tunable) — caps default to 1 (100% = no-op), floors/rates 0, exception off ──
+    public decimal DefaultLineMinProviderReceivableRate    { get; init; } = 0m;
+    public decimal DefaultLineMinProviderReceivableAmount  { get; init; } = 0m;
+    public decimal DefaultAllowedProviderFundedDiscountRate { get; init; } = 1m;
+    public decimal DefaultAllowedPlatformFundedDiscountRate { get; init; } = 1m;
+    public decimal LineCommissionFloorRate                 { get; init; } = 0m;
+    public decimal MinLinePlatformContributionRate         { get; init; } = 0m;
+    public bool    StrategicLossExceptionEnabled           { get; init; } = false;
+    public decimal StrategicLossExceptionMaxLineDeficit    { get; init; } = 0m;
+
     public ProfitProtectionAdjustmentOrder AdjustmentOrder { get; init; }
         = ProfitProtectionAdjustmentOrder.PlatformDiscountThenCommissionBenefit;
 

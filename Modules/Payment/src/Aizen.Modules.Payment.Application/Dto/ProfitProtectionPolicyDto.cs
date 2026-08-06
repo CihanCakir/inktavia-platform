@@ -27,6 +27,15 @@ public sealed record ProfitProtectionPolicyDto(
     decimal                         OtherVariableExpenseFixed,
     // ── Variable-cost split + adjustment order ──────────────────────────────────
     decimal                         CustomerSideVariableCostShareRate,
+    // ── BE-S9 line-level defaults (§20.12; admin-tunable) ────────────────────────
+    decimal                         DefaultLineMinProviderReceivableRate,
+    decimal                         DefaultLineMinProviderReceivableAmount,
+    decimal                         DefaultAllowedProviderFundedDiscountRate,
+    decimal                         DefaultAllowedPlatformFundedDiscountRate,
+    decimal                         LineCommissionFloorRate,
+    decimal                         MinLinePlatformContributionRate,
+    bool                            StrategicLossExceptionEnabled,
+    decimal                         StrategicLossExceptionMaxLineDeficit,
     ProfitProtectionAdjustmentOrder AdjustmentOrder,
     // ── Lifecycle / admin ───────────────────────────────────────────────────────
     DateTime                        EffectiveFrom,

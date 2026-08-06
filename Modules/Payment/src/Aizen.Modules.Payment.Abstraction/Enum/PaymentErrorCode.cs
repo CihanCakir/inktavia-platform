@@ -125,6 +125,14 @@ public enum PaymentErrorCode
     PartCommercialTermInvalid            = 5122,   // Model-incoherent term (negative money, Σfunded > maxDiscountable, maxCustomerDiscount > maxDiscountable, bad dates)
     PartCommercialTermNotInactive        = 5124,   // Reactivate attempted on a non-Inactive part commercial term
 
+    // ── Line-level profit protection (BE-S9, §20.12) — evaluated BEFORE the §19.2 transaction gates ──
+    LineProfitProtectionRejected                  = 5130,   // A line failed the line-level gate (no netting) → acceptance Rejected, no snapshot/escrow
+    LineProfitProtectionProviderReceivableBelowFloor = 5131,// A line's ProviderNet < its provider-minimum-receivable floor (part: S5; else policy)
+    LineProfitProtectionFundedDiscountExceedsCap  = 5132,   // A line's provider- or platform-funded discount exceeds its allowed cap
+    LineProfitProtectionNegativeContribution      = 5133,   // A line's platform contribution < the min (negative-contribution ban) without an in-limit strategic-loss exception
+    LineProfitProtectionConfigurationError        = 5134,   // A part line has no resolved S5 allowance (or no policy) → ConfigurationError, acceptance blocked
+    // (a line below the commission floor reuses the P7 ProviderCommissionBelowFloor = 5078 contract — no duplicate code)
+
     // ── Payout admin operations ───────────────────────────────────────────────
     PayoutInvalidStateForHold            = 5035,
     PayoutInvalidStateForApproval        = 5036,

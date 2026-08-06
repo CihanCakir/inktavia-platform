@@ -33,6 +33,15 @@ public sealed class ProfitProtectionPolicySeed
     private const decimal OtherRate = 0m, OtherFixed = 0m;
     private const decimal CustomerVarShare = 0.50m;
 
+    // ── BE-S9 line-level placeholders (§20.12; admin-tunable) — launch NO-OP so an offer whose lines already clear is
+    //    byte-identical to pre-S9: no min-receivable floor, 100% funded-discount caps, 0 commission/contribution floor,
+    //    strategic-loss exception OFF. Admin tightens these to turn the line gate on. ──
+    private const decimal LineMinRecvRate = 0m,  LineMinRecvAmt = 0m;
+    private const decimal AllowedProvFundedRate = 1m, AllowedPlatFundedRate = 1m;
+    private const decimal LineCommFloorRate = 0m, MinLineContribRate = 0m;
+    private const bool    StrategicLossEnabled = false;
+    private const decimal StrategicLossMaxDeficit = 0m;
+
     public async Task SeedAsync(CancellationToken ct = default)
     {
         var seed = await _db.ProfitProtectionPolicies
@@ -58,7 +67,16 @@ public sealed class ProfitProtectionPolicySeed
             effectiveTo:                        null,
             policyCode:                         null,
             policyName:                         "Default profit-protection policy (placeholder)",
-            notes:                              "Launch placeholder — all thresholds admin-tunable; final values pending admin/YMM.");
+            notes:                              "Launch placeholder — all thresholds admin-tunable; final values pending admin/YMM.",
+            // ── BE-S9 line-level placeholders (no-op) ──
+            defaultLineMinProviderReceivableRate:    LineMinRecvRate,
+            defaultLineMinProviderReceivableAmount:  LineMinRecvAmt,
+            defaultAllowedProviderFundedDiscountRate: AllowedProvFundedRate,
+            defaultAllowedPlatformFundedDiscountRate: AllowedPlatFundedRate,
+            lineCommissionFloorRate:                 LineCommFloorRate,
+            minLinePlatformContributionRate:         MinLineContribRate,
+            strategicLossExceptionEnabled:           StrategicLossEnabled,
+            strategicLossExceptionMaxLineDeficit:    StrategicLossMaxDeficit);
 
         await _db.ProfitProtectionPolicies.AddAsync(policy, ct);
         await _db.SaveChangesAsync(ct);

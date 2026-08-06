@@ -356,7 +356,9 @@ public sealed class PaymentEconomicsSnapshotEntity : AizenEntityWithAudit
             offerLines.Add(OfferLineEconomicsSnapshotEntity.Create(
                 l.LineRef, l.ItemType, l.PricingMethod, gross, dc, dp, dpl, l.CommissionEligibility,
                 cb, cr, ca, pn, vat, lt, currencyCode, l.SortOrder, attributeSnapshots,
-                l.Fx));   // S3 — frozen FX metadata folded onto the line snapshot (tamper-checked in the factory)
+                l.Fx,   // S3 — frozen FX metadata folded onto the line snapshot (tamper-checked in the factory)
+                // BE-S9 — descriptive line-level protection record (not in any sum/invariant)
+                l.LineMinProviderReceivableApplied, l.LinePlatformContribution, l.LineProfitProtectionPassed));
 
             commissionAllocations.Add(CommissionAllocationSnapshotEntity.Create(
                 l.LineRef, l.RuleId, l.RuleCode, cb, cr, ca, l.Commissionable));

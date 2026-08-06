@@ -1117,6 +1117,21 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.Property<decimal>("LineGrossBeforeDiscount")
                         .HasColumnType("numeric(18,4)");
 
+                    b.Property<decimal>("LineMinProviderReceivableApplied")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,4)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("LinePlatformContribution")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,4)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<bool>("LineProfitProtectionPassed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("LineRef")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -3030,6 +3045,94 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.ToTable("premium_purchases", "payment");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.ProfitProtection.LineProfitProtectionEvaluationLogEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("DecisionState")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("EvaluatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("FailedLineCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FailedLineRefs")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("LineCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OfferId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PolicyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("PrimaryBreachCode")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<long>("ServiceRequestId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceRequestId", "OfferId");
+
+                    b.HasIndex("CurrencyCode", "DecisionState", "EvaluatedAtUtc");
+
+                    b.ToTable("line_profit_protection_evaluation_logs", "payment");
+                });
+
             modelBuilder.Entity("Aizen.Modules.Payment.Domain.Entities.ProfitProtection.ProfitProtectionEvaluationLogEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -3169,6 +3272,26 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.Property<decimal>("CustomerSideVariableCostShareRate")
                         .HasColumnType("numeric(9,4)");
 
+                    b.Property<decimal>("DefaultAllowedPlatformFundedDiscountRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(9,4)")
+                        .HasDefaultValue(1m);
+
+                    b.Property<decimal>("DefaultAllowedProviderFundedDiscountRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(9,4)")
+                        .HasDefaultValue(1m);
+
+                    b.Property<decimal>("DefaultLineMinProviderReceivableAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,4)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("DefaultLineMinProviderReceivableRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(9,4)")
+                        .HasDefaultValue(0m);
+
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -3187,11 +3310,21 @@ namespace Aizen.Modules.Payment.Repository.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<decimal>("LineCommissionFloorRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(9,4)")
+                        .HasDefaultValue(0m);
+
                     b.Property<decimal>("MinCustomerSideContributionAmount")
                         .HasColumnType("numeric(18,4)");
 
                     b.Property<decimal>("MinCustomerSideContributionRate")
                         .HasColumnType("numeric(9,4)");
+
+                    b.Property<decimal>("MinLinePlatformContributionRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(9,4)")
+                        .HasDefaultValue(0m);
 
                     b.Property<decimal>("MinProviderSideContributionAmount")
                         .HasColumnType("numeric(18,4)");
@@ -3247,6 +3380,16 @@ namespace Aizen.Modules.Payment.Repository.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("StrategicLossExceptionEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal>("StrategicLossExceptionMaxLineDeficit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(18,4)")
+                        .HasDefaultValue(0m);
 
                     b.HasKey("Id");
 

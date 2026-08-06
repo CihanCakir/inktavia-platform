@@ -22,7 +22,16 @@ public sealed record CreateProfitProtectionPolicyBffRequest(
     DateTime  EffectiveFrom,
     DateTime? EffectiveTo,
     string?   PolicyName,
-    string?   Notes);
+    string?   Notes,
+    // ── BE-S9 line-level defaults (§20.12; additive) — caps default to 1 (100% = no-op), floors/rates 0, exception off ──
+    decimal   DefaultLineMinProviderReceivableRate    = 0m,
+    decimal   DefaultLineMinProviderReceivableAmount  = 0m,
+    decimal   DefaultAllowedProviderFundedDiscountRate = 1m,
+    decimal   DefaultAllowedPlatformFundedDiscountRate = 1m,
+    decimal   LineCommissionFloorRate                 = 0m,
+    decimal   MinLinePlatformContributionRate         = 0m,
+    bool      StrategicLossExceptionEnabled           = false,
+    decimal   StrategicLossExceptionMaxLineDeficit    = 0m);
 
 /// <summary>Update a profit-protection policy. <c>Id</c> forced from the route; currency is fixed on the row.</summary>
 public sealed record UpdateProfitProtectionPolicyBffRequest(
@@ -43,7 +52,16 @@ public sealed record UpdateProfitProtectionPolicyBffRequest(
     DateTime  EffectiveFrom,
     DateTime? EffectiveTo,
     string?   PolicyName,
-    string?   Notes);
+    string?   Notes,
+    // ── BE-S9 line-level defaults (§20.12; additive) — caps default to 1 (100% = no-op), floors/rates 0, exception off ──
+    decimal   DefaultLineMinProviderReceivableRate    = 0m,
+    decimal   DefaultLineMinProviderReceivableAmount  = 0m,
+    decimal   DefaultAllowedProviderFundedDiscountRate = 1m,
+    decimal   DefaultAllowedPlatformFundedDiscountRate = 1m,
+    decimal   LineCommissionFloorRate                 = 0m,
+    decimal   MinLinePlatformContributionRate         = 0m,
+    bool      StrategicLossExceptionEnabled           = false,
+    decimal   StrategicLossExceptionMaxLineDeficit    = 0m);
 
 public sealed record ProfitProtectionPolicyCreateBffResult(long Id, string PolicyCode);
 public sealed record ProfitProtectionPolicyMutateBffResult(long Id, string? PolicyCode);
@@ -78,7 +96,16 @@ public sealed record ProfitProtectionPolicyListItemBffDto(
     long?     CreateUserId,
     DateTime? CreateDate,
     long?     ModifyUserId,
-    DateTime? ModifyDate
+    DateTime? ModifyDate,
+    // ── BE-S9 line-level defaults (§20.12; additive — read from the module policy) ──
+    decimal   DefaultLineMinProviderReceivableRate    = 0m,
+    decimal   DefaultLineMinProviderReceivableAmount  = 0m,
+    decimal   DefaultAllowedProviderFundedDiscountRate = 1m,
+    decimal   DefaultAllowedPlatformFundedDiscountRate = 1m,
+    decimal   LineCommissionFloorRate                 = 0m,
+    decimal   MinLinePlatformContributionRate         = 0m,
+    bool      StrategicLossExceptionEnabled           = false,
+    decimal   StrategicLossExceptionMaxLineDeficit    = 0m
 );
 
 /// <summary>Version-history list response (no paging — policies are few).</summary>
@@ -114,7 +141,16 @@ public sealed record ProfitProtectionPolicyDetailBffDto(
     long?     CreateUserId,
     DateTime? CreateDate,
     long?     ModifyUserId,
-    DateTime? ModifyDate
+    DateTime? ModifyDate,
+    // ── BE-S9 line-level defaults (§20.12; additive — read from the module policy) ──
+    decimal   DefaultLineMinProviderReceivableRate    = 0m,
+    decimal   DefaultLineMinProviderReceivableAmount  = 0m,
+    decimal   DefaultAllowedProviderFundedDiscountRate = 1m,
+    decimal   DefaultAllowedPlatformFundedDiscountRate = 1m,
+    decimal   LineCommissionFloorRate                 = 0m,
+    decimal   MinLinePlatformContributionRate         = 0m,
+    bool      StrategicLossExceptionEnabled           = false,
+    decimal   StrategicLossExceptionMaxLineDeficit    = 0m
 );
 
 /// <summary>Resolved active policy (preview). AdjustmentOrder as string per the BFF enum contract.</summary>

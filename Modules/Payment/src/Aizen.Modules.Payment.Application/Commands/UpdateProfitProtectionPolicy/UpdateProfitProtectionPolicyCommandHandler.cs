@@ -39,7 +39,11 @@ public sealed class UpdateProfitProtectionPolicyCommandHandler
             request.CustomerSideVariableCostShareRate,
             request.AdjustmentOrder,
             request.EffectiveFrom.ToUniversalTime(), request.EffectiveTo?.ToUniversalTime(),
-            request.PolicyName, request.Notes);
+            request.PolicyName, request.Notes,
+            request.DefaultLineMinProviderReceivableRate, request.DefaultLineMinProviderReceivableAmount,
+            request.DefaultAllowedProviderFundedDiscountRate, request.DefaultAllowedPlatformFundedDiscountRate,
+            request.LineCommissionFloorRate, request.MinLinePlatformContributionRate,
+            request.StrategicLossExceptionEnabled, request.StrategicLossExceptionMaxLineDeficit);
 
         var conflict = await _policies.FindOverlappingActivePolicyAsync(policy, ct);
         if (conflict is not null)

@@ -57,6 +57,7 @@ public sealed class PaymentDbContext : AizenDbContext
     // ── Profit protection (BE-P5) ─────────────────────────────────────────────
     public DbSet<ProfitProtectionPolicyEntity>        ProfitProtectionPolicies       => Set<ProfitProtectionPolicyEntity>();
     public DbSet<ProfitProtectionEvaluationLogEntity> ProfitProtectionEvaluationLogs => Set<ProfitProtectionEvaluationLogEntity>();
+    public DbSet<LineProfitProtectionEvaluationLogEntity> LineProfitProtectionEvaluationLogs => Set<LineProfitProtectionEvaluationLogEntity>();
 
     // ── Customer discount + benefit budget (BE-P6) ────────────────────────────
     public DbSet<CustomerDiscountRuleEntity>          CustomerDiscountRules          => Set<CustomerDiscountRuleEntity>();
