@@ -80,6 +80,11 @@ public sealed class ChargebackRecordRepository : IChargebackRecordRepository
     public Task<ChargebackRecordEntity?> GetByGatewayReferenceAsync(string gatewayChargebackReference, CancellationToken ct = default)
         => _db.ChargebackRecords.FirstOrDefaultAsync(x => x.GatewayChargebackReference == gatewayChargebackReference, ct);
 
+    public Task<ChargebackRecordEntity?> GetByTransactionIdAsync(long paymentTransactionId, CancellationToken ct = default)
+        => _db.ChargebackRecords.AsNoTracking()
+            .OrderByDescending(x => x.ReceivedAtUtc)
+            .FirstOrDefaultAsync(x => x.PaymentTransactionId == paymentTransactionId, ct);
+
     public Task AddAsync(ChargebackRecordEntity entity, CancellationToken ct = default)
         => _db.ChargebackRecords.AddAsync(entity, ct).AsTask();
 

@@ -142,6 +142,16 @@ public sealed class ServiceRequestsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("service-requests/{serviceRequestId:long}/disputes/{disputeId:long}/case")]
+    [ProducesResponseType(typeof(GetDisputeCaseDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetDisputeCaseDetailResponse>> GetDisputeCase(
+        long serviceRequestId, long disputeId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetDisputeCaseBffQuery(serviceRequestId, disputeId), ct);
+        return SetResponse(result);
+    }
+
     [HttpPatch("service-requests/{serviceRequestId:long}/disputes/{disputeId:long}/status")]
     [ProducesResponseType(typeof(AdminBffCommandResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> ChangeDisputeStatus(

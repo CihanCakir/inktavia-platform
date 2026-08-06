@@ -16,4 +16,9 @@ public sealed class ServiceRequestDisputeDto
     public long? ResolvedByAdminUserId { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public DateTime OpenedAt { get; set; }
+
+    // ── BE-S13b — the monetary resolution outcome (null for a notes-only resolve) ──
+    public DisputeResolutionOutcome? ResolutionOutcome { get; set; }
+    public decimal? ResolutionRefundAmount { get; set; }
+    public DateTime? PaymentOutcomeAppliedAt { get; set; }
 }

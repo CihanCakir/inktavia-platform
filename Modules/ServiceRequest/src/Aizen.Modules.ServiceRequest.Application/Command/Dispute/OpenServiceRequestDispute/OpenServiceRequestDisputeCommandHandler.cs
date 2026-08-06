@@ -33,11 +33,14 @@ public sealed class OpenServiceRequestDisputeCommandHandler : AizenCommandHandle
 
     public override async Task<OpenServiceRequestDisputeResponse?> Handle(OpenServiceRequestDisputeCommand request, CancellationToken cancellationToken)
     {
-        var sr = await _srRepository.GetByIdAsync(request.ServiceRequestId, cancellationToken)
+        var sr = await _srRepository.GetByIdWithDetailsAsync(request.ServiceRequestId, cancellationToken)
             ?? throw new InvalidOperationException($"ServiceRequest {request.ServiceRequestId} not found.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         var req = request.Request;
+        // BE-S13c — both parties for N3 (0 when there is no accepted offer yet).
+        var providerUserId = sr.Offers
+            .FirstOrDefault(o => o.Status == ServiceRequestOfferStatus.Accepted)?.ProviderUserId ?? 0;
 
         var dispute = ServiceRequestDisputeEntity.Create(
             sr.Id, currentUserId, request.ActorType, req.Reason, req.Description);
@@ -67,7 +70,9 @@ public sealed class OpenServiceRequestDisputeCommandHandler : AizenCommandHandle
             DisputeId = dispute.Id,
             OpenedByUserId = currentUserId,
             OpenedByActorType = request.ActorType,
-            Reason = req.Reason
+            Reason = req.Reason,
+            OwnerUserId = sr.OwnerUserId,
+            ProviderUserId = providerUserId
         }, cancellationToken);
 
         return new OpenServiceRequestDisputeResponse(dispute.ToDto());

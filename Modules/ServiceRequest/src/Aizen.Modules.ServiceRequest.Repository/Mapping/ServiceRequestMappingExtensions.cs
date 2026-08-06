@@ -216,7 +216,10 @@ public static class ServiceRequestMappingExtensions
         ResolutionNotes = entity.ResolutionNotes,
         ResolvedByAdminUserId = entity.ResolvedByAdminUserId,
         ResolvedAt = entity.ResolvedAt,
-        OpenedAt = entity.OpenedAt
+        OpenedAt = entity.OpenedAt,
+        ResolutionOutcome = entity.ResolutionOutcome,
+        ResolutionRefundAmount = entity.ResolutionRefundAmount,
+        PaymentOutcomeAppliedAt = entity.PaymentOutcomeAppliedAt
     };
 
     public static ServiceRequestDetailDto ToDetailDto(this ServiceRequestEntity entity) => new()

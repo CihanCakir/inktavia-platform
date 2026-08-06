@@ -3,6 +3,8 @@ using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 using Aizen.Modules.Payment.Application.Commands.CalculateServiceRequestEconomics;
 using Aizen.Modules.Payment.Application.Commands.CreatePaymentEscrow;
 using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
+using Aizen.Modules.Payment.Application.Commands.ResolveDisputeOutcome;
+using Aizen.Modules.Payment.Application.Queries.GetDisputeCasePaymentState;
 using Aizen.Modules.Payment.Application.Queries.GetProviderSplitEligibility;
 using Aizen.Modules.Payment.Application.Queries.ResolveCustomerDiscountForOffer;
 using Aizen.Modules.Payment.Application.Queries.ResolveLineCommissions;
@@ -118,4 +120,23 @@ public sealed class PaymentInternalController : ControllerBase
     public async Task<IActionResult> ResolvePartLineAllowances(
         [FromBody] ResolvePartLineAllowancesRemoteCallRequest request, CancellationToken ct)
         => Ok(await _sender.Send(new ResolvePartLineAllowancesQuery { Request = request }, ct));
+
+    /// <summary>
+    /// BE-S13b — drives the P10 refund/escrow path for a resolved dispute (FavorPayer* → refund; FavorProviderRelease
+    /// → release escrow). Reuses RefundAllocationService + the gateway; idempotent on <c>DISPUTE-{disputeId}</c>.
+    /// Called by ServiceRequest when an admin resolves a dispute with a monetary outcome.
+    /// </summary>
+    [HttpPost("service-request/resolve-dispute-outcome")]
+    public async Task<IActionResult> ResolveDisputeOutcome(
+        [FromBody] ResolveDisputeOutcomeRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new ResolveDisputeOutcomeCommand { Request = request }, ct));
+
+    /// <summary>
+    /// BE-S13a — reads the cost-free P10 payment/refund state + S8 economics for a dispute case file. Pure read; no
+    /// supplier cost / dealer margin (§20.9). Called by ServiceRequest when composing the admin dispute case aggregate.
+    /// </summary>
+    [HttpPost("service-request/dispute-payment-state")]
+    public async Task<IActionResult> GetDisputeCasePaymentState(
+        [FromBody] GetDisputeCasePaymentStateRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new GetDisputeCasePaymentStateQuery { Request = request }, ct));
 }

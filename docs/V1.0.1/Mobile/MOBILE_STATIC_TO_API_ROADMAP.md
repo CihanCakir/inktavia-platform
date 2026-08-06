@@ -160,3 +160,22 @@ Revised slice sequence:
 - **M4e — documents** (file-storage upload; DOCUMENT_TYPE seed dep).
 - **M4f — photos/media** (+ list cover enrichment module fix).
 - Ownership/invitations + CargoDry link = later / product-decision.
+
+---
+
+## Core / UoW double-save fix — DONE (2026-08-06)
+Pre-existing platform bug: `Core/UnitOfWork/BuilderExtensions.cs` double-registered `IAizenUnitOfWork` (Scan().AsImplementedInterfaces() + explicit AddScoped) → double commit. **Fix = exclude the non-generic `IAizenUnitOfWork` from the scan (stays registered once via AddScoped); scan block preserved, no manual SaveChanges, UoW semantics unchanged — UoW remains the sole save.** Confirmed one INSERT/table/request. Isolated commit **e869b6f** (Core file + `docs/V1.0.1/Mobile/Core/REPORT_UOW_DOUBLE_SAVE_FIX.md`). Cross-module regression: Vessel/File-storage/Identity writes each persist exactly once. **Rule going forward: UoW is the single save; never add a manual SaveChanges in handlers.**
+
+## Phase 2 / M4b — DONE (2026-08-06)
+Vessel create live: `POST /mobile/vessels` → 200, persists once, GET detail reflects spec+engine (24.5m/6.2/1.9/FIBERGLASS/3 cabins/2021; INBOARD·DIESEL·480·primary), flag=country code TR. FE wizard rewired off the mock (was dropping specs/engine), flag→countries picker wired, mock-ON parity, tsc 0. Report: `docs/V1.0.1/Mobile/Vessel/REPORT_BE_M4b_VESSELS_CREATE.md`. Three sub-fixes en route: owner-FK on create (aggregate AddOwner), detail projection dropping sub-entities (BuildDetailAsync), M4a's missing IVesselRemoteCall registration + base URL.
+
+**KNOWN CAVEAT (pre-existing, affects create→list UX platform-wide):** the Vessel module cache-invalidation key `SHA256("UserId_{id}|")` doesn't match the framework's actual query-cache key → after a create, the **list read stays stale up to the 10-min TTL (Redis DB 11)**; detail is immediate. So create→Home-card/picker won't populate until TTL or a DB11 flush. Data is correct, just delayed. **Proper fix spans all 10 invalidation methods + the framework key format = a separate platform module-caching task** (same "do it right, don't break it" class as the UoW fix). Impacts every future create→list flow, not just vessel.
+
+---
+
+## Core / cache-invalidation fix — DONE (2026-08-06), commit e1899af
+Two independent mismatches (either alone → eviction misses): (A) module hashed only a prop subset (omitted PageIndex/PageSize → paged reads never matched); (B) **InstanceName-prefix** — `RemoveNoHash` deletes via a raw StackExchange connection with NO prefix, but reads store under `{InstanceName}{Handler}:{sha256}` → every invalidation missed (found only via live Redis inspection). Fix: new canonical `AizenQueryCacheKey` (Core.Security) used by the read decorator; new `IAizenDistributedCache.RemoveReadCacheEntry` deletes the prefixed key; Vessel + ReferenceData invalidators rebuilt on both. `RemoveNoHash` left raw (Identity OTP/rate-limit + FileStorage depend on the unprefixed trio). Caching/TTLs/UoW untouched. Proven at the Redis-key level (byte-equivalence + exact prefixed-key eviction). **Rule: invalidation must build keys via `AizenQueryCacheKey` + delete the InstanceName-prefixed physical key.**
+Follow-ups (separate tickets): FileStorage `FileCacheInvalidationService` likely has the same latent Mismatch-B.
+
+## ⚠️ ACTIVE BLOCKER — mobile vessel create↔read identity split (next, before M4c)
+Surfaced during the cache fix: the vessel **create** path commits the row under one participant identity, but the **list read** scopes by a DIFFERENT identity → `GET /mobile/vessels` returns 0 after a successful create, AND the BFF create wrapper reports failure though the module commits. So M4b's create loop is NOT actually working for the user (couldn't demo list-row freshness for the cache fix for this reason). Fix = make create-owner id == list-scope id (one canonical participant resolution end-to-end) + fix the wrapper's false-failure. This is what unblocks the real create→Home-card/picker payoff.

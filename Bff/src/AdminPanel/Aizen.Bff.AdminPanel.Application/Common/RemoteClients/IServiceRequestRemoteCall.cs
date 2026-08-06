@@ -60,6 +60,10 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         long disputeId,
         [AizenRemoteCallBody] ChangeServiceRequestDisputeStatusRequest request);
 
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/dispute/{disputeId}/case")]
+    Task<AizenApiResponse<GetDisputeCaseDetailResponse>> GetDisputeCase(
+        long serviceRequestId, long disputeId);
+
     [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/dispute/{disputeId}/resolve")]
     Task<AizenApiResponse<ResolveServiceRequestDisputeResponse>> ResolveDispute(
         long serviceRequestId,

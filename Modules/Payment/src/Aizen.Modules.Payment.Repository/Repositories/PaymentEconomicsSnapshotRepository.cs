@@ -20,6 +20,11 @@ public sealed class PaymentEconomicsSnapshotRepository : IPaymentEconomicsSnapsh
     public Task<PaymentEconomicsSnapshotEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.PaymentEconomicsSnapshots.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<PaymentEconomicsSnapshotEntity?> GetByIdWithLinesAsync(long id, CancellationToken ct = default)
+        => _db.PaymentEconomicsSnapshots.AsNoTracking()
+            .Include(x => x.OfferLines)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+
     public Task<PaymentEconomicsSnapshotEntity?> GetByCodeAsync(string snapshotCode, CancellationToken ct = default)
         => _db.PaymentEconomicsSnapshots.FirstOrDefaultAsync(x => x.SnapshotCode == snapshotCode, ct);
 

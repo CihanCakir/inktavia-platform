@@ -91,4 +91,26 @@ public interface IPaymentModuleRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] ResolvePartLineAllowancesRemoteCallRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BE-S13b — drives the P10 refund/escrow path for a resolved dispute (reuses RefundPaymentCommand /
+    /// ReleasePaymentEscrowCommand + RefundAllocationService — no bespoke refund math). Idempotent on the dispute
+    /// context ref <c>DISPUTE-{DisputeId}</c> so a re-resolve never double-refunds. FavorProviderRelease releases
+    /// escrow (no refund); a payer-favoured outcome refunds (validated ≤ refundable).
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/service-request/resolve-dispute-outcome")]
+    Task<ResolveDisputeOutcomeRemoteCallResponse> ResolveDisputeOutcomeAsync(
+        [AizenRemoteCallBody] ResolveDisputeOutcomeRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BE-S13a — reads the cost-free P10 payment/refund state + S8 economics for a dispute case file. Pure read;
+    /// carries no supplier cost / dealer margin (§20.9).
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/service-request/dispute-payment-state")]
+    Task<GetDisputeCasePaymentStateRemoteCallResponse> GetDisputeCasePaymentStateAsync(
+        [AizenRemoteCallBody] GetDisputeCasePaymentStateRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
 }

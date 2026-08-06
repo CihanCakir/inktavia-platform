@@ -12,6 +12,9 @@ public interface IPaymentEconomicsSnapshotRepository
 
     Task<PaymentEconomicsSnapshotEntity?> GetByIdAsync(long id, CancellationToken ct = default);
 
+    /// <summary>BE-S13a — read the snapshot with its offer-line children for the dispute case file. Read-only.</summary>
+    Task<PaymentEconomicsSnapshotEntity?> GetByIdWithLinesAsync(long id, CancellationToken ct = default);
+
     Task<PaymentEconomicsSnapshotEntity?> GetByCodeAsync(string snapshotCode, CancellationToken ct = default);
 
     Task SaveChangesAsync(CancellationToken ct = default);

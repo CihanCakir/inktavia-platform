@@ -36,6 +36,8 @@ public interface IRefundAllocationRepository
 public interface IChargebackRecordRepository
 {
     Task<ChargebackRecordEntity?> GetByGatewayReferenceAsync(string gatewayChargebackReference, CancellationToken ct = default);
+    /// <summary>BE-S13a — the chargeback (if any) against a transaction, for the dispute case file. Read-only.</summary>
+    Task<ChargebackRecordEntity?> GetByTransactionIdAsync(long paymentTransactionId, CancellationToken ct = default);
     Task AddAsync(ChargebackRecordEntity entity, CancellationToken ct = default);
     void Update(ChargebackRecordEntity entity);
     Task SaveChangesAsync(CancellationToken ct = default);
