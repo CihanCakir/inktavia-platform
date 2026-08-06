@@ -2,22 +2,22 @@ using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
+namespace Aizen.Bff.AdminPanel.Application.Files.Command;
 
 [DocumentationInfo("Bulk generate read URLs command handler", "Generates pre-signed read URLs for multiple files in parallel via the FileStorage module.")]
-public sealed class BulkGenerateReadUrlsCommandHandler
-    : AizenCommandHandler<BulkGenerateReadUrlsCommand, List<FileAccessUrlResult>>
+public sealed class BulkGenerateReadUrlsBffCommandHandler
+    : AizenCommandHandler<BulkGenerateReadUrlsBffCommand, List<FileAccessUrlResult>>
 {
     private readonly IFileStorageRemoteCall _fileStorage;
 
-    public BulkGenerateReadUrlsCommandHandler(
+    public BulkGenerateReadUrlsBffCommandHandler(
         IFileStorageRemoteCall fileStorage)
     {
         _fileStorage = fileStorage;
     }
 
     public override async Task<List<FileAccessUrlResult>?> Handle(
-        BulkGenerateReadUrlsCommand request, CancellationToken cancellationToken)
+        BulkGenerateReadUrlsBffCommand request, CancellationToken cancellationToken)
     {
 
         var expiresIn = TimeSpan.FromMinutes(request.ExpiresInMinutes);

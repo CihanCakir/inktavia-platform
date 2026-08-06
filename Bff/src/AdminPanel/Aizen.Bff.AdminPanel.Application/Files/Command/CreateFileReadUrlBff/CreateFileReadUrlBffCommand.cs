@@ -1,13 +1,13 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Message;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
+namespace Aizen.Bff.AdminPanel.Application.Files.Command;
 
-public sealed class CreateFileReadUrlCommand : AizenCommand<FileAccessUrlResult>
+public sealed class CreateFileReadUrlBffCommand : AizenCommand<FileAccessUrlResult>
 {
     public Guid FileId { get; }
     public int ExpiresInMinutes { get; }
-    public CreateFileReadUrlCommand(Guid fileId, int expiresInMinutes)
+    public CreateFileReadUrlBffCommand(Guid fileId, int expiresInMinutes)
     {
         FileId = fileId;
         ExpiresInMinutes = expiresInMinutes;

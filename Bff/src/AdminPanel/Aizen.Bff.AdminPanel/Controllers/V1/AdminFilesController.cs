@@ -1,6 +1,6 @@
-using Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
-using Aizen.Bff.AdminPanel.Application.AdminFiles.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminFiles.Query;
+using Aizen.Bff.AdminPanel.Application.Files.Command;
+using Aizen.Bff.AdminPanel.Application.Files.Dto;
+using Aizen.Bff.AdminPanel.Application.Files.Query;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -30,7 +30,7 @@ public sealed class FilesController : AizenWebApiController
         Guid fileId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminFileReviewOverviewQuery(fileId), ct);
+            new GetFileReviewOverviewBffQuery(fileId), ct);
         return SetResponse(result);
     }
 
@@ -40,7 +40,7 @@ public sealed class FilesController : AizenWebApiController
         [FromBody] BulkGenerateReadUrlsRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new BulkGenerateReadUrlsCommand(request.FileIds, request.ExpiresInMinutes), ct);
+            new BulkGenerateReadUrlsBffCommand(request.FileIds, request.ExpiresInMinutes), ct);
         return SetResponse(result);
     }
 
@@ -50,7 +50,7 @@ public sealed class FilesController : AizenWebApiController
         Guid fileId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new DeleteFileCommand(fileId), ct);
+            new DeleteFileBffCommand(fileId), ct);
         return SetResponse(result);
     }
 
@@ -60,7 +60,7 @@ public sealed class FilesController : AizenWebApiController
         Guid fileId, [FromBody] CreateReadUrlRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new CreateFileReadUrlCommand(fileId, request.ExpiresInMinutes), ct);
+            new CreateFileReadUrlBffCommand(fileId, request.ExpiresInMinutes), ct);
         return SetResponse(result);
     }
 
@@ -70,7 +70,7 @@ public sealed class FilesController : AizenWebApiController
         Guid fileId, [FromBody] UpdateVisibilityRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new UpdateFileVisibilityCommand(fileId, request.Visibility), ct);
+            new UpdateFileVisibilityBffCommand(fileId, request.Visibility), ct);
         return SetResponse(result);
     }
 }

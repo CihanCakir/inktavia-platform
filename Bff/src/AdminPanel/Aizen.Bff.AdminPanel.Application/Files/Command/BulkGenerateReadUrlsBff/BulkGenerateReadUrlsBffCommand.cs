@@ -1,13 +1,13 @@
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
+namespace Aizen.Bff.AdminPanel.Application.Files.Command;
 
-public sealed class BulkGenerateReadUrlsCommand : AizenCommand<List<FileAccessUrlResult>>
+public sealed class BulkGenerateReadUrlsBffCommand : AizenCommand<List<FileAccessUrlResult>>
 {
     public List<Guid> FileIds { get; }
     public int ExpiresInMinutes { get; }
-    public BulkGenerateReadUrlsCommand(List<Guid> fileIds, int expiresInMinutes)
+    public BulkGenerateReadUrlsBffCommand(List<Guid> fileIds, int expiresInMinutes)
     {
         FileIds = fileIds;
         ExpiresInMinutes = expiresInMinutes;

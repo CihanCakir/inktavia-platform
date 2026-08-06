@@ -1,13 +1,13 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Message;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
+namespace Aizen.Bff.AdminPanel.Application.Files.Command;
 
-public sealed class UpdateFileVisibilityCommand : AizenCommand<EmptyResult>
+public sealed class UpdateFileVisibilityBffCommand : AizenCommand<EmptyResult>
 {
     public Guid FileId { get; }
     public string Visibility { get; }
-    public UpdateFileVisibilityCommand(Guid fileId, string visibility)
+    public UpdateFileVisibilityBffCommand(Guid fileId, string visibility)
     {
         FileId = fileId;
         Visibility = visibility;
