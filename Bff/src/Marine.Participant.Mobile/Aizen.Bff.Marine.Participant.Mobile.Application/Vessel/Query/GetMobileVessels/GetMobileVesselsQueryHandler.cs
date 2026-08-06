@@ -38,7 +38,10 @@ public sealed class GetMobileVesselsQueryHandler
             // default page covers the whole set; broader ownership would need real pagination + wider invalidation.
             var resp = await _vessel.GetUserVessels(0, 20);
             var items = resp?.Body?.Vessels?.Items ?? new List<VesselListItemDto>();
-            return items.Select(MapListItem).ToList();
+            // Active list only (M4d): archived vessels stay in the module read model (the query filters only by
+            // ownership) but must drop out of the mobile list / Home / picker. Archive + restore both invalidate
+            // this default page, so the transition shows immediately.
+            return items.Where(v => !v.IsArchived).Select(MapListItem).ToList();
         }
         catch (Exception ex)
         {

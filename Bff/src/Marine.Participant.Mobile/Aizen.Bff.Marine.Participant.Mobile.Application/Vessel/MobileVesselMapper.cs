@@ -20,6 +20,8 @@ internal static class MobileVesselMapper
             TypeCode = v.VesselTypeCode,
             Flag = v.FlagCountryCode,
             Status = v.Status.ToString(),
+            IsArchived = v.IsArchived,
+            ArchivedAt = v.ArchivedAt,
             Description = v.Description,
             RegistrationNumber = v.RegistrationNumber,
             ImoNumber = v.ImoNumber,

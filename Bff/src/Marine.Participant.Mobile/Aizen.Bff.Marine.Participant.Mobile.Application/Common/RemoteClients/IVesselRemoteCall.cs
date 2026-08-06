@@ -56,4 +56,20 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPut("/api/v1/vessels/{vesselId}/engines/{engineId}")]
     Task<AizenApiResponse<UpdateVesselEngineResponse>> UpdateEngine(
         long vesselId, long engineId, [AizenRemoteCallBody] UpdateVesselEngineRequest request);
+
+    // ── M4d archive / restore / status (all owner-gated by the module's EnsureCanEditAsync) ──────────
+    // Archive the vessel (soft — no hard delete). Sets IsArchived; the module invalidates the vessel + the
+    // default user list page (0,20), so it drops from the mobile active list immediately.
+    [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/archive")]
+    Task<AizenApiResponse<ArchiveVesselResponse>> ArchiveVessel(
+        long vesselId, [AizenRemoteCallBody] ArchiveVesselRequest request);
+
+    // Restore an archived vessel back to the active list (module clears IsArchived + re-invalidates the list page).
+    [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/restore")]
+    Task<AizenApiResponse<RestoreVesselResponse>> RestoreVessel(long vesselId);
+
+    // Change the operational status (Active/Passive/UnderMaintenance) — module enforces the valid-transition graph.
+    [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/status")]
+    Task<AizenApiResponse<UpdateVesselStatusResponse>> UpdateStatus(
+        long vesselId, [AizenRemoteCallBody] UpdateVesselStatusRequest request);
 }

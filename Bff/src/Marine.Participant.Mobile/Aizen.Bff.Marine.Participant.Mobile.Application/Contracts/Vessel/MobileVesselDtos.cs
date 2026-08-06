@@ -56,6 +56,10 @@ public sealed class MobileVesselDetailDto
 
     public string? CoverMediaUrl { get; set; }
     public List<MobileVesselEngineDto> Engines { get; set; } = new();
+
+    // Archive state (M4d) — an archived vessel is hidden from the active list but its detail stays readable.
+    public bool IsArchived { get; set; }
+    public DateTime? ArchivedAt { get; set; }
 }
 
 // ── M4b create payload (the wizard's basic + technical + engine steps, one request) ──────────
@@ -135,4 +139,25 @@ public sealed class UpdateMobileVesselEngineInput
     public string? EngineTypeCode { get; set; }
     public string? FuelTypeCode { get; set; }
     public int? HorsePower { get; set; }
+}
+
+// ── M4d archive / status payloads ──────────────────────────────────────────────────────────────
+
+/// <summary>Archive payload (M4d). All-optional: Reason is a <c>VesselArchiveReason</c> name
+/// (Sold/Scrapped/Stolen/Administrative/Other — defaults to Other when blank/unrecognised); Notes is free text.
+/// Kept all-optional so a bare archive with no reason never 400s on required-field validation (M4c gotcha).</summary>
+public sealed class ArchiveMobileVesselRequest
+{
+    public string? Reason { get; set; }
+    public string? Notes { get; set; }
+}
+
+/// <summary>Status-change payload (M4d). Status is a <c>VesselStatus</c> name — the user-settable operational
+/// states are Active / Passive / UnderMaintenance (the module enforces the valid-transition graph and rejects
+/// Draft/Sold/Archived, which are system- or archive-driven). Nullable so the body binds without the enum's
+/// invalid zero default; the handler rejects a missing/unrecognised status with a clean business error.</summary>
+public sealed class UpdateMobileVesselStatusRequest
+{
+    public string? Status { get; set; }
+    public string? Reason { get; set; }
 }

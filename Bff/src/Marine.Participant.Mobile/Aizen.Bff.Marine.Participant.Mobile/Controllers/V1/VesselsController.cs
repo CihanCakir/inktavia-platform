@@ -64,4 +64,40 @@ public sealed class VesselsController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new UpdateMobileVesselCommand(vesselId, request), ct);
         return SetResponse(result);
     }
+
+    /// <summary>Archive one of the caller's vessels (M4d, soft — no hard delete). Owner-gated; a foreign/unknown
+    /// id yields a clean not-found. The archived vessel drops from the active list immediately; returns the
+    /// re-read detail (IsArchived = true). Body is optional (reason + notes).</summary>
+    [HttpPost("{vesselId:long}/archive")]
+    [ProducesResponseType(typeof(MobileVesselDetailDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileVesselDetailDto>> ArchiveVessel(
+        [FromRoute] long vesselId, [FromBody] ArchiveMobileVesselRequest? request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ArchiveMobileVesselCommand(vesselId, request ?? new ArchiveMobileVesselRequest()), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Restore one of the caller's archived vessels back to the active list (M4d). Owner-gated; a
+    /// foreign/unknown id yields a clean not-found. Returns the re-read detail (IsArchived = false).</summary>
+    [HttpPost("{vesselId:long}/restore")]
+    [ProducesResponseType(typeof(MobileVesselDetailDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileVesselDetailDto>> RestoreVessel(
+        [FromRoute] long vesselId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new RestoreMobileVesselCommand(vesselId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Change the operational status of one of the caller's vessels (M4d). User-settable states are
+    /// Active / Passive / UnderMaintenance; the module enforces the valid-transition graph. Owner-gated; a
+    /// foreign/unknown id yields a clean not-found. Returns the re-read detail reflecting the new status.</summary>
+    [HttpPut("{vesselId:long}/status")]
+    [ProducesResponseType(typeof(MobileVesselDetailDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileVesselDetailDto>> UpdateVesselStatus(
+        [FromRoute] long vesselId, [FromBody] UpdateMobileVesselStatusRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new UpdateMobileVesselStatusCommand(vesselId, request), ct);
+        return SetResponse(result);
+    }
 }
