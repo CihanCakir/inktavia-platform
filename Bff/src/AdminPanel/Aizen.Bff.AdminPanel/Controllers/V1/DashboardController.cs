@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/dashboard")]
 [Tags("Admin Panel - Dashboard")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class DashboardController : AizenWebApiController
@@ -19,7 +19,7 @@ public sealed class DashboardController : AizenWebApiController
     public DashboardController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("dashboard/overview")]
+    [HttpGet("overview")]
     [ProducesResponseType(typeof(AdminDashboardOverviewResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminDashboardOverviewResponse>> GetDashboardOverview(CancellationToken ct)
     {
