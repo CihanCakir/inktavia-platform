@@ -103,3 +103,36 @@ public sealed class MobileVesselEngineInput
     public int? HorsePower { get; set; }
     public int? EnginesCount { get; set; }
 }
+
+// ── M4c edit payload — same {core, spec, engine} shape as create ──────────────────────────────
+
+/// <summary>Full edit payload (M4c). Same structured shape as create; the BFF applies patch semantics by
+/// merging the provided fields over the vessel's current values, so the module's full-update handlers never
+/// null unspecified fields. Every field is optional — omit core/spec/engine (or any field within) to leave
+/// that facet unchanged. (Distinct from the create inputs, whose type/fuel codes are required.)</summary>
+public sealed class UpdateMobileVesselRequest
+{
+    public UpdateMobileVesselCoreInput? Core { get; set; }
+    public MobileVesselSpecInput? Spec { get; set; }
+    public UpdateMobileVesselEngineInput? Engine { get; set; }
+}
+
+/// <summary>Editable core fields — all optional (unspecified ⇒ keep current).</summary>
+public sealed class UpdateMobileVesselCoreInput
+{
+    public string? Name { get; set; }
+    public string? VesselTypeCode { get; set; }
+    public string? FlagCountryCode { get; set; }
+    public string? RegistrationNumber { get; set; }
+    public string? Description { get; set; }
+    public string? ImoNumber { get; set; }
+}
+
+/// <summary>Editable engine fields — all optional (unspecified ⇒ keep the current primary engine's value).</summary>
+public sealed class UpdateMobileVesselEngineInput
+{
+    public string? EngineName { get; set; }
+    public string? EngineTypeCode { get; set; }
+    public string? FuelTypeCode { get; set; }
+    public int? HorsePower { get; set; }
+}

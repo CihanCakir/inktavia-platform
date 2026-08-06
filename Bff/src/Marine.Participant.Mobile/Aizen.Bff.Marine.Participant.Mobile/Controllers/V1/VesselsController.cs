@@ -52,4 +52,16 @@ public sealed class VesselsController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new CreateMobileVesselCommand(request), ct);
         return SetResponse(result);
     }
+
+    /// <summary>Update one of the caller's vessels (core + optional spec + optional engine, M4c). Patch semantics —
+    /// omitted fields keep their current value. A foreign/unknown id yields a clean not-found; returns the updated
+    /// detail so detail/list/Home reflect the change immediately.</summary>
+    [HttpPut("{vesselId:long}")]
+    [ProducesResponseType(typeof(MobileVesselDetailDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileVesselDetailDto>> UpdateVessel(
+        [FromRoute] long vesselId, [FromBody] UpdateMobileVesselRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new UpdateMobileVesselCommand(vesselId, request), ct);
+        return SetResponse(result);
+    }
 }

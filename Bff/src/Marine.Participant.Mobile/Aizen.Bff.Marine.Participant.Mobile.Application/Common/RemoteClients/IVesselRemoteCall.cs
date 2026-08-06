@@ -45,4 +45,15 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/vessels/{vesselId}/engines")]
     Task<AizenApiResponse<AddVesselEngineResponse>> AddEngine(
         long vesselId, [AizenRemoteCallBody] AddVesselEngineRequest request);
+
+    // ── M4c edit (owner-gated by the module's EnsureCanEditAsync via the asserted caller) ──────────
+    // Update the core profile (full controlled update — the BFF merges partial input over current values).
+    [AizenRemoteCallPut("/api/v1/vessels/{vesselId}")]
+    Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
+        long vesselId, [AizenRemoteCallBody] UpdateVesselRequest request);
+
+    // Update an existing engine row (the wizard edits the single/primary engine).
+    [AizenRemoteCallPut("/api/v1/vessels/{vesselId}/engines/{engineId}")]
+    Task<AizenApiResponse<UpdateVesselEngineResponse>> UpdateEngine(
+        long vesselId, long engineId, [AizenRemoteCallBody] UpdateVesselEngineRequest request);
 }
