@@ -11,6 +11,7 @@
     <ProjectReference Include="..\Aizen.Modules.Vessel.Core\Aizen.Modules.Vessel.Core.csproj" />
     <ProjectReference Include="../../../FileStorage/src/Aizen.Modules.FileStorage.Abstraction/Aizen.Modules.FileStorage.Abstraction.csproj" />
     <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Security/src/Aizen.Core.Security/Aizen.Core.Security.csproj" />
   </ItemGroup>
 
   <ItemGroup>

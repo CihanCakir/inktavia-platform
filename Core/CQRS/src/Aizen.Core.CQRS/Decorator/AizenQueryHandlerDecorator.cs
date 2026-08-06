@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Text;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Abstraction.Handler;
@@ -73,52 +71,8 @@ internal sealed class AizenQueryHandlerDecorator<TQuery, TResult> : AizenQueryHa
         return result;
     }
 
+    // Canonical read-cache key. Built through AizenQueryCacheKey so that module
+    // cache-invalidation services can reproduce the exact same key on the write path.
     private string GetCacheKey(TQuery request)
-    {
-        var cacheKey = CreateCacheKey(request);
-        return $"{this._decorated.GetType().Name}:{cacheKey}";
-    }
-
-    private static string CreateCacheKey(object obj, string? propName = null)
-    {
-        var sb = new StringBuilder();
-        if (obj.GetType().IsValueType || obj is string)
-        {
-            _ = sb.AppendFormat(CultureInfo.CurrentCulture, "{0}_{1}|", propName, obj);
-        }
-        else if (obj.GetType().GetProperties().Count(x => x.Name != "QueryId") == 0)
-        {
-            return "";
-        }
-        else
-        {
-            foreach (var prop in obj.GetType().GetProperties())
-            {
-                if (prop.Name == "QueryId")
-                {
-                    continue;
-                }
-
-                if (typeof(IEnumerable<object>).IsAssignableFrom(prop.PropertyType))
-                {
-                    var get = prop.GetGetMethod()!;
-                    if (!get.IsStatic && get.GetParameters().Length == 0)
-                    {
-                        var collection = (IEnumerable<object>)get.Invoke(obj, null)!;
-                        foreach (var o in collection)
-                        {
-                            _ = sb.Append(CreateCacheKey(o, prop.Name));
-                        }
-                    }
-                }
-                else
-                {
-                    _ = sb.AppendFormat(CultureInfo.CurrentCulture, "{0}{1}_{2}|", propName, prop.Name,
-                        prop.GetValue(obj, null));
-                }
-            }
-        }
-
-        return AizenHash.ComputeHash(AizenHashType.Sha256, sb.ToString());
-    }
+        => AizenQueryCacheKey.ForQuery(this._decorated.GetType().Name, request);
 }

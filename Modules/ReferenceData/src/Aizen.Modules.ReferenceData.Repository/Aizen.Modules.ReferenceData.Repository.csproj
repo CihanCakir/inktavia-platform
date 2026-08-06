@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Aizen.Modules.ReferenceData.Domain\Aizen.Modules.ReferenceData.Domain.csproj" />
     <ProjectReference Include="..\Aizen.Modules.ReferenceData.Core\Aizen.Modules.ReferenceData.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Security\src\Aizen.Core.Security\Aizen.Core.Security.csproj" />
   </ItemGroup>
 
   <ItemGroup>
