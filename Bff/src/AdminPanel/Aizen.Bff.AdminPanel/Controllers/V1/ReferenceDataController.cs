@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/reference-data")]
 [Tags("Admin Panel - Reference Data")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class ReferenceDataController : AizenWebApiController
@@ -24,8 +24,8 @@ public sealed class ReferenceDataController : AizenWebApiController
     public ReferenceDataController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("reference-data/lookup-groups")]
-    [HttpGet("reference-data/lookup")]
+    [HttpGet("lookup-groups")]
+    [HttpGet("lookup")]
     [ProducesResponseType(typeof(LookupGroupListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupListResult>> GetLookupGroups(CancellationToken ct)
     {
@@ -33,7 +33,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/lookup-tree")]
+    [HttpGet("lookup-tree")]
     [ProducesResponseType(typeof(LookupGroupTreeResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupGroupTreeResult>> GetLookupTree(CancellationToken ct)
     {
@@ -41,7 +41,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/lookup/{groupCode}/items")]
+    [HttpGet("lookup/{groupCode}/items")]
     [ProducesResponseType(typeof(LookupItemListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupItemListResult>> GetLookupItemsByGroupCode(
         string groupCode, CancellationToken ct)
@@ -51,8 +51,8 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/currencies")]
-    [HttpGet("reference-data/currency")]
+    [HttpGet("currencies")]
+    [HttpGet("currency")]
     [ProducesResponseType(typeof(CurrencyListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CurrencyListResult>> GetCurrencies(CancellationToken ct)
     {
@@ -60,8 +60,8 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/locations/countries")]
-    [HttpGet("reference-data/location")]
+    [HttpGet("locations/countries")]
+    [HttpGet("location")]
     [ProducesResponseType(typeof(CountryListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CountryListResult>> GetCountries(CancellationToken ct)
     {
@@ -69,7 +69,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/locations/{countryCode}/cities")]
+    [HttpGet("locations/{countryCode}/cities")]
     [ProducesResponseType(typeof(CityListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CityListResult>> GetCities(
         [FromRoute] string countryCode, CancellationToken ct)
@@ -79,8 +79,8 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/measurement-units")]
-    [HttpGet("reference-data/measurement")]
+    [HttpGet("measurement-units")]
+    [HttpGet("measurement")]
     [ProducesResponseType(typeof(MeasurementUnitListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<MeasurementUnitListResult>> GetMeasurementUnits(
         [FromQuery] string? type, CancellationToken ct)
@@ -90,8 +90,8 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("reference-data/system-parameters")]
-    [HttpGet("reference-data/system-parameter")]
+    [HttpGet("system-parameters")]
+    [HttpGet("system-parameter")]
     [ProducesResponseType(typeof(SystemParameterListResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<SystemParameterListResult>> GetSystemParameters(CancellationToken ct)
     {
@@ -99,8 +99,8 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("reference-data/lookup")]
-    [HttpPost("reference-data/lookup-groups")]
+    [HttpPost("lookup")]
+    [HttpPost("lookup-groups")]
     [ProducesResponseType(typeof(LookupGroupDto), StatusCodes.Status201Created)]
     public async Task<AizenApiResponse<LookupGroupDto>> CreateLookupGroup(
         [FromBody] CreateLookupGroupRequest request, CancellationToken ct)
@@ -109,7 +109,7 @@ public sealed class ReferenceDataController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("reference-data/lookup/{groupCode}/items")]
+    [HttpPost("lookup/{groupCode}/items")]
     [ProducesResponseType(typeof(LookupItemDto), StatusCodes.Status201Created)]
     public async Task<AizenApiResponse<LookupItemDto>> CreateLookupItem(
         string groupCode, [FromBody] CreateLookupItemRequest request, CancellationToken ct)
