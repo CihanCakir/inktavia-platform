@@ -113,4 +113,17 @@ public interface IPaymentModuleRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] GetDisputeCasePaymentStateRemoteCallRequest request,
         [AizenRemoteCallHeader("Authorization")] string authorization,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// BE-S11b — applies a change-order <b>reduction</b> (removed work) by refunding the delta against the SR's original
+    /// escrow via the P10 rails (reuses RefundPaymentCommand primitives / RefundAllocationService — no bespoke refund math,
+    /// no mutation of the accepted snapshot). Idempotent on <c>SR-{sr}-OFFER-{offer}-CO-{id}</c> so a re-apply never
+    /// double-refunds. A change-order <i>increase</i> uses <see cref="CalculateServiceRequestEconomicsAsync"/> instead
+    /// (a new snapshot + incremental escrow under the same CO context ref).
+    /// </summary>
+    [AizenRemoteCallPost("/api/v1/payment/internal/service-request/apply-change-order-reduction")]
+    Task<ApplyChangeOrderReductionRemoteCallResponse> ApplyChangeOrderReductionAsync(
+        [AizenRemoteCallBody] ApplyChangeOrderReductionRemoteCallRequest request,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
 }

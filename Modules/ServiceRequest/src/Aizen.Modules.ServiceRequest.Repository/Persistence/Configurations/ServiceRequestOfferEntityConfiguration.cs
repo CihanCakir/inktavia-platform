@@ -11,6 +11,8 @@ public sealed class ServiceRequestOfferEntityConfiguration : IEntityTypeConfigur
         builder.ToTable("service_request_offers");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.TotalAmount).IsRequired().HasPrecision(18, 4);
+        // BE-S11a — offer pricing nature; stored as int, default FixedPrice (=1) for every existing row → behaviour unchanged.
+        builder.Property(x => x.OfferType).IsRequired().HasConversion<int>().HasDefaultValue(Aizen.Modules.ServiceRequest.Abstraction.Enum.OfferType.FixedPrice);
         builder.Property(x => x.CurrencyCode).IsRequired().HasMaxLength(10);
         builder.Property(x => x.Description).HasMaxLength(4000);
         builder.Property(x => x.ProviderNotes).HasMaxLength(2000);

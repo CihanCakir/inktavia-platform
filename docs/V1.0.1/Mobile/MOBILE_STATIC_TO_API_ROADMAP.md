@@ -259,3 +259,14 @@ Avatar + vessel docs migrated onto the client-side `directUpload` primitive; ser
 
 ## → Phase 3 / M5 (CargoDry) — start with a GAP ANALYSIS first (vessel-style, read-only)
 FE surface: Home 'CargoDry Protected 85% / 85% CAPACITY' card + `cargodry/screens/{CargoDryOverview,CargoDryKitDetail,CargoDryRecommendation,QRActivation}`. Pair with the BE CargoDry module participant APIs (exists? expose? build?) before writing slices — the vessel gap analysis prevented every wrong assumption.
+
+---
+
+## On-device QA fixes — DONE (2026-08-06), uncommitted
+On-device QA (report `Vessel/REPORT_ONDEVICE_QA_M3_M4.md`) found a **silent upload failure**; fixed (report `Core/REPORT_ONDEVICE_UPLOAD_FIX.md`):
+- **[HIGH] directUpload silent failure — ROOT CAUSE:** `fetch(file.uri).blob()` in RN can't read a local `file://`/`ph://` picker URI → empty/0-byte PUT body → `complete` fails magic-byte verification, no error surfaced. (Presigned host `localhost:9000` was fine — NOT ATS.) **Fix: rewrote `directUpload` to read bytes via `expo-file-system`** (new dep — glance at package-lock before commit; Expo Go includes the native module). Affects avatar+docs+photos (shared primitive). Error surfacing added.
+- **[LOW] Edit Vessel type prefill** — fixed (type lives on the spec).
+- **[LOW] Length** — added `LengthMeters` to `GetUserVesselsQueryHandler` selector; list now returns real lengths (100013→30.5, 100009→24.5). Live-verified.
+**On-device re-verify PENDING:** the app must reload (new JS + expo-file-system) before the upload fix can be confirmed on the simulator — fast-refresh may not pick up a new dependency, so a Metro reload/restart is likely needed. 6-step manual checklist in the report.
+
+## → Then Phase 3 / M5 (CargoDry): gap done (`CargoDry/CARGODRY_FE_BE_GAP.md`). Sequence M5-0 (cargodry-api BffAssertion allow-list + reconcile FE mock models + confirm QR payload) → M5a (my-kits + Home + BFF per-vessel rollup) → M5b (QR validate→pick-vessel→activate, owner-gated) → M5c optional history. Recommendation/purchase/telemetry/self-renew = deferred product/Payment epics.

@@ -1,5 +1,6 @@
 using Aizen.Core.EFCore;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
+using Aizen.Modules.ServiceRequest.Domain.Entities.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Conversation;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
@@ -28,6 +29,8 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<ServiceRequestOfferEntity> ServiceRequestOffers => Set<ServiceRequestOfferEntity>();
     public DbSet<ServiceRequestOfferItemEntity> ServiceRequestOfferItems => Set<ServiceRequestOfferItemEntity>();
     public DbSet<OfferFxSnapshotEntity> OfferFxSnapshots => Set<OfferFxSnapshotEntity>();   // BE-S3b
+    public DbSet<ServiceChangeOrderEntity> ServiceChangeOrders => Set<ServiceChangeOrderEntity>();   // BE-S11b
+    public DbSet<ServiceChangeOrderItemEntity> ServiceChangeOrderItems => Set<ServiceChangeOrderItemEntity>();   // BE-S11b
     public DbSet<ServiceRequestAssignmentEntity> ServiceRequestAssignments => Set<ServiceRequestAssignmentEntity>();
     public DbSet<ServiceRequestWorkLogEntity> ServiceRequestWorkLogs => Set<ServiceRequestWorkLogEntity>();
     public DbSet<ServiceRequestCompletionEntity> ServiceRequestCompletions => Set<ServiceRequestCompletionEntity>();

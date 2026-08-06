@@ -18,6 +18,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
         services.AddScoped<IServiceRequestOfferRepository, ServiceRequestOfferRepository>();
+        services.AddScoped<IServiceChangeOrderRepository, ServiceChangeOrderRepository>();   // BE-S11b
         services.AddScoped<IServiceRequestAssignmentRepository, ServiceRequestAssignmentRepository>();
         services.AddScoped<IServiceRequestMessageRepository, ServiceRequestMessageRepository>();
         services.AddScoped<IServiceRequestWorkLogRepository, ServiceRequestWorkLogRepository>();

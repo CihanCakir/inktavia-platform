@@ -1,5 +1,6 @@
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
+using Aizen.Modules.Payment.Application.Commands.ApplyChangeOrderReduction;
 using Aizen.Modules.Payment.Application.Commands.CalculateServiceRequestEconomics;
 using Aizen.Modules.Payment.Application.Commands.CreatePaymentEscrow;
 using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
@@ -130,6 +131,16 @@ public sealed class PaymentInternalController : ControllerBase
     public async Task<IActionResult> ResolveDisputeOutcome(
         [FromBody] ResolveDisputeOutcomeRemoteCallRequest request, CancellationToken ct)
         => Ok(await _sender.Send(new ResolveDisputeOutcomeCommand { Request = request }, ct));
+
+    /// <summary>
+    /// BE-S11b — applies a change-order reduction (removed work) by refunding the delta against the SR's original escrow
+    /// via the P10 rails. Reuses RefundAllocationService + the gateway; idempotent on <c>SR-{sr}-OFFER-{offer}-CO-{id}</c>.
+    /// Called by ServiceRequest when a Decrease change order is approved. (An increase uses calculate-economics instead.)
+    /// </summary>
+    [HttpPost("service-request/apply-change-order-reduction")]
+    public async Task<IActionResult> ApplyChangeOrderReduction(
+        [FromBody] ApplyChangeOrderReductionRemoteCallRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new ApplyChangeOrderReductionCommand { Request = request }, ct));
 
     /// <summary>
     /// BE-S13a — reads the cost-free P10 payment/refund state + S8 economics for a dispute case file. Pure read; no

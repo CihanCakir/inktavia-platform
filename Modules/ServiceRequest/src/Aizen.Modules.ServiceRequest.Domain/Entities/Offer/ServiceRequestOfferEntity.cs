@@ -10,6 +10,8 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     public long ProviderProfileId { get; private set; }
     public long ProviderUserId { get; private set; }
     public ServiceRequestOfferStatus Status { get; private set; }
+    /// <summary>BE-S11a — the offer's pricing nature (§20.13). Default FixedPrice → behaviour unchanged. Gates the S11b change-order flow, never the math.</summary>
+    public OfferType OfferType { get; private set; } = OfferType.FixedPrice;
     public string CurrencyCode { get; private set; } = "USD";
     public string? Description { get; private set; }
     public string? ProviderNotes { get; private set; }
@@ -87,7 +89,8 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
         DateTime? estimatedStartDate,
         DateTime? estimatedEndDate,
         int? estimatedDurationMinutes,
-        DateTime? expiresAt)
+        DateTime? expiresAt,
+        OfferType offerType = OfferType.FixedPrice)
     {
         return new ServiceRequestOfferEntity
         {
@@ -95,6 +98,7 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
             ProviderProfileId = providerProfileId,
             ProviderUserId = providerUserId,
             Status = ServiceRequestOfferStatus.Draft,
+            OfferType = offerType,
             TotalAmount = totalAmount,
             GrandTotal = totalAmount,
             CurrencyCode = currencyCode.ToUpperInvariant(),
@@ -170,6 +174,14 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
         EstimatedEndDate = estimatedEndDate;
         EstimatedDurationMinutes = estimatedDurationMinutes;
         ExpiresAt = expiresAt;
+    }
+
+    /// <summary>BE-S11a — sets the offer's pricing nature. Draft-only (mirrors the other edit guards).</summary>
+    public void SetOfferType(OfferType offerType)
+    {
+        if (Status != ServiceRequestOfferStatus.Draft)
+            throw new InvalidOperationException($"Cannot change offer type on an offer in status {Status}. Only Draft offers are editable.");
+        OfferType = offerType;
     }
 
     public void UpdateCommercialTerms(
