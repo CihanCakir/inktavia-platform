@@ -45,7 +45,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.VerifySubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubMerchantOnboardingQueue;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderPlanPrice;
-using Aizen.Bff.AdminPanel.Application.Payment.ProfitProtectionPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderCommissionBenefit;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundAllocationPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundQueue;
@@ -110,6 +109,13 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPremiumProductById;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPremiumProductPrices;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPremiumProducts;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolvePremiumProductPrice;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreateProfitProtectionPolicy;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivateProfitProtectionPolicy;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.ReactivateProfitProtectionPolicy;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateProfitProtectionPolicy;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProfitProtectionPoliciesList;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProfitProtectionPolicyDetail;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolveProfitProtectionPolicy;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
