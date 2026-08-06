@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
+using Aizen.Bff.AdminPanel.Application.Identity.Query;
 using Aizen.Bff.AdminPanel.Application.AdminProviders.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminProviders.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
@@ -70,7 +70,7 @@ public sealed class AdminProvidersController : AizenWebApiController
     /// GET /api/v1/admin-panel/providers
     /// Provider directory alias — server-side filtered paged list of provider (organizer) profiles.
     /// Phase 29D — replaces client-side filtering on the Admin Web ProvidersPage.
-    /// Delegates to SearchOrganizerProfilesQuery (same handler as /identity/organizers/profiles).
+    /// Delegates to SearchOrganizerProfilesBffQuery (same handler as /identity/organizers/profiles).
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(PagedOrganizerProfileResult), StatusCodes.Status200OK)]
@@ -85,7 +85,7 @@ public sealed class AdminProvidersController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new SearchOrganizerProfilesQuery(pageIndex, pageSize, searchTerm, approvalStatus, status, city, country), ct);
+            new SearchOrganizerProfilesBffQuery(pageIndex, pageSize, searchTerm, approvalStatus, status, city, country), ct);
         return SetResponse(result);
     }
 }

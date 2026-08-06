@@ -1,0 +1,29 @@
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Core.CQRS.Handler;
+
+namespace Aizen.Bff.AdminPanel.Application.Identity.Query;
+
+[DocumentationInfo("SearchOrganizerProfiles query handler", "Returns a paged list of organizer profiles from the Identity module.")]
+public sealed class SearchOrganizerProfilesBffQueryHandler : AizenQueryHandler<SearchOrganizerProfilesBffQuery, PagedOrganizerProfileResult>
+{
+    private readonly IIdentityRemoteCall _identity;
+    public SearchOrganizerProfilesBffQueryHandler(
+        IIdentityRemoteCall identity)
+    {
+        _identity = identity;
+    }
+
+    public override async Task<PagedOrganizerProfileResult?> Handle(SearchOrganizerProfilesBffQuery request, CancellationToken ct)
+    {
+
+        var r = await _identity.SearchOrganizerProfiles(
+            pageIndex:      request.PageIndex,
+            pageSize:       request.PageSize,
+            searchTerm:     request.SearchTerm,
+            approvalStatus: request.ApprovalStatus,
+            status:         request.Status,
+            city:           request.City,
+            country:        request.Country);
+        return r.Body;
+    }
+}

@@ -1,6 +1,6 @@
-using Aizen.Bff.AdminPanel.Application.AdminIdentity.Command;
-using Aizen.Bff.AdminPanel.Application.AdminIdentity.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
+using Aizen.Bff.AdminPanel.Application.Identity.Command;
+using Aizen.Bff.AdminPanel.Application.Identity.Dto;
+using Aizen.Bff.AdminPanel.Application.Identity.Query;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Abstraction;
@@ -35,7 +35,7 @@ public sealed class IdentityController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminProfilesQuery(roleContext, approvalStatus, pageIndex, pageSize), ct);
+            new GetProfilesBffQuery(roleContext, approvalStatus, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -47,7 +47,7 @@ public sealed class IdentityController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminProfileDetailQuery(profileId, roleContext), ct);
+            new GetProfileDetailBffQuery(profileId, roleContext), ct);
         return SetResponse(result);
     }
 
@@ -57,7 +57,7 @@ public sealed class IdentityController : AizenWebApiController
         long userId, Guid profileId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ApproveOrganizerProfileCommand(userId, profileId), ct);
+            new ApproveOrganizerProfileBffCommand(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -67,7 +67,7 @@ public sealed class IdentityController : AizenWebApiController
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new RejectOrganizerProfileCommand(userId, profileId, request.Reason), ct);
+            new RejectOrganizerProfileBffCommand(userId, profileId, request.Reason), ct);
         return SetResponse(result);
     }
 
@@ -77,7 +77,7 @@ public sealed class IdentityController : AizenWebApiController
         long userId, Guid profileId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ApproveVenueProfileCommand(userId, profileId), ct);
+            new ApproveVenueProfileBffCommand(userId, profileId), ct);
         return SetResponse(result);
     }
 
@@ -87,7 +87,7 @@ public sealed class IdentityController : AizenWebApiController
         long userId, Guid profileId, [FromBody] AdminBffRejectRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new RejectVenueProfileCommand(userId, profileId, request.Reason), ct);
+            new RejectVenueProfileBffCommand(userId, profileId, request.Reason), ct);
         return SetResponse(result);
     }
 
@@ -96,7 +96,7 @@ public sealed class IdentityController : AizenWebApiController
     public async Task<AizenApiResponse<ProfileWithRolesResult>> GetProfileWithRoles(
         Guid profileId, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetProfileWithRolesQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetProfileWithRolesBffQuery(profileId), ct);
         return SetResponse(result);
     }
 }

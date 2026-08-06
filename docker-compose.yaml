@@ -280,6 +280,7 @@ services:
       # BFF -> module calls (Keycloak service token injected by the delegating handler)
       RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
       RemoteCalls__IReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity.
       MarineMobileKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -578,6 +579,9 @@ services:
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
       BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # marine-mobile-bff uploads participant avatars (M3c); its resolve-by-subject sets the identity holder,
+      # so the delegating handler asserts on the upload-session calls too — allow-list it to avoid 1102.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
     ports:
       - "7106:8080"
     networks: [aizen]

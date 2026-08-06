@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
+using Aizen.Bff.AdminPanel.Application.Identity.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Core.CQRS.Abstraction;
@@ -36,7 +36,7 @@ public sealed class OrganizersController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new SearchOrganizerProfilesQuery(pageIndex, pageSize, searchTerm, approvalStatus, status, city, country), ct);
+            new SearchOrganizerProfilesBffQuery(pageIndex, pageSize, searchTerm, approvalStatus, status, city, country), ct);
         return SetResponse(result);
     }
 
@@ -45,7 +45,7 @@ public sealed class OrganizersController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileByIdQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileByIdBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -54,7 +54,7 @@ public sealed class OrganizersController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerProfileWithUserResult>> GetProfileWithUser(
         Guid profileId, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileWithUserQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetOrganizerProfileWithUserBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -68,7 +68,7 @@ public sealed class OrganizersController : AizenWebApiController
     public async Task<AizenApiResponse<OrganizerProfileWithUserDetailDto>> GetProviderDirectoryDetail(
         long profileId, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetProviderDirectoryDetailQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetProviderDirectoryDetailBffQuery(profileId), ct);
         return SetResponse(result);
     }
 }

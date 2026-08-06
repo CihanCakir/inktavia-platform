@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
+using Aizen.Bff.AdminPanel.Application.Identity.Query;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -29,7 +29,7 @@ public sealed class VenuesController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new SearchVenueProfilesQuery(pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(new SearchVenueProfilesBffQuery(pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -38,7 +38,7 @@ public sealed class VenuesController : AizenWebApiController
     public async Task<AizenApiResponse<VenueProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetVenueProfileByIdQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetVenueProfileByIdBffQuery(profileId), ct);
         return SetResponse(result);
     }
 }

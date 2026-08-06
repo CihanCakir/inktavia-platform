@@ -1,6 +1,8 @@
+using Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.Services;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Profile;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Modules.FileStorage.Abstraction.Request.File;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Microsoft.Extensions.Logging;
 
@@ -10,13 +12,16 @@ public sealed class GetParticipantProfileQueryHandler
     : AizenQueryHandler<GetParticipantProfileQuery, GetParticipantProfileResponse>
 {
     private readonly IParticipantProfileResolver _resolver;
+    private readonly IFileStorageRemoteCall _fileStorage;
     private readonly ILogger<GetParticipantProfileQueryHandler> _logger;
 
     public GetParticipantProfileQueryHandler(
         IParticipantProfileResolver resolver,
+        IFileStorageRemoteCall fileStorage,
         ILogger<GetParticipantProfileQueryHandler> logger)
     {
         _resolver = resolver;
+        _fileStorage = fileStorage;
         _logger = logger;
     }
 
@@ -37,6 +42,7 @@ public sealed class GetParticipantProfileQueryHandler
             }
 
             response.Profile = MapProfile(resolution.Profile);
+            await ResolveAvatarUrlAsync(response.Profile, _fileStorage, _logger, cancellationToken);
             response.Message = "OK";
         }
         catch (Exception ex)
@@ -46,6 +52,29 @@ public sealed class GetParticipantProfileQueryHandler
         }
 
         return response;
+    }
+
+    /// <summary>
+    /// When ProfilePhotoUrl holds a FileStorage fileId (M3c avatar), swap AvatarUrl for a fresh presigned read URL
+    /// the client can render. Legacy non-Guid values pass through untouched; a resolution failure nulls the avatar.
+    /// </summary>
+    internal static async Task ResolveAvatarUrlAsync(
+        ParticipantProfileDto? profile, IFileStorageRemoteCall fileStorage, ILogger logger, CancellationToken ct)
+    {
+        if (profile?.AvatarUrl is null || !Guid.TryParse(profile.AvatarUrl, out var fileId))
+            return;
+
+        try
+        {
+            var res = await fileStorage.CreateReadUrl(fileId, new CreateReadUrlRequest { ExpiresIn = TimeSpan.FromHours(6) });
+            var url = res?.Body?.ReadUrl;
+            profile.AvatarUrl = string.IsNullOrEmpty(url) ? null : url;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Avatar read-url resolution failed for file {FileId}.", fileId);
+            profile.AvatarUrl = null;
+        }
     }
 
     /// <summary>Shared DTO → mobile contract mapping. FullName = First + Last; AvatarUrl = ProfilePhotoUrl.</summary>
