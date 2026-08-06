@@ -1,6 +1,6 @@
-using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Command;
-using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Query;
+using Aizen.Bff.AdminPanel.Application.ProfileApprovals.Command;
+using Aizen.Bff.AdminPanel.Application.ProfileApprovals.Dto;
+using Aizen.Bff.AdminPanel.Application.ProfileApprovals.Query;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
@@ -168,7 +168,7 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new RequestOrganizerDocumentUploadUrlCommand(
+            new RequestOrganizerDocumentUploadUrlBffCommand(
                 userId, profileId,
                 request.FileName, request.ContentType, request.FileSizeBytes, request.DocumentType), ct);
         return SetResponse(result);
@@ -186,7 +186,7 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new RegisterOrganizerVerificationDocumentCommand(
+            new RegisterOrganizerVerificationDocumentBffCommand(
                 userId, profileId,
                 request.FileId, request.UploadSessionCode,
                 request.DocumentType, request.Name,
@@ -205,7 +205,7 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new RequestVenueDocumentUploadUrlCommand(
+            new RequestVenueDocumentUploadUrlBffCommand(
                 userId, profileId,
                 request.FileName, request.ContentType, request.FileSizeBytes, request.DocumentType), ct);
         return SetResponse(result);
@@ -222,7 +222,7 @@ public sealed class AdminProfileApprovalsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new RegisterVenueVerificationDocumentCommand(
+            new RegisterVenueVerificationDocumentBffCommand(
                 userId, profileId,
                 request.FileId, request.UploadSessionCode,
                 request.DocumentType, request.Name,
