@@ -12,9 +12,9 @@ public sealed class GetCargoDrySettlementPaymentPreparationPreviewBffQueryHandle
     : AizenQueryHandler<GetCargoDrySettlementPaymentPreparationPreviewBffQuery,
                         GetCargoDrySettlementPaymentPreparationPreviewBffQueryResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GetCargoDrySettlementPaymentPreparationPreviewBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public GetCargoDrySettlementPaymentPreparationPreviewBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetCargoDrySettlementPaymentPreparationPreviewBffQueryResponse> Handle(

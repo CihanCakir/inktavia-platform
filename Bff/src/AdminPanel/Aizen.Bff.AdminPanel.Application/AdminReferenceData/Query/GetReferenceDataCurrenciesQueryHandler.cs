@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataCurrenciesQueryHandler
     : AizenQueryHandler<GetReferenceDataCurrenciesQuery, CurrencyListResult>
 {
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
-    public GetReferenceDataCurrenciesQueryHandler(IReferenceDataAdminBffRemoteCall referenceData)
+    public GetReferenceDataCurrenciesQueryHandler(IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }

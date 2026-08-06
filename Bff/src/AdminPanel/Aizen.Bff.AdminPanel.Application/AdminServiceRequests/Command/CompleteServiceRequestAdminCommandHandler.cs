@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class CompleteServiceRequestAdminCommandHandler
     : AizenCommandHandler<CompleteServiceRequestAdminCommand, CompleteServiceRequestResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public CompleteServiceRequestAdminCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public CompleteServiceRequestAdminCommandHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

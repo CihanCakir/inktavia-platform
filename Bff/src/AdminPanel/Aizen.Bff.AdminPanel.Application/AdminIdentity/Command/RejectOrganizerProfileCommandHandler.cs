@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Command;
 public sealed class RejectOrganizerProfileCommandHandler
     : AizenCommandHandler<RejectOrganizerProfileCommand, AdminBffCommandResultDto>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
-    public RejectOrganizerProfileCommandHandler(IIdentityAdminBffRemoteCall identity)
+    public RejectOrganizerProfileCommandHandler(IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

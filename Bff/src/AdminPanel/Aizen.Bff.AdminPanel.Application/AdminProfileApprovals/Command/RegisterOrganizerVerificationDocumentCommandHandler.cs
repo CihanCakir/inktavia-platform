@@ -10,13 +10,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Command;
 public sealed class RegisterOrganizerVerificationDocumentCommandHandler
     : AizenCommandHandler<RegisterOrganizerVerificationDocumentCommand, RegisterDocumentBffResponse>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IFileStorageRemoteCall _fileStorage;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<RegisterOrganizerVerificationDocumentCommandHandler> _logger;
 
     public RegisterOrganizerVerificationDocumentCommandHandler(
-        IFileStorageAdminBffRemoteCall fileStorage,
-        IIdentityAdminBffRemoteCall identity,
+        IFileStorageRemoteCall fileStorage,
+        IIdentityRemoteCall identity,
         ILogger<RegisterOrganizerVerificationDocumentCommandHandler> logger)
     {
         _fileStorage = fileStorage;

@@ -17,8 +17,8 @@ public sealed class GetProviderPlanPricesBffResponse { public List<ProviderPlanP
 public sealed class GetProviderPlanPricesBffQueryHandler
     : AizenQueryHandler<GetProviderPlanPricesBffQuery, GetProviderPlanPricesBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetProviderPlanPricesBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetProviderPlanPricesBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetProviderPlanPricesBffResponse?> Handle(GetProviderPlanPricesBffQuery request, CancellationToken ct)
         => new() { Items = await _payment.GetProviderPlanPricesForPlanAsync(request.ProviderPlanId, ct) };
@@ -39,8 +39,8 @@ public sealed class ResolveProviderPlanPriceBffResponse { public ProviderPlanPri
 public sealed class ResolveProviderPlanPriceBffQueryHandler
     : AizenQueryHandler<ResolveProviderPlanPriceBffQuery, ResolveProviderPlanPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ResolveProviderPlanPriceBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ResolveProviderPlanPriceBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ResolveProviderPlanPriceBffResponse?> Handle(ResolveProviderPlanPriceBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ResolveProviderPlanPriceAsync(
@@ -59,8 +59,8 @@ public sealed class GetUpcomingPlanPriceChangesBffResponse { public List<Upcomin
 public sealed class GetUpcomingPlanPriceChangesBffQueryHandler
     : AizenQueryHandler<GetUpcomingPlanPriceChangesBffQuery, GetUpcomingPlanPriceChangesBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetUpcomingPlanPriceChangesBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetUpcomingPlanPriceChangesBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetUpcomingPlanPriceChangesBffResponse?> Handle(GetUpcomingPlanPriceChangesBffQuery request, CancellationToken ct)
         => new() { Items = await _payment.GetUpcomingPlanPriceChangesAsync(request.WithinDays, ct) };

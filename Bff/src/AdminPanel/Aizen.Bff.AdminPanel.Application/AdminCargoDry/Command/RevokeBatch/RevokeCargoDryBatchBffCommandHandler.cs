@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeBatch;
 public sealed class RevokeCargoDryBatchBffCommandHandler
     : AizenCommandHandler<RevokeCargoDryBatchBffCommand, RevokeCargoDryBatchBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public RevokeCargoDryBatchBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public RevokeCargoDryBatchBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<RevokeCargoDryBatchBffCommandResponse?> Handle(

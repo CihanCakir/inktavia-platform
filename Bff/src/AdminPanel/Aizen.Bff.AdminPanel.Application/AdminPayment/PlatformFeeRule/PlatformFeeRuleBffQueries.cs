@@ -20,8 +20,8 @@ public sealed class ResolvePlatformFeeBffResponse { public PlatformFeeResolveBff
 public sealed class ResolvePlatformFeeBffQueryHandler
     : AizenQueryHandler<ResolvePlatformFeeBffQuery, ResolvePlatformFeeBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ResolvePlatformFeeBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ResolvePlatformFeeBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ResolvePlatformFeeBffResponse?> Handle(ResolvePlatformFeeBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ResolvePlatformFeeAsync(
@@ -47,8 +47,8 @@ public sealed class GetPlatformFeeRulesListBffResponse { public PlatformFeeRules
 public sealed class GetPlatformFeeRulesListBffQueryHandler
     : AizenQueryHandler<GetPlatformFeeRulesListBffQuery, GetPlatformFeeRulesListBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPlatformFeeRulesListBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPlatformFeeRulesListBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPlatformFeeRulesListBffResponse?> Handle(GetPlatformFeeRulesListBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ListPlatformFeeRulesAsync(
@@ -69,8 +69,8 @@ public sealed class GetPlatformFeeRuleDetailBffResponse { public PlatformFeeRule
 public sealed class GetPlatformFeeRuleDetailBffQueryHandler
     : AizenQueryHandler<GetPlatformFeeRuleDetailBffQuery, GetPlatformFeeRuleDetailBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPlatformFeeRuleDetailBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPlatformFeeRuleDetailBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPlatformFeeRuleDetailBffResponse?> Handle(GetPlatformFeeRuleDetailBffQuery request, CancellationToken ct)
         => new() { Rule = await _payment.GetPlatformFeeRuleDetailAsync(request.Id, ct) };
@@ -85,8 +85,8 @@ public sealed class GetPlatformFeeRuleStatsBffResponse { public PlatformFeeRuleS
 public sealed class GetPlatformFeeRuleStatsBffQueryHandler
     : AizenQueryHandler<GetPlatformFeeRuleStatsBffQuery, GetPlatformFeeRuleStatsBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPlatformFeeRuleStatsBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPlatformFeeRuleStatsBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPlatformFeeRuleStatsBffResponse?> Handle(GetPlatformFeeRuleStatsBffQuery request, CancellationToken ct)
         => new() { Stats = await _payment.GetPlatformFeeRuleStatsAsync(ct) };

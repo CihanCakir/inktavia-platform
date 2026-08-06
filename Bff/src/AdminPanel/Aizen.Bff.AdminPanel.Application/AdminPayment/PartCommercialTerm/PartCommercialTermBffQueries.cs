@@ -23,8 +23,8 @@ public sealed class GetPartCommercialTermsListBffResponse { public PartCommercia
 public sealed class GetPartCommercialTermsListBffQueryHandler
     : AizenQueryHandler<GetPartCommercialTermsListBffQuery, GetPartCommercialTermsListBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPartCommercialTermsListBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPartCommercialTermsListBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPartCommercialTermsListBffResponse?> Handle(GetPartCommercialTermsListBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ListPartCommercialTermsAsync(
@@ -44,8 +44,8 @@ public sealed class GetPartCommercialTermDetailBffResponse { public PartCommerci
 public sealed class GetPartCommercialTermDetailBffQueryHandler
     : AizenQueryHandler<GetPartCommercialTermDetailBffQuery, GetPartCommercialTermDetailBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPartCommercialTermDetailBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPartCommercialTermDetailBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPartCommercialTermDetailBffResponse?> Handle(GetPartCommercialTermDetailBffQuery request, CancellationToken ct)
         => new() { Term = await _payment.GetPartCommercialTermDetailAsync(request.Id, ct) };

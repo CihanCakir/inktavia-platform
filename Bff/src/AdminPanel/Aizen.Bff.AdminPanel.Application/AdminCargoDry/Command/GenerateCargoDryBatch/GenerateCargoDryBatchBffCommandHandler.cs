@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.GenerateCargoDr
 public sealed class GenerateCargoDryBatchBffCommandHandler
     : AizenCommandHandler<GenerateCargoDryBatchBffCommand, GenerateCargoDryBatchBffResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GenerateCargoDryBatchBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public GenerateCargoDryBatchBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GenerateCargoDryBatchBffResponse?> Handle(

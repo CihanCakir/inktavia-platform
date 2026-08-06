@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetConsignmentAgr
 public sealed class GetConsignmentAgreementByIdBffQueryHandler
     : AizenQueryHandler<GetConsignmentAgreementByIdBffQuery, GetConsignmentAgreementByIdBffResponse?>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GetConsignmentAgreementByIdBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public GetConsignmentAgreementByIdBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetConsignmentAgreementByIdBffResponse?> Handle(

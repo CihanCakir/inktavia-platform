@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class ResolveDisputeCommandHandler
     : AizenCommandHandler<ResolveDisputeCommand, ResolveServiceRequestDisputeResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public ResolveDisputeCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public ResolveDisputeCommandHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

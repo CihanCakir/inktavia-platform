@@ -10,14 +10,14 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetAdminServiceRequestOperationDetailQueryHandler
     : AizenQueryHandler<GetAdminServiceRequestOperationDetailQuery, AdminServiceRequestOperationDetailResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IVesselAdminBffRemoteCall         _vessel;
-    private readonly IIdentityAdminBffRemoteCall       _identity;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
+    private readonly IVesselRemoteCall         _vessel;
+    private readonly IIdentityRemoteCall       _identity;
 
     public GetAdminServiceRequestOperationDetailQueryHandler(
-        IServiceRequestAdminBffRemoteCall serviceRequest,
-        IVesselAdminBffRemoteCall         vessel,
-        IIdentityAdminBffRemoteCall       identity)
+        IServiceRequestRemoteCall serviceRequest,
+        IVesselRemoteCall         vessel,
+        IIdentityRemoteCall       identity)
     {
         _serviceRequest = serviceRequest;
         _vessel         = vessel;

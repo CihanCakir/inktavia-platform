@@ -13,13 +13,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetAdminSubscripti
 public sealed class GetAdminSubscriptionListBffQueryHandler
     : AizenQueryHandler<GetAdminSubscriptionListBffQuery, GetAdminSubscriptionListBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall  _remote;
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IPaymentRemoteCall  _remote;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<GetAdminSubscriptionListBffQueryHandler> _logger;
 
     public GetAdminSubscriptionListBffQueryHandler(
-        IAdminPaymentBffRemoteCall  remote,
-        IIdentityAdminBffRemoteCall identity,
+        IPaymentRemoteCall  remote,
+        IIdentityRemoteCall identity,
         ILogger<GetAdminSubscriptionListBffQueryHandler> logger)
     {
         _remote   = remote;

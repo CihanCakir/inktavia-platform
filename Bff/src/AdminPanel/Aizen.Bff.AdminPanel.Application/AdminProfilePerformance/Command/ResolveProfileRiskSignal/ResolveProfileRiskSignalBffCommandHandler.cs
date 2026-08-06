@@ -11,9 +11,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Command.Resol
 public sealed class ResolveProfileRiskSignalBffCommandHandler
     : AizenCommandHandler<ResolveProfileRiskSignalBffCommand, ResolveProfileRiskSignalBffCommandResponse>
 {
-    private readonly IAdminProfilePerformanceBffRemoteCall _remote;
+    private readonly IProfilePerformanceRemoteCall _remote;
 
-    public ResolveProfileRiskSignalBffCommandHandler(IAdminProfilePerformanceBffRemoteCall remote)
+    public ResolveProfileRiskSignalBffCommandHandler(IProfilePerformanceRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ResolveProfileRiskSignalBffCommandResponse?> Handle(

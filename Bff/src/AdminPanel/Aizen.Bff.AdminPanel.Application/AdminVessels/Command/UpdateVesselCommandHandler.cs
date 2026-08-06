@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Command;
 [DocumentationInfo("UpdateVessel command handler", "Updates a vessel's details via the Vessel module.")]
 public sealed class UpdateVesselCommandHandler : AizenCommandHandler<UpdateVesselCommand, UpdateVesselResponse>
 {
-    private readonly IVesselAdminBffRemoteCall _vessel;
+    private readonly IVesselRemoteCall _vessel;
     public UpdateVesselCommandHandler(
-        IVesselAdminBffRemoteCall vessel)
+        IVesselRemoteCall vessel)
     {
         _vessel = vessel;
     }

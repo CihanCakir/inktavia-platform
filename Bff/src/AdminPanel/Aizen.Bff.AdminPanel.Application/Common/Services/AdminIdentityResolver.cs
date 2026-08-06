@@ -21,7 +21,7 @@ public interface IAdminIdentityResolver
 internal sealed class AdminIdentityResolver : IAdminIdentityResolver
 {
     private readonly IAdminContext _context;
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly IAdminIdentityHolder _holder;
     private readonly ILogger<AdminIdentityResolver> _logger;
 
@@ -33,7 +33,7 @@ internal sealed class AdminIdentityResolver : IAdminIdentityResolver
 
     public AdminIdentityResolver(
         IAdminContext context,
-        IIdentityAdminBffRemoteCall identity,
+        IIdentityRemoteCall identity,
         IAdminIdentityHolder holder,
         ILogger<AdminIdentityResolver> logger)
     {

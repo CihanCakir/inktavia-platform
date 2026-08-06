@@ -15,8 +15,8 @@ public sealed class CreatePricingAttributeCommand : AizenCommand<PricingAttribut
 public sealed class CreatePricingAttributeCommandHandler
     : AizenCommandHandler<CreatePricingAttributeCommand, PricingAttributeDefinitionDto>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    public CreatePricingAttributeCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    private readonly IServiceRequestRemoteCall _serviceRequest;
+    public CreatePricingAttributeCommandHandler(IServiceRequestRemoteCall serviceRequest)
         => _serviceRequest = serviceRequest;
 
     public override async Task<PricingAttributeDefinitionDto?> Handle(

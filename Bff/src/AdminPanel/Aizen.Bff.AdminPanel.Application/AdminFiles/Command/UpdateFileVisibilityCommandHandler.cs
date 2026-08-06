@@ -6,9 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 [DocumentationInfo("UpdateFileVisibility command handler", "Updates the visibility (public/private) of a file via the FileStorage module.")]
 public sealed class UpdateFileVisibilityCommandHandler : AizenCommandHandler<UpdateFileVisibilityCommand, EmptyResult>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IFileStorageRemoteCall _fileStorage;
     public UpdateFileVisibilityCommandHandler(
-        IFileStorageAdminBffRemoteCall fileStorage)
+        IFileStorageRemoteCall fileStorage)
     {
         _fileStorage = fileStorage;
     }

@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.AllocateBatchTo
 public sealed class AllocateBatchToProviderBffCommandHandler
     : AizenCommandHandler<AllocateBatchToProviderBffCommand, AllocateBatchToProviderBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public AllocateBatchToProviderBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public AllocateBatchToProviderBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<AllocateBatchToProviderBffCommandResponse> Handle(

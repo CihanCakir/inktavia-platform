@@ -12,7 +12,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
     "Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are injected automatically " +
     "by AdminPanelBffAuthDelegatingHandler. " +
     "Phase 20/21 rule: BFF is proxy-only — no score calculation occurs here.")]
-public interface IAdminProfilePerformanceBffRemoteCall : IAizenRemoteCall
+public interface IProfilePerformanceRemoteCall : IAizenRemoteCall
 {
     // ─── Snapshot ─────────────────────────────────────────────────────────────
 

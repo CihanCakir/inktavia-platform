@@ -10,15 +10,15 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselDetailBffQueryHandler
     : AizenQueryHandler<GetAdminVesselDetailBffQuery, AdminVesselDetailBffResponse>
 {
-    private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminCargoDryBffRemoteCall _cargoDry;
+    private readonly IVesselRemoteCall _vessel;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
+    private readonly ICargoDryRemoteCall _cargoDry;
     private readonly ILogger<GetAdminVesselDetailBffQueryHandler> _logger;
 
     public GetAdminVesselDetailBffQueryHandler(
-        IVesselAdminBffRemoteCall vessel,
-        IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminCargoDryBffRemoteCall cargoDry,
+        IVesselRemoteCall vessel,
+        IServiceRequestRemoteCall serviceRequest,
+        ICargoDryRemoteCall cargoDry,
         ILogger<GetAdminVesselDetailBffQueryHandler> logger)
     {
         _vessel = vessel;

@@ -12,13 +12,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Query;
 public sealed class GetVenueApprovalDetailBffQueryHandler
     : AizenQueryHandler<GetVenueApprovalDetailBffQuery, VenueApprovalDetailBffResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IIdentityRemoteCall _identity;
+    private readonly IFileStorageRemoteCall _fileStorage;
     private readonly ILogger<GetVenueApprovalDetailBffQueryHandler> _logger;
 
     public GetVenueApprovalDetailBffQueryHandler(
-        IIdentityAdminBffRemoteCall identity,
-        IFileStorageAdminBffRemoteCall fileStorage,
+        IIdentityRemoteCall identity,
+        IFileStorageRemoteCall fileStorage,
         ILogger<GetVenueApprovalDetailBffQueryHandler> logger)
     {
         _identity = identity;

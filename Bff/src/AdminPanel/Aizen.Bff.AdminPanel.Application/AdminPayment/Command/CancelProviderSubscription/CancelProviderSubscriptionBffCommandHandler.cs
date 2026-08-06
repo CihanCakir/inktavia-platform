@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CancelProviderSu
 public sealed class CancelProviderSubscriptionBffCommandHandler
     : AizenCommandHandler<CancelProviderSubscriptionBffCommand, CancelProviderSubscriptionBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public CancelProviderSubscriptionBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public CancelProviderSubscriptionBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<CancelProviderSubscriptionBffCommandResponse?> Handle(

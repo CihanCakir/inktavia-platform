@@ -8,10 +8,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselStatusHistoryQueryHandler
     : AizenQueryHandler<GetAdminVesselStatusHistoryQuery, GetVesselStatusHistoryResponse>
 {
-    private readonly IVesselAdminBffRemoteCall _vessel;
+    private readonly IVesselRemoteCall _vessel;
 
     public GetAdminVesselStatusHistoryQueryHandler(
-        IVesselAdminBffRemoteCall vessel)
+        IVesselRemoteCall vessel)
     {
         _vessel = vessel;
     }

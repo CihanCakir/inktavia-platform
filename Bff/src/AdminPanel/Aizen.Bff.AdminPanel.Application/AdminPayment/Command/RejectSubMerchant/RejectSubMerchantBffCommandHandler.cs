@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.RejectSubMerchan
 public sealed class RejectSubMerchantBffCommandHandler
     : AizenCommandHandler<RejectSubMerchantBffCommand, SubMerchantOnboardingMutateBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
+    private readonly IPaymentRemoteCall _payment;
 
-    public RejectSubMerchantBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    public RejectSubMerchantBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<SubMerchantOnboardingMutateBffResponse?> Handle(
         RejectSubMerchantBffCommand request, CancellationToken ct)

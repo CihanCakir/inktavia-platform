@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 [DocumentationInfo("CreateFileReadUrl command handler", "Generates a pre-signed read URL for a file via the FileStorage module.")]
 public sealed class CreateFileReadUrlCommandHandler : AizenCommandHandler<CreateFileReadUrlCommand, FileAccessUrlResult>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IFileStorageRemoteCall _fileStorage;
     public CreateFileReadUrlCommandHandler(
-        IFileStorageAdminBffRemoteCall fileStorage)
+        IFileStorageRemoteCall fileStorage)
     {
         _fileStorage = fileStorage;
     }

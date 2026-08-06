@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataLookupItemsByGroupCodeQueryHandler
     : AizenQueryHandler<GetReferenceDataLookupItemsByGroupCodeQuery, LookupItemListResult>
 {
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
-    public GetReferenceDataLookupItemsByGroupCodeQueryHandler(IReferenceDataAdminBffRemoteCall referenceData)
+    public GetReferenceDataLookupItemsByGroupCodeQueryHandler(IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }

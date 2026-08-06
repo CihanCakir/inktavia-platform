@@ -19,9 +19,9 @@ public sealed class GetCargoDryAnalyticsBffQueryHandler
         ["Transferred"] = "#06b6d4",
     };
 
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GetCargoDryAnalyticsBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public GetCargoDryAnalyticsBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetCargoDryAnalyticsBffResponse> Handle(

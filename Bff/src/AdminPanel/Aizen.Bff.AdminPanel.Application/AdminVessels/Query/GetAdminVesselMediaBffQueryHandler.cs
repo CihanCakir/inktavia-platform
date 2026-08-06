@@ -9,10 +9,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselMediaBffQueryHandler
     : AizenQueryHandler<GetAdminVesselMediaBffQuery, AdminVesselMediaBffResponse>
 {
-    private readonly IVesselAdminBffRemoteCall _vessel;
+    private readonly IVesselRemoteCall _vessel;
 
     public GetAdminVesselMediaBffQueryHandler(
-        IVesselAdminBffRemoteCall vessel)
+        IVesselRemoteCall vessel)
     {
         _vessel = vessel;
     }

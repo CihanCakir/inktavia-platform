@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetInvoicesByBuyer
 public sealed class GetInvoicesByBuyerBffQueryHandler
     : AizenQueryHandler<GetInvoicesByBuyerBffQuery, GetInvoicesByBuyerBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public GetInvoicesByBuyerBffQueryHandler(IAdminPaymentBffRemoteCall remote)
+    public GetInvoicesByBuyerBffQueryHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetInvoicesByBuyerBffResponse> Handle(

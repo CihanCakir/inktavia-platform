@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.AdjustProviderI
 public sealed class AdjustProviderInventoryBffCommandHandler
     : AizenCommandHandler<AdjustProviderInventoryBffCommand, AdjustProviderInventoryBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public AdjustProviderInventoryBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public AdjustProviderInventoryBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<AdjustProviderInventoryBffCommandResponse> Handle(

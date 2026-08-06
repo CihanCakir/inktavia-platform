@@ -8,10 +8,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminNotificationTemplates.Command;
 public sealed class CreateNotificationTemplateCommandHandler
     : AizenCommandHandler<CreateNotificationTemplateCommand, AdminBffCommandResultDto>
 {
-    private readonly INotificationAdminBffRemoteCall _notification;
+    private readonly INotificationTemplateRemoteCall _notification;
 
     public CreateNotificationTemplateCommandHandler(
-        INotificationAdminBffRemoteCall notification)
+        INotificationTemplateRemoteCall notification)
     {
         _notification        = notification;
     }

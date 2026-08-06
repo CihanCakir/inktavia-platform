@@ -16,7 +16,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("Identity admin BFF remote call",
     "Defines synchronous BFF-to-Identity calls for admin profile management and search. " +
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
-public interface IIdentityAdminBffRemoteCall : IAizenRemoteCall
+public interface IIdentityRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/identity/profiles")]
     Task<AizenApiResponse<PagedProfileListResult>> SearchProfiles(

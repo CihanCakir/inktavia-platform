@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataSystemParametersQueryHandler
     : AizenQueryHandler<GetReferenceDataSystemParametersQuery, SystemParameterListResult>
 {
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
-    public GetReferenceDataSystemParametersQueryHandler(IReferenceDataAdminBffRemoteCall referenceData)
+    public GetReferenceDataSystemParametersQueryHandler(IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }

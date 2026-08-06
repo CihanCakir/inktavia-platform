@@ -6,9 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 [DocumentationInfo("SearchParticipantProfiles query handler", "Returns a paged list of participant profiles from the Identity module.")]
 public sealed class SearchParticipantProfilesQueryHandler : AizenQueryHandler<SearchParticipantProfilesQuery, PagedParticipantProfileResult>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     public SearchParticipantProfilesQueryHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

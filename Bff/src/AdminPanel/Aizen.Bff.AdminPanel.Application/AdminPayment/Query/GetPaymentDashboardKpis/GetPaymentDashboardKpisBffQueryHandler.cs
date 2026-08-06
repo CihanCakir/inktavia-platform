@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPaymentDashboar
 public sealed class GetPaymentDashboardKpisBffQueryHandler
     : AizenQueryHandler<GetPaymentDashboardKpisBffQuery, GetPaymentDashboardKpisBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public GetPaymentDashboardKpisBffQueryHandler(IAdminPaymentBffRemoteCall remote)
+    public GetPaymentDashboardKpisBffQueryHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetPaymentDashboardKpisBffResponse> Handle(

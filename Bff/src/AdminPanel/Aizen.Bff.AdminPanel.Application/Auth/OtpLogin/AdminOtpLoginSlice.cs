@@ -19,9 +19,9 @@ public sealed class RequestOtpLoginCommand : AizenCommand<OtpLoginRequestRespons
 
 public sealed class RequestOtpLoginCommandHandler : AizenCommandHandler<RequestOtpLoginCommand, OtpLoginRequestResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<RequestOtpLoginCommandHandler> _logger;
-    public RequestOtpLoginCommandHandler(IIdentityAdminBffRemoteCall identity, ILogger<RequestOtpLoginCommandHandler> logger)
+    public RequestOtpLoginCommandHandler(IIdentityRemoteCall identity, ILogger<RequestOtpLoginCommandHandler> logger)
     { _identity = identity; _logger = logger; }
 
     public override async Task<OtpLoginRequestResponse?> Handle(RequestOtpLoginCommand request, CancellationToken ct)
@@ -59,9 +59,9 @@ public sealed class VerifyOtpLoginCommand : AizenCommand<OtpLoginVerifyResponse>
 
 public sealed class VerifyOtpLoginCommandHandler : AizenCommandHandler<VerifyOtpLoginCommand, OtpLoginVerifyResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<VerifyOtpLoginCommandHandler> _logger;
-    public VerifyOtpLoginCommandHandler(IIdentityAdminBffRemoteCall identity, ILogger<VerifyOtpLoginCommandHandler> logger)
+    public VerifyOtpLoginCommandHandler(IIdentityRemoteCall identity, ILogger<VerifyOtpLoginCommandHandler> logger)
     { _identity = identity; _logger = logger; }
 
     public override async Task<OtpLoginVerifyResponse?> Handle(VerifyOtpLoginCommand request, CancellationToken ct)
@@ -90,9 +90,9 @@ public sealed class ResendOtpLoginCommand : AizenCommand<OtpLoginResendResponse>
 
 public sealed class ResendOtpLoginCommandHandler : AizenCommandHandler<ResendOtpLoginCommand, OtpLoginResendResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<ResendOtpLoginCommandHandler> _logger;
-    public ResendOtpLoginCommandHandler(IIdentityAdminBffRemoteCall identity, ILogger<ResendOtpLoginCommandHandler> logger)
+    public ResendOtpLoginCommandHandler(IIdentityRemoteCall identity, ILogger<ResendOtpLoginCommandHandler> logger)
     { _identity = identity; _logger = logger; }
 
     public override async Task<OtpLoginResendResponse?> Handle(ResendOtpLoginCommand request, CancellationToken ct)

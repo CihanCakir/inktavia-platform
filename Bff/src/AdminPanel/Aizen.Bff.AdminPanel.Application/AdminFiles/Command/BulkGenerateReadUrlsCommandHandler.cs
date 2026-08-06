@@ -8,10 +8,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 public sealed class BulkGenerateReadUrlsCommandHandler
     : AizenCommandHandler<BulkGenerateReadUrlsCommand, List<FileAccessUrlResult>>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IFileStorageRemoteCall _fileStorage;
 
     public BulkGenerateReadUrlsCommandHandler(
-        IFileStorageAdminBffRemoteCall fileStorage)
+        IFileStorageRemoteCall fileStorage)
     {
         _fileStorage = fileStorage;
     }

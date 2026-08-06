@@ -18,7 +18,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("ServiceRequest admin BFF remote call",
     "Defines synchronous BFF-to-ServiceRequest calls for admin oversight and dispute management. " +
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
-public interface IServiceRequestAdminBffRemoteCall : IAizenRemoteCall
+public interface IServiceRequestRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/admin/service-requests")]
     Task<AizenApiResponse<GetAdminServiceRequestListResponse>> GetAdminServiceRequestList(

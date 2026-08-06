@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.RevokeKit;
 public sealed class RevokeKitBffCommandHandler
     : AizenCommandHandler<RevokeKitBffCommand, RevokeKitBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public RevokeKitBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public RevokeKitBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<RevokeKitBffCommandResponse?> Handle(

@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.VerifySubMerchan
 public sealed class VerifySubMerchantBffCommandHandler
     : AizenCommandHandler<VerifySubMerchantBffCommand, SubMerchantOnboardingMutateBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
+    private readonly IPaymentRemoteCall _payment;
 
-    public VerifySubMerchantBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    public VerifySubMerchantBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<SubMerchantOnboardingMutateBffResponse?> Handle(
         VerifySubMerchantBffCommand request, CancellationToken ct)

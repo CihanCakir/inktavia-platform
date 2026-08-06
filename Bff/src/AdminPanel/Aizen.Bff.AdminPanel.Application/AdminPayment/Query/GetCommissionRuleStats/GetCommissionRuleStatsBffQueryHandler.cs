@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetCommissionRuleS
 public sealed class GetCommissionRuleStatsBffQueryHandler
     : AizenQueryHandler<GetCommissionRuleStatsBffQuery, GetCommissionRuleStatsBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
+    private readonly IPaymentRemoteCall _payment;
 
-    public GetCommissionRuleStatsBffQueryHandler(IAdminPaymentBffRemoteCall payment)
+    public GetCommissionRuleStatsBffQueryHandler(IPaymentRemoteCall payment)
         => _payment = payment;
 
     public override async Task<GetCommissionRuleStatsBffResponse?> Handle(

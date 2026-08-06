@@ -8,10 +8,10 @@ namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
 [DocumentationInfo("LoginWithUsername command handler", "Proxies username+pin login request to the Identity module auth endpoint. Propagates Identity error envelope to the caller on failure.")]
 public sealed class LoginWithUsernameCommandHandler : AizenCommandHandler<LoginWithUsernameCommand, UserLoginResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
     public LoginWithUsernameCommandHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

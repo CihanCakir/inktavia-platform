@@ -11,7 +11,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
     "Defines BFF-to-CargoDry calls. Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are " +
     "injected automatically by AdminPanelBffAuthDelegatingHandler. " +
     "Public onboarding endpoints have no auth requirement but still pass through the handler safely.")]
-public interface IAdminCargoDryBffRemoteCall : IAizenRemoteCall
+public interface ICargoDryRemoteCall : IAizenRemoteCall
 {
     // ── Admin Kit Management ──────────────────────────────────────────────────
 

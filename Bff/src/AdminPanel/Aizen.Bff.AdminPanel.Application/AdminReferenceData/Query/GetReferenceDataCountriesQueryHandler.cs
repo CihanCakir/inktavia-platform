@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataCountriesQueryHandler
     : AizenQueryHandler<GetReferenceDataCountriesQuery, CountryListResult>
 {
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
-    public GetReferenceDataCountriesQueryHandler(IReferenceDataAdminBffRemoteCall referenceData)
+    public GetReferenceDataCountriesQueryHandler(IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }

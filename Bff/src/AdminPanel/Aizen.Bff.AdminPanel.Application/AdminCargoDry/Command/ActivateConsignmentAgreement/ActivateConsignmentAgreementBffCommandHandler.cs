@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ActivateConsign
 public sealed class ActivateConsignmentAgreementBffCommandHandler
     : AizenCommandHandler<ActivateConsignmentAgreementBffCommand, ActivateConsignmentAgreementBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public ActivateConsignmentAgreementBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public ActivateConsignmentAgreementBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ActivateConsignmentAgreementBffCommandResponse?> Handle(

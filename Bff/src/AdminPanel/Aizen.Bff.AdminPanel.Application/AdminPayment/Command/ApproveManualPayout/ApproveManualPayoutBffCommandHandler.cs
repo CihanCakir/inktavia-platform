@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ApproveManualPay
 public sealed class ApproveManualPayoutBffCommandHandler
     : AizenCommandHandler<ApproveManualPayoutBffCommand, ApproveManualPayoutBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public ApproveManualPayoutBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public ApproveManualPayoutBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ApproveManualPayoutBffCommandResponse?> Handle(

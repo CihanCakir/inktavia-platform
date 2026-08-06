@@ -9,14 +9,14 @@ namespace Aizen.Bff.AdminPanel.Application.AdminDashboard.Query;
 public sealed class GetAdminDashboardOverviewQueryHandler
     : AizenQueryHandler<GetAdminDashboardOverviewQuery, AdminDashboardOverviewResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IIdentityRemoteCall _identity;
+    private readonly IVesselRemoteCall _vessel;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
     public GetAdminDashboardOverviewQueryHandler(
-        IIdentityAdminBffRemoteCall identity,
-        IVesselAdminBffRemoteCall vessel,
-        IServiceRequestAdminBffRemoteCall serviceRequest)
+        IIdentityRemoteCall identity,
+        IVesselRemoteCall vessel,
+        IServiceRequestRemoteCall serviceRequest)
     {
         _identity = identity;
         _vessel = vessel;

@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.HoldPayout;
 public sealed class HoldPayoutBffCommandHandler
     : AizenCommandHandler<HoldPayoutBffCommand, HoldPayoutBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public HoldPayoutBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public HoldPayoutBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<HoldPayoutBffCommandResponse?> Handle(

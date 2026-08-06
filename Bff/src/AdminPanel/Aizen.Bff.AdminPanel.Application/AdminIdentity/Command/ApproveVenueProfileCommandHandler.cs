@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Command;
 public sealed class ApproveVenueProfileCommandHandler
     : AizenCommandHandler<ApproveVenueProfileCommand, AdminBffCommandResultDto>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
-    public ApproveVenueProfileCommandHandler(IIdentityAdminBffRemoteCall identity)
+    public ApproveVenueProfileCommandHandler(IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

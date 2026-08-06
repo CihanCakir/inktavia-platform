@@ -19,8 +19,8 @@ public sealed class DeletePricingAttributeCommand : AizenCommand<DeletePricingAt
 public sealed class DeletePricingAttributeCommandHandler
     : AizenCommandHandler<DeletePricingAttributeCommand, DeletePricingAttributeResult>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    public DeletePricingAttributeCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    private readonly IServiceRequestRemoteCall _serviceRequest;
+    public DeletePricingAttributeCommandHandler(IServiceRequestRemoteCall serviceRequest)
         => _serviceRequest = serviceRequest;
 
     public override async Task<DeletePricingAttributeResult?> Handle(

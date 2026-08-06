@@ -12,11 +12,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Command;
 public sealed class RequestOrganizerOnboardingRevisionBffCommandHandler
     : AizenCommandHandler<RequestOrganizerOnboardingRevisionBffCommand, OnboardingRevisionBffResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<RequestOrganizerOnboardingRevisionBffCommandHandler> _logger;
 
     public RequestOrganizerOnboardingRevisionBffCommandHandler(
-        IIdentityAdminBffRemoteCall identity,
+        IIdentityRemoteCall identity,
         ILogger<RequestOrganizerOnboardingRevisionBffCommandHandler> logger)
     {
         _identity = identity;

@@ -7,7 +7,7 @@ using Aizen.Modules.Notification.Abstraction.Response;
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
 [DocumentationInfo("Notification user BFF remote call", "Forwards admin notification inbox requests to the Notification module. Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are injected by AdminPanelBffAuthDelegatingHandler.")]
-public interface INotificationBffRemoteCall : IAizenRemoteCall
+public interface INotificationRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/notification/notifications")]
     Task<AizenApiResponse<NotificationListBffDto>> GetMyNotificationsAsync(

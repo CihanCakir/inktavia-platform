@@ -42,12 +42,12 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryOpport
 public sealed class GetCargoDryOpportunityRoutingPreviewBffQueryHandler
     : AizenQueryHandler<GetCargoDryOpportunityRoutingPreviewBffQuery, CargoDryOpportunityRoutingPreviewBffResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall         _cargoDry;
-    private readonly IAdminProfilePerformanceBffRemoteCall _profile;
+    private readonly ICargoDryRemoteCall         _cargoDry;
+    private readonly IProfilePerformanceRemoteCall _profile;
 
     public GetCargoDryOpportunityRoutingPreviewBffQueryHandler(
-        IAdminCargoDryBffRemoteCall          cargoDry,
-        IAdminProfilePerformanceBffRemoteCall profile)
+        ICargoDryRemoteCall          cargoDry,
+        IProfilePerformanceRemoteCall profile)
     {
         _cargoDry = cargoDry;
         _profile  = profile;

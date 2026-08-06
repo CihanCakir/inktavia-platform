@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryRenewa
 public sealed class GetCargoDryRenewalPreparationDetailBffQueryHandler
     : AizenQueryHandler<GetCargoDryRenewalPreparationDetailBffQuery, GetCargoDryRenewalPreparationDetailBffResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GetCargoDryRenewalPreparationDetailBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public GetCargoDryRenewalPreparationDetailBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetCargoDryRenewalPreparationDetailBffResponse> Handle(

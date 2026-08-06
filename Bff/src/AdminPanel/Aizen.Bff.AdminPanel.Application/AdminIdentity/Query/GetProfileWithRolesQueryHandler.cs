@@ -6,9 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 [DocumentationInfo("GetProfileWithRoles query handler", "Returns a user profile with its assigned roles from the Identity module.")]
 public sealed class GetProfileWithRolesQueryHandler : AizenQueryHandler<GetProfileWithRolesQuery, ProfileWithRolesResult>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     public GetProfileWithRolesQueryHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

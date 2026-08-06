@@ -16,13 +16,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Query;
 public sealed class GetOrganizerApprovalDetailBffQueryHandler
     : AizenQueryHandler<GetOrganizerApprovalDetailBffQuery, OrganizerApprovalDetailBffResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IIdentityRemoteCall _identity;
+    private readonly IFileStorageRemoteCall _fileStorage;
     private readonly ILogger<GetOrganizerApprovalDetailBffQueryHandler> _logger;
 
     public GetOrganizerApprovalDetailBffQueryHandler(
-        IIdentityAdminBffRemoteCall identity,
-        IFileStorageAdminBffRemoteCall fileStorage,
+        IIdentityRemoteCall identity,
+        IFileStorageRemoteCall fileStorage,
         ILogger<GetOrganizerApprovalDetailBffQueryHandler> logger)
     {
         _identity = identity;

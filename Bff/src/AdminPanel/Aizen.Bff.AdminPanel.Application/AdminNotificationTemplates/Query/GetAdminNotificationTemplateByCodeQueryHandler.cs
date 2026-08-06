@@ -8,10 +8,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminNotificationTemplates.Query;
 public sealed class GetAdminNotificationTemplateByCodeQueryHandler
     : AizenQueryHandler<GetAdminNotificationTemplateByCodeQuery, NotificationTemplateDto>
 {
-    private readonly INotificationAdminBffRemoteCall _notification;
+    private readonly INotificationTemplateRemoteCall _notification;
 
     public GetAdminNotificationTemplateByCodeQueryHandler(
-        INotificationAdminBffRemoteCall notification)
+        INotificationTemplateRemoteCall notification)
     {
         _notification        = notification;
     }

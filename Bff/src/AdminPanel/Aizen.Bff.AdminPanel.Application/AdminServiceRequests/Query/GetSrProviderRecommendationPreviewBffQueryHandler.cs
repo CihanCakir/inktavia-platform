@@ -40,12 +40,12 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetSrProviderRecommendationPreviewBffQueryHandler
     : AizenQueryHandler<GetSrProviderRecommendationPreviewBffQuery, SrProviderRecommendationPreviewBffResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall     _serviceRequest;
-    private readonly IAdminProfilePerformanceBffRemoteCall _profile;
+    private readonly IServiceRequestRemoteCall     _serviceRequest;
+    private readonly IProfilePerformanceRemoteCall _profile;
 
     public GetSrProviderRecommendationPreviewBffQueryHandler(
-        IServiceRequestAdminBffRemoteCall     serviceRequest,
-        IAdminProfilePerformanceBffRemoteCall profile)
+        IServiceRequestRemoteCall     serviceRequest,
+        IProfilePerformanceRemoteCall profile)
     {
         _serviceRequest = serviceRequest;
         _profile        = profile;

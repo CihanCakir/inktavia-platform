@@ -22,8 +22,8 @@ public sealed class GetRefundQueueBffResponse { public RefundQueuePagedDto? Resu
 public sealed class GetRefundQueueBffQueryHandler
     : AizenQueryHandler<GetRefundQueueBffQuery, GetRefundQueueBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetRefundQueueBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetRefundQueueBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetRefundQueueBffResponse?> Handle(GetRefundQueueBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.GetRefundQueueAsync(
@@ -43,8 +43,8 @@ public sealed class GetChargebackQueueBffResponse { public ChargebackQueuePagedD
 public sealed class GetChargebackQueueBffQueryHandler
     : AizenQueryHandler<GetChargebackQueueBffQuery, GetChargebackQueueBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetChargebackQueueBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetChargebackQueueBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetChargebackQueueBffResponse?> Handle(GetChargebackQueueBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.GetChargebackQueueAsync(request.Page, request.PageSize, ct) };

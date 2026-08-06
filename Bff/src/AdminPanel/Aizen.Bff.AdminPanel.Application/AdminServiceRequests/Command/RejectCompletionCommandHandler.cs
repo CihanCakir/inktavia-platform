@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class RejectCompletionCommandHandler
     : AizenCommandHandler<RejectCompletionCommand, RejectServiceRequestCompletionResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public RejectCompletionCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public RejectCompletionCommandHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

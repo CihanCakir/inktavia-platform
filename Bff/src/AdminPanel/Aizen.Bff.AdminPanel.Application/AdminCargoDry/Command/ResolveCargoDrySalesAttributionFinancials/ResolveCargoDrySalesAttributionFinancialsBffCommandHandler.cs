@@ -12,9 +12,9 @@ public sealed class ResolveCargoDrySalesAttributionFinancialsBffCommandHandler
     : AizenCommandHandler<ResolveCargoDrySalesAttributionFinancialsBffCommand,
                           ResolveCargoDrySalesAttributionFinancialsBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public ResolveCargoDrySalesAttributionFinancialsBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public ResolveCargoDrySalesAttributionFinancialsBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ResolveCargoDrySalesAttributionFinancialsBffCommandResponse> Handle(

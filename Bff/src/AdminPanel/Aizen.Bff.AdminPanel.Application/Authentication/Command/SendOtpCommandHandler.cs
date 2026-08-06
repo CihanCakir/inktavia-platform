@@ -7,10 +7,10 @@ namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
 [DocumentationInfo("SendOtp command handler", "Sends an OTP to the user's phone via the Identity module.")]
 public sealed class SendOtpCommandHandler : AizenCommandHandler<SendOtpCommand, SendOtpDto>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
     public SendOtpCommandHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

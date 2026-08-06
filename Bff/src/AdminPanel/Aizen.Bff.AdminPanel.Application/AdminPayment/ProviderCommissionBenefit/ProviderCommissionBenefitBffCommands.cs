@@ -17,8 +17,8 @@ public sealed class CreateProviderCommissionBenefitRuleBffResponse { public Prov
 public sealed class CreateProviderCommissionBenefitRuleBffCommandHandler
     : AizenCommandHandler<CreateProviderCommissionBenefitRuleBffCommand, CreateProviderCommissionBenefitRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreateProviderCommissionBenefitRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreateProviderCommissionBenefitRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreateProviderCommissionBenefitRuleBffResponse?> Handle(CreateProviderCommissionBenefitRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreateProviderCommissionBenefitRuleAsync(request.Body, ct) };
@@ -37,8 +37,8 @@ public sealed class UpdateProviderCommissionBenefitRuleBffResponse { public Prov
 public sealed class UpdateProviderCommissionBenefitRuleBffCommandHandler
     : AizenCommandHandler<UpdateProviderCommissionBenefitRuleBffCommand, UpdateProviderCommissionBenefitRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdateProviderCommissionBenefitRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdateProviderCommissionBenefitRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdateProviderCommissionBenefitRuleBffResponse?> Handle(UpdateProviderCommissionBenefitRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdateProviderCommissionBenefitRuleAsync(request.Id, request.Body with { Id = request.Id }, ct) };
@@ -56,8 +56,8 @@ public sealed class DeactivateProviderCommissionBenefitRuleBffResponse { public 
 public sealed class DeactivateProviderCommissionBenefitRuleBffCommandHandler
     : AizenCommandHandler<DeactivateProviderCommissionBenefitRuleBffCommand, DeactivateProviderCommissionBenefitRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivateProviderCommissionBenefitRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivateProviderCommissionBenefitRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivateProviderCommissionBenefitRuleBffResponse?> Handle(DeactivateProviderCommissionBenefitRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivateProviderCommissionBenefitRuleAsync(request.Id, ct) };
@@ -75,8 +75,8 @@ public sealed class ReactivateProviderCommissionBenefitRuleBffResponse { public 
 public sealed class ReactivateProviderCommissionBenefitRuleBffCommandHandler
     : AizenCommandHandler<ReactivateProviderCommissionBenefitRuleBffCommand, ReactivateProviderCommissionBenefitRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ReactivateProviderCommissionBenefitRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ReactivateProviderCommissionBenefitRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ReactivateProviderCommissionBenefitRuleBffResponse?> Handle(ReactivateProviderCommissionBenefitRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.ReactivateProviderCommissionBenefitRuleAsync(request.Id, ct) };
@@ -94,8 +94,8 @@ public sealed class GrantProviderCommissionBenefitEntitlementBffResponse { publi
 public sealed class GrantProviderCommissionBenefitEntitlementBffCommandHandler
     : AizenCommandHandler<GrantProviderCommissionBenefitEntitlementBffCommand, GrantProviderCommissionBenefitEntitlementBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GrantProviderCommissionBenefitEntitlementBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GrantProviderCommissionBenefitEntitlementBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GrantProviderCommissionBenefitEntitlementBffResponse?> Handle(GrantProviderCommissionBenefitEntitlementBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.GrantProviderCommissionBenefitEntitlementAsync(request.Body, ct) };
@@ -113,8 +113,8 @@ public sealed class RevokeProviderCommissionBenefitEntitlementBffResponse { publ
 public sealed class RevokeProviderCommissionBenefitEntitlementBffCommandHandler
     : AizenCommandHandler<RevokeProviderCommissionBenefitEntitlementBffCommand, RevokeProviderCommissionBenefitEntitlementBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public RevokeProviderCommissionBenefitEntitlementBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public RevokeProviderCommissionBenefitEntitlementBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<RevokeProviderCommissionBenefitEntitlementBffResponse?> Handle(RevokeProviderCommissionBenefitEntitlementBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.RevokeProviderCommissionBenefitEntitlementAsync(request.Id, ct) };

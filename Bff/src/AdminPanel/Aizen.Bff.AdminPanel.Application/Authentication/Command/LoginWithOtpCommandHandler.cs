@@ -7,10 +7,10 @@ namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
 [DocumentationInfo("LoginWithOtp command handler", "Proxies OTP-based login request to the Identity module auth endpoint.")]
 public sealed class LoginWithOtpCommandHandler : AizenCommandHandler<LoginWithOtpCommand, UserLoginResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
     public LoginWithOtpCommandHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

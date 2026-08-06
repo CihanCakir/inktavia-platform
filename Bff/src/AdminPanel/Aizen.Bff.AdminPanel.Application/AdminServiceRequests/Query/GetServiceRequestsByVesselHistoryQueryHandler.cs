@@ -10,10 +10,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetServiceRequestsByVesselHistoryQueryHandler
     : AizenQueryHandler<GetServiceRequestsByVesselHistoryQuery, ServiceRequestVesselHistoryBffResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
     public GetServiceRequestsByVesselHistoryQueryHandler(
-        IServiceRequestAdminBffRemoteCall serviceRequest)
+        IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

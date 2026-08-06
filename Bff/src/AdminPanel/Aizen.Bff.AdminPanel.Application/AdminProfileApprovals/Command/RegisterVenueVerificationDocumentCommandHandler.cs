@@ -10,13 +10,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Command;
 public sealed class RegisterVenueVerificationDocumentCommandHandler
     : AizenCommandHandler<RegisterVenueVerificationDocumentCommand, RegisterDocumentBffResponse>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IFileStorageRemoteCall _fileStorage;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<RegisterVenueVerificationDocumentCommandHandler> _logger;
 
     public RegisterVenueVerificationDocumentCommandHandler(
-        IFileStorageAdminBffRemoteCall fileStorage,
-        IIdentityAdminBffRemoteCall identity,
+        IFileStorageRemoteCall fileStorage,
+        IIdentityRemoteCall identity,
         ILogger<RegisterVenueVerificationDocumentCommandHandler> logger)
     {
         _fileStorage = fileStorage;

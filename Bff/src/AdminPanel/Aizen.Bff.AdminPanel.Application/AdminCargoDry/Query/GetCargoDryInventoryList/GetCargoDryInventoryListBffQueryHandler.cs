@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.GetCargoDryInvent
 public sealed class GetCargoDryInventoryListBffQueryHandler
     : AizenQueryHandler<GetCargoDryInventoryListBffQuery, GetCargoDryInventoryListBffResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GetCargoDryInventoryListBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public GetCargoDryInventoryListBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetCargoDryInventoryListBffResponse> Handle(

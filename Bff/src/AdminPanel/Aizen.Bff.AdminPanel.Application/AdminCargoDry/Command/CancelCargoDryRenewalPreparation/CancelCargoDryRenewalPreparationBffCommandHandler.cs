@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.CancelCargoDryR
 public sealed class CancelCargoDryRenewalPreparationBffCommandHandler
     : AizenCommandHandler<CancelCargoDryRenewalPreparationBffCommand, CancelCargoDryRenewalPreparationBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public CancelCargoDryRenewalPreparationBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public CancelCargoDryRenewalPreparationBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<CancelCargoDryRenewalPreparationBffCommandResponse?> Handle(

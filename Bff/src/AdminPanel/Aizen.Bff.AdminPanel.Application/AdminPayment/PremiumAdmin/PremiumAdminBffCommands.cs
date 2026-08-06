@@ -18,8 +18,8 @@ public sealed class CreatePremiumProductBffResponse { public PremiumMutateResult
 public sealed class CreatePremiumProductBffCommandHandler
     : AizenCommandHandler<CreatePremiumProductBffCommand, CreatePremiumProductBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreatePremiumProductBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreatePremiumProductBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreatePremiumProductBffResponse?> Handle(CreatePremiumProductBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreatePremiumProductAsync(request.Body, ct) };
@@ -38,8 +38,8 @@ public sealed class UpdatePremiumProductBffResponse { public PremiumMutateResult
 public sealed class UpdatePremiumProductBffCommandHandler
     : AizenCommandHandler<UpdatePremiumProductBffCommand, UpdatePremiumProductBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdatePremiumProductBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdatePremiumProductBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdatePremiumProductBffResponse?> Handle(UpdatePremiumProductBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdatePremiumProductAsync(request.Id, request.Body, ct) };
@@ -57,8 +57,8 @@ public sealed class ActivatePremiumProductBffResponse { public PremiumMutateResu
 public sealed class ActivatePremiumProductBffCommandHandler
     : AizenCommandHandler<ActivatePremiumProductBffCommand, ActivatePremiumProductBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ActivatePremiumProductBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ActivatePremiumProductBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ActivatePremiumProductBffResponse?> Handle(ActivatePremiumProductBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.ActivatePremiumProductAsync(request.Id, ct) };
@@ -76,8 +76,8 @@ public sealed class DeactivatePremiumProductBffResponse { public PremiumMutateRe
 public sealed class DeactivatePremiumProductBffCommandHandler
     : AizenCommandHandler<DeactivatePremiumProductBffCommand, DeactivatePremiumProductBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivatePremiumProductBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivatePremiumProductBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivatePremiumProductBffResponse?> Handle(DeactivatePremiumProductBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivatePremiumProductAsync(request.Id, ct) };
@@ -95,8 +95,8 @@ public sealed class CreatePremiumProductPriceBffResponse { public PremiumMutateR
 public sealed class CreatePremiumProductPriceBffCommandHandler
     : AizenCommandHandler<CreatePremiumProductPriceBffCommand, CreatePremiumProductPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreatePremiumProductPriceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreatePremiumProductPriceBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreatePremiumProductPriceBffResponse?> Handle(CreatePremiumProductPriceBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreatePremiumProductPriceAsync(request.Body, ct) };
@@ -115,8 +115,8 @@ public sealed class UpdatePremiumProductPriceBffResponse { public PremiumMutateR
 public sealed class UpdatePremiumProductPriceBffCommandHandler
     : AizenCommandHandler<UpdatePremiumProductPriceBffCommand, UpdatePremiumProductPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdatePremiumProductPriceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdatePremiumProductPriceBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdatePremiumProductPriceBffResponse?> Handle(UpdatePremiumProductPriceBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdatePremiumProductPriceAsync(request.Id, request.Body, ct) };
@@ -134,8 +134,8 @@ public sealed class DeactivatePremiumProductPriceBffResponse { public PremiumMut
 public sealed class DeactivatePremiumProductPriceBffCommandHandler
     : AizenCommandHandler<DeactivatePremiumProductPriceBffCommand, DeactivatePremiumProductPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivatePremiumProductPriceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivatePremiumProductPriceBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivatePremiumProductPriceBffResponse?> Handle(DeactivatePremiumProductPriceBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivatePremiumProductPriceAsync(request.Id, ct) };

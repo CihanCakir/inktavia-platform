@@ -6,9 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProf
 public sealed class GetProfilePerformanceComponentsBffQueryHandler
     : AizenQueryHandler<GetProfilePerformanceComponentsBffQuery, GetProfilePerformanceComponentsBffResponse>
 {
-    private readonly IAdminProfilePerformanceBffRemoteCall _remote;
+    private readonly IProfilePerformanceRemoteCall _remote;
 
-    public GetProfilePerformanceComponentsBffQueryHandler(IAdminProfilePerformanceBffRemoteCall remote)
+    public GetProfilePerformanceComponentsBffQueryHandler(IProfilePerformanceRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetProfilePerformanceComponentsBffResponse> Handle(

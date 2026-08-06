@@ -8,10 +8,10 @@ namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
 [DocumentationInfo("LoginWithPhone command handler", "Proxies phone+password login request to the Identity module auth endpoint. Propagates Identity error envelope to the caller on failure.")]
 public sealed class LoginWithPhoneCommandHandler : AizenCommandHandler<LoginWithPhoneCommand, UserLoginResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
     public LoginWithPhoneCommandHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

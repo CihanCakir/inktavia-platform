@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.ResolveCommissionR
 public sealed class ResolveCommissionRateBffQueryHandler
     : AizenQueryHandler<ResolveCommissionRateBffQuery, ResolveCommissionRateBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public ResolveCommissionRateBffQueryHandler(IAdminPaymentBffRemoteCall remote)
+    public ResolveCommissionRateBffQueryHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ResolveCommissionRateBffResponse> Handle(

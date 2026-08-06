@@ -16,7 +16,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
     "subscription oversight, plan reads, commission lookup, and invoice management. " +
     "Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are injected automatically " +
     "by AdminPanelBffAuthDelegatingHandler.")]
-public interface IAdminPaymentBffRemoteCall : IAizenRemoteCall
+public interface IPaymentRemoteCall : IAizenRemoteCall
 {
     // ─── Transactions — read ──────────────────────────────────────────────────
 

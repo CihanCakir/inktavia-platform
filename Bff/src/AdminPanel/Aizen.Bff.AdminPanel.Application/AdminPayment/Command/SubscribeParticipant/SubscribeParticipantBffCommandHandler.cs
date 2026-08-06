@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.SubscribePartici
 public sealed class SubscribeParticipantBffCommandHandler
     : AizenCommandHandler<SubscribeParticipantBffCommand, SubscribeParticipantBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public SubscribeParticipantBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public SubscribeParticipantBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<SubscribeParticipantBffCommandResponse?> Handle(

@@ -11,8 +11,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselListBffQueryHandler
     : AizenQueryHandler<GetAdminVesselListBffQuery, AdminVesselListBffResponse>
 {
-    private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IVesselRemoteCall _vessel;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<GetAdminVesselListBffQueryHandler> _logger;
 
     private static readonly Dictionary<int, string> OperationalStatusLabels = new()
@@ -51,8 +51,8 @@ public sealed class GetAdminVesselListBffQueryHandler
     };
 
     public GetAdminVesselListBffQueryHandler(
-        IVesselAdminBffRemoteCall vessel,
-        IIdentityAdminBffRemoteCall identity,
+        IVesselRemoteCall vessel,
+        IIdentityRemoteCall identity,
         ILogger<GetAdminVesselListBffQueryHandler> logger)
     {
         _vessel = vessel;

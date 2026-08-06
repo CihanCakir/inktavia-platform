@@ -14,8 +14,8 @@ public sealed class GetPremiumProductsBffResponse { public List<PremiumProductAd
 public sealed class GetPremiumProductsBffQueryHandler
     : AizenQueryHandler<GetPremiumProductsBffQuery, GetPremiumProductsBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPremiumProductsBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPremiumProductsBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPremiumProductsBffResponse?> Handle(GetPremiumProductsBffQuery request, CancellationToken ct)
         => new() { Items = await _payment.GetPremiumProductsAsync(ct) };
@@ -33,8 +33,8 @@ public sealed class GetPremiumProductByIdBffResponse { public PremiumProductAdmi
 public sealed class GetPremiumProductByIdBffQueryHandler
     : AizenQueryHandler<GetPremiumProductByIdBffQuery, GetPremiumProductByIdBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPremiumProductByIdBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPremiumProductByIdBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPremiumProductByIdBffResponse?> Handle(GetPremiumProductByIdBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.GetPremiumProductByIdAsync(request.Id, ct) };
@@ -52,8 +52,8 @@ public sealed class GetPremiumProductPricesBffResponse { public List<PremiumProd
 public sealed class GetPremiumProductPricesBffQueryHandler
     : AizenQueryHandler<GetPremiumProductPricesBffQuery, GetPremiumProductPricesBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetPremiumProductPricesBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetPremiumProductPricesBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetPremiumProductPricesBffResponse?> Handle(GetPremiumProductPricesBffQuery request, CancellationToken ct)
         => new() { Items = await _payment.GetPremiumProductPricesAsync(request.ProductId, ct) };
@@ -73,8 +73,8 @@ public sealed class ResolvePremiumProductPriceBffResponse { public PremiumProduc
 public sealed class ResolvePremiumProductPriceBffQueryHandler
     : AizenQueryHandler<ResolvePremiumProductPriceBffQuery, ResolvePremiumProductPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ResolvePremiumProductPriceBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ResolvePremiumProductPriceBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ResolvePremiumProductPriceBffResponse?> Handle(ResolvePremiumProductPriceBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ResolvePremiumProductPriceAsync(request.ProductId, request.CurrencyCode, request.AtUtc, ct) };

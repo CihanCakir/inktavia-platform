@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.DeactivatePartic
 public sealed class DeactivateParticipantPlanBffCommandHandler
     : AizenCommandHandler<DeactivateParticipantPlanBffCommand, PlanMutateBffResult>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public DeactivateParticipantPlanBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public DeactivateParticipantPlanBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<PlanMutateBffResult?> Handle(

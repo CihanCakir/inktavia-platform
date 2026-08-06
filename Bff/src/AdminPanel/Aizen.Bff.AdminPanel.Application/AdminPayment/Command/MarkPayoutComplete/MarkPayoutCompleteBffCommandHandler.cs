@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.MarkPayoutComple
 public sealed class MarkPayoutCompleteBffCommandHandler
     : AizenCommandHandler<MarkPayoutCompleteBffCommand, MarkPayoutCompleteBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public MarkPayoutCompleteBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public MarkPayoutCompleteBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<MarkPayoutCompleteBffCommandResponse?> Handle(

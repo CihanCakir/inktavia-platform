@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 public sealed class DeleteFileCommandHandler
     : AizenCommandHandler<DeleteFileCommand, AdminBffCommandResultDto>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IFileStorageRemoteCall _fileStorage;
 
-    public DeleteFileCommandHandler(IFileStorageAdminBffRemoteCall fileStorage)
+    public DeleteFileCommandHandler(IFileStorageRemoteCall fileStorage)
     {
         _fileStorage = fileStorage;
     }

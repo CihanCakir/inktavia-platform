@@ -11,9 +11,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.UpdateCommission
 public sealed class UpdateCommissionRuleBffCommandHandler
     : AizenCommandHandler<UpdateCommissionRuleBffCommand, UpdateCommissionRuleBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
+    private readonly IPaymentRemoteCall _payment;
 
-    public UpdateCommissionRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment)
+    public UpdateCommissionRuleBffCommandHandler(IPaymentRemoteCall payment)
         => _payment = payment;
 
     public override async Task<UpdateCommissionRuleBffCommandResponse?> Handle(

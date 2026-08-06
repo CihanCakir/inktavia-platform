@@ -18,11 +18,11 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Authorize]
 public sealed class NotificationsController : AizenWebApiController
 {
-    private readonly INotificationBffRemoteCall _remote;
+    private readonly INotificationRemoteCall _remote;
 
     public NotificationsController(
         IHttpContextAccessor httpContextAccessor,
-        INotificationBffRemoteCall remote)
+        INotificationRemoteCall remote)
         : base(httpContextAccessor)
     {
         _remote = remote;

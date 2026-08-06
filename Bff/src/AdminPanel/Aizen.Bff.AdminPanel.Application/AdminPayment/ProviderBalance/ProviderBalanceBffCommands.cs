@@ -19,8 +19,8 @@ public sealed class AdjustProviderBalanceBffResponse { public ProviderBalanceAdj
 public sealed class AdjustProviderBalanceBffCommandHandler
     : AizenCommandHandler<AdjustProviderBalanceBffCommand, AdjustProviderBalanceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public AdjustProviderBalanceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public AdjustProviderBalanceBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<AdjustProviderBalanceBffResponse?> Handle(AdjustProviderBalanceBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.AdjustProviderBalanceAsync(request.ProviderProfileId, request.Body, ct) };

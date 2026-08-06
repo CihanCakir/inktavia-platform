@@ -9,7 +9,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("Notification admin BFF remote call",
     "Defines synchronous BFF-to-Notification calls for managing notification templates. " +
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
-public interface INotificationAdminBffRemoteCall : IAizenRemoteCall
+public interface INotificationTemplateRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/notification/admin/notification-templates")]
     Task<AizenApiResponse<List<NotificationTemplateDto>>> GetNotificationTemplates();

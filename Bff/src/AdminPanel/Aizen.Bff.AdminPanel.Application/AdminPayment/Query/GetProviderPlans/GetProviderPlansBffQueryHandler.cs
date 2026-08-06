@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetProviderPlans;
 public sealed class GetProviderPlansBffQueryHandler
     : AizenQueryHandler<GetProviderPlansBffQuery, GetProviderPlansBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public GetProviderPlansBffQueryHandler(IAdminPaymentBffRemoteCall remote)
+    public GetProviderPlansBffQueryHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetProviderPlansBffResponse> Handle(

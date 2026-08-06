@@ -13,9 +13,9 @@ public sealed class RunCargoDryMonthlySettlementAutomationBffCommandHandler
     : AizenCommandHandler<RunCargoDryMonthlySettlementAutomationBffCommand,
                           RunCargoDryMonthlySettlementAutomationBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public RunCargoDryMonthlySettlementAutomationBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public RunCargoDryMonthlySettlementAutomationBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<RunCargoDryMonthlySettlementAutomationBffCommandResponse?> Handle(

@@ -14,8 +14,8 @@ public sealed class ListPricingAttributesQuery : AizenQuery<List<PricingAttribut
 public sealed class ListPricingAttributesQueryHandler
     : AizenQueryHandler<ListPricingAttributesQuery, List<PricingAttributeDefinitionDto>>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    public ListPricingAttributesQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    private readonly IServiceRequestRemoteCall _serviceRequest;
+    public ListPricingAttributesQueryHandler(IServiceRequestRemoteCall serviceRequest)
         => _serviceRequest = serviceRequest;
 
     public override async Task<List<PricingAttributeDefinitionDto>?> Handle(

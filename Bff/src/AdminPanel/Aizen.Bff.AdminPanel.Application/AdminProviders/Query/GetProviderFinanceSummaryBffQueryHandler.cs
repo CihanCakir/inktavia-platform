@@ -13,11 +13,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProviders.Query;
 public sealed class GetProviderFinanceSummaryBffQueryHandler
     : AizenQueryHandler<GetProviderFinanceSummaryBffQuery, ProviderFinanceSummaryBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
+    private readonly IPaymentRemoteCall _payment;
     private readonly ILogger<GetProviderFinanceSummaryBffQueryHandler> _logger;
 
     public GetProviderFinanceSummaryBffQueryHandler(
-        IAdminPaymentBffRemoteCall payment,
+        IPaymentRemoteCall payment,
         ILogger<GetProviderFinanceSummaryBffQueryHandler> logger)
     {
         _payment = payment;

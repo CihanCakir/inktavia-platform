@@ -15,9 +15,9 @@ public sealed class PrepareCargoDrySettlementPaymentBffCommandHandler
     : AizenCommandHandler<PrepareCargoDrySettlementPaymentBffCommand,
                           PrepareCargoDrySettlementPaymentBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public PrepareCargoDrySettlementPaymentBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public PrepareCargoDrySettlementPaymentBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<PrepareCargoDrySettlementPaymentBffCommandResponse> Handle(

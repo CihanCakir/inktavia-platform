@@ -10,14 +10,14 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("Admin messaging BFF remote call",
     "Defines BFF-to-Messaging module calls. Auth headers (Authorization service token + optional X-Aizen-Bff-Assertion) are " +
     "injected automatically by AdminPanelBffAuthDelegatingHandler.")]
-public interface IAdminMessagingBffRemoteCall : IAizenRemoteCall
+public interface IMessagingRemoteCall : IAizenRemoteCall
 {
     // ─── Conversations ────────────────────────────────────────────────────────
 
     // The Messaging module controllers return the AizenApiResponse envelope ({ header, body }) via SetResponse —
     // unlike Payment's admin controllers which return the payload bare. So these remote calls must deserialize the
     // ENVELOPE (AizenApiResponse<T>); returning the bare T made Refit find no top-level fields → empty/total:0.
-    // Mirrors IVesselAdminBffRemoteCall (the Vessel module wraps the same way). The controller unwraps .Body.
+    // Mirrors IVesselRemoteCall (the Vessel module wraps the same way). The controller unwraps .Body.
     [AizenRemoteCallGet("/api/v1/conversations")]
     Task<AizenApiResponse<GetConversationListResponse>> GetConversationsAsync(
         [Query] string? status,

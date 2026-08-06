@@ -13,9 +13,9 @@ public sealed class GetCargoDryCommercialRuleResolutionPreviewBffQueryHandler
     : AizenQueryHandler<GetCargoDryCommercialRuleResolutionPreviewBffQuery,
                         GetCargoDryCommercialRuleResolutionPreviewBffQueryResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GetCargoDryCommercialRuleResolutionPreviewBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public GetCargoDryCommercialRuleResolutionPreviewBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetCargoDryCommercialRuleResolutionPreviewBffQueryResponse> Handle(

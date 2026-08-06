@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.RefundPayment;
 public sealed class RefundPaymentBffCommandHandler
     : AizenCommandHandler<RefundPaymentBffCommand, RefundPaymentBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public RefundPaymentBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public RefundPaymentBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<RefundPaymentBffCommandResponse?> Handle(

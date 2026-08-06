@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataCitiesQueryHandler
     : AizenQueryHandler<GetReferenceDataCitiesQuery, CityListResult>
 {
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
-    public GetReferenceDataCitiesQueryHandler(IReferenceDataAdminBffRemoteCall referenceData)
+    public GetReferenceDataCitiesQueryHandler(IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }

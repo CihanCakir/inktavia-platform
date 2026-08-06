@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 public sealed class GetReferenceDataMeasurementUnitsQueryHandler
     : AizenQueryHandler<GetReferenceDataMeasurementUnitsQuery, MeasurementUnitListResult>
 {
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
-    public GetReferenceDataMeasurementUnitsQueryHandler(IReferenceDataAdminBffRemoteCall referenceData)
+    public GetReferenceDataMeasurementUnitsQueryHandler(IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }

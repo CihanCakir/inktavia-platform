@@ -17,8 +17,8 @@ public sealed class CreateProfitProtectionPolicyBffResponse { public ProfitProte
 public sealed class CreateProfitProtectionPolicyBffCommandHandler
     : AizenCommandHandler<CreateProfitProtectionPolicyBffCommand, CreateProfitProtectionPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreateProfitProtectionPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreateProfitProtectionPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreateProfitProtectionPolicyBffResponse?> Handle(CreateProfitProtectionPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreateProfitProtectionPolicyAsync(request.Body, ct) };
@@ -37,8 +37,8 @@ public sealed class UpdateProfitProtectionPolicyBffResponse { public ProfitProte
 public sealed class UpdateProfitProtectionPolicyBffCommandHandler
     : AizenCommandHandler<UpdateProfitProtectionPolicyBffCommand, UpdateProfitProtectionPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdateProfitProtectionPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdateProfitProtectionPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdateProfitProtectionPolicyBffResponse?> Handle(UpdateProfitProtectionPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdateProfitProtectionPolicyAsync(request.Id, request.Body with { Id = request.Id }, ct) };
@@ -56,8 +56,8 @@ public sealed class DeactivateProfitProtectionPolicyBffResponse { public ProfitP
 public sealed class DeactivateProfitProtectionPolicyBffCommandHandler
     : AizenCommandHandler<DeactivateProfitProtectionPolicyBffCommand, DeactivateProfitProtectionPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivateProfitProtectionPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivateProfitProtectionPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivateProfitProtectionPolicyBffResponse?> Handle(DeactivateProfitProtectionPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivateProfitProtectionPolicyAsync(request.Id, ct) };
@@ -76,8 +76,8 @@ public sealed class ReactivateProfitProtectionPolicyBffResponse { public ProfitP
 public sealed class ReactivateProfitProtectionPolicyBffCommandHandler
     : AizenCommandHandler<ReactivateProfitProtectionPolicyBffCommand, ReactivateProfitProtectionPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ReactivateProfitProtectionPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ReactivateProfitProtectionPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ReactivateProfitProtectionPolicyBffResponse?> Handle(ReactivateProfitProtectionPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.ReactivateProfitProtectionPolicyAsync(request.Id, ct) };

@@ -11,9 +11,9 @@ public sealed class GetCargoDrySettlementAutomationPreviewBffQueryHandler
     : AizenQueryHandler<GetCargoDrySettlementAutomationPreviewBffQuery,
                         GetCargoDrySettlementAutomationPreviewBffQueryResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public GetCargoDrySettlementAutomationPreviewBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public GetCargoDrySettlementAutomationPreviewBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetCargoDrySettlementAutomationPreviewBffQueryResponse> Handle(

@@ -18,8 +18,8 @@ public sealed class CreateRefundAllocationPolicyBffResponse { public RefundAlloc
 public sealed class CreateRefundAllocationPolicyBffCommandHandler
     : AizenCommandHandler<CreateRefundAllocationPolicyBffCommand, CreateRefundAllocationPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreateRefundAllocationPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreateRefundAllocationPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreateRefundAllocationPolicyBffResponse?> Handle(CreateRefundAllocationPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreateRefundAllocationPolicyAsync(request.Body, ct) };
@@ -38,8 +38,8 @@ public sealed class UpdateRefundAllocationPolicyBffResponse { public RefundAlloc
 public sealed class UpdateRefundAllocationPolicyBffCommandHandler
     : AizenCommandHandler<UpdateRefundAllocationPolicyBffCommand, UpdateRefundAllocationPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdateRefundAllocationPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdateRefundAllocationPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdateRefundAllocationPolicyBffResponse?> Handle(UpdateRefundAllocationPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdateRefundAllocationPolicyAsync(request.Id, request.Body, ct) };
@@ -57,8 +57,8 @@ public sealed class DeactivateRefundAllocationPolicyBffResponse { public RefundA
 public sealed class DeactivateRefundAllocationPolicyBffCommandHandler
     : AizenCommandHandler<DeactivateRefundAllocationPolicyBffCommand, DeactivateRefundAllocationPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivateRefundAllocationPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivateRefundAllocationPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivateRefundAllocationPolicyBffResponse?> Handle(DeactivateRefundAllocationPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivateRefundAllocationPolicyAsync(request.Id, ct) };
@@ -77,8 +77,8 @@ public sealed class ReactivateRefundAllocationPolicyBffResponse { public RefundA
 public sealed class ReactivateRefundAllocationPolicyBffCommandHandler
     : AizenCommandHandler<ReactivateRefundAllocationPolicyBffCommand, ReactivateRefundAllocationPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ReactivateRefundAllocationPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ReactivateRefundAllocationPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ReactivateRefundAllocationPolicyBffResponse?> Handle(ReactivateRefundAllocationPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.ReactivateRefundAllocationPolicyAsync(request.Id, ct) };

@@ -17,8 +17,8 @@ public sealed class CreateCustomerDiscountRuleBffResponse { public CustomerDisco
 public sealed class CreateCustomerDiscountRuleBffCommandHandler
     : AizenCommandHandler<CreateCustomerDiscountRuleBffCommand, CreateCustomerDiscountRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreateCustomerDiscountRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreateCustomerDiscountRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreateCustomerDiscountRuleBffResponse?> Handle(CreateCustomerDiscountRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreateCustomerDiscountRuleAsync(request.Body, ct) };
@@ -37,8 +37,8 @@ public sealed class UpdateCustomerDiscountRuleBffResponse { public CustomerDisco
 public sealed class UpdateCustomerDiscountRuleBffCommandHandler
     : AizenCommandHandler<UpdateCustomerDiscountRuleBffCommand, UpdateCustomerDiscountRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdateCustomerDiscountRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdateCustomerDiscountRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdateCustomerDiscountRuleBffResponse?> Handle(UpdateCustomerDiscountRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdateCustomerDiscountRuleAsync(request.Id, request.Body with { Id = request.Id }, ct) };
@@ -56,8 +56,8 @@ public sealed class DeactivateCustomerDiscountRuleBffResponse { public CustomerD
 public sealed class DeactivateCustomerDiscountRuleBffCommandHandler
     : AizenCommandHandler<DeactivateCustomerDiscountRuleBffCommand, DeactivateCustomerDiscountRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivateCustomerDiscountRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivateCustomerDiscountRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivateCustomerDiscountRuleBffResponse?> Handle(DeactivateCustomerDiscountRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivateCustomerDiscountRuleAsync(request.Id, ct) };
@@ -76,8 +76,8 @@ public sealed class ReactivateCustomerDiscountRuleBffResponse { public CustomerD
 public sealed class ReactivateCustomerDiscountRuleBffCommandHandler
     : AizenCommandHandler<ReactivateCustomerDiscountRuleBffCommand, ReactivateCustomerDiscountRuleBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ReactivateCustomerDiscountRuleBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ReactivateCustomerDiscountRuleBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ReactivateCustomerDiscountRuleBffResponse?> Handle(ReactivateCustomerDiscountRuleBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.ReactivateCustomerDiscountRuleAsync(request.Id, ct) };
@@ -95,8 +95,8 @@ public sealed class CreateCustomerBenefitBudgetPolicyBffResponse { public Custom
 public sealed class CreateCustomerBenefitBudgetPolicyBffCommandHandler
     : AizenCommandHandler<CreateCustomerBenefitBudgetPolicyBffCommand, CreateCustomerBenefitBudgetPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreateCustomerBenefitBudgetPolicyBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreateCustomerBenefitBudgetPolicyBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreateCustomerBenefitBudgetPolicyBffResponse?> Handle(CreateCustomerBenefitBudgetPolicyBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreateCustomerBenefitBudgetPolicyAsync(request.Body, ct) };

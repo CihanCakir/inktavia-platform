@@ -18,8 +18,8 @@ public sealed class ResolveProfitProtectionPolicyBffResponse { public ProfitProt
 public sealed class ResolveProfitProtectionPolicyBffQueryHandler
     : AizenQueryHandler<ResolveProfitProtectionPolicyBffQuery, ResolveProfitProtectionPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ResolveProfitProtectionPolicyBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ResolveProfitProtectionPolicyBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ResolveProfitProtectionPolicyBffResponse?> Handle(ResolveProfitProtectionPolicyBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ResolveProfitProtectionPolicyAsync(request.CurrencyCode, request.AtUtc, ct) };
@@ -41,8 +41,8 @@ public sealed class GetProfitProtectionPoliciesListBffResponse { public ProfitPr
 public sealed class GetProfitProtectionPoliciesListBffQueryHandler
     : AizenQueryHandler<GetProfitProtectionPoliciesListBffQuery, GetProfitProtectionPoliciesListBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetProfitProtectionPoliciesListBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetProfitProtectionPoliciesListBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetProfitProtectionPoliciesListBffResponse?> Handle(GetProfitProtectionPoliciesListBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ListProfitProtectionPoliciesAsync(
@@ -62,8 +62,8 @@ public sealed class GetProfitProtectionPolicyDetailBffResponse { public ProfitPr
 public sealed class GetProfitProtectionPolicyDetailBffQueryHandler
     : AizenQueryHandler<GetProfitProtectionPolicyDetailBffQuery, GetProfitProtectionPolicyDetailBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetProfitProtectionPolicyDetailBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetProfitProtectionPolicyDetailBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetProfitProtectionPolicyDetailBffResponse?> Handle(GetProfitProtectionPolicyDetailBffQuery request, CancellationToken ct)
         => new() { Policy = await _payment.GetProfitProtectionPolicyDetailAsync(request.Id, ct) };

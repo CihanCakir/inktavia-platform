@@ -10,11 +10,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 public sealed class GetAdminUserKpiBffQueryHandler
     : AizenQueryHandler<GetAdminUserKpiBffQuery, AdminUserKpiBffResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<GetAdminUserKpiBffQueryHandler> _logger;
 
     public GetAdminUserKpiBffQueryHandler(
-        IIdentityAdminBffRemoteCall identity,
+        IIdentityRemoteCall identity,
         ILogger<GetAdminUserKpiBffQueryHandler> logger)
     {
         _identity = identity;

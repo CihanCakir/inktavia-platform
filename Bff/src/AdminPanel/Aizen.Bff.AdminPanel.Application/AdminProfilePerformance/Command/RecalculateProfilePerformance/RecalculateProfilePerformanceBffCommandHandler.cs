@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Command.Recal
 public sealed class RecalculateProfilePerformanceBffCommandHandler
     : AizenCommandHandler<RecalculateProfilePerformanceBffCommand, RecalculateProfilePerformanceBffCommandResponse>
 {
-    private readonly IAdminProfilePerformanceBffRemoteCall _remote;
+    private readonly IProfilePerformanceRemoteCall _remote;
 
-    public RecalculateProfilePerformanceBffCommandHandler(IAdminProfilePerformanceBffRemoteCall remote)
+    public RecalculateProfilePerformanceBffCommandHandler(IProfilePerformanceRemoteCall remote)
         => _remote = remote;
 
     public override async Task<RecalculateProfilePerformanceBffCommandResponse?> Handle(

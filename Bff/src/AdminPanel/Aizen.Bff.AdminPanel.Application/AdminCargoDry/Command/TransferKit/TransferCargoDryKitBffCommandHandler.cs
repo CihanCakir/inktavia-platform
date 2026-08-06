@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.TransferKit;
 public sealed class TransferCargoDryKitBffCommandHandler
     : AizenCommandHandler<TransferCargoDryKitBffCommand, TransferCargoDryKitBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public TransferCargoDryKitBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public TransferCargoDryKitBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<TransferCargoDryKitBffCommandResponse?> Handle(

@@ -15,7 +15,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("Vessel admin BFF remote call",
     "Defines synchronous BFF-to-Vessel calls for admin vessel management and inspection. " +
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
-public interface IVesselAdminBffRemoteCall : IAizenRemoteCall
+public interface IVesselRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/admin/vessels")]
     Task<AizenApiResponse<GetAllVesselsAdminResponse>> GetAdminVesselList(

@@ -15,13 +15,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetPaymentTransact
 public sealed class GetPaymentTransactionsBffQueryHandler
     : AizenQueryHandler<GetPaymentTransactionsBffQuery, GetPaymentTransactionsBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall  _payment;
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IPaymentRemoteCall  _payment;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<GetPaymentTransactionsBffQueryHandler> _logger;
 
     public GetPaymentTransactionsBffQueryHandler(
-        IAdminPaymentBffRemoteCall payment,
-        IIdentityAdminBffRemoteCall identity,
+        IPaymentRemoteCall payment,
+        IIdentityRemoteCall identity,
         ILogger<GetPaymentTransactionsBffQueryHandler> logger)
     {
         _payment  = payment;

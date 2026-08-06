@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.ReleasePaymentEs
 public sealed class ReleasePaymentEscrowBffCommandHandler
     : AizenCommandHandler<ReleasePaymentEscrowBffCommand, ReleasePaymentEscrowBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public ReleasePaymentEscrowBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public ReleasePaymentEscrowBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ReleasePaymentEscrowBffCommandResponse?> Handle(

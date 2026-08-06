@@ -10,11 +10,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Command;
 public sealed class ApproveVenueProfileBffCommandHandler
     : AizenCommandHandler<ApproveVenueProfileBffCommand, ProfileApprovalDecisionBffResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<ApproveVenueProfileBffCommandHandler> _logger;
 
     public ApproveVenueProfileBffCommandHandler(
-        IIdentityAdminBffRemoteCall identity,
+        IIdentityRemoteCall identity,
         ILogger<ApproveVenueProfileBffCommandHandler> logger)
     {
         _identity = identity;

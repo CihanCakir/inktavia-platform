@@ -7,10 +7,10 @@ namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
 [DocumentationInfo("CheckOtp command handler", "Validates an OTP code via the Identity module.")]
 public sealed class CheckOtpCommandHandler : AizenCommandHandler<CheckOtpCommand, CheckOtpDto>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
     public CheckOtpCommandHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

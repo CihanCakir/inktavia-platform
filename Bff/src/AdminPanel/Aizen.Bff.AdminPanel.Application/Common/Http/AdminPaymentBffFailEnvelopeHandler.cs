@@ -19,13 +19,13 @@ namespace Aizen.Bff.AdminPanel.Application.Common.Http;
 /// so the AdminPanel middleware returns a structured <b>400</b> the FE can recognize. Non-envelope errors pass through
 /// unchanged (Refit's normal <c>ApiException</c> behavior is preserved).
 ///
-/// SCOPE: registered ONLY on the <c>IAdminPaymentBffRemoteCall</c> HttpClient chain. It does NOT touch
+/// SCOPE: registered ONLY on the <c>IPaymentRemoteCall</c> HttpClient chain. It does NOT touch
 /// <c>Core.RemoteCall</c> internals or the global exception middleware, and does not affect any other module's client.
 /// </summary>
 [DocumentationInfo("Admin payment BFF fail-envelope handler",
     "Converts a Payment-module fail envelope (HTTP 4xx/5xx with { header.isSuccess=false, errorCode, errorMessage }) " +
     "into an AizenBusinessException so the AdminPanel middleware returns a structured 400 preserving the module's " +
-    "error code + message. Scoped to the IAdminPaymentBffRemoteCall client only; non-envelope errors pass through.")]
+    "error code + message. Scoped to the IPaymentRemoteCall client only; non-envelope errors pass through.")]
 public sealed class AdminPaymentBffFailEnvelopeHandler : DelegatingHandler
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

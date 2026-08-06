@@ -20,8 +20,8 @@ public sealed class GetProviderBalancesBffResponse { public ProviderBalancePaged
 public sealed class GetProviderBalancesBffQueryHandler
     : AizenQueryHandler<GetProviderBalancesBffQuery, GetProviderBalancesBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetProviderBalancesBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetProviderBalancesBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetProviderBalancesBffResponse?> Handle(GetProviderBalancesBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.GetProviderBalancesAsync(
@@ -41,8 +41,8 @@ public sealed class GetProviderBalanceBffResponse { public ProviderBalanceAdminD
 public sealed class GetProviderBalanceBffQueryHandler
     : AizenQueryHandler<GetProviderBalanceBffQuery, GetProviderBalanceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetProviderBalanceBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetProviderBalanceBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetProviderBalanceBffResponse?> Handle(GetProviderBalanceBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.GetProviderBalanceAsync(request.ProviderProfileId, request.Currency, ct) };

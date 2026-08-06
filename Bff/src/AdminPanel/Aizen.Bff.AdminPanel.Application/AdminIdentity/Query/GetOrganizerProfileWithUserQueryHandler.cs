@@ -6,9 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 [DocumentationInfo("GetOrganizerProfileWithUser query handler", "Returns organizer profile with linked user details from the Identity module.")]
 public sealed class GetOrganizerProfileWithUserQueryHandler : AizenQueryHandler<GetOrganizerProfileWithUserQuery, OrganizerProfileWithUserResult>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     public GetOrganizerProfileWithUserQueryHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

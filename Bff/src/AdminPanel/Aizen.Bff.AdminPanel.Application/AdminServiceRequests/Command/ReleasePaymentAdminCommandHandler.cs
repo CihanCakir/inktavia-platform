@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class ReleasePaymentAdminCommandHandler
     : AizenCommandHandler<ReleasePaymentAdminCommand, ReleasePaymentResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public ReleasePaymentAdminCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public ReleasePaymentAdminCommandHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

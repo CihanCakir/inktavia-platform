@@ -14,11 +14,11 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
 {
     private const int MaxFetchPerType = 200;
 
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<GetProfileApprovalQueueBffQueryHandler> _logger;
 
     public GetProfileApprovalQueueBffQueryHandler(
-        IIdentityAdminBffRemoteCall identity,
+        IIdentityRemoteCall identity,
         ILogger<GetProfileApprovalQueueBffQueryHandler> logger)
     {
         _identity = identity;

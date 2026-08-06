@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Query;
 public sealed class GetAdminFileReviewOverviewQueryHandler
     : AizenQueryHandler<GetAdminFileReviewOverviewQuery, AdminFileReviewOverviewResponse>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IFileStorageRemoteCall _fileStorage;
 
-    public GetAdminFileReviewOverviewQueryHandler(IFileStorageAdminBffRemoteCall fileStorage)
+    public GetAdminFileReviewOverviewQueryHandler(IFileStorageRemoteCall fileStorage)
     {
         _fileStorage = fileStorage;
     }

@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetAdminDisputeListQueryHandler
     : AizenQueryHandler<GetAdminDisputeListQuery, GetAdminDisputeListResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public GetAdminDisputeListQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public GetAdminDisputeListQueryHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

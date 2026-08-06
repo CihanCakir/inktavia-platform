@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Command;
 public sealed class ArchiveVesselCommandHandler
     : AizenCommandHandler<ArchiveVesselCommand, ArchiveVesselResponse>
 {
-    private readonly IVesselAdminBffRemoteCall _vessel;
+    private readonly IVesselRemoteCall _vessel;
 
-    public ArchiveVesselCommandHandler(IVesselAdminBffRemoteCall vessel)
+    public ArchiveVesselCommandHandler(IVesselRemoteCall vessel)
     {
         _vessel = vessel;
     }

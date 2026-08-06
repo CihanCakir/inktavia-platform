@@ -11,9 +11,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetFinancialSummar
 public sealed class GetFinancialSummaryReportBffQueryHandler
     : AizenQueryHandler<GetFinancialSummaryReportBffQuery, FinancialSummaryReportBffDto>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public GetFinancialSummaryReportBffQueryHandler(IAdminPaymentBffRemoteCall remote) => _remote = remote;
+    public GetFinancialSummaryReportBffQueryHandler(IPaymentRemoteCall remote) => _remote = remote;
 
     public override async Task<FinancialSummaryReportBffDto> Handle(
         GetFinancialSummaryReportBffQuery request, CancellationToken ct)

@@ -12,9 +12,9 @@ public sealed class ResolveMonthlySellThroughSettlementBffCommandHandler
     : AizenCommandHandler<ResolveMonthlySellThroughSettlementBffCommand,
                           ResolveMonthlySellThroughSettlementBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public ResolveMonthlySellThroughSettlementBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public ResolveMonthlySellThroughSettlementBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ResolveMonthlySellThroughSettlementBffCommandResponse> Handle(

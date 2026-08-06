@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfilePerformance.Query.GetProf
 public sealed class GetProfilePriorityPreviewBffQueryHandler
     : AizenQueryHandler<GetProfilePriorityPreviewBffQuery, GetProfilePriorityPreviewBffResponse>
 {
-    private readonly IAdminProfilePerformanceBffRemoteCall _remote;
+    private readonly IProfilePerformanceRemoteCall _remote;
 
-    public GetProfilePriorityPreviewBffQueryHandler(IAdminProfilePerformanceBffRemoteCall remote)
+    public GetProfilePriorityPreviewBffQueryHandler(IProfilePerformanceRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetProfilePriorityPreviewBffResponse> Handle(

@@ -14,7 +14,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("ReferenceData admin BFF remote call",
     "Defines synchronous BFF-to-ReferenceData calls for lookup, currency, location and measurement data. " +
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
-public interface IReferenceDataAdminBffRemoteCall : IAizenRemoteCall
+public interface IReferenceDataRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/reference-data/lookup-groups")]
     Task<AizenApiResponse<IReadOnlyList<LookupGroupDto>>> GetLookupGroups();

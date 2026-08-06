@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFinance.Query.GetLedgerEntriesBf
 public sealed class GetLedgerEntriesBffQueryHandler
     : AizenQueryHandler<GetLedgerEntriesBffQuery, LedgerEntriesPageBffDto>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public GetLedgerEntriesBffQueryHandler(IAdminPaymentBffRemoteCall remote) => _remote = remote;
+    public GetLedgerEntriesBffQueryHandler(IPaymentRemoteCall remote) => _remote = remote;
 
     public override async Task<LedgerEntriesPageBffDto> Handle(
         GetLedgerEntriesBffQuery request, CancellationToken ct)

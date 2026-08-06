@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Command.CreateInvoiceDra
 public sealed class CreateInvoiceDraftBffCommandHandler
     : AizenCommandHandler<CreateInvoiceDraftBffCommand, CreateInvoiceDraftBffCommandResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public CreateInvoiceDraftBffCommandHandler(IAdminPaymentBffRemoteCall remote)
+    public CreateInvoiceDraftBffCommandHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<CreateInvoiceDraftBffCommandResponse?> Handle(

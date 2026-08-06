@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Command.ExtendKit;
 public sealed class ExtendKitBffCommandHandler
     : AizenCommandHandler<ExtendKitBffCommand, ExtendKitBffCommandResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public ExtendKitBffCommandHandler(IAdminCargoDryBffRemoteCall remote)
+    public ExtendKitBffCommandHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ExtendKitBffCommandResponse?> Handle(

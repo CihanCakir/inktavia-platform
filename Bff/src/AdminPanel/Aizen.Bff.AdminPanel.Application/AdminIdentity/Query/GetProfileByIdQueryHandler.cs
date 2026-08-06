@@ -6,9 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 [DocumentationInfo("GetProfileById query handler", "Returns a user profile by its ID from the Identity module.")]
 public sealed class GetProfileByIdQueryHandler : AizenQueryHandler<GetProfileByIdQuery, ProfileDetailResult>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     public GetProfileByIdQueryHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

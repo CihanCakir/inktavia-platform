@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminCargoDry.Query.ExportCargoDryUsa
 public sealed class ExportCargoDryUsageReportBffQueryHandler
     : AizenQueryHandler<ExportCargoDryUsageReportBffQuery, ExportCargoDryUsageReportBffResponse>
 {
-    private readonly IAdminCargoDryBffRemoteCall _remote;
+    private readonly ICargoDryRemoteCall _remote;
 
-    public ExportCargoDryUsageReportBffQueryHandler(IAdminCargoDryBffRemoteCall remote)
+    public ExportCargoDryUsageReportBffQueryHandler(ICargoDryRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ExportCargoDryUsageReportBffResponse> Handle(

@@ -54,52 +54,56 @@ public static class DependencyInjection
         services.AddTransient<AdminPaymentBffFailEnvelopeHandler>();
 
         // ── Remote call registrations ──────────────────────────────────────────
+        // The HttpClient name passed to CreateHttpClient is the configuration key
+        // (RemoteCalls__<key>__BaseUrl, also set via docker-compose env). It is an external
+        // contract, so it stays byte-identical to the pre-refactor interface names even though
+        // the interface types were renamed to the Admin-free I<Domain>RemoteCall convention.
 
-        services.AddTransient<IIdentityAdminBffRemoteCall>(provider =>
-            CreateRemoteCall<IIdentityAdminBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IIdentityAdminBffRemoteCall))));
+        services.AddTransient<IIdentityRemoteCall>(provider =>
+            CreateRemoteCall<IIdentityRemoteCall>(
+                CreateHttpClient(provider, "IIdentityAdminBffRemoteCall")));
 
-        services.AddTransient<IVesselAdminBffRemoteCall>(provider =>
-            CreateRemoteCall<IVesselAdminBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IVesselAdminBffRemoteCall))));
+        services.AddTransient<IVesselRemoteCall>(provider =>
+            CreateRemoteCall<IVesselRemoteCall>(
+                CreateHttpClient(provider, "IVesselAdminBffRemoteCall")));
 
-        services.AddTransient<IFileStorageAdminBffRemoteCall>(provider =>
-            CreateRemoteCall<IFileStorageAdminBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IFileStorageAdminBffRemoteCall))));
+        services.AddTransient<IFileStorageRemoteCall>(provider =>
+            CreateRemoteCall<IFileStorageRemoteCall>(
+                CreateHttpClient(provider, "IFileStorageAdminBffRemoteCall")));
 
-        services.AddTransient<IServiceRequestAdminBffRemoteCall>(provider =>
-            CreateRemoteCall<IServiceRequestAdminBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IServiceRequestAdminBffRemoteCall))));
+        services.AddTransient<IServiceRequestRemoteCall>(provider =>
+            CreateRemoteCall<IServiceRequestRemoteCall>(
+                CreateHttpClient(provider, "IServiceRequestAdminBffRemoteCall")));
 
-        services.AddTransient<IReferenceDataAdminBffRemoteCall>(provider =>
-            CreateRemoteCall<IReferenceDataAdminBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IReferenceDataAdminBffRemoteCall))));
+        services.AddTransient<IReferenceDataRemoteCall>(provider =>
+            CreateRemoteCall<IReferenceDataRemoteCall>(
+                CreateHttpClient(provider, "IReferenceDataAdminBffRemoteCall")));
 
-        services.AddTransient<IAdminCargoDryBffRemoteCall>(provider =>
-            CreateRemoteCall<IAdminCargoDryBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IAdminCargoDryBffRemoteCall))));
+        services.AddTransient<ICargoDryRemoteCall>(provider =>
+            CreateRemoteCall<ICargoDryRemoteCall>(
+                CreateHttpClient(provider, "IAdminCargoDryBffRemoteCall")));
 
-        services.AddTransient<INotificationBffRemoteCall>(provider =>
-            CreateRemoteCall<INotificationBffRemoteCall>(
-                CreateHttpClient(provider, nameof(INotificationBffRemoteCall))));
+        services.AddTransient<INotificationRemoteCall>(provider =>
+            CreateRemoteCall<INotificationRemoteCall>(
+                CreateHttpClient(provider, "INotificationBffRemoteCall")));
 
-        services.AddTransient<IAdminMessagingBffRemoteCall>(provider =>
-            CreateRemoteCall<IAdminMessagingBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IAdminMessagingBffRemoteCall))));
+        services.AddTransient<IMessagingRemoteCall>(provider =>
+            CreateRemoteCall<IMessagingRemoteCall>(
+                CreateHttpClient(provider, "IAdminMessagingBffRemoteCall")));
 
-        services.AddTransient<INotificationAdminBffRemoteCall>(provider =>
+        services.AddTransient<INotificationTemplateRemoteCall>(provider =>
             // Key matches docker-compose: RemoteCalls__IAdminNotificationBffRemoteCall__BaseUrl
-            CreateRemoteCall<INotificationAdminBffRemoteCall>(
+            CreateRemoteCall<INotificationTemplateRemoteCall>(
                 CreateHttpClient(provider, "IAdminNotificationBffRemoteCall")));
 
-        services.AddTransient<IAdminPaymentBffRemoteCall>(provider =>
-            CreateRemoteCall<IAdminPaymentBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IAdminPaymentBffRemoteCall),
+        services.AddTransient<IPaymentRemoteCall>(provider =>
+            CreateRemoteCall<IPaymentRemoteCall>(
+                CreateHttpClient(provider, "IAdminPaymentBffRemoteCall",
                     innerHandler: provider.GetRequiredService<AdminPaymentBffFailEnvelopeHandler>())));
 
-        services.AddTransient<IAdminProfilePerformanceBffRemoteCall>(provider =>
-            CreateRemoteCall<IAdminProfilePerformanceBffRemoteCall>(
-                CreateHttpClient(provider, nameof(IAdminProfilePerformanceBffRemoteCall))));
+        services.AddTransient<IProfilePerformanceRemoteCall>(provider =>
+            CreateRemoteCall<IProfilePerformanceRemoteCall>(
+                CreateHttpClient(provider, "IAdminProfilePerformanceBffRemoteCall")));
 
         return services;
     }

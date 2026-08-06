@@ -17,8 +17,8 @@ public sealed class CreateProviderPlanPriceBffResponse { public ProviderPlanPric
 public sealed class CreateProviderPlanPriceBffCommandHandler
     : AizenCommandHandler<CreateProviderPlanPriceBffCommand, CreateProviderPlanPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreateProviderPlanPriceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreateProviderPlanPriceBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreateProviderPlanPriceBffResponse?> Handle(CreateProviderPlanPriceBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreateProviderPlanPriceAsync(request.Body, ct) };
@@ -37,8 +37,8 @@ public sealed class UpdateProviderPlanPriceBffResponse { public ProviderPlanPric
 public sealed class UpdateProviderPlanPriceBffCommandHandler
     : AizenCommandHandler<UpdateProviderPlanPriceBffCommand, UpdateProviderPlanPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdateProviderPlanPriceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdateProviderPlanPriceBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdateProviderPlanPriceBffResponse?> Handle(UpdateProviderPlanPriceBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdateProviderPlanPriceAsync(request.Id, request.Body with { Id = request.Id }, ct) };
@@ -56,8 +56,8 @@ public sealed class DeactivateProviderPlanPriceBffResponse { public ProviderPlan
 public sealed class DeactivateProviderPlanPriceBffCommandHandler
     : AizenCommandHandler<DeactivateProviderPlanPriceBffCommand, DeactivateProviderPlanPriceBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivateProviderPlanPriceBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivateProviderPlanPriceBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivateProviderPlanPriceBffResponse?> Handle(DeactivateProviderPlanPriceBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivateProviderPlanPriceAsync(request.Id, ct) };

@@ -18,8 +18,8 @@ public sealed class CreatePartCommercialTermBffResponse { public PartCommercialT
 public sealed class CreatePartCommercialTermBffCommandHandler
     : AizenCommandHandler<CreatePartCommercialTermBffCommand, CreatePartCommercialTermBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public CreatePartCommercialTermBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public CreatePartCommercialTermBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<CreatePartCommercialTermBffResponse?> Handle(CreatePartCommercialTermBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.CreatePartCommercialTermAsync(request.Body, ct) };
@@ -38,8 +38,8 @@ public sealed class UpdatePartCommercialTermBffResponse { public PartCommercialT
 public sealed class UpdatePartCommercialTermBffCommandHandler
     : AizenCommandHandler<UpdatePartCommercialTermBffCommand, UpdatePartCommercialTermBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public UpdatePartCommercialTermBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public UpdatePartCommercialTermBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<UpdatePartCommercialTermBffResponse?> Handle(UpdatePartCommercialTermBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.UpdatePartCommercialTermAsync(request.Id, request.Body with { Id = request.Id }, ct) };
@@ -57,8 +57,8 @@ public sealed class DeactivatePartCommercialTermBffResponse { public bool Result
 public sealed class DeactivatePartCommercialTermBffCommandHandler
     : AizenCommandHandler<DeactivatePartCommercialTermBffCommand, DeactivatePartCommercialTermBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public DeactivatePartCommercialTermBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public DeactivatePartCommercialTermBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<DeactivatePartCommercialTermBffResponse?> Handle(DeactivatePartCommercialTermBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.DeactivatePartCommercialTermAsync(request.Id, ct) };
@@ -77,8 +77,8 @@ public sealed class ReactivatePartCommercialTermBffResponse { public bool Result
 public sealed class ReactivatePartCommercialTermBffCommandHandler
     : AizenCommandHandler<ReactivatePartCommercialTermBffCommand, ReactivatePartCommercialTermBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ReactivatePartCommercialTermBffCommandHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ReactivatePartCommercialTermBffCommandHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ReactivatePartCommercialTermBffResponse?> Handle(ReactivatePartCommercialTermBffCommand request, CancellationToken ct)
         => new() { Result = await _payment.ReactivatePartCommercialTermAsync(request.Id, ct) };

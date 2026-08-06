@@ -22,8 +22,8 @@ public sealed class ResolveCustomerDiscountBffResponse { public CustomerDiscount
 public sealed class ResolveCustomerDiscountBffQueryHandler
     : AizenQueryHandler<ResolveCustomerDiscountBffQuery, ResolveCustomerDiscountBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ResolveCustomerDiscountBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ResolveCustomerDiscountBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ResolveCustomerDiscountBffResponse?> Handle(ResolveCustomerDiscountBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ResolveCustomerDiscountAsync(
@@ -48,8 +48,8 @@ public sealed class GetCustomerDiscountRulesListBffResponse { public CustomerDis
 public sealed class GetCustomerDiscountRulesListBffQueryHandler
     : AizenQueryHandler<GetCustomerDiscountRulesListBffQuery, GetCustomerDiscountRulesListBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetCustomerDiscountRulesListBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetCustomerDiscountRulesListBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetCustomerDiscountRulesListBffResponse?> Handle(GetCustomerDiscountRulesListBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ListCustomerDiscountRulesAsync(
@@ -69,8 +69,8 @@ public sealed class GetCustomerDiscountRuleDetailBffResponse { public CustomerDi
 public sealed class GetCustomerDiscountRuleDetailBffQueryHandler
     : AizenQueryHandler<GetCustomerDiscountRuleDetailBffQuery, GetCustomerDiscountRuleDetailBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetCustomerDiscountRuleDetailBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetCustomerDiscountRuleDetailBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetCustomerDiscountRuleDetailBffResponse?> Handle(GetCustomerDiscountRuleDetailBffQuery request, CancellationToken ct)
         => new() { Rule = await _payment.GetCustomerDiscountRuleDetailAsync(request.Id, ct) };
@@ -91,8 +91,8 @@ public sealed class GetCustomerBenefitBudgetPoliciesListBffResponse { public Cus
 public sealed class GetCustomerBenefitBudgetPoliciesListBffQueryHandler
     : AizenQueryHandler<GetCustomerBenefitBudgetPoliciesListBffQuery, GetCustomerBenefitBudgetPoliciesListBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetCustomerBenefitBudgetPoliciesListBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetCustomerBenefitBudgetPoliciesListBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetCustomerBenefitBudgetPoliciesListBffResponse?> Handle(GetCustomerBenefitBudgetPoliciesListBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ListCustomerBenefitBudgetPoliciesAsync(
@@ -112,8 +112,8 @@ public sealed class GetCustomerBenefitBudgetPolicyDetailBffResponse { public Cus
 public sealed class GetCustomerBenefitBudgetPolicyDetailBffQueryHandler
     : AizenQueryHandler<GetCustomerBenefitBudgetPolicyDetailBffQuery, GetCustomerBenefitBudgetPolicyDetailBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetCustomerBenefitBudgetPolicyDetailBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetCustomerBenefitBudgetPolicyDetailBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetCustomerBenefitBudgetPolicyDetailBffResponse?> Handle(GetCustomerBenefitBudgetPolicyDetailBffQuery request, CancellationToken ct)
         => new() { Policy = await _payment.GetCustomerBenefitBudgetPolicyDetailAsync(request.Id, ct) };

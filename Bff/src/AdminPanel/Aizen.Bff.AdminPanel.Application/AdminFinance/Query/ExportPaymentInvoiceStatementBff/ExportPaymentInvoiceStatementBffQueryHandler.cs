@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminFinance.Query.ExportPaymentInvoi
 public sealed class ExportPaymentInvoiceStatementBffQueryHandler
     : AizenQueryHandler<ExportPaymentInvoiceStatementBffQuery, ExportPaymentInvoiceStatementBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public ExportPaymentInvoiceStatementBffQueryHandler(IAdminPaymentBffRemoteCall remote)
+    public ExportPaymentInvoiceStatementBffQueryHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<ExportPaymentInvoiceStatementBffResponse> Handle(

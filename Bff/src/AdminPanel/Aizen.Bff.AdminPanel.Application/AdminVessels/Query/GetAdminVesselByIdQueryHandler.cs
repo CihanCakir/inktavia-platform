@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 [DocumentationInfo("GetAdminVesselById query handler", "Returns full vessel detail by ID from the Vessel module.")]
 public sealed class GetAdminVesselByIdQueryHandler : AizenQueryHandler<GetAdminVesselByIdQuery, GetVesselDetailResponse>
 {
-    private readonly IVesselAdminBffRemoteCall _vessel;
+    private readonly IVesselRemoteCall _vessel;
     public GetAdminVesselByIdQueryHandler(
-        IVesselAdminBffRemoteCall vessel)
+        IVesselRemoteCall vessel)
     {
         _vessel = vessel;
     }

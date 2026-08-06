@@ -10,11 +10,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Command;
 public sealed class RequestOrganizerDocumentUploadUrlCommandHandler
     : AizenCommandHandler<RequestOrganizerDocumentUploadUrlCommand, DocumentUploadUrlBffResponse>
 {
-    private readonly IFileStorageAdminBffRemoteCall _fileStorage;
+    private readonly IFileStorageRemoteCall _fileStorage;
     private readonly ILogger<RequestOrganizerDocumentUploadUrlCommandHandler> _logger;
 
     public RequestOrganizerDocumentUploadUrlCommandHandler(
-        IFileStorageAdminBffRemoteCall fileStorage,
+        IFileStorageRemoteCall fileStorage,
         ILogger<RequestOrganizerDocumentUploadUrlCommandHandler> logger)
     {
         _fileStorage = fileStorage;

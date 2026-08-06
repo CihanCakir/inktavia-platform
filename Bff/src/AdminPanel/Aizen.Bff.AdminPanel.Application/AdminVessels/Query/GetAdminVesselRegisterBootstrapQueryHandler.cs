@@ -9,8 +9,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselRegisterBootstrapQueryHandler
     : AizenQueryHandler<GetAdminVesselRegisterBootstrapQuery, AdminVesselRegisterBootstrapBffResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IIdentityRemoteCall _identity;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
     // Static enum-backed option lists.
     private static readonly List<ValueLabelBffDto> AssetTypes = new()
@@ -71,8 +71,8 @@ public sealed class GetAdminVesselRegisterBootstrapQueryHandler
     };
 
     public GetAdminVesselRegisterBootstrapQueryHandler(
-        IIdentityAdminBffRemoteCall identity,
-        IReferenceDataAdminBffRemoteCall referenceData)
+        IIdentityRemoteCall identity,
+        IReferenceDataRemoteCall referenceData)
     {
         _identity = identity;
         _referenceData = referenceData;

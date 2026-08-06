@@ -10,9 +10,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubMerchantOnbo
 public sealed class GetSubMerchantOnboardingQueueBffQueryHandler
     : AizenQueryHandler<GetSubMerchantOnboardingQueueBffQuery, GetSubMerchantOnboardingQueueBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
+    private readonly IPaymentRemoteCall _payment;
 
-    public GetSubMerchantOnboardingQueueBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    public GetSubMerchantOnboardingQueueBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetSubMerchantOnboardingQueueBffResponse?> Handle(
         GetSubMerchantOnboardingQueueBffQuery request, CancellationToken ct)

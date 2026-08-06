@@ -14,8 +14,8 @@ public sealed class GetRefundAllocationPoliciesBffResponse { public List<RefundA
 public sealed class GetRefundAllocationPoliciesBffQueryHandler
     : AizenQueryHandler<GetRefundAllocationPoliciesBffQuery, GetRefundAllocationPoliciesBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetRefundAllocationPoliciesBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetRefundAllocationPoliciesBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetRefundAllocationPoliciesBffResponse?> Handle(GetRefundAllocationPoliciesBffQuery request, CancellationToken ct)
         => new() { Items = await _payment.GetRefundAllocationPoliciesAsync(ct) };
@@ -34,8 +34,8 @@ public sealed class ResolveRefundAllocationPolicyBffResponse { public RefundAllo
 public sealed class ResolveRefundAllocationPolicyBffQueryHandler
     : AizenQueryHandler<ResolveRefundAllocationPolicyBffQuery, ResolveRefundAllocationPolicyBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public ResolveRefundAllocationPolicyBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public ResolveRefundAllocationPolicyBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<ResolveRefundAllocationPolicyBffResponse?> Handle(ResolveRefundAllocationPolicyBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.ResolveRefundAllocationPolicyAsync(request.CurrencyCode, request.AtUtc, ct) };
@@ -53,8 +53,8 @@ public sealed class GetRefundAllocationPolicyByIdBffResponse { public RefundAllo
 public sealed class GetRefundAllocationPolicyByIdBffQueryHandler
     : AizenQueryHandler<GetRefundAllocationPolicyByIdBffQuery, GetRefundAllocationPolicyByIdBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _payment;
-    public GetRefundAllocationPolicyByIdBffQueryHandler(IAdminPaymentBffRemoteCall payment) => _payment = payment;
+    private readonly IPaymentRemoteCall _payment;
+    public GetRefundAllocationPolicyByIdBffQueryHandler(IPaymentRemoteCall payment) => _payment = payment;
 
     public override async Task<GetRefundAllocationPolicyByIdBffResponse?> Handle(GetRefundAllocationPolicyByIdBffQuery request, CancellationToken ct)
         => new() { Result = await _payment.GetRefundAllocationPolicyByIdAsync(request.Id, ct) };

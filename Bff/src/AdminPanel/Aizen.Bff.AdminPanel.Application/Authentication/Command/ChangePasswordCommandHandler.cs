@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
 [DocumentationInfo("ChangePassword command handler", "Proxies password change request to the Identity module auth endpoint.")]
 public sealed class ChangePasswordCommandHandler : AizenCommandHandler<ChangePasswordCommand, ChangePasswordDto>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     public ChangePasswordCommandHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

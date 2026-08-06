@@ -12,9 +12,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProviders.Query;
 public sealed class GetProviderServiceRequestsBffQueryHandler
     : AizenQueryHandler<GetProviderServiceRequestsBffQuery, ProviderServiceRequestsBffResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public GetProviderServiceRequestsBffQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public GetProviderServiceRequestsBffQueryHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

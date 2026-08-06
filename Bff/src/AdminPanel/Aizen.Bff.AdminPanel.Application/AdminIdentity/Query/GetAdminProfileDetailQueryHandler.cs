@@ -7,9 +7,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 public sealed class GetAdminProfileDetailQueryHandler
     : AizenQueryHandler<GetAdminProfileDetailQuery, ProfileDetailResult>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
-    public GetAdminProfileDetailQueryHandler(IIdentityAdminBffRemoteCall identity)
+    public GetAdminProfileDetailQueryHandler(IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

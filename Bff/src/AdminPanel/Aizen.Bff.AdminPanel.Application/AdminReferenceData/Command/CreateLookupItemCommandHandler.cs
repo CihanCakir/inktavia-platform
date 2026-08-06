@@ -8,10 +8,10 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Command;
 public sealed class CreateLookupItemCommandHandler
     : AizenCommandHandler<CreateLookupItemCommand, LookupItemDto>
 {
-    private readonly IReferenceDataAdminBffRemoteCall _referenceData;
+    private readonly IReferenceDataRemoteCall _referenceData;
 
     public CreateLookupItemCommandHandler(
-        IReferenceDataAdminBffRemoteCall referenceData)
+        IReferenceDataRemoteCall referenceData)
     {
         _referenceData = referenceData;
     }

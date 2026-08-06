@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class UpdateServiceRequestStatusCommandHandler
     : AizenCommandHandler<UpdateServiceRequestStatusCommand, UpdateServiceRequestStatusResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public UpdateServiceRequestStatusCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public UpdateServiceRequestStatusCommandHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

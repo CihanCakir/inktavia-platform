@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class AddWorkLogEntryAdminCommandHandler
     : AizenCommandHandler<AddWorkLogEntryAdminCommand, AddWorkLogEntryResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public AddWorkLogEntryAdminCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public AddWorkLogEntryAdminCommandHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

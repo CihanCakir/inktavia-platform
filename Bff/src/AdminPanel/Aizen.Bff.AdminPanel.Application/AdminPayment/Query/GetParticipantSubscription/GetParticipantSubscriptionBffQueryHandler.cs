@@ -11,13 +11,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetParticipantSubs
 public sealed class GetParticipantSubscriptionBffQueryHandler
     : AizenQueryHandler<GetParticipantSubscriptionBffQuery, GetParticipantSubscriptionBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall  _payment;
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IPaymentRemoteCall  _payment;
+    private readonly IIdentityRemoteCall _identity;
     private readonly ILogger<GetParticipantSubscriptionBffQueryHandler> _logger;
 
     public GetParticipantSubscriptionBffQueryHandler(
-        IAdminPaymentBffRemoteCall payment,
-        IIdentityAdminBffRemoteCall identity,
+        IPaymentRemoteCall payment,
+        IIdentityRemoteCall identity,
         ILogger<GetParticipantSubscriptionBffQueryHandler> logger)
     {
         _payment  = payment;

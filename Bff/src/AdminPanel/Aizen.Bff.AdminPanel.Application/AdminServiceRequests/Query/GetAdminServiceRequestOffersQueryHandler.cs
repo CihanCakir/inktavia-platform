@@ -9,9 +9,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetAdminServiceRequestOffersQueryHandler
     : AizenQueryHandler<GetAdminServiceRequestOffersQuery, AdminServiceRequestOffersResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public GetAdminServiceRequestOffersQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public GetAdminServiceRequestOffersQueryHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

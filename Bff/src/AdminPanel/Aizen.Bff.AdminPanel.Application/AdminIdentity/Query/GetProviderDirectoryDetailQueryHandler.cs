@@ -15,9 +15,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 public sealed class GetProviderDirectoryDetailQueryHandler
     : AizenQueryHandler<GetProviderDirectoryDetailQuery, OrganizerProfileWithUserDetailDto>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
 
-    public GetProviderDirectoryDetailQueryHandler(IIdentityAdminBffRemoteCall identity)
+    public GetProviderDirectoryDetailQueryHandler(IIdentityRemoteCall identity)
     {
         _identity = identity;
     }

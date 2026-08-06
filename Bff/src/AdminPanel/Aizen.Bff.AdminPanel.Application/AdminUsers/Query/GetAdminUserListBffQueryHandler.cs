@@ -10,13 +10,13 @@ namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 public sealed class GetAdminUserListBffQueryHandler
     : AizenQueryHandler<GetAdminUserListBffQuery, AdminUserListBffResponse>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IVesselAdminBffRemoteCall _vessel;
+    private readonly IIdentityRemoteCall _identity;
+    private readonly IVesselRemoteCall _vessel;
     private readonly ILogger<GetAdminUserListBffQueryHandler> _logger;
 
     public GetAdminUserListBffQueryHandler(
-        IIdentityAdminBffRemoteCall identity,
-        IVesselAdminBffRemoteCall vessel,
+        IIdentityRemoteCall identity,
+        IVesselRemoteCall vessel,
         ILogger<GetAdminUserListBffQueryHandler> logger)
     {
         _identity = identity;

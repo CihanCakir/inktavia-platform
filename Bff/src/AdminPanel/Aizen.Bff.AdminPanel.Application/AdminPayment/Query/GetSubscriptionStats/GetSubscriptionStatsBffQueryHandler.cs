@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminPayment.Query.GetSubscriptionSta
 public sealed class GetSubscriptionStatsBffQueryHandler
     : AizenQueryHandler<GetSubscriptionStatsBffQuery, GetSubscriptionStatsBffResponse>
 {
-    private readonly IAdminPaymentBffRemoteCall _remote;
+    private readonly IPaymentRemoteCall _remote;
 
-    public GetSubscriptionStatsBffQueryHandler(IAdminPaymentBffRemoteCall remote)
+    public GetSubscriptionStatsBffQueryHandler(IPaymentRemoteCall remote)
         => _remote = remote;
 
     public override async Task<GetSubscriptionStatsBffResponse> Handle(

@@ -8,9 +8,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class UpdateWorkPhaseAdminCommandHandler
     : AizenCommandHandler<UpdateWorkPhaseAdminCommand, UpdateWorkPhaseResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public UpdateWorkPhaseAdminCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public UpdateWorkPhaseAdminCommandHandler(IServiceRequestRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
     }

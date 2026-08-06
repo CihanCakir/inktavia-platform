@@ -9,7 +9,7 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 [DocumentationInfo("FileStorage admin BFF remote call",
     "Defines synchronous BFF-to-FileStorage calls for admin file inspection and access management. " +
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
-public interface IFileStorageAdminBffRemoteCall : IAizenRemoteCall
+public interface IFileStorageRemoteCall : IAizenRemoteCall
 {
     [AizenRemoteCallGet("/api/v1/files/{fileId}")]
     Task<AizenApiResponse<FileMetadataResult>> GetFileMetadata(Guid fileId);

@@ -11,9 +11,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
 public sealed class GetAdminUserServiceRequestsBffQueryHandler
     : AizenQueryHandler<GetAdminUserServiceRequestsBffQuery, AdminServiceRequestListResponse>
 {
-    private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public GetAdminUserServiceRequestsBffQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
+    public GetAdminUserServiceRequestsBffQueryHandler(IServiceRequestRemoteCall serviceRequest)
         => _serviceRequest = serviceRequest;
 
     public override async Task<AdminServiceRequestListResponse?> Handle(

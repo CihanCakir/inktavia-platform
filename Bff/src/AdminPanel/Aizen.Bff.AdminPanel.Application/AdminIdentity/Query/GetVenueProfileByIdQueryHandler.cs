@@ -6,9 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 [DocumentationInfo("GetVenueProfileById query handler", "Returns a single venue profile by ID from the Identity module.")]
 public sealed class GetVenueProfileByIdQueryHandler : AizenQueryHandler<GetVenueProfileByIdQuery, VenueProfileResult>
 {
-    private readonly IIdentityAdminBffRemoteCall _identity;
+    private readonly IIdentityRemoteCall _identity;
     public GetVenueProfileByIdQueryHandler(
-        IIdentityAdminBffRemoteCall identity)
+        IIdentityRemoteCall identity)
     {
         _identity = identity;
     }
