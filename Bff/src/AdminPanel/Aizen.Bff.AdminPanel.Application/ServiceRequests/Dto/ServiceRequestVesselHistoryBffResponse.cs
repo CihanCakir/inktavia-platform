@@ -1,6 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
+using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 
 namespace Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
 

@@ -72,7 +72,7 @@ using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryStats;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryStatsComparison;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryUsageReport;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryWarehouseOptions;
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
+using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;

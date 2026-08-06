@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
+using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 using Aizen.Core.CQRS.Message;
 
 namespace Aizen.Bff.AdminPanel.Application.CargoDry.Command.TransferKit;

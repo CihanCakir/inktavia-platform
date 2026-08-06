@@ -1,5 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.CargoDry.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
+using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.CargoDry.Abstraction.Dto;

@@ -20,15 +20,18 @@ public sealed class UpdateParticipantProfileBffCommandHandler
 {
     private readonly IParticipantProfileResolver _resolver;
     private readonly IIdentityRemoteCall _identity;
+    private readonly IFileStorageRemoteCall _fileStorage;
     private readonly ILogger<UpdateParticipantProfileBffCommandHandler> _logger;
 
     public UpdateParticipantProfileBffCommandHandler(
         IParticipantProfileResolver resolver,
         IIdentityRemoteCall identity,
+        IFileStorageRemoteCall fileStorage,
         ILogger<UpdateParticipantProfileBffCommandHandler> logger)
     {
         _resolver = resolver;
         _identity = identity;
+        _fileStorage = fileStorage;
         _logger = logger;
     }
 
@@ -51,12 +54,14 @@ public sealed class UpdateParticipantProfileBffCommandHandler
             NationalityId = request.NationalityId,
         });
 
-        // 3) Re-resolve to echo the persisted profile back to the client.
+        // 3) Re-resolve to echo the persisted profile back to the client (with a fresh avatar read-url).
         var refreshed = await _resolver.ResolveAsync(cancellationToken);
+        var profile = refreshed.Profile is null ? null : GetParticipantProfileQueryHandler.MapProfile(refreshed.Profile);
+        await GetParticipantProfileQueryHandler.ResolveAvatarUrlAsync(profile, _fileStorage, _logger, cancellationToken);
         return new GetParticipantProfileResponse
         {
             HasProfileLink = refreshed.ProfileId is > 0,
-            Profile = refreshed.Profile is null ? null : GetParticipantProfileQueryHandler.MapProfile(refreshed.Profile),
+            Profile = profile,
             Message = "OK",
         };
     }

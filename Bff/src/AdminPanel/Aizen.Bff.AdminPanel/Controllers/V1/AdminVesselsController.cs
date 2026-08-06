@@ -1,6 +1,6 @@
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Command;
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
+using Aizen.Bff.AdminPanel.Application.Vessels.Command;
+using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
+using Aizen.Bff.AdminPanel.Application.Vessels.Query;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
@@ -39,7 +39,7 @@ public sealed class VesselsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselListBffQuery(pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses), ct);
+            new GetVesselListBffQuery(pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses), ct);
         return SetResponse(result);
     }
 
@@ -49,7 +49,7 @@ public sealed class VesselsController : AizenWebApiController
     [ProducesResponseType(typeof(AdminVesselRegisterBootstrapBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselRegisterBootstrapBffResponse>> GetVesselRegisterBootstrap(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminVesselRegisterBootstrapQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetVesselRegisterBootstrapBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -58,7 +58,7 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<CreateVesselResponse>> RegisterVessel(
         [FromBody] RegisterAdminVesselBffRequest request, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new RegisterAdminVesselBffCommand(request), ct);
+        var result = await _cqrs.ProcessAsync(new RegisterVesselBffCommand(request), ct);
         return SetResponse(result);
     }
 
@@ -66,7 +66,7 @@ public sealed class VesselsController : AizenWebApiController
     [ProducesResponseType(typeof(AdminVesselFormOptionsResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselFormOptionsResponse>> GetFormOptions(CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminVesselFormOptionsQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetVesselFormOptionsBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -76,7 +76,7 @@ public sealed class VesselsController : AizenWebApiController
         long vesselId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselDetailBffQuery(vesselId), ct);
+            new GetVesselDetailBffQuery(vesselId), ct);
         return SetResponse(result);
     }
 
@@ -86,7 +86,7 @@ public sealed class VesselsController : AizenWebApiController
         long vesselId, [FromBody] ArchiveVesselRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ArchiveVesselCommand(vesselId, request), ct);
+            new ArchiveVesselBffCommand(vesselId, request), ct);
         return SetResponse(result);
     }
 
@@ -96,7 +96,7 @@ public sealed class VesselsController : AizenWebApiController
         long vesselId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new RestoreVesselCommand(vesselId), ct);
+            new RestoreVesselBffCommand(vesselId), ct);
         return SetResponse(result);
     }
 
@@ -106,7 +106,7 @@ public sealed class VesselsController : AizenWebApiController
         long vesselId, [FromBody] UpdateVesselStatusRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new UpdateVesselStatusCommand(vesselId, request), ct);
+            new UpdateVesselStatusBffCommand(vesselId, request), ct);
         return SetResponse(result);
     }
 
@@ -116,7 +116,7 @@ public sealed class VesselsController : AizenWebApiController
         long vesselId, long documentId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new RemoveVesselDocumentCommand(vesselId, documentId), ct);
+            new RemoveVesselDocumentBffCommand(vesselId, documentId), ct);
         return SetResponse(result);
     }
 
@@ -125,7 +125,7 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(
         long vesselId, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminVesselByIdQuery(vesselId), ct);
+        var result = await _cqrs.ProcessAsync(new GetVesselByIdBffQuery(vesselId), ct);
         return SetResponse(result);
     }
 
@@ -137,7 +137,7 @@ public sealed class VesselsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselDocumentsBffQuery(vesselId, statusFilter), ct);
+            new GetVesselDocumentsBffQuery(vesselId, statusFilter), ct);
         return SetResponse(result);
     }
 
@@ -146,7 +146,7 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
         long vesselId, [FromBody] UpdateVesselRequest request, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new UpdateVesselCommand(vesselId, request), ct);
+        var result = await _cqrs.ProcessAsync(new UpdateVesselBffCommand(vesselId, request), ct);
         return SetResponse(result);
     }
 
@@ -160,7 +160,7 @@ public sealed class VesselsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselMediaBffQuery(vesselId, mediaType, pageIndex, pageSize), ct);
+            new GetVesselMediaBffQuery(vesselId, mediaType, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -173,7 +173,7 @@ public sealed class VesselsController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselStatusHistoryQuery(vesselId, pageIndex, pageSize), ct);
+            new GetVesselStatusHistoryBffQuery(vesselId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 }

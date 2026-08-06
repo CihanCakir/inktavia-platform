@@ -49,4 +49,24 @@ public sealed class ProfileController : AizenWebApiController
         }, ct);
         return SetResponse(result);
     }
+
+    /// <summary>Upload/replace the participant's avatar (multipart `file`); returns the updated profile with a fresh avatarUrl.</summary>
+    [HttpPost("avatar")]
+    [ProducesResponseType(typeof(GetParticipantProfileResponse), StatusCodes.Status200OK)]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<AizenApiResponse<GetParticipantProfileResponse>> UploadAvatar(
+        [FromForm] IFormFile file, CancellationToken ct)
+    {
+        using var ms = new MemoryStream();
+        if (file is not null) await file.CopyToAsync(ms, ct);
+
+        var result = await _cqrs.ProcessAsync(new UploadParticipantAvatarCommand
+        {
+            Content = ms.ToArray(),
+            FileName = file?.FileName ?? "avatar",
+            ContentType = file?.ContentType ?? "application/octet-stream",
+            SizeInBytes = file?.Length ?? 0,
+        }, ct);
+        return SetResponse(result);
+    }
 }
