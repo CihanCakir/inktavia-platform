@@ -1,5 +1,5 @@
-using Aizen.Bff.AdminPanel.Application.AdminNotificationTemplates.Command;
-using Aizen.Bff.AdminPanel.Application.AdminNotificationTemplates.Query;
+using Aizen.Bff.AdminPanel.Application.NotificationTemplates.Command;
+using Aizen.Bff.AdminPanel.Application.NotificationTemplates.Query;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -34,7 +34,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
     public async Task<AizenApiResponse<List<NotificationTemplateDto>>> GetAll(CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync<List<NotificationTemplateDto>>(
-            new GetAdminNotificationTemplatesQuery(), ct);
+            new GetNotificationTemplatesBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -45,7 +45,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
         string code, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync<NotificationTemplateDto>(
-            new GetAdminNotificationTemplateByCodeQuery(code), ct);
+            new GetNotificationTemplateByCodeBffQuery(code), ct);
         return SetResponse(result);
     }
 
@@ -55,7 +55,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
     public async Task<IActionResult> Create(
         [FromBody] CreateNotificationTemplateRequest body, CancellationToken ct)
     {
-        await _cqrs.ProcessAsync<AdminBffCommandResultDto>(new CreateNotificationTemplateCommand
+        await _cqrs.ProcessAsync<AdminBffCommandResultDto>(new CreateNotificationTemplateBffCommand
         {
             TemplateCode  = body.TemplateCode,
             Name          = body.Name,
@@ -75,7 +75,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
         [FromBody] UpdateNotificationTemplateRequest body,
         CancellationToken ct)
     {
-        await _cqrs.ProcessAsync<AdminBffCommandResultDto>(new UpdateNotificationTemplateCommand
+        await _cqrs.ProcessAsync<AdminBffCommandResultDto>(new UpdateNotificationTemplateBffCommand
         {
             Code          = code,
             Name          = body.Name,
@@ -90,7 +90,7 @@ public sealed class AdminNotificationTemplatesController : AizenWebApiController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Toggle(string code, CancellationToken ct)
     {
-        await _cqrs.ProcessAsync<AdminBffCommandResultDto>(new ToggleNotificationTemplateCommand
+        await _cqrs.ProcessAsync<AdminBffCommandResultDto>(new ToggleNotificationTemplateBffCommand
         {
             Code      = code
         }, ct);

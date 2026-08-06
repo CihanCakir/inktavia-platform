@@ -2,22 +2,22 @@ using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Notification.Abstraction.Dto;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminNotificationTemplates.Query;
+namespace Aizen.Bff.AdminPanel.Application.NotificationTemplates.Query;
 
 [DocumentationInfo("Get admin notification template by code query handler", "Fetches a single notification template by its code from the Notification module.")]
-public sealed class GetAdminNotificationTemplateByCodeQueryHandler
-    : AizenQueryHandler<GetAdminNotificationTemplateByCodeQuery, NotificationTemplateDto>
+public sealed class GetNotificationTemplateByCodeBffQueryHandler
+    : AizenQueryHandler<GetNotificationTemplateByCodeBffQuery, NotificationTemplateDto>
 {
     private readonly INotificationTemplateRemoteCall _notification;
 
-    public GetAdminNotificationTemplateByCodeQueryHandler(
+    public GetNotificationTemplateByCodeBffQueryHandler(
         INotificationTemplateRemoteCall notification)
     {
         _notification        = notification;
     }
 
     public override async Task<NotificationTemplateDto?> Handle(
-        GetAdminNotificationTemplateByCodeQuery request, CancellationToken cancellationToken)
+        GetNotificationTemplateByCodeBffQuery request, CancellationToken cancellationToken)
     {
         var result = await _notification.GetNotificationTemplateByCode(
             request.Code);

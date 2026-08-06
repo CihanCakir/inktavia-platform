@@ -2,9 +2,9 @@ using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.Notification.Abstraction.Enum;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminNotificationTemplates.Command;
+namespace Aizen.Bff.AdminPanel.Application.NotificationTemplates.Command;
 
-public sealed class CreateNotificationTemplateCommand : AizenCommand<AdminBffCommandResultDto>
+public sealed class CreateNotificationTemplateBffCommand : AizenCommand<AdminBffCommandResultDto>
 {
     public string              TemplateCode  { get; init; } = default!;
     public string              Name          { get; init; } = default!;
