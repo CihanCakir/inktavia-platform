@@ -47,7 +47,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubMerchantOnboardingQue
 using Aizen.Bff.AdminPanel.Application.Payment.PlatformFeeRule;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderPlanPrice;
 using Aizen.Bff.AdminPanel.Application.Payment.ProfitProtectionPolicy;
-using Aizen.Bff.AdminPanel.Application.Payment.CustomerDiscount;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderCommissionBenefit;
 using Aizen.Bff.AdminPanel.Application.Payment.PremiumAdmin;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundAllocationPolicy;
@@ -84,6 +83,16 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.ReactivatePartCommercialT
 using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdatePartCommercialTerm;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPartCommercialTermDetail;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPartCommercialTermsList;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreateCustomerBenefitBudgetPolicy;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreateCustomerDiscountRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivateCustomerDiscountRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.ReactivateCustomerDiscountRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateCustomerDiscountRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCustomerBenefitBudgetPoliciesList;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCustomerBenefitBudgetPolicyDetail;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCustomerDiscountRuleDetail;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCustomerDiscountRulesList;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolveCustomerDiscount;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
