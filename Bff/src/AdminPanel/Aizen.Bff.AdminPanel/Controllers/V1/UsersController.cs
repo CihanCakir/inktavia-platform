@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/admin/users")]
 [Tags("Admin Panel - Users")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class UsersController : AizenWebApiController
@@ -21,7 +21,7 @@ public sealed class UsersController : AizenWebApiController
 
     // P0 — User list (literal routes must be declared before parameterised routes)
 
-    [HttpGet("admin/users/kpi")]
+    [HttpGet("kpi")]
     [ProducesResponseType(typeof(AdminUserKpiBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserKpiBffResponse>> GetUsersKpi(CancellationToken ct = default)
     {
@@ -29,7 +29,7 @@ public sealed class UsersController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("admin/users")]
+    [HttpGet]
     [ProducesResponseType(typeof(AdminUserListBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserListBffResponse>> GetUsers(
         [FromQuery] string? search = null,
@@ -49,7 +49,7 @@ public sealed class UsersController : AizenWebApiController
 
     // P1 — User detail
 
-    [HttpGet("admin/users/{profileId:long}/quick")]
+    [HttpGet("{profileId:long}/quick")]
     [ProducesResponseType(typeof(AdminUserQuickBffResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<AizenApiResponse<AdminUserQuickBffResponse>> GetUserQuick(
@@ -59,7 +59,7 @@ public sealed class UsersController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("admin/users/{profileId:long}")]
+    [HttpGet("{profileId:long}")]
     [ProducesResponseType(typeof(AdminUserDetailBffResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<AizenApiResponse<AdminUserDetailBffResponse>> GetUserDetail(
@@ -71,7 +71,7 @@ public sealed class UsersController : AizenWebApiController
 
     // P2 — Detail page tabs
 
-    [HttpGet("admin/users/{profileId:long}/vessels")]
+    [HttpGet("{profileId:long}/vessels")]
     [ProducesResponseType(typeof(AdminUserVesselsBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserVesselsBffResponse>> GetUserVessels(
         long profileId, CancellationToken ct = default)
@@ -80,7 +80,7 @@ public sealed class UsersController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("admin/users/{profileId:long}/activity")]
+    [HttpGet("{profileId:long}/activity")]
     [ProducesResponseType(typeof(AdminUserActivityBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserActivityBffResponse>> GetUserActivity(
         long profileId,
@@ -98,7 +98,7 @@ public sealed class UsersController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("admin/users/{profileId:long}/service-requests")]
+    [HttpGet("{profileId:long}/service-requests")]
     [ProducesResponseType(typeof(AdminServiceRequestListResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminServiceRequestListResponse>> GetUserServiceRequests(
         long profileId,
