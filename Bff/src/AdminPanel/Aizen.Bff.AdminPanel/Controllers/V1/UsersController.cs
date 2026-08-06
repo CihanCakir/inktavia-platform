@@ -16,11 +16,8 @@ public sealed class UsersController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public UsersController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public UsersController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     // P0 — User list (literal routes must be declared before parameterised routes)
 

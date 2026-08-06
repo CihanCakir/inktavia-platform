@@ -16,11 +16,8 @@ public sealed class ParticipantsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public ParticipantsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public ParticipantsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet("identity/participant/profiles")]
     [ProducesResponseType(typeof(PagedParticipantProfileResult), StatusCodes.Status200OK)]

@@ -19,13 +19,8 @@ public sealed class NotificationTemplatesController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public NotificationTemplatesController(
-        IHttpContextAccessor httpContextAccessor,
-        IAizenCQRSProcessor cqrs)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrs;
-    }
+    public NotificationTemplatesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
 
     /// <summary>GET api/v1/admin-panel/notification-templates</summary>

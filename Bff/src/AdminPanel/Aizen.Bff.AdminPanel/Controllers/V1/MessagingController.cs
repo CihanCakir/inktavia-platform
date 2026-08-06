@@ -17,13 +17,8 @@ public sealed class MessagingController : AizenWebApiController
 {
     private readonly IMessagingRemoteCall _messaging;
 
-    public MessagingController(
-        IHttpContextAccessor httpContextAccessor,
-        IMessagingRemoteCall messaging)
-        : base(httpContextAccessor)
-    {
-        _messaging = messaging;
-    }
+    public MessagingController(IHttpContextAccessor httpContextAccessor, IMessagingRemoteCall messaging)
+        : base(httpContextAccessor) => _messaging = messaging;
 
     // ─── Conversations ────────────────────────────────────────────────────────
 

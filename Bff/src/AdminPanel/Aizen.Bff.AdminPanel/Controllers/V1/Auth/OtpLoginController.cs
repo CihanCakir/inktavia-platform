@@ -22,7 +22,7 @@ public sealed class OtpLoginController : AizenWebApiController
     private readonly IAizenCQRSProcessor _cqrs;
 
     public OtpLoginController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
-        : base(httpContextAccessor) { _cqrs = cqrs; }
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpPost("request")]
     [ProducesResponseType(typeof(OtpLoginRequestResponse), StatusCodes.Status200OK)]

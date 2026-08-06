@@ -16,11 +16,8 @@ public sealed class VenuesController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public VenuesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public VenuesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet("identity/venues/profiles")]
     [ProducesResponseType(typeof(PagedVenueProfileResult), StatusCodes.Status200OK)]

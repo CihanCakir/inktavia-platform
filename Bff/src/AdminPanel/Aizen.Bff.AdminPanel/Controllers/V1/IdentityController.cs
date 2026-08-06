@@ -19,11 +19,8 @@ public sealed class IdentityController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public IdentityController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public IdentityController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet("identity/profiles")]
     [ProducesResponseType(typeof(AdminUserOverviewResponse), StatusCodes.Status200OK)]

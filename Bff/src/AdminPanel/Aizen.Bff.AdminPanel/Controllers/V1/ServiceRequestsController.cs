@@ -33,11 +33,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public ServiceRequestsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public ServiceRequestsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet("service-requests")]
     [ProducesResponseType(typeof(AdminServiceRequestListResponse), StatusCodes.Status200OK)]

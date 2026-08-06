@@ -33,13 +33,8 @@ public sealed class ProfilePerformanceController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public ProfilePerformanceController(
-        IHttpContextAccessor httpContextAccessor,
-        IAizenCQRSProcessor  cqrs)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrs;
-    }
+    public ProfilePerformanceController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     // ─── Snapshot ────────────────────────────────────────────────────────────
 

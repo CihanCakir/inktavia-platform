@@ -151,13 +151,8 @@ public sealed class PaymentController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public PaymentController(
-        IHttpContextAccessor  httpContextAccessor,
-        IAizenCQRSProcessor   cqrs)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrs;
-    }
+    public PaymentController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     // ─── Dashboard (gap report) ───────────────────────────────────────────────
 

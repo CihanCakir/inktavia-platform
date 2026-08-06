@@ -17,13 +17,8 @@ public sealed class ProfileApprovalsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public ProfileApprovalsController(
-        IHttpContextAccessor httpContextAccessor,
-        IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public ProfileApprovalsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     /// <summary>
     /// Combined organizer + venue approval queue with filters and pagination.

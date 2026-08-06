@@ -88,13 +88,8 @@ public sealed class CargoDryController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public CargoDryController(
-        IHttpContextAccessor httpContextAccessor,
-        IAizenCQRSProcessor  cqrs)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrs;
-    }
+    public CargoDryController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     // ── Kits ─────────────────────────────────────────────────────────────────
 

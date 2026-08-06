@@ -17,11 +17,8 @@ public sealed class AuthController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public AuthController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public AuthController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpPost("login/username")]
     [AllowAnonymous]

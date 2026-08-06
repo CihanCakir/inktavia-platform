@@ -17,11 +17,8 @@ public sealed class OrganizersController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public OrganizersController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public OrganizersController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet("identity/organizers/profiles")]
     [ProducesResponseType(typeof(PagedOrganizerProfileResult), StatusCodes.Status200OK)]

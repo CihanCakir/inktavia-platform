@@ -15,13 +15,8 @@ public sealed class CargoDryOnboardingController : AizenWebApiController
 {
     private readonly ICargoDryRemoteCall _cargoDry;
 
-    public CargoDryOnboardingController(
-        IHttpContextAccessor httpContextAccessor,
-        ICargoDryRemoteCall cargoDry)
-        : base(httpContextAccessor)
-    {
-        _cargoDry = cargoDry;
-    }
+    public CargoDryOnboardingController(IHttpContextAccessor httpContextAccessor, ICargoDryRemoteCall cargoDry)
+        : base(httpContextAccessor) => _cargoDry = cargoDry;
 
     /// <summary>
     /// POST /api/v1/onboarding/cargodry/validate

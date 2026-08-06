@@ -20,13 +20,8 @@ public sealed class NotificationsController : AizenWebApiController
 {
     private readonly INotificationRemoteCall _remote;
 
-    public NotificationsController(
-        IHttpContextAccessor httpContextAccessor,
-        INotificationRemoteCall remote)
-        : base(httpContextAccessor)
-    {
-        _remote = remote;
-    }
+    public NotificationsController(IHttpContextAccessor httpContextAccessor, INotificationRemoteCall remote)
+        : base(httpContextAccessor) => _remote = remote;
 
     /// <summary>GET /api/v1/notifications — paginated inbox for the authenticated user</summary>
     [HttpGet]

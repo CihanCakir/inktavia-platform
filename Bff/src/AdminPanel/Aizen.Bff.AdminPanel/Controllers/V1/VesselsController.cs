@@ -20,11 +20,8 @@ public sealed class VesselsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public VesselsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public VesselsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet("vessels")]
     [ProducesResponseType(typeof(AdminVesselListBffResponse), StatusCodes.Status200OK)]

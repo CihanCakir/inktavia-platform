@@ -32,13 +32,8 @@ public sealed class FinanceController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public FinanceController(
-        IHttpContextAccessor httpContextAccessor,
-        IAizenCQRSProcessor  cqrs)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrs;
-    }
+    public FinanceController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     // ── CargoDry Settlement Reconciliation ───────────────────────────────────
 

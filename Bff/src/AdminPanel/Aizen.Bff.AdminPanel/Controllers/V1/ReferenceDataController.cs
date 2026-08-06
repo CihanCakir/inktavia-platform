@@ -21,11 +21,8 @@ public sealed class ReferenceDataController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public ReferenceDataController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public ReferenceDataController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     [HttpGet("reference-data/lookup-groups")]
     [HttpGet("reference-data/lookup")]

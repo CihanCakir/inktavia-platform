@@ -23,13 +23,8 @@ public sealed class ProvidersController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public ProvidersController(
-        IHttpContextAccessor httpContextAccessor,
-        IAizenCQRSProcessor  cqrsProcessor)
-        : base(httpContextAccessor)
-    {
-        _cqrs = cqrsProcessor;
-    }
+    public ProvidersController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+        : base(httpContextAccessor) => _cqrs = cqrs;
 
     /// <summary>
     /// GET /api/v1/admin-panel/providers/{providerProfileId}/service-requests
