@@ -25,6 +25,12 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/vessels/{vesselId}")]
     Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselDetail(long vesselId);
 
+    // Resolve a vessel by its globally-unique VesselCode. Used post-create to recover the committed numeric
+    // Id deterministically (the create response DTO is built pre-commit so its Id is 0), without re-scoping
+    // the caller's list — a brand-new code is never cached, so this read hits the DB and returns the real Id.
+    [AizenRemoteCallGet("/api/v1/vessels/code/{vesselCode}")]
+    Task<AizenApiResponse<GetVesselByCodeResponse>> GetVesselByCode(string vesselCode);
+
     // ── M4b create trio (owner = asserted caller) ──────────────────────────────────
     // Create the vessel core; the module assigns the asserted caller as PrimaryOwner (ignores OwnerUserId).
     [AizenRemoteCallPost("/api/v1/vessels")]

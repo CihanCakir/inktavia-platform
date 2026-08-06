@@ -35,7 +35,10 @@ public sealed class GetMobileVesselDetailQueryHandler
         if (resolution.ProfileId is not > 0)
             throw new AizenBusinessException("Vessel not found.");
 
-        var listResp = await _vessel.GetUserVessels(0, 200);
+        // Ownership gate reads the module's DEFAULT page (0,20) — the same key the write-path invalidates — so a
+        // just-created vessel is gate-visible immediately (a stale wider page would deny the owner their own new
+        // vessel). A participant owns a handful of vessels, so the default page is the whole owned set.
+        var listResp = await _vessel.GetUserVessels(0, 20);
         var owned = listResp?.Body?.Vessels?.Items?.Any(v => v.Id == request.VesselId) ?? false;
         if (!owned)
             throw new AizenBusinessException("Vessel not found.");

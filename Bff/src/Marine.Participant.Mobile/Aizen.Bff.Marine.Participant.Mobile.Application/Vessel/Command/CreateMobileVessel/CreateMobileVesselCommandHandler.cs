@@ -75,18 +75,16 @@ public sealed class CreateMobileVesselCommandHandler
             throw new AizenBusinessException("Vessel could not be created.");
 
         // The module builds its response DTO from the entity BEFORE the unit-of-work commits, so the returned
-        // Id is 0 (the DB identity is assigned at commit). The row itself IS committed by the time this response
-        // returns, and create invalidates the caller's list cache — so resolve the real Id by re-reading the
-        // caller's vessels and matching on Name (name → Slug is globally unique, so exactly one match).
+        // Id is 0 (the DB identity is assigned at commit). The row IS committed by the time this returns, so
+        // recover the real Id deterministically by the just-created vessel's globally-unique VesselCode — a
+        // brand-new code is never cached, so the by-code read hits the DB and returns the persisted Id. This
+        // replaces the previous re-read of the caller's paged list, which could serve a stale cached page
+        // (the list read uses a different page size than the invalidation evicts) → a false "could not create".
         var vesselId = created.Id;
-        if (vesselId <= 0)
+        if (vesselId <= 0 && !string.IsNullOrWhiteSpace(created.VesselCode))
         {
-            var listResp = await _vessel.GetUserVessels(0, 200);
-            var match = listResp?.Body?.Vessels?.Items?
-                .Where(v => string.Equals(v.Name, created.Name, StringComparison.Ordinal))
-                .OrderByDescending(v => v.CreateDate)
-                .FirstOrDefault();
-            vesselId = match?.Id ?? 0;
+            var byCode = await _vessel.GetVesselByCode(created.VesselCode);
+            vesselId = byCode?.Body?.Vessel?.Id ?? 0;
         }
         if (vesselId <= 0)
             throw new AizenBusinessException("Vessel could not be created.");
