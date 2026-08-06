@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.Authentication.Command;
+using Aizen.Bff.AdminPanel.Application.Auth.Command;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto;
@@ -29,7 +29,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername(
         [FromBody] LoginWithUsernameRequest req, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new LoginWithUsernameCommand(req), ct);
+        var result = await _cqrs.ProcessAsync(new LoginWithUsernameBffCommand(req), ct);
         return SetResponse(result);
     }
 
@@ -39,7 +39,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<UserLoginResponse>> LoginWithPhone(
         [FromBody] LoginWithPhoneRequest req, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new LoginWithPhoneCommand(req), ct);
+        var result = await _cqrs.ProcessAsync(new LoginWithPhoneBffCommand(req), ct);
         return SetResponse(result);
     }
 
@@ -49,7 +49,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<UserLoginResponse>> LoginWithOtp(
         [FromBody] LoginWithOtpRequest req, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new LoginWithOtpCommand(req), ct);
+        var result = await _cqrs.ProcessAsync(new LoginWithOtpBffCommand(req), ct);
         return SetResponse(result);
     }
 
@@ -59,7 +59,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<SendOtpDto>> SendOtp(
         [FromBody] SendOtpRequest req, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new SendOtpCommand(req), ct);
+        var result = await _cqrs.ProcessAsync(new SendOtpBffCommand(req), ct);
         return SetResponse(result);
     }
 
@@ -69,7 +69,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<CheckOtpDto>> CheckOtp(
         [FromBody] CheckOtpRequest req, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new CheckOtpCommand(req), ct);
+        var result = await _cqrs.ProcessAsync(new CheckOtpBffCommand(req), ct);
         return SetResponse(result);
     }
 
@@ -79,7 +79,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<UserLoginResponse>> Refresh(
         [FromBody] RefreshLoginHttpRequest req, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new RefreshCommand(req), ct);
+        var result = await _cqrs.ProcessAsync(new RefreshBffCommand(req), ct);
         return SetResponse(result);
     }
 
@@ -89,7 +89,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<ChangePasswordDto>> ChangePassword(
         [FromBody] ChangePasswordRequest req, CancellationToken ct)
     {
-        var result = await _cqrs.ProcessAsync(new ChangePasswordCommand(req), ct);
+        var result = await _cqrs.ProcessAsync(new ChangePasswordBffCommand(req), ct);
         return SetResponse(result);
     }
 }

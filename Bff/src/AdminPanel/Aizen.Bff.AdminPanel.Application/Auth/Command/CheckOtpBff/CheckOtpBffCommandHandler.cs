@@ -2,10 +2,10 @@ using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Identity.Abstraction.Dto;
 
-namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
+namespace Aizen.Bff.AdminPanel.Application.Auth.Command;
 
 [DocumentationInfo("CheckOtp command handler", "Validates an OTP code via the Identity module.")]
-public sealed class CheckOtpCommandHandler : AizenCommandHandler<CheckOtpCommand, CheckOtpDto>
+public sealed class CheckOtpCommandHandler : AizenCommandHandler<CheckOtpBffCommand, CheckOtpDto>
 {
     private readonly IIdentityRemoteCall _identity;
 
@@ -15,7 +15,7 @@ public sealed class CheckOtpCommandHandler : AizenCommandHandler<CheckOtpCommand
         _identity = identity;
     }
 
-    public override async Task<CheckOtpDto?> Handle(CheckOtpCommand request, CancellationToken ct)
+    public override async Task<CheckOtpDto?> Handle(CheckOtpBffCommand request, CancellationToken ct)
     {
 
         var r = await _identity.CheckOtp(request.Request);

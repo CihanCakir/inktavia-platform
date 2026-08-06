@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.Auth.OtpLogin;
+using Aizen.Bff.AdminPanel.Application.Auth.Command;
 using Aizen.Bff.AdminPanel.Application.Contracts.Auth.OtpLogin;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -30,7 +30,7 @@ public sealed class OtpLoginController : AizenWebApiController
         [FromBody] OtpLoginRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new RequestOtpLoginCommand { Channel = request.Channel, Identifier = request.Identifier }, ct);
+            new RequestOtpLoginBffCommand { Channel = request.Channel, Identifier = request.Identifier }, ct);
         return SetResponse(result);
     }
 
@@ -40,7 +40,7 @@ public sealed class OtpLoginController : AizenWebApiController
         [FromBody] OtpLoginVerifyRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new VerifyOtpLoginCommand { LoginRequestId = request.LoginRequestId, OtpCode = request.OtpCode }, ct);
+            new VerifyOtpLoginBffCommand { LoginRequestId = request.LoginRequestId, OtpCode = request.OtpCode }, ct);
         return SetResponse(result);
     }
 
@@ -50,7 +50,7 @@ public sealed class OtpLoginController : AizenWebApiController
         [FromBody] OtpLoginResendRequest request, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(
-            new ResendOtpLoginCommand { LoginRequestId = request.LoginRequestId }, ct);
+            new ResendOtpLoginBffCommand { LoginRequestId = request.LoginRequestId }, ct);
         return SetResponse(result);
     }
 }

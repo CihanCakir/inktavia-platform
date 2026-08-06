@@ -2,12 +2,12 @@ using Aizen.Core.CQRS.Message;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Request;
 
-namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
+namespace Aizen.Bff.AdminPanel.Application.Auth.Command;
 
-public sealed class ChangePasswordCommand : AizenCommand<ChangePasswordDto>
+public sealed class ChangePasswordBffCommand : AizenCommand<ChangePasswordDto>
 {
     public ChangePasswordRequest Request { get; }
-    public ChangePasswordCommand(ChangePasswordRequest request)
+    public ChangePasswordBffCommand(ChangePasswordRequest request)
     {
         Request = request;
     }

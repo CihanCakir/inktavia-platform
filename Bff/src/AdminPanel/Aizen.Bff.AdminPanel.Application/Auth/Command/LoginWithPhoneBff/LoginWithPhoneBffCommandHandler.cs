@@ -3,10 +3,10 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction.Response;
 
-namespace Aizen.Bff.AdminPanel.Application.Authentication.Command;
+namespace Aizen.Bff.AdminPanel.Application.Auth.Command;
 
 [DocumentationInfo("LoginWithPhone command handler", "Proxies phone+password login request to the Identity module auth endpoint. Propagates Identity error envelope to the caller on failure.")]
-public sealed class LoginWithPhoneCommandHandler : AizenCommandHandler<LoginWithPhoneCommand, UserLoginResponse>
+public sealed class LoginWithPhoneCommandHandler : AizenCommandHandler<LoginWithPhoneBffCommand, UserLoginResponse>
 {
     private readonly IIdentityRemoteCall _identity;
 
@@ -16,7 +16,7 @@ public sealed class LoginWithPhoneCommandHandler : AizenCommandHandler<LoginWith
         _identity = identity;
     }
 
-    public override async Task<UserLoginResponse?> Handle(LoginWithPhoneCommand request, CancellationToken ct)
+    public override async Task<UserLoginResponse?> Handle(LoginWithPhoneBffCommand request, CancellationToken ct)
     {
 
         var r = await _identity.LoginWithPhone(request.Request);
