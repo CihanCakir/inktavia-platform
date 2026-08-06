@@ -1,6 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+namespace Aizen.Bff.AdminPanel.Application.Users.Dto;
 
 // ── User List ─────────────────────────────────────────────────────────────────
 

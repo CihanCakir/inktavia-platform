@@ -1,28 +1,28 @@
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user KPI BFF query handler", "Runs parallel Identity calls to aggregate total and pending-verification user counts.")]
-public sealed class GetAdminUserKpiBffQueryHandler
-    : AizenQueryHandler<GetAdminUserKpiBffQuery, AdminUserKpiBffResponse>
+public sealed class GetUserKpiBffQueryHandler
+    : AizenQueryHandler<GetUserKpiBffQuery, AdminUserKpiBffResponse>
 {
     private readonly IIdentityRemoteCall _identity;
-    private readonly ILogger<GetAdminUserKpiBffQueryHandler> _logger;
+    private readonly ILogger<GetUserKpiBffQueryHandler> _logger;
 
-    public GetAdminUserKpiBffQueryHandler(
+    public GetUserKpiBffQueryHandler(
         IIdentityRemoteCall identity,
-        ILogger<GetAdminUserKpiBffQueryHandler> logger)
+        ILogger<GetUserKpiBffQueryHandler> logger)
     {
         _identity = identity;
         _logger = logger;
     }
 
     public override async Task<AdminUserKpiBffResponse?> Handle(
-        GetAdminUserKpiBffQuery request, CancellationToken cancellationToken)
+        GetUserKpiBffQuery request, CancellationToken cancellationToken)
     {
         var response = new AdminUserKpiBffResponse();
 

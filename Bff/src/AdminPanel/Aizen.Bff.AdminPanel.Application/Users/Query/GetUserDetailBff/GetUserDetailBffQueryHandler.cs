@@ -1,23 +1,23 @@
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user detail BFF query handler", "Fetches profile detail from Identity + vessel count from Vessel module in sequence.")]
-public sealed class GetAdminUserDetailBffQueryHandler
-    : AizenQueryHandler<GetAdminUserDetailBffQuery, AdminUserDetailBffResponse>
+public sealed class GetUserDetailBffQueryHandler
+    : AizenQueryHandler<GetUserDetailBffQuery, AdminUserDetailBffResponse>
 {
     private readonly IIdentityRemoteCall _identity;
     private readonly IVesselRemoteCall _vessel;
-    private readonly ILogger<GetAdminUserDetailBffQueryHandler> _logger;
+    private readonly ILogger<GetUserDetailBffQueryHandler> _logger;
 
-    public GetAdminUserDetailBffQueryHandler(
+    public GetUserDetailBffQueryHandler(
         IIdentityRemoteCall identity,
         IVesselRemoteCall vessel,
-        ILogger<GetAdminUserDetailBffQueryHandler> logger)
+        ILogger<GetUserDetailBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
@@ -25,7 +25,7 @@ public sealed class GetAdminUserDetailBffQueryHandler
     }
 
     public override async Task<AdminUserDetailBffResponse?> Handle(
-        GetAdminUserDetailBffQuery request, CancellationToken cancellationToken)
+        GetUserDetailBffQuery request, CancellationToken cancellationToken)
     {
         var response = new AdminUserDetailBffResponse();
 

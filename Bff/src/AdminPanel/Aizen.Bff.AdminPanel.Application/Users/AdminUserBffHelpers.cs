@@ -1,4 +1,4 @@
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers;
+namespace Aizen.Bff.AdminPanel.Application.Users;
 
 internal static class AdminUserBffHelpers
 {

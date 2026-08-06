@@ -1,23 +1,23 @@
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user vessels BFF query handler", "Returns paged vessel list for a specific user by querying the Vessel module with ownerUserId filter.")]
-public sealed class GetAdminUserVesselsBffQueryHandler
-    : AizenQueryHandler<GetAdminUserVesselsBffQuery, AdminUserVesselsBffResponse>
+public sealed class GetUserVesselsBffQueryHandler
+    : AizenQueryHandler<GetUserVesselsBffQuery, AdminUserVesselsBffResponse>
 {
     private readonly IIdentityRemoteCall _identity;
     private readonly IVesselRemoteCall _vessel;
-    private readonly ILogger<GetAdminUserVesselsBffQueryHandler> _logger;
+    private readonly ILogger<GetUserVesselsBffQueryHandler> _logger;
 
-    public GetAdminUserVesselsBffQueryHandler(
+    public GetUserVesselsBffQueryHandler(
         IIdentityRemoteCall identity,
         IVesselRemoteCall vessel,
-        ILogger<GetAdminUserVesselsBffQueryHandler> logger)
+        ILogger<GetUserVesselsBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
@@ -25,7 +25,7 @@ public sealed class GetAdminUserVesselsBffQueryHandler
     }
 
     public override async Task<AdminUserVesselsBffResponse?> Handle(
-        GetAdminUserVesselsBffQuery request, CancellationToken cancellationToken)
+        GetUserVesselsBffQuery request, CancellationToken cancellationToken)
     {
         var response = new AdminUserVesselsBffResponse();
 

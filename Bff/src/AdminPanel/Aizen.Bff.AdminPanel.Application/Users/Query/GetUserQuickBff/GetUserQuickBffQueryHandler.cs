@@ -1,23 +1,23 @@
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user quick BFF query handler", "Returns compact user summary with top vessels for the quick-view panel.")]
-public sealed class GetAdminUserQuickBffQueryHandler
-    : AizenQueryHandler<GetAdminUserQuickBffQuery, AdminUserQuickBffResponse>
+public sealed class GetUserQuickBffQueryHandler
+    : AizenQueryHandler<GetUserQuickBffQuery, AdminUserQuickBffResponse>
 {
     private readonly IIdentityRemoteCall _identity;
     private readonly IVesselRemoteCall _vessel;
-    private readonly ILogger<GetAdminUserQuickBffQueryHandler> _logger;
+    private readonly ILogger<GetUserQuickBffQueryHandler> _logger;
 
-    public GetAdminUserQuickBffQueryHandler(
+    public GetUserQuickBffQueryHandler(
         IIdentityRemoteCall identity,
         IVesselRemoteCall vessel,
-        ILogger<GetAdminUserQuickBffQueryHandler> logger)
+        ILogger<GetUserQuickBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
@@ -25,7 +25,7 @@ public sealed class GetAdminUserQuickBffQueryHandler
     }
 
     public override async Task<AdminUserQuickBffResponse?> Handle(
-        GetAdminUserQuickBffQuery request, CancellationToken cancellationToken)
+        GetUserQuickBffQuery request, CancellationToken cancellationToken)
     {
         var response = new AdminUserQuickBffResponse();
 

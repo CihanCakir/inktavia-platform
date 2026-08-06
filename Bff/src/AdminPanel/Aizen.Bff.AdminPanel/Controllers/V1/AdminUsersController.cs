@@ -1,6 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.ServiceRequests.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Query;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +28,7 @@ public sealed class UsersController : AizenWebApiController
     [ProducesResponseType(typeof(AdminUserKpiBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserKpiBffResponse>> GetUsersKpi(CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminUserKpiBffQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetUserKpiBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -46,7 +46,7 @@ public sealed class UsersController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminUserListBffQuery(search, role, status, identityType, registeredFrom, registeredTo, page, pageSize), ct);
+            new GetUserListBffQuery(search, role, status, identityType, registeredFrom, registeredTo, page, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -58,7 +58,7 @@ public sealed class UsersController : AizenWebApiController
     public async Task<AizenApiResponse<AdminUserQuickBffResponse>> GetUserQuick(
         long profileId, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminUserQuickBffQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetUserQuickBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -68,7 +68,7 @@ public sealed class UsersController : AizenWebApiController
     public async Task<AizenApiResponse<AdminUserDetailBffResponse>> GetUserDetail(
         long profileId, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminUserDetailBffQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetUserDetailBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -79,7 +79,7 @@ public sealed class UsersController : AizenWebApiController
     public async Task<AizenApiResponse<AdminUserVesselsBffResponse>> GetUserVessels(
         long profileId, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new GetAdminUserVesselsBffQuery(profileId), ct);
+        var result = await _cqrs.ProcessAsync(new GetUserVesselsBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -97,7 +97,7 @@ public sealed class UsersController : AizenWebApiController
         DateOnly? from = DateOnly.TryParse(dateFrom, out var df) ? df : null;
         DateOnly? to = DateOnly.TryParse(dateTo, out var dt) ? dt : null;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminUserActivityBffQuery(profileId, category, from, to, page, pageSize), ct);
+            new GetUserActivityBffQuery(profileId, category, from, to, page, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -111,7 +111,7 @@ public sealed class UsersController : AizenWebApiController
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetAdminUserServiceRequestsBffQuery(profileId, status, page, pageSize), ct);
+            new GetUserServiceRequestsBffQuery(profileId, status, page, pageSize), ct);
         return SetResponse(result);
     }
 }

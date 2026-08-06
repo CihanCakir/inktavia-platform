@@ -1,25 +1,25 @@
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user activity BFF query handler", "Aggregates paginated activity events from Identity, Vessel and ServiceRequest modules for a given user.")]
-public sealed class GetAdminUserActivityBffQueryHandler
-    : AizenQueryHandler<GetAdminUserActivityBffQuery, AdminUserActivityBffResponse>
+public sealed class GetUserActivityBffQueryHandler
+    : AizenQueryHandler<GetUserActivityBffQuery, AdminUserActivityBffResponse>
 {
     private readonly IIdentityRemoteCall _identity;
     private readonly IVesselRemoteCall _vessel;
     private readonly IServiceRequestRemoteCall _serviceRequest;
-    private readonly ILogger<GetAdminUserActivityBffQueryHandler> _logger;
+    private readonly ILogger<GetUserActivityBffQueryHandler> _logger;
 
-    public GetAdminUserActivityBffQueryHandler(
+    public GetUserActivityBffQueryHandler(
         IIdentityRemoteCall identity,
         IVesselRemoteCall vessel,
         IServiceRequestRemoteCall serviceRequest,
-        ILogger<GetAdminUserActivityBffQueryHandler> logger)
+        ILogger<GetUserActivityBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
@@ -28,7 +28,7 @@ public sealed class GetAdminUserActivityBffQueryHandler
     }
 
     public override async Task<AdminUserActivityBffResponse?> Handle(
-        GetAdminUserActivityBffQuery request, CancellationToken cancellationToken)
+        GetUserActivityBffQuery request, CancellationToken cancellationToken)
     {
         var response = new AdminUserActivityBffResponse { Page = request.Page, PageSize = request.PageSize };
         var events = new List<AdminUserActivityEventBffDto>();

@@ -3,21 +3,21 @@ using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user service requests BFF query handler",
     "Fetches paged service requests owned by a specific user. Calls the ServiceRequest module admin list " +
     "endpoint with ownerUserId filter. Used by the User Detail page service-requests tab.")]
-public sealed class GetAdminUserServiceRequestsBffQueryHandler
-    : AizenQueryHandler<GetAdminUserServiceRequestsBffQuery, AdminServiceRequestListResponse>
+public sealed class GetUserServiceRequestsBffQueryHandler
+    : AizenQueryHandler<GetUserServiceRequestsBffQuery, AdminServiceRequestListResponse>
 {
     private readonly IServiceRequestRemoteCall _serviceRequest;
 
-    public GetAdminUserServiceRequestsBffQueryHandler(IServiceRequestRemoteCall serviceRequest)
+    public GetUserServiceRequestsBffQueryHandler(IServiceRequestRemoteCall serviceRequest)
         => _serviceRequest = serviceRequest;
 
     public override async Task<AdminServiceRequestListResponse?> Handle(
-        GetAdminUserServiceRequestsBffQuery request, CancellationToken ct)
+        GetUserServiceRequestsBffQuery request, CancellationToken ct)
     {
         var response = new AdminServiceRequestListResponse();
 

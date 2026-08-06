@@ -1,10 +1,10 @@
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
 using Aizen.Core.CQRS.Message;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user list BFF query", "Query for the User Management List with filters, pagination, and UI-enriched response.")]
-public sealed class GetAdminUserListBffQuery : AizenQuery<AdminUserListBffResponse>
+public sealed class GetUserListBffQuery : AizenQuery<AdminUserListBffResponse>
 {
     public string? Search { get; }
     public string? Role { get; }
@@ -15,7 +15,7 @@ public sealed class GetAdminUserListBffQuery : AizenQuery<AdminUserListBffRespon
     public int Page { get; }
     public int PageSize { get; }
 
-    public GetAdminUserListBffQuery(
+    public GetUserListBffQuery(
         string? search,
         string? role,
         string? status,

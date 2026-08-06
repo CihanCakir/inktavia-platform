@@ -1,10 +1,10 @@
-using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
+using Aizen.Bff.AdminPanel.Application.Users.Dto;
 using Aizen.Core.CQRS.Message;
 
-namespace Aizen.Bff.AdminPanel.Application.AdminUsers.Query;
+namespace Aizen.Bff.AdminPanel.Application.Users.Query;
 
 [DocumentationInfo("Get admin user activity BFF query", "Returns the paginated, filterable activity timeline for a specific user.")]
-public sealed class GetAdminUserActivityBffQuery : AizenQuery<AdminUserActivityBffResponse>
+public sealed class GetUserActivityBffQuery : AizenQuery<AdminUserActivityBffResponse>
 {
     public long ProfileId { get; }
     public string? Category { get; }   // vessel | service | identity | system | null = all
@@ -13,7 +13,7 @@ public sealed class GetAdminUserActivityBffQuery : AizenQuery<AdminUserActivityB
     public int Page { get; }
     public int PageSize { get; }
 
-    public GetAdminUserActivityBffQuery(
+    public GetUserActivityBffQuery(
         long profileId,
         string? category = null,
         DateOnly? dateFrom = null,
