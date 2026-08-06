@@ -44,7 +44,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.RejectSubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.VerifySubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubMerchantOnboardingQueue;
-using Aizen.Bff.AdminPanel.Application.Payment.PlatformFeeRule;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderPlanPrice;
 using Aizen.Bff.AdminPanel.Application.Payment.ProfitProtectionPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderCommissionBenefit;
@@ -93,6 +92,14 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCustomerBenefitBudgetPol
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCustomerDiscountRuleDetail;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCustomerDiscountRulesList;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolveCustomerDiscount;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreatePlatformFeeRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivatePlatformFeeRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.ReactivatePlatformFeeRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdatePlatformFeeRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPlatformFeeRuleDetail;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPlatformFeeRuleStats;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPlatformFeeRulesList;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolvePlatformFee;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
