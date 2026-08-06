@@ -1,8 +1,12 @@
+using System.Text.Json;
+using Aizen.Core.Common.Abstraction.Exception;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Payment.Abstraction.RemoteCall;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
+using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Application.Mapping;
@@ -11,6 +15,7 @@ using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Dispute;
 
@@ -24,15 +29,18 @@ public sealed class ResolveServiceRequestDisputeCommandHandler : AizenCommandHan
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IPaymentModuleRemoteCall _paymentRemoteCall;
     private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly ILogger<ResolveServiceRequestDisputeCommandHandler> _logger;
 
     public ResolveServiceRequestDisputeCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestDisputeRepository disputeRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
-        IPaymentModuleRemoteCall paymentRemoteCall, IAizenMessagePublisher messagePublisher)
+        IPaymentModuleRemoteCall paymentRemoteCall, IAizenMessagePublisher messagePublisher,
+        ILogger<ResolveServiceRequestDisputeCommandHandler> logger)
     {
         _srRepository = srRepository; _disputeRepository = disputeRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher;
+        _logger = logger;
     }
 
     public override async Task<ResolveServiceRequestDisputeResponse?> Handle(ResolveServiceRequestDisputeCommand request, CancellationToken cancellationToken)
@@ -81,12 +89,12 @@ public sealed class ResolveServiceRequestDisputeCommandHandler : AizenCommandHan
     {
         // Partial / split require an explicit positive amount (the ≤ refundable check is Payment-side).
         if (DisputeOutcomeRefundMap.RequiresAmount(outcome) && (requestedAmount is null or <= 0m))
-            throw new InvalidOperationException(
-                $"Outcome {outcome} requires a positive RefundAmount.");
+            throw new AizenBusinessException(
+                $"Outcome {outcome} requires a positive refund amount.");
 
         var rawToken = _info.UserInfoAccessor.UserInfo.AccessToken;
 
-        var response = await _paymentRemoteCall.ResolveDisputeOutcomeAsync(new ResolveDisputeOutcomeRemoteCallRequest
+        var payload = new ResolveDisputeOutcomeRemoteCallRequest
         {
             ServiceRequestId  = sr.Id,
             DisputeId         = dispute.Id,
@@ -97,9 +105,94 @@ public sealed class ResolveServiceRequestDisputeCommandHandler : AizenCommandHan
             RefundReasonCode  = (int)DisputeOutcomeRefundMap.ToRefundReason(outcome),
             AdminUserId       = adminUserId,
             Notes             = dispute.ResolutionNotes,
-        }, $"Bearer {rawToken}", ct);
+        };
+
+        // The Payment call can fail two ways that must NOT surface as a raw 500:
+        //   (a) a downstream business rejection (e.g. amount > refundable) → the module returns a 4xx that Refit
+        //       re-throws here as an ApiException — surface its message so the admin sees the real reason;
+        //   (b) a transport/availability failure (connection refused, timeout, downstream 5xx) → a generic,
+        //       non-leaking business error the admin can retry on.
+        // An AizenBusinessException already maps to a clean 400, so we let it through untouched.
+        ResolveDisputeOutcomeRemoteCallResponse response;
+        try
+        {
+            response = await _paymentRemoteCall.ResolveDisputeOutcomeAsync(payload, $"Bearer {rawToken}", ct);
+        }
+        catch (AizenException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "ResolveDispute: payment outcome call failed for dispute {DisputeId} (SR {SRId}, outcome {Outcome}).",
+                dispute.Id, sr.Id, outcome);
+            throw new AizenBusinessException(DescribePaymentFailure(ex));
+        }
+
+        if (response is null)
+            throw new AizenBusinessException(
+                "The payment service returned no result for the dispute resolution outcome. Please try again.");
+
+        // The admin explicitly chose a monetary outcome that the payment path could not apply — e.g. there is no
+        // captured transaction to refund/release. Surface that as a clean business error (using the module's own
+        // reason) rather than silently recording a "resolved" dispute with no money moved. `Applied` is true on an
+        // idempotent re-resolve (AlreadyApplied), so this only rejects a genuine non-application.
+        if (!response.Applied)
+            throw new AizenBusinessException(
+                string.IsNullOrWhiteSpace(response.Message)
+                    ? "The dispute resolution outcome could not be applied to the payment for this service request."
+                    : response.Message);
 
         // Stamp the outcome once — the idempotency anchor. A re-resolve sees IsPaymentOutcomeApplied and never re-drives Payment.
         dispute.MarkPaymentOutcomeApplied(outcome, response.RefundedAmount);
+    }
+
+    /// <summary>
+    /// Turns a failed Payment remote call into an admin-facing message. Refit surfaces the downstream response body on
+    /// an <c>ApiException.Content</c>; we pull the Aizen envelope's <c>header.errorMessage</c> (the real business reason)
+    /// via reflection so we don't take a compile-time Refit dependency. Anything else (transport failure, unparseable
+    /// body) degrades to a generic, non-leaking message.
+    /// </summary>
+    private static string DescribePaymentFailure(Exception ex)
+    {
+        const string generic =
+            "The dispute resolution outcome could not be applied by the payment service. Please try again shortly.";
+
+        if (ex.GetType().GetProperty("Content")?.GetValue(ex) is not string content
+            || string.IsNullOrWhiteSpace(content))
+            return generic;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+            if (root.ValueKind == JsonValueKind.Object
+                && TryGetPropertyIgnoreCase(root, "header", out var header)
+                && TryGetPropertyIgnoreCase(header, "errorMessage", out var msg)
+                && msg.ValueKind == JsonValueKind.String
+                && !string.IsNullOrWhiteSpace(msg.GetString()))
+                return msg.GetString()!;
+        }
+        catch (JsonException)
+        {
+            // fall through to the generic message
+        }
+
+        return generic;
+    }
+
+    private static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)
+    {
+        foreach (var prop in element.EnumerateObject())
+        {
+            if (string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                value = prop.Value;
+                return true;
+            }
+        }
+        value = default;
+        return false;
     }
 }

@@ -5,34 +5,30 @@ using Aizen.Core.Infrastructure.Exception;
 namespace Aizen.Bff.AdminPanel.Application.Common.Http;
 
 /// <summary>
-/// Fail-envelope fidelity handler for the AdminPanel BFF → Payment module calls (FIX_RULE_CONFLICT_ENVELOPE).
+/// Fail-envelope fidelity handler for AdminPanel BFF → module calls (FIX_RULE_CONFLICT_ENVELOPE / FIX_DISPUTE_RESOLVE_500).
 ///
-/// The Payment module surfaces business errors (e.g. <c>*RuleConflict</c> / <c>*Invalid</c>) as an
-/// <c>AizenBusinessException</c> which its global middleware maps to <b>HTTP 400 + a fail envelope</b>
-/// (<c>{ header: { isSuccess:false, errorCode, errorMessage } }</c>). Without this handler, Refit sees the raw 400
-/// and throws a <c>Refit.ApiException</c>; that is NOT an <c>AizenBusinessException</c>, so the AdminPanel's own
-/// global middleware maps it to a generic <b>500</b> and the module's <c>errorCode</c>/<c>errorMessage</c> are lost —
-/// the FE's <c>RuleConflictBanner</c> then degrades to the generic "rejected" text.
+/// A module surfaces business errors (e.g. <c>*RuleConflict</c> / <c>*Invalid</c>, or a dispute resolve that the
+/// Payment path rejects) as an <c>AizenBusinessException</c> which its global middleware maps to
+/// <b>HTTP 400 + a fail envelope</b> (<c>{ header: { isSuccess:false, errorCode, errorMessage } }</c>). Without this
+/// handler, Refit sees the raw 4xx/5xx and throws a <c>Refit.ApiException</c>; that is NOT an
+/// <c>AizenBusinessException</c>, so the AdminPanel's own global middleware maps it to a generic <b>500</b> and the
+/// module's <c>errorCode</c>/<c>errorMessage</c> are lost.
 ///
 /// This handler intercepts a non-success response whose body is an Aizen fail envelope and re-throws it as the BFF's
-/// own <see cref="AizenBusinessException"/> (preserving the numeric <c>errorCode</c> + localized <c>errorMessage</c>),
-/// so the AdminPanel middleware returns a structured <b>400</b> the FE can recognize. Non-envelope errors pass through
+/// own <see cref="AizenBusinessException"/> (preserving the numeric <c>errorCode</c> + <c>errorMessage</c>), so the
+/// AdminPanel middleware returns a structured <b>400</b> the FE can recognize. Non-envelope errors pass through
 /// unchanged (Refit's normal <c>ApiException</c> behavior is preserved).
 ///
-/// SCOPE: registered ONLY on the <c>IPaymentRemoteCall</c> HttpClient chain. It does NOT touch
-/// <c>Core.RemoteCall</c> internals or the global exception middleware, and does not affect any other module's client.
+/// SCOPE: registered on the module HttpClient chains that can return module business errors the FE must read verbatim —
+/// currently <c>IPaymentRemoteCall</c> (typed conflict banners) and <c>IServiceRequestRemoteCall</c> (dispute resolve
+/// outcomes). It does NOT touch <c>Core.RemoteCall</c> internals or the global exception middleware.
 /// </summary>
-[DocumentationInfo("Admin payment BFF fail-envelope handler",
-    "Converts a Payment-module fail envelope (HTTP 4xx/5xx with { header.isSuccess=false, errorCode, errorMessage }) " +
+[DocumentationInfo("Admin BFF fail-envelope handler",
+    "Converts a module fail envelope (HTTP 4xx/5xx with { header.isSuccess=false, errorCode, errorMessage }) " +
     "into an AizenBusinessException so the AdminPanel middleware returns a structured 400 preserving the module's " +
-    "error code + message. Scoped to the IPaymentRemoteCall client only; non-envelope errors pass through.")]
-public sealed class AdminPaymentBffFailEnvelopeHandler : DelegatingHandler
+    "error code + message. Wired on the Payment + ServiceRequest clients; non-envelope errors pass through.")]
+public sealed class AdminBffFailEnvelopeHandler : DelegatingHandler
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -52,7 +48,7 @@ public sealed class AdminPaymentBffFailEnvelopeHandler : DelegatingHandler
         if (TryReadFailEnvelope(raw, out var errorCode, out var errorMessage))
         {
             // Re-throw as the BFF's own fail-loud business error → AdminPanel global middleware returns a 400
-            // envelope carrying this errorCode + errorMessage. This is what every admin rule screen (P2–P7) reads.
+            // envelope carrying this errorCode + errorMessage.
             throw new AizenBusinessException(errorCode, errorMessage);
         }
 

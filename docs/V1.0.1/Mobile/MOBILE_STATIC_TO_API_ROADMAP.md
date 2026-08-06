@@ -208,3 +208,26 @@ Vessel edit live: `PUT /mobile/vessels/{id}` composite handler orchestrating mod
 **REUSABLE GOTCHA:** ASP.NET treats non-nullable code props (VesselTypeCode/EngineTypeCode/FuelTypeCode) as **implicitly required** → they block partial/patch payloads. Update/patch endpoints need **dedicated all-optional input types** (applies to every future edit/patch: M5/M6…).
 
 ## Next → M4d (archive/status + set-active as FE-local)
+
+---
+
+## Phase 2 / M4d — DONE (2026-08-06), commits BE 9431155 / FE 4f1de52
+Archive/status live: `POST /mobile/vessels/{id}/archive` + `/restore` + `PUT /status` (owner-gated, all-optional bodies, foreign-id→clean not-found, return re-read detail). Status settable = Active/Passive/UnderMaintenance (module transition graph). Archive drops from active list (BFF `.Where(!IsArchived)`). Included a 1-line module status-list-invalidation fix. **Active vessel = FE-local persisted choice** (zustand + expo-secure-store, per-user, graceful fallback) driving switcher + Home card — no backend field. Verified: archive 6→5, restore→6, foreign→not-found, status→list/detail fresh, non-settable status rejected; builds 0 / tsc 0. Report: `Vessel/REPORT_BE_M4d_VESSELS_ARCHIVE_STATUS.md`. (On-device active-persist/fallback still headless-blocked.)
+
+## → M4e BOUNDARY REACHED. NEXT: FileStorage cache audit+fix (prompt already issued: `REPORT_FILESTORAGE_CACHE_INVALIDATION_FIX`), THEN M4e documents → M4f media/list-cover.
+
+---
+
+## FileStorage cache audit — DONE (2026-08-06): NO FIX NEEDED (false alarm)
+FileStorage does NO read-query caching: none of its 6 query handlers implement `IAizenQueryHandlerCacheable` (the read decorator caches only those), zero manual `SetAsync`, `FileAccessService` regenerates the presigned URL every call, and runtime Redis DB 13 has zero filestorage keys (only the legit raw Identity OTP-rate-limit + service-token entries). `FileCacheKeyService`/`FileCacheInvalidationService` are unwired scaffolding — their `RemoveNoHash` deletes are harmless no-ops. Left untouched (correct). Report: `Core/REPORT_FILESTORAGE_CACHE_INVALIDATION_FIX.md`.
+**Carry-forward:** any avatar/doc/media staleness lives on the CONSUMER side (profile/vessel query cache), NOT FileStorage → the writing slice must invalidate the consumer's read cache (via `AizenQueryCacheKey` + page-scope rule). M4e must invalidate the vessel documents read on upload/delete.
+
+## → M4e (vessel documents) is next.
+
+---
+
+## Phase 2 / M4e — DONE (2026-08-06), uncommitted
+Vessel documents live: DOCUMENT_TYPE seeded (7 items; needed a `--no-cache` reference-data-api rebuild + DB12 flush — layer cache served stale JSON). BFF owner-gated `GET/POST(multipart)/DELETE /mobile/vessels/{id}/documents`; upload→list fresh (presigned URL, consumer-side invalidation, no flush)→byte-identical presigned download (md5 match)→delete→0; foreign vessel/upload/doc → clean not-found. FE VesselDocumentsScreen rewritten (real list + DOCUMENT_TYPE-picker upload + open/download/delete); create-wizard doc step uploads after create; detail card shows a real preview; mock parity. tsc 0. Report: `Vessel/REPORT_BE_M4e_VESSELS_DOCUMENTS.md`.
+**⚠️ Inherited M3c SERVER-SIDE RELAY** (multipart through the BFF) because Step 0.5 (upload-pattern decision) wasn't run. Bytes pass through the BFF — fine for avatars/small docs, risky for large docs/photos.
+
+## → BEFORE M4f: MOBILE UPLOAD-PATTERN DECISION (read-only) — decide client-side-presigned vs server-side-relay for the whole file surface, since M4f media would otherwise lock in server-side relay for photos.

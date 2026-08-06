@@ -89,5 +89,13 @@
   { "groupCode": "HULL_MATERIAL", "code": "STEEL",        "name": "Çelik",        "description": "Steel",         "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
   { "groupCode": "HULL_MATERIAL", "code": "ALUMINUM",     "name": "Alüminyum",    "description": "Aluminum",      "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
   { "groupCode": "HULL_MATERIAL", "code": "WOOD",         "name": "Ahşap",        "description": "Wood",          "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
-  { "groupCode": "HULL_MATERIAL", "code": "CARBON_FIBER", "name": "Karbon Fiber", "description": "Carbon fiber",  "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true }
+  { "groupCode": "HULL_MATERIAL", "code": "CARBON_FIBER", "name": "Karbon Fiber", "description": "Carbon fiber",  "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "DOCUMENT_TYPE", "code": "REGISTRATION",       "name": "Tekne Ruhsatı",         "description": "Registration certificate", "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "INSURANCE",          "name": "Sigorta Poliçesi",      "description": "Insurance policy",         "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "SAFETY_CERTIFICATE", "name": "Güvenlik Sertifikası",  "description": "Safety certificate",       "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "TONNAGE_CERTIFICATE","name": "Tonaj Belgesi",         "description": "Tonnage certificate",      "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "RADIO_LICENSE",      "name": "Telsiz Ruhsatı",        "description": "Radio licence",            "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "SURVEY_REPORT",      "name": "Sörvey Raporu",         "description": "Survey report",            "iconKey": null, "colorCode": null, "sortOrder": 6, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "OTHER",              "name": "Diğer",                 "description": "Other",                    "iconKey": null, "colorCode": null, "sortOrder": 99, "isDefault": false, "isActive": true }
 ]

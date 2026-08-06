@@ -77,7 +77,8 @@ public sealed class GetProviderJobDetailQueryHandler
             AcceptedOffer = offer?.ToDto(),
 
             CompletionEvidenceFileId = sr.Completion?.EvidenceFileId,
-            CompletedAtUtc = sr.Completion?.SubmittedAt
+            CompletedAtUtc = sr.Completion?.SubmittedAt,
+            AutoApproveAt = sr.Completion?.AutoApproveAt
         };
     }
 }

@@ -538,6 +538,8 @@ services:
       # Trusted-BFF identity assertion: marine-mobile-bff scopes /vessels/current-user to the participant (M4a).
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: marine-mobile-bff
+      # Vessel documents (M4e): the module validates the uploaded file via file-storage-api before attaching it.
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       DatabaseSettings__Vessel__Type: PostgreSQL
       DatabaseSettings__Vessel__ConnectionString: Host=postgres;Database=inktavia_store;Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017

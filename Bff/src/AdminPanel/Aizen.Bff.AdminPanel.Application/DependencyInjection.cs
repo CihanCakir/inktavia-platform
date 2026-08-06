@@ -48,10 +48,10 @@ public static class DependencyInjection
         // Central auth handler — wired into every downstream HttpClient.
         services.AddTransient<AdminPanelBffAuthDelegatingHandler>();
 
-        // Fail-envelope fidelity handler — wired ONLY into the Payment remote client (FIX_RULE_CONFLICT_ENVELOPE):
-        // converts a Payment-module fail envelope into an AizenBusinessException so *RuleConflict/*Invalid reach the
-        // FE as a structured 400 (typed conflict banner) instead of a generic 500. Not used by any other module client.
-        services.AddTransient<AdminPaymentBffFailEnvelopeHandler>();
+        // Fail-envelope fidelity handler — wired into the module clients whose business errors the FE must read
+        // verbatim: converts a module fail envelope into an AizenBusinessException so *RuleConflict/*Invalid (Payment)
+        // and dispute-resolve outcomes (ServiceRequest) reach the FE as a structured 400 instead of a generic 500.
+        services.AddTransient<AdminBffFailEnvelopeHandler>();
 
         // ── Remote call registrations ──────────────────────────────────────────
         // The HttpClient name passed to CreateHttpClient is the configuration key
@@ -73,7 +73,8 @@ public static class DependencyInjection
 
         services.AddTransient<IServiceRequestRemoteCall>(provider =>
             CreateRemoteCall<IServiceRequestRemoteCall>(
-                CreateHttpClient(provider, "IServiceRequestAdminBffRemoteCall")));
+                CreateHttpClient(provider, "IServiceRequestAdminBffRemoteCall",
+                    innerHandler: provider.GetRequiredService<AdminBffFailEnvelopeHandler>())));
 
         services.AddTransient<IReferenceDataRemoteCall>(provider =>
             CreateRemoteCall<IReferenceDataRemoteCall>(
@@ -99,7 +100,7 @@ public static class DependencyInjection
         services.AddTransient<IPaymentRemoteCall>(provider =>
             CreateRemoteCall<IPaymentRemoteCall>(
                 CreateHttpClient(provider, "IAdminPaymentBffRemoteCall",
-                    innerHandler: provider.GetRequiredService<AdminPaymentBffFailEnvelopeHandler>())));
+                    innerHandler: provider.GetRequiredService<AdminBffFailEnvelopeHandler>())));
 
         services.AddTransient<IProfilePerformanceRemoteCall>(provider =>
             CreateRemoteCall<IProfilePerformanceRemoteCall>(

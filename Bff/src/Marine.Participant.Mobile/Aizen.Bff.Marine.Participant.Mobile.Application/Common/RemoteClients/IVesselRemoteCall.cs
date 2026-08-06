@@ -1,8 +1,10 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.Vessel.Abstraction.Request.Document;
 using Aizen.Modules.Vessel.Abstraction.Request.Engine;
 using Aizen.Modules.Vessel.Abstraction.Request.Specification;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
+using Aizen.Modules.Vessel.Abstraction.Response.Document;
 using Aizen.Modules.Vessel.Abstraction.Response.Engine;
 using Aizen.Modules.Vessel.Abstraction.Response.Specification;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
@@ -72,4 +74,25 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/status")]
     Task<AizenApiResponse<UpdateVesselStatusResponse>> UpdateStatus(
         long vesselId, [AizenRemoteCallBody] UpdateVesselStatusRequest request);
+
+    // ── M4e documents (owner-gated by the module's EnsureCanEditAsync on add/remove) ────────────────
+    // List the vessel's documents. The mobile BFF reads the DEFAULT page with includeAccessUrls=false — the
+    // exact key the module's InvalidateDocumentsAsync evicts on add/remove — so the list is fresh with no flush;
+    // the BFF resolves each doc's presigned read URL itself (per-doc), avoiding the never-invalidated
+    // includeAccessUrls=true cache variant. FileId is present regardless of includeAccessUrls.
+    [AizenRemoteCallGet("/api/v1/vessels/{vesselId}/documents")]
+    Task<AizenApiResponse<GetVesselDocumentsResponse>> GetVesselDocuments(
+        long vesselId,
+        [Refit.Query] int pageIndex = 0, [Refit.Query] int pageSize = 20,
+        [Refit.Query] bool includeAccessUrls = false, [Refit.Query] int accessUrlExpiresInMinutes = 15);
+
+    // Attach an already-uploaded file (FileId) to the vessel as a typed document. The module invalidates the
+    // documents read (default page) so the mobile list refreshes immediately.
+    [AizenRemoteCallPost("/api/v1/vessels/{vesselId}/documents")]
+    Task<AizenApiResponse<AddVesselDocumentResponse>> AddVesselDocument(
+        long vesselId, [AizenRemoteCallBody] AddVesselDocumentRequest request);
+
+    // Remove a document (module invalidates the documents read).
+    [AizenRemoteCallDelete("/api/v1/vessels/{vesselId}/documents/{documentId}")]
+    Task<AizenApiResponse<RemoveVesselDocumentResponse>> RemoveVesselDocument(long vesselId, long documentId);
 }

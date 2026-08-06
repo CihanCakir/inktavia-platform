@@ -28,4 +28,12 @@ public sealed class GetProviderJobDetailResponse
     // Completion evidence (after photo)
     public Guid? CompletionEvidenceFileId { get; init; }
     public DateTime? CompletedAtUtc { get; init; }
+
+    /// <summary>
+    /// N3 — UTC deadline after which a still-pending completion is auto-approved
+    /// (= SubmittedAt + AutoApproveWindowDays). Null until a completion is submitted (or once
+    /// the completion is approved/rejected/disputed). Read-only; the provider app shows an
+    /// informational countdown while the owner review is pending.
+    /// </summary>
+    public DateTime? AutoApproveAt { get; init; }
 }
