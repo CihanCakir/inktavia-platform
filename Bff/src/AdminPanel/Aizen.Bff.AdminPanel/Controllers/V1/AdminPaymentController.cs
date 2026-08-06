@@ -44,7 +44,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.RejectSubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.VerifySubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubMerchantOnboardingQueue;
-using Aizen.Bff.AdminPanel.Application.Payment.ProviderPlanPrice;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundAllocationPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundQueue;
 using Aizen.Modules.Payment.Abstraction.Dto;
@@ -128,6 +127,12 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProviderCommissionBenefi
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProviderCommissionBenefitRuleDetail;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProviderCommissionBenefitRulesList;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolveEffectiveCommission;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreateProviderPlanPrice;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivateProviderPlanPrice;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateProviderPlanPrice;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProviderPlanPrices;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetUpcomingPlanPriceChanges;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolveProviderPlanPrice;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
