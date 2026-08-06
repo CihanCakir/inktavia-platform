@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
 [ApiController]
-[Route("api/v1/admin-panel")]
+[Route("api/v1/admin-panel/identity/venues/profiles")]
 [Tags("Admin Panel - Venues")]
 [Authorize(Policy = "AdminPanelAccess")]
 public sealed class VenuesController : AizenWebApiController
@@ -19,7 +19,7 @@ public sealed class VenuesController : AizenWebApiController
     public VenuesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
-    [HttpGet("identity/venues/profiles")]
+    [HttpGet]
     [ProducesResponseType(typeof(PagedVenueProfileResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<PagedVenueProfileResult>> SearchProfiles(
         [FromQuery] int pageIndex = 0,
@@ -30,7 +30,7 @@ public sealed class VenuesController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("identity/venues/profiles/{profileId:guid}")]
+    [HttpGet("{profileId:guid}")]
     [ProducesResponseType(typeof(VenueProfileResult), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<VenueProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
