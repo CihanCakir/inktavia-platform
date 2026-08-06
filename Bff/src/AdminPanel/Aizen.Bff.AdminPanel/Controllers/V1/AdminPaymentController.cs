@@ -48,7 +48,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.ProviderPlanPrice;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderCommissionBenefit;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundAllocationPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundQueue;
-using Aizen.Bff.AdminPanel.Application.Payment.ProviderBalance;
 using Aizen.Modules.Payment.Abstraction.Dto;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCommissionRuleDetail;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetCommissionRulesList;
@@ -116,6 +115,9 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateProfitProtectionPol
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProfitProtectionPoliciesList;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProfitProtectionPolicyDetail;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.ResolveProfitProtectionPolicy;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.AdjustProviderBalance;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProviderBalance;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProviderBalances;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
