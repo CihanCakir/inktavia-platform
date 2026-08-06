@@ -10,9 +10,9 @@ namespace Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
 
 /// <summary>
 /// BFF → FileStorage module calls (Keycloak service token injected by the delegating handler; the mobile BFF
-/// service account holds file_storage_read/write). Used by the M3c avatar upload: create a ServerSideUpload
-/// session (presigned PUT signed for the internal S3 endpoint so the BFF can push the bytes), complete it, then
-/// mint a presigned read URL for rendering.
+/// service account holds file_storage_read/write). Used by the canonical client-side presigned flow: create a
+/// session (ServerSideUpload=false → presigned PUT signed for the device-reachable public endpoint), which the
+/// CLIENT PUTs bytes to directly; complete it; then mint a presigned read URL for rendering.
 /// </summary>
 public interface IFileStorageRemoteCall : IAizenRemoteCall
 {

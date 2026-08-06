@@ -50,23 +50,15 @@ public sealed class ProfileController : AizenWebApiController
         return SetResponse(result);
     }
 
-    /// <summary>Upload/replace the participant's avatar (multipart `file`); returns the updated profile with a fresh avatarUrl.</summary>
+    /// <summary>Set the participant's avatar to a completed client-side upload (`{ fileId }`); returns the updated
+    /// profile with a fresh avatarUrl. The image bytes are uploaded directly to storage via /mobile/uploads —
+    /// never through this BFF.</summary>
     [HttpPost("avatar")]
     [ProducesResponseType(typeof(GetParticipantProfileResponse), StatusCodes.Status200OK)]
-    [RequestSizeLimit(10 * 1024 * 1024)]
     public async Task<AizenApiResponse<GetParticipantProfileResponse>> UploadAvatar(
-        [FromForm] IFormFile file, CancellationToken ct)
+        [FromBody] UploadParticipantAvatarRequest request, CancellationToken ct)
     {
-        using var ms = new MemoryStream();
-        if (file is not null) await file.CopyToAsync(ms, ct);
-
-        var result = await _cqrs.ProcessAsync(new UploadParticipantAvatarCommand
-        {
-            Content = ms.ToArray(),
-            FileName = file?.FileName ?? "avatar",
-            ContentType = file?.ContentType ?? "application/octet-stream",
-            SizeInBytes = file?.Length ?? 0,
-        }, ct);
+        var result = await _cqrs.ProcessAsync(new UploadParticipantAvatarCommand { FileId = request.FileId }, ct);
         return SetResponse(result);
     }
 }

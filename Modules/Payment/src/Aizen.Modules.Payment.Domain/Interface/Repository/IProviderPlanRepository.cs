@@ -14,6 +14,9 @@ public interface IProviderPlanRepository
     // Subscriptions
     Task<ProviderPlanSubscriptionEntity?> GetActiveSubscriptionAsync(long providerProfileId, DateTime atUtc, CancellationToken ct = default);
 
+    /// <summary>N1 — load a single subscription by id (the reminder job re-loads to set the per-version marker).</summary>
+    Task<ProviderPlanSubscriptionEntity?> GetSubscriptionByIdAsync(long subscriptionId, CancellationToken ct = default);
+
     /// <summary>
     /// Returns a subscription linked to a specific payment transaction.
     /// Used by ProviderSubscriptionPaymentSucceededConsumer for idempotent retry handling.

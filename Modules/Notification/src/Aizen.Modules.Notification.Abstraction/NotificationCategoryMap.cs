@@ -17,7 +17,7 @@ public static class NotificationCategoryMap
             200 or 201                 => NotificationCategory.Messages,        // NewMessage / MessageBlocked
             >= 100 and <= 139          => NotificationCategory.ServiceRequests, // SR / offer / assignment / completion (incl. 103 maintenance-reminder N2, 133 auto-approve-approaching N3-C)
             140 or 141                 => NotificationCategory.Disputes,
-            >= 150 and <= 159          => NotificationCategory.Payments,   // incl. 157 PaymentAuthorized (PreAuth, N-C)
+            >= 150 and <= 163          => NotificationCategory.Payments,   // incl. 157 PaymentAuthorized (N-C); 160 price-change, 161/162 boost, 163 budget-low (N1/N4)
             >= 300 and <= 309          => NotificationCategory.CargoDry,
             >= 400 and <= 411          => NotificationCategory.Account,          // profile + auth/OTP (security)
             >= 900 and <= 999          => NotificationCategory.Broadcast,   // incl. 910 SupportRequestOpened (N-D)

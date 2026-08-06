@@ -37,6 +37,17 @@ public enum NotificationType
     /// <summary>N3-B — a gateway chargeback was recorded against a provider's transaction (P10 clawback / negative-balance
     /// impact). Notifies the provider + admins. Payments category (150–159, N-B gated).</summary>
     ChargebackRecorded           = 159,
+    /// <summary>N1 (§13.2) — "aboneliğiniz {tarih} tarihinde ₺{yeni} olacak": an auto-renewing provider subscription's
+    /// renewal price changes soon. Payments category (150–163, N-B gated). → provider.</summary>
+    SubscriptionPriceChangeUpcoming = 160,
+    /// <summary>N4 (§9) — "Teklif öne çıkarma aktif — {tarih}'e kadar": a premium boost entitlement was activated.
+    /// Payments category (N-B gated). → provider.</summary>
+    PremiumBoostActivated        = 161,
+    /// <summary>N4 (§9) — "Öne çıkarma iptal edildi": a premium boost entitlement was revoked (refund). → provider.</summary>
+    PremiumBoostRevoked          = 162,
+    /// <summary>N4 (§19.7) — "{plan} kampanya bütçesi %{x} kaldı": a customer-benefit budget crossed the low threshold /
+    /// exhausted; ops must top up before customer discounts silently stop. Payments category (N-B gated). → admins.</summary>
+    BenefitBudgetLow             = 163,
     NewMessageReceived           = 200,
     MessageBlocked               = 201,
     CargoDryKitActivated         = 300,

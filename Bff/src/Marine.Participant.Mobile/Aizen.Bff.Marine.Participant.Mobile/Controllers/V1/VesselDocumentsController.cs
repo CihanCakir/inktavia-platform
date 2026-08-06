@@ -37,33 +37,23 @@ public sealed class VesselDocumentsController : AizenWebApiController
     }
 
     /// <summary>Upload a document (multipart `file` + DOCUMENT_TYPE metadata). Server-side FileStorage upload →
-    /// attach to the vessel; returns the created document with a presigned read URL.</summary>
+    /// attach the completed upload to the vessel; returns the created document with a presigned read URL. The bytes
+    /// are uploaded client-side directly to storage via /mobile/uploads — never through this BFF.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(MobileVesselDocumentDto), StatusCodes.Status200OK)]
-    [RequestSizeLimit(25 * 1024 * 1024)]
     public async Task<AizenApiResponse<MobileVesselDocumentDto>> UploadDocument(
         [FromRoute] long vesselId,
-        [FromForm] IFormFile file,
-        [FromForm] string documentTypeCode,
-        [FromForm] string? documentName,
-        [FromForm] DateTime? expiresAt,
-        [FromForm] string? notes,
+        [FromBody] UploadMobileVesselDocumentRequest request,
         CancellationToken ct)
     {
-        using var ms = new MemoryStream();
-        if (file is not null) await file.CopyToAsync(ms, ct);
-
         var result = await _cqrs.ProcessAsync(new UploadMobileVesselDocumentCommand
         {
             VesselId = vesselId,
-            Content = ms.ToArray(),
-            FileName = file?.FileName ?? "document",
-            ContentType = file?.ContentType ?? "application/octet-stream",
-            SizeInBytes = file?.Length ?? 0,
-            DocumentTypeCode = documentTypeCode,
-            DocumentName = documentName,
-            ExpiresAt = expiresAt,
-            Notes = notes,
+            FileId = request.FileId,
+            DocumentTypeCode = request.DocumentTypeCode,
+            DocumentName = request.DocumentName,
+            ExpiresAt = request.ExpiresAt,
+            Notes = request.Notes,
         }, ct);
         return SetResponse(result);
     }

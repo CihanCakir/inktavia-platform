@@ -31,9 +31,10 @@ public sealed class PremiumBoostFlowTests
         => new(new DbContextOptionsBuilder<PaymentDbContext>()
             .UseInMemoryDatabase($"pbf-{Guid.NewGuid():N}").Options);
 
-    private static PremiumBoostService NewService(PaymentDbContext db)
+    private static PremiumBoostService NewService(PaymentDbContext db, Aizen.Core.Messagebus.Abstraction.Senders.IAizenMessagePublisher? publisher = null)
         => new(new PremiumPurchaseRepository(db), new PremiumEntitlementRepository(db),
                new FinancialLedgerPostingService(new FinancialLedgerRepository(db), NullLogger<FinancialLedgerPostingService>.Instance),
+               publisher ?? new RecordingPublisher(),
                NullLogger<PremiumBoostService>.Instance);
 
     private static async Task SeedAsync(PaymentDbContext db)
@@ -106,6 +107,36 @@ public sealed class PremiumBoostFlowTests
         await svc.OnBoostPaidAsync(tx, CancellationToken.None);
         await db.SaveChangesAsync();
         (await db.PremiumEntitlements.CountAsync()).Should().Be(1, "duplicate webhook must be idempotent (unique PremiumPurchaseId)");
+    }
+
+    // N4 (§9): boost paid emits PremiumBoostActivatedMessage to the provider; the subsequent refund
+    // of an Active entitlement emits PremiumBoostRevokedMessage. Fire-and-forget, additive to the core op.
+    [Fact]
+    public async Task BoostPaid_EmitsActivated_AndRefund_EmitsRevoked()
+    {
+        await using var db = NewDb();
+        await SeedAsync(db);
+        var (purchase, tx) = await InitiatePurchaseAsync(db);
+        tx.Capture(tx.GatewayReference);
+        db.Transactions.Update(tx);
+
+        var pub = new RecordingPublisher();
+        var svc = NewService(db, pub);
+
+        await svc.OnBoostPaidAsync(tx, CancellationToken.None);
+        await db.SaveChangesAsync();
+
+        var activated = pub.Published.OfType<Aizen.Modules.Payment.Abstraction.Message.PremiumBoostActivatedMessage>().ToList();
+        activated.Should().ContainSingle("boost paid must emit exactly one PremiumBoostActivatedMessage");
+        activated[0].OfferId.Should().Be(OfferId);
+        activated[0].ProviderProfileId.Should().NotBe(0);
+
+        await svc.OnBoostRefundedAsync(tx, "customer refund", CancellationToken.None);
+        await db.SaveChangesAsync();
+
+        var revoked = pub.Published.OfType<Aizen.Modules.Payment.Abstraction.Message.PremiumBoostRevokedMessage>().ToList();
+        revoked.Should().ContainSingle("refunding an active boost must emit exactly one PremiumBoostRevokedMessage");
+        revoked[0].OfferId.Should().Be(OfferId);
     }
 
     // ── Manual capture → Active (gateway-agnostic activation) ───────────────────

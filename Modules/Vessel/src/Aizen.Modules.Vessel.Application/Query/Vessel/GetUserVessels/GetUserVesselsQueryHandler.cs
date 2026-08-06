@@ -49,6 +49,9 @@ public sealed class GetUserVesselsQueryHandler : AizenQueryHandler<GetUserVessel
                 VesselTypeCode = o.Vessel.VesselTypeCode,
                 FlagCountryCode = o.Vessel.FlagCountryCode,
                 CoverMediaUrl = null,
+                // Length lives on the spec — the list projection previously dropped it, so Home/list showed "—"/"0m"
+                // even though it persists (detail returns it). Populate it here (LEFT JOIN via the null-conditional).
+                LengthMeters = o.Vessel.Specification != null ? o.Vessel.Specification.LengthValue : null,
                 Status = o.Vessel.Status,
                 Visibility = o.Vessel.Visibility,
                 IsArchived = o.Vessel.IsArchived,

@@ -251,3 +251,11 @@ Client-side presigned proven: photo byte PUT hits `localhost:9000` (PublicServic
 ## Remaining before M5:
 - **Retrofit slice**: move M4e docs + M3c avatar onto the `directUpload` client-side-presigned helper; drop the server-side relay.
 ## Then → M5 (CargoDry): Home 'Protected 85%' card + cargodry screens → real.
+
+---
+
+## Upload retrofit — DONE (2026-08-06)
+Avatar + vessel docs migrated onto the client-side `directUpload` primitive; server-side relay DELETED (+30/−122; old multipart endpoints now 415). FE `uploadAvatar`/`uploadVesselDocument` signatures unchanged → no screen edits. FileStorage ServerSideUpload capability retained (Payment PDF uses it). Byte-identical verified, bytes bypass BFF. Report: `Core/REPORT_UPLOAD_RETROFIT.md`. **All mobile uploads now on one correct pattern.**
+
+## → Phase 3 / M5 (CargoDry) — start with a GAP ANALYSIS first (vessel-style, read-only)
+FE surface: Home 'CargoDry Protected 85% / 85% CAPACITY' card + `cargodry/screens/{CargoDryOverview,CargoDryKitDetail,CargoDryRecommendation,QRActivation}`. Pair with the BE CargoDry module participant APIs (exists? expose? build?) before writing slices — the vessel gap analysis prevented every wrong assumption.

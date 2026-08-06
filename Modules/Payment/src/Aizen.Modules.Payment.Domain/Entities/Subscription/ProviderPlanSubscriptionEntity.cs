@@ -21,6 +21,14 @@ public sealed class ProviderPlanSubscriptionEntity : AizenEntityWithAudit
     public DateTime?          CancelledAt                { get; private set; }
     public string?            CancellationReason         { get; private set; }
 
+    /// <summary>
+    /// N1 (§13.2) — per-price-version idempotency marker for the upcoming-renewal-price-change reminder. Holds the
+    /// version key (renewal date + upcoming amount) of the change the provider was last reminded about, so the daily
+    /// job doesn't re-notify across the whole lead window. A different upcoming change (renewal advances, or the target
+    /// price re-versions) yields a different key → one fresh reminder. Null = never reminded.
+    /// </summary>
+    public string?            PriceChangeReminderVersionKey { get; private set; }
+
     private ProviderPlanSubscriptionEntity() { }
 
     public static ProviderPlanSubscriptionEntity Create(
@@ -61,4 +69,11 @@ public sealed class ProviderPlanSubscriptionEntity : AizenEntityWithAudit
         Status == SubscriptionStatus.Active &&
         SubscriptionPeriodStart <= utcNow &&
         SubscriptionPeriodEnd >= utcNow;
+
+    /// <summary>N1 — true when the provider hasn't yet been reminded about this exact upcoming price-change version.</summary>
+    public bool NeedsPriceChangeReminder(string versionKey) =>
+        !string.Equals(PriceChangeReminderVersionKey, versionKey, StringComparison.Ordinal);
+
+    /// <summary>N1 — stamp that the reminder for <paramref name="versionKey"/> was published (per-version once-guard).</summary>
+    public void MarkPriceChangeReminderSent(string versionKey) => PriceChangeReminderVersionKey = versionKey;
 }

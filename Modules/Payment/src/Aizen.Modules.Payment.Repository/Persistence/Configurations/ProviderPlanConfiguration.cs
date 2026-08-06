@@ -51,6 +51,7 @@ public sealed class ProviderPlanSubscriptionConfiguration : IEntityTypeConfigura
         b.Property(x => x.SubscriptionPeriodStart).IsRequired();
         b.Property(x => x.SubscriptionPeriodEnd).IsRequired();
         b.Property(x => x.CommissionRateAtSubscription).HasColumnType("numeric(6,4)").IsRequired();
+        b.Property(x => x.PriceChangeReminderVersionKey).HasMaxLength(100);   // N1 idempotency marker (nullable)
         b.HasIndex(x => new { x.ProviderProfileId, x.Status });
     }
 }

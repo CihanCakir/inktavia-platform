@@ -38,6 +38,9 @@ public sealed class ProviderPlanRepository : IProviderPlanRepository
         => _db.ProviderSubscriptions.FirstOrDefaultAsync(
             x => x.PaymentTransactionId == transactionId, ct);
 
+    public Task<ProviderPlanSubscriptionEntity?> GetSubscriptionByIdAsync(long subscriptionId, CancellationToken ct)
+        => _db.ProviderSubscriptions.FirstOrDefaultAsync(x => x.Id == subscriptionId, ct);
+
     public Task<List<ProviderPlanSubscriptionEntity>> GetExpiredActiveSubscriptionsAsync(
         int batchSize, CancellationToken ct)
         => _db.ProviderSubscriptions

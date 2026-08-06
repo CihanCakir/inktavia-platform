@@ -24,6 +24,8 @@ public sealed class CustomerBenefitBudgetConfiguration : IEntityTypeConfiguratio
 
         // Optimistic concurrency — prevents two concurrent checkouts double-spending the same budget (§8/§19.15).
         b.Property(x => x.Version).IsConcurrencyToken().IsRequired();
+        b.Property(x => x.LowBudgetNotified).IsRequired().HasDefaultValue(false);   // N4 once-per-crossing marker
+        b.Ignore(x => x.IsExhausted);   // computed
 
         b.Ignore(x => x.RemainingAmount);   // computed
 

@@ -17,6 +17,10 @@ public sealed class NotificationCategoryMapN3Tests
     [InlineData(NotificationType.CompletionAutoApproveApproaching, NotificationCategory.ServiceRequests)] // 133 (N3-C)
     [InlineData(NotificationType.DisputeResolved,              NotificationCategory.Disputes)]         // 141 (N3-A)
     [InlineData(NotificationType.ChargebackRecorded,           NotificationCategory.Payments)]         // 159 (N3-B)
+    [InlineData(NotificationType.SubscriptionPriceChangeUpcoming, NotificationCategory.Payments)]      // 160 (N1)
+    [InlineData(NotificationType.PremiumBoostActivated,        NotificationCategory.Payments)]         // 161 (N4)
+    [InlineData(NotificationType.PremiumBoostRevoked,          NotificationCategory.Payments)]         // 162 (N4)
+    [InlineData(NotificationType.BenefitBudgetLow,             NotificationCategory.Payments)]         // 163 (N4)
     public void New_types_map_to_the_expected_toggleable_category(NotificationType type, NotificationCategory expected)
     {
         var category = NotificationCategoryMap.Resolve(type);

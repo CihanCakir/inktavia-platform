@@ -20,9 +20,11 @@ public sealed class MobileVesselDocumentDto
     public DateTime? DownloadUrlExpiresAt { get; set; }
 }
 
-/// <summary>Metadata accompanying a document upload (the file itself is the multipart body).</summary>
+/// <summary>Attach a completed client-side upload (fileId) to the vessel as a typed document. The bytes were PUT
+/// directly to storage via /mobile/uploads — this carries only the fileId + document metadata.</summary>
 public sealed class UploadMobileVesselDocumentRequest
 {
+    public Guid FileId { get; set; }
     public string DocumentTypeCode { get; set; } = default!;
     public string? DocumentName { get; set; }
     public DateTime? ExpiresAt { get; set; }

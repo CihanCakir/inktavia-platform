@@ -30,6 +30,10 @@ public sealed class CustomerBenefitBudgetEntity : AizenEntityWithAudit
     /// <summary>Optimistic-concurrency token (EF <c>IsConcurrencyToken</c>); incremented on every mutation.</summary>
     public long                       Version        { get; private set; }
 
+    /// <summary>N4 (§19.7) — once-per-crossing guard: true after the low/exhausted notification was published for the
+    /// current low state; re-armed (false) when remaining recovers above the threshold. Stops consume-by-consume spam.</summary>
+    public bool                       LowBudgetNotified { get; private set; }
+
     /// <summary>Computed: Funded − Reserved − Consumed. How much benefit can still be reserved.</summary>
     public decimal RemainingAmount => FundedAmount - ReservedAmount - ConsumedAmount;
 
@@ -100,5 +104,24 @@ public sealed class CustomerBenefitBudgetEntity : AizenEntityWithAudit
         if (reservation.BudgetId != Id)
             throw new AizenBusinessException((int)PaymentErrorCode.CustomerBenefitReservationNotFound,
                 "Reservation does not belong to this budget.");
+    }
+
+    // ── N4 (§19.7) — low/exhausted budget crossing (once-per-crossing) ──────────
+
+    /// <summary>True when remaining is at/below <paramref name="thresholdAmount"/> and we haven't notified yet this crossing.</summary>
+    public bool ShouldNotifyLow(decimal thresholdAmount) =>
+        RemainingAmount <= thresholdAmount && !LowBudgetNotified;
+
+    /// <summary>True when remaining is exhausted (≤ 0).</summary>
+    public bool IsExhausted => RemainingAmount <= 0m;
+
+    /// <summary>Stamp that the low/exhausted notification was published (once-guard for this crossing).</summary>
+    public void MarkLowBudgetNotified() => LowBudgetNotified = true;
+
+    /// <summary>Re-arm the low-budget marker once remaining recovers above <paramref name="thresholdAmount"/> (e.g. a release/top-up).</summary>
+    public void ClearLowBudgetMarkerIfRecovered(decimal thresholdAmount)
+    {
+        if (LowBudgetNotified && RemainingAmount > thresholdAmount)
+            LowBudgetNotified = false;
     }
 }

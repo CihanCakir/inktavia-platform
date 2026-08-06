@@ -18,7 +18,9 @@
 
 ## Durum
 - **N3 (dispute/chargeback/auto-approve) ✅** (2026-08, UNCOMMITTED) — teslim platformu (N0–N-E) hazırdı; N3 eksik tip+tetikleri ekledi: `ServiceRequestDisputeResolvedConsumer`→141 owner+provider (S13 mesajı) + DisputeOpened targeting fix (owner+provider+admin); `PaymentChargebackRecordedMessage`+`NotificationType.ChargebackRecorded=159`+consumer→provider+admin; completion auto-approval (`AutoApproveAt`+`CompletionAutoApprovalJob` Hangfire hourly: 133 approaching reminder + deadline'da `ApproveServiceRequestCompletionCommand` system-actor reuse); `CompletionApprovedConsumer`→131. Hepsi N-B preference/channel'dan geçiyor; category map ≤139. **BULGU:** completion onayı escrow'u SENKRON bırakmaz (decoupled `ServiceRequestCompletedConsumer`+`PaymentAutoReleaseEligibilityJob`); auto-approval onay komutunu birebir reuse→manuel ile aynı ödeme sonucu. **Gotcha:** template'siz tip sessiz no-op→131/133/141/159 seed. Test: SR 116, Payment 79, Notification.Abstraction 5. Rapor `REPORT_N3.md`.
-- **N1** (renewal fiyat, P4 hazır) + **N2** (S12'ye bağlı) + **N4** (opsiyonel, P6/P11 hazır) kaldı.
+- **N2 (periyodik bakım hatırlatması) ✅** (S12 ile, 2026-08) — `MaintenanceReminderDueJob:AizenRecurringJob` + `NotificationType.MaintenanceReminderDue=103` + template seed. Bkz `ServiceRequest/REPORT_S12_N2.md`.
+- **N1 (renewal fiyat) + N4 (entitlement/benefit) ✅** (2026-08, committed, CANLI doğrulandı) — N1 `SubscriptionPriceChangeReminderJob` (P4 query, per-price-version idempotency marker, tip 160→provider); N4 boost activated(161)/revoked(162)→provider + budget-low(163, once-per-crossing)→admin. 4 template seed, N-B path. Job Hangfire'da koştu, idempotency+re-arm+admin fan-out kanıtlı. Rapor `REPORT_N1_N4.md`.
+- **NOTIFICATION ROADMAP (N1–N4) TÜMÜYLE KAPALI.**
 
 ## Açık kararlar (Notification)
 - Kanal önceliği (in-app / push / e-posta / SMS) kalem bazında · oto-onay hatırlatma zamanlaması (3./6. gün öneri) ·

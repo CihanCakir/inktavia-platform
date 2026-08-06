@@ -1,4 +1,5 @@
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Payment.Abstraction.Enum;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.Payment.Domain.Entities.CustomerBenefit;
@@ -7,9 +8,11 @@ using Aizen.Modules.Payment.Domain.Entities.Plan;
 using Aizen.Modules.Payment.Repository.Persistence;
 using Aizen.Modules.Payment.Repository.Repositories;
 using Aizen.Modules.Payment.Repository.Seed;
+using Aizen.Modules.Payment.Abstraction.Message;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Aizen.Modules.Payment.Repository.UnitTests;
@@ -19,6 +22,15 @@ public sealed class CustomerDiscountBenefitTests
     private static PaymentDbContext NewInMemoryDb()
         => new(new DbContextOptionsBuilder<PaymentDbContext>()
             .UseInMemoryDatabase($"cdb-{Guid.NewGuid():N}").Options);
+
+    // N4: the budget service now emits CustomerBenefitBudgetLowMessage; existing tests don't inspect it,
+    // so they get a throwaway publisher + empty config (code-default 10% threshold).
+    private static CustomerBenefitBudgetService NewBudgetSvc(
+        PaymentDbContext db, IAizenMessagePublisher? publisher = null, IConfiguration? config = null)
+        => new(new CustomerBenefitBudgetRepository(db),
+               publisher ?? new RecordingPublisher(),
+               config ?? new ConfigurationBuilder().Build(),
+               NullLogger<CustomerBenefitBudgetService>.Instance);
 
     // ── Reconciliation seed: plan ServiceDiscountRate → PlatformFunded plan-scoped rule ──
 
@@ -75,7 +87,7 @@ public sealed class CustomerDiscountBenefitTests
     {
         var (db, budgetId) = await SeedBudget(100m);
         await using var _ = db;
-        var svc = new CustomerBenefitBudgetService(new CustomerBenefitBudgetRepository(db));
+        var svc = NewBudgetSvc(db);
 
         var reservation = await svc.ReserveAsync(budgetId, 30m, "offer-1");
         (await db.CustomerBenefitBudgets.AsNoTracking().FirstAsync(x => x.Id == budgetId)).RemainingAmount.Should().Be(70m);
@@ -91,7 +103,7 @@ public sealed class CustomerDiscountBenefitTests
     {
         var (db, budgetId) = await SeedBudget(100m);
         await using var _ = db;
-        var svc = new CustomerBenefitBudgetService(new CustomerBenefitBudgetRepository(db));
+        var svc = NewBudgetSvc(db);
 
         Func<Task> act = () => svc.ReserveAsync(budgetId, 150m, "offer-1");
         await act.Should().ThrowAsync<AizenBusinessException>()
@@ -103,7 +115,7 @@ public sealed class CustomerDiscountBenefitTests
     {
         var (db, budgetId) = await SeedBudget(100m);
         await using var _ = db;
-        var svc = new CustomerBenefitBudgetService(new CustomerBenefitBudgetRepository(db));
+        var svc = NewBudgetSvc(db);
 
         var reservation = await svc.ReserveAsync(budgetId, 30m, "offer-1");
         await svc.ConsumeAsync(reservation.Id);
@@ -118,13 +130,52 @@ public sealed class CustomerDiscountBenefitTests
     {
         var (db, budgetId) = await SeedBudget(100m);
         await using var _ = db;
-        var svc = new CustomerBenefitBudgetService(new CustomerBenefitBudgetRepository(db));
+        var svc = NewBudgetSvc(db);
 
         var r1 = await svc.ReserveAsync(budgetId, 30m, "offer-1");
         var r2 = await svc.ReserveAsync(budgetId, 30m, "offer-1");   // same context — returns the same reservation
 
         r2.Id.Should().Be(r1.Id);
         (await db.CustomerBenefitBudgets.AsNoTracking().FirstAsync(x => x.Id == budgetId)).ReservedAmount.Should().Be(30m);
+    }
+
+    // N4 (§19.7): reserving the budget below the configured low threshold emits ONE CustomerBenefitBudgetLowMessage;
+    // a further reserve that stays below the threshold does NOT re-notify (once-per-crossing marker).
+    [Fact]
+    public async Task Reserve_Crossing_Low_Threshold_Emits_One_BudgetLow_And_Does_Not_Re_Notify()
+    {
+        var (db, budgetId) = await SeedBudget(100m);   // 10% threshold → 10 remaining
+        await using var _ = db;
+        var pub = new RecordingPublisher();
+        var svc = NewBudgetSvc(db, pub);
+
+        await svc.ReserveAsync(budgetId, 95m, "offer-1");   // remaining 5 ≤ 10 → crosses low
+        var low = pub.Published.OfType<CustomerBenefitBudgetLowMessage>().ToList();
+        low.Should().ContainSingle("crossing the low threshold must notify exactly once");
+        low[0].BudgetId.Should().Be(budgetId);
+        low[0].RemainingAmount.Should().Be(5m);
+        low[0].IsExhausted.Should().BeFalse();
+
+        await svc.ReserveAsync(budgetId, 2m, "offer-2");    // remaining 3 — still low, but already notified
+        pub.Published.OfType<CustomerBenefitBudgetLowMessage>().Should()
+           .ContainSingle("a second reserve below the threshold must not re-notify (once-per-crossing)");
+    }
+
+    // N4: releasing back above the threshold re-arms the marker, so a later crossing notifies again.
+    [Fact]
+    public async Task Release_Above_Threshold_Re_Arms_The_Low_Notification()
+    {
+        var (db, budgetId) = await SeedBudget(100m);
+        await using var _ = db;
+        var pub = new RecordingPublisher();
+        var svc = NewBudgetSvc(db, pub);
+
+        var r1 = await svc.ReserveAsync(budgetId, 95m, "offer-1");   // remaining 5 → notify #1
+        await svc.ReleaseAsync(r1.Id);                              // remaining 100 → re-arm
+        await svc.ReserveAsync(budgetId, 95m, "offer-2");           // remaining 5 → notify #2
+
+        pub.Published.OfType<CustomerBenefitBudgetLowMessage>().Should()
+           .HaveCount(2, "a recovery above the threshold re-arms the marker for the next crossing");
     }
 
     // ── Concurrent reserve on the same budget → exactly one wins (SQLite relational) ──
@@ -187,6 +238,7 @@ CREATE TABLE customer_benefit_budgets (
   PeriodStart TEXT NOT NULL, PeriodEnd TEXT NOT NULL,
   FundedAmount TEXT NOT NULL, ReservedAmount TEXT NOT NULL, ConsumedAmount TEXT NOT NULL,
   CurrencyCode TEXT NOT NULL, Status INTEGER NOT NULL, Version INTEGER NOT NULL,
+  LowBudgetNotified INTEGER NOT NULL DEFAULT 0,
   PublicId TEXT NULL, ModifyHost TEXT NULL, ModifyUserId INTEGER NULL, ModifyDate TEXT NULL,
   CreateUserId INTEGER NULL, CreateHost TEXT NULL, CreateDate TEXT NULL,
   IsDeleted INTEGER NOT NULL, DeletedAt TEXT NULL, DeletedBy INTEGER NULL, IsActive INTEGER NOT NULL);

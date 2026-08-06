@@ -1,4 +1,6 @@
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Payment.Abstraction.Enum;
+using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.Payment.Domain.Entities.Premium;
 using Aizen.Modules.Payment.Domain.Entities.Transaction;
 using Aizen.Modules.Payment.Domain.Interface.Repository;
@@ -18,17 +20,20 @@ public sealed class PremiumBoostService
     private readonly IPremiumPurchaseRepository    _purchases;
     private readonly IPremiumEntitlementRepository _entitlements;
     private readonly FinancialLedgerPostingService _ledgerPosting;
+    private readonly IAizenMessagePublisher        _publisher;
     private readonly ILogger<PremiumBoostService>  _logger;
 
     public PremiumBoostService(
         IPremiumPurchaseRepository    purchases,
         IPremiumEntitlementRepository entitlements,
         FinancialLedgerPostingService ledgerPosting,
+        IAizenMessagePublisher        publisher,
         ILogger<PremiumBoostService>  logger)
     {
         _purchases     = purchases;
         _entitlements  = entitlements;
         _ledgerPosting = ledgerPosting;
+        _publisher     = publisher;
         _logger        = logger;
     }
 
@@ -69,6 +74,17 @@ public sealed class PremiumBoostService
         _logger.LogInformation(
             "Premium boost activated. Purchase={Code} Offer={Offer} Provider={Provider} Window={Start:o}→{End:o}",
             purchase.PurchaseCode, purchase.ContextRef, purchase.ProviderProfileId, now, now.AddDays(purchase.DurationDaysSnapshot));
+
+        // N4 — fire-and-forget: notify the provider their boost is active. Fires once (the idempotent guard above
+        // early-returns a duplicate webhook). EntitlementId is best-effort (row persists on the pipeline commit).
+        PublishFireAndForget(new PremiumBoostActivatedMessage
+        {
+            ProviderProfileId = entitlement.ProviderProfileId,
+            OfferId           = entitlement.ContextRef,
+            EntitlementId     = entitlement.Id,
+            ExpiresAtUtc      = entitlement.ExpiresAt ?? now.AddDays(purchase.DurationDaysSnapshot),
+        }, ct, $"PremiumBoostActivated purchase {purchase.PurchaseCode}");
+
         return entitlement;
     }
 
@@ -99,8 +115,26 @@ public sealed class PremiumBoostService
             entitlement.Revoke(reason);
             _entitlements.Update(entitlement);
             _logger.LogInformation("Premium boost revoked (refund). Purchase={Code} Offer={Offer}.", purchase.PurchaseCode, purchase.ContextRef);
+
+            // N4 — fire-and-forget: notify the provider their boost was cancelled. Fires only on the actual
+            // Active→Revoked transition (guarded above), so it never double-notifies.
+            PublishFireAndForget(new PremiumBoostRevokedMessage
+            {
+                ProviderProfileId = entitlement.ProviderProfileId,
+                OfferId           = entitlement.ContextRef,
+                EntitlementId     = entitlement.Id,
+                Reason            = reason,
+            }, ct, $"PremiumBoostRevoked purchase {purchase.PurchaseCode}");
         }
     }
+
+    // Publish a notification event without blocking the core boost operation (§ "fire-and-forget").
+    private void PublishFireAndForget<TMessage>(TMessage message, CancellationToken ct, string what)
+        where TMessage : Aizen.Core.Messagebus.Abstraction.Messages.AizenBaseMessage
+        => _ = _publisher.PublishAsync(message, ct).ContinueWith(t =>
+           {
+               if (t.IsFaulted) _logger.LogError(t.Exception, "Failed to publish {What}.", what);
+           }, TaskContinuationOptions.OnlyOnFaulted);
 
     /// <summary>§13.9 — expire Active entitlements past their ExpiresAt. Returns the count expired.</summary>
     public async Task<int> ExpireDueAsync(DateTime nowUtc, int max, CancellationToken ct)

@@ -121,6 +121,30 @@ public sealed class NotificationTemplateSeed
             "Ters ibraz kaydedildi",
             "{{amount}} {{currency}} tutarında bir ters ibraz kaydedildi (işlem {{transactionCode}}, ref {{gatewayRef}})."),
 
+        // N1 (§13.2) — subscription renewal price change (provider-facing).
+        NotificationTemplateEntity.Create("SUB_PRICE_CHANGE_UPCOMING_INAPP", "Subscription Price Change Upcoming (In-App)",
+            NotificationType.SubscriptionPriceChangeUpcoming, NotificationChannel.InApp,
+            "Abonelik fiyatı değişiyor — {{plan}}",
+            "{{plan}} aboneliğiniz {{date}} tarihinde {{newPrice}} {{currency}} olacak (şu an {{currentPrice}} {{currency}})."),
+
+        // N4 (§9) — premium boost activated (provider-facing).
+        NotificationTemplateEntity.Create("PREMIUM_BOOST_ACTIVATED_INAPP", "Premium Boost Activated (In-App)",
+            NotificationType.PremiumBoostActivated, NotificationChannel.InApp,
+            "Teklif öne çıkarma aktif",
+            "Teklif #{{offerId}} öne çıkarma aktif — {{expiresAt}} tarihine kadar geçerli."),
+
+        // N4 (§9) — premium boost revoked (provider-facing).
+        NotificationTemplateEntity.Create("PREMIUM_BOOST_REVOKED_INAPP", "Premium Boost Revoked (In-App)",
+            NotificationType.PremiumBoostRevoked, NotificationChannel.InApp,
+            "Öne çıkarma iptal edildi",
+            "Teklif #{{offerId}} için öne çıkarma iptal edildi."),
+
+        // N4 (§19.7) — customer-benefit budget low/exhausted (admin-facing).
+        NotificationTemplateEntity.Create("BENEFIT_BUDGET_LOW_INAPP", "Benefit Budget Low (In-App)",
+            NotificationType.BenefitBudgetLow, NotificationChannel.InApp,
+            "Kampanya bütçesi azaldı",
+            "Plan #{{plan}} kampanya bütçesinde {{remaining}} {{currency}} kaldı (eşik %{{percent}}). Lütfen bütçeyi artırın."),
+
         NotificationTemplateEntity.Create("MSG_NEW_MESSAGE_INAPP", "New Message (In-App)",
             NotificationType.NewMessageReceived, NotificationChannel.InApp,
             "New message from {{senderName}}",
