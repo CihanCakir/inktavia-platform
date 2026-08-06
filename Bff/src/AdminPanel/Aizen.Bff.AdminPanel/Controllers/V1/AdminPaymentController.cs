@@ -48,7 +48,6 @@ using Aizen.Bff.AdminPanel.Application.Payment.PlatformFeeRule;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderPlanPrice;
 using Aizen.Bff.AdminPanel.Application.Payment.ProfitProtectionPolicy;
 using Aizen.Bff.AdminPanel.Application.Payment.CustomerDiscount;
-using Aizen.Bff.AdminPanel.Application.Payment.PartCommercialTerm;
 using Aizen.Bff.AdminPanel.Application.Payment.ProviderCommissionBenefit;
 using Aizen.Bff.AdminPanel.Application.Payment.PremiumAdmin;
 using Aizen.Bff.AdminPanel.Application.Payment.RefundAllocationPolicy;
@@ -79,6 +78,12 @@ using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateParticipantPlan;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateProviderPlan;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetParticipantPlanById;
 using Aizen.Bff.AdminPanel.Application.Payment.Query.GetProviderPlanById;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.CreatePartCommercialTerm;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivatePartCommercialTerm;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.ReactivatePartCommercialTerm;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdatePartCommercialTerm;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPartCommercialTermDetail;
+using Aizen.Bff.AdminPanel.Application.Payment.Query.GetPartCommercialTermsList;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
