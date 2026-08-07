@@ -151,6 +151,13 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/service-requests/provider/conversations")]
     Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.Message.GetProviderConversationsResponse>> GetProviderConversations();
 
+    // --- Disputes (provider-scoped; cost-free) ---
+    [AizenRemoteCallGet("/api/v1/service-requests/provider/disputes")]
+    Task<AizenApiResponse<GetProviderDisputesResponse>> GetProviderDisputes(
+        [Refit.Query] int pageIndex = 0,
+        [Refit.Query] int pageSize = 20,
+        [Refit.Query] ServiceRequestDisputeStatus? status = null);
+
     // --- Catalog ---
     [AizenRemoteCallGet("/api/v1/service-requests/provider/catalog")]
     Task<AizenApiResponse<List<Aizen.Modules.ServiceRequest.Abstraction.Dto.ProviderCatalogItemDto>>> ListCatalogItems();

@@ -14,6 +14,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderServiceRequestDetail;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetAttachmentAccessUrl;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderConversations;
+using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderDisputes;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Message;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -254,6 +255,24 @@ public sealed class ProviderJobsController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetProviderConversationsResponse>(
             new GetProviderConversationsQuery(), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// The calling provider's own disputes — the disputes on the service requests they won — plus a global
+    /// open/actionable count for the dashboard attention row. Provider identity is taken from the trusted context,
+    /// never from parameters. Cost-free: no offer economics leave here.
+    /// </summary>
+    [HttpGet("disputes")]
+    [ProducesResponseType(typeof(GetProviderDisputesResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetProviderDisputesResponse?>> GetDisputes(
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] ServiceRequestDisputeStatus? status = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetProviderDisputesResponse>(
+            new GetProviderDisputesQuery(pageIndex, pageSize) { StatusFilter = status }, ct);
         return SetResponse(result);
     }
 }

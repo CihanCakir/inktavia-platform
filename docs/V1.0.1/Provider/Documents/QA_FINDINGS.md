@@ -13,4 +13,10 @@ List the provider's documents (compliance/KYC/onboarding uploads) via the FileSt
 replace/download (presigned), status badges. Add hooks + wire the page.
 
 ## Live walkthrough checklist
-- [ ] Page lists real documents (not the stub), upload/download work, or the nav entry is removed.
+- [x] Page lists real documents (not the stub), upload/download work, or the nav entry is removed.
+
+## Resolution → built (see `../Performance/REPORT_P_QA7.md`)
+Built the page (list + presigned download + upload/delete + loading/empty/error, tr+en), reusing the existing
+`GET /onboarding` `documents[]` list + the attach/delete/access-url commands — no BFF change needed. Nav item
+→ `implemented` (YAKINDA badge dropped). Live-verified end-to-end: list, upload (4-step presigned), download
+(MinIO presigned URL), delete. **Not committed.**
