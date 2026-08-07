@@ -19,7 +19,13 @@ using Newtonsoft.Json.Serialization;
 
 namespace Aizen.Core.Starter.Api.Generic;
 
-[AllowAnonymous]
+// HARDENING_GENERIC_CRUD_AND_SERVICE_TOKEN: this generic full-CRUD surface was [AllowAnonymous] and
+// auto-registered for every entity on every BFF host — an anonymous create/update/delete on ~145 entities.
+// It is unused scaffolding (no FE or server caller). Fail-closed now: it is NOT registered unless a host
+// explicitly opts in (GenericBffCrud:Enabled, default off — see AizenBffServiceConfiguration), and even then
+// it requires an authenticated caller ([Authorize], never anonymous). The hardening-1 GenericEntitySyncGuard
+// remains the deeper backstop that refuses generic writes to the immutable financial entities.
+[Authorize]
 [Route("api/[controller]")]
 [GenericRestControllerNameConvention]
 public class AizenGenericBffApi<TEntity> : AizenWebApiController

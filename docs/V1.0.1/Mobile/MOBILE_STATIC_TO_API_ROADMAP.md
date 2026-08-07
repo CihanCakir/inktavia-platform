@@ -319,3 +319,18 @@ On-device QA (report `Vessel/REPORT_ONDEVICE_QA_M3_M4.md`) found a **silent uplo
   at a 159-byte 1×1 corrupt artifact → the "black circle" was corrupt bytes, not a
   wiring/resolution bug. Null it (`UPDATE "UserProfiles" SET "ProfilePhotoUrl"=NULL
   WHERE "Id"=100030;`) for a clean initials baseline before re-testing UP-1.
+
+## Status update — UP-1/UP-2 live re-verification (Aug 7)
+
+- **UP-2 document picker — ✅ CONFIRMED FIXED.** Native Files picker now launches on
+  type-select (was firing in the Modal's dismiss tick → silent no-op). Byte-upload
+  not exercised only because simulator Files is empty; downstream is the shared,
+  proven `directUpload`.
+- **UP-1 avatar — ⚠️ PARTIAL.** Initials fallback ✅ (no more black circle). But a
+  fresh upload still does not render a real image (stays initials after refetch) →
+  **NEW debt UP-1b:** avatar UPLOAD produces a non-renderable image (matches the
+  159-byte 1×1 corrupt artifact seen at S2S-fix time). Suspect the avatar
+  crop/resize (ImageManipulator) step collapses to 1×1 / corrupt, or its result URI
+  is read wrong before `directUpload`. Vessel-photo path (no manipulation) is fine.
+  Fix so a full-size valid image is stored. Details in
+  `QA/REPORT_ONDEVICE_QA_UPLOAD_FIX_VERIFY.md`.

@@ -15,15 +15,30 @@ public static class BuilderExtensions
         setupAction?.Invoke(options);
 
         // ── Trusted-BFF identity assertion (module side) ─────────────────────────────────────────────────
-        // Disabled unless BffAssertion:SharedSecret is set.
+        // The module trusts whatever user id a trusted BFF asserts. The only thing distinguishing a trusted
+        // BFF from any other holder of a valid service-account token is AllowedClientIds. Leaving that list
+        // empty turns the assertion into "any service client may claim to be any user" — and it fails
+        // silently, because nothing about a wide-open allowlist looks wrong at runtime.
         //
-        // When it IS set, the module trusts whatever user id the caller asserts. The only thing distinguishing
-        // a trusted BFF from any other holder of a valid service-account token is AllowedClientIds. Leaving
-        // that list empty turns the assertion into "any service client may claim to be any user" — and it
-        // fails silently, because nothing about a wide-open allowlist looks wrong at runtime.
+        // Two fail-closed startup gates (HARDENING_GENERIC_CRUD_AND_SERVICE_TOKEN):
+        //   (a) secret set + allowlist empty ⇒ the service does not start — a config that would grant
+        //       impersonation must be loud at boot, not discovered later; and
+        //   (b) OUTSIDE Development the secret must be non-empty — the internal service-token identity path
+        //       must be actively configured in prod/staging, never left inert. In Development an empty secret
+        //       still means "feature disabled" so local runs are unchanged.
         //
-        // So: secret set + allowlist empty ⇒ the service does not start. A misconfiguration that would grant
-        // impersonation must be loud at boot, not discovered later.
+        // Environment is read from configuration (ASPNETCORE_ENVIRONMENT / DOTNET_ENVIRONMENT — both surfaced
+        // into IConfiguration by the host's environment-variable source) with an env-var fallback, defaulting
+        // to Production when unset (fail-closed default). No dependency on IHostEnvironment, so this stays a
+        // single-argument extension usable by every host + hermetically testable.
+        var environmentName =
+            configuration["ASPNETCORE_ENVIRONMENT"]
+            ?? configuration["DOTNET_ENVIRONMENT"]
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+            ?? "Production";
+        var isDevelopment = string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase);
+
         services.AddOptions<AizenBffAssertionOptions>()
             .Bind(configuration.GetSection(AizenBffAssertionOptions.SectionName))
             .Validate(
@@ -32,6 +47,12 @@ public static class BuilderExtensions
                 "An empty allowlist would let ANY caller holding a valid service-account token assert ANY " +
                 "user id (X-Aizen-User-Id) and impersonate them. Configure the allowed client ids " +
                 "(e.g. BffAssertion__AllowedClientIds__0=provider-portal-bff) or unset the shared secret.")
+            .Validate(
+                o => isDevelopment || !string.IsNullOrWhiteSpace(o.SharedSecret),
+                $"BffAssertion:SharedSecret is required outside Development (environment='{environmentName}') " +
+                "but is empty. The internal BFF→module service-token identity path must be configured in " +
+                "non-Development environments (fail-closed). Wire BffAssertion__SharedSecret from your env/k8s " +
+                "secret (e.g. AIZEN_BFF_ASSERTION_SECRET), or run with ASPNETCORE_ENVIRONMENT=Development locally.")
             .ValidateOnStart();
 
         services.AddSingleton<AizenInfoContainerForSigleton>();

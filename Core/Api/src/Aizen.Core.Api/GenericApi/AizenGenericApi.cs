@@ -9,7 +9,11 @@ using MiniUow.Paging;
 
 namespace Aizen.Core.Infrastructure.Api.GenericApi;
 
-[AllowAnonymous]
+// HARDENING_GENERIC_CRUD_AND_SERVICE_TOKEN: this generic per-entity read API was [AllowAnonymous] and
+// auto-registered for every entity on every module host — anonymous reads of every entity. It is unused
+// scaffolding. Fail-closed now: NOT registered unless a host opts in (GenericEntityApi:Enabled, default off —
+// see Core.Api AddAizenApi), and even then it requires an authenticated/service-token caller ([Authorize]).
+[Authorize]
 [Route("api/[controller]")]
 [GenericRestControllerNameConvention]
 public class AizenGenericApi<TEntity> : AizenWebApiController, IAizenGenericApi<TEntity>

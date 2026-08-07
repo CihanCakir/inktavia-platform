@@ -151,7 +151,10 @@ services:
       AdminPanelKeycloak__AdminPanelClientId: admin-panel-web
       AdminPanelKeycloak__AdminPanelBffClientId: admin-panel-bff
       AdminPanelKeycloak__AdminRole: Admin
-      # Trusted-BFF identity assertion (audit only). Empty = disabled. Must match each module's BffAssertion__SharedSecret.
+      # Trusted-BFF identity assertion. Must match each module's BffAssertion__SharedSecret.
+      # FAIL-CLOSED (HARDENING_GENERIC_CRUD_AND_SERVICE_TOKEN): empty is allowed ONLY in Development
+      # (feature disabled). Outside Development every host requires a non-empty AIZEN_BFF_ASSERTION_SECRET or
+      # it will refuse to start. Set AIZEN_BFF_ASSERTION_SECRET (env/k8s secret, NOT in the repo) for prod/staging.
       # X-Aizen-User-Id is resolved via Keycloak subject → Identity by-subject lookup (no user-id claim mapper needed).
       AdminPanelKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       # ── BFF→module Keycloak service token ──

@@ -60,3 +60,40 @@ Date: Aug 6, 2026. Result: **PASS with 2 follow-ups**.
   Clipboard paste (`computer_write_clipboard`) is NOT grantable in this session.
   Per-char `computer_key` batches drop/mangle chars. Practical path: have the user
   type credentials (login) manually, then hand control back for tap-driven QA.
+
+---
+
+## Live re-verification (Aug 7, after S2S 403 restore) — UP-1 / UP-2
+
+Login restored; drove the two fixes on the simulator (FinalLoop2 78502 / QA Owner Aug5).
+
+- **UP-2 (document picker) — ✅ FIX CONFIRMED.** Documents → UPLOAD DOCUMENT →
+  Document Type sheet → select "Sigorta Poliçesi" → the native iOS Files picker
+  **now launches** (Recents/Shared/Browse). This was the exact bug (picker never
+  presented because it was fired in the same tick the type-Modal dismissed). The
+  actual byte-upload could NOT be exercised only because the simulator Files store
+  is empty ("On My iPhone is Empty" — no test file to pick); that downstream path is
+  the same shared `directUpload` primitive already proven by the vessel-photo upload.
+  *Debt closed at the picker-launch level; seed a file into simulator Files to fully
+  exercise the byte path in a later pass.*
+
+- **UP-1 (avatar) — ⚠️ PARTIAL.**
+  - ✅ **Initials fallback CONFIRMED.** With `ProfilePhotoUrl` nulled, the avatar now
+    renders a proper "QO" initials circle — no more black circle. `<Image onError>`
+    → initials works.
+  - ❌ **A fresh avatar upload still does NOT render a real image.** Picked a photo →
+    upload ran to completion (spinner cleared) → avatar stayed on "QO" initials, and
+    stayed initials after navigating away and back (refetch). Same symptom as before.
+  - **Diagnosis (NEW debt UP-1b):** the render/fallback fix is good, but the avatar
+    UPLOAD still produces a non-renderable image — consistent with the earlier
+    runtime finding that the stored avatar was a **159-byte 1×1 corrupt artifact**.
+    The vessel-photo path (no image manipulation) uploads valid images; the avatar
+    path likely has a crop/resize step (ImageManipulator) whose output collapses to
+    1×1 / corrupt bytes, OR its manipulated result URI is read wrong before
+    `directUpload`. Fix the avatar byte/manipulation step so it stores a full-size
+    valid image like the vessel-photo path; then `<Image>` will render it and the
+    onError fallback stays only for genuine failures.
+  - *How to confirm root cause definitively:* after an avatar upload, check the
+    stored object size (should be ~KBs, not ~159 bytes) and the pixel dimensions
+    (not 1×1); and log the ImageManipulator result URI + the bytes length passed to
+    `directUpload`.
