@@ -256,6 +256,7 @@ services:
       - identity-api
       - reference-data-api
       - vessel-api
+      - service-request-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -288,6 +289,8 @@ services:
       # Vessel reads (M4a) + create trio (M4b). Base URL was missing here — M4a registered neither the
       # RemoteCalls entry nor the DI client, so the vessel calls could not reach vessel-api. Fixed with M4b.
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      # Owner service-request create/list/detail/cancel (BE_MO1) → the ServiceRequest module owner endpoints.
+      RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity.
       MarineMobileKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -630,6 +633,8 @@ services:
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
       BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE_MO1: honor the marine-mobile-bff assertion so the owner app can create/list/detail its service requests.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       # Redis backplane for SignalR (ServiceRequestHub).
       Realtime__SignalR__UseRedisBackplane: "true"
       Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15

@@ -334,3 +334,38 @@ On-device QA (report `Vessel/REPORT_ONDEVICE_QA_M3_M4.md`) found a **silent uplo
   is read wrong before `directUpload`. Vessel-photo path (no manipulation) is fine.
   Fix so a full-size valid image is stored. Details in
   `QA/REPORT_ONDEVICE_QA_UPLOAD_FIX_VERIFY.md`.
+
+## Status update — Media/upload debt CLOSED on-device (Aug 7)
+
+- **UP-1 avatar — ✅ CLOSED on-device.** UP-1b premise (1×1/manipulation) didn't hold
+  — no manipulation step; avatar & vessel-photo share identical `pickImage →
+  directUpload`; pipeline proven healthy over HTTP (23 KB JPEG stored Ready). Earlier
+  "stays initials" was the pre-BFF-restart S2S window. Live confirm: fresh pick →
+  **square-crop UI** (new `allowsEditing`/`aspect [1,1]`) → renders immediately +
+  persists across refetch. `__DEV__` byte diagnostics added to `pickImage`/`directUpload`.
+- **UP-2 documents — ✅ CLOSED** (picker launches; shared proven `directUpload`; full
+  byte pass optional — simulator Files empty).
+- **Media/upload is done for M3/M4.** Only unrelated open item: registration
+  realm-management SA roles before the on-device REGISTER test.
+- **Next: M5 CargoDry** (BE_M5-0 prereqs prompt already drafted).
+
+## Status update — Register SA roles CLOSED + durable (Aug 7)
+
+- **Registration — ✅ CLOSED.** Root cause: `service-account-marine-mobile-bff` had
+  no `realm-management` roles after recreate; the BFF itself provisions the KC user
+  (`MarineMobileKeycloakAdminClient`, same IMemoryCache SA token as login), so the
+  first admin call (`GET /users` in `FindUserByEmailAsync`) 403'd before any user was
+  created. Granted `manage-users/view-users/query-users/view-realm` (`--uid
+  --cclientid realm-management`) + restarted `bff-marine-mobile`. Register e2e green
+  (isSuccess, token, `/me` 200 → profileId 100032; KC user present; 0×403).
+- **Durable fix:** the realm JSON had NO `service-account-marine-mobile-bff` entry at
+  all — added a 17-line entry (mirrors `service-account-admin-panel-bff`) carrying
+  BOTH login roles (`identity_read/write`) and registration roles
+  (`realm-management`). Proven in an isolated throwaway Keycloak: a fresh
+  `--import-realm` auto-grants all six roles, no init.sh, no manual step. Live
+  `kc_pg_data` intentionally NOT wiped (holds runtime users). Only file changed:
+  `infrastructure/keycloak/inktavia-realm-realm.json` (+17). Report:
+  `QA/REPORT_FIX_REGISTER_SA_ROLES.md`.
+- **AUTH SURFACE FULLY CLEAN** — login (email/phone/OTP/social-graceful), recovery,
+  register, avatar+doc uploads all verified. No open auth/media debt.
+- **NEXT: M5 CargoDry** (BE_M5-0 prereqs prompt drafted).

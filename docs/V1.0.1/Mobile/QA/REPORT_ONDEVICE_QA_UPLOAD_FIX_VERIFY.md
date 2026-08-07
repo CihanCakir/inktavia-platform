@@ -97,3 +97,94 @@ Login restored; drove the two fixes on the simulator (FinalLoop2 78502 / QA Owne
     stored object size (should be ~KBs, not ~159 bytes) and the pixel dimensions
     (not 1×1); and log the ImageManipulator result URI + the bytes length passed to
     `directUpload`.
+
+---
+
+## UP-1b resolution (Aug 7) — the avatar bug was NOT image manipulation
+
+Investigated per the UP-1b ticket. The "1×1 / corrupt via a crop/resize (ImageManipulator)
+step" hypothesis is **false** — and the real root cause was already fixed by the S2S restore.
+
+### What the evidence actually shows
+
+- **No image manipulation exists anywhere.** `expo-image-manipulator` is not in `package.json`
+  nor `node_modules`; there is no `manipulateAsync` / crop / resize in the avatar path (or the
+  whole app — every `resize`/`crop` hit is a `resizeMode` *display* prop). The avatar and the
+  working vessel-photo path call the **identical** `pickImage()` → `directUpload(file,'Image')`
+  → `expo-file-system uploadAsync(BINARY_CONTENT)`. There is no avatar-specific byte handling to
+  go wrong.
+- **The upload/attach/render pipeline is healthy end-to-end** (verified over authenticated HTTP,
+  real 400×400 / 23 KB JPEG, `qa.owner.aug5`):
+  `POST /uploads/session` → `PUT` bytes to the presigned URL (200) → `POST /uploads/complete`
+  → `POST /profile/avatar {fileId}` (isSuccess) → `GET /profile/me` returns a resolved
+  `avatarUrl` that **fetches 23156 bytes, image/jpeg, HTTP 200**. Stored object
+  (`file_storage.files` id=36) = **23156 bytes, Status=Ready** — a normal image, not ~159 bytes,
+  not 1×1.
+- **The 159-byte 1×1 files were pre-fix artifacts.** files 30/31/32 (159 B, 17:26–17:55 Aug 6)
+  were uploaded by the OLD `fetch(uri).blob()` path (its documented failure mode = empty/broken
+  body); the post-fix `uploadAsync` primitive produced the 1.5 MB vessel photo (id 34, 19:59
+  Aug 6) — same code the avatar uses.
+- **The Aug-7 "fresh upload never renders" was the S2S-403 attach, not bytes.** A degenerate byte
+  upload would still leave a file row (Status 2/5) in storage — but there is **no** device-created
+  file between Aug 6 and this fix. So no bytes ever reached storage: `directUpload` failed at the
+  session/attach S2S hop. Consistent with the timeline — UP-2's picker launch doesn't touch
+  identity S2S (so it passed), while the avatar attach (`BFF→identity UpdateParticipantProfile`)
+  was still 403 on the **stale cached BFF service token** until `bff-marine-mobile` was restarted
+  (the token lives in in-process `IMemoryCache`; see `REPORT_FIX_S2S_403_RESTORE.md`). Post-restart
+  the full flow works (the e2e above). `ProfilePhotoUrl` is now set to the valid id=36 image, so
+  the QA user's avatar renders on next open.
+
+### FE changes made (safe, additive — no BFF/module/mock changes)
+
+1. **Square crop for the avatar** — `ProfileScreen.handlePickAvatar` now calls
+   `pickImage({ allowsEditing: true, aspect: [1,1] })`, giving a properly-formed square image for
+   the circular frame (the ticket's accepted "correctly-sized square crop"). `pickImage` gained an
+   optional `PickImageOptions` param; **all other call sites (vessel photo, add-vessel, dispute)
+   pass no args → unchanged** full-frame behavior.
+2. **On-device diagnostics** (`__DEV__`-only, no-op in prod): `pickImage` logs
+   `{uri,width,height,fileSize}` of the picked/cropped asset, and `directUpload` logs the exact
+   `sizeInBytes` read for the PUT (per category). A degenerate pick is now obvious on-device before
+   it uploads — this is the byte-length visibility the ticket asked for.
+3. Render side left as-is (immediate cache-seed from the attach response + `<Image onError>` →
+   initials).
+
+`npx tsc --noEmit` → 0 errors.
+
+### On-device final confirmation (recommended)
+
+Could not drive a live RN photo-pick this pass (device text-entry/automation constraints noted
+above; the pipeline was instead proven via authenticated HTTP e2e + the byte-length diagnostics
+now in place). To close on device: Profile → avatar badge → pick a photo → **square crop UI
+appears** → confirm → avatar renders immediately and persists after navigate-away/back and app
+relaunch. Watch the Metro console for `[pickImage] picked …` (width/height > 1) and
+`[directUpload] … sizeInBytes` (tens of KB+), and/or confirm the newest `file_storage.files` row is
+a normal-sized image. Expected: full-size valid image, renders, persists.
+
+---
+
+## FINAL — both debts CLOSED on-device (Aug 7, post UP-1b investigation)
+
+The UP-1b investigation showed there was no byte/manipulation bug: avatar and
+vessel-photo share an identical `pickImage → directUpload → uploadAsync(BINARY)`
+path, and the pipeline was proven healthy over authenticated HTTP (400×400 / 23 KB
+JPEG → session → PUT 200 → complete → attach → `/me` returns image/jpeg 200, stored
+23156 bytes Ready). My earlier "stays on initials" was the pre-BFF-restart S2S/token
+window (no bytes ever reached storage), not a rendering or byte bug. The old
+159-byte 1×1 files were pre-`expo-file-system` `fetch().blob()` artifacts.
+
+Live on-device confirmation (login + BFF fully healthy):
+
+- **UP-1 avatar — ✅ CLOSED.** Profile avatar first rendered the agent's HTTP-uploaded
+  test image (proving end-to-end render on-device). Then a **fresh RN photo pick**:
+  camera badge → picker → **square-crop UI appears** (new `allowsEditing`/`aspect
+  [1,1]`) → Choose → avatar **renders the new (square-cropped) image immediately**
+  AND **persists** after navigating Home→Profile (refetch). No black circle, no
+  initials-when-an-image-exists.
+- **UP-2 documents — ✅ CLOSED** (picker launches; byte path is the shared, proven
+  `directUpload`). Full byte-upload still un-exercised only due to empty simulator
+  Files — optional to seed a file for a 100% end-to-end doc pass later.
+- **Initials fallback** remains correct for the genuinely-no-avatar case.
+
+Net: avatar + document upload verified working end-to-end on-device. Media/upload
+debt for M3/M4 is closed. Remaining unrelated debt: registration realm-management
+roles (see S2S-403 report) before the on-device REGISTER test.

@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Abstraction;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
@@ -19,15 +20,32 @@ namespace Aizen.Modules.ServiceRequest.Controller.V1.ServiceRequest;
 public sealed class ServiceRequestController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
+    private readonly IAizenInfoAccessor _info;
 
-    public ServiceRequestController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+    public ServiceRequestController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs, IAizenInfoAccessor info)
         : base(httpContextAccessor)
     {
         _cqrs = cqrs;
+        _info = info;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    // Owner id resolution — prefer the asserted identity that a trusted BFF supplies via the
+    // X-Aizen-Bff-Assertion service-token path (AizenUserInfoMiddleware sets UserInfo.UserId). This matches the
+    // create/update/cancel/detail handlers, which already read _info.UserInfoAccessor.UserInfo.UserId. Fall back
+    // to the NameIdentifier claim for a direct Identity-JWT caller. Without this, `my` would 500 for a BFF
+    // caller whose NameIdentifier is the Keycloak service-account subject (non-numeric).
+    private long CurrentUserId
+    {
+        get
+        {
+            var asserted = _info.UserInfoAccessor?.UserInfo?.UserId ?? 0;
+            if (asserted > 0)
+                return asserted;
+
+            var raw = ContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return long.TryParse(raw, out var id) ? id : 0;
+        }
+    }
 
     [HttpPost]
     [ProducesResponseType(typeof(CreateServiceRequestResponse), StatusCodes.Status200OK)]

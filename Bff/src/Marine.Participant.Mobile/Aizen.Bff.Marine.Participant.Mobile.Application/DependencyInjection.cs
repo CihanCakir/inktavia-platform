@@ -68,6 +68,11 @@ public static class DependencyInjection
             CreateRemoteCall<IVesselRemoteCall>(
                 CreateHttpClient(provider, nameof(IVesselRemoteCall))));
 
+        // ServiceRequest module owner endpoints (BE_MO1). Base URL from RemoteCalls:IServiceRequestRemoteCall:BaseUrl.
+        services.AddTransient<IServiceRequestRemoteCall>(provider =>
+            CreateRemoteCall<IServiceRequestRemoteCall>(
+                CreateHttpClient(provider, nameof(IServiceRequestRemoteCall))));
+
         return services;
     }
 

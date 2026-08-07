@@ -1189,6 +1189,23 @@
         ]
       },
       "realmRoles": []
+    },
+    {
+      "username": "service-account-marine-mobile-bff",
+      "enabled": true,
+      "serviceAccountClientId": "marine-mobile-bff",
+      "realmRoles": [
+        "identity_read",
+        "identity_write"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users",
+          "view-realm"
+        ]
+      }
     }
   ]
 }
