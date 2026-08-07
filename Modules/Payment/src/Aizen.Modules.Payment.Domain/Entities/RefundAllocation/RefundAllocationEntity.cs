@@ -9,6 +9,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.RefundAllocation;
 /// it was derived from. Written once per refund; the amounts come straight from <see cref="RefundAllocationCalculator"/>.
 /// </summary>
 [DocumentationInfo("Refund allocation entity", "Immutable §7.5 nine-amount refund breakdown derived from the economics snapshot.")]
+[NoMessagebusSync] // domain-authored immutable P10 refund breakdown — never generically writable
 public sealed class RefundAllocationEntity : AizenEntityWithAudit
 {
     public long         RefundRecordId       { get; private set; }
@@ -59,6 +60,7 @@ public sealed class RefundAllocationEntity : AizenEntityWithAudit
 /// provider + a distinct <see cref="ChargebackExpenseAmount"/> (reporting = P12). Idempotent on the gateway reference.
 /// </summary>
 [DocumentationInfo("Chargeback record entity", "A gateway chargeback → release-after clawback + ChargebackExpense. Idempotent on the gateway reference.")]
+[NoMessagebusSync] // domain-authored immutable P10 chargeback record — never generically writable
 public sealed class ChargebackRecordEntity : AizenEntityWithAudit
 {
     public long     PaymentTransactionId      { get; private set; }

@@ -21,6 +21,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Transaction;
 /// </summary>
 [DocumentationInfo("Transaction refund record",
     "Tracks each individual refund operation (full or partial) with full audit and reversal support.")]
+[NoMessagebusSync] // domain-authored immutable refund record — never generically writable
 public sealed class TransactionRefundRecord : AizenEntityWithAudit
 {
     // ── Identity ──────────────────────────────────────────────────────────────

@@ -13,6 +13,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.ProfitProtection;
 [DocumentationInfo("Profit protection evaluation log entity",
     "Insert-only audit of a profit-protection decision (context digest + contributions + required + decision). " +
     "Written on adjustment/rejection/config-error; no snapshot is created on failure (§7).")]
+[NoMessagebusSync] // domain-authored immutable financial evaluation log — never generically writable
 public sealed class ProfitProtectionEvaluationLogEntity : AizenEntityWithAudit
 {
     public long?                         PolicyId         { get; private set; }

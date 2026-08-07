@@ -23,6 +23,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.PartCommercialTerm;
 [DocumentationInfo("Part commercial term entity",
     "Versioned, scoped commercial term for Product/Consumable lines (dealer cost + margin + funded split + min-receivable + " +
     "max-discountable). Cost fields are confidential and never leave the Payment module. Defines/resolves only — applies nothing (S9).")]
+[NoMessagebusSync] // domain-authored cost-confidential S5 commercial term — never generically writable
 public sealed class PartCommercialTermEntity : AizenEntityWithAudit
 {
     // ── Scope (nullable → specificity, like the other rules): product > provider > brand > category > global ──

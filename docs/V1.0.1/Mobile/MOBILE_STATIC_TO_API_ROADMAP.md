@@ -270,3 +270,52 @@ On-device QA (report `Vessel/REPORT_ONDEVICE_QA_M3_M4.md`) found a **silent uplo
 **On-device re-verify PENDING:** the app must reload (new JS + expo-file-system) before the upload fix can be confirmed on the simulator — fast-refresh may not pick up a new dependency, so a Metro reload/restart is likely needed. 6-step manual checklist in the report.
 
 ## → Then Phase 3 / M5 (CargoDry): gap done (`CargoDry/CARGODRY_FE_BE_GAP.md`). Sequence M5-0 (cargodry-api BffAssertion allow-list + reconcile FE mock models + confirm QR payload) → M5a (my-kits + Home + BFF per-vessel rollup) → M5b (QR validate→pick-vessel→activate, owner-gated) → M5c optional history. Recommendation/purchase/telemetry/self-renew = deferred product/Payment epics.
+
+---
+
+## Status update — Media/Upload follow-ups (UP-1 / UP-2)
+
+- **UP-1 avatar render + UP-2 document picker — FE fix DONE, typecheck-clean.**
+  UP-2 root cause: `VesselDocumentsScreen` dismissed the doc-type Modal and called
+  `pickDocument()` in the same tick — on iOS you can't present a native picker while
+  a JS Modal is animating out, so it silently no-ops. Fix: park the chosen type and
+  launch the picker in the Modal's `onDismiss` (iOS); fire directly on Android.
+  UP-1: seed profile cache from the attach response (immediate render) + `<Image
+  onError>` → initials fallback. No BFF/module or mock changes.
+  Report: `docs/V1.0.1/Mobile/QA/REPORT_FIX_AVATAR_RENDER_DOC_PICKER.md`.
+- **Live on-device verification of UP-1/UP-2 is PENDING** — blocked by an infra 403:
+  after the recent container recreate, `marine-mobile-bff → identity-api` S2S calls
+  return 403, so both email and OTP login die before any screen. This is the
+  recurring restart gotcha (service-account role re-grant `--uid` and/or
+  `BffAssertion__AllowedClientIds` must include `marine-mobile-bff`). Once login is
+  restored, re-run the two test cases and close the debt in
+  `REPORT_ONDEVICE_QA_UPLOAD_FIX_VERIFY.md`.
+- **QA seed avatar cleanup (optional):** `UPDATE "UserProfiles" SET
+  "ProfilePhotoUrl"=NULL WHERE "Id"=100030;` for a clean initials baseline (a fresh
+  upload overwrites either way).
+
+## Status update — S2S 403 RESOLVED (login restored)
+
+- **Root cause: Step 1** — the Keycloak service account `service-account-marine-mobile-bff`
+  dropped to only `default-roles` after the container recreate, losing `identity_read`
+  + `identity_write`. BFF still mints a valid token (authenticated → **403 not 401**),
+  but identity-api forbids every BFF→Identity call. Allow-list + shared-secret + azp
+  were all fine (ruled out).
+- **Remediation:** `kcadm add-roles -r inktavia-realm --uid <sa-id> --rolename
+  identity_read --rolename identity_write` **then** `docker compose restart
+  bff-marine-mobile` (token cached in in-process IMemoryCache, not Redis — restart
+  required). Grant by `--uid`; the `--uusername service-account-*` form silently
+  no-ops in this KC image.
+- **Verified:** `/profile/me`→200, email login→token+/me 200, OTP login end-to-end,
+  0×403 in identity/bff logs. Report: `REPORT_FIX_S2S_403_RESTORE.md` (includes a
+  durable fix: idempotent init.sh on bring-up, or bake grants into the realm import).
+- **⚠️ DEBT — registration still 403s:** the recreate also wiped the SA's
+  realm-management roles (`manage-users`/`view-users`/`query-users`/`view-realm`)
+  needed for REGISTER (not login). Left unapplied per "stop at first fix" + RBAC
+  elevation flag. Login/OTP fully work without them. One-liner to restore is in
+  `REPORT_FIX_S2S_403_RESTORE.md` → "Follow-up NOT applied". Restore before running
+  the on-device REGISTER test case.
+- **UP-1 runtime-confirmed:** `/me` avatarUrl is valid + device-reachable but points
+  at a 159-byte 1×1 corrupt artifact → the "black circle" was corrupt bytes, not a
+  wiring/resolution bug. Null it (`UPDATE "UserProfiles" SET "ProfilePhotoUrl"=NULL
+  WHERE "Id"=100030;`) for a clean initials baseline before re-testing UP-1.

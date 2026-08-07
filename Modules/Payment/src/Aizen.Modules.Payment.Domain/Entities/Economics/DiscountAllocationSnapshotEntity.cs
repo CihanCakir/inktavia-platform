@@ -11,6 +11,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Economics;
 /// </summary>
 [DocumentationInfo("Discount allocation snapshot entity",
     "Immutable per-line discount funding allocation (Platform/Provider/Shared/Supplier). Modeled in S8; populated by S6.")]
+[NoMessagebusSync] // domain-authored immutable financial snapshot — never generically writable
 public sealed class DiscountAllocationSnapshotEntity : AizenEntityWithAudit
 {
     public long                        EconomicsSnapshotId { get; private set; }

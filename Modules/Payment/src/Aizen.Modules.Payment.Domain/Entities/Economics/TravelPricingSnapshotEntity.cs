@@ -19,6 +19,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Economics;
 [DocumentationInfo("Travel pricing snapshot entity",
     "Immutable travel/mobilization derivation child of PaymentEconomicsSnapshot (§20.8). Descriptive metadata; the resolved " +
     "amount is tamper-checked against the derivation. Not part of the money math or the 8 equalities.")]
+[NoMessagebusSync] // domain-authored immutable financial snapshot — never generically writable
 public sealed class TravelPricingSnapshotEntity : AizenEntityWithAudit
 {
     /// <summary>The raw SR TravelPricingMethod int: 1 = FlatMobilization, 2 = PerKm.</summary>

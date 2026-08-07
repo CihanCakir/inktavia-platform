@@ -12,6 +12,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Premium;
 /// </summary>
 [DocumentationInfo("Premium entitlement entity",
     "The offer-scoped entitlement from a paid premium purchase. ≤1 per purchase; Active only after the success webhook; refund→Revoked; past-expiry→Expired.")]
+[NoMessagebusSync] // domain-authored P11 premium entitlement snapshot — never generically writable
 public sealed class PremiumEntitlementEntity : AizenEntityWithAudit
 {
     public long                     PremiumPurchaseId  { get; private set; }   // unique — ≤1 entitlement per purchase

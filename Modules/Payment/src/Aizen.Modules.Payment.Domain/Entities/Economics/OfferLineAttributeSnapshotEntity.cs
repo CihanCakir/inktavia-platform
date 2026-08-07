@@ -17,6 +17,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Economics;
 [DocumentationInfo("Offer line attribute snapshot entity",
     "Immutable per-attribute child of OfferLineEconomicsSnapshot (S2d). Definition code + resolved value + (Lookup) item " +
     "code and denormalized display label. Descriptive — not in the money math.")]
+[NoMessagebusSync] // domain-authored immutable financial snapshot — never generically writable
 public sealed class OfferLineAttributeSnapshotEntity : AizenEntityWithAudit
 {
     public long     OfferLineEconomicsSnapshotId { get; private set; }

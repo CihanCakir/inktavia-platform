@@ -13,6 +13,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Reporting;
 /// </summary>
 [DocumentationInfo("Financial ledger entry",
     "Append-only, immutable reporting line derived from an immutable source. Amount positive; nature+IsReversal carry the sign; reversal = new entry.")]
+[NoMessagebusSync] // domain-authored immutable financial ledger entry — never generically writable
 public sealed class FinancialLedgerEntryEntity : AizenEntityWithAudit
 {
     public string             EntryCode         { get; private set; } = default!;   // unique

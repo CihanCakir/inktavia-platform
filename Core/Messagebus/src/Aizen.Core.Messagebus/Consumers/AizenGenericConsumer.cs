@@ -68,6 +68,17 @@ public class AizenGenericConsumer<TEntity> : AizenBaseMessageConsumer<AizenGener
     public override async Task<bool> ExecutePrepareMessage(AizenGenericMessage<TEntity> message,
         CancellationToken cancellationToken)
     {
+        // HARDENING_MESSAGEBUS_GENERIC_CONSUMER_OPTOUT (defense-in-depth): a [NoMessagebusSync]
+        // entity should never have a consumer registered at all (BuilderExtensions filters it
+        // out). If one is somehow wired, refuse the message loudly on arrival so the generic
+        // path can never bypass the domain factory/invariants for a domain-authored entity.
+        if (MessagebusSyncPolicy.IsGenericSyncBlocked(typeof(TEntity)))
+        {
+            throw new InvalidOperationException(
+                $"Entity '{typeof(TEntity).FullName}' is marked [NoMessagebusSync]; the generic " +
+                "messagebus sync path is refused for it.");
+        }
+
         if (message.Operation != AizenGenericMessageOperation.Create)
         {
             var queryById = new AizenGetEntityByIdQuery<TEntity>

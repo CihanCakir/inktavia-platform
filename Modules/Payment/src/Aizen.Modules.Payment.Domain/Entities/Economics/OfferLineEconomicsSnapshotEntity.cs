@@ -15,6 +15,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Economics;
 [DocumentationInfo("Offer line economics snapshot entity",
     "Immutable per-line child of PaymentEconomicsSnapshot. Line gross/discount/commission/net/vat/total; the aggregate " +
     "totals are the sum of these rows (§20.15).")]
+[NoMessagebusSync] // domain-authored immutable financial snapshot — never generically writable
 public sealed class OfferLineEconomicsSnapshotEntity : AizenEntityWithAudit
 {
     public long                     EconomicsSnapshotId          { get; private set; }

@@ -2,6 +2,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
@@ -9,6 +10,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Conversation;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog;
@@ -138,6 +140,20 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     // Module DELETE deactivates (keeps the code) and returns an ad-hoc { header:{ isSuccess } } — bind as a plain Task.
     [AizenRemoteCallDelete("/api/v1/admin/service-requests/pricing-attributes/{id}")]
     Task DeleteAdminPricingAttribute(long id);
+
+    // --- S12 maintenance schedules (admin upsert + list + active toggle) ---
+    [AizenRemoteCallGet("/api/v1/admin/maintenance-schedules")]
+    Task<AizenApiResponse<GetMaintenanceScheduleListResponse>> GetAdminMaintenanceScheduleList(
+        [Refit.Query] long? vesselId = null,
+        [Refit.Query] bool includeInactive = true);
+
+    [AizenRemoteCallPost("/api/v1/admin/maintenance-schedules")]
+    Task<AizenApiResponse<UpsertMaintenanceScheduleResponse>> UpsertAdminMaintenanceSchedule(
+        [AizenRemoteCallBody] UpsertMaintenanceScheduleRequest request);
+
+    [AizenRemoteCallPut("/api/v1/admin/maintenance-schedules/{id}/active")]
+    Task<AizenApiResponse<SetMaintenanceScheduleActiveResponse>> SetAdminMaintenanceScheduleActive(
+        long id, [AizenRemoteCallBody] SetMaintenanceScheduleActiveRequest request);
 
     [AizenRemoteCallGet("/api/v1/messages/conversations")]
     Task<AizenApiResponse<GetConversationListResponse>> GetAdminConversations(

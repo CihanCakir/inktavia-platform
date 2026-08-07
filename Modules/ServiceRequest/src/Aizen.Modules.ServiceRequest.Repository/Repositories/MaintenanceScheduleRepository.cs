@@ -54,12 +54,15 @@ public sealed class MaintenanceScheduleRepository : IMaintenanceScheduleReposito
         return candidates.Where(x => x.NeedsReminder(nowUtc)).ToList();
     }
 
-    public async Task<IReadOnlyList<MaintenanceScheduleEntity>> ListActiveAsync(
-        long? vesselId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<MaintenanceScheduleEntity>> ListAsync(
+        long? vesselId, bool includeInactive, CancellationToken ct = default)
         => await _db.MaintenanceSchedules
             .AsNoTracking()
-            .Where(x => x.IsActive && !x.IsDeleted && (vesselId == null || x.VesselId == vesselId))
-            .OrderBy(x => x.NextDueAt)
+            .Where(x => !x.IsDeleted
+                     && (includeInactive || x.IsActive)
+                     && (vesselId == null || x.VesselId == vesselId))
+            .OrderByDescending(x => x.IsActive) // active first, then soonest-due — inactive rows sink to the bottom
+            .ThenBy(x => x.NextDueAt)
             .ToListAsync(ct);
 
     public Task AddAsync(MaintenanceScheduleEntity entity, CancellationToken ct = default)

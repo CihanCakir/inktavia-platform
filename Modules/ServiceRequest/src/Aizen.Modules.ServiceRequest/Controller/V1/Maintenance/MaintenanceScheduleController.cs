@@ -41,10 +41,27 @@ public sealed class MaintenanceScheduleController : AizenWebApiController
     [HttpGet]
     [ProducesResponseType(typeof(GetMaintenanceScheduleListResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetMaintenanceScheduleListResponse?>> GetList(
-        [FromQuery] long? vesselId = null, CancellationToken ct = default)
+        [FromQuery] long? vesselId = null,
+        [FromQuery] bool includeInactive = true,
+        CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<GetMaintenanceScheduleListResponse>(
-            new GetMaintenanceScheduleListQuery(vesselId), ct);
+            new GetMaintenanceScheduleListQuery(vesselId, includeInactive), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// S12 — activate/deactivate a schedule. Deactivating stops N2 reminders and frees the active-unique slot;
+    /// reactivating re-arms it (409-style clean business error if another active schedule owns the same key).
+    /// Idempotent.
+    /// </summary>
+    [HttpPut("{id:long}/active")]
+    [ProducesResponseType(typeof(SetMaintenanceScheduleActiveResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SetMaintenanceScheduleActiveResponse?>> SetActive(
+        long id, [FromBody] SetMaintenanceScheduleActiveRequest request, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<SetMaintenanceScheduleActiveResponse>(
+            new SetMaintenanceScheduleActiveCommand(id, request.IsActive), ct);
         return SetResponse(result);
     }
 }

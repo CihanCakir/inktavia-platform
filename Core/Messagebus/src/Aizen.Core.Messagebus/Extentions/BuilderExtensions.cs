@@ -73,6 +73,12 @@ public static class BuilderExtensions
                 assembly.GetTypes()
                     .Where(type =>
                         type is { IsClass: true, IsAbstract: false } && typeof(AizenEntity).IsAssignableFrom(type))
+                    // HARDENING_MESSAGEBUS_GENERIC_CONSUMER_OPTOUT: skip domain-authored,
+                    // invariant-guarded entities marked [NoMessagebusSync]. They are built
+                    // only via a validating factory; a generic consumer would let an inbound
+                    // message insert/update/delete them with none of the guards. Opt-out
+                    // (blocklist) — every other entity keeps its generic consumer as before.
+                    .Where(type => !MessagebusSyncPolicy.IsGenericSyncBlocked(type))
                     .ForEach(type =>
                     {
                         Type genericTypeDefinition = typeof(AizenGenericConsumer<>);

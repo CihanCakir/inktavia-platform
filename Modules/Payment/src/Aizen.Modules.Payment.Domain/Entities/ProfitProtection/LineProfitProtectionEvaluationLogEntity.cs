@@ -13,6 +13,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.ProfitProtection;
 [DocumentationInfo("Line profit protection evaluation log entity",
     "Insert-only audit of a line-level profit-protection decision (Rejected/ConfigurationError). Captures the failing " +
     "line count/refs + primary breach code + reason. Written when a line fails BEFORE the transaction gates; no snapshot (§20.12).")]
+[NoMessagebusSync] // domain-authored immutable financial evaluation log — never generically writable
 public sealed class LineProfitProtectionEvaluationLogEntity : AizenEntityWithAudit
 {
     public long                          ServiceRequestId { get; private set; }

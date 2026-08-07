@@ -26,6 +26,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Economics;
 [DocumentationInfo("Payment economics snapshot entity",
     "Immutable, insert-only canonical economic ledger record. Constructed only via the validating Create " +
     "factory that enforces the §4 zero-tolerance invariants. Extensible for P5/P6/P7/P10/S8 fields.")]
+[NoMessagebusSync] // domain-authored immutable financial snapshot — never generically writable
 public sealed class PaymentEconomicsSnapshotEntity : AizenEntityWithAudit
 {
     // ── Identity / context ─────────────────────────────────────────────────────

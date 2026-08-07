@@ -17,7 +17,7 @@ public sealed class GetMaintenanceScheduleListQueryHandler
     public override async Task<GetMaintenanceScheduleListResponse?> Handle(
         GetMaintenanceScheduleListQuery request, CancellationToken cancellationToken)
     {
-        var schedules = await _repository.ListActiveAsync(request.VesselId, cancellationToken);
+        var schedules = await _repository.ListAsync(request.VesselId, request.IncludeInactive, cancellationToken);
         return new GetMaintenanceScheduleListResponse(schedules.Select(s => s.ToDto()).ToList());
     }
 }

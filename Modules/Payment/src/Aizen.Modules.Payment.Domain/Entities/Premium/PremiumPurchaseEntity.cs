@@ -13,6 +13,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Premium;
 /// </summary>
 [DocumentationInfo("Premium purchase entity",
     "A provider's premium purchase for an offer. Snapshots the resolved price/duration; Pending→Paid→Refunded / Pending→Failed.")]
+[NoMessagebusSync] // domain-authored immutable P11 premium purchase snapshot — never generically writable
 public sealed class PremiumPurchaseEntity : AizenEntityWithAudit
 {
     public long                  ProviderProfileId             { get; private set; }

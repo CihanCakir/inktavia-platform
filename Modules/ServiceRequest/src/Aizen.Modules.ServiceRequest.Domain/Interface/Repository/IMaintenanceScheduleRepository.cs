@@ -22,9 +22,13 @@ public interface IMaintenanceScheduleRepository
     Task<IReadOnlyList<MaintenanceScheduleEntity>> GetDueForReminderAsync(
         DateTime nowUtc, int maxBatch, CancellationToken ct = default);
 
-    /// <summary>Admin listing: active schedules, optionally scoped to a vessel, soonest-due first.</summary>
-    Task<IReadOnlyList<MaintenanceScheduleEntity>> ListActiveAsync(
-        long? vesselId, CancellationToken ct = default);
+    /// <summary>
+    /// Admin listing, optionally scoped to a vessel. When <paramref name="includeInactive"/> is true (the admin
+    /// default) deactivated schedules are returned too — active first, then soonest-due — so a turned-off schedule
+    /// stays visible and reactivatable. When false, only active schedules.
+    /// </summary>
+    Task<IReadOnlyList<MaintenanceScheduleEntity>> ListAsync(
+        long? vesselId, bool includeInactive, CancellationToken ct = default);
 
     Task AddAsync(MaintenanceScheduleEntity entity, CancellationToken ct = default);
     void Update(MaintenanceScheduleEntity entity);

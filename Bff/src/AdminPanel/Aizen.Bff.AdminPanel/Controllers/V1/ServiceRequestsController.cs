@@ -9,6 +9,7 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
@@ -16,6 +17,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Conversation;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog;
@@ -317,6 +319,39 @@ public sealed class ServiceRequestsController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync(
             new ReleasePaymentBffCommand(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    // ── S12 — recurring maintenance schedules (admin upsert + list + active toggle) ──────────────────────
+    [HttpGet("service-requests/maintenance-schedules")]
+    [ProducesResponseType(typeof(GetMaintenanceScheduleListResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetMaintenanceScheduleListResponse>> GetMaintenanceSchedules(
+        [FromQuery] long? vesselId,
+        [FromQuery] bool includeInactive = true,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetMaintenanceScheduleListBffQuery(vesselId, includeInactive), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("service-requests/maintenance-schedules")]
+    [ProducesResponseType(typeof(UpsertMaintenanceScheduleResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpsertMaintenanceScheduleResponse>> UpsertMaintenanceSchedule(
+        [FromBody] UpsertMaintenanceScheduleRequest request, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new UpsertMaintenanceScheduleBffCommand(request), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPut("service-requests/maintenance-schedules/{id:long}/active")]
+    [ProducesResponseType(typeof(SetMaintenanceScheduleActiveResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SetMaintenanceScheduleActiveResponse>> SetMaintenanceScheduleActive(
+        long id, [FromBody] SetMaintenanceScheduleActiveRequest request, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new SetMaintenanceScheduleActiveBffCommand(id, request), ct);
         return SetResponse(result);
     }
 

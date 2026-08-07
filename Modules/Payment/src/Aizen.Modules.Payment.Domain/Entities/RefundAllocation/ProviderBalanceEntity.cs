@@ -11,6 +11,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.RefundAllocation;
 /// </summary>
 [DocumentationInfo("Provider balance entity",
     "Per-provider negative-balance ledger: refund/chargeback clawbacks push it negative; payouts offset it first; a limit blocks payout/acceptance.")]
+[NoMessagebusSync] // domain-authored P10 provider balance (optimistic-versioned) — never generically writable
 public sealed class ProviderBalanceEntity : AizenEntityWithAudit
 {
     public long    ProviderProfileId    { get; private set; }
@@ -73,6 +74,7 @@ public sealed class ProviderBalanceEntity : AizenEntityWithAudit
 }
 
 /// <summary>BE-P10 §7.4 — an audited movement on the provider balance ledger.</summary>
+[NoMessagebusSync] // domain-authored immutable P10 provider balance ledger movement — never generically writable
 public sealed class ProviderBalanceMovementEntity : AizenEntityWithAudit
 {
     public long                        ProviderBalanceId  { get; private set; }

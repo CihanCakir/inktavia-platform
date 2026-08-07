@@ -9,6 +9,7 @@ namespace Aizen.Modules.Payment.Domain.Entities.Economics;
 /// </summary>
 [DocumentationInfo("Commission allocation snapshot entity",
     "Immutable per-line commission-rule audit (rule id/code, base, resolved rate, amount, commissionable). Child of PaymentEconomicsSnapshot.")]
+[NoMessagebusSync] // domain-authored immutable financial snapshot — never generically writable
 public sealed class CommissionAllocationSnapshotEntity : AizenEntityWithAudit
 {
     public long    EconomicsSnapshotId  { get; private set; }
