@@ -16,6 +16,6 @@ public sealed class CargoDryProviderEarningsDto
     public decimal TargetAchieved      { get; init; }
     public decimal RemainingToTarget   { get; init; }
     public decimal ProgressPct         { get; init; }
-    public string  CurrencyCode        { get; init; } = "USD";
+    public string  CurrencyCode        { get; init; } = "TRY";
     public DateTimeOffset ComputedAtUtc { get; init; }
 }

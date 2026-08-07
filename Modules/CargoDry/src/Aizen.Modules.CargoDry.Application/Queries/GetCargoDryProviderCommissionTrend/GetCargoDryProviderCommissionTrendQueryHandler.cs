@@ -26,7 +26,7 @@ public sealed class GetCargoDryProviderCommissionTrendQueryHandler
         var currentMonthStart = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
 
         var allProducts = await _products.GetAllActiveAsync(ct);
-        var currency = allProducts.FirstOrDefault()?.CurrencyCode ?? "USD";
+        var currency = allProducts.FirstOrDefault()?.CurrencyCode ?? "TRY";
 
         var points = new List<CargoDryEarningsTrendPointDto>(months);
 

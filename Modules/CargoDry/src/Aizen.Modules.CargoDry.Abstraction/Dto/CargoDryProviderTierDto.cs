@@ -12,6 +12,6 @@ public sealed class CargoDryProviderTierDto
     public decimal? NextTierBonusRate    { get; init; }
     public decimal  RemainingToNextTier  { get; init; }
     public decimal  ProgressPct          { get; init; }
-    public string   CurrencyCode         { get; init; } = "USD";
+    public string   CurrencyCode         { get; init; } = "TRY";
     public DateTimeOffset ComputedAtUtc  { get; init; }
 }

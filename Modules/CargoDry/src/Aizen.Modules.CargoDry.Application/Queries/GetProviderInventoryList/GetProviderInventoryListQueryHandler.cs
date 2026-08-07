@@ -96,7 +96,7 @@ public sealed class GetProviderInventoryListQueryHandler
             EarnedCommission    = earned,
             PotentialCommission = potential,
             SellThroughPct      = sellThrough,
-            CurrencyCode        = product?.CurrencyCode ?? "USD",
+            CurrencyCode        = product?.CurrencyCode ?? "TRY",
             LastMovementAtUtc   = e.LastMovementAtUtc,
             CreatedAtUtc        = e.CreatedAtUtc,
         };

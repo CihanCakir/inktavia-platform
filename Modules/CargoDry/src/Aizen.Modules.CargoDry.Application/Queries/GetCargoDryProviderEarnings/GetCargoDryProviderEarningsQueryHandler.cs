@@ -113,7 +113,7 @@ public sealed class GetCargoDryProviderEarningsQueryHandler
             : 0m;
 
         // Currency: use first product's currency or default
-        var currency = allProducts.FirstOrDefault()?.CurrencyCode ?? "USD";
+        var currency = allProducts.FirstOrDefault()?.CurrencyCode ?? "TRY";
 
         return new CargoDryProviderEarningsDto
         {

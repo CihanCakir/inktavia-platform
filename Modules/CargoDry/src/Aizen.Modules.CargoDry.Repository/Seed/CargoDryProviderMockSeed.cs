@@ -113,7 +113,7 @@ public sealed class CargoDryProviderMockSeed
                 {
                     agreement = CargoDryConsignmentAgreementEntity.Create(
                         agreementCode: "CONS-PRV2-STD90", providerProfileId: Provider2, productCode: "STANDARD-90",
-                        consignmentRate: 0.20m, minimumSettlementAmount: 0m, currencyCode: "USD",
+                        consignmentRate: 0.20m, minimumSettlementAmount: 0m, currencyCode: "TRY",
                         maxKitCount: 100, startDateUtc: nowUtc);
                     await _db.ConsignmentAgreements.AddAsync(agreement, ct);
                     await _db.SaveChangesAsync(ct);
@@ -132,7 +132,7 @@ public sealed class CargoDryProviderMockSeed
                         nowUtc: nowUtc, providerProfileId: Provider2,
                         consignmentAgreementId: agreement.Id);
                     attr.ResolveFinancials(
-                        salePrice: 149.99m, commissionRate: 0.20m, currencyCode: "USD",
+                        salePrice: 149.99m, commissionRate: 0.20m, currencyCode: "TRY",
                         resolvedAtUtc: nowUtc, resolvedByUserId: 10001);
                     await _db.SalesAttributions.AddAsync(attr, ct);
                 }
@@ -142,7 +142,7 @@ public sealed class CargoDryProviderMockSeed
                 var settlement = CargoDrySellThroughSettlementEntity.Create(
                     settlementCode: $"STL-{nowUtc:yyyyMM}-PRV2", consignmentAgreementId: agreement.Id,
                     providerProfileId: Provider2, productCode: "STANDARD-90", batchCode: BatchCode,
-                    currencyCode: "USD", periodStartUtc: monthStart, periodEndUtc: monthEnd, nowUtc: nowUtc);
+                    currencyCode: "TRY", periodStartUtc: monthStart, periodEndUtc: monthEnd, nowUtc: nowUtc);
                 settlement.RecalculateTotals(
                     totalKitCount: 2, totalSaleAmount: 299.98m, totalProviderShareAmount: 60m);
                 await _db.SellThroughSettlements.AddAsync(settlement, ct);

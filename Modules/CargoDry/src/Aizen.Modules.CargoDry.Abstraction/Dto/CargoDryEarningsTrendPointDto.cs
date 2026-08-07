@@ -4,5 +4,5 @@ public sealed class CargoDryEarningsTrendPointDto
 {
     public string  Month        { get; init; } = default!;
     public decimal Commission   { get; init; }
-    public string  CurrencyCode { get; init; } = "USD";
+    public string  CurrencyCode { get; init; } = "TRY";
 }

@@ -8,7 +8,7 @@ public sealed class CargoDryProviderSettlementDto
     public DateTime PeriodEndUtc          { get; init; }
     public decimal TotalCommissionAmount  { get; init; }
     public decimal ProviderPayoutAmount   { get; init; }
-    public string  CurrencyCode           { get; init; } = "USD";
+    public string  CurrencyCode           { get; init; } = "TRY";
     public int     Status                 { get; init; }
     public DateTimeOffset? ScheduledSettlementDate { get; init; }
     public DateTimeOffset? SettledAtUtc            { get; init; }
@@ -30,6 +30,6 @@ public sealed class CargoDryProviderPayoutSummaryDto
     public decimal ScheduledPayout    { get; init; }
     public decimal PaidPayout         { get; init; }
     public decimal DisputedPayout     { get; init; }
-    public string  CurrencyCode       { get; init; } = "USD";
+    public string  CurrencyCode       { get; init; } = "TRY";
     public DateTimeOffset ComputedAtUtc { get; init; }
 }

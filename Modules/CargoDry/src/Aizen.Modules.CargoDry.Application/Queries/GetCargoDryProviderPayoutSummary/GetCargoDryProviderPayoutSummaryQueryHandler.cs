@@ -33,7 +33,7 @@ public sealed class GetCargoDryProviderPayoutSummaryQueryHandler
             ScheduledPayout = scheduled,
             PaidPayout      = paid,
             DisputedPayout  = disputed,
-            CurrencyCode    = "USD",
+            CurrencyCode    = "TRY",
             ComputedAtUtc   = DateTimeOffset.UtcNow,
         };
     }

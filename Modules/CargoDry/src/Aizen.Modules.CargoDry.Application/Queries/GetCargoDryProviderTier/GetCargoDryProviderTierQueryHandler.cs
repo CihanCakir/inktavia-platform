@@ -50,7 +50,7 @@ public sealed class GetCargoDryProviderTierQueryHandler
         }
 
         var allProducts = await _products.GetAllActiveAsync(ct);
-        var currency = allProducts.FirstOrDefault()?.CurrencyCode ?? "USD";
+        var currency = allProducts.FirstOrDefault()?.CurrencyCode ?? "TRY";
 
         return new CargoDryProviderTierDto
         {

@@ -49,7 +49,7 @@ public sealed class CargoDryProviderInventoryListItemDto
     public decimal EarnedCommission    { get; init; }
     public decimal PotentialCommission { get; init; }
     public decimal SellThroughPct      { get; init; }
-    public string  CurrencyCode        { get; init; } = "USD";
+    public string  CurrencyCode        { get; init; } = "TRY";
 
     public DateTime? LastMovementAtUtc { get; init; }
     public DateTime  CreatedAtUtc      { get; init; }

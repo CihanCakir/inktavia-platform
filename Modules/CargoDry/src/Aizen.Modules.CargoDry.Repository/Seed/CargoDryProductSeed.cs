@@ -22,16 +22,16 @@ public sealed class CargoDryProductSeed
         {
             CargoDryProductEntity.Create("STANDARD-90",  "CargoDry Standard",
                 "90-day moisture protection kit for standard marine storage.",
-                90, 149.99m, "USD"),
+                90, 149.99m, "TRY"),
             CargoDryProductEntity.Create("PREMIUM-180", "CargoDry Premium",
                 "180-day heavy-duty moisture control for yacht bilges and cabins.",
-                180, 249.99m, "USD"),
+                180, 249.99m, "TRY"),
             CargoDryProductEntity.Create("PREMIUM-365", "CargoDry Premium Annual",
                 "365-day comprehensive moisture management solution.",
-                365, 399.99m, "USD"),
+                365, 399.99m, "TRY"),
             CargoDryProductEntity.Create("SMART-90", "CargoDry Smart",
                 "90-day smart kit with IoT humidity sensor and real-time monitoring.",
-                90, 299.99m, "USD", hasSmartDevice: true),
+                90, 299.99m, "TRY", hasSmartDevice: true),
         };
 
         foreach (var product in products)

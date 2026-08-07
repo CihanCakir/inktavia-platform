@@ -36,7 +36,7 @@ public sealed class GetCargoDryProviderProductPerformanceQueryHandler
                 {
                     ProductCode      = g.Key,
                     EarnedCommission = g.Sum(kv => kv.Value),
-                    CurrencyCode     = currency ?? "USD",
+                    CurrencyCode     = currency ?? "TRY",
                 };
             })
             .OrderByDescending(p => p.EarnedCommission)
