@@ -1,7 +1,10 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 
 namespace Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
@@ -47,4 +50,19 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/attachments")]
     Task<AizenApiResponse<AddServiceRequestAttachmentResponse>> AddAttachment(
         long serviceRequestId, [AizenRemoteCallBody] AddServiceRequestAttachmentRequest request);
+
+    // ── BE_MO2 — owner offers inbox (cost-free) ─────────────────────────────────────────────────────────
+    // Offers received on the owner's SR (module owner-gates via UserInfo.UserId). Excludes Drafts.
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/offers/received")]
+    Task<AizenApiResponse<GetServiceRequestOffersForOwnerResponse>> GetOwnerOffers(long serviceRequestId);
+
+    // One received offer with its full cost-free breakdown (module owner-gates).
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/offers/received/{offerId}")]
+    Task<AizenApiResponse<GetServiceRequestOfferForOwnerResponse>> GetOwnerOffer(long serviceRequestId, long offerId);
+
+    // Reject a received offer with the N-E structured reason + optional note. The module reject does NOT owner-gate,
+    // so the BFF gates ownership (EnsureOwnedAsync) before proxying. Accept is deliberately NOT wired (MO3).
+    [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/offers/{offerId}/reject")]
+    Task<AizenApiResponse<RejectServiceRequestOfferResponse>> RejectOwnerOffer(
+        long serviceRequestId, long offerId, [AizenRemoteCallBody] RejectServiceRequestOfferRequest request);
 }

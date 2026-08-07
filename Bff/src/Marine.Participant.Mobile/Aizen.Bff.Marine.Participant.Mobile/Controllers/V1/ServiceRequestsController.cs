@@ -90,4 +90,40 @@ public sealed class ServiceRequestsController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new AddMobileServiceRequestAttachmentCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
+
+    // ── BE_MO2 — owner offers inbox (cost-free; no money — accept → checkout is MO3) ────────────────────
+
+    /// <summary>The provider offers received on one of the caller's own requests (cost-free breakdown; empty when
+    /// none). Owner-scoped; a foreign/unknown id yields a clean not-found.</summary>
+    [HttpGet("{serviceRequestId:long}/offers")]
+    [ProducesResponseType(typeof(List<MobileServiceRequestOfferDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<MobileServiceRequestOfferDto>>> GetOffers(
+        [FromRoute] long serviceRequestId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileServiceRequestOffersQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>One received offer with its full cost-free breakdown (line items, KDV, discount, customer total, S3 FX).</summary>
+    [HttpGet("{serviceRequestId:long}/offers/{offerId:long}")]
+    [ProducesResponseType(typeof(MobileServiceRequestOfferDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileServiceRequestOfferDto>> GetOffer(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileServiceRequestOfferQuery(serviceRequestId, offerId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Reject a received offer with the N-E structured reason + optional note; returns the re-read offer
+    /// (status = Rejected). Accept is deliberately not exposed yet (MO3 wires checkout).</summary>
+    [HttpPost("{serviceRequestId:long}/offers/{offerId:long}/reject")]
+    [ProducesResponseType(typeof(MobileServiceRequestOfferDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileServiceRequestOfferDto>> RejectOffer(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId,
+        [FromBody] RejectMobileOfferRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RejectMobileServiceRequestOfferCommand(serviceRequestId, offerId, request ?? new RejectMobileOfferRequest()), ct);
+        return SetResponse(result);
+    }
 }

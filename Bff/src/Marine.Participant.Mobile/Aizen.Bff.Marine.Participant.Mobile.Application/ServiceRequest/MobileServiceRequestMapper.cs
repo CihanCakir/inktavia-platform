@@ -146,6 +146,66 @@ internal static class MobileServiceRequestMapper
     public static ServiceRequestCancelReason? ParseCancelReason(string? name) =>
         Enum.TryParse<ServiceRequestCancelReason>(name, ignoreCase: true, out var r) ? r : ServiceRequestCancelReason.Other;
 
+    public static OfferRejectReason? ParseOfferRejectReason(string? name) =>
+        Enum.TryParse<OfferRejectReason>(name, ignoreCase: true, out var r) ? r : OfferRejectReason.Other;
+
+    // ── BE_MO2 offer projection (cost-free) ────────────────────────────────────────────────────────────
+    // Only the customer-facing totals + line items + S3 FX cross. The module offer DTO already excludes cost /
+    // commission / funding / provider-net; we additionally drop the provider profile/user ids the owner has no
+    // use for. Totals are settlement-denominated (TRY), taken from the line SettlementCurrencyCode (never USD).
+
+    public static MobileServiceRequestOfferDto MapOffer(ServiceRequestOfferDto o, string? providerName = null) => new()
+    {
+        OfferId = o.Id,
+        ServiceRequestId = o.ServiceRequestId,
+        Status = o.Status.ToString(),
+        // BE_MO2b — the resolved provider display name (from the shared IProviderNameResolver), or null → the FE
+        // shows its localized fallback. The provider profile/user id is NEVER exposed (name only).
+        ProviderName = providerName,
+        CurrencyCode = SettlementCurrencyOf(o),
+        Subtotal = o.Subtotal,
+        TaxTotal = o.TaxTotal,
+        DiscountTotal = o.DiscountTotal,
+        GrandTotal = o.GrandTotal,
+        EstimatedStartDate = o.EstimatedStartDate,
+        EstimatedEndDate = o.EstimatedEndDate,
+        EstimatedDurationMinutes = o.EstimatedDurationMinutes,
+        ExpiresAt = o.ExpiresAt,
+        DepositType = o.DepositType.ToString(),
+        DepositValue = o.DepositValue,
+        PaymentTermsNote = o.PaymentTermsNote,
+        WarrantyNote = o.WarrantyNote,
+        Description = o.Description,
+        SubmittedAt = o.SubmittedAt,
+        CreatedAt = o.CreatedAt,
+        IsActionable = o.Status is ServiceRequestOfferStatus.Submitted or ServiceRequestOfferStatus.UnderReview,
+        Items = o.Items.OrderBy(i => i.SortOrder).Select(MapOfferItem).ToList(),
+    };
+
+    public static MobileServiceRequestOfferItemDto MapOfferItem(ServiceRequestOfferItemDto i) => new()
+    {
+        Id = i.Id,
+        Title = i.Title,
+        Description = i.Description,
+        ItemType = i.ItemType.ToString(),
+        Quantity = i.Quantity,
+        UnitCode = i.UnitCode,
+        UnitPrice = i.UnitPrice,
+        TaxRate = i.TaxRate,
+        LineSubtotal = i.LineSubtotal,
+        TaxAmount = i.TaxAmount,
+        DiscountAmount = i.DiscountAmount,
+        LineTotal = i.LineTotal,
+        SettlementCurrencyCode = i.SettlementCurrencyCode,
+        SourceUnitPrice = i.SourceUnitPrice,
+        SourceCurrencyCode = i.SourceCurrencyCode,
+    };
+
+    /// <summary>The settlement currency the offer's totals are in (TRY) — from the line SettlementCurrencyCode,
+    /// never the offer DTO's stale USD default.</summary>
+    private static string SettlementCurrencyOf(ServiceRequestOfferDto o) =>
+        o.Items.Select(i => i.SettlementCurrencyCode).FirstOrDefault(c => !string.IsNullOrWhiteSpace(c)) ?? "TRY";
+
     // ── ownership gate ───────────────────────────────────────────────────────────────────────────────
     // The module owner endpoints (detail/update/cancel/attachment) do NOT check that the request belongs to
     // the caller — they fetch by id and act. So the BFF MUST gate every by-id owner action against the resolved

@@ -1,6 +1,7 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
+using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
@@ -16,6 +17,13 @@ namespace Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
 /// </summary>
 public interface IIdentityRemoteCall : IAizenRemoteCall
 {
+    // BE_MO2b — batch profile lookup by profile ids (existing Identity endpoint) for BFF-side name enrichment.
+    // ONE call resolves a set of provider display names (no N+1). Returns the person-name fields; the resolver
+    // never exposes the profile id itself. (Role-gated on Identity — see the resolver's graceful fallback.)
+    [AizenRemoteCallGet("/api/v1/identity/admin/users/profiles/bulk-by-profile-ids")]
+    Task<AizenApiResponse<List<UserProfileListItemDto>>> GetUserProfilesByProfileIds(
+        [Refit.Query(Refit.CollectionFormat.Multi)] long[] profileIds);
+
     // Read the organizer (participant) profile by its profile id.
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles/{profileId}")]
     Task<AizenApiResponse<OrganizerProfileDetailDto>> GetOrganizerProfileById(long profileId);

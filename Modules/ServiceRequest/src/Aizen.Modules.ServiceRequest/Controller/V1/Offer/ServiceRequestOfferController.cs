@@ -8,6 +8,9 @@ using Aizen.Modules.ServiceRequest.Application.Command.Offer.PreviewOffer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
 using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferCommissionPreview;
 using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferPartTermsPreview;
+using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetServiceRequestOffersForOwner;
+using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetServiceRequestOfferForOwner;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -83,6 +86,31 @@ public sealed class ServiceRequestOfferController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<ResolvePartLineAllowancesRemoteCallResponse>(
             new GetOfferPartTermsPreviewQuery(offerId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-MO2 — the offers RECEIVED on the caller-owner's service request (cost-free; excludes other providers'
+    /// Drafts). Owner-scoped in the handler (the caller must own the SR); identity from the trusted context.
+    /// </summary>
+    [HttpGet("received")]
+    [ProducesResponseType(typeof(GetServiceRequestOffersForOwnerResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetServiceRequestOffersForOwnerResponse?>> GetReceived(
+        [FromRoute] long serviceRequestId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetServiceRequestOffersForOwnerResponse>(
+            new GetServiceRequestOffersForOwnerQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>BE-MO2 — one received offer with its full cost-free breakdown (owner-scoped).</summary>
+    [HttpGet("received/{offerId:long}")]
+    [ProducesResponseType(typeof(GetServiceRequestOfferForOwnerResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetServiceRequestOfferForOwnerResponse?>> GetReceivedDetail(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetServiceRequestOfferForOwnerResponse>(
+            new GetServiceRequestOfferForOwnerQuery(serviceRequestId, offerId), ct);
         return SetResponse(result);
     }
 

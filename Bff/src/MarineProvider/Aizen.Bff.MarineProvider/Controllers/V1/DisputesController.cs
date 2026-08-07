@@ -28,7 +28,7 @@ public sealed class DisputesController : AizenWebApiController
     /// <summary>List the caller provider's disputes (paged, optionally by status) + a global open/actionable count.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(GetProviderDisputesResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetProviderDisputesResponse?>> GetDisputes(
+    public async Task<AizenApiResponse<GetProviderDisputesResponse>> GetDisputes(
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20,
         [FromQuery] ServiceRequestDisputeStatus? status = null,

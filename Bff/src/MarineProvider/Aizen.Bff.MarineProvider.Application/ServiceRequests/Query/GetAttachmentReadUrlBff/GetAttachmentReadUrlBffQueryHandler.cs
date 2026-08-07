@@ -56,7 +56,10 @@ public sealed class GetAttachmentReadUrlBffQueryHandler
             throw new AizenBusinessException("Service request not found.");
         }
 
-        // Step 2: mint signed URL (short-lived, per click)
+        // Step 2: mint signed URL (short-lived, per click). The access check already proved the caller owns this
+        // fileId — so a FileStorage failure here (e.g. a valid attachment whose backing object no longer exists)
+        // is NOT a security event and must not hard-400 the render. Degrade to a clean "unavailable" (empty url)
+        // the FE renders as a broken-image placeholder, instead of a 400 that spams the console on every image.
         try
         {
             var urlResponse = await _fileStorage.CreateReadUrl(
@@ -64,7 +67,11 @@ public sealed class GetAttachmentReadUrlBffQueryHandler
                 new CreateReadUrlRequest { ExpiresIn = TimeSpan.FromMinutes(5) });
 
             if (urlResponse.Body is null)
-                throw new AizenBusinessException("Failed to generate read URL.");
+            {
+                _logger.LogWarning("FileStorage CreateReadUrl returned no body for file {FileId} — returning unavailable.",
+                    request.FileId);
+                return new AttachmentReadUrlBffResponse { Url = string.Empty };
+            }
 
             return new AttachmentReadUrlBffResponse
             {
@@ -74,8 +81,9 @@ public sealed class GetAttachmentReadUrlBffQueryHandler
         }
         catch (Refit.ApiException ex)
         {
-            _logger.LogWarning(ex, "FileStorage CreateReadUrl failed for file {FileId}", request.FileId);
-            throw new AizenBusinessException("Failed to generate read URL.");
+            _logger.LogWarning(ex, "FileStorage CreateReadUrl failed for file {FileId} — returning unavailable (object likely missing).",
+                request.FileId);
+            return new AttachmentReadUrlBffResponse { Url = string.Empty };
         }
     }
 }

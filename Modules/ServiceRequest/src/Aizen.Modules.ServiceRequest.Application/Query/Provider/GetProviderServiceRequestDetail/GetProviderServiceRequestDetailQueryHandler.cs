@@ -81,6 +81,10 @@ public sealed class GetProviderServiceRequestDetailQueryHandler
 
         var detail = sr.ToProviderDetailDto(providerProfileId);
 
+        // Surface the assignment id when this request is assigned to the caller, so the detail page can link the
+        // accepted+assigned state straight to its Job.
+        detail.AssignmentId = isAssignedToMe ? assignment!.Id : null;
+
         // Compute distance from the provider's location (exact coords stay in the module)
         if (request.CenterLatitude.HasValue && request.CenterLongitude.HasValue
             && sr.LocationLatitude.HasValue && sr.LocationLongitude.HasValue)

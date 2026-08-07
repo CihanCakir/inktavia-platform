@@ -1,4 +1,5 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
@@ -308,8 +309,15 @@ public static class ServiceRequestMappingExtensions
     /// </summary>
     public static ProviderServiceRequestDetailDto ToProviderDetailDto(this ServiceRequestEntity entity, long providerProfileId)
     {
+        // A provider can hold more than one live offer on a request (e.g. a leftover Draft plus the Accepted
+        // one). A plain FirstOrDefault returns whichever the collection yields first (the lowest id — usually the
+        // stale draft), so the detail page rendered "make an offer" for a request the provider had already won.
+        // Pick the FURTHEST-PROGRESSED offer instead: Accepted > active > terminal > Draft, newest as tiebreak.
         var myOffer = entity.Offers
-            .FirstOrDefault(o => o.ProviderProfileId == providerProfileId && !o.IsDeleted);
+            .Where(o => o.ProviderProfileId == providerProfileId && !o.IsDeleted)
+            .OrderByDescending(o => MyOfferRank(o.Status))
+            .ThenByDescending(o => o.Id)
+            .FirstOrDefault();
 
         return new ProviderServiceRequestDetailDto
         {
@@ -333,6 +341,22 @@ public static class ServiceRequestMappingExtensions
             AttachmentCount = entity.Attachments.Count(a => !a.IsDeleted)
         };
     }
+
+    /// <summary>
+    /// Lifecycle precedence for choosing a provider's authoritative offer when several exist on one request.
+    /// A won (Accepted) offer must always outrank a stale Draft; a live/pending offer outranks a terminal one.
+    /// </summary>
+    private static int MyOfferRank(ServiceRequestOfferStatus status) => status switch
+    {
+        ServiceRequestOfferStatus.Accepted => 4,
+        ServiceRequestOfferStatus.Submitted => 3,
+        ServiceRequestOfferStatus.UnderReview => 3,
+        ServiceRequestOfferStatus.Rejected => 2,
+        ServiceRequestOfferStatus.Withdrawn => 2,
+        ServiceRequestOfferStatus.Expired => 2,
+        ServiceRequestOfferStatus.Draft => 1,
+        _ => 0,
+    };
 
     public static MaintenanceScheduleDto ToDto(this MaintenanceScheduleEntity entity) => new()
     {

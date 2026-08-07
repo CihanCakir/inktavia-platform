@@ -36,6 +36,8 @@ public static class DependencyInjection
         services.AddScoped<IParticipantContext, ParticipantContext>();
         services.AddScoped<IParticipantIdentityHolder, ParticipantIdentityHolder>();
         services.AddScoped<IParticipantProfileResolver, ParticipantProfileResolver>();
+        // BE_MO2b — shared BFF-side provider profile-id → display-name resolver (batch, cached, cost-free).
+        services.AddScoped<IProviderNameResolver, ProviderNameResolver>();
         services.AddSingleton<IParticipantKeycloakServiceTokenProvider, ParticipantKeycloakServiceTokenProvider>();
 
         // Native ticket→session handoff (OIDC auth-code + PKCE vs. the public inktavia-mobile client).
