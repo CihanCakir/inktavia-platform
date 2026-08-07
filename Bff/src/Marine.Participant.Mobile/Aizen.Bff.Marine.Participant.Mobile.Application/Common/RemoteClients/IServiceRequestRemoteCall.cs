@@ -61,8 +61,21 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<GetServiceRequestOfferForOwnerResponse>> GetOwnerOffer(long serviceRequestId, long offerId);
 
     // Reject a received offer with the N-E structured reason + optional note. The module reject does NOT owner-gate,
-    // so the BFF gates ownership (EnsureOwnedAsync) before proxying. Accept is deliberately NOT wired (MO3).
+    // so the BFF gates ownership (EnsureOwnedAsync) before proxying.
     [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/offers/{offerId}/reject")]
     Task<AizenApiResponse<RejectServiceRequestOfferResponse>> RejectOwnerOffer(
         long serviceRequestId, long offerId, [AizenRemoteCallBody] RejectServiceRequestOfferRequest request);
+
+    // ── BE_MO3 — owner accept + pay + status ────────────────────────────────────────────────────────────
+    // Accept a received offer → module runs BE-P8 economics + escrow (capture-at-accept) BEFORE committing; on
+    // Rejected/ConfigError it throws (no half-accept). The module accept does NOT owner-gate, so the BFF gates
+    // ownership (EnsureOwnedAsync) before proxying. Amounts are server-owned; the body carries only the offerId.
+    [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/offers/{offerId}/accept")]
+    Task<AizenApiResponse<AcceptServiceRequestOfferResponse>> AcceptOwnerOffer(
+        long serviceRequestId, long offerId, [AizenRemoteCallBody] AcceptServiceRequestOfferRequest request);
+
+    // Owner-facing payment status of the accepted SR (poll: Pending → Paid/Failed). Module owner-gates via
+    // UserInfo.UserId; the BFF also gates ownership before proxying. Cost-free (customer total + status only).
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/payment-status")]
+    Task<AizenApiResponse<GetServiceRequestPaymentStatusForOwnerResponse>> GetOwnerPaymentStatus(long serviceRequestId);
 }

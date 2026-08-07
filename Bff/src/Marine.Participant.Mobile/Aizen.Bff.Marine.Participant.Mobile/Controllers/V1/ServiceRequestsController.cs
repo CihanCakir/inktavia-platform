@@ -115,7 +115,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
     }
 
     /// <summary>Reject a received offer with the N-E structured reason + optional note; returns the re-read offer
-    /// (status = Rejected). Accept is deliberately not exposed yet (MO3 wires checkout).</summary>
+    /// (status = Rejected).</summary>
     [HttpPost("{serviceRequestId:long}/offers/{offerId:long}/reject")]
     [ProducesResponseType(typeof(MobileServiceRequestOfferDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<MobileServiceRequestOfferDto>> RejectOffer(
@@ -124,6 +124,33 @@ public sealed class ServiceRequestsController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync(
             new RejectMobileServiceRequestOfferCommand(serviceRequestId, offerId, request ?? new RejectMobileOfferRequest()), ct);
+        return SetResponse(result);
+    }
+
+    // ── BE_MO3 — owner accept + pay + status (money moves) ──────────────────────────────────────────────
+
+    /// <summary>Accept a received offer → the module runs BE-P8 economics + escrow and captures at accept (manual
+    /// gateway in dev; iyzico when the P9 keys are present). Returns the accepted offer's SR + the payment status
+    /// right after accept (dev/manual → already Paid). A blocked accept (Rejected/ConfigError) surfaces as an error
+    /// — no half-accepted, unpaid SR. Owner-gated; amounts are server-owned (the body is empty).</summary>
+    [HttpPost("{serviceRequestId:long}/offers/{offerId:long}/accept")]
+    [ProducesResponseType(typeof(MobileAcceptOfferResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileAcceptOfferResultDto>> AcceptOffer(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new AcceptMobileServiceRequestOfferCommand(serviceRequestId, offerId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Poll the payment lifecycle of the caller's accepted SR (Pending → Paid/Failed). Owner-gated;
+    /// cost-free (customer total + status only). Returns <c>None</c> before any offer is accepted.</summary>
+    [HttpGet("{serviceRequestId:long}/payment-status")]
+    [ProducesResponseType(typeof(MobilePaymentStatusDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobilePaymentStatusDto>> GetPaymentStatus(
+        [FromRoute] long serviceRequestId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileServiceRequestPaymentStatusQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 }

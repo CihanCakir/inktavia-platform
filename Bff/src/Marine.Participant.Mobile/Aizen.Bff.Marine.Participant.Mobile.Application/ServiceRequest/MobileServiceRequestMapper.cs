@@ -201,6 +201,21 @@ internal static class MobileServiceRequestMapper
         SourceCurrencyCode = i.SourceCurrencyCode,
     };
 
+    // ── BE_MO3 owner payment status (cost-free) ───────────────────────────────────────────────────────
+    /// <summary>Projects the module payment-status response → the mobile owner contract. Cost-free: customer total
+    /// + lifecycle status only. Null response (defensive) → a "None" status so the FE keeps its accept CTA.</summary>
+    public static MobilePaymentStatusDto MapPaymentStatus(
+        long serviceRequestId, Aizen.Modules.ServiceRequest.Abstraction.Response.Owner.GetServiceRequestPaymentStatusForOwnerResponse? s) => new()
+    {
+        ServiceRequestId = s?.ServiceRequestId ?? serviceRequestId,
+        HasPayment       = s?.HasPayment ?? false,
+        TransactionId    = s?.TransactionId,
+        Status           = s?.Status ?? "None",
+        Amount           = s?.Amount,
+        CurrencyCode     = s?.CurrencyCode,
+        PaidAt           = s?.PaidAt,
+    };
+
     /// <summary>The settlement currency the offer's totals are in (TRY) — from the line SettlementCurrencyCode,
     /// never the offer DTO's stale USD default.</summary>
     private static string SettlementCurrencyOf(ServiceRequestOfferDto o) =>

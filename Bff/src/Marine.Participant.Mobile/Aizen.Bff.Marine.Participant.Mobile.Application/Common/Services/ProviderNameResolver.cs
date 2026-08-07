@@ -63,15 +63,16 @@ public sealed class ProviderNameResolver : IProviderNameResolver
 
         try
         {
-            // ONE call for every uncached id — no N+1.
-            var resp = await _identity.GetUserProfilesByProfileIds(uncached.ToArray());
+            // ONE call for every uncached id — no N+1. The endpoint computes the display name (CompanyName-first)
+            // server-side and is IdentityRead-callable by the mobile-bff service token (no admin needed).
+            var resp = await _identity.GetProfileDisplayNamesByProfileIds(uncached.ToArray());
             var items = resp?.Body ?? new();
 
             foreach (var p in items)
             {
-                var name = DisplayName(p);
-                result[p.Id] = name;
-                _cache.Set(KeyPrefix + p.Id, name, Ttl);
+                var name = string.IsNullOrWhiteSpace(p.DisplayName) ? null : p.DisplayName!.Trim();
+                result[p.ProfileId] = name;
+                _cache.Set(KeyPrefix + p.ProfileId, name, Ttl);
             }
 
             // Ids the lookup didn't return (unknown / not visible) → null, briefly negative-cached.
@@ -91,14 +92,5 @@ public sealed class ProviderNameResolver : IProviderNameResolver
         }
 
         return result;
-    }
-
-    // CompanyName-first is the intent; the batch list DTO (UserProfileListItemDto) carries only the person-name
-    // fields (the CompanyName lives on the entity, not this projection), so we use "{First} {Last}". For a provider
-    // profile that is already the company-facing label. Blank → null (caller falls back).
-    private static string? DisplayName(Aizen.Modules.Identity.Abstraction.Dto.Common.UserProfileListItemDto p)
-    {
-        var person = $"{p.FirstName} {p.LastName}".Trim();
-        return string.IsNullOrWhiteSpace(person) ? null : person;
     }
 }

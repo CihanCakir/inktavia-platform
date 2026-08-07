@@ -4,7 +4,9 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetServiceRequestPaymentStatusForOwner;
 using Aizen.Modules.ServiceRequest.Application.Query.ServiceRequest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -80,6 +82,21 @@ public sealed class ServiceRequestController : AizenWebApiController
         [FromQuery] ServiceRequestListFilterRequest filter, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<GetServiceRequestListResponse>(new GetServiceRequestListQuery(CurrentUserId, filter), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-MO3 — the owner-facing payment status of an accepted service request (poll after accept: Pending →
+    /// Paid/Failed). Owner-scoped in the handler (the caller must own the SR). Cost-free: customer total + status
+    /// only. Returns <c>None</c> before an offer is accepted (no escrow transaction yet).
+    /// </summary>
+    [HttpGet("{serviceRequestId:long}/payment-status")]
+    [ProducesResponseType(typeof(GetServiceRequestPaymentStatusForOwnerResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetServiceRequestPaymentStatusForOwnerResponse?>> GetPaymentStatus(
+        [FromRoute] long serviceRequestId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetServiceRequestPaymentStatusForOwnerResponse>(
+            new GetServiceRequestPaymentStatusForOwnerQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 

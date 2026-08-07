@@ -36,6 +36,18 @@ public interface IPaymentModuleRemoteCall : IAizenRemoteCall
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// BE-MO3 — reads a transaction's lifecycle state (status + customer gross + timestamps) for an owner
+    /// "did my payment go through?" poll. Pure read; a NARROW cost-free projection — no commission / net-payout /
+    /// discount funding crosses. No capture logic (status reflects the existing capture + webhook path). Used by
+    /// ServiceRequest to surface the owner-facing payment status of an accepted SR's escrow transaction.
+    /// </summary>
+    [AizenRemoteCallGet("/api/v1/payment/internal/transactions/{transactionId}/status")]
+    Task<GetTransactionStatusRemoteCallResponse> GetTransactionStatusAsync(
+        long transactionId,
+        [AizenRemoteCallHeader("Authorization")] string authorization,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Resolves per-line commissions for an offer's priced lines (BE-S7) via the BE-P2 CommissionRule dimensions.
     /// Pure / read-only / idempotent — no state written, no applied-count bump (that is P8). Used by ServiceRequest
     /// as a compute-on-demand offer-builder preview. Propagates CommissionRuleConflict on a fail-loud tie.

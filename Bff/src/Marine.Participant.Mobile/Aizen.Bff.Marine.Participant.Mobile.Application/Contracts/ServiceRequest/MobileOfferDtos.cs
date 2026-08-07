@@ -76,3 +76,50 @@ public sealed class RejectMobileOfferRequest
     public string? ReasonCode { get; set; }
     public string? Note { get; set; }
 }
+
+// ── BE_MO3 — owner accept + pay + status ─────────────────────────────────────────────────────────────
+// The accept body carries NOTHING the client controls about money — the offer is identified by the route, and the
+// module recomputes the economics server-side (BE-P8). Amounts/provider ids are never client-supplied. COST-FREE:
+// the owner sees the customer total (what they pay) + lifecycle status only — never commission / net / funding.
+
+/// <summary>
+/// The result of accepting an offer: the accepted offer + the SR's payment status right after accept. Because the
+/// model captures at accept (P8 escrow + capture in one transactional step via the manual/iyzico gateway), on the
+/// dev/manual gateway <see cref="Payment"/> is already <c>Paid</c>; the FE can still poll payment-status for the
+/// live iyzico path (3DS is asynchronous). A blocked accept (Rejected/ConfigError) throws — no half-accepted SR.
+/// </summary>
+public sealed class MobileAcceptOfferResultDto
+{
+    public long OfferId { get; set; }
+    public long ServiceRequestId { get; set; }
+    /// <summary>True once the module committed the acceptance (offer → Accepted, escrow created).</summary>
+    public bool Accepted { get; set; }
+    /// <summary>The SR's payment status read straight after accept (drives the success/fail screen without a poll).</summary>
+    public MobilePaymentStatusDto Payment { get; set; } = new();
+}
+
+/// <summary>
+/// Owner-facing payment status of an accepted SR. COST-FREE: the customer total (what the owner paid) + a stable
+/// lifecycle status only — never commission / net-payout / funding. <see cref="Status"/> is the owner lifecycle
+/// (None / Pending / Paid / Failed / Cancelled); <see cref="IsPaid"/>/<see cref="IsPending"/>/<see cref="IsFailed"/>
+/// are convenience flags. Drives the accept→pay→result flow and the retry decision on failure.
+/// </summary>
+public sealed class MobilePaymentStatusDto
+{
+    public long ServiceRequestId { get; set; }
+    /// <summary>False before an offer is accepted (no escrow transaction yet).</summary>
+    public bool HasPayment { get; set; }
+    public long? TransactionId { get; set; }
+    /// <summary>Owner lifecycle: None / Pending / Paid / Failed / Cancelled.</summary>
+    public string Status { get; set; } = "None";
+    /// <summary>Customer total — what the owner pays (settlement currency). Cost-free.</summary>
+    public decimal? Amount { get; set; }
+    public string? CurrencyCode { get; set; }
+    public DateTime? PaidAt { get; set; }
+
+    public bool IsPaid    => string.Equals(Status, "Paid", StringComparison.OrdinalIgnoreCase);
+    public bool IsPending => string.Equals(Status, "Pending", StringComparison.OrdinalIgnoreCase);
+    /// <summary>Failed OR Cancelled — a retriable terminal state (the accept is not left dangling unpaid).</summary>
+    public bool IsFailed  => string.Equals(Status, "Failed", StringComparison.OrdinalIgnoreCase)
+                         || string.Equals(Status, "Cancelled", StringComparison.OrdinalIgnoreCase);
+}

@@ -5,7 +5,9 @@ using Aizen.Modules.Payment.Application.Commands.CalculateServiceRequestEconomic
 using Aizen.Modules.Payment.Application.Commands.CreatePaymentEscrow;
 using Aizen.Modules.Payment.Application.Commands.ReleasePaymentEscrow;
 using Aizen.Modules.Payment.Application.Commands.ResolveDisputeOutcome;
+using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Aizen.Modules.Payment.Application.Queries.GetDisputeCasePaymentState;
+using Aizen.Modules.Payment.Application.Queries.GetPaymentTransaction;
 using Aizen.Modules.Payment.Application.Queries.GetProviderSplitEligibility;
 using Aizen.Modules.Payment.Application.Queries.ResolveCustomerDiscountForOffer;
 using Aizen.Modules.Payment.Application.Queries.ResolveLineCommissions;
@@ -73,6 +75,34 @@ public sealed class PaymentInternalController : ControllerBase
             AdminNote        = request.AdminNote,
         }, ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// BE-MO3 — a lean, cost-free read of a transaction's lifecycle state (status + customer gross + timestamps),
+    /// for an owner "did my payment go through?" poll. Reuses the existing <see cref="GetPaymentTransactionQuery"/>
+    /// and projects to a NARROW response — commission / net-payout / discount funding never cross this seam. No
+    /// capture/webhook logic (status is driven by the existing capture + webhook path). Called by ServiceRequest.
+    /// </summary>
+    [HttpGet("transactions/{transactionId:long}/status")]
+    public async Task<IActionResult> GetTransactionStatus(long transactionId, CancellationToken ct)
+    {
+        var t = await _sender.Send(new GetPaymentTransactionQuery { TransactionId = transactionId }, ct);
+        if (t is null) return NotFound();
+        return Ok(new GetTransactionStatusRemoteCallResponse
+        {
+            TransactionId  = t.TransactionId,
+            Status         = t.Status.ToString(),
+            StatusCode     = (int)t.Status,
+            GrossAmount    = t.GrossAmount,
+            CurrencyCode   = t.CurrencyCode,
+            EscrowRequired = t.EscrowRequired,
+            ContextType    = t.ContextType.ToString(),
+            ContextId      = t.ContextId,
+            ContextSubId   = t.ContextSubId,
+            PayerProfileId = t.PayerProfileId,
+            CapturedAt     = t.CapturedAt,
+            CancelledAt    = t.CancelledAt,
+        });
     }
 
     /// <summary>
