@@ -153,4 +153,43 @@ public sealed class ServiceRequestsController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new GetMobileServiceRequestPaymentStatusQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
+
+    // ── BE_MO4 — owner completion review (reuses approve/reject + the decoupled escrow release) ──────────
+
+    /// <summary>The provider's completion on one of the caller's own requests — status, notes, evidence (with a
+    /// freshly-minted access URL), submitted-at, and the N3 auto-approve deadline for the countdown. Owner-scoped;
+    /// a foreign/unknown id yields a clean not-found; <c>null</c> when no completion has been submitted yet.</summary>
+    [HttpGet("{serviceRequestId:long}/completion")]
+    [ProducesResponseType(typeof(MobileServiceRequestCompletionDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileServiceRequestCompletionDto>> GetCompletion(
+        [FromRoute] long serviceRequestId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileServiceRequestCompletionQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Approve the provider's completion (optional 1..5 rating + note) → the module transitions the SR to
+    /// Completed and the existing decoupled escrow release runs (untouched). Returns the re-read completion
+    /// (status = ApprovedByOwner). Owner-gated; an owner action before the deadline cancels the N3 auto-approval.</summary>
+    [HttpPost("{serviceRequestId:long}/completion/approve")]
+    [ProducesResponseType(typeof(MobileServiceRequestCompletionDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileServiceRequestCompletionDto>> ApproveCompletion(
+        [FromRoute] long serviceRequestId, [FromBody] ApproveMobileCompletionRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ApproveMobileServiceRequestCompletionCommand(serviceRequestId, request ?? new ApproveMobileCompletionRequest()), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Reject the provider's completion with the N-E structured reason + optional note (SR → InProgress;
+    /// no money). Returns the re-read completion (status = RejectedByOwner). Owner-gated.</summary>
+    [HttpPost("{serviceRequestId:long}/completion/reject")]
+    [ProducesResponseType(typeof(MobileServiceRequestCompletionDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileServiceRequestCompletionDto>> RejectCompletion(
+        [FromRoute] long serviceRequestId, [FromBody] RejectMobileCompletionRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RejectMobileServiceRequestCompletionCommand(serviceRequestId, request ?? new RejectMobileCompletionRequest()), ct);
+        return SetResponse(result);
+    }
 }

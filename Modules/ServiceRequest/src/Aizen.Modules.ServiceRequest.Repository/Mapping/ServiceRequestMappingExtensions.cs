@@ -203,7 +203,10 @@ public static class ServiceRequestMappingExtensions
         ReviewedAt = entity.ReviewedAt,
         ReviewedByUserId = entity.ReviewedByUserId,
         ReviewNotes = entity.ReviewNotes,
-        ClientRating = entity.ClientRating
+        ClientRating = entity.ClientRating,
+        RejectReasonCode = entity.RejectReasonCode,
+        AutoApproveAt = entity.AutoApproveAt,
+        AutoApproveReminderSentAt = entity.AutoApproveReminderSentAt
     };
 
     public static ServiceRequestDisputeDto ToDto(this ServiceRequestDisputeEntity entity) => new()

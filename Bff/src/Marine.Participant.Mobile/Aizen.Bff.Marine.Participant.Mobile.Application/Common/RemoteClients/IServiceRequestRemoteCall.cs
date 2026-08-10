@@ -1,8 +1,10 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
@@ -78,4 +80,17 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     // UserInfo.UserId; the BFF also gates ownership before proxying. Cost-free (customer total + status only).
     [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/payment-status")]
     Task<AizenApiResponse<GetServiceRequestPaymentStatusForOwnerResponse>> GetOwnerPaymentStatus(long serviceRequestId);
+
+    // ── BE_MO4 — owner completion review (reuses approve/reject + the decoupled escrow release) ─────────────
+    // Approve the provider's completion (optional owner rating) → SR Completed → the existing decoupled escrow
+    // release runs (untouched). The module approve does NOT owner-gate, so the BFF gates ownership before proxying.
+    [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/completion/approve")]
+    Task<AizenApiResponse<ApproveServiceRequestCompletionResponse>> ApproveOwnerCompletion(
+        long serviceRequestId, [AizenRemoteCallBody] ApproveServiceRequestCompletionRequest request);
+
+    // Reject the provider's completion with the N-E structured reason + optional note (SR → InProgress; no money).
+    // The module reject does NOT owner-gate, so the BFF gates ownership before proxying.
+    [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/completion/reject")]
+    Task<AizenApiResponse<RejectServiceRequestCompletionResponse>> RejectOwnerCompletion(
+        long serviceRequestId, [AizenRemoteCallBody] RejectServiceRequestCompletionRequest request);
 }

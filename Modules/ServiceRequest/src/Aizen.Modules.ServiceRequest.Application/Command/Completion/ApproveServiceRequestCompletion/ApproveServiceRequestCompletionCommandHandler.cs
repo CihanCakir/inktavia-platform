@@ -52,6 +52,10 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
             return new ApproveServiceRequestCompletionResponse(completion.Id);
 
         completion.ApproveByOwner(currentUserId, request.Request.ReviewNotes);
+        // MO4 — optional owner satisfaction rating captured at approval (1..5). Additive: it never affects the
+        // SR→Completed transition or the decoupled escrow release; the auto-approval job passes no rating.
+        if (request.Request.ClientRating is int rating)
+            completion.RateByClient(rating);
         _completionRepository.Update(completion);
 
         var prevStatus = sr.Status;

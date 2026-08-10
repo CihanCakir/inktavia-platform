@@ -149,6 +149,9 @@ internal static class MobileServiceRequestMapper
     public static OfferRejectReason? ParseOfferRejectReason(string? name) =>
         Enum.TryParse<OfferRejectReason>(name, ignoreCase: true, out var r) ? r : OfferRejectReason.Other;
 
+    public static CompletionRejectReason? ParseCompletionRejectReason(string? name) =>
+        Enum.TryParse<CompletionRejectReason>(name, ignoreCase: true, out var r) ? r : CompletionRejectReason.Other;
+
     // ── BE_MO2 offer projection (cost-free) ────────────────────────────────────────────────────────────
     // Only the customer-facing totals + line items + S3 FX cross. The module offer DTO already excludes cost /
     // commission / funding / provider-net; we additionally drop the provider profile/user ids the owner has no
@@ -215,6 +218,51 @@ internal static class MobileServiceRequestMapper
         CurrencyCode     = s?.CurrencyCode,
         PaidAt           = s?.PaidAt,
     };
+
+    // ── BE_MO4 owner completion review (cost-free) ──────────────────────────────────────────────────────
+    /// <summary>Projects the module completion DTO → the mobile owner review contract. Cost-free: status / notes /
+    /// evidence / review fields only — the provider + reviewer user ids are dropped. The evidence read URL is
+    /// resolved separately (best-effort) via <see cref="MapCompletionWithEvidenceUrlAsync"/>.</summary>
+    public static MobileServiceRequestCompletionDto MapCompletion(ServiceRequestCompletionDto c) => new()
+    {
+        CompletionId    = c.Id,
+        ServiceRequestId = c.ServiceRequestId,
+        Status          = c.Status.ToString(),
+        CompletionNotes = c.CompletionNotes,
+        EvidenceFileId  = c.EvidenceFileId,
+        SubmittedAt     = c.SubmittedAt,
+        AutoApproveAt   = c.AutoApproveAt,
+        ReviewedAt      = c.ReviewedAt,
+        ReviewNotes     = c.ReviewNotes,
+        RejectReasonCode = c.RejectReasonCode?.ToString(),
+        ClientRating    = c.ClientRating,
+        IsPendingReview = c.Status == ServiceRequestCompletionStatus.Submitted,
+    };
+
+    /// <summary>Completion projection + the evidence file's presigned read URL resolved (best-effort — a failure
+    /// leaves the URL null and the FE shows a placeholder; shares the attachment read-url path/fix).</summary>
+    public static async Task<MobileServiceRequestCompletionDto> MapCompletionWithEvidenceUrlAsync(
+        ServiceRequestCompletionDto c, IFileStorageRemoteCall fileStorage, ILogger logger, CancellationToken ct)
+    {
+        var dto = MapCompletion(c);
+        if (dto.EvidenceFileId is Guid fileId && fileId != Guid.Empty)
+        {
+            try
+            {
+                var url = await fileStorage.CreateReadUrl(fileId, new CreateReadUrlRequest { ExpiresIn = ReadUrlTtl });
+                if (url?.Body is not null)
+                {
+                    dto.EvidenceUrl = url.Body.ReadUrl;
+                    dto.EvidenceUrlExpiresAt = url.Body.ExpiresAt;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Could not resolve read URL for completion {CompletionId} evidence {FileId}.", dto.CompletionId, fileId);
+            }
+        }
+        return dto;
+    }
 
     /// <summary>The settlement currency the offer's totals are in (TRY) — from the line SettlementCurrencyCode,
     /// never the offer DTO's stale USD default.</summary>
