@@ -192,4 +192,45 @@ public sealed class ServiceRequestsController : AizenWebApiController
             new RejectMobileServiceRequestCompletionCommand(serviceRequestId, request ?? new RejectMobileCompletionRequest()), ct);
         return SetResponse(result);
     }
+
+    // ── BE_MO5 — owner disputes (open + my-disputes list + read-only cost-free case) ─────────────────────
+    // The owner opens a dispute, sees THEIR disputes, and reads the composed case. Resolution / status-change
+    // stay Admin-only — there is deliberately no owner resolve/status endpoint here (the owner is read-only; N3
+    // notifies them of the outcome).
+
+    /// <summary>Open a dispute (N-E structured reason + description) on one of the caller's own requests. Owner-gated;
+    /// a foreign/unknown id yields a clean not-found. Returns the just-opened dispute as a list row.</summary>
+    [HttpPost("{serviceRequestId:long}/dispute")]
+    [ProducesResponseType(typeof(MobileDisputeListItemDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileDisputeListItemDto>> OpenDispute(
+        [FromRoute] long serviceRequestId, [FromBody] OpenMobileDisputeRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new OpenMobileDisputeCommand(serviceRequestId, request ?? new OpenMobileDisputeRequest()), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>The caller-owner's own disputes (paged; empty when none) + a global open/actionable count. Optionally
+    /// narrowed to one ServiceRequestDisputeStatus name. Cost-free.</summary>
+    [HttpGet("disputes")]
+    [ProducesResponseType(typeof(MobileDisputeListDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileDisputeListDto>> GetMyDisputes(
+        [FromQuery] int pageIndex = 0, [FromQuery] int pageSize = 20, [FromQuery] string? status = null,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileOwnerDisputesQuery(pageIndex, pageSize, status), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>The read-only cost-free dispute case for one of the caller's own requests: SR summary, customer-facing
+    /// economics, evidence (with access URLs), messages, the lifecycle timeline, and — once resolved — the resolution
+    /// outcome. Owner-gated; a foreign/unknown id yields a clean not-found. Resolution / status-change are Admin-only.</summary>
+    [HttpGet("{serviceRequestId:long}/dispute/{disputeId:long}/case")]
+    [ProducesResponseType(typeof(MobileDisputeCaseDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileDisputeCaseDto>> GetDisputeCase(
+        [FromRoute] long serviceRequestId, [FromRoute] long disputeId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileDisputeCaseQuery(serviceRequestId, disputeId), ct);
+        return SetResponse(result);
+    }
 }

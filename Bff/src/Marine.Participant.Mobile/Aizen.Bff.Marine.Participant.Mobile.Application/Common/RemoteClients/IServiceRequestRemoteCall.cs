@@ -1,10 +1,13 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
@@ -93,4 +96,22 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/completion/reject")]
     Task<AizenApiResponse<RejectServiceRequestCompletionResponse>> RejectOwnerCompletion(
         long serviceRequestId, [AizenRemoteCallBody] RejectServiceRequestCompletionRequest request);
+
+    // ── BE_MO5 — owner disputes (open + my-disputes list + read-only cost-free case) ────────────────────────
+    // Open a dispute (N-E reason + description). The shared module endpoint resolves the actor from roles → Owner
+    // for an asserted participant. It does NOT owner-gate the SR, so the BFF gates ownership (EnsureOwnedAsync)
+    // before proxying. Resolution / status-change stay Admin-only — never proxied here.
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/dispute")]
+    Task<AizenApiResponse<OpenServiceRequestDisputeResponse>> OpenDispute(
+        long serviceRequestId, [AizenRemoteCallBody] OpenServiceRequestDisputeRequest request);
+
+    // The caller-owner's own disputes + a global open/actionable count (owner scoped module-side via UserInfo.UserId).
+    [AizenRemoteCallGet("/api/v1/service-requests/owner/disputes")]
+    Task<AizenApiResponse<GetOwnerDisputesResponse>> GetOwnerDisputes(
+        [Refit.Query] int pageIndex, [Refit.Query] int pageSize, [Refit.Query] ServiceRequestDisputeStatus? status);
+
+    // The cost-free dispute case for the owner (read-only). The owner endpoint gates by SR ownership module-side;
+    // the BFF ALSO owner-gates via EnsureOwnedAsync before calling (defense-in-depth).
+    [AizenRemoteCallGet("/api/v1/service-requests/owner/disputes/{disputeId}/case")]
+    Task<AizenApiResponse<GetDisputeCaseDetailResponse>> GetOwnerDisputeCase(long disputeId);
 }
