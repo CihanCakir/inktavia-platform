@@ -38,6 +38,37 @@ public static class ServiceRequestMessageMapping
     public static string SystemSourceKey(long serviceRequestId, string code)
         => $"sys:{serviceRequestId}:{(code ?? string.Empty).Trim()}";
 
+    /// <summary>
+    /// BE_WC1 — the lifecycle SourceKey CODE for a synced SR message, or <c>null</c> when it is a regular chat
+    /// message (Text/Image/Location) that should key on the SR message id instead. This is what lets the SR→Messaging
+    /// sync consumer and the WC1 Messaging lifecycle consumers converge on the SAME <c>sys:{srId}:{code}</c> key so the
+    /// partial unique index keeps exactly one row across the parallel run. Codes:
+    /// <list type="bullet">
+    ///   <item>offer card (SR Offer type, content <c>offer:{offerId}|…</c>) → <c>OFFER:{offerId}</c>;</item>
+    ///   <item>System lifecycle (SR System sender / StatusChange / SystemNotification) → the content code verbatim
+    ///   (<c>OFFER_ACCEPTED</c>, <c>JOB_STARTED</c>, <c>JOB_COMPLETED</c>, <c>CONVERSATION_CLOSED</c>).</item>
+    /// </list>
+    /// SR ints: senderType 4 = System; messageType 2 = SystemNotification, 3 = StatusChange, 4 = Offer.
+    /// </summary>
+    public static string? LifecycleCode(int srSenderType, int srMessageType, string? content)
+    {
+        // Offer card — Provider/Offer with an "offer:{offerId}|..." payload.
+        if (srMessageType == 4 && !string.IsNullOrWhiteSpace(content) &&
+            content!.StartsWith("offer:", StringComparison.Ordinal))
+        {
+            var rest = content.Substring("offer:".Length);
+            var bar = rest.IndexOf('|');
+            var offerId = (bar >= 0 ? rest.Substring(0, bar) : rest).Trim();
+            return offerId.Length > 0 ? $"OFFER:{offerId}" : null;
+        }
+
+        // System lifecycle — the content IS the status code.
+        if (srSenderType == 4 || srMessageType == 2 || srMessageType == 3)
+            return string.IsNullOrWhiteSpace(content) ? null : content!.Trim();
+
+        return null;
+    }
+
     // SR ServiceRequestMessageType (int) → Messaging MessageType. Offer(4) has no Messaging equivalent → StatusChange.
     public static MessageType MapMessageType(int srMessageType) => srMessageType switch
     {

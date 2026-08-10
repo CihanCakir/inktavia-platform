@@ -5,10 +5,12 @@ using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
+using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Application.Services;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
 
@@ -33,6 +35,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
     private readonly UnitCodeValidator _unitCodeValidator;
     private readonly IAizenMessagePublisher _messagePublisher;
     private readonly Services.Fx.OfferFxResolver _fxResolver;
+    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
     public SubmitOfferCommandHandler(
         IServiceRequestRepository srRepository,
@@ -42,7 +45,8 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         OfferCalculationService calculation,
         UnitCodeValidator unitCodeValidator,
         IAizenMessagePublisher messagePublisher,
-        Services.Fx.OfferFxResolver fxResolver)
+        Services.Fx.OfferFxResolver fxResolver,
+        IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
     {
         _srRepository = srRepository;
         _offerRepository = offerRepository;
@@ -52,6 +56,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         _unitCodeValidator = unitCodeValidator;
         _messagePublisher = messagePublisher;
         _fxResolver = fxResolver;
+        _cutover = cutover;
     }
 
     public override async Task<SubmitOfferResponse?> Handle(SubmitOfferCommand command, CancellationToken ct)
@@ -112,8 +117,21 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
 
         // Create offer-as-message (idempotent per offer id)
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+
+        // BE_WC1 — first-class submit event (ALWAYS published) → Messaging generates the offer card. Dedicated to the
+        // card (NOT the draft-time ServiceRequestOfferCreatedMessage, which the Notification module consumes), so no
+        // new notification fires and the card carries the final submit-time total.
+        await _messagePublisher.PublishAsync(new ServiceRequestOfferSubmittedMessage
+        {
+            ServiceRequestId = sr.Id, OfferId = offer.Id, ProviderProfileId = offer.ProviderProfileId,
+            ProviderUserId = currentUserId, TotalAmount = offer.GrandTotal, CurrencyCode = offer.CurrencyCode,
+            OccurredAt = DateTimeOffset.UtcNow,
+        }, ct);
+
+        // BE_WC1 flag-gated: when SystemMessages is ON, Messaging owns the offer card (from the event above), so the SR
+        // module stops writing the sr.Messages offer row + the chat-mirror event.
         var hasOfferMsg = await _messageRepository.HasOfferMessageForOfferAsync(sr.Id, offer.Id, ct);
-        if (!hasOfferMsg)
+        if (!_cutover.CurrentValue.SystemMessages && !hasOfferMsg)
         {
             var offerMessage = ServiceRequestMessageEntity.Create(
                 sr.Id, currentUserId, ServiceRequestMessageSenderType.Provider,

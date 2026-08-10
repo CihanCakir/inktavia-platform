@@ -85,5 +85,16 @@ public sealed class EnsureConversationForContextCommandHandlerTests
             => throw new NotSupportedException();
         public Task<int> CountAsync(ConversationStatus? status, MessagingContextType? contextType, CancellationToken ct = default)
             => throw new NotSupportedException();
+
+        // Participant-scoped reads (Phase-3) — not exercised by these tests; stubbed to satisfy the current interface.
+        public Task<IReadOnlyList<ConversationEntity>> GetListForParticipantAsync(
+            long userId, MessagingContextType? contextType, int skip, int take, CancellationToken ct = default)
+            => throw new NotSupportedException();
+        public Task<int> CountForParticipantAsync(
+            long userId, MessagingContextType? contextType, CancellationToken ct = default)
+            => throw new NotSupportedException();
+        public Task<ConversationEntity?> GetByContextWithMessagesAsync(
+            MessagingContextType contextType, long contextId, CancellationToken ct = default)
+            => throw new NotSupportedException();
     }
 }

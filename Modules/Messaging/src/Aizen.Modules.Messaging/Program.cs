@@ -39,9 +39,14 @@ builder.Services.AddMessagingRepository();
 builder.Services.AddMessagingServices();
 builder.Services.AddMessagingApplicationServices();
 
-// ── BE_WC0 write-cutover flags (scaffolding; all OFF, bound-but-unused this phase) ──
+// ── BE_WC0 write-cutover flags (scaffolding; all OFF). The SR host reads SystemMessages to gate its writes; the
+//    Messaging lifecycle consumers below always run (parallel-then-flip). ──
 builder.Services.Configure<MessagingWriteCutoverOptions>(
     builder.Configuration.GetSection(MessagingWriteCutoverOptions.SectionName));
+
+// ── BE_WC1 — shared writer for the Messaging-generated System/lifecycle messages (used by the auto-discovered
+//    lifecycle consumers). Scoped: one MessagingDbContext per message, matching the sync consumer. ──
+builder.Services.AddScoped<Aizen.Modules.Messaging.Consumers.ServiceRequest.Lifecycle.ServiceRequestLifecycleMessageWriter>();
 
 // ── HTTP clients ──────────────────────────────────────────────────────────
 builder.Services.AddHttpClient("anthropic", client =>

@@ -12,8 +12,10 @@ using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
+using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SrEnum = Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Offer;
@@ -31,6 +33,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly Services.Pricing.PricingAttributeSnapshotResolver _pricingSnapshotResolver;
     private readonly Services.Travel.TravelPricingSnapshotResolver _travelSnapshotResolver;
     private readonly ILogger<AcceptServiceRequestOfferCommandHandler> _logger;
+    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
     public AcceptServiceRequestOfferCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestOfferRepository offerRepository,
@@ -40,13 +43,14 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         IAizenMessagePublisher messagePublisher,
         Services.Pricing.PricingAttributeSnapshotResolver pricingSnapshotResolver,
         Services.Travel.TravelPricingSnapshotResolver travelSnapshotResolver,
-        ILogger<AcceptServiceRequestOfferCommandHandler> logger)
+        ILogger<AcceptServiceRequestOfferCommandHandler> logger,
+        IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
     {
         _srRepository = srRepository; _offerRepository = offerRepository; _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher;
         _pricingSnapshotResolver = pricingSnapshotResolver; _travelSnapshotResolver = travelSnapshotResolver;
-        _logger = logger;
+        _logger = logger; _cutover = cutover;
     }
 
     public override async Task<AcceptServiceRequestOfferResponse?> Handle(AcceptServiceRequestOfferCommand request, CancellationToken cancellationToken)
@@ -127,7 +131,9 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         }, cancellationToken);
 
         // Lifecycle system message (idempotent)
-        if (!await _msgRepository.HasSystemMessageAsync(sr.Id, "OFFER_ACCEPTED", cancellationToken))
+        // BE_WC1 flag-gated: Messaging generates OFFER_ACCEPTED from ServiceRequestOfferAcceptedMessage when ON.
+        if (!_cutover.CurrentValue.SystemMessages &&
+            !await _msgRepository.HasSystemMessageAsync(sr.Id, "OFFER_ACCEPTED", cancellationToken))
         {
             var sysMsg = ServiceRequestMessageEntity.Create(
                 sr.Id, currentUserId, ServiceRequestMessageSenderType.System,

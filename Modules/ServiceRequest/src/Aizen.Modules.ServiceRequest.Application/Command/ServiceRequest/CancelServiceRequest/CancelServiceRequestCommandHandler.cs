@@ -8,7 +8,9 @@ using Aizen.Modules.ServiceRequest.Application.Mapping;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
+using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest;
 
@@ -20,10 +22,11 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
-    public CancelServiceRequestCommandHandler(IServiceRequestRepository repository, IServiceRequestMessageRepository msgRepository, IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher)
+    public CancelServiceRequestCommandHandler(IServiceRequestRepository repository, IServiceRequestMessageRepository msgRepository, IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher, IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
     {
-        _repository = repository; _msgRepository = msgRepository; _info = info; _realtimePublisher = realtimePublisher; _messagePublisher = messagePublisher;
+        _repository = repository; _msgRepository = msgRepository; _info = info; _realtimePublisher = realtimePublisher; _messagePublisher = messagePublisher; _cutover = cutover;
     }
 
     public override async Task<CancelServiceRequestResponse?> Handle(CancelServiceRequestCommand request, CancellationToken cancellationToken)
@@ -59,7 +62,9 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
         }, cancellationToken);
 
         // Lifecycle system message (idempotent)
-        if (!await _msgRepository.HasSystemMessageAsync(entity.Id, "CONVERSATION_CLOSED", cancellationToken))
+        // BE_WC1 flag-gated: Messaging generates CONVERSATION_CLOSED from ServiceRequestCancelledMessage when ON.
+        if (!_cutover.CurrentValue.SystemMessages &&
+            !await _msgRepository.HasSystemMessageAsync(entity.Id, "CONVERSATION_CLOSED", cancellationToken))
         {
             var sysMsg = ServiceRequestMessageEntity.Create(
                 entity.Id, currentUserId, ServiceRequestMessageSenderType.System,

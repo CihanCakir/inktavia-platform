@@ -123,10 +123,14 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
 
         var srType = (int)m.SenderType; // SR 1-4 == Messaging role 1-4
         var srMsgType = m.MessageType.HasValue ? (int)m.MessageType.Value : 1;
-        // BE_WC0 — stamp the durable idempotency key (sr:{srId}:{srMessageId}). The partial unique index on
-        // (ConversationId, SourceKey) now guards redelivery across replicas; the per-SR semaphore + computed-key
-        // in-memory check above stay for this phase (belt-and-suspenders; removed in WC4).
-        var sourceKey = ServiceRequestMessageMapping.SourceKey(m.ServiceRequestId, m.MessageId);
+        // BE_WC0/WC1 — stamp the durable idempotency key. Lifecycle messages (System pills + the offer card) key on
+        // sys:{srId}:{CODE} so this sync row and the WC1 Messaging-generated row COLLAPSE to one via the partial unique
+        // index during the parallel run; regular chat (Text/Image/Location) keys on sr:{srId}:{srMessageId}. The
+        // per-SR semaphore + computed-key in-memory check above stay for this phase (belt-and-suspenders; removed WC4).
+        var lifecycleCode = ServiceRequestMessageMapping.LifecycleCode(srType, srMsgType, content);
+        var sourceKey = lifecycleCode is not null
+            ? ServiceRequestMessageMapping.SystemSourceKey(m.ServiceRequestId, lifecycleCode)
+            : ServiceRequestMessageMapping.SourceKey(m.ServiceRequestId, m.MessageId);
         var msg = ServiceRequestMessageMapping.MapMessage(
             conv.Id, m.SenderUserId, srType, srMsgType, content, m.AttachmentFileId, sentAt, senderName,
             m.LocationLat, m.LocationLng, m.LocationLabel, sourceKey);

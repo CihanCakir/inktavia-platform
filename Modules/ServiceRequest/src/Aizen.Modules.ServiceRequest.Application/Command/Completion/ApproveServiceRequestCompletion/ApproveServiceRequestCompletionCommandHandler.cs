@@ -7,7 +7,9 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
+using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Completion;
 
@@ -21,17 +23,19 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
     public ApproveServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestCompletionRepository completionRepository,
         IServiceRequestAssignmentRepository assignmentRepository, IServiceRequestMessageRepository msgRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
-        IAizenMessagePublisher messagePublisher)
+        IAizenMessagePublisher messagePublisher,
+        IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
     {
         _srRepository = srRepository; _completionRepository = completionRepository;
         _assignmentRepository = assignmentRepository; _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
-        _messagePublisher = messagePublisher;
+        _messagePublisher = messagePublisher; _cutover = cutover;
     }
 
     public override async Task<ApproveServiceRequestCompletionResponse?> Handle(ApproveServiceRequestCompletionCommand request, CancellationToken cancellationToken)
@@ -79,7 +83,9 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
         }, cancellationToken);
 
         // Lifecycle system message (idempotent)
-        if (!await _msgRepository.HasSystemMessageAsync(sr.Id, "JOB_COMPLETED", cancellationToken))
+        // BE_WC1 flag-gated: Messaging generates JOB_COMPLETED from ServiceRequestCompletionApprovedMessage when ON.
+        if (!_cutover.CurrentValue.SystemMessages &&
+            !await _msgRepository.HasSystemMessageAsync(sr.Id, "JOB_COMPLETED", cancellationToken))
         {
             var sysMsg = ServiceRequestMessageEntity.Create(
                 sr.Id, currentUserId, ServiceRequestMessageSenderType.System,

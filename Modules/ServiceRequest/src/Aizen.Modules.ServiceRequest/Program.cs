@@ -32,6 +32,12 @@ builder.Services.AddAizenInfoAccessor(builder.Configuration);
 
 builder.Services.AddServiceRequestRepository();
 builder.Services.AddServiceRequestServices();
+
+// BE_WC1 — bind the write-cutover flags (canonical section shared with the Messaging host). Only SystemMessages is
+// read here (gates the 5 SR lifecycle commands' sr.Messages + chat-event writes). All default OFF ⇒ prior behaviour.
+builder.Services.Configure<Aizen.Modules.ServiceRequest.Application.Configuration.MessagingWriteCutoverOptions>(
+    builder.Configuration.GetSection(
+        Aizen.Modules.ServiceRequest.Application.Configuration.MessagingWriteCutoverOptions.SectionName));
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.OfferCalculationService>();
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.UnitCodeValidator>();
 
