@@ -409,6 +409,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Core.Hardening.UnitTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Core.Starter.Bff", "Core\Starter\src\Aizen.Core.Starter.Bff\Aizen.Core.Starter.Bff.csproj", "{3AF8D2FD-7B75-44C4-B47C-923E14009128}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Modules.Notification.Application.UnitTests", "Modules\Notification\tests\Aizen.Modules.Notification.Application.UnitTests\Aizen.Modules.Notification.Application.UnitTests.csproj", "{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1895,6 +1897,18 @@ Global
 		{3AF8D2FD-7B75-44C4-B47C-923E14009128}.Release|x64.Build.0 = Release|Any CPU
 		{3AF8D2FD-7B75-44C4-B47C-923E14009128}.Release|x86.ActiveCfg = Release|Any CPU
 		{3AF8D2FD-7B75-44C4-B47C-923E14009128}.Release|x86.Build.0 = Release|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Debug|x64.Build.0 = Debug|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Debug|x86.Build.0 = Debug|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|x64.ActiveCfg = Release|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|x64.Build.0 = Release|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|x86.ActiveCfg = Release|Any CPU
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2099,5 +2113,6 @@ Global
 		{FA76249E-E416-82AD-9A90-7996F4C2571B} = {0B103A91-02F4-9B31-29C3-900EDCDA4423}
 		{6C5FBAB1-EF09-466B-BE01-67895B0CE8E8} = {FA76249E-E416-82AD-9A90-7996F4C2571B}
 		{3AF8D2FD-7B75-44C4-B47C-923E14009128} = {AEF4E3CA-A96F-2CE5-3211-5F730D30C277}
+		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C} = {95934844-B00A-2327-23E0-0CBBC6AF4EBA}
 	EndGlobalSection
 EndGlobal
