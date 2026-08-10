@@ -81,6 +81,12 @@ public static class DependencyInjection
             CreateRemoteCall<IParticipantMembershipRemoteCall>(
                 CreateHttpClient(provider, nameof(IParticipantMembershipRemoteCall))));
 
+        // Notification module owner endpoints (BE_MO9c: inbox / read / device-token / preferences). Base URL from
+        // RemoteCalls:INotificationRemoteCall:BaseUrl (→ the notification-api host).
+        services.AddTransient<INotificationRemoteCall>(provider =>
+            CreateRemoteCall<INotificationRemoteCall>(
+                CreateHttpClient(provider, nameof(INotificationRemoteCall))));
+
         return services;
     }
 

@@ -109,6 +109,30 @@ public sealed class NotificationTemplateSeed
             "Payment Released: Request #{{serviceRequestId}}",
             "Payment for service request #{{serviceRequestId}} has been released."),
 
+        // ── BE-MO9c — owner event-set gap-fill: types that had a producer/consumer path but NO template were a
+        // silent no-op. These four complete the owner set (duplicate-safe by TemplateCode). Placeholder keys match
+        // the emitting consumers' Variables (PaymentCaptured: amount/currency/transactionCode;
+        // PaymentRefunded: refundedAmount/currency/transactionCode; offer/completion: serviceRequestId).
+        NotificationTemplateEntity.Create("SR_OFFER_REJECTED_INAPP", "Offer Rejected (In-App)",
+            NotificationType.OfferRejected, NotificationChannel.InApp,
+            "Teklif reddedildi — Talep #{{serviceRequestId}}",
+            "Talep #{{serviceRequestId}} için bir teklif reddedildi."),
+
+        NotificationTemplateEntity.Create("SR_COMPLETION_REJECTED_INAPP", "Completion Rejected (In-App)",
+            NotificationType.CompletionRejected, NotificationChannel.InApp,
+            "İş reddedildi — Talep #{{serviceRequestId}}",
+            "Talep #{{serviceRequestId}} için tamamlama reddedildi. Lütfen sağlayıcıyla iletişime geçin."),
+
+        NotificationTemplateEntity.Create("PAYMENT_CAPTURED_INAPP", "Payment Captured (In-App)",
+            NotificationType.PaymentCaptured, NotificationChannel.InApp,
+            "Ödeme alındı",
+            "{{amount}} {{currency}} tutarında ödeme alındı (işlem {{transactionCode}})."),
+
+        NotificationTemplateEntity.Create("PAYMENT_REFUNDED_INAPP", "Payment Refunded (In-App)",
+            NotificationType.PaymentRefunded, NotificationChannel.InApp,
+            "Ödeme iadesi",
+            "{{refundedAmount}} {{currency}} tutarında iade yapıldı (işlem {{transactionCode}})."),
+
         // N-C latent (Payment BE-P9 PreAuth) — template ready so PaymentAuthorizedConsumer renders once P9 fires it.
         NotificationTemplateEntity.Create("PAYMENT_AUTHORIZED_INAPP", "Payment Authorized / PreAuth Hold (In-App)",
             NotificationType.PaymentAuthorized, NotificationChannel.InApp,

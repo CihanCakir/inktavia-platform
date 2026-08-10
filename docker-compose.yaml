@@ -291,12 +291,23 @@ services:
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       # Owner service-request create/list/detail/cancel (BE_MO1) → the ServiceRequest module owner endpoints.
       RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Owner participant membership (BE_MO7) → the Payment module owner endpoints.
+      RemoteCalls__IParticipantMembershipRemoteCall__BaseUrl: http://payment-api:8080
+      # Owner notifications inbox/read/device-token/preferences (BE_MO9c) → the Notification module owner endpoints.
+      RemoteCalls__INotificationRemoteCall__BaseUrl: http://notification-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity.
       MarineMobileKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
       RateLimiting__PasswordRecovery__WindowSeconds: 300
       # Redis - backs BFF distributed-cache needs (separate DB from other BFFs).
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=16
+      # BE-MO9b — realtime (owner notification bell) SignalR Redis backplane. REQUIRED for K8s multi-replica so a
+      # RabbitMQ consumer on one pod re-broadcasts the frame to the pod holding the participant's socket. Uses a
+      # SEPARATE Redis DB (15) from the mobile cache (16) so a cache FLUSHDB never drops live sockets; groups are
+      # prefix-isolated ("mobile-notification:{id}") so sharing DB 15 with other realtime services is safe.
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
+      Realtime__SignalR__AllowedOrigins__0: ${MARINE_MOBILE_BASE:-http://localhost:19006}
       # CORS: mobile client origin(s) allowed to call the BFF cross-origin.
       Cors__AllowedOrigins__0: ${MARINE_MOBILE_BASE:-http://localhost:19006}
     ports:
@@ -756,6 +767,9 @@ services:
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
       BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE-MO9c — trust the mobile BFF assertion so the owner notification surface (inbox/read/device-token/
+      # preferences) resolves the asserted participant identity (ProviderProfileId). Mirrors the other module APIs.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       ElasticApm__Enabled: "false"
       Email__Host: ${SMTP_HOST:-}
       Email__Port: ${SMTP_PORT:-587}

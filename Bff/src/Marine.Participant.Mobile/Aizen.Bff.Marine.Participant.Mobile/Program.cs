@@ -1,7 +1,10 @@
 using Aizen.Bff.Marine.Participant.Mobile.Application;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.Authorization;
 using Aizen.Bff.Marine.Participant.Mobile.Extensions;
+using Aizen.Bff.Marine.Participant.Mobile.Realtime;
 using Aizen.Core.Cache.Extension;
+using Aizen.Core.Realtime.Abstraction.Interfaces;
+using Aizen.Core.Realtime.Extensions;
 using Aizen.Core.Starter;
 using Aizen.Core.Starter.Bff;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -12,9 +15,11 @@ using System.Threading.RateLimiting;
 var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
     Name = "MarineMobileBff",
-    Type = AppType.Bff
-    // Foundation has no bus consumers (realtime/SignalR is a later phase), so AppType.Worker is NOT
-    // included in TypeInclude — the BFF does not host MassTransit consumers yet.
+    Type = AppType.Bff,
+    // BE-MO9b — the mobile BFF now hosts the realtime edge (owner notification bell). Without AppType.Worker in
+    // TypeInclude, AddAizenMessagebus sets AddConsumer=false and the single realtime consumer never runs — the
+    // NotificationSentMessage would be published to RabbitMQ but nobody in this process would bridge it to the hub.
+    TypeInclude = { AppType.Worker }
 }, args);
 
 // Application services (Keycloak options, service token, participant context/identity holder, outgoing auth
@@ -54,6 +59,25 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
+// ── Realtime edge (ADR: BFF-hosted, on Aizen.Core.Realtime, modules publish-only) ─────────────
+// BE-MO9b — the owner notification bell. The hub lives on the BFF (the mobile client only authenticates against the
+// BFF) and the group a connection joins is decided server-side from the resolved participant id. Mirrors the
+// admin-notification pair: one per-recipient group + one canonical NotificationSentMessage event.
+//
+// Redis backplane is REQUIRED for Kubernetes multi-replica: a RabbitMQ consumer on pod B pushes to pod B's hub
+// context, but the participant's WebSocket may be on pod A — without the backplane the frame is silently dropped.
+// AddAizenRealtime reads Realtime:SignalR:* — the compose/k8s env sets UseRedisBackplane=true + RedisConnectionString
+// (a SEPARATE Redis DB from the cache so a cache FLUSHDB cannot take realtime down). CORS stays the shared BFF policy
+// applied before auth (above). Module-mapper auto-discovery stays OFF — this BFF supplies its own single mapper.
+builder.Services.AddAizenRealtime(builder.Configuration, o => o.RegisterModuleMappers = false);
+
+// The hub broadcasts to one group prefix ("mobile-notification:{id}") → one domain-key registration. (The socket
+// manager routes a group broadcast to a hub by parsing the group-name prefix up to the first ':'.)
+builder.Services.AddDomainHub<MobileRealtimeHub>("mobile-notification");
+
+// The single per-surface routing declaration: NotificationSentMessage → thin cost-free frame + the recipient group.
+builder.Services.AddSingleton<IEventSocketMapper, MobileNotificationEventSocketMapper>();
+
 // ── IP Rate Limiting (password recovery abuse protection) ─────────────────────
 var rlConfig = builder.Configuration.GetSection("RateLimiting:PasswordRecovery");
 builder.Services.AddRateLimiter(opts =>
@@ -73,5 +97,8 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 // CORS is applied inside the BFF pipeline (before authentication) — see AizenBffApplicationConfiguration.
 app.UseRateLimiter();
+
+// BE-MO9b — the owner notification bell hub. The mobile client connects here (only the BFF is publicly reachable).
+app.MapHub<MobileRealtimeHub>("/hubs/notification");
 
 app.Run();

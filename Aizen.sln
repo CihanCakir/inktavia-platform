@@ -411,6 +411,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Core.Starter.Bff", "C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Modules.Notification.Application.UnitTests", "Modules\Notification\tests\Aizen.Modules.Notification.Application.UnitTests\Aizen.Modules.Notification.Application.UnitTests.csproj", "{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Bff.Marine.Participant.Mobile.UnitTests", "Bff\src\Marine.Participant.Mobile\Aizen.Bff.Marine.Participant.Mobile.UnitTests\Aizen.Bff.Marine.Participant.Mobile.UnitTests.csproj", "{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1909,6 +1911,18 @@ Global
 		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|x64.Build.0 = Release|Any CPU
 		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C}.Release|x86.Build.0 = Release|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Debug|x64.Build.0 = Debug|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Debug|x86.Build.0 = Debug|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Release|x64.ActiveCfg = Release|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Release|x64.Build.0 = Release|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Release|x86.ActiveCfg = Release|Any CPU
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2114,5 +2128,6 @@ Global
 		{6C5FBAB1-EF09-466B-BE01-67895B0CE8E8} = {FA76249E-E416-82AD-9A90-7996F4C2571B}
 		{3AF8D2FD-7B75-44C4-B47C-923E14009128} = {AEF4E3CA-A96F-2CE5-3211-5F730D30C277}
 		{DB3A12BE-1FFD-4914-8DAC-E24600AA8A7C} = {95934844-B00A-2327-23E0-0CBBC6AF4EBA}
+		{629B1DFE-35B4-4350-8E6B-CE25E4F5AE2A} = {A38D9DFF-3C9E-A799-6A86-D21D3977B8EC}
 	EndGlobalSection
 EndGlobal
