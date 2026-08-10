@@ -20,6 +20,24 @@ public static class ServiceRequestMessageMapping
     public static string MessageKey(long senderUserId, DateTimeOffset sentAt, string content)
         => $"{senderUserId}|{sentAt.ToUnixTimeSeconds()}|{(content ?? string.Empty).Trim()}";
 
+    /// <summary>
+    /// BE_WC0 — the durable, stable <c>SourceKey</c> for a message mirrored from a ServiceRequest chat row. Uses the
+    /// SR message's own primary key (carried on the enriched event / read from the SR table by the backfill), so the
+    /// live-sync consumer and the backfill converge on an identical value and a redelivered event hits the partial
+    /// unique index on <c>(ConversationId, SourceKey)</c> instead of inserting a duplicate row. Scheme:
+    /// <c>sr:{serviceRequestId}:{srMessageId}</c>.
+    /// </summary>
+    public static string SourceKey(long serviceRequestId, long srMessageId)
+        => $"sr:{serviceRequestId}:{srMessageId}";
+
+    /// <summary>
+    /// BE_WC0 — the <c>SourceKey</c> for a System/lifecycle message generated inside Messaging from an SR domain event
+    /// (WC1). Scheme: <c>sys:{serviceRequestId}:{code}</c> (e.g. <c>sys:42:OFFER_ACCEPTED</c>). Distinct namespace from
+    /// the synced <c>sr:</c> keys so the two producers never collide; native Messaging sends leave <c>SourceKey</c> null.
+    /// </summary>
+    public static string SystemSourceKey(long serviceRequestId, string code)
+        => $"sys:{serviceRequestId}:{(code ?? string.Empty).Trim()}";
+
     // SR ServiceRequestMessageType (int) → Messaging MessageType. Offer(4) has no Messaging equivalent → StatusChange.
     public static MessageType MapMessageType(int srMessageType) => srMessageType switch
     {
@@ -57,7 +75,8 @@ public static class ServiceRequestMessageMapping
         string? senderName,
         decimal? locationLat = null,
         decimal? locationLng = null,
-        string? locationLabel = null)
+        string? locationLabel = null,
+        string? sourceKey = null)
     {
         var role = (MessagingParticipantRole)srSenderType;
         var type = MapMessageType(srMessageType);
@@ -74,7 +93,8 @@ public static class ServiceRequestMessageMapping
         }
 
         var msg = ConversationMessageEntity.Create(
-            conversationId, senderUserId, name, role, content, type, isInternalNote: false, sentAt: sentAt);
+            conversationId, senderUserId, name, role, content, type, isInternalNote: false, sentAt: sentAt,
+            sourceKey: sourceKey);
 
         if (attachmentFileId is { } fileId)
         {

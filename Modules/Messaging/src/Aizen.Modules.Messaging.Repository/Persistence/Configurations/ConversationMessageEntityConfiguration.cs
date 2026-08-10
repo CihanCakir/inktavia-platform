@@ -18,9 +18,24 @@ public sealed class ConversationMessageEntityConfiguration
         builder.Property(x => x.ModerationStatus).HasConversion<int>().IsRequired();
         builder.Property(x => x.ModerationReason).HasMaxLength(500);
 
+        // BE_WC0 — additive parity fields. Location precision mirrors the SR source (10,7); SourceKey is the durable
+        // idempotency key. All nullable — zero behaviour change until WC1/WC2.
+        builder.Property(x => x.LocationLat).HasPrecision(10, 7);
+        builder.Property(x => x.LocationLng).HasPrecision(10, 7);
+        builder.Property(x => x.LocationLabel).HasMaxLength(500);
+        builder.Property(x => x.SourceKey).HasMaxLength(200);
+
         builder.HasIndex(x => x.ConversationId);
         builder.HasIndex(x => x.SentAt);
         builder.HasIndex(x => x.ModerationStatus);
+
+        // BE_WC0 — durable, multi-replica idempotency: at most one row per (conversation, source key). Partial so the
+        // unconstrained native Messaging sends (null SourceKey) are unaffected. Replaces the sync consumer's in-process
+        // SemaphoreSlim as the authoritative guard against the redelivery double-row race.
+        builder.HasIndex(x => new { x.ConversationId, x.SourceKey })
+            .IsUnique()
+            .HasFilter("\"SourceKey\" IS NOT NULL")
+            .HasDatabaseName("UX_conversation_messages_ConversationId_SourceKey");
 
         builder.HasMany(x => x.Attachments)
             .WithOne()

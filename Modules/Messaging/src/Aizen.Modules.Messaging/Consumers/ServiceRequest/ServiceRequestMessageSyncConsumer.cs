@@ -123,13 +123,28 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
 
         var srType = (int)m.SenderType; // SR 1-4 == Messaging role 1-4
         var srMsgType = m.MessageType.HasValue ? (int)m.MessageType.Value : 1;
+        // BE_WC0 — stamp the durable idempotency key (sr:{srId}:{srMessageId}). The partial unique index on
+        // (ConversationId, SourceKey) now guards redelivery across replicas; the per-SR semaphore + computed-key
+        // in-memory check above stay for this phase (belt-and-suspenders; removed in WC4).
+        var sourceKey = ServiceRequestMessageMapping.SourceKey(m.ServiceRequestId, m.MessageId);
         var msg = ServiceRequestMessageMapping.MapMessage(
             conv.Id, m.SenderUserId, srType, srMsgType, content, m.AttachmentFileId, sentAt, senderName,
-            m.LocationLat, m.LocationLng, m.LocationLabel);
+            m.LocationLat, m.LocationLng, m.LocationLabel, sourceKey);
         conv.AddMessage(msg);
         conv.MarkReadByAdmin();
         db.Conversations.Update(conv);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            // A concurrent/redelivered insert already persisted this exact (ConversationId, SourceKey). Treat as a
+            // benign no-op and suppress the republish so the admin realtime edge never double-fires. This is the
+            // durable multi-replica guarantee the SemaphoreSlim only approximated on a single replica.
+            _logger.LogDebug("[SR→Messaging live-sync] unique-violation (duplicate SourceKey) skipped SR {SrId}", m.ServiceRequestId);
+            return;
+        }
 
         // Persistent notifications: mirror the module's SendMessageCommandHandler — RecipientUserIds =
         // conversation participants MINUS the sender. Only REAL Owner/Provider chat messages notify; System /
@@ -167,6 +182,18 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
     {
         _logger.LogWarning("[SR→Messaging live-sync] rollback SR {SrId}: {Err}", message.ServiceRequestId, ex.Message);
         return Task.CompletedTask;
+    }
+
+    // A Postgres unique-constraint violation (SQLSTATE 23505) surfaces as a DbUpdateException wrapping a
+    // PostgresException. Detected via SqlState so we don't take a hard Npgsql type dependency in the walk.
+    private static bool IsUniqueViolation(DbUpdateException ex)
+    {
+        for (Exception? e = ex; e is not null; e = e.InnerException)
+        {
+            var sqlState = e.GetType().GetProperty("SqlState")?.GetValue(e) as string;
+            if (sqlState == "23505") return true;
+        }
+        return false;
     }
 
     // ── pre-existing SR rows via raw SQL over the shared inktavia_store DB (READ-ONLY) ──

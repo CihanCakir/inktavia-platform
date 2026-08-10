@@ -107,8 +107,12 @@ public sealed class ServiceRequestChatBackfiller
             if (!seen.Add(key)) { result.MessagesSkipped++; continue; }
 
             // senderName null → role placeholder; the name-fix pass + live-sync populate real names.
+            // BE_WC0 — stamp the durable SourceKey (sr:{srId}:{srMessageId}) so imported rows carry the same key the
+            // live-sync consumer writes and the partial unique index applies cleanly.
             var msg = ServiceRequestMessageMapping.MapMessage(
-                conv.Id, sm.SenderUserId, sm.SenderType, sm.MessageType, sm.Content, sm.AttachmentFileId, sentAt, senderName: null);
+                conv.Id, sm.SenderUserId, sm.SenderType, sm.MessageType, sm.Content, sm.AttachmentFileId, sentAt,
+                senderName: null, locationLat: null, locationLng: null, locationLabel: null,
+                sourceKey: ServiceRequestMessageMapping.SourceKey(chat.ServiceRequestId, sm.Id));
 
             conv.AddMessage(msg);
             result.MessagesInserted++;
@@ -193,7 +197,7 @@ public sealed class ServiceRequestChatBackfiller
     {
         await using var cmd = conn.CreateCommand();
         cmd.CommandText =
-            "SELECT \"SenderUserId\", \"SenderType\", \"MessageType\", \"Content\", \"AttachmentFileId\", \"CreateDate\" " +
+            "SELECT \"SenderUserId\", \"SenderType\", \"MessageType\", \"Content\", \"AttachmentFileId\", \"CreateDate\", \"Id\" " +
             "FROM servicerequest.service_request_messages WHERE \"ServiceRequestId\" = @id ORDER BY \"CreateDate\", \"Id\"";
         AddParam(cmd, "id", srId);
         await using var r = await cmd.ExecuteReaderAsync(ct);
@@ -206,7 +210,8 @@ public sealed class ServiceRequestChatBackfiller
                 MessageType: r.GetInt32(2),
                 Content: r.IsDBNull(3) ? string.Empty : r.GetString(3),
                 AttachmentFileId: r.IsDBNull(4) ? null : r.GetGuid(4),
-                CreateDate: r.IsDBNull(5) ? DateTime.UtcNow : r.GetDateTime(5)));
+                CreateDate: r.IsDBNull(5) ? DateTime.UtcNow : r.GetDateTime(5),
+                Id: r.GetInt64(6)));
         }
         return list;
     }
@@ -220,7 +225,7 @@ public sealed class ServiceRequestChatBackfiller
     }
 
     private sealed record SrChat(long ServiceRequestId, long OwnerUserId, string Title, long? ProviderUserId, List<SrMsg> Messages);
-    private sealed record SrMsg(long SenderUserId, int SenderType, int MessageType, string Content, Guid? AttachmentFileId, DateTime CreateDate);
+    private sealed record SrMsg(long SenderUserId, int SenderType, int MessageType, string Content, Guid? AttachmentFileId, DateTime CreateDate, long Id);
 
     public sealed class BackfillResult
     {

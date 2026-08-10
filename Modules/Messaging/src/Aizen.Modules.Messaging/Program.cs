@@ -7,6 +7,7 @@ using Aizen.Core.Realtime.Abstraction.Interfaces;
 using Aizen.Core.Realtime.Extensions;
 using Aizen.Core.Starter;
 using Aizen.Modules.Messaging.Application;
+using Aizen.Modules.Messaging.Application.Configuration;
 using Aizen.Modules.Messaging.Application.Realtime;
 using Aizen.Modules.Messaging.Hubs;
 using Aizen.Modules.Messaging.Realtime;
@@ -37,6 +38,10 @@ builder.Services.AddAizenInfoAccessor(builder.Configuration);
 builder.Services.AddMessagingRepository();
 builder.Services.AddMessagingServices();
 builder.Services.AddMessagingApplicationServices();
+
+// ── BE_WC0 write-cutover flags (scaffolding; all OFF, bound-but-unused this phase) ──
+builder.Services.Configure<MessagingWriteCutoverOptions>(
+    builder.Configuration.GetSection(MessagingWriteCutoverOptions.SectionName));
 
 // ── HTTP clients ──────────────────────────────────────────────────────────
 builder.Services.AddHttpClient("anthropic", client =>
