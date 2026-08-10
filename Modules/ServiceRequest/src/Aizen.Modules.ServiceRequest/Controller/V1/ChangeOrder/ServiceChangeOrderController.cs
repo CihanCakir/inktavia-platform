@@ -2,8 +2,10 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ChangeOrder;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Application.Command.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Application.Query.ChangeOrder;
+using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetChangeOrderPaymentStatusForOwner;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -67,6 +69,22 @@ public sealed class ServiceChangeOrderController : AizenWebApiController
         [FromRoute] long serviceRequestId, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<ServiceChangeOrderListDto>(new GetServiceChangeOrdersQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-MO6 — the owner-facing payment status of a change order's incremental escrow transaction (Increase
+    /// capture-at-approve). Owner-scoped in the handler (the caller must own the SR); returns <c>None</c> until the CO
+    /// has an incremental transaction. Reuses the MO3 transaction-status seam — the FE polls this for the live-iyzico
+    /// path exactly as it polls the acceptance payment-status.
+    /// </summary>
+    [HttpGet("{changeOrderId:long}/payment-status")]
+    [ProducesResponseType(typeof(GetServiceRequestPaymentStatusForOwnerResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetServiceRequestPaymentStatusForOwnerResponse?>> GetPaymentStatus(
+        [FromRoute] long serviceRequestId, [FromRoute] long changeOrderId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetServiceRequestPaymentStatusForOwnerResponse>(
+            new GetChangeOrderPaymentStatusForOwnerQuery(serviceRequestId, changeOrderId), ct);
         return SetResponse(result);
     }
 }

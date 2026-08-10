@@ -5,6 +5,7 @@ using Aizen.Modules.FileStorage.Abstraction.Request.File;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto.DisputeCase;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Microsoft.Extensions.Logging;
@@ -346,6 +347,68 @@ internal static class MobileServiceRequestMapper
         }
 
         return dto;
+    }
+
+    // ── BE_MO6 owner change orders (cost-free) ──────────────────────────────────────────────────────────
+    // Only customer-facing amounts + line inputs cross. The module DTO's AppliedProviderNet + the economics
+    // snapshot / transaction / refund-record ids + the proposer's user id + per-line commission/discount-eligibility
+    // flags are all DROPPED. Direction/status cross as string names; a pre-approve estimate is derived per line.
+
+    public static MobileChangeOrderListDto MapChangeOrderList(ServiceChangeOrderListDto l) => new()
+    {
+        ServiceRequestId = l.ServiceRequestId,
+        OriginalTotal = l.OriginalTotal,
+        AppliedDelta = l.AppliedDelta,
+        EffectiveTotal = l.EffectiveTotal,
+        CurrencyCode = l.ChangeOrders.Select(c => c.CurrencyCode).FirstOrDefault(c => !string.IsNullOrWhiteSpace(c)) ?? "TRY",
+        PendingCount = l.ChangeOrders.Count(c => c.Status == ServiceChangeOrderStatus.Proposed),
+        ChangeOrders = l.ChangeOrders.Select(MapChangeOrder).ToList(),
+    };
+
+    public static MobileChangeOrderDto MapChangeOrder(ServiceChangeOrderDto c) => new()
+    {
+        ChangeOrderId = c.Id,
+        ServiceRequestId = c.ServiceRequestId,
+        SequenceNo = c.SequenceNo,
+        Status = c.Status.ToString(),
+        Direction = c.Direction.ToString(),
+        IsIncrease = c.Direction == ServiceChangeOrderDirection.Increase,
+        CurrencyCode = c.CurrencyCode,
+        Reason = c.Reason,
+        RejectionReason = c.RejectionReason,
+        EstimatedAmount = c.Items.Sum(LineEstimate),
+        AppliedCustomerTotal = c.AppliedCustomerTotal,
+        EffectiveTotalDelta = c.EffectiveTotalDelta,
+        IsPending = c.Status == ServiceChangeOrderStatus.Proposed,
+        IsApplied = c.Status == ServiceChangeOrderStatus.Applied,
+        IsRejected = c.Status is ServiceChangeOrderStatus.Rejected or ServiceChangeOrderStatus.Cancelled,
+        ProposedAt = c.ProposedAt,
+        CustomerApprovedAt = c.CustomerApprovedAt,
+        RejectedAt = c.RejectedAt,
+        AppliedAt = c.AppliedAt,
+        Items = c.Items.OrderBy(i => i.SortOrder).Select(MapChangeOrderItem).ToList(),
+    };
+
+    public static MobileChangeOrderItemDto MapChangeOrderItem(ServiceChangeOrderItemDto i) => new()
+    {
+        ItemType = i.ItemType.ToString(),
+        Title = i.Title,
+        Description = i.Description,
+        Quantity = i.Quantity,
+        UnitPrice = i.UnitPrice,
+        UnitCode = i.UnitCode,
+        TaxRate = i.TaxRate,
+        CurrencyCode = i.CurrencyCode,
+        SortOrder = i.SortOrder,
+        LineEstimate = LineEstimate(i),
+    };
+
+    /// <summary>Per-line pre-approve estimate = round(Quantity·UnitPrice)·(1+TaxRate). Pre-discount preview only —
+    /// the applied economics (P8 discounts/commission) may differ; the authoritative figure is AppliedCustomerTotal.</summary>
+    private static decimal LineEstimate(ServiceChangeOrderItemDto i)
+    {
+        var sub = Math.Round(i.Quantity * i.UnitPrice, 2, MidpointRounding.AwayFromZero);
+        return Math.Round(sub * (1 + i.TaxRate), 2, MidpointRounding.AwayFromZero);
     }
 
     /// <summary>Mints a presigned read URL for a (nullable) file id, best-effort. Null id → null; a failure logs and

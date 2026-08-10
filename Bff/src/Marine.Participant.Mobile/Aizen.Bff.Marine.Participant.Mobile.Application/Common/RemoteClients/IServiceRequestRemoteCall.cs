@@ -1,11 +1,13 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
@@ -114,4 +116,27 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     // the BFF ALSO owner-gates via EnsureOwnedAsync before calling (defense-in-depth).
     [AizenRemoteCallGet("/api/v1/service-requests/owner/disputes/{disputeId}/case")]
     Task<AizenApiResponse<GetDisputeCaseDetailResponse>> GetOwnerDisputeCase(long disputeId);
+
+    // ── BE_MO6 — owner change orders (review + approve→incremental checkout / decrease-refund + reject) ──────
+    // The S11 change-order endpoints are [Authorize] (no role/owner scoping) — the BFF owner-gates via
+    // EnsureOwnedAsync before proxying. Approve reuses the S11 engine verbatim (Increase → new incremental P8
+    // snapshot + capture-at-approve; Decrease → P10 refund of the delta); the accepted snapshot is never touched.
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/change-orders")]
+    Task<AizenApiResponse<ServiceChangeOrderListDto>> GetChangeOrders(long serviceRequestId);
+
+    // Approve → apply (idempotent module-side on the CO ref; a P5/S9 breach flips the CO to Rejected, no capture).
+    // Bodyless PATCH (mirrors Publish); amounts are server-owned.
+    [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/change-orders/{changeOrderId}/approve")]
+    Task<AizenApiResponse<ServiceChangeOrderDto>> ApproveChangeOrder(long serviceRequestId, long changeOrderId);
+
+    // Reject → terminal, no economics (optional free-text reason).
+    [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/change-orders/{changeOrderId}/reject")]
+    Task<AizenApiResponse<ServiceChangeOrderDto>> RejectChangeOrder(
+        long serviceRequestId, long changeOrderId, [AizenRemoteCallBody] RejectServiceChangeOrderRequest request);
+
+    // The incremental escrow transaction's payment status (Increase). Reuses the MO3 transaction-status seam pointed
+    // at the CO's own transaction (the SR payment-status reads the ORIGINAL acceptance escrow, not this one).
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/change-orders/{changeOrderId}/payment-status")]
+    Task<AizenApiResponse<GetServiceRequestPaymentStatusForOwnerResponse>> GetChangeOrderPaymentStatus(
+        long serviceRequestId, long changeOrderId);
 }

@@ -75,6 +75,12 @@ public static class DependencyInjection
             CreateRemoteCall<IServiceRequestRemoteCall>(
                 CreateHttpClient(provider, nameof(IServiceRequestRemoteCall))));
 
+        // Payment module owner participant-membership endpoints (BE_MO7). Base URL from
+        // RemoteCalls:IParticipantMembershipRemoteCall:BaseUrl (→ the payment-api host).
+        services.AddTransient<IParticipantMembershipRemoteCall>(provider =>
+            CreateRemoteCall<IParticipantMembershipRemoteCall>(
+                CreateHttpClient(provider, nameof(IParticipantMembershipRemoteCall))));
+
         return services;
     }
 

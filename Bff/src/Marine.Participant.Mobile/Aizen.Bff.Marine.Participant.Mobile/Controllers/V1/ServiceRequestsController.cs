@@ -233,4 +233,53 @@ public sealed class ServiceRequestsController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new GetMobileDisputeCaseQuery(serviceRequestId, disputeId), ct);
         return SetResponse(result);
     }
+
+    // ── BE_MO6 — owner change orders (review + approve→incremental checkout / decrease-refund + reject) ────
+
+    /// <summary>The change orders on one of the caller's own accepted requests — direction, changed lines, the
+    /// incremental ₺, status — plus the derived effective total. Owner-gated; cost-free.</summary>
+    [HttpGet("{serviceRequestId:long}/change-orders")]
+    [ProducesResponseType(typeof(MobileChangeOrderListDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileChangeOrderListDto>> GetChangeOrders(
+        [FromRoute] long serviceRequestId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileChangeOrdersQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Approve a change order → the S11 apply engine runs (Increase → new incremental snapshot +
+    /// capture-at-approve; Decrease → P10 refund of the delta; a P5/S9 breach flips it to Rejected, no capture).
+    /// Idempotent (no double-charge on re-approve). Returns the applied CO + the incremental payment status
+    /// (already Paid on the manual gateway; pollable for live iyzico). Owner-gated.</summary>
+    [HttpPost("{serviceRequestId:long}/change-orders/{changeOrderId:long}/approve")]
+    [ProducesResponseType(typeof(MobileChangeOrderApproveResultDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileChangeOrderApproveResultDto>> ApproveChangeOrder(
+        [FromRoute] long serviceRequestId, [FromRoute] long changeOrderId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new ApproveMobileChangeOrderCommand(serviceRequestId, changeOrderId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Reject a proposed change order (optional free-text reason). Terminal; no economics. Owner-gated.</summary>
+    [HttpPost("{serviceRequestId:long}/change-orders/{changeOrderId:long}/reject")]
+    [ProducesResponseType(typeof(MobileChangeOrderDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileChangeOrderDto>> RejectChangeOrder(
+        [FromRoute] long serviceRequestId, [FromRoute] long changeOrderId,
+        [FromBody] MobileRejectChangeOrderRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RejectMobileChangeOrderCommand(serviceRequestId, changeOrderId, request ?? new MobileRejectChangeOrderRequest()), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>The incremental escrow transaction's payment status for an approved Increase (poll: Pending →
+    /// Paid/Failed for the live-iyzico path). Owner-gated; cost-free; None until the CO has an incremental transaction.</summary>
+    [HttpGet("{serviceRequestId:long}/change-orders/{changeOrderId:long}/payment-status")]
+    [ProducesResponseType(typeof(MobilePaymentStatusDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobilePaymentStatusDto>> GetChangeOrderPaymentStatus(
+        [FromRoute] long serviceRequestId, [FromRoute] long changeOrderId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileChangeOrderPaymentStatusQuery(serviceRequestId, changeOrderId), ct);
+        return SetResponse(result);
+    }
 }
