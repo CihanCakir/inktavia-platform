@@ -9,6 +9,7 @@ using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Aizen.Modules.ServiceRequest.Repository.Persistence;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Offer;
 
@@ -20,17 +21,19 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly ServiceRequestDbContext _db;
 
     public CreateServiceRequestOfferCommandHandler(
         IServiceRequestRepository srRepository,
         IServiceRequestOfferRepository offerRepository,
         IAizenInfoAccessor info,
         ServiceRequestRealtimePublisher realtimePublisher,
-        IAizenMessagePublisher messagePublisher)
+        IAizenMessagePublisher messagePublisher,
+        ServiceRequestDbContext db)
     {
         _srRepository = srRepository; _offerRepository = offerRepository;
         _info = info; _realtimePublisher = realtimePublisher;
-        _messagePublisher = messagePublisher;
+        _messagePublisher = messagePublisher; _db = db;
     }
 
     public override async Task<CreateServiceRequestOfferResponse?> Handle(CreateServiceRequestOfferCommand request, CancellationToken cancellationToken)
@@ -86,6 +89,12 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
             _srRepository.Update(sr);
         }
 
+        // BE_WC1b — flush so the DB assigns the offer identity BEFORE we publish. Previously the OfferCreated realtime
+        // event, the ServiceRequestOfferCreatedMessage, and the BFF response all carried offer.Id = 0 (identity is
+        // assigned on save, not on AddAsync) — which made the Messaging OFFER card key on sys:{srId}:OFFER:0 and
+        // collide across offers. (Same intra-handler flush pattern as SaveOfferDraft.)
+        await _db.SaveChangesAsync(cancellationToken);
+
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, providerProfileId,
             ServiceRequestRealtimeEventType.OfferCreated, offer.ToDto(),
             currentUserId, ServiceRequestActorType.Provider, cancellationToken);
@@ -97,7 +106,8 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
             ProviderProfileId = providerProfileId,
             ProviderUserId = currentUserId,
             TotalAmount = total,
-            CurrencyCode = req.CurrencyCode
+            CurrencyCode = req.CurrencyCode,
+            Status = offer.Status // BE_WC1b — Submitted here (offer.Submit() above) → drives the Messaging OFFER card
         }, cancellationToken);
 
         return new CreateServiceRequestOfferResponse(offer.ToDto());

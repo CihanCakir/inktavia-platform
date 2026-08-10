@@ -67,6 +67,7 @@ public sealed class ServiceRequestLifecycleMessageWriter
             .Include(c => c.Participants).Include(c => c.Messages)
             .FirstOrDefaultAsync(
                 c => c.ContextType == MessagingContextType.ServiceRequest && c.ContextId == serviceRequestId, ct);
+        var created = conv is null;
         if (conv is null)
         {
             var convTitle = string.IsNullOrWhiteSpace(title) ? $"Service Request #{serviceRequestId}" : title;
@@ -94,7 +95,10 @@ public sealed class ServiceRequestLifecycleMessageWriter
             sentAt: DateTimeOffset.UtcNow, sourceKey: sourceKey);
         conv.AddMessage(msg);
         conv.MarkReadByAdmin();
-        _db.Conversations.Update(conv);
+        // Update ONLY an already-persisted conversation. A freshly-created one is tracked as Added (its identity is
+        // still temporary), and calling Update() on it throws "temporary value … change state to Modified". The new
+        // message + MarkReadByAdmin are picked up by change tracking either way.
+        if (!created) _db.Conversations.Update(conv);
 
         try
         {
@@ -102,8 +106,11 @@ public sealed class ServiceRequestLifecycleMessageWriter
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
-            // The parallel sync-consumer row (same sys: key) or a concurrent/redelivered event won the insert. Benign
-            // no-op; suppress the republish so admin realtime fires exactly once.
+            // The parallel sync-consumer row (same sys: key) or a concurrent conversation-create won the insert. Benign
+            // no-op. Clear the tracker so the failed (still-pending) conversation/message changes are NOT re-saved by
+            // the framework's post-consume unit-of-work — otherwise the same 23505 re-throws and the message faults to
+            // the _skipped queue. Suppress the republish too so admin realtime fires exactly once.
+            _db.ChangeTracker.Clear();
             _logger.LogDebug("[WC1 lifecycle] unique-violation {Code} skipped SR {SrId}", code, serviceRequestId);
             return;
         }

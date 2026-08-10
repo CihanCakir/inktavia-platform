@@ -873,6 +873,19 @@
       "authorizationServicesEnabled": false,
       "protocolMappers": [
         {
+          "name": "audience-payment-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "payment-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
           "name": "audience-identity-api",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",

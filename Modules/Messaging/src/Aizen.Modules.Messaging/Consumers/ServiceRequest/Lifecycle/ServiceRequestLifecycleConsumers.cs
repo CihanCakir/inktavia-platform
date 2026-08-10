@@ -1,6 +1,7 @@
 using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.Messaging.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -133,6 +134,47 @@ public sealed class ServiceRequestOfferSubmittedCardConsumer
     {
         _sp.GetRequiredService<ILogger<ServiceRequestOfferSubmittedCardConsumer>>()
            .LogWarning("[WC1 lifecycle] rollback OFFER card SR {SrId} offer {OfferId}: {Err}", m.ServiceRequestId, m.OfferId, ex.Message);
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// BE_WC1b — the offer CARD from <see cref="ServiceRequestOfferCreatedMessage"/>. The real provider path
+/// (<c>CreateServiceRequestOffer</c>, which calls <c>offer.Submit()</c>) publishes this with <c>Status=Submitted</c>
+/// but never invokes <c>SubmitOffer</c>, so the <see cref="ServiceRequestOfferSubmittedCardConsumer"/> alone would miss
+/// it. This consumer writes the SAME card — <c>sys:{srId}:OFFER:{offerId}</c>, Provider · StatusChange ·
+/// <c>offer:{offerId}|{total:F2} {ccy}</c> — but ONLY when the offer is <c>>= Submitted</c> (a Draft create yields no
+/// card). Because both offer-card consumers use the same SourceKey, the WC0 partial unique index collapses a
+/// create-Submitted, a draft→submit, redelivery, and the parallel sync row to exactly one card.
+/// </summary>
+public sealed class ServiceRequestOfferCreatedCardConsumer
+    : AizenBaseMessageConsumer<ServiceRequestOfferCreatedMessage>
+{
+    private readonly IServiceProvider _sp;
+    public ServiceRequestOfferCreatedCardConsumer(IServiceProvider sp) : base(sp) => _sp = sp;
+
+    public override Task<bool> ExecutePrepareMessage(ServiceRequestOfferCreatedMessage m, CancellationToken ct)
+        => Task.FromResult(true);
+
+    public override Task ExecuteCommitMessage(ServiceRequestOfferCreatedMessage m, CancellationToken ct)
+    {
+        // Skip Draft offers — no card until the offer is submitted.
+        if ((int)m.Status < (int)ServiceRequestOfferStatus.Submitted)
+        {
+            _sp.GetRequiredService<ILogger<ServiceRequestOfferCreatedCardConsumer>>()
+               .LogDebug("[WC1 lifecycle] OFFER card skipped (Draft) SR {SrId} offer {OfferId}", m.ServiceRequestId, m.OfferId);
+            return Task.CompletedTask;
+        }
+        var content = $"offer:{m.OfferId}|{m.TotalAmount:F2} {m.CurrencyCode}";
+        return _sp.GetRequiredService<ServiceRequestLifecycleMessageWriter>().WriteAsync(
+            m.ServiceRequestId, $"OFFER:{m.OfferId}", MessagingParticipantRole.Provider, MessageType.StatusChange,
+            content, senderUserId: m.ProviderUserId, ct);
+    }
+
+    public override Task ExecuteRollbackMessage(ServiceRequestOfferCreatedMessage m, AizenMessageError ex, CancellationToken ct)
+    {
+        _sp.GetRequiredService<ILogger<ServiceRequestOfferCreatedCardConsumer>>()
+           .LogWarning("[WC1 lifecycle] rollback OFFER-created card SR {SrId} offer {OfferId}: {Err}", m.ServiceRequestId, m.OfferId, ex.Message);
         return Task.CompletedTask;
     }
 }

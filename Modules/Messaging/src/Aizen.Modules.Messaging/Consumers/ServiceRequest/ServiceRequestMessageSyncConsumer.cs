@@ -96,6 +96,7 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
             .Include(c => c.Participants).Include(c => c.Messages)
             .FirstOrDefaultAsync(
                 c => c.ContextType == MessagingContextType.ServiceRequest && c.ContextId == m.ServiceRequestId, ct);
+        var created = conv is null;
         if (conv is null)
         {
             var convTitle = string.IsNullOrWhiteSpace(title) ? $"Service Request #{m.ServiceRequestId}" : title;
@@ -136,17 +137,22 @@ public sealed class ServiceRequestMessageSyncConsumer : AizenBaseMessageConsumer
             m.LocationLat, m.LocationLng, m.LocationLabel, sourceKey);
         conv.AddMessage(msg);
         conv.MarkReadByAdmin();
-        db.Conversations.Update(conv);
+        // Update ONLY a pre-existing conversation. When the SR's first message is this one (conv just created above),
+        // it is tracked as Added with a temporary identity, and Update() throws "temporary value … Modified". Change
+        // tracking persists the new message + read marker regardless. (Same guard the backfiller already uses.)
+        if (!created) db.Conversations.Update(conv);
         try
         {
             await db.SaveChangesAsync(ct);
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
-            // A concurrent/redelivered insert already persisted this exact (ConversationId, SourceKey). Treat as a
-            // benign no-op and suppress the republish so the admin realtime edge never double-fires. This is the
-            // durable multi-replica guarantee the SemaphoreSlim only approximated on a single replica.
-            _logger.LogDebug("[SR→Messaging live-sync] unique-violation (duplicate SourceKey) skipped SR {SrId}", m.ServiceRequestId);
+            // A concurrent/redelivered insert already persisted this row (same (ConversationId, SourceKey), or a
+            // concurrent conversation-create won the (ContextType, ContextId) index). Benign no-op. Clear the tracker
+            // so the framework's post-consume unit-of-work does NOT re-save the failed pending changes and re-throw
+            // (which would fault the message to _skipped). Suppress the republish so admin realtime never double-fires.
+            db.ChangeTracker.Clear();
+            _logger.LogDebug("[SR→Messaging live-sync] unique-violation skipped SR {SrId}", m.ServiceRequestId);
             return;
         }
 
