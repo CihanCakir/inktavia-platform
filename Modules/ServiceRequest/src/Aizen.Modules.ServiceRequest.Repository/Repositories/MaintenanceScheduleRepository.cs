@@ -65,6 +65,18 @@ public sealed class MaintenanceScheduleRepository : IMaintenanceScheduleReposito
             .ThenBy(x => x.NextDueAt)
             .ToListAsync(ct);
 
+    public async Task<IReadOnlyList<MaintenanceScheduleEntity>> ListByOwnerAsync(
+        long ownerUserId, long? vesselId, bool includeInactive, CancellationToken ct = default)
+        => await _db.MaintenanceSchedules
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted
+                     && x.OwnerUserId == ownerUserId
+                     && (includeInactive || x.IsActive)
+                     && (vesselId == null || x.VesselId == vesselId))
+            .OrderByDescending(x => x.IsActive) // active first, then soonest-due
+            .ThenBy(x => x.NextDueAt)
+            .ToListAsync(ct);
+
     public Task AddAsync(MaintenanceScheduleEntity entity, CancellationToken ct = default)
         => _db.MaintenanceSchedules.AddAsync(entity, ct).AsTask();
 

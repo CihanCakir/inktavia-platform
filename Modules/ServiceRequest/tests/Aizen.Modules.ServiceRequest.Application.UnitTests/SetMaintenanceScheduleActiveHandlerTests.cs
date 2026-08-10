@@ -57,6 +57,16 @@ public sealed class SetMaintenanceScheduleActiveHandlerTests
                 .ThenBy(x => x.NextDueAt)
                 .ToList());
 
+        public Task<IReadOnlyList<MaintenanceScheduleEntity>> ListByOwnerAsync(
+            long ownerUserId, long? vesselId, bool includeInactive, CancellationToken ct = default)
+            => Task.FromResult((IReadOnlyList<MaintenanceScheduleEntity>)_rows
+                .Where(x => !x.IsDeleted && x.OwnerUserId == ownerUserId
+                         && (includeInactive || x.IsActive)
+                         && (vesselId == null || x.VesselId == vesselId))
+                .OrderByDescending(x => x.IsActive)
+                .ThenBy(x => x.NextDueAt)
+                .ToList());
+
         public Task AddAsync(MaintenanceScheduleEntity entity, CancellationToken ct = default)
         {
             _rows.Add(entity);

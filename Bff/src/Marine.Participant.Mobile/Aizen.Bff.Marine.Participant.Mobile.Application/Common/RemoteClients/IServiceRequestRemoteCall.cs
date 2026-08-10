@@ -5,11 +5,13 @@ using Aizen.Modules.ServiceRequest.Abstraction.Request.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
@@ -139,4 +141,19 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/change-orders/{changeOrderId}/payment-status")]
     Task<AizenApiResponse<GetServiceRequestPaymentStatusForOwnerResponse>> GetChangeOrderPaymentStatus(
         long serviceRequestId, long changeOrderId);
+
+    // ── BE_MO8 — owner maintenance schedules (self-service; separate from the admin controller) ─────────────
+    // The owner endpoints resolve OwnerUserId from the assertion (never the body) and owner-scope the list/set-active.
+    // Upsert stamps OwnerUserId from the token; the BFF gates vessel-ownership before proxying.
+    [AizenRemoteCallGet("/api/v1/service-requests/maintenance-schedules")]
+    Task<AizenApiResponse<GetMaintenanceScheduleListResponse>> GetOwnerMaintenanceSchedules(
+        [Refit.Query] long? vesselId, [Refit.Query] bool includeInactive);
+
+    [AizenRemoteCallPost("/api/v1/service-requests/maintenance-schedules")]
+    Task<AizenApiResponse<UpsertMaintenanceScheduleResponse>> UpsertOwnerMaintenanceSchedule(
+        [AizenRemoteCallBody] UpsertMaintenanceScheduleRequest request);
+
+    [AizenRemoteCallPut("/api/v1/service-requests/maintenance-schedules/{scheduleId}/active")]
+    Task<AizenApiResponse<SetMaintenanceScheduleActiveResponse>> SetOwnerMaintenanceScheduleActive(
+        long scheduleId, [AizenRemoteCallBody] SetMaintenanceScheduleActiveRequest request);
 }

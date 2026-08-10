@@ -30,6 +30,13 @@ public interface IMaintenanceScheduleRepository
     Task<IReadOnlyList<MaintenanceScheduleEntity>> ListAsync(
         long? vesselId, bool includeInactive, CancellationToken ct = default);
 
+    /// <summary>
+    /// BE-MO8 — the caller-owner's own schedules (OwnerUserId-scoped), optionally narrowed to one vessel. Same
+    /// active-first / soonest-due ordering + includeInactive semantics as <see cref="ListAsync"/>.
+    /// </summary>
+    Task<IReadOnlyList<MaintenanceScheduleEntity>> ListByOwnerAsync(
+        long ownerUserId, long? vesselId, bool includeInactive, CancellationToken ct = default);
+
     Task AddAsync(MaintenanceScheduleEntity entity, CancellationToken ct = default);
     void Update(MaintenanceScheduleEntity entity);
     Task SaveChangesAsync(CancellationToken ct = default);
