@@ -6,12 +6,14 @@ using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Maintenance;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ChangeOrder;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Maintenance;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
@@ -156,4 +158,17 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPut("/api/v1/service-requests/maintenance-schedules/{scheduleId}/active")]
     Task<AizenApiResponse<SetMaintenanceScheduleActiveResponse>> SetOwnerMaintenanceScheduleActive(
         long scheduleId, [AizenRemoteCallBody] SetMaintenanceScheduleActiveRequest request);
+
+    // ── BE_MO10a — owner chat text write (mirror SendProviderMessage, SenderType=Owner) ─────────────────────
+    // Owner sends a message on their own SR. The module reads the sender id from the assertion (never the body) and
+    // stamps the message with SenderTypeOverride=Owner; the anti-harassment gate is provider-only (owner always opens
+    // the channel). Publishes ServiceRequestMessageSentMessage → SR realtime + Messaging live-sync + N notification.
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/messages")]
+    Task<AizenApiResponse<SendServiceRequestMessageResponse>> SendMessage(
+        long serviceRequestId, [AizenRemoteCallBody] SendServiceRequestMessageRequest body);
+
+    // BE_MO10b — owner-scoped attachment access-check (owner owns the SR + the fileId is on the SR). Returns access-OK;
+    // the BFF then mints the signed read-url via FileStorage. The provider access-check handler is untouched.
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/attachments/{fileId}/access-check")]
+    Task<AizenApiResponse<GetAttachmentAccessCheckResponse>> CheckAttachmentAccess(long serviceRequestId, Guid fileId);
 }

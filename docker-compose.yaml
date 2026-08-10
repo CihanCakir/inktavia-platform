@@ -295,6 +295,9 @@ services:
       RemoteCalls__IParticipantMembershipRemoteCall__BaseUrl: http://payment-api:8080
       # Owner notifications inbox/read/device-token/preferences (BE_MO9c) → the Notification module owner endpoints.
       RemoteCalls__INotificationRemoteCall__BaseUrl: http://notification-api:8080
+      # Owner chat reads (BE_MO10a) → the Messaging module participant-scoped /conversations/mine endpoints.
+      # (The owner chat WRITE reuses the service-request-api remote call above — no new base URL for the write.)
+      RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity.
       MarineMobileKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -727,6 +730,9 @@ services:
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
       BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE-MO10a — trust the mobile BFF assertion so the owner's /conversations/mine + /by-context/mine reads resolve
+      # the asserted participant. Mirrors the MO9c notification-api fix.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       ElasticApm__Enabled: "false"
       # Redis backplane for SignalR (MessagingHub).
       Realtime__SignalR__UseRedisBackplane: "true"

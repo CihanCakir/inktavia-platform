@@ -10,6 +10,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Query.Dispute;
+using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetOwnerAttachmentAccessCheck;
 using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetOwnerDisputes;
 using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetServiceRequestPaymentStatusForOwner;
 using Aizen.Modules.ServiceRequest.Application.Query.ServiceRequest;
@@ -174,6 +175,21 @@ public sealed class ServiceRequestController : AizenWebApiController
         if (result?.ServiceRequest is null || result.ServiceRequest.OwnerUserId != CurrentUserId)
             throw new AizenBusinessException("Dispute not found.");
 
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-MO10a/b — owner-scoped attachment access-check for a chat/attachment fileId on the caller's own SR. Mirrors
+    /// the provider access-check but with an owner-ownership gate + the identical fileId-belongs-to-SR verification.
+    /// Returns access-OK; the mobile BFF mints the signed read-url. A vague not-found on any mismatch (no info leak).
+    /// </summary>
+    [HttpGet("{serviceRequestId:long}/attachments/{fileId:guid}/access-check")]
+    [ProducesResponseType(typeof(GetAttachmentAccessCheckResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetAttachmentAccessCheckResponse?>> CheckAttachmentAccess(
+        [FromRoute] long serviceRequestId, [FromRoute] Guid fileId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetAttachmentAccessCheckResponse>(
+            new GetOwnerAttachmentAccessCheckQuery(serviceRequestId, fileId), ct);
         return SetResponse(result);
     }
 }
