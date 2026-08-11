@@ -1,5 +1,7 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto.DisputeCase;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -16,12 +18,16 @@ namespace Aizen.Modules.ServiceRequest.Application.Mapping;
 /// </summary>
 public static class DisputeCaseComposer
 {
+    /// <param name="transcript">BE_WC3b — the chat transcript fetched from the canonical Messaging store. When non-null
+    /// (the normal path) it is the source of the case's messages; when null (the Messaging read failed) the composer
+    /// falls back to <c>sr.Messages</c> so the case never loses its transcript — reversible/safety-net until WC4.</param>
     public static GetDisputeCaseDetailResponse Compose(
         ServiceRequestDisputeEntity dispute,
         ServiceRequestEntity sr,
         long? providerUserId,
         IReadOnlyList<ServiceRequestWorkLogEntity> workLogs,
-        PayResp.GetDisputeCasePaymentStateRemoteCallResponse? paymentState)
+        PayResp.GetDisputeCasePaymentStateRemoteCallResponse? paymentState,
+        IReadOnlyList<SrTranscriptMessageDto>? transcript = null)
     {
         return new GetDisputeCaseDetailResponse
         {
@@ -38,10 +44,14 @@ public static class DisputeCaseComposer
                 .Select(MapWorkLog)
                 .ToList(),
             Completion = MapCompletion(sr),
-            Messages   = sr.Messages
-                .OrderBy(m => m.CreateDate)
-                .Select(MapMessage)
-                .ToList(),
+            // BE_WC3b — the transcript is the canonical Messaging conversation (already ordered by the endpoint). Falls
+            // back to sr.Messages only if the Messaging read failed, so the case never loses its transcript.
+            Messages   = transcript is not null
+                ? transcript.Select(MapMessage).ToList()
+                : sr.Messages
+                    .OrderBy(m => m.CreateDate)
+                    .Select(MapMessage)
+                    .ToList(),
             PaymentState = MapPaymentState(paymentState),
         };
     }
@@ -134,6 +144,43 @@ public static class DisputeCaseComposer
         Content          = m.Content,
         AttachmentFileId = m.AttachmentFileId,
         CreatedAt        = m.CreateDate,
+    };
+
+    // BE_WC3b — map a Messaging transcript message → the (unchanged) dispute case message DTO. The numeric role/type
+    // are translated to the SR enums; the attachment fileId is parsed string → Guid (as the Messaging store keeps it).
+    private static DisputeCaseMessageDto MapMessage(SrTranscriptMessageDto m) => new()
+    {
+        Id               = m.MessageId,
+        SenderUserId     = m.SenderUserId,
+        SenderType       = MapSenderType(m.SenderRole),
+        MessageType      = MapMessageType(m.MessageType, m.AttachmentFileStorageId),
+        Content          = m.Content ?? string.Empty,
+        AttachmentFileId = Guid.TryParse(m.AttachmentFileStorageId, out var g) ? g : (Guid?)null,
+        CreatedAt        = m.SentAt.UtcDateTime,
+    };
+
+    // MessagingParticipantRole (Owner=1, Provider=2, Admin=3, System=4, Support=5, Buyer=6, Seller=7) → SR sender type.
+    // Only Owner/Provider/Admin/System occur on a ServiceRequest conversation; anything else degrades to System.
+    private static ServiceRequestMessageSenderType MapSenderType(int messagingRole) => messagingRole switch
+    {
+        1 => ServiceRequestMessageSenderType.Owner,
+        2 => ServiceRequestMessageSenderType.Provider,
+        3 => ServiceRequestMessageSenderType.Admin,
+        4 => ServiceRequestMessageSenderType.System,
+        _ => ServiceRequestMessageSenderType.System,
+    };
+
+    // Messaging MessageType (Text=1, SystemNotification=2, StatusChange=3, InternalNote=4, MediaAttachment=5,
+    // Location=6) → SR message type. InternalNote is filtered out at the Messaging endpoint so it never arrives here;
+    // MediaAttachment maps to the SR Image type. Unknown → Image if an attachment is present, else Text.
+    private static ServiceRequestMessageType MapMessageType(int messagingType, string? attachmentFileStorageId) => messagingType switch
+    {
+        1 => ServiceRequestMessageType.Text,
+        2 => ServiceRequestMessageType.SystemNotification,
+        3 => ServiceRequestMessageType.StatusChange,
+        5 => ServiceRequestMessageType.Image,
+        6 => ServiceRequestMessageType.Location,
+        _ => string.IsNullOrWhiteSpace(attachmentFileStorageId) ? ServiceRequestMessageType.Text : ServiceRequestMessageType.Image,
     };
 
     private static DisputeCaseEconomicsDto? MapEconomics(PayResp.DisputeEconomicsRemoteDto? e)

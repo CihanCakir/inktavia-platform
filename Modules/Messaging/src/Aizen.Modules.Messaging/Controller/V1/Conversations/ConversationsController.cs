@@ -5,6 +5,7 @@ using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 using Aizen.Modules.Messaging.Application.Command.CreateConversation;
 using Aizen.Modules.Messaging.Application.Command.CreateSupportRequest;
+using Aizen.Modules.Messaging.Application.Query.GetChatAttachmentAccess;
 using Aizen.Modules.Messaging.Application.Query.GetConversationByContext;
 using Aizen.Modules.Messaging.Application.Query.GetConversationDetail;
 using Aizen.Modules.Messaging.Application.Query.GetConversationList;
@@ -99,6 +100,21 @@ public sealed class ConversationsController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetConversationDetailResponse>(
             new GetMyConversationByContextQuery(contextType, contextId), ct);
+        return SetResponse(result);
+    }
+
+    // BE_WC3a — participant-scoped chat-attachment access-check. The BFF read-url handlers try this first (for chat
+    // images) and fall back to the SR access-check (request / work-log / completion evidence) on a false result.
+    [HttpGet("by-context/mine/attachments/{fileId:guid}/access-check")]
+    [ProducesResponseType(typeof(ChatAttachmentAccessResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ChatAttachmentAccessResponse?>> CheckMyChatAttachmentAccess(
+        [FromRoute] Guid fileId,
+        [FromQuery] MessagingContextType contextType,
+        [FromQuery] long contextId,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ChatAttachmentAccessResponse>(
+            new GetChatAttachmentAccessQuery(contextType, contextId, fileId), ct);
         return SetResponse(result);
     }
 

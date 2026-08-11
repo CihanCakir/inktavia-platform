@@ -58,11 +58,12 @@ public sealed class SendProviderMessageCommandHandler
         var hasImage    = request.AttachmentFileId is { } fid && fid != Guid.Empty;
         var hasLocation = request.LocationLat.HasValue && request.LocationLng.HasValue;
 
-        // BE_WC2 write flip: text/location → Messaging (flag ON); image always → SR (until WC3).
-        var writeToMessaging = _config.GetValue("Messaging:WriteCutover:ChatMessages", false) && !hasImage;
+        // BE_WC2/WC3a write flip: text / location / image → Messaging (flag ON). WC3a moved images too; the flag now
+        // routes all three kinds natively. Flag OFF reverts every kind to the SR path (reversible).
+        var writeToMessaging = _config.GetValue("Messaging:WriteCutover:ChatMessages", false);
         if (writeToMessaging)
         {
-            var sent = await TrySendViaMessagingAsync(request, hasLocation, ct);
+            var sent = await TrySendViaMessagingAsync(request, hasLocation, hasImage, ct);
             if (sent is not null)
                 return sent;
             // Conversation not resolvable yet → fall through to the SR path (bootstraps via the sync consumer).
@@ -91,11 +92,11 @@ public sealed class SendProviderMessageCommandHandler
         }
     }
 
-    /// <summary>Resolve the SR's conversation and send TEXT/LOCATION natively to Messaging (which runs the provider
-    /// anti-harassment gate). Returns null if the conversation does not exist yet (caller falls back to the SR path).
-    /// The Messaging response (a ChatMessageDto) is mapped back to the SR-shaped response the provider client expects.</summary>
+    /// <summary>Resolve the SR's conversation and send TEXT / LOCATION / IMAGE natively to Messaging (which runs the
+    /// provider anti-harassment gate). Returns null if the conversation does not exist yet (caller falls back to the SR
+    /// path). The Messaging response (a ChatMessageDto) is mapped back to the SR-shaped response the client expects.</summary>
     private async Task<SendServiceRequestMessageResponse?> TrySendViaMessagingAsync(
-        SendProviderMessageCommand request, bool hasLocation, CancellationToken ct)
+        SendProviderMessageCommand request, bool hasLocation, bool hasImage, CancellationToken ct)
     {
         long conversationId;
         try
@@ -121,6 +122,17 @@ public sealed class SendProviderMessageCommandHandler
                 LocationLng: request.LocationLng,
                 LocationLabel: label);
         }
+        else if (hasImage)
+        {
+            // BE_WC3a — the image is already uploaded (the provider passed a fileId); attach it directly (no upload
+            // session), stored as FileStorageId = fileId.ToString() exactly like the SR sync mirror.
+            body = new SendMessageRequest(
+                Content: string.Empty,
+                Type: MessageType.MediaAttachment,
+                AttachmentFileStorageId: request.AttachmentFileId!.Value.ToString(),
+                AttachmentFileName: "attachment",
+                AttachmentFileType: "image");
+        }
         else
         {
             body = new SendMessageRequest(Content: request.Content, Type: MessageType.Text);
@@ -143,20 +155,28 @@ public sealed class SendProviderMessageCommandHandler
         }
     }
 
-    private static ServiceRequestMessageDto MapToSrDto(ChatMessageDto m) => new()
+    private static ServiceRequestMessageDto MapToSrDto(ChatMessageDto m)
     {
-        Id            = long.TryParse(m.Id, out var mid) ? mid : 0,
-        SenderUserId  = long.TryParse(m.SenderUserId, out var sid) ? sid : 0,
-        SenderType    = ServiceRequestMessageSenderType.Provider,
-        MessageType   = m.Location is not null ? ServiceRequestMessageType.Location : ServiceRequestMessageType.Text,
-        Content       = m.Content,
-        AttachmentFileId = null,
-        LocationLat   = m.Location is { } loc ? (decimal?)loc.Lat : null,
-        LocationLng   = m.Location is { } loc2 ? (decimal?)loc2.Lng : null,
-        LocationLabel = m.Location?.Label,
-        IsRead        = false,
-        CreatedAt     = m.Timestamp.UtcDateTime,
-    };
+        // BE_WC3a — a Messaging image carries the fileId as the attachment's FileStorageId (echoed as AttachmentDto.Url).
+        Guid? attachmentFileId = m.Attachments is { Count: > 0 } && Guid.TryParse(m.Attachments[0].Url, out var g) ? g : null;
+        var messageType = m.Location is not null
+            ? ServiceRequestMessageType.Location
+            : attachmentFileId is not null ? ServiceRequestMessageType.Image : ServiceRequestMessageType.Text;
+        return new ServiceRequestMessageDto
+        {
+            Id            = long.TryParse(m.Id, out var mid) ? mid : 0,
+            SenderUserId  = long.TryParse(m.SenderUserId, out var sid) ? sid : 0,
+            SenderType    = ServiceRequestMessageSenderType.Provider,
+            MessageType   = messageType,
+            Content       = m.Content,
+            AttachmentFileId = attachmentFileId,
+            LocationLat   = m.Location is { } loc ? (decimal?)loc.Lat : null,
+            LocationLng   = m.Location is { } loc2 ? (decimal?)loc2.Lng : null,
+            LocationLabel = m.Location?.Label,
+            IsRead        = false,
+            CreatedAt     = m.Timestamp.UtcDateTime,
+        };
+    }
 
     private static string LocationJson(decimal lat, decimal lng, string? label)
         => JsonSerializer.Serialize(new { lat = (double)lat, lng = (double)lng, label = label ?? string.Empty });

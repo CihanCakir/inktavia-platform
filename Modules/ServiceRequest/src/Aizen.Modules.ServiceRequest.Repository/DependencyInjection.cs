@@ -26,7 +26,8 @@ public static class DependencyInjection
         services.AddScoped<IServiceRequestDisputeRepository, ServiceRequestDisputeRepository>();
         services.AddScoped<IMaintenanceScheduleRepository, MaintenanceScheduleRepository>();   // S12
         services.AddScoped<IWorkPhaseRepository, WorkPhaseRepository>();
-        services.AddScoped<IServiceRequestConversationRepository, ServiceRequestConversationRepository>();
+        // BE_WC3c — IServiceRequestConversationRepository removed (its only readers, the SR conversation list/detail
+        // read endpoints, were retired; chat conversations are served by the Messaging store).
 
         return services;
     }

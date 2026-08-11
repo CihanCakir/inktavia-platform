@@ -8,7 +8,6 @@ using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
-using Aizen.Modules.ServiceRequest.Abstraction.Response.Conversation;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
@@ -155,11 +154,6 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<SetMaintenanceScheduleActiveResponse>> SetAdminMaintenanceScheduleActive(
         long id, [AizenRemoteCallBody] SetMaintenanceScheduleActiveRequest request);
 
-    [AizenRemoteCallGet("/api/v1/messages/conversations")]
-    Task<AizenApiResponse<GetConversationListResponse>> GetAdminConversations(
-        [Refit.Query] string? filter);
-
-    [AizenRemoteCallGet("/api/v1/messages/conversations/{conversationId}")]
-    Task<AizenApiResponse<GetConversationDetailResponse>> GetAdminConversationDetail(
-        long conversationId);
+    // BE_WC3c — removed GetAdminConversations + GetAdminConversationDetail remote-calls (SR /messages/conversations[/{id}]):
+    // dead after the read cutover (admin conversation audit is served from Messaging via /admin-panel/messaging/*).
 }

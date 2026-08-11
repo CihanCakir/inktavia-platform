@@ -92,12 +92,9 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         long serviceRequestId, long offerId,
         [AizenRemoteCallBody] WithdrawServiceRequestOfferRequest body);
 
-    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/messages")]
-    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.Message.GetServiceRequestMessagesResponse>> GetMessages(
-        long serviceRequestId,
-        [Refit.Query] int skip = 0,
-        [Refit.Query] int take = 50);
-
+    // BE_WC3d — removed GetMessages remote-call (SR chat READ): the provider Request-detail page now reads the unified
+    // Messaging thread (/provider/messaging/service-requests/{id}/thread). sr.Messages has no chat reader. The POST send
+    // below stays (SR write path retained for the WC2 flag-OFF path until WC4).
     [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/messages")]
     Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.Message.SendServiceRequestMessageResponse>> SendMessage(
         long serviceRequestId,
@@ -147,9 +144,8 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<Aizen.Modules.Payment.Abstraction.RemoteCall.Responses.ResolvePartLineAllowancesRemoteCallResponse>> GetOfferPartTermsPreview(
         long serviceRequestId, long offerId);
 
-    // --- Conversations ---
-    [AizenRemoteCallGet("/api/v1/service-requests/provider/conversations")]
-    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.Message.GetProviderConversationsResponse>> GetProviderConversations();
+    // BE_WC3c — removed GetProviderConversations remote-call (SR /provider/conversations): dead after the read cutover
+    // (provider chat list is served from Messaging via /provider/messaging/conversations).
 
     // --- Disputes (provider-scoped; cost-free) ---
     [AizenRemoteCallGet("/api/v1/service-requests/provider/disputes")]

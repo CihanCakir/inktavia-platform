@@ -38,6 +38,13 @@ public interface IMessagingRemoteCall : IAizenRemoteCall
         long conversationId,
         [AizenRemoteCallBody] SendMessageRequest body);
 
+    // BE_WC3a — participant-scoped chat-attachment access-check (Authorized iff the caller is a participant AND the
+    // fileId is on a message in this SR's conversation). Tried first by the read-url handler; falls back to the SR
+    // access-check for request/evidence attachments on a miss.
+    [AizenRemoteCallGet("/api/v1/conversations/by-context/mine/attachments/{fileId}/access-check")]
+    Task<AizenApiResponse<ChatAttachmentAccessResponse>> CheckChatAttachmentAccess(
+        Guid fileId, [Refit.Query] MessagingContextType contextType, [Refit.Query] long contextId);
+
     [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages/attachment-upload-url")]
     Task<AizenApiResponse<SupportAttachmentUploadUrlBff>> GetAttachmentUploadUrl(
         long conversationId,

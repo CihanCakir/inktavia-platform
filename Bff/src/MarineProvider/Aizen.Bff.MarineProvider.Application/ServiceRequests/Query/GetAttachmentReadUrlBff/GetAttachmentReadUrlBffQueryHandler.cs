@@ -3,14 +3,16 @@ using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.FileStorage.Abstraction.Request.File;
+using Aizen.Modules.Messaging.Abstraction.Enum;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Bff.MarineProvider.Application.ServiceRequests;
 
 /// <summary>
 /// Mints a short-lived signed read URL for a service request attachment.
-/// Access-scoped: the module verifies the provider may see the request AND the fileId is an attachment on it.
-/// Only then does the BFF call FileStorage to mint the URL.
+/// BE_WC3a two-store check: a CHAT image is authorized by the <b>Messaging</b> store first (participant +
+/// fileId-on-conversation, covering old synced + new native images); on a miss it falls back to the <b>SR</b>
+/// access-check (request / work-log / completion evidence, unchanged). Only then does the BFF mint the URL via FileStorage.
 /// </summary>
 public sealed class GetAttachmentReadUrlBffQueryHandler
     : AizenQueryHandler<GetAttachmentReadUrlBffQuery, AttachmentReadUrlBffResponse>
@@ -18,6 +20,7 @@ public sealed class GetAttachmentReadUrlBffQueryHandler
     private readonly IProviderProfileResolver _resolver;
     private readonly IProviderIdentityHolder _identityHolder;
     private readonly IServiceRequestRemoteCall _serviceRequest;
+    private readonly IMessagingRemoteCall _messaging;
     private readonly IFileStorageRemoteCall _fileStorage;
     private readonly ILogger<GetAttachmentReadUrlBffQueryHandler> _logger;
 
@@ -25,12 +28,14 @@ public sealed class GetAttachmentReadUrlBffQueryHandler
         IProviderProfileResolver resolver,
         IProviderIdentityHolder identityHolder,
         IServiceRequestRemoteCall serviceRequest,
+        IMessagingRemoteCall messaging,
         IFileStorageRemoteCall fileStorage,
         ILogger<GetAttachmentReadUrlBffQueryHandler> logger)
     {
         _resolver = resolver;
         _identityHolder = identityHolder;
         _serviceRequest = serviceRequest;
+        _messaging = messaging;
         _fileStorage = fileStorage;
         _logger = logger;
     }
@@ -42,17 +47,11 @@ public sealed class GetAttachmentReadUrlBffQueryHandler
         if (_identityHolder.ProfileId is null or 0)
             throw new AizenBusinessException("Provider identity could not be resolved.");
 
-        // Step 1: module access check — verifies provider relationship + fileId belongs to request
-        try
+        // Step 1: two-store access check — (1) chat image via Messaging (participant + fileId-on-conversation), then
+        // (2) fall back to the SR check (request / work-log / completion evidence). Vague not-found on any mismatch.
+        if (!await IsChatAttachmentAuthorizedAsync(request.ServiceRequestId, request.FileId)
+            && !await IsSrAttachmentAuthorizedAsync(request.ServiceRequestId, request.FileId))
         {
-            var accessCheck = await _serviceRequest.CheckAttachmentAccess(request.ServiceRequestId, request.FileId);
-            if (accessCheck.Body is not { Authorized: true })
-                throw new AizenBusinessException("Service request not found.");
-        }
-        catch (Refit.ApiException ex)
-        {
-            _logger.LogWarning(ex, "Attachment access check failed for SR {ServiceRequestId}, file {FileId}, provider {ProfileId}",
-                request.ServiceRequestId, request.FileId, _identityHolder.ProfileId);
             throw new AizenBusinessException("Service request not found.");
         }
 
@@ -85,5 +84,25 @@ public sealed class GetAttachmentReadUrlBffQueryHandler
                 request.FileId);
             return new AttachmentReadUrlBffResponse { Url = string.Empty };
         }
+    }
+
+    private async Task<bool> IsChatAttachmentAuthorizedAsync(long serviceRequestId, Guid fileId)
+    {
+        try
+        {
+            var check = await _messaging.CheckChatAttachmentAccess(fileId, MessagingContextType.ServiceRequest, serviceRequestId);
+            return check?.Body is { Authorized: true };
+        }
+        catch (Refit.ApiException) { return false; }
+    }
+
+    private async Task<bool> IsSrAttachmentAuthorizedAsync(long serviceRequestId, Guid fileId)
+    {
+        try
+        {
+            var check = await _serviceRequest.CheckAttachmentAccess(serviceRequestId, fileId);
+            return check?.Body is { Authorized: true };
+        }
+        catch (Refit.ApiException) { return false; }
     }
 }

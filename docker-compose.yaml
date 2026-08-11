@@ -661,6 +661,8 @@ services:
       Realtime__SignalR__UseRedisBackplane: "true"
       Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
       RemoteCalls__IServiceRequestReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      # BE_WC3b — read the dispute case chat transcript from the canonical Messaging store (internal S2S read).
+      RemoteCalls__IServiceRequestMessagingRemoteCall__BaseUrl: http://messaging-api:8080
     ports:
       - "7107:8080"
     networks: [aizen]

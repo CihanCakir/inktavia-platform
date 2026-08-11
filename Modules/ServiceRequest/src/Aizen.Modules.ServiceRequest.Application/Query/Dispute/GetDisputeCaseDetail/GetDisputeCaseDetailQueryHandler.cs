@@ -4,6 +4,7 @@ using Aizen.Modules.Payment.Abstraction.RemoteCall;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Application.Mapping;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
@@ -25,6 +26,7 @@ public sealed class GetDisputeCaseDetailQueryHandler
     private readonly IServiceRequestRepository        _srRepository;
     private readonly IServiceRequestWorkLogRepository _workLogRepository;
     private readonly IPaymentModuleRemoteCall         _paymentRemoteCall;
+    private readonly IServiceRequestMessagingRemoteCall _messagingRemoteCall;
     private readonly IAizenInfoAccessor               _info;
     private readonly ILogger<GetDisputeCaseDetailQueryHandler> _logger;
 
@@ -33,6 +35,7 @@ public sealed class GetDisputeCaseDetailQueryHandler
         IServiceRequestRepository        srRepository,
         IServiceRequestWorkLogRepository workLogRepository,
         IPaymentModuleRemoteCall         paymentRemoteCall,
+        IServiceRequestMessagingRemoteCall messagingRemoteCall,
         IAizenInfoAccessor               info,
         ILogger<GetDisputeCaseDetailQueryHandler> logger)
     {
@@ -40,6 +43,7 @@ public sealed class GetDisputeCaseDetailQueryHandler
         _srRepository      = srRepository;
         _workLogRepository = workLogRepository;
         _paymentRemoteCall = paymentRemoteCall;
+        _messagingRemoteCall = messagingRemoteCall;
         _info              = info;
         _logger            = logger;
     }
@@ -60,7 +64,27 @@ public sealed class GetDisputeCaseDetailQueryHandler
 
         var paymentState = await ReadPaymentStateAsync(sr.Id, ct);
 
-        return DisputeCaseComposer.Compose(dispute, sr, providerUserId, workLogs, paymentState);
+        // BE_WC3b — source the chat transcript from the canonical Messaging store (complete post-cutover). Best-effort:
+        // a failure passes null so the composer falls back to sr.Messages (the sync keeps it complete until WC4).
+        var transcript = await ReadMessagingTranscriptAsync(sr.Id);
+
+        return DisputeCaseComposer.Compose(dispute, sr, providerUserId, workLogs, paymentState, transcript);
+    }
+
+    private async Task<IReadOnlyList<SrTranscriptMessageDto>?> ReadMessagingTranscriptAsync(long srId)
+    {
+        try
+        {
+            // contextType = the Messaging MessagingContextType.ServiceRequest member name (the endpoint binds the name).
+            var response = await _messagingRemoteCall.GetConversationTranscript("ServiceRequest", srId);
+            return response?.Body?.Messages;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "GetDisputeCaseDetail: failed to read Messaging transcript for SR {SRId} — falling back to sr.Messages.", srId);
+            return null;
+        }
     }
 
     private async Task<GetDisputeCasePaymentStateRemoteCallResponse?> ReadPaymentStateAsync(long srId, CancellationToken ct)

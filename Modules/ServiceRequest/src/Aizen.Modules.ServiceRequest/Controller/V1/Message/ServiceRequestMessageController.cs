@@ -5,7 +5,6 @@ using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Message;
 using Aizen.Modules.ServiceRequest.Application.Command.Message;
-using Aizen.Modules.ServiceRequest.Application.Query.Message;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -50,25 +49,8 @@ public sealed class ServiceRequestMessageController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet]
-    [ProducesResponseType(typeof(GetServiceRequestMessagesResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetServiceRequestMessagesResponse?>> GetMessages(
-        [FromRoute] long serviceRequestId,
-        [FromQuery] int skip = 0,
-        [FromQuery] int take = 50,
-        CancellationToken ct = default)
-    {
-        var result = await _cqrs.ProcessAsync<GetServiceRequestMessagesResponse>(
-            new GetServiceRequestMessagesQuery(serviceRequestId, skip, take), ct);
-        return SetResponse(result);
-    }
-
-    [HttpPatch("mark-read")]
-    [ProducesResponseType(typeof(SendServiceRequestMessageResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> MarkRead(
-        [FromRoute] long serviceRequestId, [FromBody] MarkServiceRequestMessagesReadRequest req, CancellationToken ct = default)
-    {
-        var result = await _cqrs.ProcessAsync<bool>(new MarkServiceRequestMessagesReadCommand(serviceRequestId, req), ct);
-        return Ok(new { Header = new { IsSuccess = true }, Body = new { Success = result } });
-    }
+    // BE_WC3d — removed the SR chat READ (GET .../{srId}/messages): its last reader (the provider Request-detail page)
+    // was repointed to the unified Messaging thread. sr.Messages now has NO chat reader. The POST Send above stays
+    // (the SR write path is retained for WC2 flag-OFF reversibility until WC4).
+    // BE_WC3c — the SR chat mark-read (PATCH .../messages/mark-read) was already removed here (no reader).
 }

@@ -66,9 +66,9 @@ public sealed class SendMobileChatMessageCommandHandler
         var (kind, content) = MobileChatSend.Validate(
             r.Content, r.AttachmentFileId, r.LocationLat, r.LocationLng, r.LocationLabel);
 
-        // BE_WC2 write flip: text/location → Messaging (flag ON); image always → SR (until WC3).
-        var writeToMessaging = _config.GetValue("Messaging:WriteCutover:ChatMessages", false)
-                               && kind != MobileChatSendKind.Image;
+        // BE_WC2/WC3a write flip: text / location / image → Messaging (flag ON). WC3a moved images too, so the flag now
+        // routes ALL three kinds natively; flag OFF reverts every kind to the SR path (reversible).
+        var writeToMessaging = _config.GetValue("Messaging:WriteCutover:ChatMessages", false);
         if (writeToMessaging)
         {
             var sent = await TrySendViaMessagingAsync(request.ServiceRequestId, kind, content, r, cancellationToken);
@@ -126,6 +126,18 @@ public sealed class SendMobileChatMessageCommandHandler
                 LocationLat: (decimal?)r.LocationLat,
                 LocationLng: (decimal?)r.LocationLng,
                 LocationLabel: label);
+        }
+        else if (kind == MobileChatSendKind.Image)
+        {
+            // BE_WC3a — the client already uploaded the image (mobile upload session); attach the resulting fileId
+            // directly (no Messaging upload session). Stored as FileStorageId = fileId.ToString(), exactly like the SR
+            // sync mirror — so the WC3a Messaging read-url check finds it for both old synced and new native images.
+            body = new SendMessageRequest(
+                Content: string.Empty,
+                Type: MessageType.MediaAttachment,
+                AttachmentFileStorageId: r.AttachmentFileId?.ToString(),
+                AttachmentFileName: "attachment",
+                AttachmentFileType: "image");
         }
         else
         {

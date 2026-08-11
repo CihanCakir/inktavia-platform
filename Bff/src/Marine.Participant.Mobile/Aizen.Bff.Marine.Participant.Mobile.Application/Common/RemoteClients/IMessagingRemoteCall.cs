@@ -25,10 +25,17 @@ public interface IMessagingRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<GetConversationDetailResponse>> GetMyConversationByContext(
         [Refit.Query] MessagingContextType contextType, [Refit.Query] long contextId);
 
-    // BE_WC2 — participant-scoped native send (owner writes text/location to the Messaging store). The module resolves
-    // the sender (Owner) + participant membership from the asserted user id; the owner is always a participant.
+    // BE_WC2 — participant-scoped native send (owner writes text/location/image to the Messaging store). The module
+    // resolves the sender (Owner) + participant membership from the asserted user id; the owner is always a participant.
     [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages")]
     Task<AizenApiResponse<SendMessageResponse>> SendMessage(
         long conversationId,
         [AizenRemoteCallBody] SendMessageRequest body);
+
+    // BE_WC3a — participant-scoped chat-attachment access-check (Authorized iff the caller is a participant AND the
+    // fileId is on a message in this SR's conversation). Tried first by the read-url handler; on a miss it falls back
+    // to the SR access-check for request/evidence attachments.
+    [AizenRemoteCallGet("/api/v1/conversations/by-context/mine/attachments/{fileId}/access-check")]
+    Task<AizenApiResponse<ChatAttachmentAccessResponse>> CheckChatAttachmentAccess(
+        Guid fileId, [Refit.Query] MessagingContextType contextType, [Refit.Query] long contextId);
 }

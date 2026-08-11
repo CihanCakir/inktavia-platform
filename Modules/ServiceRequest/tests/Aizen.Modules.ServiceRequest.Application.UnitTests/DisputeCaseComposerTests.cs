@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Application.Mapping;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
@@ -127,6 +128,55 @@ public sealed class DisputeCaseComposerTests
         response.PaymentState!.RefundAllocations.Should().ContainSingle();
         response.PaymentState.Chargeback.Should().NotBeNull();
         response.PaymentState.RefundableAmount.Should().Be(1000m);
+    }
+
+    [Fact] // BE_WC3b — the transcript now sources from the Messaging store (not sr.Messages); role/type + fileId mapped
+    public void Transcript_sources_from_Messaging_and_maps_role_type_and_fileId()
+    {
+        var (dispute, sr, logs) = BuildInputs();   // sr has one sr.Messages row ("Work is done") that must NOT be used
+        var imageFileId = Guid.NewGuid();
+        var t0 = DateTimeOffset.UtcNow.AddMinutes(-10);
+
+        // Messaging enum values: SenderRole Owner=1/Provider=2/Admin=3/System=4; MessageType Text=1/SystemNotification=2/
+        // StatusChange=3/MediaAttachment=5/Location=6.
+        var transcript = new List<SrTranscriptMessageDto>
+        {
+            new() { MessageId = 501, SenderUserId = 7,  SenderRole = 1, MessageType = 1, Content = "owner hello", SentAt = t0 },
+            new() { MessageId = 502, SenderUserId = 88, SenderRole = 2, MessageType = 5, Content = "",
+                    AttachmentFileStorageId = imageFileId.ToString(), SentAt = t0.AddMinutes(1) },
+            new() { MessageId = 503, SenderUserId = 0,  SenderRole = 4, MessageType = 2, Content = "system note", SentAt = t0.AddMinutes(2) },
+            new() { MessageId = 504, SenderUserId = 7,  SenderRole = 1, MessageType = 6, Content = "{\"lat\":1,\"lng\":2}",
+                    LocationLat = 1m, LocationLng = 2m, LocationLabel = "Marina", SentAt = t0.AddMinutes(3) },
+        };
+
+        var response = DisputeCaseComposer.Compose(dispute, sr, providerUserId: 88, logs, BuildPaymentState(), transcript);
+
+        response.Messages.Should().HaveCount(4);
+        response.Messages.Select(m => m.Content).Should().NotContain("Work is done"); // NOT from sr.Messages
+
+        var owner = response.Messages.Single(m => m.Id == 501);
+        owner.SenderType.Should().Be(ServiceRequestMessageSenderType.Owner);
+        owner.MessageType.Should().Be(ServiceRequestMessageType.Text);
+
+        var image = response.Messages.Single(m => m.Id == 502);
+        image.SenderType.Should().Be(ServiceRequestMessageSenderType.Provider);
+        image.MessageType.Should().Be(ServiceRequestMessageType.Image);   // MediaAttachment(5) → Image
+        image.AttachmentFileId.Should().Be(imageFileId);                  // string → Guid
+
+        response.Messages.Single(m => m.Id == 503).SenderType.Should().Be(ServiceRequestMessageSenderType.System);
+        response.Messages.Single(m => m.Id == 503).MessageType.Should().Be(ServiceRequestMessageType.SystemNotification);
+        response.Messages.Single(m => m.Id == 504).MessageType.Should().Be(ServiceRequestMessageType.Location);
+    }
+
+    [Fact] // BE_WC3b — a null transcript (Messaging read failed) falls back to sr.Messages so the case never loses it
+    public void Null_transcript_falls_back_to_sr_messages()
+    {
+        var (dispute, sr, logs) = BuildInputs();
+
+        var response = DisputeCaseComposer.Compose(dispute, sr, providerUserId: 88, logs, BuildPaymentState(), transcript: null);
+
+        response.Messages.Should().ContainSingle();
+        response.Messages[0].Content.Should().Be("Work is done"); // the sr.Messages fallback row
     }
 
     [Fact] // test (1) — CONFIDENTIALITY: no supplier cost / dealer margin anywhere in the graph

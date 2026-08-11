@@ -13,9 +13,7 @@ using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetDiscoverySummar
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderServiceRequestDetail;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetAttachmentAccessUrl;
-using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderConversations;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderDisputes;
-using Aizen.Modules.ServiceRequest.Abstraction.Response.Message;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -249,14 +247,8 @@ public sealed class ProviderJobsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("conversations")]
-    [ProducesResponseType(typeof(GetProviderConversationsResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetProviderConversationsResponse?>> GetConversations(CancellationToken ct = default)
-    {
-        var result = await _cqrs.ProcessAsync<GetProviderConversationsResponse>(
-            new GetProviderConversationsQuery(), ct);
-        return SetResponse(result);
-    }
+    // BE_WC3c — removed the legacy SR-backed provider conversations read (GET .../provider/conversations). Provider
+    // chat lists now read from the Messaging store (BFF /provider/messaging/conversations). No caller remained.
 
     /// <summary>
     /// The calling provider's own disputes — the disputes on the service requests they won — plus a global

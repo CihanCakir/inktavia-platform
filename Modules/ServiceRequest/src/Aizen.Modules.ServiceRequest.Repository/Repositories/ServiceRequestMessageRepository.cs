@@ -13,14 +13,8 @@ public sealed class ServiceRequestMessageRepository : IServiceRequestMessageRepo
 
     public ServiceRequestMessageRepository(ServiceRequestDbContext db) => _db = db;
 
-    public async Task<IReadOnlyList<ServiceRequestMessageEntity>> GetByServiceRequestIdAsync(long serviceRequestId, int skip, int take, CancellationToken ct = default)
-        => await _db.ServiceRequestMessages
-            .AsNoTracking()
-            .Where(x => x.ServiceRequestId == serviceRequestId && !x.IsDeleted)
-            .OrderBy(x => x.CreateDate)
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync(ct);
+    // BE_WC3d — GetByServiceRequestIdAsync removed: its only reader (the SR chat GetServiceRequestMessages query) was
+    // retired once the provider Request-detail read moved to the Messaging thread. sr.Messages has no chat reader.
 
     public Task<int> GetUnreadCountAsync(long serviceRequestId, long recipientUserId, CancellationToken ct = default)
         => _db.ServiceRequestMessages.CountAsync(
@@ -52,6 +46,4 @@ public sealed class ServiceRequestMessageRepository : IServiceRequestMessageRepo
 
     public Task AddAsync(ServiceRequestMessageEntity entity, CancellationToken ct = default)
         => _db.ServiceRequestMessages.AddAsync(entity, ct).AsTask();
-
-    public void Update(ServiceRequestMessageEntity entity) => _db.ServiceRequestMessages.Update(entity);
 }

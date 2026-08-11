@@ -15,7 +15,6 @@ using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
-using Aizen.Modules.ServiceRequest.Abstraction.Response.Conversation;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Maintenance;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
@@ -355,23 +354,6 @@ public sealed class ServiceRequestsController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpGet("messages/conversations")]
-    [ProducesResponseType(typeof(AdminConversationsResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<AdminConversationsResponse>> GetConversations(
-        [FromQuery] string? filter, CancellationToken ct)
-    {
-        var result = await _cqrs.ProcessAsync(
-            new GetConversationsBffQuery(filter), ct);
-        return SetResponse(result);
-    }
-
-    [HttpGet("messages/conversations/{conversationId:long}")]
-    [ProducesResponseType(typeof(AdminConversationDetailResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<AdminConversationDetailResponse>> GetConversationDetail(
-        long conversationId, CancellationToken ct)
-    {
-        var result = await _cqrs.ProcessAsync(
-            new GetConversationDetailBffQuery(conversationId), ct);
-        return SetResponse(result);
-    }
+    // BE_WC3c — removed the admin SR-backed conversation audit endpoints (GET /admin-panel/messages/conversations[/{id}]):
+    // dead after the read cutover. Admin conversation audit reads from Messaging (/admin-panel/messaging/*).
 }

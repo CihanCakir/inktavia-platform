@@ -132,16 +132,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
             ServiceRequestId = serviceRequestId, FileId = fileId,
         }, ct));
 
-    /// <summary>Conversation history + channelOpen state. Access-checked via assertion.</summary>
-    [HttpGet("{serviceRequestId:long}/messages")]
-    [ProducesResponseType(typeof(ProviderMessagesResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<ProviderMessagesResponse?>> GetMessages(
-        [FromRoute] long serviceRequestId, [FromQuery] int skip = 0, [FromQuery] int take = 50,
-        CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new GetProviderMessagesQuery
-        {
-            ServiceRequestId = serviceRequestId, Skip = skip, Take = take,
-        }, ct));
+    // BE_WC3d — removed the provider chat READ endpoint (GET .../{srId}/messages): the Request-detail page reads the
+    // unified Messaging thread now (GET /provider/messaging/service-requests/{id}/thread). The POST send below stays.
 
     /// <summary>
     /// Provider sends a free-text message. The module enforces the anti-harassment gate
@@ -162,9 +154,6 @@ public sealed class ServiceRequestsController : AizenWebApiController
             LocationLabel = body.LocationLabel,
         }, ct));
 
-    /// <summary>Provider's conversation list (inbox). Provider-scoped.</summary>
-    [HttpGet("conversations")]
-    [ProducesResponseType(typeof(GetProviderConversationsResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetProviderConversationsResponse?>> GetConversations(CancellationToken ct = default)
-        => SetResponse(await _cqrs.ProcessAsync(new GetProviderConversationsBffQuery(), ct));
+    // BE_WC3c — removed the provider conversation-list endpoint (GET /provider/service-requests/conversations): dead
+    // after the read cutover. The provider portal reads its inbox from Messaging (/provider/messaging/conversations).
 }
