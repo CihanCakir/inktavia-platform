@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 using Aizen.Modules.Messaging.Application.Realtime;
@@ -80,6 +81,14 @@ public sealed class SendMessageCommandHandler
         var senderDisplayName = participant?.DisplayName ?? "Admin";
         var senderRole        = participant?.Role ?? MessagingParticipantRole.Admin;
 
+        // BE_WC2 anti-harassment gate — mirrors the SR SendServiceRequestMessage handler: a Provider cannot free-text
+        // until the Owner has sent a message in this conversation. Owner / Admin / System / Support sends are ungated.
+        if (senderRole == MessagingParticipantRole.Provider
+            && !await _messageRepository.HasOwnerMessageAsync(conversation.Id, cancellationToken))
+        {
+            throw new AizenBusinessException("SR_MSG_CHANNEL_LOCKED");
+        }
+
         // Content moderation — Location type skips text checks
         var policyResult = await _contentPolicy.EvaluateAsync(
             request.Content, currentUserId, request.Type, cancellationToken);
@@ -98,6 +107,11 @@ public sealed class SendMessageCommandHandler
 
         if (policyResult.RequiresReview)
             message.Flag(policyResult.ViolationReason!);
+
+        // BE_WC2 — persist the discrete geo payload onto the WC0 columns for a Location message (parity with the SR
+        // write path + the sync mirror). Content still carries the JSON for legacy readers.
+        if (request.Type == MessageType.Location)
+            message.SetLocation(request.LocationLat, request.LocationLng, request.LocationLabel);
 
         // Attachment handling — legacy direct FileStorageId path
         if (!string.IsNullOrEmpty(request.AttachmentFileStorageId))

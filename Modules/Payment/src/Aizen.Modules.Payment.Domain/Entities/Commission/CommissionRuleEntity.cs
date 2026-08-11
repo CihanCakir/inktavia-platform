@@ -259,6 +259,17 @@ public sealed class CommissionRuleEntity : AizenEntityWithAudit
     public void IncrementAppliedCount() => ResolvedAppliedCount++;
 
     /// <summary>
+    /// Backfills the <see cref="RuleCode"/> onto a rule that was seeded without one. Seed-support only (used by
+    /// <c>PaymentPlanSeed</c> to adopt legacy null-code base rules so a re-seed stays duplicate-safe); does not touch
+    /// rate/priority/scope. No-op if the rule already carries a code.
+    /// </summary>
+    public void AssignRuleCode(string ruleCode)
+    {
+        if (string.IsNullOrWhiteSpace(RuleCode))
+            RuleCode = ruleCode;
+    }
+
+    /// <summary>
     /// Sets optional Phase 5 labeling fields after any factory method.
     /// Called by CreateCommissionRuleCommandHandler when the admin supplies these fields.
     /// Phase 13 (July 2026): exposed for general use — not just CargoDry-specific factory methods.

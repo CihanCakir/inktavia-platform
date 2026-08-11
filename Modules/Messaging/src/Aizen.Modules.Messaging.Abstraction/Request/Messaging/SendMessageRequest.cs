@@ -12,5 +12,9 @@ public sealed record SendMessageRequest(
     string? AttachmentFileType = null,
     string? UploadSessionCode = null,
     string? Checksum = null,
-    string? LocationJson = null
+    string? LocationJson = null,
+    // BE_WC2 — discrete geo payload persisted to the WC0 columns when Type == Location (parity with the SR write path).
+    decimal? LocationLat = null,
+    decimal? LocationLng = null,
+    string? LocationLabel = null
 );

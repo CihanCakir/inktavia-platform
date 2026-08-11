@@ -1,7 +1,10 @@
+using System.Linq;
 using Aizen.Core.Realtime.Abstraction.Interfaces;
 using Aizen.Core.Realtime.Abstraction.Models;
+using Aizen.Modules.Messaging.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
+using MsgContextType = Aizen.Modules.Messaging.Abstraction.Enum.MessagingContextType;
 
 namespace Aizen.Bff.MarineProvider.Realtime;
 
@@ -30,30 +33,35 @@ public sealed class ProviderEventSocketMapper : IEventSocketMapper
         var resolved = Resolve(domainEvent);
         return resolved is null
             ? (Array.Empty<string>(), Array.Empty<string>())
-            : (Array.Empty<string>(), new[] { resolved.Value.Group });
+            : (Array.Empty<string>(), resolved.Value.Groups);
     }
 
     /// <summary>
     /// Port of every consumer's routing + filter into one place. Returns <c>null</c> when the event should not
     /// fire (the old consumer's early-return cases), otherwise the frame + the single target group.
     /// </summary>
-    private static (RealtimeMessage Message, string Group)? Resolve(object domainEvent) => Unwrap(domainEvent) switch
+    private static (RealtimeMessage Message, IReadOnlyList<string> Groups)? Resolve(object domainEvent) => Unwrap(domainEvent) switch
     {
-        // MessageAdded — notify the provider for Owner (counterparty) and System (lifecycle pill) messages only;
-        // the provider's own sends must not self-notify. Skip when no provider profile id is carried.
-        ServiceRequestMessageSentMessage m
-            when (m.SenderType == ServiceRequestMessageSenderType.Owner
-                  || m.SenderType == ServiceRequestMessageSenderType.System)
-                 && m.ProviderProfileId is > 0
-            => Frame(
-                ProviderRealtimeHub.ProviderGroup(m.ProviderProfileId!.Value),
-                m.ServiceRequestId.ToString(),
+        // BE_WC2 — native Messaging chat MessageAdded: fan out to the recipient "user:{userId}" groups (the event has
+        // RecipientUserIds, not a provider profile id). Only SR-context conversations; empty recipients (System/
+        // lifecycle messages) return null → nobody on the provider surface (the System pill is refetched). Fires in
+        // both flag states (with the write flip OFF the SR sync republishes this event), so provider chat realtime is
+        // decoupled from the write cutover.
+        MessagingMessageSentMessage mm
+            when mm.ContextType == MsgContextType.ServiceRequest && mm.RecipientUserIds is { Count: > 0 }
+            => FrameFanout(
+                mm.RecipientUserIds.Select(ProviderRealtimeHub.UserGroup).ToArray(),
+                mm.ContextId.ToString(),
                 new ProviderRealtimeEvent
                 {
                     EventType = ProviderRealtimeEventTypes.MessageAdded,
-                    ServiceRequestId = m.ServiceRequestId,
-                    MessageSenderType = m.SenderType.ToString(),
+                    ServiceRequestId = mm.ContextId,
+                    // MessagingMessageSentMessage carries no sender type; the client refetches the thread.
                 }),
+
+        // NB (BE_WC2): the chat MessageAdded arm on ServiceRequestMessageSentMessage was REMOVED — provider chat
+        // realtime now rides MessagingMessageSentMessage (above), which fires in both ChatMessages flag states. Keeping
+        // both would double-notify (SR event + the sync's Messaging event). Offer/city events below are unaffected.
 
         // OfferAccepted — addressed to exactly one provider group. Skip when no provider profile id.
         ServiceRequestOfferAcceptedMessage m when m.ProviderProfileId > 0
@@ -137,14 +145,19 @@ public sealed class ProviderEventSocketMapper : IEventSocketMapper
         _ => null,
     };
 
-    private static (RealtimeMessage Message, string Group) Frame(string group, string aggregateId, ProviderRealtimeEvent payload)
+    private static (RealtimeMessage Message, IReadOnlyList<string> Groups) Frame(string group, string aggregateId, ProviderRealtimeEvent payload)
+        => FrameFanout(new[] { group }, aggregateId, payload);
+
+    // BE_WC2 — fan a single frame out to one or more target groups (e.g. one "user:{id}" group per chat recipient).
+    private static (RealtimeMessage Message, IReadOnlyList<string> Groups) FrameFanout(
+        IReadOnlyList<string> groups, string aggregateId, ProviderRealtimeEvent payload)
         => (new RealtimeMessage
         {
             Type = "providerEvent",
-            Stream = group,
+            Stream = groups.Count > 0 ? groups[0] : string.Empty,
             AggregateId = aggregateId,
             Payload = payload,
-        }, group);
+        }, groups);
 
     // The generic RealtimeEventConsumer wraps the bus message in an EventDto (Data = the message); accept both the
     // wrapped and the raw form so the mapper is robust to how it is invoked (mirrors the admin mapper).

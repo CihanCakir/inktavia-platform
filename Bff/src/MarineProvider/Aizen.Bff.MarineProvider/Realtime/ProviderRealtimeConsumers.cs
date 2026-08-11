@@ -1,5 +1,6 @@
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Core.Realtime.MessageConsumers;
+using Aizen.Modules.Messaging.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 
 namespace Aizen.Bff.MarineProvider.Realtime;
@@ -13,11 +14,22 @@ namespace Aizen.Bff.MarineProvider.Realtime;
 //
 // These run only because the BFF's AizenAppInfo includes AppType.Worker (enables bus consumption).
 
-/// <summary>Bus → provider hub: a message was added to a conversation involving this provider.</summary>
+/// <summary>Bus → provider hub: a message was added to a conversation involving this provider (SR chat-mirror event).
+/// Kept for the offer/city events; the chat MessageAdded routing repoints to the Messaging event below (BE_WC2).</summary>
 public sealed class MessageAddedRealtimeConsumer
     : RealtimeEventConsumer<ServiceRequestMessageSentMessage, AizenMessageResult>
 {
     public MessageAddedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}
+
+/// <summary>BE_WC2 — Bus → provider hub: a native Messaging message was sent in a conversation this provider participates
+/// in. Routed to the recipient "user:{userId}" groups (the event carries RecipientUserIds, not a provider profile id).
+/// Fires in BOTH flag states — with the write flip OFF the SR sync republishes this event, so the repoint is
+/// decoupled from the write cutover and always keeps provider chat realtime working.</summary>
+public sealed class MessagingMessageAddedRealtimeConsumer
+    : RealtimeEventConsumer<MessagingMessageSentMessage, AizenMessageResult>
+{
+    public MessagingMessageAddedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
 }
 
 /// <summary>Bus → provider hub: this provider's offer was accepted.</summary>

@@ -72,6 +72,7 @@ public static class DependencyInjection
         services.AddScoped<InvoiceMockSeed>();
         services.AddScoped<Provider2PositiveBranchMockSeed>();
         services.AddScoped<SubMerchantOnboardingMockSeed>();
+        services.AddScoped<AcceptPathProviderPaymentSeed>();
 
         return services;
     }
@@ -154,5 +155,11 @@ public static class DependencyInjection
         // Phase 9: sub-merchant onboarding demo profiles for the BE-I1 admin KYC queue (idempotent, demo-only).
         var subMerchantSeeder = scope.ServiceProvider.GetRequiredService<SubMerchantOnboardingMockSeed>();
         await subMerchantSeeder.SeedAsync(ct);
+
+        // Phase 10: accept-path provider payment profiles — Verified/keyed/IBAN + clean ₺0 balance for the providers
+        // that submit offers (11011/11012/11013) so owner-accept clears split-eligibility with no manual edits. Adds a
+        // Verified profile for 100011 too, but leaves its Wave-B over-limit balance to Provider2PositiveBranchMockSeed.
+        var acceptPathSeeder = scope.ServiceProvider.GetRequiredService<AcceptPathProviderPaymentSeed>();
+        await acceptPathSeeder.SeedAsync(ct);
     }
 }

@@ -59,6 +59,11 @@ public sealed class ProviderRealtimeHub : DomainHubBase
     /// </summary>
     public static string CityGroup(string cityCode) => $"city:{cityCode.Trim().ToUpperInvariant()}";
 
+    /// <summary>BE_WC2 — per-recipient user group, keyed by the provider's Identity user id. Used to route chat events
+    /// carried by <c>MessagingMessageSentMessage</c> (which has RecipientUserIds, NOT ProviderProfileId). Requires the
+    /// "user" domain-key registration in Program.cs (same as "provider"/"city").</summary>
+    public static string UserGroup(long userId) => $"user:{userId}";
+
     public override async Task OnConnectedAsync()
     {
         var resolution = await _resolver.ResolveAsync(Context.ConnectionAborted);
@@ -74,6 +79,10 @@ public sealed class ProviderRealtimeHub : DomainHubBase
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, ProviderGroup(profileId));
+
+        // BE_WC2 — join the per-recipient user group so chat events on MessagingMessageSentMessage (which target the
+        // recipient's Identity user id, not the provider profile id) reach this connection.
+        await Groups.AddToGroupAsync(Context.ConnectionId, UserGroup(_identityHolder.UserId!.Value));
 
         // The provider's operating city comes from their Identity profile, resolved server-side.
         var city = resolution.Profile?.City;

@@ -50,6 +50,11 @@ public static class DependencyInjection
         services.AddScoped<CommissionCalculationService>();
 
         // ── Platform fee calculator (BE-P3) ───────────────────────────────────
+        // Remote-call adapter for ISystemParameterReferenceService (the DB-backed impl lives in ReferenceData and is
+        // unusable in-process; PlatformFee/Commission read fee/VAT params from reference-data-api). Reads delegated,
+        // writes NotSupported. The IPaymentReferenceDataRemoteCall client itself is auto-registered by AddAizenRemoteCall.
+        services.AddScoped<ISystemParameterReferenceService, SystemParameterReferenceRemoteService>();
+
         services.AddScoped<PlatformFeeCalculationService>();
 
         // ── Profit protection engine wiring (BE-P5) ───────────────────────────

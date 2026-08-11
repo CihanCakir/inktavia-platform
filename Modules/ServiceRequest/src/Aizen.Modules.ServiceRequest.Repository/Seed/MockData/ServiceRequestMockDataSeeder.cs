@@ -264,6 +264,19 @@ public sealed class ServiceRequestMockDataSeeder
             entity.ModifyDate = DateTime.UtcNow;
             entity.IsDeleted = false;
 
+            // Line economics snapshots are normally set by the offer pricing-calc service (10c), which the mock seeder
+            // bypasses — so they defaulted to 0, leaving accepted-offer economics degenerate (LineSubtotal 0 ⇒ the P8
+            // combiner sees a ~₺0 base and rejects on the min-contribution gate). Compute them here from qty × unitPrice so
+            // a seeded offer has a coherent, acceptable economics base (Exempt lines contribute 0 to the commission base).
+            var lineSubtotal = decimal.Round(entity.Quantity * entity.UnitPrice, 2);
+            var taxAmount    = decimal.Round(lineSubtotal * entity.TaxRate, 2);
+            SetPrivateProperty(entity, "LineSubtotal", lineSubtotal);
+            SetPrivateProperty(entity, "TaxAmount", taxAmount);
+            SetPrivateProperty(entity, "LineTotal", lineSubtotal + taxAmount);
+            SetPrivateProperty(entity, "DiscountAmount", 0m);
+            SetPrivateProperty(entity, "CommissionBaseAmount",
+                entity.CommissionEligibility == LineCommissionEligibility.Exempt ? 0m : lineSubtotal);
+
             await SaveEntityAsync(entity, _db.ServiceRequestOfferItems, ct, $"offer item {model.Id}");
         }
     }

@@ -24,9 +24,10 @@
 ## Fix
 1. **`IPaymentReferenceDataRemoteCall`** (`IAizenRemoteCall`, Payment.Abstraction) → reference-data-api system-parameter
    reads: `GetByKey(key)`, `GetByPrefix(prefix, onlyActive)`, and `GetList(onlyActive)` if needed. Typed DTOs
-   (`SystemParameterDto`-shaped). **Auth: use payment-api's outbound service token** — the same ambient service-token
-   mechanism just established for the SR→Payment S2S fix; do **not** thread a caller token. (If the reference-data read
-   endpoint is `[AllowAnonymous]`/public, a plain call also works — confirm and stay consistent.)
+   (`SystemParameterDto`-shaped). **Auth: the reference-data system-parameter read endpoint is `[AllowAnonymous]`**
+   (confirmed in the S2S 401 diagnosis — "reference-data works only because its endpoint is anonymous"), so a **plain
+   call needs no token**; do not thread a caller token and do not over-engineer a service token here. (If that endpoint
+   is later protected, attach payment-api's own service token then — never a forwarded caller token.)
 2. **Adapter** `SystemParameterReferenceRemoteService : ISystemParameterReferenceService` (payment-api):
    - **Read methods** delegate to `IPaymentReferenceDataRemoteCall` and **mirror the ReferenceData parsing** exactly —
      `GetDecimalAsync` → `decimal.TryParse(..., NumberStyles.Any, CultureInfo.InvariantCulture)`, `GetBooleanAsync` →

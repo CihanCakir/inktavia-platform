@@ -95,14 +95,30 @@ transitional log noise.
 | 5 | No notification for System/offer | ✅ 0 notifications for the cancelled SRs |
 | 6 | Logs show the 23505 swallow, no errors | ⚠️ flag-ON clean; flag-OFF parallel run logs a harmless conversation-race 23505 (documented) |
 
-## State left on the stack
-Flag reverted **OFF** (compose edit removed, SR-api restarted); messaging-api + SR-api run the fixed WC0+WC1 code;
-no credentials changed; test SRs 47–53 (cancelled) + 3 duplicate offers on SR 52 remain as harmless smoke data.
+## UPDATE — the 3 remaining codes driven live (post payment-adapter fix)
+After the payment→reference-data system-parameter adapter closed the economics DI gap (see
+`REPORT_FIX_PAYMENT_SYSTEMPARAM_ADAPTER.md`), owner-accept → economics 200 works and the last three WC1 codes were
+driven end-to-end with the flag **ON**. Rows in `messaging.conversation_messages` (`Type=3` System):
 
-## Recommendation before WC2
-1. **Fix the OFFER-card wiring** (drive from `OfferCreated` with a Submitted guard) and re-run the offer→card check.
-2. **Resolve the Payment S2S 401**, then drive `OFFER_ACCEPTED`/`JOB_STARTED`/`JOB_COMPLETED` end-to-end (flag OFF & ON)
-   to complete criteria 1–2 for those codes on all three surfaces.
-3. (Non-blocking) de-noise the transitional conversation-creation race.
-The System-message engine, the flag flip + reversibility, dedup, and notification-silence are **proven live**; the
-critical fresh-SR bug is **fixed**.
+| Code | SourceKey | Row Id | Driven by |
+|---|---|---|---|
+| `OFFER_ACCEPTED` | `sys:55:OFFER_ACCEPTED`, `sys:56:OFFER_ACCEPTED` | 136, 138 | owner accepts offer (SR 55 & 56) → economics 200, escrow Paid |
+| `JOB_STARTED`    | `sys:9011:JOB_STARTED`  | 139 | provider-2 starts assignment 91001 (provider portal "İşi Başlat") |
+| `JOB_COMPLETED`  | `sys:9011:JOB_COMPLETED`| 140 | provider-2 submits completion (photo) → owner approves (rating 5) → SR Completed |
+
+Notes: `JOB_STARTED`/`JOB_COMPLETED` ran on the pre-assigned seed job **SR 9011 / assignment 91001** (owner-accept alone
+leaves the SR at `OfferAccepted` with no assignment yet). SR 9011's owner was temporarily set to the logged-in owner
+(100029) to approve via the mobile BFF; the stale mobile BFF image (2026-08-07) lacked the MO4 completion routes and was
+rebuilt. Dev-data changes (provider profile, balance, commission RuleCodes/dedup, profit-protection policy) are
+enumerated in the adapter report §5.
+
+## State left on the stack
+Flag `Messaging:WriteCutover:SystemMessages` now **ON** on service-request-api (compose) for the completed drive.
+Rebuilt+redeployed: reference-data-api, payment-api, service-request-api, bff-marine-mobile. No credentials changed.
+Test data: SRs 47–56 + seed SR 9011 (now Completed) with the System rows above.
+
+## Result — all 5 WC1 System codes now proven live
+`CONVERSATION_CLOSED` (earlier), `OFFER_ACCEPTED`, `JOB_STARTED`, `JOB_COMPLETED` are all DB-verified as single
+`sys:{srId}:{CODE}` System rows with the flag ON. Remaining non-blocking follow-ups: OFFER-card wiring (drive from
+`OfferCreated` with a Submitted guard — tracked in WC1b), the transitional conversation-creation 23505 de-noise, and the
+seed/policy dev-data items in the adapter report §8.

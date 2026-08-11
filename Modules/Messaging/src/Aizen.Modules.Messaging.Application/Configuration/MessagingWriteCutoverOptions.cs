@@ -24,4 +24,10 @@ public sealed class MessagingWriteCutoverOptions
     public bool WriteMessagesToMessaging { get; set; }
     public bool ReadMessagesFromMessaging { get; set; }
     public bool DisableServiceRequestMessageSync { get; set; }
+
+    /// <summary>BE_WC2 — the participant chat WRITE flip flag consumed by the <b>BFFs</b> (owner + provider): when ON,
+    /// owner/provider TEXT + LOCATION sends write natively to the Messaging store instead of the SR module (images stay
+    /// on the SR path until WC3). Declared here for the shared cutover-flag inventory; the module itself does not read
+    /// it. Default OFF, reversible.</summary>
+    public bool ChatMessages { get; set; }
 }

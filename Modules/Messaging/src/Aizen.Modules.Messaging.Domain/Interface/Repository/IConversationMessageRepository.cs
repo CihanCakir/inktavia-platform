@@ -20,6 +20,10 @@ public interface IConversationMessageRepository
         int take,
         CancellationToken ct = default);
 
+    /// <summary>BE_WC2 anti-harassment gate — true if the conversation has any Owner-role (non-System) message, i.e. the
+    /// owner has opened the channel so a provider may reply. Mirrors the SR <c>HasOwnerMessageAsync</c>.</summary>
+    Task<bool> HasOwnerMessageAsync(long conversationId, CancellationToken ct = default);
+
     Task AddAsync(ConversationMessageEntity entity, CancellationToken ct = default);
     void Update(ConversationMessageEntity entity);
 }

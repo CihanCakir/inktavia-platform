@@ -30,5 +30,21 @@
     "description": "The default language code used across the platform.",
     "isEncrypted": false,
     "isActive": true
+  },
+  {
+    "key": "PLATFORM_FEE_VAT_RATE",
+    "value": "0.20",
+    "valueType": 3,
+    "description": "DEV PLACEHOLDER (TR standard KDV 20%) — VAT rate on platform-fee income; read by PlatformFeeCalculationService. Pending the real R2/YMM value; do not treat 0.20 as the confirmed production rate.",
+    "isEncrypted": false,
+    "isActive": true
+  },
+  {
+    "key": "COMMISSION_VAT_RATE",
+    "value": "0.20",
+    "valueType": 3,
+    "description": "DEV PLACEHOLDER (TR standard KDV 20%) — VAT rate on commission income; read by CommissionCalculationService. Pending the real R2/YMM value; do not treat 0.20 as the confirmed production rate.",
+    "isEncrypted": false,
+    "isActive": true
   }
 ]

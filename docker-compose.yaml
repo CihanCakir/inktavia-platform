@@ -225,6 +225,8 @@ services:
       RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
       # Phase 3 — provider reads conversations/threads from the unified Messaging module
       RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
+      # BE_WC2 chat write cutover — owner/provider TEXT+LOCATION write natively to Messaging (images stay SR). ON for smoke.
+      Messaging__WriteCutover__ChatMessages: "true"
       RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
@@ -298,6 +300,8 @@ services:
       # Owner chat reads (BE_MO10a) → the Messaging module participant-scoped /conversations/mine endpoints.
       # (The owner chat WRITE reuses the service-request-api remote call above — no new base URL for the write.)
       RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
+      # BE_WC2 chat write cutover — owner/provider TEXT+LOCATION write natively to Messaging (images stay SR). ON for smoke.
+      Messaging__WriteCutover__ChatMessages: "true"
       # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity.
       MarineMobileKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       RateLimiting__PasswordRecovery__PermitPerWindow: 10
@@ -370,6 +374,8 @@ services:
       RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
       # Phase 3 — provider reads conversations/threads from the unified Messaging module
       RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
+      # BE_WC2 chat write cutover — owner/provider TEXT+LOCATION write natively to Messaging (images stay SR). ON for smoke.
+      Messaging__WriteCutover__ChatMessages: "true"
       RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
@@ -629,6 +635,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
+      # BE_WC1 write-cutover: emit System lifecycle messages into Messaging (default OFF). ON for the WC1 smoke.
+      Messaging__WriteCutover__SystemMessages: "true"
       ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       Redis__Host: redis:6379
@@ -807,6 +815,7 @@ services:
       - redis
       - keycloak
       - rabbitmq
+      - reference-data-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -823,6 +832,8 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: payment-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # payment-api → reference-data-api system-parameter reads (fee/VAT params for economics). Auth = forwarded caller token.
+      RemoteCalls__IPaymentReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
       Iyzico__ApiKey: ${IYZICO_API_KEY:-sandbox_api_key_placeholder}
       Iyzico__SecretKey: ${IYZICO_SECRET_KEY:-sandbox_secret_key_placeholder}
       Iyzico__BaseUrl: ${IYZICO_BASE_URL:-https://sandbox-api.iyzipay.com}

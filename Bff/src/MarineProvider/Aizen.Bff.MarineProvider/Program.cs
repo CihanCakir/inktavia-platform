@@ -88,6 +88,8 @@ builder.Services.AddAizenRealtime(builder.Configuration, o => o.RegisterModuleMa
 // (ServiceRequestPublished/Updated/Cancelled/UrgencyChanged). Both keys map to the same ProviderRealtimeHub.
 builder.Services.AddDomainHub<ProviderRealtimeHub>("provider");
 builder.Services.AddDomainHub<ProviderRealtimeHub>("city");
+// BE_WC2 — chat events on MessagingMessageSentMessage target "user:{userId}" groups (per recipient Identity user id).
+builder.Services.AddDomainHub<ProviderRealtimeHub>("user");
 
 // The only per-surface routing declaration (ADR layer-2): module bus event → frame + target group(s). Singleton
 // because the framework's RealtimeIngressService (which consumes the single IEventSocketMapper) is a singleton.

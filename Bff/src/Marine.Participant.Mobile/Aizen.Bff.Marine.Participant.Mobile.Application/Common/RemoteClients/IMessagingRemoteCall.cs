@@ -1,6 +1,7 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Messaging.Abstraction.Enum;
+using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 
 namespace Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
@@ -23,4 +24,11 @@ public interface IMessagingRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/conversations/by-context/mine")]
     Task<AizenApiResponse<GetConversationDetailResponse>> GetMyConversationByContext(
         [Refit.Query] MessagingContextType contextType, [Refit.Query] long contextId);
+
+    // BE_WC2 — participant-scoped native send (owner writes text/location to the Messaging store). The module resolves
+    // the sender (Owner) + participant membership from the asserted user id; the owner is always a participant.
+    [AizenRemoteCallPost("/api/v1/conversations/{conversationId}/messages")]
+    Task<AizenApiResponse<SendMessageResponse>> SendMessage(
+        long conversationId,
+        [AizenRemoteCallBody] SendMessageRequest body);
 }

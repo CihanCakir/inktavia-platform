@@ -28,6 +28,14 @@ public sealed class ConversationMessageRepository : IConversationMessageReposito
             .Include(x => x.Attachments)
             .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, ct);
 
+    // BE_WC2 anti-harassment gate — an Owner-role message means the owner has opened the channel. Owner role (1) is
+    // distinct from System (4), so this inherently excludes WC1 System/lifecycle rows. Mirrors SR.HasOwnerMessageAsync.
+    public Task<bool> HasOwnerMessageAsync(long conversationId, CancellationToken ct = default)
+        => _db.ConversationMessages.AnyAsync(
+            x => x.ConversationId == conversationId
+                 && x.SenderRole == MessagingParticipantRole.Owner
+                 && !x.IsDeleted, ct);
+
     public async Task<IReadOnlyList<ConversationMessageEntity>> GetFlaggedAsync(
         int skip, int take, CancellationToken ct = default)
         => await _db.ConversationMessages
