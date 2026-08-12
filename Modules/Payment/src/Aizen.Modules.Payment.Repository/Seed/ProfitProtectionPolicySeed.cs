@@ -31,7 +31,12 @@ public sealed class ProfitProtectionPolicySeed
     private const decimal ProcessingRate = 0.029m, ProcessingFixed = 0.25m;   // e.g. gateway ~2.9% + fixed
     private const decimal RefundReserveRate = 0.005m;
     private const decimal OtherRate = 0m, OtherFixed = 0m;
-    private const decimal CustomerVarShare = 0.50m;
+    // Owner-decided commercial profit-protection value (not YMM-gated): the transaction revenue split is provider-heavy
+    // (customer-side effective revenue ≈ 14–22% across plans, further lowered by the ₺1,500 platform-fee cap), so loading
+    // 50% of variable cost onto the customer-side contribution is too aggressive; 0.25 leaves a small safety margin.
+    // Admin-tunable at runtime (P5); RE-CALIBRATE after the first real settlement data (actual processing cost,
+    // refund/chargeback rate, transaction mix).
+    private const decimal CustomerVarShare = 0.25m;
 
     // ── BE-S9 line-level placeholders (§20.12; admin-tunable) — launch NO-OP so an offer whose lines already clear is
     //    byte-identical to pre-S9: no min-receivable floor, 100% funded-discount caps, 0 commission/contribution floor,

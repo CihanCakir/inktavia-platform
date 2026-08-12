@@ -29,6 +29,7 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly IAizenMessagePublisher _messagePublisher;
     private readonly Services.Pricing.PricingAttributeSnapshotResolver _pricingSnapshotResolver;
     private readonly Services.Travel.TravelPricingSnapshotResolver _travelSnapshotResolver;
+    private readonly Services.ServiceRequestAssignmentCreator _assignmentCreator;
     private readonly ILogger<AcceptServiceRequestOfferCommandHandler> _logger;
 
     public AcceptServiceRequestOfferCommandHandler(
@@ -38,12 +39,14 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         IAizenMessagePublisher messagePublisher,
         Services.Pricing.PricingAttributeSnapshotResolver pricingSnapshotResolver,
         Services.Travel.TravelPricingSnapshotResolver travelSnapshotResolver,
+        Services.ServiceRequestAssignmentCreator assignmentCreator,
         ILogger<AcceptServiceRequestOfferCommandHandler> logger)
     {
         _srRepository = srRepository; _offerRepository = offerRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher;
         _pricingSnapshotResolver = pricingSnapshotResolver; _travelSnapshotResolver = travelSnapshotResolver;
+        _assignmentCreator = assignmentCreator;
         _logger = logger;
     }
 
@@ -126,6 +129,14 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
 
         // BE_WC4b — the OFFER_ACCEPTED System message is produced solely by the Messaging WC1 lifecycle consumer (from
         // the ServiceRequestOfferAcceptedMessage above). The SR module no longer writes sr.Messages.
+
+        // FIX_ASSIGNMENT_ON_ACCEPT — in the direct-accept flow the accepted offer's provider IS the assignee, so create
+        // the assignment now (same transaction) via the shared creator: SR → Assigned, sr.SetAssignment, AssignmentCreated
+        // realtime + ServiceRequestAssignmentCreatedMessage → the job appears in the provider's Jobs. No schedule (the
+        // provider sets it when they start). Idempotent (a redelivery / re-accept never double-assigns).
+        await _assignmentCreator.CreateFromAcceptedOfferAsync(
+            sr, offer, currentUserId, assignedTeamMemberId: null, scheduledStartDate: null, scheduledEndDate: null,
+            cancellationToken);
 
         return new AcceptServiceRequestOfferResponse(offer.Id, sr.Id);
     }

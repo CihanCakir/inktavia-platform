@@ -36,6 +36,8 @@ builder.Services.AddServiceRequestServices();
 // BE_WC4b — the WriteCutover flag machinery is gone (Phase-4 complete): the SR module no longer writes sr.Messages
 // chat/System rows; the Messaging store is the sole producer, unconditionally.
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.OfferCalculationService>();
+// FIX_ASSIGNMENT_ON_ACCEPT — shared create-assignment path (owner auto-accept + manual endpoint; idempotent).
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.ServiceRequestAssignmentCreator>();
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.UnitCodeValidator>();
 
 // ── Pricing attributes (BE-S2) ──
