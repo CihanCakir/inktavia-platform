@@ -6,6 +6,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
+using Aizen.Modules.ServiceRequest.Application.Services;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
@@ -22,6 +23,9 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
     private readonly ServiceRequestDbContext _db;
+    private readonly OfferCalculationService _calculation;
+    private readonly UnitCodeValidator _unitCodeValidator;
+    private readonly Services.Fx.OfferFxResolver _fxResolver;
 
     public CreateServiceRequestOfferCommandHandler(
         IServiceRequestRepository srRepository,
@@ -29,11 +33,15 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
         IAizenInfoAccessor info,
         ServiceRequestRealtimePublisher realtimePublisher,
         IAizenMessagePublisher messagePublisher,
-        ServiceRequestDbContext db)
+        ServiceRequestDbContext db,
+        OfferCalculationService calculation,
+        UnitCodeValidator unitCodeValidator,
+        Services.Fx.OfferFxResolver fxResolver)
     {
         _srRepository = srRepository; _offerRepository = offerRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _messagePublisher = messagePublisher; _db = db;
+        _calculation = calculation; _unitCodeValidator = unitCodeValidator; _fxResolver = fxResolver;
     }
 
     public override async Task<CreateServiceRequestOfferResponse?> Handle(CreateServiceRequestOfferCommand request, CancellationToken cancellationToken)
@@ -79,6 +87,31 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
             offer.AddItem(offerItem);
         }
 
+        // FIX_OFFER_LINE_PRICING_ON_CREATE — this one-shot create+submit path previously persisted the offer with
+        // UNPRICED lines (LineSubtotal/TaxAmount/CommissionBaseAmount = 0), so the accept-time §19.2 economics saw a ₺0
+        // service and rejected every accept with "provider −2.14". Run the SAME server-authoritative pricing sequence
+        // SubmitOffer runs, BEFORE persisting, so a created offer is fully priced (parity with draft→submit).
+        var itemsForValidation = offer.Items
+            .Where(i => !i.IsDeleted && !string.IsNullOrWhiteSpace(i.UnitCode))
+            .Select(i => new Abstraction.Request.Offer.CreateServiceRequestOfferItemRequest { UnitCode = i.UnitCode, Title = i.Title })
+            .ToList();
+        if (itemsForValidation.Count > 0)
+            await _unitCodeValidator.ValidateUnitCodesAsync(itemsForValidation, cancellationToken);
+
+        // Reject empty offers (no priced lines) — parity with SubmitOffer; prevents the degenerate ₺0 offer.
+        var pricedLines = offer.Items.Where(i => i.ItemType != ServiceRequestOfferItemType.Discount && !i.IsDeleted).ToList();
+        if (pricedLines.Count == 0)
+            throw new AizenBusinessException("SR_OFFER_EMPTY");
+
+        // BE-S3a — resolve FX at the create instant, converting any foreign lines to TRY BEFORE the economics runs.
+        // Fail-loud (SR_FX_RATE_UNAVAILABLE) if a source currency has no effective rate. TRY-only offers resolve nothing.
+        var createInstant = DateTime.UtcNow;
+        await _fxResolver.ResolveAndConvertAsync(offer, createInstant, cancellationToken);
+
+        // Server-authoritative pricing — fills every per-line LineSubtotal/TaxAmount/LineTotal/CommissionBaseAmount + the
+        // offer-level Subtotal/TaxTotal/GrandTotal/CommissionBaseTotal (offer.ToDto() then reads the computed fields).
+        _calculation.Calculate(offer);
+
         offer.Submit();
 
         await _offerRepository.AddAsync(offer, cancellationToken);
@@ -106,7 +139,7 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
             ProviderProfileId = providerProfileId,
             ProviderUserId = currentUserId,
             OwnerUserId = sr.OwnerUserId, // BE_NF1 (D2) — carry the owner so Notification can notify them.
-            TotalAmount = total,
+            TotalAmount = offer.GrandTotal, // FIX_OFFER_LINE_PRICING_ON_CREATE — computed total, not the naive Σ(qty×price).
             CurrencyCode = req.CurrencyCode,
             Status = offer.Status // BE_WC1b — Submitted here (offer.Submit() above) → drives the Messaging OFFER card
         }, cancellationToken);

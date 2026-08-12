@@ -163,4 +163,31 @@ public sealed class ProfitProtectionEngineTests
 
         a.Should().Be(b);   // record value-equality → deterministic, side-effect-free
     }
+
+    // ── FIX_OFFER_LINE_PRICING_ON_CREATE regression guard ────────────────────────
+    // A realistic, PROPERLY-PRICED offer clears §19.2 on BOTH sides at the SEEDED policy (cost-share 0.5) — so a future
+    // single-knob policy tweak can't silently block all accepts. A DEGENERATE ₺0-service offer (un-priced lines →
+    // revenue = platform-fee floor only) stays correctly rejected (this was the "provider −2.14" accept-gate).
+    [Fact]
+    public void SeededPolicy_Approves_Priced_Offer_And_Rejects_Degenerate_ZeroService()
+    {
+        // Seeded active TRY policy values (payment.profit_protection_policies id 1).
+        var seeded = Policy(minTxnAmt: 10m, minTxnRate: 0.01m,
+                            procRate: 0.029m, procFixed: 0.25m, refundRate: 0.005m, custVarShare: 0.5m);
+
+        // Realistic: ₺1000 service (payable 1200), platform-fee floor 99 → CustomerTotal 1318.80, commission 150, net 850.
+        var priced = ProfitProtectionEngine.Evaluate(
+            Ctx(serviceAmount: 1000m, custPayable: 1200m, custTotal: 1318.80m, providerNet: 850m,
+                commissionNet: 150m, platformFeeNet: 99m), seeded);
+        priced.State.Should().Be(ProfitProtectionDecisionState.Approved);
+        priced.ProviderSideContributionExpected.Should().BeGreaterThan(0m);
+        priced.CustomerSideContributionExpected.Should().BeGreaterThan(0m);
+
+        // Degenerate: un-priced lines → ₺0 service; only the platform-fee floor (feeGross 118.80) is revenue.
+        var degenerate = ProfitProtectionEngine.Evaluate(
+            Ctx(serviceAmount: 0m, custPayable: 0m, custTotal: 118.80m, providerNet: 0m,
+                commissionNet: 0m, platformFeeNet: 99m), seeded);
+        degenerate.State.Should().Be(ProfitProtectionDecisionState.Rejected);
+        degenerate.ProviderSideContributionExpected.Should().BeLessThan(0m);   // the −2.14 breach
+    }
 }

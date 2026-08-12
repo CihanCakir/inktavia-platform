@@ -149,4 +149,35 @@ public sealed class OfferLineEconomicsTests
         offer.CommissionBaseTotal.Should().Be(5000m);
         offer.Subtotal.Should().Be(5750m);
     }
+
+    // ── FIX_OFFER_LINE_PRICING_ON_CREATE regression guard ───────────────────────
+    // CreateServiceRequestOffer now runs this same Calculate before persisting (it previously skipped it → un-priced
+    // lines → the accept-time §19.2 "provider −2.14"). A priced Service line must yield non-zero line + total economics.
+    [Fact]
+    public void Priced_Offer_Has_NonZero_Line_And_Total_Economics()
+    {
+        var offer = Build(Item(ServiceRequestOfferItemType.Service, 1, 1000m, taxRate: 0.20m));
+        var line = offer.Items.Single();
+
+        line.LineSubtotal.Should().Be(1000m);           // was 0 on the un-priced create path
+        line.TaxAmount.Should().Be(200m);
+        line.CommissionBaseAmount.Should().Be(1000m);   // was 0 → drove the ₺0-service rejection
+        offer.GrandTotal.Should().BeGreaterThan(0m);
+        // The create/submit empty-lines guard passes only when a non-Discount priced line exists.
+        offer.Items.Count(i => i.ItemType != ServiceRequestOfferItemType.Discount && !i.IsDeleted)
+             .Should().BeGreaterThan(0);
+    }
+
+    // A Discount-only offer has NO priced lines → CreateServiceRequestOffer / SubmitOffer reject it (SR_OFFER_EMPTY),
+    // so the degenerate ₺0 offer can't be persisted in the first place.
+    [Fact]
+    public void DiscountOnly_Offer_Has_No_Priced_Lines()
+    {
+        var offer = NewOffer();
+        offer.AddItem(Item(ServiceRequestOfferItemType.Discount, 1, 0m,
+            discountType: OfferDiscountType.Percent, discountValue: 10m));
+        Calc.Calculate(offer);
+
+        offer.Items.Count(i => i.ItemType != ServiceRequestOfferItemType.Discount && !i.IsDeleted).Should().Be(0);
+    }
 }
