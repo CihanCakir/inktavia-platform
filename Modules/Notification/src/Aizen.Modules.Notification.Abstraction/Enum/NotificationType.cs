@@ -10,12 +10,21 @@ public enum NotificationType
     /// <summary>N2 — "{vessel} için {kategori} bakımı {tarih} tarihinde — planlayın": a recurring maintenance schedule
     /// (S12) is due soon; nudges the owner. ServiceRequests category (100–139) so it inherits N-B ServiceRequests gating.</summary>
     MaintenanceReminderDue       = 103,
+    /// <summary>BE_NF1 (D1) — "Talebiniz yayında": the owner's service request is now published and open for offers.
+    /// Supersedes the never-fired ServiceRequestCreated confirmation. Owner-facing. ServiceRequests category.</summary>
+    ServiceRequestPublished      = 104,
     OfferCreated                 = 110,
     OfferAccepted                = 111,
     OfferRejected                = 112,
+    /// <summary>BE_NF1 (D2) — "Yeni teklif aldınız": a provider submitted an offer on the owner's service request.
+    /// Owner-facing counterpart to the provider's OfferCreated confirmation. ServiceRequests category.</summary>
+    OfferReceived                = 113,
     AssignmentCreated            = 120,
     AssignmentAccepted           = 121,
     AssignmentRejected           = 122,
+    /// <summary>BE_NF3 — "Sağlayıcı işinize başladı": the provider started the assigned job. Owner-facing.
+    /// ServiceRequests category (100–139).</summary>
+    JobStarted                   = 123,
     CompletionSubmitted          = 130,
     CompletionApproved           = 131,
     CompletionRejected           = 132,

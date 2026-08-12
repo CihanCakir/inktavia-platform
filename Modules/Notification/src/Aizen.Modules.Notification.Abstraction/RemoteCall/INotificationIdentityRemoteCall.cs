@@ -20,6 +20,30 @@ public interface INotificationIdentityRemoteCall : IAizenRemoteCall
     // N-D — admin user ids for the support-request fan-out.
     [AizenRemoteCallGet("/api/v1/identity/admin/user-ids")]
     Task<AizenApiResponse<List<long>>> GetAdminUserIds();
+
+    // BE_NF1b — resolve a participant USER id to its participant PROFILE id, so owner-facing notifications are filed
+    // under the profile id (where the owner mobile inbox + device tokens resolve). ProfileId=0 when none.
+    [AizenRemoteCallGet("/api/v1/identity/participant/profile-id")]
+    Task<AizenApiResponse<ParticipantProfileIdResult>> GetParticipantProfileIdByUserId([Refit.Query] long userId);
+
+    // BE_NF2 — resolve a profile's contact email by UserProfiles.Id (participant or provider profile), to address an
+    // Email-channel delivery to the same recipient the InApp notification is filed under. Email is null when none.
+    [AizenRemoteCallGet("/api/v1/identity/profiles/contact-email")]
+    Task<AizenApiResponse<ProfileContactEmailResult>> GetProfileContactEmail([Refit.Query] long profileId);
+}
+
+/// <summary>BE_NF2 — module-local mirror of Identity's ProfileContactEmailDto (deserialized by JSON property name).</summary>
+public sealed class ProfileContactEmailResult
+{
+    public long ProfileId { get; set; }
+    public string? Email { get; set; }
+}
+
+/// <summary>BE_NF1b — module-local mirror of Identity's ParticipantProfileIdDto (deserialized by JSON property name).</summary>
+public sealed class ParticipantProfileIdResult
+{
+    public long UserId { get; set; }
+    public long ProfileId { get; set; }
 }
 
 /// <summary>BFF/module-local mirror of Identity's ProviderForAreaDto (deserialized by JSON property name).</summary>

@@ -105,6 +105,7 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
             OfferId = offer.Id,
             ProviderProfileId = providerProfileId,
             ProviderUserId = currentUserId,
+            OwnerUserId = sr.OwnerUserId, // BE_NF1 (D2) — carry the owner so Notification can notify them.
             TotalAmount = total,
             CurrencyCode = req.CurrencyCode,
             Status = offer.Status // BE_WC1b — Submitted here (offer.Submit() above) → drives the Messaging OFFER card

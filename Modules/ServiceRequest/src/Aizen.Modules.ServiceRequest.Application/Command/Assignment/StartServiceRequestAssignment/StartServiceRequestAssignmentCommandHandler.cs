@@ -72,6 +72,7 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
         {
             ServiceRequestId = sr.Id, RequestCode = sr.RequestCode, AssignmentId = assignment.Id,
             ProviderProfileId = assignment.ProviderProfileId, StartedByUserId = currentUserId,
+            OwnerUserId = sr.OwnerUserId, // BE_NF3 — carry the owner so Notification can notify them of job start.
             OccurredAt = DateTimeOffset.UtcNow,
         }, cancellationToken);
 

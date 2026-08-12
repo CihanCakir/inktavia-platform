@@ -1,7 +1,7 @@
 using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.Notification.Abstraction.Enum;
-using Aizen.Modules.Notification.Application.Command.SendNotification;
+using Aizen.Modules.Notification.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,12 +18,14 @@ public sealed class ServiceRequestCompletionAutoApproveApproachingConsumer
     : AizenBaseMessageConsumer<ServiceRequestCompletionAutoApproveApproachingMessage>
 {
     private readonly ISender _sender;
+    private readonly INotificationIdentityRemoteCall _identity;
     private readonly ILogger<ServiceRequestCompletionAutoApproveApproachingConsumer> _logger;
 
     public ServiceRequestCompletionAutoApproveApproachingConsumer(IServiceProvider sp) : base(sp)
     {
-        _sender = sp.GetRequiredService<ISender>();
-        _logger = sp.GetRequiredService<ILogger<ServiceRequestCompletionAutoApproveApproachingConsumer>>();
+        _sender   = sp.GetRequiredService<ISender>();
+        _identity = sp.GetRequiredService<INotificationIdentityRemoteCall>();
+        _logger   = sp.GetRequiredService<ILogger<ServiceRequestCompletionAutoApproveApproachingConsumer>>();
     }
 
     public override Task<bool> ExecutePrepareMessage(ServiceRequestCompletionAutoApproveApproachingMessage message, CancellationToken ct)
@@ -33,21 +35,18 @@ public sealed class ServiceRequestCompletionAutoApproveApproachingConsumer
     {
         if (message.OwnerUserId == 0) return;
 
-        await _sender.Send(new SendNotificationCommand
-        {
-            RecipientUserId = message.OwnerUserId,
-            Type            = NotificationType.CompletionAutoApproveApproaching,
-            Channel         = NotificationChannel.InApp,
-            Variables = new Dictionary<string, string>
+        // BE_NF3 — owner-facing. Resolve to the participant profile id (NF1b) + deliver multi-channel.
+        var ownerRecipientId = await OwnerRecipientResolver.ResolveAsync(_identity, _logger, message.OwnerUserId, ct);
+        await NotificationChannelDispatch.SendInAppAndEmailAsync(
+            _sender, ownerRecipientId, NotificationType.CompletionAutoApproveApproaching,
+            new Dictionary<string, string>
             {
                 { "serviceRequestId", message.ServiceRequestId.ToString() },
                 { "completionId",     message.CompletionId.ToString() },
                 { "daysRemaining",    message.DaysRemaining.ToString() },
             },
-            MetadataJson  = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"completionId\":{message.CompletionId}}}",
-            ReferenceType = "ServiceRequest",
-            ReferenceId   = message.ServiceRequestId,
-        }, ct);
+            $"{{\"serviceRequestId\":{message.ServiceRequestId},\"completionId\":{message.CompletionId}}}",
+            "ServiceRequest", message.ServiceRequestId, ct);
 
         _logger.LogInformation(
             "CompletionAutoApproveApproaching SR={SrId} Completion={CompletionId} ({Days}d) → notified owner {OwnerId}.",

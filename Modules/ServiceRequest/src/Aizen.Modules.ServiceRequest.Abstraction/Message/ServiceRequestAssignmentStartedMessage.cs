@@ -17,5 +17,12 @@ public sealed class ServiceRequestAssignmentStartedMessage : AizenBaseMessage
     public long ProviderProfileId { get; set; }
     /// <summary>The provider user that started the job (the System-message actor / audit).</summary>
     public long StartedByUserId { get; set; }
+
+    /// <summary>
+    /// BE_NF3 — the owning requester's user id, so the Notification module can notify the owner ("the provider started
+    /// your job"). Additive; defaults 0 for a legacy publisher that omits it (owner then skipped).
+    /// </summary>
+    public long OwnerUserId { get; set; }
+
     public DateTimeOffset OccurredAt { get; set; }
 }

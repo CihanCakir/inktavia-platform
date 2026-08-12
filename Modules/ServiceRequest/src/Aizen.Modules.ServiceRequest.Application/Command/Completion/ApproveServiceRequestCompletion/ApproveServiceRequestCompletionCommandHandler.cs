@@ -16,16 +16,19 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
 {
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestCompletionRepository _completionRepository;
+    private readonly IServiceRequestAssignmentRepository _assignmentRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
 
     public ApproveServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestCompletionRepository completionRepository,
+        IServiceRequestAssignmentRepository assignmentRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
         IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _completionRepository = completionRepository;
+        _assignmentRepository = assignmentRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _messagePublisher = messagePublisher;
     }
@@ -66,11 +69,17 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
             ServiceRequestRealtimeEventType.CompletionApproved, completion.ToDto(),
             currentUserId, actorType, cancellationToken);
 
+        // BE_NF1 (D5) — carry the provider's PROFILE id so Notification files the CompletionApproved notification where
+        // provider inbox/tokens/prefs live (keyed by ProviderProfileId, like OfferCreated/AssignmentCreated), not the
+        // raw ProviderUserId. Resolve from the SR's assignment.
+        var assignment = await _assignmentRepository.GetByServiceRequestIdAsync(sr.Id, cancellationToken);
+
         await _messagePublisher.PublishAsync(new ServiceRequestCompletionApprovedMessage
         {
             ServiceRequestId = sr.Id,
             CompletionId = completion.Id,
             ProviderUserId = completion.ProviderUserId,
+            ProviderProfileId = assignment?.ProviderProfileId ?? 0,
             OwnerUserId = sr.OwnerUserId
         }, cancellationToken);
 

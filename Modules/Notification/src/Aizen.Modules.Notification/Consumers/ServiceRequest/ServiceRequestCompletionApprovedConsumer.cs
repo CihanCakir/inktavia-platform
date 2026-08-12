@@ -31,26 +31,45 @@ public sealed class ServiceRequestCompletionApprovedConsumer
 
     public override async Task ExecuteCommitMessage(ServiceRequestCompletionApprovedMessage message, CancellationToken ct)
     {
-        if (message.ProviderUserId == 0) return;
+        // BE_NF1 (D5) — key by ProviderProfileId (where provider inbox/tokens/prefs live), consistent with
+        // OfferCreated/AssignmentCreated. Fall back to ProviderUserId only if the profile id is absent (legacy publisher)
+        // so no notification is lost. Previously this filed under the raw ProviderUserId — a mis-key masked only when
+        // UserId == ProfileId.
+        var recipientId = message.ProviderProfileId != 0 ? message.ProviderProfileId : message.ProviderUserId;
+        if (recipientId == 0) return;
 
-        await _sender.Send(new SendNotificationCommand
+        var variables = new Dictionary<string, string>
         {
-            RecipientUserId = message.ProviderUserId,
-            Type            = NotificationType.CompletionApproved,
-            Channel         = NotificationChannel.InApp,
-            Variables = new Dictionary<string, string>
+            { "serviceRequestId", message.ServiceRequestId.ToString() },
+            { "completionId",     message.CompletionId.ToString() },
+        };
+        var metadata = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"completionId\":{message.CompletionId}}}";
+
+        // BE_NF2: InApp (+web/FCM push) + Email — but only add Email when the recipient is the provider PROFILE id (the
+        // email resolver keys on UserProfiles.Id). On the raw-user-id fallback (missing assignment) send InApp only.
+        if (message.ProviderProfileId != 0)
+        {
+            await NotificationChannelDispatch.SendInAppAndEmailAsync(
+                _sender, recipientId, NotificationType.CompletionApproved,
+                variables, metadata, "ServiceRequest", message.ServiceRequestId, ct);
+        }
+        else
+        {
+            await _sender.Send(new SendNotificationCommand
             {
-                { "serviceRequestId", message.ServiceRequestId.ToString() },
-                { "completionId",     message.CompletionId.ToString() },
-            },
-            MetadataJson  = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"completionId\":{message.CompletionId}}}",
-            ReferenceType = "ServiceRequest",
-            ReferenceId   = message.ServiceRequestId,
-        }, ct);
+                RecipientUserId = recipientId,
+                Type            = NotificationType.CompletionApproved,
+                Channel         = NotificationChannel.InApp,
+                Variables       = variables,
+                MetadataJson    = metadata,
+                ReferenceType   = "ServiceRequest",
+                ReferenceId     = message.ServiceRequestId,
+            }, ct);
+        }
 
         _logger.LogInformation(
             "CompletionApproved SR={SrId} Completion={CompletionId} → notified provider {ProviderId}.",
-            message.ServiceRequestId, message.CompletionId, message.ProviderUserId);
+            message.ServiceRequestId, message.CompletionId, recipientId);
     }
 
     public override Task ExecuteRollbackMessage(ServiceRequestCompletionApprovedMessage message, AizenMessageError ex, CancellationToken ct)

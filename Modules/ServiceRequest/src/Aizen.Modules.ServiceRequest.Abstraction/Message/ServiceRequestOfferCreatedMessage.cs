@@ -10,6 +10,13 @@ public sealed class ServiceRequestOfferCreatedMessage : AizenBaseMessage
     public long OfferId { get; set; }
     public long ProviderProfileId { get; set; }
     public long ProviderUserId { get; set; }
+
+    /// <summary>
+    /// BE_NF1 (D2) — the owning requester's user id, so the Notification module can notify the owner (not only the
+    /// provider) when an offer lands. Additive; defaults to 0 for any legacy publisher that omits it (owner then skipped).
+    /// </summary>
+    public long OwnerUserId { get; set; }
+
     public decimal TotalAmount { get; set; }
     public string CurrencyCode { get; set; } = "USD";
 

@@ -4,6 +4,8 @@ using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
 using Aizen.Modules.Identity.Application.AdminUsers.GetAdminUserIds;
+using Aizen.Modules.Identity.Application.ParticipantLookup.GetParticipantProfileIdByUserId;
+using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfileContactEmail;
 using Aizen.Modules.Identity.Application.ProviderEligibility.GetProvidersForArea;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
@@ -310,6 +312,36 @@ public sealed class QueryController : AizenWebApiController
     public async Task<AizenApiResponse<IList<long>>> GetAdminUserIds(CancellationToken ct)
     {
         var result = await _sender.ProcessAsync(new GetAdminUserIdsQuery(), ct);
+        return SetResponse(result);
+    }
+
+    // BE_NF1b — internal read: participant USER id → participant PROFILE id, so the Notification module can file
+    // owner-facing notifications under the profile id (where the owner inbox + device tokens resolve). Same
+    // internal-read pattern as providers/for-area / admin/user-ids: [AllowAnonymous] behind the cluster NetworkPolicy —
+    // notification-api's S2S remote calls carry no bearer token, so the IdentityRead/BFF-service-account policy is not
+    // reachable here. Ids only, no PII.
+    [HttpGet("participant/profile-id")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ParticipantProfileIdDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ParticipantProfileIdDto>> GetParticipantProfileIdByUserId(
+        [FromQuery] long userId, CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(new GetParticipantProfileIdByUserIdQuery { UserId = userId }, ct);
+        return SetResponse(result);
+    }
+
+    // BE_NF2 — internal read: a profile's contact email by UserProfiles.Id, so the Notification module can address an
+    // Email-channel delivery to the same recipient the InApp notification is filed under. [AllowAnonymous] like the
+    // other internal reads (notification-api's S2S calls carry no token). PRIVACY NOTE: unlike the ids-only endpoints,
+    // this returns email (PII) — it stays internal behind the cluster NetworkPolicy; prod hardening (a notification-api
+    // service token → IdentityRead) is a recommended follow-up.
+    [HttpGet("profiles/contact-email")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProfileContactEmailDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfileContactEmailDto>> GetProfileContactEmail(
+        [FromQuery] long profileId, CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(new GetProfileContactEmailByProfileIdQuery { ProfileId = profileId }, ct);
         return SetResponse(result);
     }
 }

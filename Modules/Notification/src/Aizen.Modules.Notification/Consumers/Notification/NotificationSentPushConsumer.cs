@@ -36,6 +36,7 @@ public sealed class NotificationSentPushConsumer
     private readonly INotificationRepository           _notificationRepository;
     private readonly INotificationPreferenceRepository _preferenceRepository;
     private readonly IPushSender                       _pushSender;
+    private readonly IFcmSender                        _fcmSender;
     private readonly VapidOptions                      _vapid;
     private readonly ILogger<NotificationSentPushConsumer> _logger;
 
@@ -45,6 +46,7 @@ public sealed class NotificationSentPushConsumer
         _notificationRepository = sp.GetRequiredService<INotificationRepository>();
         _preferenceRepository   = sp.GetRequiredService<INotificationPreferenceRepository>();
         _pushSender             = sp.GetRequiredService<IPushSender>();
+        _fcmSender              = sp.GetRequiredService<IFcmSender>();
         _vapid                  = sp.GetRequiredService<IOptions<VapidOptions>>().Value;
         _logger                 = sp.GetRequiredService<ILogger<NotificationSentPushConsumer>>();
     }
@@ -54,16 +56,9 @@ public sealed class NotificationSentPushConsumer
 
     public override async Task ExecuteCommitMessage(NotificationSentMessage message, CancellationToken ct)
     {
-        // No VAPID keys → web push is not configured; skip silently (in-app badge still works).
-        if (string.IsNullOrWhiteSpace(_vapid.PublicKey) || string.IsNullOrWhiteSpace(_vapid.PrivateKey))
-        {
-            _logger.LogDebug("VAPID not configured; web push skipped for NotificationId={Id}.", message.NotificationId);
-            return;
-        }
-
-        // N-B preference gate: skip the push if the recipient muted this category's Push channel. The in-app inbox row
-        // + live badge already persisted (this consumer only sends push), so muting push never hides the notification.
-        // Locked cells (InApp baseline, Account/security) always resolve enabled — see NotificationPreferencePolicy.
+        // N-B preference gate: skip push if the recipient muted this category's Push channel. ONE Push gate covers both
+        // web push and mobile (FCM/APNs) push. The in-app inbox row + live badge already persisted (this consumer only
+        // sends push), so muting push never hides the notification. Locked cells always resolve enabled — see policy.
         var category = NotificationCategoryMap.Resolve(message.Type);
         var storedPrefs = await _preferenceRepository.GetByUserAsync(message.RecipientUserId, ct);
         var storedPush = storedPrefs
@@ -80,10 +75,11 @@ public sealed class NotificationSentPushConsumer
 
         var tokens = await _tokenRepository.GetActiveByUserAsync(message.RecipientUserId, ct);
         var webPushTokens = tokens.Where(t => t.Platform == PushPlatform.WebPush).ToList();
-        if (webPushTokens.Count == 0)
+        var mobileTokens  = tokens.Where(t => t.Platform is PushPlatform.Fcm or PushPlatform.Apns).ToList();
+        if (webPushTokens.Count == 0 && mobileTokens.Count == 0)
         {
             _logger.LogDebug(
-                "No active WebPush subscription for UserId={UserId}; push skipped for NotificationId={Id}.",
+                "No active push subscription (web or mobile) for UserId={UserId}; push skipped for NotificationId={Id}.",
                 message.RecipientUserId, message.NotificationId);
             return;
         }
@@ -93,7 +89,8 @@ public sealed class NotificationSentPushConsumer
         var title = string.IsNullOrEmpty(message.Title) ? notification?.Title ?? string.Empty : message.Title;
         var body  = notification?.Body ?? string.Empty;
 
-        // Compact deep-link payload: referenceType/referenceId only (no sensitive content). The SW maps these to a route.
+        // Compact deep-link payload: referenceType/referenceId only (no sensitive content). Shared by web push (SW maps
+        // to a route) and FCM (FcmMessageMapper parses the same blob into the data dict → N-F3 deeplink).
         var dataJson = JsonSerializer.Serialize(new
         {
             notificationId = message.NotificationId,
@@ -101,22 +98,53 @@ public sealed class NotificationSentPushConsumer
             referenceId    = message.ReferenceId,
         });
 
-        foreach (var token in webPushTokens)
+        // ── Web push (VAPID / browser) — gated on VAPID config, independent of the FCM path below. ────────────────
+        if (webPushTokens.Count > 0)
+        {
+            if (string.IsNullOrWhiteSpace(_vapid.PublicKey) || string.IsNullOrWhiteSpace(_vapid.PrivateKey))
+            {
+                _logger.LogDebug("VAPID not configured; web push skipped for NotificationId={Id}.", message.NotificationId);
+            }
+            else
+            {
+                foreach (var token in webPushTokens)
+                {
+                    try
+                    {
+                        await _pushSender.SendAsync(token, title, body, dataJson, ct);
+                        _logger.LogInformation(
+                            "Web push sent to UserId={UserId} for NotificationId={Id}.",
+                            message.RecipientUserId, message.NotificationId);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 410/404 already pruned the subscription inside the sender; log and continue so one bad
+                        // subscription never blocks the others (and never fails the already-committed notification).
+                        _logger.LogWarning(ex,
+                            "Web push delivery failed for UserId={UserId}, NotificationId={Id}; continuing.",
+                            message.RecipientUserId, message.NotificationId);
+                    }
+                }
+            }
+        }
+
+        // ── Mobile push (FCM / APNs) — BE_NF2 Part A: the owner's Firebase mobile push. IFcmSender is the dev-safe stub
+        //    (no-op) when the Firebase service account isn't configured, the real FcmSender otherwise; invalid/unregistered
+        //    tokens are deactivated INSIDE the sender. Sequential (WS2 discipline); a bad token never blocks siblings. ──
+        foreach (var token in mobileTokens)
         {
             try
             {
-                await _pushSender.SendAsync(token, title, body, dataJson, ct);
+                await _fcmSender.SendAsync(token.DeviceToken, title, body, dataJson, ct);
                 _logger.LogInformation(
-                    "Web push sent to UserId={UserId} for NotificationId={Id}.",
-                    message.RecipientUserId, message.NotificationId);
+                    "Mobile push ({Platform}) sent to UserId={UserId} for NotificationId={Id}.",
+                    token.Platform, message.RecipientUserId, message.NotificationId);
             }
             catch (Exception ex)
             {
-                // 410/404 already pruned the subscription inside the sender; log and continue so one bad
-                // subscription never blocks the others (and never fails the already-committed notification).
                 _logger.LogWarning(ex,
-                    "Web push delivery failed for UserId={UserId}, NotificationId={Id}; continuing.",
-                    message.RecipientUserId, message.NotificationId);
+                    "Mobile push ({Platform}) delivery failed for UserId={UserId}, NotificationId={Id}; continuing.",
+                    token.Platform, message.RecipientUserId, message.NotificationId);
             }
         }
     }
