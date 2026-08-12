@@ -14,13 +14,9 @@ namespace Aizen.Bff.MarineProvider.Realtime;
 //
 // These run only because the BFF's AizenAppInfo includes AppType.Worker (enables bus consumption).
 
-/// <summary>Bus → provider hub: a message was added to a conversation involving this provider (SR chat-mirror event).
-/// Kept for the offer/city events; the chat MessageAdded routing repoints to the Messaging event below (BE_WC2).</summary>
-public sealed class MessageAddedRealtimeConsumer
-    : RealtimeEventConsumer<ServiceRequestMessageSentMessage, AizenMessageResult>
-{
-    public MessageAddedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
-}
+// BE_WC4b — removed the dangling MessageAddedRealtimeConsumer<ServiceRequestMessageSentMessage>: the SR chat-mirror
+// event is gone (Phase-4 complete). Provider chat realtime rides MessagingMessageSentMessage (below). The offer/city
+// consumers further down are on their own ServiceRequest.* message types and are untouched.
 
 /// <summary>BE_WC2 — Bus → provider hub: a native Messaging message was sent in a conversation this provider participates
 /// in. Routed to the recipient "user:{userId}" groups (the event carries RecipientUserIds, not a provider profile id).

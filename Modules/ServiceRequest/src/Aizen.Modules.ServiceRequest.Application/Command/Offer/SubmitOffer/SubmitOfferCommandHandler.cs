@@ -5,12 +5,10 @@ using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
-using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Application.Services;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
-using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
 
@@ -29,34 +27,28 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
 
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestOfferRepository _offerRepository;
-    private readonly IServiceRequestMessageRepository _messageRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly OfferCalculationService _calculation;
     private readonly UnitCodeValidator _unitCodeValidator;
     private readonly IAizenMessagePublisher _messagePublisher;
     private readonly Services.Fx.OfferFxResolver _fxResolver;
-    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
     public SubmitOfferCommandHandler(
         IServiceRequestRepository srRepository,
         IServiceRequestOfferRepository offerRepository,
-        IServiceRequestMessageRepository messageRepository,
         IAizenInfoAccessor info,
         OfferCalculationService calculation,
         UnitCodeValidator unitCodeValidator,
         IAizenMessagePublisher messagePublisher,
-        Services.Fx.OfferFxResolver fxResolver,
-        IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
+        Services.Fx.OfferFxResolver fxResolver)
     {
         _srRepository = srRepository;
         _offerRepository = offerRepository;
-        _messageRepository = messageRepository;
         _info = info;
         _calculation = calculation;
         _unitCodeValidator = unitCodeValidator;
         _messagePublisher = messagePublisher;
         _fxResolver = fxResolver;
-        _cutover = cutover;
     }
 
     public override async Task<SubmitOfferResponse?> Handle(SubmitOfferCommand command, CancellationToken ct)
@@ -128,32 +120,8 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
             OccurredAt = DateTimeOffset.UtcNow,
         }, ct);
 
-        // BE_WC1 flag-gated: when SystemMessages is ON, Messaging owns the offer card (from the event above), so the SR
-        // module stops writing the sr.Messages offer row + the chat-mirror event.
-        var hasOfferMsg = await _messageRepository.HasOfferMessageForOfferAsync(sr.Id, offer.Id, ct);
-        if (!_cutover.CurrentValue.SystemMessages && !hasOfferMsg)
-        {
-            var offerMessage = ServiceRequestMessageEntity.Create(
-                sr.Id, currentUserId, ServiceRequestMessageSenderType.Provider,
-                ServiceRequestMessageType.Offer,
-                $"offer:{offer.Id}|{offer.GrandTotal:F2} {offer.CurrencyCode}",
-                null);
-            await _messageRepository.AddAsync(offerMessage, ct);
-
-            // Phase-2 live-sync: publish the (enriched) event so the offer message mirrors into the Messaging store.
-            // The provider realtime mapper ignores Provider-sender events (no self-notify); Notification doesn't consume this.
-            await _messagePublisher.PublishAsync(new ServiceRequestMessageSentMessage
-            {
-                ServiceRequestId = sr.Id,
-                MessageId = offerMessage.Id,
-                SenderUserId = currentUserId,
-                SenderType = ServiceRequestMessageSenderType.Provider,
-                ProviderProfileId = offer.ProviderProfileId,
-                Content = offerMessage.Content,
-                MessageType = offerMessage.MessageType,
-                OccurredAt = DateTimeOffset.UtcNow,
-            }, ct);
-        }
+        // BE_WC4b — the SR module no longer writes the sr.Messages offer row / the chat-mirror event. Messaging owns the
+        // offer card unconditionally (from the ServiceRequestOfferSubmittedMessage above → the WC1 lifecycle consumer).
 
         return new SubmitOfferResponse(offer.ToDto());
     }

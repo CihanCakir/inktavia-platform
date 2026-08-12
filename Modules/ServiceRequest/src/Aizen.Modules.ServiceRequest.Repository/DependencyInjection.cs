@@ -20,7 +20,8 @@ public static class DependencyInjection
         services.AddScoped<IServiceRequestOfferRepository, ServiceRequestOfferRepository>();
         services.AddScoped<IServiceChangeOrderRepository, ServiceChangeOrderRepository>();   // BE-S11b
         services.AddScoped<IServiceRequestAssignmentRepository, ServiceRequestAssignmentRepository>();
-        services.AddScoped<IServiceRequestMessageRepository, ServiceRequestMessageRepository>();
+        // BE_WC4b — IServiceRequestMessageRepository removed: sr.Messages has no writer left (the 5 lifecycle dual-writes
+        // + the SR chat write are gone; Messaging is the sole store). The table is kept as frozen historical/audit data.
         services.AddScoped<IServiceRequestWorkLogRepository, ServiceRequestWorkLogRepository>();
         services.AddScoped<IServiceRequestCompletionRepository, ServiceRequestCompletionRepository>();
         services.AddScoped<IServiceRequestDisputeRepository, ServiceRequestDisputeRepository>();

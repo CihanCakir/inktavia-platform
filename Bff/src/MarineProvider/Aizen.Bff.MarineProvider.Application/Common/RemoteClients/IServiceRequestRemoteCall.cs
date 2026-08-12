@@ -92,13 +92,9 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         long serviceRequestId, long offerId,
         [AizenRemoteCallBody] WithdrawServiceRequestOfferRequest body);
 
-    // BE_WC3d — removed GetMessages remote-call (SR chat READ): the provider Request-detail page now reads the unified
-    // Messaging thread (/provider/messaging/service-requests/{id}/thread). sr.Messages has no chat reader. The POST send
-    // below stays (SR write path retained for the WC2 flag-OFF path until WC4).
-    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/messages")]
-    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Response.Message.SendServiceRequestMessageResponse>> SendMessage(
-        long serviceRequestId,
-        [AizenRemoteCallBody] Aizen.Modules.ServiceRequest.Abstraction.Request.Message.SendServiceRequestMessageRequest body);
+    // BE_WC3d — removed GetMessages remote-call (SR chat READ): the provider Request-detail page reads the unified
+    // Messaging thread. BE_WC4b — removed the SR chat-write remote-call (POST .../{srId}/messages) too: provider chat
+    // writes UNCONDITIONALLY to the Messaging store (ensure-then-send). There is no SR chat read or write left.
 
     [AizenRemoteCallGet("/api/v1/service-requests/provider/service-requests/{serviceRequestId}/attachments/{fileId}/access-check")]
     Task<AizenApiResponse<GetAttachmentAccessCheckResponse>> CheckAttachmentAccess(long serviceRequestId, Guid fileId);

@@ -159,13 +159,8 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<SetMaintenanceScheduleActiveResponse>> SetOwnerMaintenanceScheduleActive(
         long scheduleId, [AizenRemoteCallBody] SetMaintenanceScheduleActiveRequest request);
 
-    // ── BE_MO10a — owner chat text write (mirror SendProviderMessage, SenderType=Owner) ─────────────────────
-    // Owner sends a message on their own SR. The module reads the sender id from the assertion (never the body) and
-    // stamps the message with SenderTypeOverride=Owner; the anti-harassment gate is provider-only (owner always opens
-    // the channel). Publishes ServiceRequestMessageSentMessage → SR realtime + Messaging live-sync + N notification.
-    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/messages")]
-    Task<AizenApiResponse<SendServiceRequestMessageResponse>> SendMessage(
-        long serviceRequestId, [AizenRemoteCallBody] SendServiceRequestMessageRequest body);
+    // BE_WC4b — removed the SR chat-write remote-call (POST .../{srId}/messages): owner chat writes UNCONDITIONALLY to
+    // the Messaging store now (ensure-then-send). There is no SR chat write left.
 
     // BE_MO10b — owner-scoped attachment access-check (owner owns the SR + the fileId is on the SR). Returns access-OK;
     // the BFF then mints the signed read-url via FileStorage. The provider access-check handler is untouched.

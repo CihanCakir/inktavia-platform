@@ -59,9 +59,8 @@ public sealed class ProviderEventSocketMapper : IEventSocketMapper
                     // MessagingMessageSentMessage carries no sender type; the client refetches the thread.
                 }),
 
-        // NB (BE_WC2): the chat MessageAdded arm on ServiceRequestMessageSentMessage was REMOVED — provider chat
-        // realtime now rides MessagingMessageSentMessage (above), which fires in both ChatMessages flag states. Keeping
-        // both would double-notify (SR event + the sync's Messaging event). Offer/city events below are unaffected.
+        // BE_WC4b: provider chat realtime rides MessagingMessageSentMessage (above). The old SR chat-mirror event
+        // (ServiceRequestMessageSentMessage) is gone (Phase-4 complete). Offer/city events below are unaffected.
 
         // OfferAccepted — addressed to exactly one provider group. Skip when no provider profile id.
         ServiceRequestOfferAcceptedMessage m when m.ProviderProfileId > 0

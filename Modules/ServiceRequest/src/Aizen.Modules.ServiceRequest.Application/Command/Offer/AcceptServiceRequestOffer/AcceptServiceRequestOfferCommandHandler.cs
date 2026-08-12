@@ -12,10 +12,8 @@ using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
-using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SrEnum = Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Offer;
@@ -25,7 +23,6 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
 {
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestOfferRepository _offerRepository;
-    private readonly IServiceRequestMessageRepository _msgRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IPaymentModuleRemoteCall _paymentRemoteCall;
@@ -33,24 +30,21 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
     private readonly Services.Pricing.PricingAttributeSnapshotResolver _pricingSnapshotResolver;
     private readonly Services.Travel.TravelPricingSnapshotResolver _travelSnapshotResolver;
     private readonly ILogger<AcceptServiceRequestOfferCommandHandler> _logger;
-    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
     public AcceptServiceRequestOfferCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestOfferRepository offerRepository,
-        IServiceRequestMessageRepository msgRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
         IPaymentModuleRemoteCall paymentRemoteCall,
         IAizenMessagePublisher messagePublisher,
         Services.Pricing.PricingAttributeSnapshotResolver pricingSnapshotResolver,
         Services.Travel.TravelPricingSnapshotResolver travelSnapshotResolver,
-        ILogger<AcceptServiceRequestOfferCommandHandler> logger,
-        IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
+        ILogger<AcceptServiceRequestOfferCommandHandler> logger)
     {
-        _srRepository = srRepository; _offerRepository = offerRepository; _msgRepository = msgRepository;
+        _srRepository = srRepository; _offerRepository = offerRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _paymentRemoteCall = paymentRemoteCall; _messagePublisher = messagePublisher;
         _pricingSnapshotResolver = pricingSnapshotResolver; _travelSnapshotResolver = travelSnapshotResolver;
-        _logger = logger; _cutover = cutover;
+        _logger = logger;
     }
 
     public override async Task<AcceptServiceRequestOfferResponse?> Handle(AcceptServiceRequestOfferCommand request, CancellationToken cancellationToken)
@@ -130,23 +124,8 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
             ProviderProfileId = offer.ProviderProfileId,
         }, cancellationToken);
 
-        // Lifecycle system message (idempotent)
-        // BE_WC1 flag-gated: Messaging generates OFFER_ACCEPTED from ServiceRequestOfferAcceptedMessage when ON.
-        if (!_cutover.CurrentValue.SystemMessages &&
-            !await _msgRepository.HasSystemMessageAsync(sr.Id, "OFFER_ACCEPTED", cancellationToken))
-        {
-            var sysMsg = ServiceRequestMessageEntity.Create(
-                sr.Id, currentUserId, ServiceRequestMessageSenderType.System,
-                ServiceRequestMessageType.StatusChange, "OFFER_ACCEPTED", null);
-            await _msgRepository.AddAsync(sysMsg, cancellationToken);
-
-            await _messagePublisher.PublishAsync(new Abstraction.Message.ServiceRequestMessageSentMessage
-            {
-                ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
-                SenderType = ServiceRequestMessageSenderType.System, ProviderProfileId = offer.ProviderProfileId,
-                Content = sysMsg.Content, MessageType = sysMsg.MessageType, OccurredAt = DateTimeOffset.UtcNow
-            }, cancellationToken);
-        }
+        // BE_WC4b — the OFFER_ACCEPTED System message is produced solely by the Messaging WC1 lifecycle consumer (from
+        // the ServiceRequestOfferAcceptedMessage above). The SR module no longer writes sr.Messages.
 
         return new AcceptServiceRequestOfferResponse(offer.Id, sr.Id);
     }

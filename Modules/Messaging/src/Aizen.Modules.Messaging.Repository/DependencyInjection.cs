@@ -21,7 +21,6 @@ public static class DependencyInjection
         services.AddScoped<IConversationMessageRepository, ConversationMessageRepository>();
         services.AddScoped<IMessageContentPolicy, MessageContentPolicyService>();
         services.AddScoped<MessagingMockDataSeeder>();
-        services.AddScoped<ServiceRequestChatBackfiller>();
         services.AddScoped<MessagingUserNameResolver>();
         services.AddScoped<ServiceRequestChatNameFixer>();
 
@@ -48,22 +47,18 @@ public static class DependencyInjection
             var seeder = scope.ServiceProvider.GetRequiredService<MessagingMockDataSeeder>();
             await seeder.SeedAsync(ct);
 
-            // SPIKE P1: one-time, idempotent backfill of ServiceRequest chat into the canonical Messaging store.
-            // Safe to run every dev boot (dedupes per message). Phase 2 replaces this dev-gate with an explicit flag.
-            // Guarded: a backfill failure must never take down messaging-api startup.
+            // BE_WC4b — the one-time SR→Messaging chat backfiller was retired (its job is done; git history preserves it;
+            // the SR→Messaging sync consumer is gone — Messaging is now the sole chat store). The idempotent name-fix pass
+            // stays to keep any placeholder participant names real. Guarded: a failure must never fail startup.
             try
             {
-                var backfiller = scope.ServiceProvider.GetRequiredService<ServiceRequestChatBackfiller>();
-                await backfiller.BackfillAsync(ct);
-
-                // Phase-2 Part C: replace the backfill's role-placeholder names with real names (idempotent).
                 var nameFixer = scope.ServiceProvider.GetRequiredService<ServiceRequestChatNameFixer>();
                 await nameFixer.FixAsync(ct);
             }
             catch (Exception ex)
             {
-                var log = scope.ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger("MessagingBackfill");
-                log?.LogError(ex, "[SR→Messaging backfill] aborted (non-fatal); messaging-api continues");
+                var log = scope.ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger("MessagingNameFix");
+                log?.LogError(ex, "[Messaging name-fix] aborted (non-fatal); messaging-api continues");
             }
         }
     }

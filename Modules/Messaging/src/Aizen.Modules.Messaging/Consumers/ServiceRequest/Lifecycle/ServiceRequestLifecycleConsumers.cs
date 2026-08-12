@@ -11,9 +11,9 @@ namespace Aizen.Modules.Messaging.Consumers.ServiceRequest.Lifecycle;
 // BE_WC1 — the Messaging module's System/lifecycle message generators. Each consumes a first-class SR domain event and
 // writes ONE lifecycle message into the canonical Messaging store via the shared writer (idempotent on the WC0
 // sys:{srId}:{CODE} unique index). Zero logic beyond mapping the event → (code, role, type, content). Auto-discovered
-// by the messagebus scan (non-generic consumers in the host assembly), exactly like ServiceRequestMessageSyncConsumer.
-// They run in PARALLEL with the SR→Messaging sync path until the Messaging:WriteCutover:SystemMessages flag flips the
-// SR side off; the shared sys: SourceKey guarantees the two paths collapse to a single row throughout.
+// by the messagebus scan (non-generic consumers in the host assembly).
+// BE_WC4b — these are now the SOLE producers of the System/offer messages: the SR→Messaging sync path + the SR-side
+// dual-write are gone (Phase-4 complete), so the flag/parallel-then-flip is retired.
 
 /// <summary>OFFER_ACCEPTED System pill from <see cref="ServiceRequestOfferAcceptedMessage"/>.</summary>
 public sealed class ServiceRequestOfferAcceptedSystemMessageConsumer

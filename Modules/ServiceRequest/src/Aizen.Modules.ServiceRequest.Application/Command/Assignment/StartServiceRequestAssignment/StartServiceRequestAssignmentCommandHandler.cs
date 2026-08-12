@@ -5,12 +5,10 @@ using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Assignment;
-using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
-using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Assignment;
 
@@ -19,24 +17,18 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
 {
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestAssignmentRepository _assignmentRepository;
-    private readonly IServiceRequestMessageRepository _msgRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
-    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
     public StartServiceRequestAssignmentCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestAssignmentRepository assignmentRepository,
-        IServiceRequestMessageRepository msgRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
-        IAizenMessagePublisher messagePublisher,
-        IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _assignmentRepository = assignmentRepository;
-        _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
         _messagePublisher = messagePublisher;
-        _cutover = cutover;
     }
 
     public override async Task<StartServiceRequestAssignmentResponse?> Handle(StartServiceRequestAssignmentCommand request, CancellationToken cancellationToken)
@@ -83,24 +75,8 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
             OccurredAt = DateTimeOffset.UtcNow,
         }, cancellationToken);
 
-        // Lifecycle system message (idempotent). BE_WC1 flag-gated: when SystemMessages is ON, Messaging owns this
-        // (from the event above), so the SR module stops writing the sr.Messages row + the chat-mirror event.
-        if (!_cutover.CurrentValue.SystemMessages &&
-            !await _msgRepository.HasSystemMessageAsync(sr.Id, "JOB_STARTED", cancellationToken))
-        {
-            var sysMsg = ServiceRequestMessageEntity.Create(
-                sr.Id, currentUserId, ServiceRequestMessageSenderType.System,
-                ServiceRequestMessageType.StatusChange, "JOB_STARTED", null);
-            await _msgRepository.AddAsync(sysMsg, cancellationToken);
-
-            await _messagePublisher.PublishAsync(new ServiceRequestMessageSentMessage
-            {
-                ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
-                SenderType = ServiceRequestMessageSenderType.System,
-                ProviderProfileId = assignment.ProviderProfileId,
-                Content = sysMsg.Content, MessageType = sysMsg.MessageType, OccurredAt = DateTimeOffset.UtcNow
-            }, cancellationToken);
-        }
+        // BE_WC4b — the JOB_STARTED System message is produced solely by the Messaging WC1 lifecycle consumer (from the
+        // ServiceRequestAssignmentStartedMessage above). The SR module no longer writes sr.Messages.
 
         return new StartServiceRequestAssignmentResponse(assignment.Id);
     }

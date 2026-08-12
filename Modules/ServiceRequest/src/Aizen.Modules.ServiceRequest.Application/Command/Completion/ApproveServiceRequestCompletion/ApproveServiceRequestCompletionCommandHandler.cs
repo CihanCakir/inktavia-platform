@@ -7,9 +7,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
-using Aizen.Modules.ServiceRequest.Application.Configuration;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
-using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Completion;
 
@@ -18,24 +16,18 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
 {
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestCompletionRepository _completionRepository;
-    private readonly IServiceRequestAssignmentRepository _assignmentRepository;
-    private readonly IServiceRequestMessageRepository _msgRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
     private readonly IAizenMessagePublisher _messagePublisher;
-    private readonly IOptionsMonitor<MessagingWriteCutoverOptions> _cutover;
 
     public ApproveServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestCompletionRepository completionRepository,
-        IServiceRequestAssignmentRepository assignmentRepository, IServiceRequestMessageRepository msgRepository,
         IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
-        IAizenMessagePublisher messagePublisher,
-        IOptionsMonitor<MessagingWriteCutoverOptions> cutover)
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _completionRepository = completionRepository;
-        _assignmentRepository = assignmentRepository; _msgRepository = msgRepository;
         _info = info; _realtimePublisher = realtimePublisher;
-        _messagePublisher = messagePublisher; _cutover = cutover;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<ApproveServiceRequestCompletionResponse?> Handle(ApproveServiceRequestCompletionCommand request, CancellationToken cancellationToken)
@@ -82,28 +74,8 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
             OwnerUserId = sr.OwnerUserId
         }, cancellationToken);
 
-        // Lifecycle system message (idempotent)
-        // BE_WC1 flag-gated: Messaging generates JOB_COMPLETED from ServiceRequestCompletionApprovedMessage when ON.
-        if (!_cutover.CurrentValue.SystemMessages &&
-            !await _msgRepository.HasSystemMessageAsync(sr.Id, "JOB_COMPLETED", cancellationToken))
-        {
-            var sysMsg = ServiceRequestMessageEntity.Create(
-                sr.Id, currentUserId, ServiceRequestMessageSenderType.System,
-                ServiceRequestMessageType.StatusChange, "JOB_COMPLETED", null);
-            await _msgRepository.AddAsync(sysMsg, cancellationToken);
-
-            // Resolve provider profile from assignment
-            var assignment = await _assignmentRepository.GetByServiceRequestIdAsync(sr.Id, cancellationToken);
-            var providerProfileId = assignment?.ProviderProfileId;
-
-            await _messagePublisher.PublishAsync(new ServiceRequestMessageSentMessage
-            {
-                ServiceRequestId = sr.Id, MessageId = sysMsg.Id, SenderUserId = currentUserId,
-                SenderType = ServiceRequestMessageSenderType.System,
-                ProviderProfileId = providerProfileId,
-                Content = sysMsg.Content, MessageType = sysMsg.MessageType, OccurredAt = DateTimeOffset.UtcNow
-            }, cancellationToken);
-        }
+        // BE_WC4b — the JOB_COMPLETED System message is produced solely by the Messaging WC1 lifecycle consumer (from
+        // the ServiceRequestCompletionApprovedMessage above). The SR module no longer writes sr.Messages.
 
         return new ApproveServiceRequestCompletionResponse(completion.Id);
     }

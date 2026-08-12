@@ -32,6 +32,12 @@ public interface IMessagingRemoteCall : IAizenRemoteCall
         long conversationId,
         [AizenRemoteCallBody] SendMessageRequest body);
 
+    // BE_WC4a — idempotent get-or-create of the SR conversation (owner + accepted-provider resolved server-side), so the
+    // first-ever chat on a fresh SR creates the conversation natively (no SR bootstrap). Returns the numeric id to send to.
+    [AizenRemoteCallPost("/api/v1/messaging/internal/conversations/ensure-by-context")]
+    Task<AizenApiResponse<EnsureConversationByContextResponse>> EnsureConversationByContext(
+        [Refit.Query] MessagingContextType contextType, [Refit.Query] long contextId);
+
     // BE_WC3a — participant-scoped chat-attachment access-check (Authorized iff the caller is a participant AND the
     // fileId is on a message in this SR's conversation). Tried first by the read-url handler; on a miss it falls back
     // to the SR access-check for request/evidence attachments.

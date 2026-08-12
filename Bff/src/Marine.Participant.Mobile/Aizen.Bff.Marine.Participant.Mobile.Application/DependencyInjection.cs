@@ -87,9 +87,9 @@ public static class DependencyInjection
             CreateRemoteCall<INotificationRemoteCall>(
                 CreateHttpClient(provider, nameof(INotificationRemoteCall))));
 
-        // Messaging module participant-scoped reads (BE_MO10a: /conversations/mine + /by-context/mine). Base URL from
-        // RemoteCalls:IMessagingRemoteCall:BaseUrl (→ the messaging-api host). The owner chat WRITE reuses
-        // IServiceRequestRemoteCall.SendMessage (SR module) — no new client for the write.
+        // Messaging module participant-scoped reads + the native chat WRITE (BE_WC4b: ensure-then-send). Base URL from
+        // RemoteCalls:IMessagingRemoteCall:BaseUrl (→ the messaging-api host). The owner chat write goes to Messaging
+        // only now — there is no SR chat write.
         services.AddTransient<IMessagingRemoteCall>(provider =>
             CreateRemoteCall<IMessagingRemoteCall>(
                 CreateHttpClient(provider, nameof(IMessagingRemoteCall))));

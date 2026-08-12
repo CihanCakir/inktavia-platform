@@ -2,6 +2,7 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
+using Aizen.Modules.Messaging.Application.Command.EnsureConversation;
 using Aizen.Modules.Messaging.Application.Query.GetConversationTranscriptByContext;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,28 @@ public sealed class MessagingInternalController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<ConversationTranscriptResponse>(
             new GetConversationTranscriptByContextQuery(contextType, contextId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE_WC4a — idempotent get-or-create of the ServiceRequest conversation (owner + accepted-provider participants
+    /// resolved server-side). Called by the owner/provider BFF send handlers before <c>SendMessage</c> so the very first
+    /// chat on a fresh SR creates the conversation natively (no SR bootstrap). Repeated calls return the same id
+    /// (Created=false). ConversationId=0 when the SR context can't be resolved → the BFF falls back to the SR path.
+    /// </summary>
+    [HttpPost("conversations/ensure-by-context")]
+    [ProducesResponseType(typeof(EnsureConversationByContextResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<EnsureConversationByContextResponse?>> EnsureByContext(
+        [FromQuery] MessagingContextType contextType,
+        [FromQuery] long contextId,
+        CancellationToken ct = default)
+    {
+        // WC4a resolves participants from the SR schema, so only the ServiceRequest context is supported here.
+        if (contextType != MessagingContextType.ServiceRequest)
+            return SetResponse<EnsureConversationByContextResponse>(new() { ConversationId = 0, Created = false });
+
+        var result = await _cqrs.ProcessAsync<EnsureConversationByContextResponse>(
+            new EnsureServiceRequestConversationCommand(contextId), ct);
         return SetResponse(result);
     }
 }

@@ -8,9 +8,7 @@ using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Request.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Message;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Bff.MarineProvider.Application.ServiceRequests;
@@ -28,24 +26,18 @@ public sealed class SendProviderMessageCommandHandler
 {
     private readonly IProviderProfileResolver _resolver;
     private readonly IProviderIdentityHolder _identityHolder;
-    private readonly IServiceRequestRemoteCall _serviceRequest;
     private readonly IMessagingRemoteCall _messaging;
-    private readonly IConfiguration _config;
     private readonly ILogger<SendProviderMessageCommandHandler> _logger;
 
     public SendProviderMessageCommandHandler(
         IProviderProfileResolver resolver,
         IProviderIdentityHolder identityHolder,
-        IServiceRequestRemoteCall serviceRequest,
         IMessagingRemoteCall messaging,
-        IConfiguration config,
         ILogger<SendProviderMessageCommandHandler> logger)
     {
         _resolver = resolver;
         _identityHolder = identityHolder;
-        _serviceRequest = serviceRequest;
         _messaging = messaging;
-        _config = config;
         _logger = logger;
     }
 
@@ -58,38 +50,11 @@ public sealed class SendProviderMessageCommandHandler
         var hasImage    = request.AttachmentFileId is { } fid && fid != Guid.Empty;
         var hasLocation = request.LocationLat.HasValue && request.LocationLng.HasValue;
 
-        // BE_WC2/WC3a write flip: text / location / image → Messaging (flag ON). WC3a moved images too; the flag now
-        // routes all three kinds natively. Flag OFF reverts every kind to the SR path (reversible).
-        var writeToMessaging = _config.GetValue("Messaging:WriteCutover:ChatMessages", false);
-        if (writeToMessaging)
-        {
-            var sent = await TrySendViaMessagingAsync(request, hasLocation, hasImage, ct);
-            if (sent is not null)
-                return sent;
-            // Conversation not resolvable yet → fall through to the SR path (bootstraps via the sync consumer).
-        }
-
-        try
-        {
-            var result = await _serviceRequest.SendMessage(request.ServiceRequestId,
-                new SendServiceRequestMessageRequest
-                {
-                    Content = request.Content,
-                    AttachmentFileId = request.AttachmentFileId,
-                    SenderTypeOverride = ServiceRequestMessageSenderType.Provider,
-                    LocationLat = request.LocationLat,
-                    LocationLng = request.LocationLng,
-                    LocationLabel = request.LocationLabel
-                });
-            return result.Body;
-        }
-        catch (Refit.ApiException ex)
-        {
-            var message = ExtractMessage(ex.Content);
-            _logger.LogWarning(ex, "SendMessage failed for SR {ServiceRequestId}, provider {ProfileId}: {Message}",
-                request.ServiceRequestId, _identityHolder.ProfileId, message);
-            throw new AizenBusinessException(message ?? "Failed to send message.");
-        }
+        // BE_WC4b — chat writes go to the Messaging store UNCONDITIONALLY. The WriteCutover flag, the SR fallback, and
+        // the SR chat write are gone (Phase-4 complete): ensure-then-send creates the conversation natively and writes
+        // the message to Messaging (the provider anti-harassment gate runs module-side inside Messaging SendMessage).
+        var sent = await TrySendViaMessagingAsync(request, hasLocation, hasImage, ct);
+        return sent ?? throw new AizenBusinessException("Could not send the message.");
     }
 
     /// <summary>Resolve the SR's conversation and send TEXT / LOCATION / IMAGE natively to Messaging (which runs the
@@ -98,17 +63,20 @@ public sealed class SendProviderMessageCommandHandler
     private async Task<SendServiceRequestMessageResponse?> TrySendViaMessagingAsync(
         SendProviderMessageCommand request, bool hasLocation, bool hasImage, CancellationToken ct)
     {
+        // BE_WC4a — ensure (idempotent get-or-create) instead of a read-then-fallback, so the FIRST message on a fresh
+        // SR (no prior conversation) creates it NATIVELY on the Messaging side — no SR bootstrap row. Existing
+        // conversations return their id. The provider anti-harassment gate stays module-side inside SendMessage below.
         long conversationId;
         try
         {
-            var detail = await _messaging.GetMyConversationByContext(MessagingContextType.ServiceRequest, request.ServiceRequestId);
-            var idText = detail?.Body?.Conversation?.Id;
-            if (!long.TryParse(idText, out conversationId) || conversationId <= 0)
-                return null;
+            var ensured = await _messaging.EnsureConversationByContext(MessagingContextType.ServiceRequest, request.ServiceRequestId);
+            conversationId = ensured?.Body?.ConversationId ?? 0;
+            if (conversationId <= 0)
+                return null; // couldn't ensure → SR-path fallback (belt-and-suspenders until WC4b)
         }
         catch (Refit.ApiException)
         {
-            return null; // no participant conversation yet → SR-path bootstrap
+            return null;
         }
 
         SendMessageRequest body;

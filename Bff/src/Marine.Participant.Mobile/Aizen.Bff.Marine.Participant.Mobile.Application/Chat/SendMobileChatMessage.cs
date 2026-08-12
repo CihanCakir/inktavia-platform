@@ -7,20 +7,15 @@ using Aizen.Core.CQRS.Message;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Abstraction.Request.Messaging;
-using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Request.Message;
-using Microsoft.Extensions.Configuration;
 
 namespace Aizen.Bff.Marine.Participant.Mobile.Application.Chat;
 
 /// <summary>POST /api/v1/mobile/service-requests/{id}/messages — the owner sends a message on their own SR: exactly one
-/// of { text, image (AttachmentFileId from the reused upload), location (lat/lng[+label]) } (BE_MO10a/b). Reuses the SR
-/// module send with SenderType=Owner (identity from the token; never the body). The anti-harassment gate is
-/// provider-only, so the owner always opens the channel. Mirrors SendProviderMessage minus the gate. Cost-free.
+/// of { text, image (AttachmentFileId from the reused upload), location (lat/lng[+label]) } (BE_MO10a/b). The
+/// anti-harassment gate is provider-only, so the owner always opens the channel. Cost-free.
 ///
-/// BE_WC2 — behind <c>Messaging:WriteCutover:ChatMessages</c> (default OFF): when ON, TEXT + LOCATION write natively to
-/// the Messaging store (resolve the SR's conversation → Messaging SendMessage); IMAGE still routes to the SR path
-/// (WC3 owns the image cutover). OFF ⇒ the SR path for everything (the sync mirrors to Messaging). Reversible.</summary>
+/// BE_WC4b — chat writes go to the Messaging store UNCONDITIONALLY (ensure-then-send creates the conversation natively).
+/// The WriteCutover flag + the SR fallback are gone; there is no sr.Messages chat write. Phase-4 complete.</summary>
 public sealed class SendMobileChatMessageCommand : AizenCommand<MobileChatMessageDto>
 {
     public SendMobileChatMessageCommand(MobileSendChatMessageRequest request, long serviceRequestId)
@@ -37,20 +32,14 @@ public sealed class SendMobileChatMessageCommandHandler
     : AizenCommandHandler<SendMobileChatMessageCommand, MobileChatMessageDto>
 {
     private readonly IParticipantProfileResolver _resolver;
-    private readonly IServiceRequestRemoteCall _sr;
     private readonly IMessagingRemoteCall _messaging;
-    private readonly IConfiguration _config;
 
     public SendMobileChatMessageCommandHandler(
         IParticipantProfileResolver resolver,
-        IServiceRequestRemoteCall sr,
-        IMessagingRemoteCall messaging,
-        IConfiguration config)
+        IMessagingRemoteCall messaging)
     {
         _resolver  = resolver;
-        _sr        = sr;
         _messaging = messaging;
-        _config    = config;
     }
 
     public override async Task<MobileChatMessageDto?> Handle(
@@ -66,55 +55,36 @@ public sealed class SendMobileChatMessageCommandHandler
         var (kind, content) = MobileChatSend.Validate(
             r.Content, r.AttachmentFileId, r.LocationLat, r.LocationLng, r.LocationLabel);
 
-        // BE_WC2/WC3a write flip: text / location / image → Messaging (flag ON). WC3a moved images too, so the flag now
-        // routes ALL three kinds natively; flag OFF reverts every kind to the SR path (reversible).
-        var writeToMessaging = _config.GetValue("Messaging:WriteCutover:ChatMessages", false);
-        if (writeToMessaging)
-        {
-            var sent = await TrySendViaMessagingAsync(request.ServiceRequestId, kind, content, r, cancellationToken);
-            if (sent is not null)
-                return sent;
-            // Conversation not resolvable yet (no synced/System message) → fall through to the SR path, which
-            // bootstraps the conversation via the sync consumer. Reversible-safe.
-        }
-
-        // ── SR path (flag OFF, image, or no conversation yet) ────────────────────────────────────────────────
-        // Owner identity comes from the assertion; the module stamps the sender id + skips the provider-only gate.
-        // The SR entity branches: Location wins over Image wins over Text — we only ever send one kind (validated above).
-        var body = new SendServiceRequestMessageRequest
-        {
-            Content            = content,
-            SenderTypeOverride = ServiceRequestMessageSenderType.Owner,
-        };
-        if (kind == MobileChatSendKind.Image)
-        {
-            body.AttachmentFileId = r.AttachmentFileId;
-        }
-        else if (kind == MobileChatSendKind.Location)
-        {
-            body.LocationLat   = (decimal?)r.LocationLat;
-            body.LocationLng   = (decimal?)r.LocationLng;
-            body.LocationLabel = string.IsNullOrWhiteSpace(r.LocationLabel) ? null : r.LocationLabel!.Trim();
-        }
-
-        var resp = await _sr.SendMessage(request.ServiceRequestId, body);
-        var message = resp?.Body?.Message
-            ?? throw new AizenBusinessException("Could not send the message.");
-
-        return MobileChatMapper.MapSentMessage(message);
+        // BE_WC4b — chat writes go to the Messaging store UNCONDITIONALLY. The WriteCutover flag, the SR fallback, and
+        // the SR chat write are gone (Phase-4 complete): ensure-then-send creates the conversation natively and writes
+        // the message to Messaging. There is no sr.Messages chat write anymore.
+        var sent = await TrySendViaMessagingAsync(request.ServiceRequestId, kind, content, r, cancellationToken);
+        return sent ?? throw new AizenBusinessException("Could not send the message.");
     }
 
-    /// <summary>Resolve the SR's conversation and send TEXT/LOCATION natively to Messaging. Returns null if the
-    /// conversation does not exist yet (caller falls back to the SR path). Location rides Content-as-JSON (what the
-    /// Messaging read/echo <c>ParseLocation</c> expects) AND the discrete WC0 columns (persisted by the handler).</summary>
+    /// <summary>Ensure the SR's conversation exists (native get-or-create) and send TEXT/LOCATION/IMAGE natively to
+    /// Messaging. Returns null if the conversation can't be ensured (caller falls back to the SR path — belt-and-
+    /// suspenders until WC4b). Location rides Content-as-JSON (what the Messaging read/echo <c>ParseLocation</c> expects)
+    /// AND the discrete WC0 columns (persisted by the handler).</summary>
     private async Task<MobileChatMessageDto?> TrySendViaMessagingAsync(
         long serviceRequestId, MobileChatSendKind kind, string content,
         MobileSendChatMessageRequest r, CancellationToken cancellationToken)
     {
-        var detail = await _messaging.GetMyConversationByContext(MessagingContextType.ServiceRequest, serviceRequestId);
-        var idText = detail?.Body?.Conversation?.Id;
-        if (!long.TryParse(idText, out var conversationId) || conversationId <= 0)
+        // BE_WC4a — ensure (idempotent get-or-create) instead of a read-then-fallback, so the FIRST message on a fresh
+        // SR (no prior conversation) creates it NATIVELY on the Messaging side — no SR bootstrap row. Existing
+        // conversations return their id (Created=false). ConversationId<=0 / a failure → fall back to the SR path.
+        long conversationId;
+        try
+        {
+            var ensured = await _messaging.EnsureConversationByContext(MessagingContextType.ServiceRequest, serviceRequestId);
+            conversationId = ensured?.Body?.ConversationId ?? 0;
+            if (conversationId <= 0)
+                return null;
+        }
+        catch (Refit.ApiException)
+        {
             return null;
+        }
 
         SendMessageRequest body;
         if (kind == MobileChatSendKind.Location)
