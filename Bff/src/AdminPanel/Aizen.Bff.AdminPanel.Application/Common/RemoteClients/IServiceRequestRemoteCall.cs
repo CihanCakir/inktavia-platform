@@ -1,3 +1,4 @@
+using Aizen.Bff.AdminPanel.Application.Dashboard.Dto;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Completion;
@@ -21,6 +22,13 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
 public interface IServiceRequestRemoteCall : IAizenRemoteCall
 {
+    [AizenRemoteCallGet("/api/v1/admin/service-requests/stats")]
+    Task<AizenApiResponse<GetAdminServiceRequestStatsResponse>> GetAdminServiceRequestStats();
+
+    // C2 — dashboard SR-volume chart: per-status counts (status = lowercase enum key).
+    [AizenRemoteCallGet("/api/v1/admin/service-requests/stats/status-breakdown")]
+    Task<AizenApiResponse<List<StatusCountDto>>> GetAdminServiceRequestStatusBreakdown();
+
     [AizenRemoteCallGet("/api/v1/admin/service-requests")]
     Task<AizenApiResponse<GetAdminServiceRequestListResponse>> GetAdminServiceRequestList(
         [Refit.Query] string? status            = null,

@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
@@ -48,10 +49,13 @@ public sealed class PublishServiceRequestCommandHandler : AizenCommandHandler<Pu
                 throw new AizenBusinessException($"Location city code '{entity.LocationCityCode}' is not a recognised ReferenceData city.");
         }
 
+        var prevStatus = entity.Status;
         entity.Publish();
-        _repository.Update(entity);
-
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        // QA4 — record the publish transition (→ Open) so the SR timeline reflects the real lifecycle.
+        entity.AddStatusHistory(ServiceRequestStatusHistoryEntity.Create(
+            entity.Id, prevStatus, entity.Status, "Service request published", currentUserId, ServiceRequestActorType.Owner));
+        _repository.Update(entity);
         await _realtimePublisher.PublishAsync(entity.Id, entity.RequestCode, entity.OwnerUserId, null,
             ServiceRequestRealtimeEventType.ServiceRequestStatusChanged,
             entity.ToDto(), currentUserId, ServiceRequestActorType.Owner, cancellationToken);

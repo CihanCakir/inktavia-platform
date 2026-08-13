@@ -13,6 +13,9 @@ public sealed class AdminServiceRequestOperationDetailResponse
     /// <summary>Vessel name resolved from the Vessel module — avoids the frontend showing "Vessel #123".</summary>
     public string? VesselName { get; set; }
 
+    /// <summary>Owner display name resolved from Identity (same bulk batch as the provider names) — avoids "OWNER ID 123". Null if unresolved.</summary>
+    public string? OwnerName { get; set; }
+
     /// <summary>
     /// Map of providerUserId → full display name resolved from the Identity bulk endpoint.
     /// Covers all provider user IDs found in Offers and the active Assignment.

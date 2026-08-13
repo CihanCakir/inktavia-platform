@@ -389,6 +389,12 @@ public interface IPaymentRemoteCall : IAizenRemoteCall
         [Query] string   currency = "TRY",
         CancellationToken ct = default);
 
+    // C1 — dashboard revenue chart: last `months` months of revenue + commission, oldest→newest, zero-filled.
+    [AizenRemoteCallGet("/api/v1/payment/finance/reports/monthly-revenue-commission")]
+    Task<List<Dashboard.Dto.MonthlyRevenueCommissionDto>> GetMonthlyRevenueCommissionReportAsync(
+        [Query] int months = 12,
+        CancellationToken ct = default);
+
     [AizenRemoteCallGet("/api/v1/payment/finance/reports/ledger-entries")]
     Task<LedgerEntriesPageBffDto> GetLedgerEntriesAsync(
         [Query] LedgerAccountLine? accountLine       = null,

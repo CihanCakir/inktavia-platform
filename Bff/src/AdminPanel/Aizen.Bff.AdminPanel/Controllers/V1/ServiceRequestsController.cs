@@ -52,6 +52,15 @@ public sealed class ServiceRequestsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    // ── QA4 — SR list KPI stats (real totals from the module; velocity/alerts deferred) ──────────────────
+    [HttpGet("service-requests/stats")]
+    [ProducesResponseType(typeof(ServiceRequestStatsBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ServiceRequestStatsBffDto>> GetServiceRequestStats(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new GetServiceRequestStatsBffQuery(), ct);
+        return SetResponse(result);
+    }
+
     // ── S2a — pricing attribute definitions (admin CRUD) ─────────────────────────────────────────────────
     [HttpGet("service-requests/pricing-attributes")]
     [ProducesResponseType(typeof(List<PricingAttributeDefinitionDto>), StatusCodes.Status200OK)]

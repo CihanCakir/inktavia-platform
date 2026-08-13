@@ -1,9 +1,11 @@
 using Aizen.Core.CQRS.Message;
-using Aizen.Modules.Identity.Abstraction.Response;
+using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
 {
-   public class LoginWithPhoneNumberCommand : AizenCommand<UserLoginResponse>
+    // Credential login (phone+password) now yields a Keycloak login-ticket HANDOFF (Option 2), not Identity-store
+    // tokens — same shape as the admin OTP verify handoff. See LoginWithUsernameCommand for the rationale.
+    public class LoginWithPhoneNumberCommand : AizenCommand<VerifyProviderOtpLoginResponse>
     {
         /// <summary>
         /// Kullanıcının kayıtlı telefon numarası (örn: +905xx...)

@@ -9,6 +9,7 @@ using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Dto.Status;
+using Aizen.Bff.AdminPanel.Application.Dashboard.Dto;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -27,6 +28,10 @@ public interface IVesselRemoteCall : IAizenRemoteCall
         [Refit.Query] int[]?   ownershipStatuses   = null,
         [Refit.Query] int[]?   operationalStatuses = null,
         [Refit.Query] long?    ownerUserId         = null);
+
+    // C3 — dashboard fleet-status chart: per-status vessel counts (status = lowercase enum key).
+    [AizenRemoteCallGet("/api/v1/admin/vessels/stats/status-counts")]
+    Task<AizenApiResponse<List<StatusCountDto>>> GetVesselStatusCounts();
 
     [AizenRemoteCallGet("/api/v1/vessels/{vesselId}")]
     Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(long vesselId);
@@ -83,6 +88,10 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/admin/vessels/counts-by-owner")]
     Task<AizenApiResponse<List<VesselCountByOwnerDto>>> GetVesselCountsByOwnerUserIds(
         [Refit.Query(CollectionFormat.Multi)] long[] userIds);
+
+    [AizenRemoteCallGet("/api/v1/admin/vessels/names-by-ids")]
+    Task<AizenApiResponse<List<VesselNameDto>>> GetVesselNamesByIds(
+        [Refit.Query(CollectionFormat.Multi)] long[] vesselIds);
 
     [AizenRemoteCallGet("/api/v1/admin/vessels/status-history/by-owner")]
     Task<AizenApiResponse<GetVesselStatusHistoryByOwnerResponse>> GetVesselStatusHistoryByOwner(

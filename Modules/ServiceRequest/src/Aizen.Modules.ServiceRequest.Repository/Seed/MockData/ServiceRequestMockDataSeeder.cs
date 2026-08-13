@@ -80,6 +80,8 @@ public sealed class ServiceRequestMockDataSeeder
         await SeedAcceptedJobAsync(ct);
         await ResetJob91001Async(ct);
         await AdvanceSequencesAsync(ct);
+        // QA4 — runs AFTER AdvanceSequencesAsync so identity-generated ids are past the explicitly-seeded ids.
+        await BackfillStatusHistoriesAsync(ct);
 
         _logger.LogInformation("ServiceRequest MockData seeder completed.");
     }
@@ -808,6 +810,116 @@ public sealed class ServiceRequestMockDataSeeder
 
         await SaveEntityAsync(entity, _db.ServiceRequestAttachments, ct, $"attachment {attachmentId}");
     }
+
+    // ── QA4 — status-history backfill for seed SRs ──────────────────────────────────────────────
+    // Seed SRs (9001–9011, etc.) are inserted directly at their terminal status with NO history, so the admin
+    // timeline renders empty. This writes the plausible transition chain up to each SR's current status with
+    // backdated UTC timestamps — ONLY for SRs whose history is empty, so it is duplicate-safe on re-run.
+
+    private static readonly ServiceRequestStatus[] HappyPath =
+    {
+        ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.OfferReceived,
+        ServiceRequestStatus.OfferAccepted, ServiceRequestStatus.Assigned, ServiceRequestStatus.Scheduled,
+        ServiceRequestStatus.InProgress, ServiceRequestStatus.CompletionSubmitted, ServiceRequestStatus.Completed,
+    };
+
+    private async Task BackfillStatusHistoriesAsync(CancellationToken ct)
+    {
+        var srs = await _db.ServiceRequests
+            .Where(sr => !_db.ServiceRequestStatusHistories.Any(h => h.ServiceRequestId == sr.Id))
+            .Select(sr => new { sr.Id, sr.Status, sr.CreateDate, sr.ModifyDate })
+            .ToListAsync(ct);
+
+        var backfilled = 0;
+        foreach (var sr in srs)
+        {
+            var chain = PlausibleStatusChain(sr.Status);
+            if (chain.Count < 2) continue; // Draft (or unknown) — no transitions to record yet
+
+            var start = (sr.CreateDate ?? DateTime.UtcNow.AddDays(-2));
+            var end = (sr.ModifyDate ?? DateTime.UtcNow);
+            if (end <= start) end = start.AddHours(chain.Count);
+            if (end > DateTime.UtcNow) end = DateTime.UtcNow;
+
+            var transitions = chain.Count - 1;
+            for (var i = 0; i < transitions; i++)
+            {
+                var from = chain[i];
+                var to = chain[i + 1];
+                var occurredAt = start.AddSeconds((end - start).TotalSeconds * (i + 1) / transitions);
+
+                var entity = ServiceRequestStatusHistoryEntity.Create(
+                    serviceRequestId: sr.Id, fromStatus: from, toStatus: to,
+                    reason: TransitionReason(to), actorUserId: null, actorType: TransitionActor(to));
+                SetPrivateProperty(entity, "OccurredAt", occurredAt);
+                entity.CreateDate = occurredAt;
+                entity.ModifyDate = occurredAt;
+                entity.IsDeleted = false;
+                // Id left unset → DB identity assigns a safe id (sequence already advanced past seeded ids).
+                await SaveEntityAsync(entity, _db.ServiceRequestStatusHistories, ct, $"backfill history SR {sr.Id} {from}->{to}");
+            }
+            backfilled++;
+        }
+
+        if (backfilled > 0)
+            _logger.LogInformation("QA4 backfilled status history for {Count} seed service request(s).", backfilled);
+    }
+
+    private static IReadOnlyList<ServiceRequestStatus> PlausibleStatusChain(ServiceRequestStatus target)
+    {
+        switch (target)
+        {
+            case ServiceRequestStatus.Draft:
+                return new[] { ServiceRequestStatus.Draft };
+            case ServiceRequestStatus.WaitingForOffer:
+                return new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.WaitingForOffer };
+            case ServiceRequestStatus.Cancelled:
+                return new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.OfferReceived, ServiceRequestStatus.Cancelled };
+            case ServiceRequestStatus.Expired:
+                return new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.Expired };
+            case ServiceRequestStatus.DisputeOpened:
+                return new[]
+                {
+                    ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.OfferReceived,
+                    ServiceRequestStatus.OfferAccepted, ServiceRequestStatus.Assigned, ServiceRequestStatus.InProgress,
+                    ServiceRequestStatus.CompletionSubmitted, ServiceRequestStatus.DisputeOpened,
+                };
+        }
+
+        var idx = Array.IndexOf(HappyPath, target);
+        if (idx >= 0) return HappyPath.Take(idx + 1).ToArray();
+
+        return target == ServiceRequestStatus.Open
+            ? new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open }
+            : new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, target };
+    }
+
+    private static string TransitionReason(ServiceRequestStatus to) => to switch
+    {
+        ServiceRequestStatus.Open => "Service request published",
+        ServiceRequestStatus.WaitingForOffer => "Awaiting provider offers",
+        ServiceRequestStatus.OfferReceived => "First offer received",
+        ServiceRequestStatus.OfferAccepted => "Owner accepted an offer",
+        ServiceRequestStatus.Assigned => "Provider assigned",
+        ServiceRequestStatus.Scheduled => "Work scheduled",
+        ServiceRequestStatus.InProgress => "Work started",
+        ServiceRequestStatus.CompletionSubmitted => "Completion submitted",
+        ServiceRequestStatus.Completed => "Completion approved",
+        ServiceRequestStatus.DisputeOpened => "Dispute opened",
+        ServiceRequestStatus.Cancelled => "Request cancelled",
+        ServiceRequestStatus.Expired => "Request expired",
+        _ => $"Status changed to {to}",
+    };
+
+    private static ServiceRequestActorType TransitionActor(ServiceRequestStatus to) => to switch
+    {
+        ServiceRequestStatus.Open or ServiceRequestStatus.OfferAccepted or ServiceRequestStatus.Completed
+            or ServiceRequestStatus.Cancelled or ServiceRequestStatus.DisputeOpened => ServiceRequestActorType.Owner,
+        ServiceRequestStatus.OfferReceived or ServiceRequestStatus.Scheduled or ServiceRequestStatus.InProgress
+            or ServiceRequestStatus.CompletionSubmitted => ServiceRequestActorType.Provider,
+        ServiceRequestStatus.Assigned => ServiceRequestActorType.Admin,
+        _ => ServiceRequestActorType.System,
+    };
 
     private async Task SaveEntityAsync<T>(T entity, Microsoft.EntityFrameworkCore.DbSet<T> dbSet, CancellationToken ct, string label)
         where T : class

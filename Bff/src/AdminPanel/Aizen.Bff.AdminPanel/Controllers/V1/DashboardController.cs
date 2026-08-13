@@ -26,4 +26,12 @@ public sealed class DashboardController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new GetDashboardOverviewBffQuery(), ct);
         return SetResponse(result);
     }
+
+    [HttpGet("charts")]
+    [ProducesResponseType(typeof(AdminDashboardChartsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminDashboardChartsResponse>> GetDashboardCharts(CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetDashboardChartsBffQuery(), ct);
+        return SetResponse(result);
+    }
 }

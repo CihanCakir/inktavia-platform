@@ -56,6 +56,26 @@ public sealed class VesselAdminController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("names-by-ids")]
+    [ProducesResponseType(typeof(List<VesselNameDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<VesselNameDto>?>> GetNamesByIds(
+        [FromQuery] long[] vesselIds,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<List<VesselNameDto>>(
+            new GetVesselNamesByIdsQuery(vesselIds ?? Array.Empty<long>()), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("stats/status-counts")]
+    [ProducesResponseType(typeof(List<VesselStatusCountDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<VesselStatusCountDto>?>> GetStatusCounts(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<List<VesselStatusCountDto>>(
+            new GetVesselStatusCountsQuery(), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("status-history/by-owner")]
     [ProducesResponseType(typeof(GetVesselStatusHistoryByOwnerResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetVesselStatusHistoryByOwnerResponse?>> GetStatusHistoryByOwner(

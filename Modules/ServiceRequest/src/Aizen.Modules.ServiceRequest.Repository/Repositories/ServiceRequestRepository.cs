@@ -2,11 +2,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Pricing;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
+using Aizen.Modules.ServiceRequest.Domain.ReadModel;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -81,6 +83,33 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
 
     public Task<int> CountAdminAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default)
         => BuildAdminQuery(filter).CountAsync(ct);
+
+    public async Task<GetAdminServiceRequestStatsResponse> GetAdminStatsAsync(CancellationToken ct = default)
+    {
+        // QA4 — read-only KPI counts over the whole dataset (not page-local). Simple COUNTs → no timestamptz GroupBy.
+        var q = _db.ServiceRequests.Where(x => !x.IsDeleted);
+        var total = await q.CountAsync(ct);
+        var active = await q.CountAsync(x => x.Status == ServiceRequestStatus.InProgress, ct);
+        var critical = await q.CountAsync(
+            x => x.Priority == ServiceRequestPriority.Emergency || x.Priority == ServiceRequestPriority.Urgent, ct);
+
+        return new GetAdminServiceRequestStatsResponse
+        {
+            TotalRequests = total,
+            ActiveRepairs = active,
+            CriticalAlerts = critical,
+        };
+    }
+
+    public async Task<IReadOnlyList<ServiceRequestStatusCount>> GetStatusBreakdownAsync(CancellationToken ct = default)
+        // C2 — per-status counts over the whole (non-deleted) dataset. GROUP BY the status enum column (not a
+        // timestamptz) → no Npgsql grouping concern. The handler maps the enum to the lowercase FE/BFF key.
+        => await _db.ServiceRequests
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted)
+            .GroupBy(x => x.Status)
+            .Select(g => new ServiceRequestStatusCount { Status = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
 
     public async Task<IReadOnlyList<ServiceRequestEntity>> GetOpenForProviderAsync(
         long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default)

@@ -2,6 +2,7 @@ using Aizen.Bff.AdminPanel.Application.Auth.Command;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto;
+using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Microsoft.AspNetCore.Authorization;
@@ -20,10 +21,12 @@ public sealed class AuthController : AizenWebApiController
     public AuthController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
 
+    // Credential login → Keycloak handoff (Option 2): returns the OTP-verify-shaped handoff
+    // ({ verified, nextAction, loginTicket, ... }). The FE exchanges the ticket for Keycloak tokens.
     [HttpPost("login/username")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername(
+    [ProducesResponseType(typeof(VerifyProviderOtpLoginResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> LoginWithUsername(
         [FromBody] LoginWithUsernameRequest req, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(new LoginWithUsernameBffCommand(req), ct);
@@ -32,8 +35,8 @@ public sealed class AuthController : AizenWebApiController
 
     [HttpPost("login/phone")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<UserLoginResponse>> LoginWithPhone(
+    [ProducesResponseType(typeof(VerifyProviderOtpLoginResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> LoginWithPhone(
         [FromBody] LoginWithPhoneRequest req, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(new LoginWithPhoneBffCommand(req), ct);

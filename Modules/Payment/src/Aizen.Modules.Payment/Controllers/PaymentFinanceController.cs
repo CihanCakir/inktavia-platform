@@ -3,6 +3,7 @@ using Aizen.Modules.Payment.Abstraction.Model.Result;
 using Aizen.Modules.Payment.Application.Queries.GetFinanceInvoiceStatementReport;
 using Aizen.Modules.Payment.Application.Queries.GetFinancialSummaryReport;
 using Aizen.Modules.Payment.Application.Queries.GetLedgerEntries;
+using Aizen.Modules.Payment.Application.Queries.GetMonthlyRevenueCommissionReport;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -85,6 +86,20 @@ public sealed class PaymentFinanceController : ControllerBase
             To       = DateTime.SpecifyKind(to,   DateTimeKind.Utc),
             Currency = currency,
         }, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// GET /api/v1/payment/finance/reports/monthly-revenue-commission
+    /// C1 — last `months` months of platform revenue + commission (settlement currency), oldest→newest, zero-filled.
+    /// Powers the admin dashboard revenue chart.
+    /// </summary>
+    [HttpGet("reports/monthly-revenue-commission")]
+    public async Task<IActionResult> GetMonthlyRevenueCommission(
+        [FromQuery] int months = 12,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.Send(new GetMonthlyRevenueCommissionReportQuery { Months = months }, ct);
         return Ok(result);
     }
 

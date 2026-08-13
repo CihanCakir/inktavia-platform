@@ -100,15 +100,20 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         offer.MarkSubmitted(submitInstant);
         _offerRepository.Update(offer);
 
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+
         // Update SR status if needed
         if (sr.Status == ServiceRequestStatus.Open || sr.Status == ServiceRequestStatus.WaitingForOffer)
         {
+            var prevStatus = sr.Status;
             sr.ChangeStatus(ServiceRequestStatus.OfferReceived);
+            // QA4 — record the →OfferReceived transition so the SR timeline reflects the real lifecycle.
+            sr.AddStatusHistory(ServiceRequestStatusHistoryEntity.Create(
+                sr.Id, prevStatus, ServiceRequestStatus.OfferReceived, "First offer received", currentUserId, ServiceRequestActorType.Provider));
             _srRepository.Update(sr);
         }
 
         // Create offer-as-message (idempotent per offer id)
-        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
 
         // BE_WC1 — first-class submit event (ALWAYS published) → Messaging generates the offer card. Dedicated to the
         // card (NOT the draft-time ServiceRequestOfferCreatedMessage, which the Notification module consumes), so no

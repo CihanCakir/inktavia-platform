@@ -22,4 +22,11 @@ public interface IFinancialLedgerRepository
 
     /// <summary>Entries for one source (reconciliation).</summary>
     Task<List<FinancialLedgerEntryEntity>> GetBySourceAsync(LedgerSourceType sourceType, long sourceRef, CancellationToken ct = default);
+
+    /// <summary>
+    /// C1 — the last <paramref name="months"/> months of platform revenue + commission (settlement currency TRY),
+    /// oldest→newest, with empty months zero-filled. Buckets are UTC calendar months. Reuses the ledger sign
+    /// classification (nature + IsReversal) — never recomputed.
+    /// </summary>
+    Task<IReadOnlyList<MonthlyRevenueCommissionPoint>> GetMonthlyRevenueCommissionAsync(int months, CancellationToken ct = default);
 }

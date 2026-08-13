@@ -46,6 +46,7 @@ public sealed class GetServiceRequestOperationDetailBffQueryHandler
 
         // ── Collect IDs for parallel enrichment ──────────────────────────────
         var vesselId = detail.Request?.VesselId ?? 0;
+        var ownerUserId = detail.Request?.OwnerUserId ?? 0;
 
         var providerUserIds = (detail.Offers ?? [])
             .Select(o => o.ProviderUserId)
@@ -54,14 +55,22 @@ public sealed class GetServiceRequestOperationDetailBffQueryHandler
             .Distinct()
             .ToArray();
 
+        // Owner + providers resolve in ONE identity batch (no extra round-trip).
+        var identityUserIds = providerUserIds
+            .Concat(ownerUserId > 0 ? [ownerUserId] : Array.Empty<long>())
+            .Distinct()
+            .ToArray();
+
         // ── Parallel calls — failures are swallowed, frontend falls back to IDs ──
-        var vesselTask   = vesselId > 0              ? FetchVesselNameAsync(vesselId, cancellationToken)          : Task.FromResult<string?>(null);
-        var identityTask = providerUserIds.Length > 0 ? FetchProviderNamesAsync(providerUserIds, cancellationToken) : Task.FromResult(new Dictionary<long, string>());
+        var vesselTask   = vesselId > 0               ? FetchVesselNameAsync(vesselId, cancellationToken)           : Task.FromResult<string?>(null);
+        var identityTask = identityUserIds.Length > 0 ? FetchProviderNamesAsync(identityUserIds, cancellationToken) : Task.FromResult(new Dictionary<long, string>());
 
         await Task.WhenAll(vesselTask, identityTask);
 
-        response.VesselName    = await vesselTask;
-        response.ProviderNames = await identityTask;
+        response.VesselName = await vesselTask;
+        var names = await identityTask;
+        response.ProviderNames = names;
+        response.OwnerName = ownerUserId > 0 && names.TryGetValue(ownerUserId, out var ownerName) ? ownerName : null;
 
         return response;
     }

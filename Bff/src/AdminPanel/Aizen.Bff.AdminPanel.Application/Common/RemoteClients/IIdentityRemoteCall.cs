@@ -91,12 +91,13 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
         Guid profileId,
         [AizenRemoteCallBody] RejectProfileRequest request);
 
+    // Credential login now yields the Keycloak login-ticket HANDOFF (Option 2), same shape as OTP verify.
     [AizenRemoteCallPost("/api/v1/auth/login/username")]
-    Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername(
+    Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> LoginWithUsername(
         [AizenRemoteCallBody] LoginWithUsernameRequest request);
 
     [AizenRemoteCallPost("/api/v1/auth/login/phone")]
-    Task<AizenApiResponse<UserLoginResponse>> LoginWithPhone(
+    Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> LoginWithPhone(
         [AizenRemoteCallBody] LoginWithPhoneRequest request);
 
     [AizenRemoteCallPost("/api/v1/auth/login/otp")]

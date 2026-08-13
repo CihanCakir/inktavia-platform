@@ -45,6 +45,24 @@ public sealed class AdminServiceRequestController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpGet("stats")]
+    [ProducesResponseType(typeof(GetAdminServiceRequestStatsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetAdminServiceRequestStatsResponse?>> GetStats(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetAdminServiceRequestStatsResponse>(
+            new GetAdminServiceRequestStatsQuery(), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("stats/status-breakdown")]
+    [ProducesResponseType(typeof(List<ServiceRequestStatusCountDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<ServiceRequestStatusCountDto>?>> GetStatusBreakdown(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<List<ServiceRequestStatusCountDto>>(
+            new GetAdminServiceRequestStatusBreakdownQuery(), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("disputes")]
     [ProducesResponseType(typeof(GetAdminDisputeListResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<GetAdminDisputeListResponse?>> GetDisputeList(

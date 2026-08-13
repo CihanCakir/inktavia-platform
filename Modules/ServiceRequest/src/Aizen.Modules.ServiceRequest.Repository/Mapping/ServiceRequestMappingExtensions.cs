@@ -49,6 +49,7 @@ public static class ServiceRequestMappingExtensions
         VesselId = entity.VesselId,
         OwnerUserId = entity.OwnerUserId,
         ProviderProfileId = entity.Assignment?.ProviderProfileId,
+        ProviderUserId = entity.Assignment?.ProviderUserId,
         LocationMarinaName = entity.LocationMarinaName,
         LocationCityCode = entity.LocationCityCode,
         LocationCountryCode = entity.LocationCountryCode,

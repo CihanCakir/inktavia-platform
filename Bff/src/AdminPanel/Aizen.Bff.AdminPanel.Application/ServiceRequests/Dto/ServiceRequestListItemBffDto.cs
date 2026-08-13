@@ -8,6 +8,8 @@ public sealed class ServiceRequestListItemBffDto
     public long Id { get; set; }
     public string RequestCode { get; set; } = default!;
     public long VesselId { get; set; }
+    /// <summary>Vessel name resolved at the BFF (Vessel module batch); null if unresolved → FE falls back to the id.</summary>
+    public string? VesselName { get; set; }
     public string? ServiceType { get; set; }
     public string ServiceCategoryCode { get; set; } = default!;
     public string Title { get; set; } = default!;
@@ -17,6 +19,8 @@ public sealed class ServiceRequestListItemBffDto
     public string? Notes { get; set; }
     public long OwnerUserId { get; set; }
     public long? ProviderProfileId { get; set; }
+    /// <summary>Assigned provider's display name resolved at the BFF (Identity batch); null if unassigned/unresolved → FE falls back.</summary>
+    public string? ProviderName { get; set; }
     public int OfferCount { get; set; }
     public bool HasActiveAssignment { get; set; }
     public DateTime? RequestedDate { get; set; }

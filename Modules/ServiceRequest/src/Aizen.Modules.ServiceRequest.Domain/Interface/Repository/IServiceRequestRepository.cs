@@ -1,8 +1,10 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Pricing;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Domain.ReadModel;
 
 namespace Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 
@@ -17,6 +19,8 @@ public interface IServiceRequestRepository
     Task<IReadOnlyList<ServiceRequestEntity>> GetByVesselIdAsync(long vesselId, CancellationToken ct = default);
     Task<IReadOnlyList<ServiceRequestEntity>> GetAdminListAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task<int> CountAdminAsync(AdminServiceRequestFilterRequest filter, CancellationToken ct = default);
+    Task<GetAdminServiceRequestStatsResponse> GetAdminStatsAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<ServiceRequestStatusCount>> GetStatusBreakdownAsync(CancellationToken ct = default);
     Task<IReadOnlyList<ServiceRequestEntity>> GetOpenForProviderAsync(long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task<int> CountOpenForProviderAsync(long providerProfileId, ProviderAvailableServiceRequestFilterRequest filter, CancellationToken ct = default);
     Task<List<ProviderDiscoveryItemDto>> GetDiscoveryAsync(long providerProfileId, ProviderServiceRequestDiscoveryFilter filter, CancellationToken ct = default);

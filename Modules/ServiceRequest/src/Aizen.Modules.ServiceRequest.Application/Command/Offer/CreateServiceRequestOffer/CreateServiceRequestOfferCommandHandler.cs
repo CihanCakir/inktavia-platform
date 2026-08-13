@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
@@ -118,7 +119,11 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
 
         if (sr.Status == ServiceRequestStatus.Open || sr.Status == ServiceRequestStatus.WaitingForOffer)
         {
+            var prevStatus = sr.Status;
             sr.ChangeStatus(ServiceRequestStatus.OfferReceived);
+            // QA4 — record the →OfferReceived transition so the SR timeline reflects the real lifecycle.
+            sr.AddStatusHistory(ServiceRequestStatusHistoryEntity.Create(
+                sr.Id, prevStatus, ServiceRequestStatus.OfferReceived, "First offer received", currentUserId, ServiceRequestActorType.Provider));
             _srRepository.Update(sr);
         }
 
