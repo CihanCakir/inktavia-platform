@@ -39,6 +39,11 @@ public static class DependencyInjection
 
         services.AddScoped<IAdminPanelBffKeycloakServiceTokenProvider, AdminPanelBffKeycloakServiceTokenProvider>();
 
+        // Keycloak session refresh (AR2): the admin session is Keycloak-issued, so refresh goes to Keycloak's
+        // refresh_token grant on the public admin-panel client — NOT the Identity UserLoginTokenEntity store.
+        services.AddHttpClient();
+        services.AddScoped<IAdminKeycloakAuthClient, AdminKeycloakAuthClient>();
+
         // Per-request admin identity (UserId only) + by-subject resolver — mirrors the provider's
         // IProviderContext/IProviderIdentityHolder/ProviderProfileResolver, used to assert the acting admin to modules.
         services.AddScoped<IAdminContext, AdminContext>();

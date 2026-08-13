@@ -10,9 +10,9 @@
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
-  "accessTokenLifespan": 3600,
-  "ssoSessionIdleTimeout": 1800,
-  "ssoSessionMaxLifespan": 36000,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 604800,
+  "ssoSessionMaxLifespan": 2592000,
   "roles": {
     "realm": [
       {
@@ -646,10 +646,10 @@
     {
       "clientId": "admin-panel",
       "name": "Admin Panel",
-      "description": "DEPRECATED — React/Admin Web no longer uses Keycloak tokens directly. The BFF (admin-panel-bff) now handles all server-side token acquisition. Kept for reference only.",
-      "enabled": false,
+      "description": "Public SPA client for the admin OTP -> Keycloak login-ticket handoff (authorization code + PKCE) and the refresh_token grant used by the AdminPanel BFF RefreshBff. admin-panel-bff is the separate confidential client_credentials service-token client.",
+      "enabled": true,
       "publicClient": true,
-      "standardFlowEnabled": false,
+      "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",

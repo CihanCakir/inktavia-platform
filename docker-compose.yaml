@@ -148,7 +148,7 @@ services:
       AdminPanelKeycloak__RequireHttpsMetadata: "false"
       AdminPanelKeycloak__AdminClientId: admin-panel-bff
       AdminPanelKeycloak__AdminClientSecret: ${KEYCLOAK_BFF_CLIENT_SECRET:-local-dev-only-change-me}
-      AdminPanelKeycloak__AdminPanelClientId: admin-panel-web
+      AdminPanelKeycloak__AdminPanelClientId: admin-panel
       AdminPanelKeycloak__AdminPanelBffClientId: admin-panel-bff
       AdminPanelKeycloak__AdminRole: Admin
       # Trusted-BFF identity assertion. Must match each module's BffAssertion__SharedSecret.

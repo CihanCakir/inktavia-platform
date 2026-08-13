@@ -15,4 +15,13 @@ public sealed class AdminPanelKeycloakOptions
     /// mirror of the provider's <c>ModuleAssertionSecret</c>, and the safe default (feature off until configured).
     /// </summary>
     public string? ModuleAssertionSecret { get; set; }
+
+    /// <summary>
+    /// Public admin SPA client that ISSUES the admin user's Keycloak access+refresh tokens (the token <c>azp</c>).
+    /// The <c>refresh_token</c> grant MUST use this exact client id. Mirrors admin-web's
+    /// <c>VITE_KEYCLOAK_CLIENT_ID</c> (default <c>admin-panel</c>). The SPA login handoff, this refresh grant, and the
+    /// realm's enabled public client now all name <c>admin-panel</c> (the stray config <c>AdminPanelClientId</c> was
+    /// reconciled from the non-existent "admin-panel-web" to "admin-panel"; that key remains unused by BFF code).
+    /// </summary>
+    public string RefreshClientId { get; set; } = "admin-panel";
 }
