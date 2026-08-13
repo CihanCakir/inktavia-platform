@@ -17,11 +17,11 @@ namespace Aizen.Bff.Marine.Participant.Mobile.Controllers.V1;
 [Route("api/v1/mobile/conversations")]
 [Tags("Mobile - Chat")]
 [Authorize(Policy = ParticipantAuthorizationPolicies.ParticipantAuthenticated)]
-public sealed class MobileConversationsController : AizenWebApiController
+public sealed class ConversationsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public MobileConversationsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+    public ConversationsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor)
     {
         _cqrs = cqrs;

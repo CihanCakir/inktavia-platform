@@ -18,11 +18,11 @@ namespace Aizen.Bff.Marine.Participant.Mobile.Controllers.V1;
 [Route("api/v1/mobile/service-requests/{serviceRequestId:long}/attachments")]
 [Tags("Mobile - Chat")]
 [Authorize(Policy = ParticipantAuthorizationPolicies.ParticipantAuthenticated)]
-public sealed class MobileAttachmentsController : AizenWebApiController
+public sealed class AttachmentsController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public MobileAttachmentsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+    public AttachmentsController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor)
     {
         _cqrs = cqrs;

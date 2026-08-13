@@ -19,11 +19,11 @@ namespace Aizen.Bff.Marine.Participant.Mobile.Controllers.V1;
 [Route("api/v1/mobile/notifications")]
 [Tags("Mobile - Notifications")]
 [Authorize(Policy = ParticipantAuthorizationPolicies.ParticipantAuthenticated)]
-public sealed class MobileNotificationController : AizenWebApiController
+public sealed class NotificationController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
 
-    public MobileNotificationController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+    public NotificationController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor)
     {
         _cqrs = cqrs;
