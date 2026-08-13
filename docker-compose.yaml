@@ -257,6 +257,7 @@ services:
       - reference-data-api
       - vessel-api
       - service-request-api
+      - cargodry-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -291,6 +292,8 @@ services:
       RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
       # Owner service-request create/list/detail/cancel (BE_MO1) → the ServiceRequest module owner endpoints.
       RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Owner CargoDry validate/activate/my-kits (BE_MO11a) → the CargoDry module owner endpoints.
+      RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
       # Owner participant membership (BE_MO7) → the Payment module owner endpoints.
       RemoteCalls__IParticipantMembershipRemoteCall__BaseUrl: http://payment-api:8080
       # Owner notifications inbox/read/device-token/preferences (BE_MO9c) → the Notification module owner endpoints.
@@ -694,6 +697,9 @@ services:
       BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
       BffAssertion__AllowedClientIds__0: provider-portal-bff
       BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE_MO11a — trust the mobile BFF assertion so the owner's validate/activate/my-kits resolve UserInfo.UserId from
+      # the asserted participant (so activate and GetMyKits share one id-space). Mirrors the MO1/MO9c/MO10a fixes.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       ElasticApm__Enabled: "false"
     ports:
       - "7108:8080"

@@ -75,6 +75,13 @@ public static class DependencyInjection
             CreateRemoteCall<IServiceRequestRemoteCall>(
                 CreateHttpClient(provider, nameof(IServiceRequestRemoteCall))));
 
+        // CargoDry module owner endpoints (BE_MO11a: validate / activate / my kits). Base URL from
+        // RemoteCalls:ICargoDryRemoteCall:BaseUrl (→ the cargodry-api host). Unlike the enveloped module clients
+        // above, these return raw DTOs (the CargoDry controllers return Ok(dto)), so the client binds them directly.
+        services.AddTransient<ICargoDryRemoteCall>(provider =>
+            CreateRemoteCall<ICargoDryRemoteCall>(
+                CreateHttpClient(provider, nameof(ICargoDryRemoteCall))));
+
         // Payment module owner participant-membership endpoints (BE_MO7). Base URL from
         // RemoteCalls:IParticipantMembershipRemoteCall:BaseUrl (→ the payment-api host).
         services.AddTransient<IParticipantMembershipRemoteCall>(provider =>

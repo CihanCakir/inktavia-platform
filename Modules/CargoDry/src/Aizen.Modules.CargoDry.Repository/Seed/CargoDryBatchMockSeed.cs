@@ -35,13 +35,14 @@ public sealed class CargoDryBatchMockSeed
             kitCount:    4,
             adminId:     10001);
 
-        // Kit 1 — Available (never activated)
+        // Kit 1 — Available, direct platform sale so an owner can scan+activate it end-to-end (MO11 demo).
         var kit1 = CargoDryKitEntity.Create(
             serialNumber: "CDK-STAN-0001",
             kitCode:      "CDK-STAN-0001",
             qrPayload:    "https://cargodry.inktavia.local/activate/CDK-STAN-0001",
             productCode:  "STANDARD-90",
             batchCode:    "202506-STAN-DEV1");
+        kit1.MarkAsDirectSale();
 
         // Kit 2 — Activated (owner: vessel owner 10002, vessel 1)
         var kit2 = CargoDryKitEntity.Create(
@@ -82,13 +83,14 @@ public sealed class CargoDryBatchMockSeed
             kitCount:    4,
             adminId:     10001);
 
-        // Kit 5 — Available
+        // Kit 5 — Available, direct platform sale so it is scan+activatable (MO11 demo).
         var kit5 = CargoDryKitEntity.Create(
             serialNumber: "CDK-PREM-0001",
             kitCode:      "CDK-PREM-0001",
             qrPayload:    "https://cargodry.inktavia.local/activate/CDK-PREM-0001",
             productCode:  "PREMIUM-180",
             batchCode:    "202506-PREM-DEV1");
+        kit5.MarkAsDirectSale();
 
         // Kit 6 — Activated (owner: 10005, vessel 4)
         var kit6 = CargoDryKitEntity.Create(
@@ -109,7 +111,8 @@ public sealed class CargoDryBatchMockSeed
             batchCode:    "202506-PREM-DEV1");
         kit7.Revoke("Demo revoke — local seed");
 
-        // Kit 8 — Available (cargodry.team@inktavia.local admin user 10013)
+        // Kit 8 — Available, deliberately left with NO SalesChannel to exercise the N18 CommercialReviewRequired
+        // path (scanning it now returns the clean "review required" business error, not a 500).
         var kit8 = CargoDryKitEntity.Create(
             serialNumber: "CDK-PREM-0004",
             kitCode:      "CDK-PREM-0004",

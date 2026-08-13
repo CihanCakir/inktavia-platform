@@ -1,5 +1,6 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
@@ -66,6 +67,13 @@ public sealed class ActivateKitCommandHandler
         existingActiveKit?.MarkExpired();
 
         kit.Activate(request.UserId, request.VesselId, product.ValidityDays);
+
+        // Decision N18/N19: a kit with no SalesChannel does NOT complete activation — Activate() marks it
+        // CommercialReviewRequired and returns early, leaving ActivatedAt/ExpiresAt null. Honor that documented
+        // return path here instead of proceeding to publish/log/map (which dereferenced the null timestamps and
+        // NRE'd). Nothing is persisted or published on this path; the kit needs admin commercial review first.
+        if (kit.Status != CargoDryKitStatus.Activated)
+            throw new AizenBusinessException("SR_CARGODRY_KIT_COMMERCIAL_REVIEW_REQUIRED");
 
         // ── Phase 3: resolve commercial attribution (stages entities, does not SaveChanges) ──
         await _commercialActivation.ResolveAsync(kit.Id, request.UserId, ct);
@@ -135,8 +143,10 @@ public sealed class ActivateKitCommandHandler
             ProductName  = product.Name,
             OwnerUserId  = request.UserId,
             VesselId     = request.VesselId,
-            ActivatedAt  = kit.ActivatedAt!.Value,
-            ExpiresAt    = kit.ExpiresAt!.Value,
+            // Belt-and-suspenders: the Activated status check above guarantees these are set, but never `!.Value`
+            // a nullable a domain branch (N18) can legitimately leave null. Fall back to now/expiry if ever unset.
+            ActivatedAt  = kit.ActivatedAt ?? throw new AizenBusinessException("SR_CARGODRY_KIT_COMMERCIAL_REVIEW_REQUIRED"),
+            ExpiresAt    = kit.ExpiresAt   ?? throw new AizenBusinessException("SR_CARGODRY_KIT_COMMERCIAL_REVIEW_REQUIRED"),
             ValidityDays = product.ValidityDays,
         }, ct);
 
