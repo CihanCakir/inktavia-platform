@@ -30,14 +30,14 @@ public interface IFileStorageRemoteCall : IAizenRemoteCall
     /// <summary>
     /// Request a pre-signed PUT URL so the browser can upload a verification document directly to MinIO/S3.
     /// </summary>
-    [AizenRemoteCallPost("/api/v1/file-storage/upload-sessions")]
+    [AizenRemoteCallPost("/api/v1/upload-sessions")]
     Task<AizenApiResponse<CreateDocumentUploadSessionResult>> CreateDocumentUploadSession(
         [AizenRemoteCallBody] CreateDocumentUploadSessionRequest request);
 
     /// <summary>
     /// Complete an upload session after the browser has PUT the file to MinIO/S3.
     /// </summary>
-    [AizenRemoteCallPost("/api/v1/file-storage/upload-sessions/{uploadSessionCode}/complete")]
+    [AizenRemoteCallPost("/api/v1/upload-sessions/{uploadSessionCode}/complete")]
     Task<AizenApiResponse<CompleteDocumentUploadSessionResult>> CompleteDocumentUploadSession(
         string uploadSessionCode,
         [AizenRemoteCallBody] CompleteDocumentUploadSessionRequest request);

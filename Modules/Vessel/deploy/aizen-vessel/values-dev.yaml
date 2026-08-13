@@ -86,7 +86,16 @@ tolerations: []
 affinity: {}
 
 env:
-- name: ASPNETCORE_ENVIRONMENT 
-  value: dev      
+- name: ASPNETCORE_ENVIRONMENT
+  value: dev
 - name: TZ
-  value: Europe/Istanbul 
+  value: Europe/Istanbul
+# Trusted-BFF identity assertion allow-list (mirrors file-storage-api). admin-panel-bff + provider-portal-bff are
+# required so the vessel document/media register step (which validates the uploaded file via file-storage-api) is
+# accepted. The BffAssertion__SharedSecret is injected separately from a Kubernetes Secret — never in values/git.
+- name: BffAssertion__AllowedClientIds__0
+  value: provider-portal-bff
+- name: BffAssertion__AllowedClientIds__1
+  value: admin-panel-bff
+- name: BffAssertion__AllowedClientIds__2
+  value: marine-mobile-bff

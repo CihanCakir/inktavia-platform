@@ -1,9 +1,32 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Core\CQRS\src\Aizen.Core.CQRS\Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Cache\src\Aizen.Core.Cache.Abstraction\Aizen.Core.Cache.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Messagebus\src\Aizen.Core.Messagebus.Abstraction\Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\InfoAccessor\src\Aizen.Core.InfoAccessor.Abstraction\Aizen.Core.InfoAccessor.Abstraction.csproj" />
+    <!-- Cross-module boundary: consume other modules ONLY via their .Abstraction (C7 §2). -->
+    <!-- FileStorage media validation (B3) via IFileStorageRemoteCall. -->
+    <ProjectReference Include="..\..\..\..\Core\RemoteCall\src\Aizen.Core.RemoteCall.Abstraction\Aizen.Core.RemoteCall.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\FileStorage\src\Aizen.Modules.FileStorage.Abstraction\Aizen.Modules.FileStorage.Abstraction.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Content.Domain\Aizen.Modules.Content.Domain.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Content.Abstraction\Aizen.Modules.Content.Abstraction.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Content.Core\Aizen.Modules.Content.Core.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Content.Repository\Aizen.Modules.Content.Repository.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 
 </Project>

@@ -25,9 +25,11 @@ public sealed class GetVesselMediaBffQueryHandler
         try
         {
 
+            // R5 — ask the Vessel module to presign each media file (it builds the read URL in-module via FileStorage).
             var result = await _vessel.GetVesselMedia(
                 request.VesselId,
-                request.PageIndex, request.PageSize);
+                request.PageIndex, request.PageSize,
+                includeAccessUrls: true);
 
             var items = result?.Body?.Media?.Items;
             if (items != null)
@@ -41,7 +43,9 @@ public sealed class GetVesselMediaBffQueryHandler
                     OriginalFileName = m.OriginalFileNameSnapshot,
                     ContentType = m.ContentTypeSnapshot,
                     FileSizeBytes = m.SizeInBytesSnapshot,
-                    ThumbnailUrl = m.ThumbnailUrl,
+                    // AccessUrl is the presigned GET; there is no separate thumbnail, so reuse it for both.
+                    Url = m.AccessUrl,
+                    ThumbnailUrl = m.AccessUrl ?? m.ThumbnailUrl,
                     UploadedAt = null, // not available from current entity
                     UploadedByUserId = m.UploadedByUserId,
                     IsPrimary = m.IsCover,

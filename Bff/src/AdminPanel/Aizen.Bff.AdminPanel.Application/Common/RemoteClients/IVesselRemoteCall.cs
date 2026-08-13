@@ -60,6 +60,27 @@ public interface IVesselRemoteCall : IAizenRemoteCall
         long vesselId,
         long documentId);
 
+    [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/documents/{documentId}/approve")]
+    Task<AizenApiResponse<ApproveVesselDocumentResponse>> ApproveVesselDocument(
+        long vesselId,
+        long documentId);
+
+    [AizenRemoteCallPost("/api/v1/vessels/{vesselId}/documents")]
+    Task<AizenApiResponse<AddVesselDocumentResponse>> AddVesselDocument(
+        long vesselId,
+        [AizenRemoteCallBody] Aizen.Modules.Vessel.Abstraction.Request.Document.AddVesselDocumentRequest request);
+
+    [AizenRemoteCallPut("/api/v1/vessels/{vesselId}/documents/{documentId}")]
+    Task<AizenApiResponse<UpdateVesselDocumentResponse>> UpdateVesselDocument(
+        long vesselId,
+        long documentId,
+        [AizenRemoteCallBody] Aizen.Modules.Vessel.Abstraction.Request.Document.UpdateVesselDocumentRequest request);
+
+    [AizenRemoteCallPost("/api/v1/vessels/{vesselId}/media")]
+    Task<AizenApiResponse<AddVesselMediaResponse>> AddVesselMedia(
+        long vesselId,
+        [AizenRemoteCallBody] Aizen.Modules.Vessel.Abstraction.Request.Media.AddVesselMediaRequest request);
+
     [AizenRemoteCallPatch("/api/v1/vessels/{vesselId}/archive")]
     Task<AizenApiResponse<ArchiveVesselResponse>> ArchiveVessel(
         long vesselId,
@@ -76,8 +97,10 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/vessels/{vesselId}/media")]
     Task<AizenApiResponse<GetVesselMediaResponse>> GetVesselMedia(
         long vesselId,
-        [Refit.Query] int pageIndex = 0,
-        [Refit.Query] int pageSize  = 20);
+        [Refit.Query] int  pageIndex                 = 0,
+        [Refit.Query] int  pageSize                  = 20,
+        [Refit.Query] bool includeAccessUrls         = false,
+        [Refit.Query] int  accessUrlExpiresInMinutes = 60);
 
     [AizenRemoteCallGet("/api/v1/vessels/{vesselId}/status-history")]
     Task<AizenApiResponse<GetVesselStatusHistoryResponse>> GetVesselStatusHistory(

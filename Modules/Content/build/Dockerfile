@@ -1,17 +1,20 @@
 # Base image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-EXPOSE 80
+EXPOSE 8080
 
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copy the solution and restore dependencies
-COPY . .
+# Copy shared projects and all modules because ReferenceData has cross-module references
+COPY ./Core ./Core
+COPY ./Modules ./Modules
+
+# Restore using the module csproj from repository root context
 RUN dotnet restore "Modules/Content/src/Aizen.Modules.Content/Aizen.Modules.Content.csproj"
 
-# Build the project
+# Build
 RUN dotnet build "Modules/Content/src/Aizen.Modules.Content/Aizen.Modules.Content.csproj" -c Release -o /app/build
 
 # Publish stage

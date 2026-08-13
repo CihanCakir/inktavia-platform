@@ -3,8 +3,10 @@ using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Vessels.Query;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Vessel.Abstraction.Enum;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
+using Aizen.Modules.Vessel.Abstraction.Response.Media;
 using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Microsoft.AspNetCore.Authorization;
@@ -117,9 +119,79 @@ public sealed class VesselsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    [HttpPatch("{vesselId:long}/documents/{documentId:long}/approve")]
+    [ProducesResponseType(typeof(ApproveVesselDocumentResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ApproveVesselDocumentResponse>> ApproveVesselDocument(
+        long vesselId, long documentId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ApproveVesselDocumentBffCommand(vesselId, documentId), ct);
+        return SetResponse(result);
+    }
+
+    // ── Document upload / replace (B3/B4): presigned-PUT two-step ──────────────────────────────
+
+    [HttpPost("{vesselId:long}/documents/upload-url")]
+    [ProducesResponseType(typeof(VesselFileUploadUrlBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<VesselFileUploadUrlBffResponse>> RequestDocumentUploadUrl(
+        long vesselId, [FromBody] VesselFileUploadUrlRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RequestVesselFileUploadUrlBffCommand(vesselId, request.FileName, request.ContentType, request.FileSizeBytes), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("{vesselId:long}/documents")]
+    [ProducesResponseType(typeof(AddVesselDocumentResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AddVesselDocumentResponse>> RegisterDocument(
+        long vesselId, [FromBody] RegisterVesselDocumentRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RegisterVesselDocumentBffCommand(
+                vesselId, request.FileId, request.UploadSessionCode,
+                request.DocumentTypeCode, request.DocumentName, request.ExpiresAt, request.Notes), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("{vesselId:long}/documents/{documentId:long}/versions")]
+    [ProducesResponseType(typeof(UpdateVesselDocumentResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateVesselDocumentResponse>> ReplaceDocument(
+        long vesselId, long documentId, [FromBody] RegisterVesselDocumentRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new ReplaceVesselDocumentBffCommand(
+                vesselId, documentId, request.FileId, request.UploadSessionCode,
+                request.DocumentTypeCode, request.DocumentName, request.ExpiresAt, request.Notes), ct);
+        return SetResponse(result);
+    }
+
+    // ── Media upload (B3): presigned-PUT two-step ─────────────────────────────────────────────
+
+    [HttpPost("{vesselId:long}/media/upload-url")]
+    [ProducesResponseType(typeof(VesselFileUploadUrlBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<VesselFileUploadUrlBffResponse>> RequestMediaUploadUrl(
+        long vesselId, [FromBody] VesselFileUploadUrlRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RequestVesselFileUploadUrlBffCommand(vesselId, request.FileName, request.ContentType, request.FileSizeBytes), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPost("{vesselId:long}/media")]
+    [ProducesResponseType(typeof(AddVesselMediaResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AddVesselMediaResponse>> RegisterMedia(
+        long vesselId, [FromBody] RegisterVesselMediaRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new RegisterVesselMediaBffCommand(
+                vesselId, request.FileId, request.UploadSessionCode,
+                request.MediaType, request.IsCover, request.SortOrder), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("{vesselId:long}")]
-    [ProducesResponseType(typeof(GetVesselDetailResponse), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(
+    [ProducesResponseType(typeof(AdminVesselByIdBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminVesselByIdBffResponse>> GetVesselById(
         long vesselId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(new GetVesselByIdBffQuery(vesselId), ct);
@@ -173,4 +245,32 @@ public sealed class VesselsController : AizenWebApiController
             new GetVesselStatusHistoryBffQuery(vesselId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
+}
+
+// ── Request bodies for the vessel upload/replace endpoints (B3/B4) ────────────────────────────
+
+public sealed class VesselFileUploadUrlRequest
+{
+    public string FileName { get; set; } = default!;
+    public string ContentType { get; set; } = default!;
+    public long FileSizeBytes { get; set; }
+}
+
+public sealed class RegisterVesselDocumentRequest
+{
+    public string FileId { get; set; } = default!;              // FileStorage FileId (Guid as string)
+    public string UploadSessionCode { get; set; } = default!;
+    public string DocumentTypeCode { get; set; } = default!;
+    public string DocumentName { get; set; } = default!;
+    public DateTime? ExpiresAt { get; set; }
+    public string? Notes { get; set; }
+}
+
+public sealed class RegisterVesselMediaRequest
+{
+    public string FileId { get; set; } = default!;
+    public string UploadSessionCode { get; set; } = default!;
+    public VesselMediaType MediaType { get; set; } = VesselMediaType.Photo;
+    public bool IsCover { get; set; }
+    public int SortOrder { get; set; }
 }

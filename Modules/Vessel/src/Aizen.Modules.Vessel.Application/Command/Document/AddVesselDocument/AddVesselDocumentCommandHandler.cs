@@ -7,6 +7,7 @@ using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.Vessel.Application.Command.Document;
@@ -23,6 +24,7 @@ public sealed class AddVesselDocumentCommandHandler : AizenCommandHandler<AddVes
     private readonly IVesselFileStorageService _fileStorage;
     private readonly IAizenMessagePublisher _publisher;
     private readonly IAizenInfoAccessor _info;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<AddVesselDocumentCommandHandler> _logger;
 
     public AddVesselDocumentCommandHandler(
@@ -32,6 +34,7 @@ public sealed class AddVesselDocumentCommandHandler : AizenCommandHandler<AddVes
         IVesselFileStorageService fileStorage,
         IAizenMessagePublisher publisher,
         IAizenInfoAccessor info,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<AddVesselDocumentCommandHandler> logger)
     {
         _documentRepository = documentRepository;
@@ -40,13 +43,16 @@ public sealed class AddVesselDocumentCommandHandler : AizenCommandHandler<AddVes
         _fileStorage = fileStorage;
         _publisher = publisher;
         _info = info;
+        _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
 
     public override async Task<AddVesselDocumentResponse?> Handle(AddVesselDocumentCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        var isAdmin = _info.UserInfoAccessor.UserInfo.Roles.Contains("Admin");
+        // Roles is empty on a BFF assertion S2S call; fall back to the framework principal (service token carries Admin).
+        var isAdmin = _info.UserInfoAccessor.UserInfo.Roles?.Contains("Admin") == true
+            || _httpContextAccessor.HttpContext?.User?.IsInRole("Admin") == true;
         var accessToken = _info.UserInfoAccessor.UserInfo.AccessToken;
 
         if (!isAdmin)

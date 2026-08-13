@@ -70,4 +70,13 @@ public sealed class VesselDocumentController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<UpdateVesselDocumentStatusResponse>(new UpdateVesselDocumentStatusCommand(vesselId, documentId, status), ct);
         return SetResponse(result);
     }
+
+    [HttpPatch("{documentId:long}/approve")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ApproveVesselDocumentResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ApproveVesselDocumentResponse?>> Approve([FromRoute] long vesselId, [FromRoute] long documentId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ApproveVesselDocumentResponse>(new ApproveVesselDocumentCommand(vesselId, documentId), ct);
+        return SetResponse(result);
+    }
 }

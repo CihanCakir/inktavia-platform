@@ -1,9 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MongoDB primitives: AizenDocumentBase, [AizenCollectionInfo] (§4.1) -->
+    <ProjectReference Include="..\..\..\..\Core\Data\src\Aizen.Core.Data.Mongo\Aizen.Core.Data.Mongo.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Content.Abstraction\Aizen.Modules.Content.Abstraction.csproj" />
+    <ProjectReference Include="..\Aizen.Modules.Content.Core\Aizen.Modules.Content.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 
 </Project>

@@ -12,6 +12,8 @@ public sealed class VesselMediaBffDto
     public string? OriginalFileName { get; set; }
     public string? ContentType { get; set; }
     public long? FileSizeBytes { get; set; }
+    /// <summary>Presigned GET URL for the media file (R5). Empty when the file could not be presigned.</summary>
+    public string? Url { get; set; }
     public string? ThumbnailUrl { get; set; }
     public DateTime? UploadedAt { get; set; }
     public long? UploadedByUserId { get; set; }
