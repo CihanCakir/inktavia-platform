@@ -1,6 +1,7 @@
 using Aizen.Bff.Marine.Web.Application.Reference.Query.GetWebCitiesByCountry;
 using Aizen.Bff.Marine.Web.Application.Reference.Query.GetWebCountries;
 using Aizen.Bff.Marine.Web.Application.Reference.Query.GetWebLookupItems;
+using Aizen.Bff.Marine.Web.Filters;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Location;
@@ -31,6 +32,7 @@ public sealed class ReferenceController : AizenWebApiController
 
     [HttpGet("countries")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.ReferenceMaxAge, WebCacheAttribute.ReferenceSwr)]
     public async Task<AizenApiResponse<List<CountryDto>?>> Countries(CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(new GetWebCountriesQuery(), ct);
@@ -39,6 +41,7 @@ public sealed class ReferenceController : AizenWebApiController
 
     [HttpGet("countries/{countryCode}/cities")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.ReferenceMaxAge, WebCacheAttribute.ReferenceSwr)]
     public async Task<AizenApiResponse<List<CityDto>?>> Cities(
         [FromRoute] string countryCode, CancellationToken ct = default)
     {
@@ -48,6 +51,7 @@ public sealed class ReferenceController : AizenWebApiController
 
     [HttpGet("lookups/{groupCode}")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.ReferenceMaxAge, WebCacheAttribute.ReferenceSwr)]
     public async Task<AizenApiResponse<List<LookupItemDto>?>> Lookups(
         [FromRoute] string groupCode, CancellationToken ct = default)
     {

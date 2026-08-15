@@ -31,6 +31,9 @@ public static class WebContentMapper
                 .OrderBy(m => m.Position)
                 .Select(m => new WebContentMediaDto { Url = m.Url, Alt = m.Alt, Kind = m.Kind, Position = m.Position })
                 .ToList(),
+            // W3.1 — the item already carries its full translation set here (detail); expose the language codes for
+            // hreflang. The Seo block is set by the handler (via the indexability policy), not this static mapper.
+            AvailableLangs = d.Translations.Select(t => t.Lang).ToList(),
             Tags = new List<string>(d.Tags),
             CategorySlug = d.CategorySlug,
             Campaign = d.Campaign is null ? null : new WebContentCampaignDto

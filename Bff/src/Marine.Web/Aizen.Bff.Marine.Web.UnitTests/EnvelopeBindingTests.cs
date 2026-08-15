@@ -50,7 +50,7 @@ public sealed class EnvelopeBindingTests
                 Translations = new() { new() { Lang = "tr", Title = "Başlık" } },
             },
         };
-        var handler = new GetWebContentBySlugQueryHandler(content, NullLogger<GetWebContentBySlugQueryHandler>.Instance);
+        var handler = new GetWebContentBySlugQueryHandler(content, new FakeSeoIndexabilityPolicy(), NullLogger<GetWebContentBySlugQueryHandler>.Instance);
 
         var d = await handler.Handle(new GetWebContentBySlugQuery { Slug = "s", Lang = "tr" }, default);
 

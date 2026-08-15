@@ -1,4 +1,5 @@
 using Aizen.Modules.Content.Abstraction.Enum;
+using Aizen.Modules.Content.Application.Services;
 using FluentValidation;
 
 namespace Aizen.Modules.Content.Application.Commands.CreateContentItem;
@@ -8,6 +9,12 @@ public sealed class CreateContentItemCommandValidator : AbstractValidator<Create
     public CreateContentItemCommandValidator()
     {
         RuleFor(x => x.Type).IsInEnum();
+
+        // W3.4 — a provided slug must not collide with a reserved static route segment (or its localized form).
+        RuleFor(x => x.Slug)
+            .Must(slug => !ReservedSlugs.IsReserved(slug))
+            .When(x => !string.IsNullOrWhiteSpace(x.Slug))
+            .WithMessage("Slug is reserved and would be unreachable behind a static route.");
 
         RuleFor(x => x.DefaultLanguage)
             .NotEmpty().Length(2, 10);

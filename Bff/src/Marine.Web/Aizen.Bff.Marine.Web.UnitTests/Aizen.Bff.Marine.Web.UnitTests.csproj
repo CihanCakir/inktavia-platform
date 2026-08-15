@@ -20,7 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Aizen.Bff.Marine.Webz\Aizen.Bff.Marine.Web.csproj" />
+    <ProjectReference Include="..\Aizen.Bff.Marine.Web\Aizen.Bff.Marine.Web.csproj" />
+  </ItemGroup>
+
+  <!-- W5: exercise the WebCache result filter + trusted-caller decision, which touch ASP.NET Core MVC/HTTP types. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

@@ -12,6 +12,10 @@
     <ProjectReference Include="../../../../Core/Starter/src/Aizen.Core.Starter.Bff/Aizen.Core.Starter.Bff.csproj" />
     <ProjectReference Include="../../../../Core/Api/src/Aizen.Core.Api/Aizen.Core.Api.csproj" />
     <ProjectReference Include="../Aizen.Bff.Marine.Web.Application/Aizen.Bff.Marine.Web.Application.csproj" />
+    <!-- W2.2 — host bus consumers (AppType.Worker): the two-phase consumer base + the Content publish/unpublish
+         event contracts (Content.Abstraction message types only — the Content module is NOT modified). -->
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/Content/src/Aizen.Modules.Content.Abstraction/Aizen.Modules.Content.Abstraction.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -19,6 +19,11 @@ namespace Aizen.Bff.Marine.Web.Controllers.V1;
 /// Authenticated website participant engagement — comment / favorite on content. Author identity is never in the
 /// body; it is resolved from the verified token and asserted to Content by the BFF. Anonymous callers are rejected.
 /// Thin: every action dispatches a command/query.
+///
+/// STATUS: BUILT, UNCONSUMED, FROZEN. The real consumer (the server-rendered inktavia.com site) has NO
+/// authentication and never will (a locked frontend decision), so nothing calls this surface today. It is kept —
+/// not deleted — because it is tested, working code a future authenticated customer app will want. It is EXCLUDED
+/// from the website's integration contract. Do not delete; do not wire it into the public read surface.
 /// </summary>
 [ApiController]
 [Route("api/v1/web/me/content")]

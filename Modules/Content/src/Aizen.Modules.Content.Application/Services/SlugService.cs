@@ -47,9 +47,11 @@ public sealed partial class SlugService : ISlugService
         if (string.IsNullOrEmpty(baseSlug))
             baseSlug = "content";
 
+        // W3.4 — an auto-generated base that lands on a reserved segment (e.g. a title "Search") must not be emitted
+        // bare; treat it like a taken slug so it gets a numeric suffix and stays reachable.
         var candidate = baseSlug;
         var suffix = 2;
-        while (await _items.SlugExistsAsync(candidate, excludeId: null, ct))
+        while (ReservedSlugs.IsReserved(candidate) || await _items.SlugExistsAsync(candidate, excludeId: null, ct))
         {
             candidate = $"{baseSlug}-{suffix}";
             suffix++;

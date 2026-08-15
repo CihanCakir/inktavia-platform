@@ -97,8 +97,16 @@ internal sealed class FakeReferenceDataRemoteCall : IReferenceDataRemoteCall
 
     public string? LastCitiesCountryCode { get; private set; }
 
+    // W4 location-detail stubs (single reads + districts list). Settable per test; default to a null-body response.
+    public AizenApiResponse<CountryDto?>? CountryResponse { get; set; }
+    public AizenApiResponse<CityDto?>? CityResponse { get; set; }
+    public AizenApiResponse<List<DistrictDto>>? DistrictsResponse { get; set; }
+
     public Task<AizenApiResponse<List<CountryDto>>> GetCountries(bool onlyActive = true)
         => Task.FromResult(CountriesResponse!);
+
+    public Task<AizenApiResponse<CountryDto?>> GetCountry(string countryCode)
+        => Task.FromResult(CountryResponse ?? new AizenApiResponse<CountryDto?>());
 
     public Task<AizenApiResponse<List<CityDto>>> GetCitiesByCountry(string countryCode, bool onlyActive = true)
     {
@@ -106,6 +114,12 @@ internal sealed class FakeReferenceDataRemoteCall : IReferenceDataRemoteCall
         if (ThrowOnCities is not null) throw ThrowOnCities;
         return Task.FromResult(CitiesResponse!);
     }
+
+    public Task<AizenApiResponse<CityDto?>> GetCity(string countryCode, string cityCode)
+        => Task.FromResult(CityResponse ?? new AizenApiResponse<CityDto?>());
+
+    public Task<AizenApiResponse<List<DistrictDto>>> GetDistrictsByCity(string countryCode, string cityCode, bool onlyActive = true)
+        => Task.FromResult(DistrictsResponse ?? new AizenApiResponse<List<DistrictDto>>());
 
     public Task<AizenApiResponse<List<LookupItemDto>>> GetLookupItems(string groupCode, bool onlyActive = true)
         => Task.FromResult(LookupsResponse!);
@@ -167,4 +181,15 @@ internal sealed class FakeWebParticipantProfileResolver : IWebParticipantProfile
 
     public Task<WebParticipantProfileResolution> ResolveAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(_resolution);
+}
+
+/// <summary>SEO policy stub — returns a fixed verdict so handler tests are deterministic (real thresholds are W5).</summary>
+internal sealed class FakeSeoIndexabilityPolicy : Aizen.Bff.Marine.Web.Application.Common.Seo.ISeoIndexabilityPolicy
+{
+    private readonly Aizen.Bff.Marine.Web.Application.Common.Seo.SeoVerdict _verdict;
+    public FakeSeoIndexabilityPolicy(bool indexable = true, string reason = "indexable")
+        => _verdict = new Aizen.Bff.Marine.Web.Application.Common.Seo.SeoVerdict(indexable, reason);
+
+    public Aizen.Bff.Marine.Web.Application.Common.Seo.SeoVerdict Evaluate(
+        Aizen.Bff.Marine.Web.Application.Common.Seo.SeoEvaluationInput input) => _verdict;
 }

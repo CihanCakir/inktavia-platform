@@ -18,7 +18,7 @@ public sealed class RefitTranslationTests
     public async Task BySlug_404_maps_to_specific_not_found()
     {
         var content = new FakeContentRemoteCall { ThrowOnBySlug = await RefitFault.Of(HttpStatusCode.NotFound) };
-        var handler = new GetWebContentBySlugQueryHandler(content, NullLogger<GetWebContentBySlugQueryHandler>.Instance);
+        var handler = new GetWebContentBySlugQueryHandler(content, new FakeSeoIndexabilityPolicy(), NullLogger<GetWebContentBySlugQueryHandler>.Instance);
 
         var act = () => handler.Handle(new GetWebContentBySlugQuery { Slug = "missing", Lang = "tr" }, default);
 
@@ -29,7 +29,7 @@ public sealed class RefitTranslationTests
     public async Task BySlug_500_maps_to_generic_unavailable()
     {
         var content = new FakeContentRemoteCall { ThrowOnBySlug = await RefitFault.Of(HttpStatusCode.InternalServerError) };
-        var handler = new GetWebContentBySlugQueryHandler(content, NullLogger<GetWebContentBySlugQueryHandler>.Instance);
+        var handler = new GetWebContentBySlugQueryHandler(content, new FakeSeoIndexabilityPolicy(), NullLogger<GetWebContentBySlugQueryHandler>.Instance);
 
         var act = () => handler.Handle(new GetWebContentBySlugQuery { Slug = "s", Lang = "tr" }, default);
 

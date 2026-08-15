@@ -4,6 +4,7 @@ using Aizen.Bff.Marine.Web.Application.Content.Query.GetWebContentCategories;
 using Aizen.Bff.Marine.Web.Application.Content.Query.GetWebContentComments;
 using Aizen.Bff.Marine.Web.Application.Content.Query.GetWebContentFeed;
 using Aizen.Bff.Marine.Web.Application.Contracts.Content;
+using Aizen.Bff.Marine.Web.Filters;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Content.Abstraction.Dto;
@@ -33,6 +34,7 @@ public sealed class ContentController : AizenWebApiController
 
     [HttpGet("feed")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.FeedMaxAge, WebCacheAttribute.FeedSwr)]
     public async Task<AizenApiResponse<ContentFeedResponse?>> Feed(
         [FromQuery] string lang = "tr",
         [FromQuery] int page = 1,
@@ -45,6 +47,7 @@ public sealed class ContentController : AizenWebApiController
 
     [HttpGet("by-type/{type}")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.FeedMaxAge, WebCacheAttribute.FeedSwr)]
     public async Task<AizenApiResponse<ContentFeedResponse?>> ByType(
         [FromRoute] ContentType type,
         [FromQuery] string lang = "tr",
@@ -58,6 +61,7 @@ public sealed class ContentController : AizenWebApiController
 
     [HttpGet("items/{slug}")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.DetailMaxAge, WebCacheAttribute.DetailSwr)]
     public async Task<AizenApiResponse<WebContentDetailDto?>> BySlug(
         string slug, [FromQuery] string lang = "tr", CancellationToken ct = default)
     {
@@ -67,6 +71,7 @@ public sealed class ContentController : AizenWebApiController
 
     [HttpGet("categories")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.CategoriesMaxAge, WebCacheAttribute.CategoriesSwr)]
     public async Task<AizenApiResponse<List<ContentCategoryDto>?>> Categories(
         [FromQuery] string lang = "tr", CancellationToken ct = default)
     {
@@ -76,6 +81,7 @@ public sealed class ContentController : AizenWebApiController
 
     [HttpGet("items/{id}/comments")]
     [EnableRateLimiting("public-read-ip")]
+    [WebCache(WebCacheAttribute.CommentsMaxAge, WebCacheAttribute.CommentsSwr)]
     public async Task<AizenApiResponse<WebContentCommentsResponse?>> Comments(
         string id,
         [FromQuery] int page = 1,

@@ -18,9 +18,23 @@ public interface IReferenceDataRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/reference-data/locations/countries")]
     Task<AizenApiResponse<List<CountryDto>>> GetCountries([Refit.Query] bool onlyActive = true);
 
+    // Single country by code (public / AllowAnonymous) — W4 location detail + parent-chain name resolution.
+    [AizenRemoteCallGet("/api/v1/reference-data/locations/countries/{countryCode}")]
+    Task<AizenApiResponse<CountryDto?>> GetCountry(string countryCode);
+
     // Cities of a country (public / AllowAnonymous on the module).
     [AizenRemoteCallGet("/api/v1/reference-data/locations/{countryCode}/cities")]
     Task<AizenApiResponse<List<CityDto>>> GetCitiesByCountry(string countryCode, [Refit.Query] bool onlyActive = true);
+
+    // Single city by code (public / AllowAnonymous) — W4 location detail.
+    [AizenRemoteCallGet("/api/v1/reference-data/locations/{countryCode}/cities/{cityCode}")]
+    Task<AizenApiResponse<CityDto?>> GetCity(string countryCode, string cityCode);
+
+    // Districts of a city (public / AllowAnonymous). The module exposes no single-district read, so W4 district
+    // detail resolves a code against this list (real data, no fabrication).
+    [AizenRemoteCallGet("/api/v1/reference-data/locations/{countryCode}/cities/{cityCode}/districts")]
+    Task<AizenApiResponse<List<DistrictDto>>> GetDistrictsByCity(
+        string countryCode, string cityCode, [Refit.Query] bool onlyActive = true);
 
     // Lookup options for a group (e.g. VESSEL_TYPE / FUEL_TYPE / SERVICE_PROVIDER_CATEGORY).
     // Requires the reference_data_read client role on the marine-web-bff service account.

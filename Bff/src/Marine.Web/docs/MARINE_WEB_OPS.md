@@ -48,15 +48,32 @@ Keep this secret in sync across environments.
 |---|---|
 | `RemoteCalls:IContentRemoteCall:BaseUrl` | → content-api host |
 | `RemoteCalls:IIdentityRemoteCall:BaseUrl` | → identity-api host |
-| `RemoteCalls:IReferenceDataRemoteCall:BaseUrl` | → reference-data-api host |
-| `Cors:AllowedOrigins` | exact website origin(s) — **no wildcard** (AllowCredentials is on). Dev falls back to `http://localhost:3000`. |
-| `RateLimiting:PublicRead` | `PermitLimit` / `WindowSeconds` per environment (defaults 120 / 60). |
-| `MarineWebKeycloak:*` | BaseUrl, Realm, Authority/MetadataAddress, Audience/BffClientId, ClientId (SPA), AdminClientId + AdminClientSecret (service account), ModuleAssertionSecret, WebUserRole, ParticipantProfileIdAttributeName. |
+| `RemoteCalls:IReferenceDataRemoteCall:BaseUrl` | → reference-data-api host (W4 services/locations) |
+| `RemoteCalls:IPaymentPlanRemoteCall:BaseUrl` | → payment-api host (W4 `web/pricing`). The plan GETs are `[AllowAnonymous]` on Payment, so **no new Keycloak role** is required. |
+| `MarineWebPublic:TrustedCallerSecret` | **`__FROM_SECRET__`** — the trusted server-caller secret. Provision it and inject the SAME value into the Next.js server so it can send the `X-Aizen-Web-Caller` header. Server-side only; never expose to a browser. Empty ⇒ the trusted tier is disabled and the Next.js server is throttled by the strict per-IP limit. |
+| `MarineWebPublic:Seo` | W3.2 indexability thresholds behind the `ISeoIndexabilityPolicy` seam: `RequirePublished` (def true), `RequireTitle` (def true), `RequireDescription` (def false), `MinBodyLength` (def 200). Config-managed so SEO owners retune without a deploy; `// FUTURE:` migrates the source to ReferenceData `SystemParameter`. |
+| `MarineWebPublic:TrustedRateLimit` | `PermitLimit` (def 6000) / `WindowSeconds` (def 60) for the shared trusted partition. Set `PermitLimit <= 0` for effectively unlimited. |
+| `MarineWebPublic:Revalidate:Url` | Next.js revalidation endpoint (e.g. `https://inktavia.com/api/revalidate`). Empty ⇒ webhook disabled. |
+| `MarineWebPublic:Revalidate:Secret` | **`__FROM_SECRET__`** — shared secret sent to the Next.js revalidation endpoint (header `X-Aizen-Web-Caller`); the Next handler must verify it. |
+| `Cors:AllowedOrigins` | **local browser dev only** (server-to-server calls do not exercise CORS). `AllowCredentials`, no wildcard. |
+| `RateLimiting:PublicRead` | `PermitLimit` / `WindowSeconds` for untrusted callers (defaults 120 / 60), **unchanged**. |
+| `MarineWebKeycloak:*` | **`/me` (frozen) surface only** — not exercised by the website. BaseUrl, Realm, Authority/MetadataAddress, Audience/BffClientId, ClientId, AdminClientId + AdminClientSecret (service account), ModuleAssertionSecret, WebUserRole, ParticipantProfileIdAttributeName. |
+
+### Rate-limit & webhook policy (W2)
+- The single `public-read-ip` policy branches on `X-Aizen-Web-Caller`: valid secret → shared `trusted-web-caller`
+  partition (`MarineWebPublic:TrustedRateLimit`); everyone else → the per-IP sliding window (`RateLimiting:PublicRead`).
+  **The Next.js server must send the header**, or it will trip the per-IP limit and the site will render
+  "data unavailable" states at modest traffic.
+- The BFF hosts bus consumers (`AppType.Worker`): on `ContentPublished`/`ContentUnpublished` it POSTs
+  `MarineWebPublic:Revalidate:Url` with `{ entityType, id, slug, lang, changeKind }` (best-effort). Requires the
+  `MessageBroker` (RabbitMQ) connection the BFF already configures.
 
 ---
 
-## 5. Future public-directory clients (documented, not built)
-A public provider/venue directory on the website would need genuinely public (anonymous) read endpoints on
-`Identity` and/or `Vessel`. As of W3 those do **not** exist (Identity exposes only auth endpoints as
-`[AllowAnonymous]`; Vessel exposes none). When such module endpoints ship, add a `I{Module}RemoteCall` + a
-`Directory`/vertical mirroring the ReferenceData one — do not invent a client against non-public endpoints.
+## 5. Blocked module endpoints — the actionable backlog
+Several website projections (service detail, service × location availability, full pricing terms, CargoDry catalogue,
+contact submit) are **blocked on a module that does not yet expose a public read**. Each has a concrete unblock spec
+(owner module, exact route, web-safe fields, auth posture) in
+[`Bff/docs/MARINE_WEB_BLOCKED.md`](../../../docs/MARINE_WEB_BLOCKED.md). When a module ships the endpoint, add a
+`I{Module}RemoteCall` + a vertical mirroring the existing ones — never invent a client against a non-public endpoint,
+never fabricate data. This is the module-team backlog to bring the blocked projections online.

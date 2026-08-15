@@ -1,6 +1,7 @@
 using Aizen.Bff.Marine.Web.Application.Common.Http;
 using Aizen.Bff.Marine.Web.Application.Common.Options;
 using Aizen.Bff.Marine.Web.Application.Common.RemoteClients;
+using Aizen.Bff.Marine.Web.Application.Common.Seo;
 using Aizen.Bff.Marine.Web.Application.Common.Services;
 using Aizen.Core.RemoteCall.Abstraction;
 using Microsoft.Extensions.Configuration;
@@ -33,6 +34,18 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        // W2 — public-surface options (trusted server-caller secret + revalidation webhook). Secrets are
+        // environment/secret-store only; no data-annotation Required (an empty secret disables the feature).
+        services.AddOptions<MarineWebPublicOptions>()
+            .Bind(configuration.GetSection(MarineWebPublicOptions.SectionName));
+
+        // W2.2 — best-effort outbound cache-revalidation webhook to the Next.js server (fired by the bus consumers).
+        services.AddScoped<IWebRevalidationNotifier, WebRevalidationNotifier>();
+
+        // W3.2 — SEO indexability seam. Options-backed today (MarineWebPublic:Seo); swappable for managed data later
+        // without touching the handlers (they depend on ISeoIndexabilityPolicy). Stateless → singleton.
+        services.AddSingleton<ISeoIndexabilityPolicy, OptionsSeoIndexabilityPolicy>();
+
         services.AddScoped<IWebParticipantContext, WebParticipantContext>();
         services.AddScoped<IWebIdentityHolder, WebIdentityHolder>();
         services.AddScoped<IWebParticipantProfileResolver, WebParticipantProfileResolver>();
@@ -58,6 +71,13 @@ public static class DependencyInjection
         services.AddTransient<IReferenceDataRemoteCall>(provider =>
             CreateRemoteCall<IReferenceDataRemoteCall>(
                 CreateHttpClient(provider, nameof(IReferenceDataRemoteCall))));
+
+        // W4 — Payment module client (public subscription plans for the pricing page). Base URL from
+        // RemoteCalls:IPaymentPlanRemoteCall:BaseUrl (→ the payment-api host). The plan GETs are anonymous on the
+        // module, so no additional service role is required.
+        services.AddTransient<IPaymentPlanRemoteCall>(provider =>
+            CreateRemoteCall<IPaymentPlanRemoteCall>(
+                CreateHttpClient(provider, nameof(IPaymentPlanRemoteCall))));
 
         return services;
     }

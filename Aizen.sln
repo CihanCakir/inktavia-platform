@@ -431,7 +431,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Modules.Content", "Mo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Marine.Web", "Marine.Web", "{34D1CF68-FEE1-63D3-5F39-D5ED57B62365}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Bff.Marine.Web", "Bff\src\Marine.Web\Aizen.Bff.Marine.Webz\Aizen.Bff.Marine.Web.csproj", "{9FBA88E1-DB7C-423A-9099-E929F0C6BE02}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Bff.Marine.Web", "Bff\src\Marine.Web\Aizen.Bff.Marine.Web\Aizen.Bff.Marine.Web.csproj", "{9FBA88E1-DB7C-423A-9099-E929F0C6BE02}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aizen.Bff.Marine.Web.Application", "Bff\src\Marine.Web\Aizen.Bff.Marine.Web.Application\Aizen.Bff.Marine.Web.Application.csproj", "{8D48672D-99FC-4A5E-B34F-5A2F37B2FACA}"
 EndProject

@@ -15,6 +15,13 @@ public sealed class ContentItemSummaryDto
 
     /// <summary>Language the Title/Summary below were resolved to.</summary>
     public string Lang { get; set; } = default!;
+
+    /// <summary>
+    /// Every language this item is translated into (from the item's translation set). Additive (W3.1): lets a
+    /// consumer emit hreflang alternates for exactly the locales the item exists in, without a per-locale slug.
+    /// </summary>
+    public List<string> AvailableLangs { get; set; } = new();
+
     public string Title { get; set; } = default!;
     public string? Summary { get; set; }
     public string? CoverUrl { get; set; }

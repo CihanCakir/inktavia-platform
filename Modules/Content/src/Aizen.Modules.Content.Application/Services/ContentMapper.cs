@@ -48,6 +48,7 @@ public static class ContentMapper
             Slug = d.Slug,
             Status = d.Status,
             Lang = tr?.Lang ?? d.DefaultLanguage,
+            AvailableLangs = d.Translations.Select(t => t.Lang).ToList(),
             Title = tr?.Title ?? d.Slug,
             Summary = tr?.Summary,
             CoverUrl = ResolveCoverUrl(d),

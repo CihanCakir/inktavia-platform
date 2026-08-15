@@ -1,3 +1,4 @@
+using Aizen.Bff.Marine.Web.Application.Contracts.Seo;
 using Aizen.Modules.Content.Abstraction.Enum;
 
 namespace Aizen.Bff.Marine.Web.Application.Contracts.Content;
@@ -24,6 +25,12 @@ public sealed class WebContentDetailDto
 
     public string? CoverUrl { get; set; }
     public List<WebContentMediaDto> Gallery { get; set; } = new();
+
+    /// <summary>Every language this item exists in — for hreflang alternates (W3.1). Carries nothing sensitive.</summary>
+    public List<string> AvailableLangs { get; set; } = new();
+
+    /// <summary>Backend SEO verdict for this page (W3.2). The frontend fails safe to noindex when this is absent.</summary>
+    public WebSeoDto? Seo { get; set; }
 
     public List<string> Tags { get; set; } = new();
     public string? CategorySlug { get; set; }
