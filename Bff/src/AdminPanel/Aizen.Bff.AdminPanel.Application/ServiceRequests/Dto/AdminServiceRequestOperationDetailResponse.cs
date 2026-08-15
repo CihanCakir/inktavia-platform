@@ -22,5 +22,13 @@ public sealed class AdminServiceRequestOperationDetailResponse
     /// </summary>
     public Dictionary<long, string> ProviderNames { get; set; } = new();
 
+    /// <summary>
+    /// Every uploaded file on the SR resolved into a presigned, viewable URL (best-effort): request attachments,
+    /// provider completion evidence, and work-log evidence photos. Each item carries <c>url + mimeType + isImage</c>
+    /// so the admin panel can render an image grid/lightbox and a download affordance for non-images. Empty when the
+    /// SR has no files; URLs are null (with a FileStorage warning) when presigning failed — never a 500.
+    /// </summary>
+    public List<AdminSrMediaFileDto> Media { get; set; } = new();
+
     public List<AdminBffWarning> Warnings { get; set; } = new();
 }

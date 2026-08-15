@@ -69,7 +69,7 @@ public sealed class VesselResolveAndDocActionsTests
         identity.GetUserProfilesByUserIds(Arg.Any<long[]>())
                 .Returns(Ok(new List<UserProfileListItemDto> { Profile(ownerUserId, "Ada", "Yılmaz", photo: "https://cdn/ada.png", email: "ada@x.com") }));
         files.CreateReadUrl(Arg.Any<Guid>(), Arg.Any<CreateFileReadUrlRemoteCallRequest>())
-             .Returns(Ok(new FileAccessUrlResult { AccessUrl = new FileAccessUrlDto { ReadUrl = "https://minio/presigned" } }));
+             .Returns(Ok(new FileAccessUrlDto { ReadUrl = "https://minio/presigned" }));
 
         var result = await handler.Handle(new GetVesselByIdBffQuery(100013), CancellationToken.None);
 
@@ -94,7 +94,7 @@ public sealed class VesselResolveAndDocActionsTests
         vessel.GetVesselById(100013).Returns(Ok(new GetVesselDetailResponse(Detail(Guid.NewGuid(), Guid.NewGuid(), 100029, 100029))));
         identity.GetUserProfilesByUserIds(Arg.Any<long[]>()).Throws(new Exception("Identity down"));
         files.CreateReadUrl(Arg.Any<Guid>(), Arg.Any<CreateFileReadUrlRemoteCallRequest>())
-             .Returns(Ok(new FileAccessUrlResult { AccessUrl = new FileAccessUrlDto { ReadUrl = "https://minio/presigned" } }));
+             .Returns(Ok(new FileAccessUrlDto { ReadUrl = "https://minio/presigned" }));
 
         var result = await handler.Handle(new GetVesselByIdBffQuery(100013), CancellationToken.None);
 
@@ -113,7 +113,7 @@ public sealed class VesselResolveAndDocActionsTests
         identity.GetUserProfilesByUserIds(Arg.Any<long[]>())
                 .Returns(Ok(new List<UserProfileListItemDto> { Profile(100029, "Ada", "Yılmaz") }));
         files.CreateReadUrl(Arg.Any<Guid>(), Arg.Any<CreateFileReadUrlRemoteCallRequest>())
-             .Returns(Ok(new FileAccessUrlResult { AccessUrl = null })); // objectless / unpresignable file
+             .Returns(Ok<FileAccessUrlDto>(null!)); // objectless / unpresignable file
 
         var result = await handler.Handle(new GetVesselByIdBffQuery(100013), CancellationToken.None);
 

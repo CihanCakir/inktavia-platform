@@ -25,7 +25,7 @@ public sealed class GetFileReviewOverviewBffQueryHandler
         {
 
         var result = await _fileStorage.GetFileMetadata(request.FileId);
-            response.FileMetadata = result.Body;
+            response.FileMetadata = new FileMetadataResult { File = result.Body };
         }
         catch
         {

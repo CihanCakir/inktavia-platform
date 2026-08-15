@@ -1,5 +1,11 @@
 # Aizen.Modules.Content — Build Prompt & Roadmap (MongoDB, .NET 9, CQRS)
 
+> **STATUS: COMPLETE — phases C0–C9 shipped.** `dotnet build Aizen.sln` green; unit tests green.
+> See [`../README.md`](../README.md), [`CONTENT_KEYCLOAK_ROLES.md`](CONTENT_KEYCLOAK_ROLES.md), and
+> [`CONTENT_NOTIFICATION_CONTRACT.md`](CONTENT_NOTIFICATION_CONTRACT.md). Known limit (backlog): public
+> feed ordering uses a bounded in-memory candidate set (`CandidateCap = 500`) pending a Mongo aggregation
+> pipeline. Notification consumer wiring is a Notification-module follow-up.
+
 > **How to use this file.** This is an execution prompt for an AI coding agent (Copilot / Claude) building the `Content` module inside the Inktavia Marine OS backend (`Aizen.sln`). It is authoritative for scope, boundaries, data model, conventions, Keycloak authorization, and the phased roadmap. Follow the existing project conventions exactly (they are quoted below from real modules: `CargoDry`, `ReferenceData`, `Notification`). Do **not** invent new base classes, DI helpers, or patterns — reuse the `Aizen.Core.*` primitives shown here. Produce complete, compile-ready files. English for all code, names, and commits.
 
 ---

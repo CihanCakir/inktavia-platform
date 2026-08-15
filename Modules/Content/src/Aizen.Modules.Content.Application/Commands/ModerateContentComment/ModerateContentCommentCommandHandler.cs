@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Content.Abstraction.Dto;
 using Aizen.Modules.Content.Abstraction.Enum;
@@ -14,11 +15,14 @@ public sealed class ModerateContentCommentCommandHandler
 
     private readonly IContentCommentRepository _comments;
     private readonly IContentItemRepository _items;
+    private readonly IAizenInfoAccessor _info;
 
-    public ModerateContentCommentCommandHandler(IContentCommentRepository comments, IContentItemRepository items)
+    public ModerateContentCommentCommandHandler(
+        IContentCommentRepository comments, IContentItemRepository items, IAizenInfoAccessor info)
     {
         _comments = comments;
         _items = items;
+        _info = info;
     }
 
     public override async Task<ContentCommentDto?> Handle(
@@ -32,10 +36,12 @@ public sealed class ModerateContentCommentCommandHandler
 
         var delta = ContentCommentCounter.TransitionDelta(comment.Status, request.Status);
 
-        // NOTE: Reason is accepted for the moderator's audit intent; the comment document has no field
-        // to persist it (a dedicated moderation log can be added in C9).
+        var now = DateTimeOffset.UtcNow;
         comment.Status = request.Status;
-        comment.UpdatedAt = DateTimeOffset.UtcNow;
+        comment.ModeratedByUserId = _info.UserInfoAccessor?.UserInfo?.UserId;
+        comment.ModeratedAt = now;
+        comment.LastModerationReason = request.Reason;
+        comment.UpdatedAt = now;
         await _comments.ReplaceAsync(comment, cancellationToken);
 
         if (delta != 0)

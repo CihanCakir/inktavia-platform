@@ -78,4 +78,10 @@ public sealed class GetVesselMediaQueryHandler : AizenQueryHandler<GetVesselMedi
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;
     public AizenCacheOptions CacheOptions => new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15) };
+
+    // Never cache the access-URL variant: presigned URLs are time-limited and must be fresh, AND the admin BFF
+    // (which always requests them, keyed on IncludeAccessUrls=true/60m) would otherwise read a stale entry the
+    // metadata-keyed invalidation cannot evict. Only the metadata-only (IncludeAccessUrls=false) variant is cached.
+    public bool ShouldCache(object request)
+        => request is not GetVesselMediaQuery q || !q.IncludeAccessUrls;
 }

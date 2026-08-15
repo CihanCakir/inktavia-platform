@@ -24,8 +24,8 @@ public sealed class GetPublicCategoryTreeQueryHandler
     {
         var lang = string.IsNullOrWhiteSpace(request.Lang) ? "tr" : request.Lang;
 
-        // NOTE: category CRUD (C4) does not bump the content generation, so category changes surface on
-        // TTL expiry. A future tweak can bump the global generation on category mutation for instant refresh.
+        // Category create/update bump the GLOBAL generation (C9), so category edits invalidate this cache
+        // immediately; the 30-minute TTL is only the idle backstop.
         var globalGen = await ContentPublicCacheKeys.ReadGenerationAsync(
             _cache, ContentCacheInvalidator.GlobalGenerationKey, cancellationToken);
         var cacheKey = ContentPublicCacheKeys.CategoryTree(lang, globalGen);

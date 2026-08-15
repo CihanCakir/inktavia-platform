@@ -95,7 +95,7 @@ public sealed class GetVesselByIdBffQueryHandler : AizenQueryHandler<GetVesselBy
         var anyFailed = false;
         foreach (var (id, task) in tasks)
         {
-            var url = task.IsCompletedSuccessfully ? task.Result.Body?.AccessUrl?.ReadUrl : null;
+            var url = task.IsCompletedSuccessfully ? task.Result.Body?.ReadUrl : null;
             if (!string.IsNullOrEmpty(url)) map[id] = url;
             else anyFailed = true;
         }
@@ -143,7 +143,10 @@ public sealed class GetVesselByIdBffQueryHandler : AizenQueryHandler<GetVesselBy
         return new VesselMediaBffDto
         {
             Id = m.Id,
-            MediaType = m.MediaType.ToString(),
+            // FE contract is 'image' | 'video' (VesselMediaDto.mediaType). Emitting the raw enum name ("Photo")
+            // broke strict consumers like the detail hero (mediaType === 'image'); the gallery only rendered because
+            // it falls back to thumbnailUrl. Map Video → 'video', every other media kind → 'image'.
+            MediaType = m.MediaType == Aizen.Modules.Vessel.Abstraction.Enum.VesselMediaType.Video ? "video" : "image",
             Title = m.Title,
             Description = m.Description,
             OriginalFileName = m.OriginalFileNameSnapshot,

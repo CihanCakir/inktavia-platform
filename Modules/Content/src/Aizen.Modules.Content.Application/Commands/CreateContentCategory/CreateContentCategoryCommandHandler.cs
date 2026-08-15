@@ -17,13 +17,15 @@ public sealed class CreateContentCategoryCommandHandler
     private readonly IContentCategoryRepository _categories;
     private readonly ISlugService _slug;
     private readonly IAizenInfoAccessor _info;
+    private readonly IContentCacheInvalidator _cache;
 
     public CreateContentCategoryCommandHandler(
-        IContentCategoryRepository categories, ISlugService slug, IAizenInfoAccessor info)
+        IContentCategoryRepository categories, ISlugService slug, IAizenInfoAccessor info, IContentCacheInvalidator cache)
     {
         _categories = categories;
         _slug = slug;
         _info = info;
+        _cache = cache;
     }
 
     public override async Task<ContentCategoryDto?> Handle(
@@ -45,6 +47,11 @@ public sealed class CreateContentCategoryCommandHandler
         };
 
         await _categories.AddAsync(document, cancellationToken);
+
+        // Bump the global generation so the public category tree refreshes immediately (C9: fixes the
+        // C5 TTL-only staleness). No surface generation is bumped — categories are not surface-scoped.
+        await _cache.BumpAsync(Array.Empty<Aizen.Modules.Content.Abstraction.Enum.ContentSurface>(), cancellationToken);
+
         return ContentMapper.ToDto(document);
     }
 }

@@ -29,6 +29,11 @@ public sealed class ContentCommentDocument : AizenDocumentBase
     /// <summary>Optional single-level thread parent (null for a top-level comment).</summary>
     public string? ParentCommentId { get; set; }
 
+    // ── Moderation trail (C9) ───────────────────────────────────────────────────
+    public long? ModeratedByUserId { get; set; }
+    public DateTimeOffset? ModeratedAt { get; set; }
+    public string? LastModerationReason { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

@@ -20,6 +20,6 @@ public sealed class CreateFileReadUrlBffCommandHandler : AizenCommandHandler<Cre
         var r = await _fileStorage.CreateReadUrl(
             request.FileId,
             new CreateFileReadUrlRemoteCallRequest { ExpiresIn = TimeSpan.FromMinutes(request.ExpiresInMinutes) });
-        return r.Body;
+        return new FileAccessUrlResult { AccessUrl = r.Body };
     }
 }

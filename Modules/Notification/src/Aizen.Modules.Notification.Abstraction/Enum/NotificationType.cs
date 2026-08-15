@@ -77,6 +77,10 @@ public enum NotificationType
     OnboardingRevisionRequested  = 404,
     PasswordRecoveryOtp          = 410,
     OtpLoginCode                 = 411,
+    /// <summary>Content module — "Yeni içerik yayında": a content item was published. Consumed from
+    /// ContentPublishedMessage; v1 notifies admins for awareness (see ContentPublishedConsumer). The contract
+    /// doc recommended 400 but that value is ProfileApprovalDecision, so Content owns the 500 range.</summary>
+    ContentPublished             = 500,
     AdminBroadcast               = 900,
     /// <summary>N-D — a live-support request was opened; notifies admins. Broadcast category (N-B gated).</summary>
     SupportRequestOpened         = 910,

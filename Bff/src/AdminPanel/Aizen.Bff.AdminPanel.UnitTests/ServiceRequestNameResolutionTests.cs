@@ -1,6 +1,8 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.ServiceRequests.Query;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
+using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
@@ -127,7 +129,8 @@ public sealed class ServiceRequestNameResolutionTests
                     Profile(providerUserId, "Cihan", "Çakır"),
                 }));
 
-        var handler = new GetServiceRequestOperationDetailBffQueryHandler(sr, vessel, identity);
+        var fileStorage = Substitute.For<IFileStorageRemoteCall>();
+        var handler = new GetServiceRequestOperationDetailBffQueryHandler(sr, vessel, identity, fileStorage);
         var result = await handler.Handle(new GetServiceRequestOperationDetailBffQuery(9011), CancellationToken.None);
 
         result!.OwnerName.Should().Be("Ada Yılmaz");
@@ -136,4 +139,91 @@ public sealed class ServiceRequestNameResolutionTests
         await identity.Received(1).GetUserProfilesByUserIds(Arg.Any<long[]>());
         batchedIds.Should().Contain(new[] { ownerUserId, providerUserId });
     }
+
+    // ── DETAIL/MEDIA: every SR file surface is presigned into a viewable URL with mime/isImage ───
+    [Fact]
+    public async Task Detail_presigns_request_completion_and_worklog_media_with_mime_and_isImage()
+    {
+        var attFileId  = Guid.NewGuid();
+        var compFileId = Guid.NewGuid();
+        var logFileId  = Guid.NewGuid();
+
+        var sr = Substitute.For<IServiceRequestRemoteCall>();
+        var detail = new ServiceRequestDetailDto
+        {
+            Request     = new ServiceRequestDto { Id = 9011, OwnerUserId = 100029, VesselId = 100014 },
+            Attachments = new List<ServiceRequestAttachmentDto> { new() { Id = 1, FileId = attFileId, Title = "Damage photo" } },
+            Completion  = new ServiceRequestCompletionDto { Id = 5, EvidenceFileId = compFileId },
+            WorkLogs    = new List<ServiceRequestWorkLogDto> { new() { Id = 7, AttachmentFileId = logFileId, Title = "Phase 1" } },
+        };
+        sr.GetAdminServiceRequestDetail(9011).Returns(Ok(new GetServiceRequestDetailResponse(detail)));
+
+        var vessel   = Substitute.For<IVesselRemoteCall>();
+        var identity = Substitute.For<IIdentityRemoteCall>();
+        identity.GetUserProfilesByUserIds(Arg.Any<long[]>()).Returns(Ok(new List<UserProfileListItemDto>()));
+
+        var fileStorage = Substitute.For<IFileStorageRemoteCall>();
+        fileStorage.CreateReadUrl(Arg.Any<Guid>(), Arg.Any<Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests.CreateFileReadUrlRemoteCallRequest>())
+                   .Returns(ci => Ok(new FileAccessUrlDto { FileId = ci.Arg<Guid>(), ReadUrl = $"https://minio.local/{ci.Arg<Guid>()}", ExpiresAt = default }));
+        fileStorage.GetFileMetadata(attFileId).Returns(Ok(Meta("image/jpeg", "damage.jpg")));
+        fileStorage.GetFileMetadata(compFileId).Returns(Ok(Meta("application/pdf", "report.pdf")));
+        fileStorage.GetFileMetadata(logFileId).Returns(Ok(Meta("image/png", "phase1.png")));
+
+        var handler = new GetServiceRequestOperationDetailBffQueryHandler(sr, vessel, identity, fileStorage);
+        var result = await handler.Handle(new GetServiceRequestOperationDetailBffQuery(9011), CancellationToken.None);
+
+        result!.Media.Should().HaveCount(3);
+        result.Warnings.Should().BeEmpty();
+
+        var att = result.Media.Single(m => m.Surface == "RequestAttachment");
+        att.Url.Should().Be($"https://minio.local/{attFileId}");
+        att.IsImage.Should().BeTrue();
+        att.MimeType.Should().Be("image/jpeg");
+        att.FileName.Should().Be("damage.jpg");
+        att.SourceId.Should().Be(1);
+
+        var comp = result.Media.Single(m => m.Surface == "CompletionEvidence");
+        comp.Url.Should().NotBeNull();
+        comp.IsImage.Should().BeFalse();          // PDF evidence → download row, not a thumbnail
+        comp.MimeType.Should().Be("application/pdf");
+
+        result.Media.Single(m => m.Surface == "WorkLogPhoto").IsImage.Should().BeTrue();
+    }
+
+    // ── DETAIL/MEDIA: FileStorage down → URLs null + a warning, still a 200 (never throws) ───────
+    [Fact]
+    public async Task Detail_filestorage_down_yields_null_urls_and_warning_without_throwing()
+    {
+        var attFileId = Guid.NewGuid();
+
+        var sr = Substitute.For<IServiceRequestRemoteCall>();
+        var detail = new ServiceRequestDetailDto
+        {
+            Request     = new ServiceRequestDto { Id = 9011, OwnerUserId = 100029, VesselId = 100014 },
+            Attachments = new List<ServiceRequestAttachmentDto> { new() { Id = 1, FileId = attFileId, Title = "Photo" } },
+        };
+        sr.GetAdminServiceRequestDetail(9011).Returns(Ok(new GetServiceRequestDetailResponse(detail)));
+
+        var vessel   = Substitute.For<IVesselRemoteCall>();
+        var identity = Substitute.For<IIdentityRemoteCall>();
+        identity.GetUserProfilesByUserIds(Arg.Any<long[]>()).Returns(Ok(new List<UserProfileListItemDto>()));
+
+        // Model a killed file-storage-api: the remote call's Task faults (not a synchronous throw).
+        var fileStorage = Substitute.For<IFileStorageRemoteCall>();
+        fileStorage.CreateReadUrl(Arg.Any<Guid>(), Arg.Any<Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests.CreateFileReadUrlRemoteCallRequest>())
+                   .Returns(Task.FromException<AizenApiResponse<FileAccessUrlDto>>(new Exception("file-storage down")));
+        fileStorage.GetFileMetadata(Arg.Any<Guid>())
+                   .Returns(Task.FromException<AizenApiResponse<FileMetadataDto>>(new Exception("file-storage down")));
+
+        var handler = new GetServiceRequestOperationDetailBffQueryHandler(sr, vessel, identity, fileStorage);
+        var result = await handler.Handle(new GetServiceRequestOperationDetailBffQuery(9011), CancellationToken.None);
+
+        result.Should().NotBeNull();                                   // no 500 — best-effort
+        result!.Media.Should().ContainSingle();
+        result.Media[0].Url.Should().BeNull();                         // FE guards url ? <img/> : icon
+        result.Warnings.Should().Contain(w => w.Module == "FileStorage");
+    }
+
+    private static FileMetadataDto Meta(string contentType, string fileName) =>
+        new() { ContentType = contentType, OriginalFileName = fileName };
 }

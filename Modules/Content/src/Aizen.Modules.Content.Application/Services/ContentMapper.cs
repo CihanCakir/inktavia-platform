@@ -80,6 +80,9 @@ public static class ContentMapper
         Body = d.Body,
         Status = d.Status,
         ParentCommentId = d.ParentCommentId,
+        ModeratedByUserId = d.ModeratedByUserId,
+        ModeratedAt = d.ModeratedAt,
+        LastModerationReason = d.LastModerationReason,
         CreatedAt = d.CreatedAt,
         UpdatedAt = d.UpdatedAt,
     };

@@ -1,6 +1,7 @@
 using Aizen.Modules.Content.Domain.Interface.Repository;
 using Aizen.Modules.Content.Repository.Persistence;
 using Aizen.Modules.Content.Repository.Repositories;
+using Aizen.Modules.Content.Repository.Seed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IContentFavoriteRepository, ContentFavoriteRepository>();
         services.AddScoped<IContentCategoryRepository, ContentCategoryRepository>();
         services.AddScoped<ContentMongoIndexInitializer>();
+        services.AddScoped<ContentDemoSeed>();
 
         return services;
     }
@@ -32,6 +34,8 @@ public static class DependencyInjection
         var mongoIndexer = scope.ServiceProvider.GetRequiredService<ContentMongoIndexInitializer>();
         await mongoIndexer.InitializeAsync(ct);
 
-        // NOTE: Optional demo content seeding (behind a config flag) is added in Phase C9.
+        // Optional demo content (OFF by default; enabled via Content:Seed:Demo=true). No-op otherwise.
+        var demoSeed = scope.ServiceProvider.GetRequiredService<ContentDemoSeed>();
+        await demoSeed.SeedAsync(ct);
     }
 }

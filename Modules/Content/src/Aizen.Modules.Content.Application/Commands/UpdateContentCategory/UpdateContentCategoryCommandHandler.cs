@@ -14,11 +14,14 @@ public sealed class UpdateContentCategoryCommandHandler
 
     private readonly IContentCategoryRepository _categories;
     private readonly IAizenInfoAccessor _info;
+    private readonly IContentCacheInvalidator _cache;
 
-    public UpdateContentCategoryCommandHandler(IContentCategoryRepository categories, IAizenInfoAccessor info)
+    public UpdateContentCategoryCommandHandler(
+        IContentCategoryRepository categories, IAizenInfoAccessor info, IContentCacheInvalidator cache)
     {
         _categories = categories;
         _info = info;
+        _cache = cache;
     }
 
     public override async Task<ContentCategoryDto?> Handle(
@@ -35,6 +38,10 @@ public sealed class UpdateContentCategoryCommandHandler
         category.IsActive = request.IsActive;
 
         await _categories.ReplaceAsync(category, cancellationToken);
+
+        // Bump the global generation so the public category tree refreshes immediately (C9).
+        await _cache.BumpAsync(Array.Empty<Aizen.Modules.Content.Abstraction.Enum.ContentSurface>(), cancellationToken);
+
         return ContentMapper.ToDto(category);
     }
 }

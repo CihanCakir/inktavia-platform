@@ -15,6 +15,9 @@ public interface IContentItemRepository
     Task<ContentItemDocument?> GetByIdAsync(string id, CancellationToken ct = default);
     Task<ContentItemDocument?> GetBySlugAsync(string slug, CancellationToken ct = default);
 
+    /// <summary>Batch fetch by id (excludes soft-deleted). Order is not guaranteed — caller re-associates.</summary>
+    Task<IReadOnlyList<ContentItemDocument>> GetByIdsAsync(IEnumerable<string> ids, CancellationToken ct = default);
+
     /// <summary>True when a non-deleted item already uses the slug, optionally excluding one id.</summary>
     Task<bool> SlugExistsAsync(string slug, string? excludeId = null, CancellationToken ct = default);
 

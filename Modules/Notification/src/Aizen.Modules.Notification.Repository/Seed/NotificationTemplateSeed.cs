@@ -57,6 +57,12 @@ public sealed class NotificationTemplateSeed
             "Yeni destek talebi: {{topic}}",
             "{{requesterName}} yeni bir destek talebi açtı ({{topic}}): {{subject}}."),
 
+        // Content module — admin-facing "new content published" awareness (from ContentPublishedConsumer).
+        NotificationTemplateEntity.Create("CONTENT_PUBLISHED_INAPP", "Content Published (In-App)",
+            NotificationType.ContentPublished, NotificationChannel.InApp,
+            "Yeni içerik yayında",
+            "{{contentType}} yayınlandı ({{slug}})."),
+
         NotificationTemplateEntity.Create("SR_STATUS_CHANGED_INAPP", "Service Request Status Changed (In-App)",
             NotificationType.ServiceRequestStatusChanged, NotificationChannel.InApp,
             "Request {{requestCode}} Status Updated",

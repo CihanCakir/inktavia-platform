@@ -49,7 +49,10 @@ internal sealed class AizenQueryHandlerDecorator<TQuery, TResult> : AizenQueryHa
     {
         TResult result;
 
-        if (!this._isCacheable)
+        // Bypass the cache when the handler is not cacheable, or when a cacheable handler opts THIS request out
+        // (e.g. responses embedding time-limited presigned URLs must always be fresh).
+        if (!this._isCacheable
+            || !((IAizenQueryHandlerCacheable)this._decorated).ShouldCache(request!))
         {
             result = await this._decorated.Handle(request, cancellationToken);
             return result;

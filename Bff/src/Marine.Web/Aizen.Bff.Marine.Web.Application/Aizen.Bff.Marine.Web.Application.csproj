@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- W4: the unit tests exercise the internal identity resolver + holder (real ordering / no-recursion). -->
+    <InternalsVisibleTo Include="Aizen.Bff.Marine.Web.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall/Aizen.Core.RemoteCall.csproj" />
+    <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/InfoAccessor/src/Aizen.Core.InfoAccessor.Abstraction/Aizen.Core.InfoAccessor.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Api/src/Aizen.Core.Api.Abstraction/Aizen.Core.Api.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Validation/src/Aizen.Core.Validation/Aizen.Core.Validation.csproj" />
+    <!-- W1: Content public read vertical — module DTOs/enums via .Abstraction only. -->
+    <ProjectReference Include="../../../../Modules/Content/src/Aizen.Modules.Content.Abstraction/Aizen.Modules.Content.Abstraction.csproj" />
+    <!-- W2: Identity profile lookup (by Keycloak subject) for participant identity resolution. -->
+    <ProjectReference Include="../../../../Modules/Identity/src/Aizen.Modules.Identity.Abstraction/Aizen.Modules.Identity.Abstraction.csproj" />
+    <!-- W3: ReferenceData public lookups (countries / cities / lookup-items) — module DTOs via .Abstraction only. -->
+    <ProjectReference Include="../../../../Modules/ReferenceData/src/Aizen.Modules.ReferenceData.Abstraction/Aizen.Modules.ReferenceData.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Common/src/Aizen.Core.Common.Abstraction/Aizen.Core.Common.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Cache/src/Aizen.Core.Cache.Abstraction/Aizen.Core.Cache.Abstraction.csproj" />
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
+
+</Project>

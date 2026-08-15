@@ -7,24 +7,29 @@ using Aizen.Modules.Content.Abstraction.Enum;
 using Aizen.Modules.Content.Application.Services;
 using Aizen.Modules.Content.Domain.Interface.Repository;
 using Aizen.Modules.Content.Domain.MongoDocuments;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.Content.Application.Queries.GetPublicContentFeed;
 
 public sealed class GetPublicContentFeedQueryHandler
     : AizenQueryHandler<GetPublicContentFeedQuery, ContentFeedResponse>
 {
-    // PERF (C9): fetch a bounded candidate set and order/page in memory, because feed ordering keys
-    // off the surface-matched placement position (a per-item derived value). A server-side aggregation
-    // pipeline (precomputed sort key) should replace this in hardening.
+    // KNOWN LIMIT (backlog, see README "Known limits"): feed ordering keys off the surface-matched
+    // placement position (a per-item derived value not expressible as a server-side sort), so we fetch a
+    // bounded candidate set and order/page in memory. A Mongo aggregation pipeline (precomputed sort key)
+    // should replace this when a surface's published set can exceed CandidateCap. Truncation is logged.
     private const int CandidateCap = 500;
 
     private readonly IContentItemRepository _items;
     private readonly IAizenDistributedCache _cache;
+    private readonly ILogger<GetPublicContentFeedQueryHandler> _logger;
 
-    public GetPublicContentFeedQueryHandler(IContentItemRepository items, IAizenDistributedCache cache)
+    public GetPublicContentFeedQueryHandler(
+        IContentItemRepository items, IAizenDistributedCache cache, ILogger<GetPublicContentFeedQueryHandler> logger)
     {
         _items = items;
         _cache = cache;
+        _logger = logger;
     }
 
     public override async Task<ContentFeedResponse> Handle(
@@ -49,6 +54,10 @@ public sealed class GetPublicContentFeedQueryHandler
             x.Placements.Any(p => p.Surface == surface);
 
         var candidates = await _items.FindManyAsync(predicate, skip: 0, take: CandidateCap, cancellationToken);
+        if (candidates.Count >= CandidateCap)
+            _logger.LogWarning(
+                "Content feed for surface={Surface} hit the {Cap}-item candidate cap; results may be truncated. " +
+                "Migrate to a server-side aggregation pipeline (see README known limits).", surface, CandidateCap);
 
         var response = ContentFeedProjection.Build(candidates, surface, lang, page, pageSize, DateTimeOffset.UtcNow);
 

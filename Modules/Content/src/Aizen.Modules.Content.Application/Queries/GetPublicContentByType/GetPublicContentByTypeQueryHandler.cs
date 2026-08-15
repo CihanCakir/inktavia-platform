@@ -13,7 +13,8 @@ namespace Aizen.Modules.Content.Application.Queries.GetPublicContentByType;
 public sealed class GetPublicContentByTypeQueryHandler
     : AizenQueryHandler<GetPublicContentByTypeQuery, ContentFeedResponse>
 {
-    // PERF (C9): bounded candidate fetch + in-memory order/page — see GetPublicContentFeedQueryHandler.
+    // KNOWN LIMIT (backlog, see README): bounded candidate fetch + in-memory order/page, same as
+    // GetPublicContentFeedQueryHandler (feed ordering is a per-item derived key). Aggregation-pipeline rewrite pending.
     private const int CandidateCap = 500;
 
     private readonly IContentItemRepository _items;

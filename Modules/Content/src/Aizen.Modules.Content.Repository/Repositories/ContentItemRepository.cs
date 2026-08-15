@@ -32,6 +32,20 @@ public sealed class ContentItemRepository : IContentItemRepository
     public Task<ContentItemDocument?> GetBySlugAsync(string slug, CancellationToken ct = default)
         => _items.FindAsync(x => x.Slug == slug, cancellationToken: ct)!;
 
+    public async Task<IReadOnlyList<ContentItemDocument>> GetByIdsAsync(
+        IEnumerable<string> ids, CancellationToken ct = default)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0)
+            return Array.Empty<ContentItemDocument>();
+
+        var docs = await _items.FindManyAsync(
+            predicate: x => idList.Contains(x.Id),
+            topCount: idList.Count,
+            cancellationToken: ct);
+        return (IReadOnlyList<ContentItemDocument>)docs;
+    }
+
     // NOTE: AnyAsync/CountAsync on the Aizen Mongo repo query the raw collection and do NOT apply the
     // IsDeleted global filter (only Find* do). Existence/count reads therefore go through CreateQuery,
     // which applies the filter — so a soft-deleted slug is correctly reported as free.

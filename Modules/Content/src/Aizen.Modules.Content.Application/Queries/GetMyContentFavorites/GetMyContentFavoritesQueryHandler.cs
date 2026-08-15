@@ -36,15 +36,18 @@ public sealed class GetMyContentFavoritesQueryHandler
         var total = await _favorites.CountByUserAsync(userId, cancellationToken);
         var favorites = await _favorites.GetByUserAsync(userId, (page - 1) * pageSize, pageSize, cancellationToken);
 
-        var items = new List<ContentFavoriteDto>(favorites.Count);
-        foreach (var fav in favorites)
+        // Batch-fetch the favorited items in ONE query (C9: replaces the per-favorite N+1), then re-associate.
+        var itemsById = (await _items.GetByIdsAsync(favorites.Select(f => f.ContentId), cancellationToken))
+            .ToDictionary(d => d.Id);
+
+        var items = favorites.Select(fav =>
         {
             var dto = ContentMapper.ToDto(fav);
-            // PERF (C9): per-favorite enrichment is an N+1 read (bounded by pageSize); batch by id in hardening.
-            var item = await _items.GetByIdAsync(fav.ContentId, cancellationToken);
-            dto.Content = item is null ? null : ContentMapper.ToSummary(item, lang);
-            items.Add(dto);
-        }
+            dto.Content = itemsById.TryGetValue(fav.ContentId, out var item)
+                ? ContentMapper.ToSummary(item, lang)
+                : null;
+            return dto;
+        }).ToList();
 
         return new ContentFavoritesResponse { Items = items, Page = page, PageSize = pageSize, Total = total };
     }

@@ -235,6 +235,7 @@ public static class ServiceRequestMappingExtensions
         Attachments = entity.Attachments.Select(a => a.ToDto()).ToList(),
         Offers = entity.Offers.Select(o => o.ToDto()).ToList(),
         Assignment = entity.Assignment?.ToDto(),
+        WorkLogs = entity.Assignment?.WorkLogs.Select(w => w.ToDto()).ToList() ?? new(),
         Completion = entity.Completion?.ToDto(),
         Dispute = entity.Dispute?.ToDto(),
         StatusHistory = entity.StatusHistory.Select(s => s.ToDto()).ToList()

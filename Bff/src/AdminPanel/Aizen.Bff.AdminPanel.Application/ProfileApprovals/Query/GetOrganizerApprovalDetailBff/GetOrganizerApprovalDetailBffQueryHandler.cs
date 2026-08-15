@@ -96,7 +96,7 @@ public sealed class GetOrganizerApprovalDetailBffQueryHandler
                         var task = urlTasks[i];
                         signedUrlMap[allFileIds[i]] =
                             task.IsCompletedSuccessfully && task.Result?.Header?.IsSuccess == true
-                                ? task.Result.Body?.AccessUrl?.ReadUrl
+                                ? task.Result.Body?.ReadUrl
                                 : null;
                     }
                 }

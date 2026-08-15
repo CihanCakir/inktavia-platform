@@ -31,7 +31,7 @@ public sealed class BulkGenerateReadUrlsBffCommandHandler
 
         return tasks
             .Where(t => t.IsCompletedSuccessfully && t.Result.Body != null)
-            .Select(t => t.Result.Body!)
+            .Select(t => new FileAccessUrlResult { AccessUrl = t.Result.Body })
             .ToList();
     }
 }

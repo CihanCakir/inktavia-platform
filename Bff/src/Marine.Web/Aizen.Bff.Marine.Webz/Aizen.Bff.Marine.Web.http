@@ -1,0 +1,6 @@
+@Aizen.Bff.Marine.Web_HostAddress = http://localhost:5189
+
+GET {{Aizen.Bff.Marine.Web_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

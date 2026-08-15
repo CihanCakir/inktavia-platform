@@ -16,6 +16,11 @@ public sealed class ContentCommentDto
     public ContentCommentStatus Status { get; set; }
     public string? ParentCommentId { get; set; }
 
+    // Moderation trail (populated after a moderation action).
+    public long? ModeratedByUserId { get; set; }
+    public DateTimeOffset? ModeratedAt { get; set; }
+    public string? LastModerationReason { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }

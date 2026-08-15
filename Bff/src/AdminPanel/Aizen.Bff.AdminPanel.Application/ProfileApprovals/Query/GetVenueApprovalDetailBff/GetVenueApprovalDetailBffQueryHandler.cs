@@ -86,7 +86,7 @@ public sealed class GetVenueApprovalDetailBffQueryHandler
                         var task = urlTasks[i];
                         signedUrlMap[detail.Documents[i].FileId] =
                             task.IsCompletedSuccessfully && task.Result?.Header?.IsSuccess == true
-                                ? task.Result.Body?.AccessUrl?.ReadUrl
+                                ? task.Result.Body?.ReadUrl
                                 : null;
                     }
                 }

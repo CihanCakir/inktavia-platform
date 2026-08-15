@@ -11,11 +11,14 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
 public interface IFileStorageRemoteCall : IAizenRemoteCall
 {
+    // NOTE: FileStorage returns the DTO DIRECTLY in the response body (AizenApiResponse<FileMetadataDto> /
+    // AizenApiResponse<FileAccessUrlDto>), NOT wrapped in a {file:…}/{accessUrl:…} envelope. Binding these to the
+    // wrapper Result types made .Body.File / .Body.AccessUrl always null → every presigned URL came back empty.
     [AizenRemoteCallGet("/api/v1/files/{fileId}")]
-    Task<AizenApiResponse<FileMetadataResult>> GetFileMetadata(Guid fileId);
+    Task<AizenApiResponse<FileMetadataDto>> GetFileMetadata(Guid fileId);
 
     [AizenRemoteCallPost("/api/v1/files/{fileId}/access/read-url")]
-    Task<AizenApiResponse<FileAccessUrlResult>> CreateReadUrl(
+    Task<AizenApiResponse<FileAccessUrlDto>> CreateReadUrl(
         Guid fileId,
         [AizenRemoteCallBody] CreateFileReadUrlRemoteCallRequest request);
 
