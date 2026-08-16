@@ -464,7 +464,11 @@ services:
       IdentityKeycloak__BaseUrl: http://keycloak:8080
       IdentityKeycloak__Realm: inktavia-realm
       IdentityKeycloak__AdminClientId: provider-portal-bff
-      IdentityKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET}
+      # KEYSTONE: identity-api authenticates to Keycloak (user provisioning / subject linkage) as the
+      # provider-portal-bff admin client. This had NO default, so a missing env var resolved to BLANK and
+      # silently degraded identity-api's admin path. Default to the dev secret (same value marine-provider-bff
+      # already defaults to) so every consumer resolves identically even without .env; override via .env in dev.
+      IdentityKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET:-local-dev-only-change-me}
       RemoteCalls__IIdentityFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IIdentityReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
       # Trusted-BFF identity assertion (module side). Empty = disabled. Must match the BFF's ModuleAssertionSecret.
