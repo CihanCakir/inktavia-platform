@@ -153,6 +153,17 @@ public sealed class CommissionRuleRepository : ICommissionRuleRepository
         );
     }
 
+    public Task<CommissionRuleEntity?> GetPublishedStandardGlobalRuleAsync(DateTime atUtc, CancellationToken ct = default)
+        => _db.CommissionRules
+            .AsNoTracking()
+            .Where(x => x.RuleType == CommissionRuleType.Global
+                        && x.Priority == CommissionRulePriority.Standard
+                        && x.IsActive
+                        && x.EffectiveFrom <= atUtc
+                        && (x.EffectiveTo == null || atUtc < x.EffectiveTo))
+            .OrderByDescending(x => x.EffectiveFrom)
+            .FirstOrDefaultAsync(ct);
+
     // ── Write ─────────────────────────────────────────────────────────────────
 
     public Task AddAsync(CommissionRuleEntity entity, CancellationToken ct)

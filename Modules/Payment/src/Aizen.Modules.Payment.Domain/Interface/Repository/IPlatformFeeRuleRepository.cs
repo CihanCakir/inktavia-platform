@@ -28,6 +28,15 @@ public interface IPlatformFeeRuleRepository
 
     Task<PlatformFeeRuleEntity?> GetByIdAsync(long id, CancellationToken ct = default);
 
+    /// <summary>
+    /// Returns the Global platform-fee rule for the public pricing surface: no <c>CategoryCode</c>, no
+    /// <c>CustomerType</c>, matching <paramref name="currencyCode"/>, active, and effective at
+    /// <paramref name="atUtc"/> (<c>EffectiveFrom &lt;= atUtc AND (EffectiveTo == null OR atUtc &lt; EffectiveTo)</c>) —
+    /// the latest <c>EffectiveFrom</c> among those. This is the customer-quoted headline fee; category/customer-type
+    /// overrides are internal and NOT returned. Null when none resolves (do not fabricate).
+    /// </summary>
+    Task<PlatformFeeRuleEntity?> GetGlobalRuleAsync(string currencyCode, DateTime atUtc, CancellationToken ct = default);
+
     Task<(List<PlatformFeeRuleEntity> Items, int Total)> GetPagedAsync(
         PlatformFeeModel?     model,
         CommissionRuleStatus? status,

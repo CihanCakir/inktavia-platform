@@ -54,6 +54,7 @@ in `WebCacheAttribute` and mirrored here.
 | Service catalogue | `web/services` | 3600s | 86400s | taxonomy changes rarely |
 | Location detail | `web/locations/**` | 3600s | 86400s | reference geography changes rarely |
 | Public pricing | `web/pricing` | 1800s | 86400s | published plan terms change rarely |
+| Service page | `web/service-pages/{serviceSlug}` | 300s | 3600s | coarse availability shifts moderately |
 
 **Change notifications (push, not poll).** This BFF is also a **bus consumer** (`AppType.Worker` in the host
 `TypeInclude`): it subscribes to the Content module's `ContentPublishedMessage` / `ContentUnpublishedMessage` and
@@ -105,10 +106,13 @@ Only projections whose owning module exposes a genuinely public read are impleme
 | Method | Route | Status | Source | Notes |
 |---|---|---|---|---|
 | GET | `web/services` | ✅ implemented | ReferenceData `SERVICE_PROVIDER_CATEGORY` lookup group | Taxonomy grid: `code`, `slug` (derived), `name`, `description`, `iconKey`, `colorCode`, `sortOrder`. No `Seo`/`availableLangs` — a lookup item has no body or translation set (rich per-service pages are editorial content under `web/content`). |
-| GET | `web/locations/countries/{countryCode}` | 🟡 partial | ReferenceData `LocationController` | `locationType` + `parentChain[]`, code-keyed. |
+| GET | `web/locations/{slug}` | ✅ implemented (M3) | ReferenceData `by-slug` resolver | Collapsed lookup: `locationType` + `code` + `name` + `parentChain[]`. Prefer for identity/breadcrumb. |
+| GET | `web/locations/countries/{countryCode}` | ✅ implemented | ReferenceData `LocationController` | Code-keyed, coordinate-rich detail (country/city/district). |
 | GET | `web/locations/countries/{countryCode}/cities/{cityCode}` | 🟡 partial | ReferenceData `LocationController` | City detail + parent chain. |
 | GET | `web/locations/countries/{countryCode}/cities/{cityCode}/districts/{districtCode}` | 🟡 partial | ReferenceData `LocationController` | District resolved from the districts-by-city list (no single-district module read). |
-| GET | `web/pricing` | 🟡 partial | Payment `provider-plans` + `participant-plans` (`[AllowAnonymous]`) | Published subscription tiers only. Commission model / customer platform fee / VAT flag are admin-only → **BLOCKED**. |
+| GET | `web/pricing` | ✅ implemented | Payment `provider-plans` + `participant-plans` + `public/pricing-terms` (all `[AllowAnonymous]`) | Subscription tiers **plus** a `terms` block (M1): Global standard commission % + Global platform-fee headline. VAT omitted; no economics internals. |
+| GET | `web/service-pages/{serviceSlug}/{locationSlug}` (M3) or `?cityCode=` (M2) | ✅ implemented | ReferenceData `SERVICE_PROVIDER_CATEGORY` + `by-slug` + Identity `providers/for-area/availability` (`[AllowAnonymous]`) | Service tile + location + **coarse** availability enum. `locationSlug`→city (availability city-keyed). No provider count/ids. District/marina-level availability pending finer read-model. |
+| **POST** | `web/contact` (M4) | ✅ implemented | Notification `POST /api/v1/notification/public/contact` (`[AllowAnonymous]`) | **The only WRITE.** Stricter `contact-submit` limit. Untrusted `{name,email,subject,message,sourcePage?,captchaToken?}` (+honeypot) → validate + spam-score + persist + admin notify. Returns `{accepted,ticketRef}`. IP forwarded (X-Forwarded-For) + hashed; captcha accept-ignored. |
 
 **Partial/blocked**: location `{slug}` resolver + `region`/`marina` types, service×location availability, CargoDry
 catalogue/product, and contact submit are all BLOCKED on a missing module endpoint — see the blocked doc. The website
@@ -124,9 +128,10 @@ Every controller action is thin → `IAizenCQRSProcessor.ProcessAsync` → `SetR
 |---|---|---|---|
 | `IContentRemoteCall` (public) | Content | `GET /api/v1/content/public/{feed,by-type,items/{slug},categories,items/{id}/comments}` | **raw DTO** |
 | `IContentRemoteCall` (`/me`) | Content | `POST/DELETE/GET /api/v1/content/me/*` | `AizenApiResponse<T>` |
-| `IIdentityRemoteCall` | Identity | `GET /api/v1/identity/participant/profiles/by-subject/{sub}` | `AizenApiResponse<T>` |
-| `IReferenceDataRemoteCall` | ReferenceData | `GET /api/v1/reference-data/locations/{countries,countries/{c},{c}/cities,{c}/cities/{city},.../districts}`, `.../lookup-groups/lookup-items/{group}` | `AizenApiResponse<T>` |
-| `IPaymentPlanRemoteCall` (W4) | Payment | `GET /api/v1/payment/{provider-plans,participant-plans}` (`[AllowAnonymous]` on the module) | **raw DTO** (BFF-local wire mirrors) |
+| `IIdentityRemoteCall` | Identity | `GET /api/v1/identity/participant/profiles/by-subject/{sub}`, `GET /api/v1/identity/providers/for-area/availability` (M2, `[AllowAnonymous]`) | `AizenApiResponse<T>` |
+| `IReferenceDataRemoteCall` | ReferenceData | `GET /api/v1/reference-data/locations/{by-slug/{slug} (M3),countries,countries/{c},{c}/cities,{c}/cities/{city},.../districts}`, `.../lookup-groups/lookup-items/{group}` | `AizenApiResponse<T>` |
+| `IPaymentRemoteCall` (W4/M1) | Payment | `GET /api/v1/payment/{provider-plans,participant-plans,public/pricing-terms}` (`[AllowAnonymous]` on the module) | **raw DTO** — plans via BFF-local wire mirrors; pricing-terms via `Payment.Abstraction.PublicPricingTermsDto` |
+| `INotificationRemoteCall` (M4) | Notification | `POST /api/v1/notification/public/contact` (`[AllowAnonymous]`; caller IP via `X-Forwarded-For`) | `AizenApiResponse<SubmitContactResponse>` |
 
 **Envelope discipline:** Content *public* endpoints return the raw DTO (`Ok(dto)`) → bind `Task<T>`; Content `/me`
 and all ReferenceData/Identity endpoints wrap in `AizenApiResponse<T>` → handlers unwrap `.Body`. A Refit
@@ -226,8 +231,9 @@ validators and by `SlugService` auto-generation (a reserved auto-slug is suffixe
 | `MarineWebPublic:Revalidate` | `Url`, `Secret` | Best-effort revalidation webhook target on the Next.js server. Empty `Url` ⇒ webhook disabled. |
 | `MarineWebPublic:Seo` | `RequirePublished` (def true), `RequireTitle` (def true), `RequireDescription` (def false), `MinBodyLength` (def 200) | Thresholds behind the `ISeoIndexabilityPolicy` seam (W3.2). Config-managed so SEO owners retune indexability without a deploy. `// FUTURE:` migrates to ReferenceData `SystemParameter`. |
 | `RateLimiting:PublicRead` | `PermitLimit` (def 120), `WindowSeconds` (def 60) | Per-client-IP sliding window for untrusted callers (`public-read-ip`), **unchanged**. |
+| `RateLimiting:ContactSubmit` | `PermitLimit` (def 5), `WindowSeconds` (def 60) | M4 — per-IP limit for the `POST web/contact` WRITE (`contact-submit`), **stricter** than reads and not bypassed by the trusted-caller secret. |
 | `Cors:AllowedOrigins` | `string[]` | Local browser dev only (see auth model); not load-bearing server-to-server. `AllowCredentials`, no wildcard, under `AizenBffCors.PolicyName` before authentication. |
-| `RemoteCalls:I{X}RemoteCall:BaseUrl` | `IContentRemoteCall`, `IIdentityRemoteCall`, `IReferenceDataRemoteCall`, `IPaymentPlanRemoteCall` (W4 pricing → payment-api) | Downstream module host base URLs. |
+| `RemoteCalls:I{X}RemoteCall:BaseUrl` | `IContentRemoteCall`, `IIdentityRemoteCall`, `IReferenceDataRemoteCall`, `IPaymentRemoteCall` (W4 plans + M1 pricing-terms → payment-api) | Downstream module host base URLs. |
 
 Forwarded headers (`X-Forwarded-For`/`-Proto`) are honoured so the real client IP drives the per-IP limiter for
 untrusted callers (trusted callers partition on a fixed shared key, so their few IPs are irrelevant).

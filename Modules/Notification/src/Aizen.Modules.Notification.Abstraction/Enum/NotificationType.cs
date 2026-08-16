@@ -84,4 +84,7 @@ public enum NotificationType
     AdminBroadcast               = 900,
     /// <summary>N-D — a live-support request was opened; notifies admins. Broadcast category (N-B gated).</summary>
     SupportRequestOpened         = 910,
+    /// <summary>M4 — an anonymous website contact form was submitted (below the spam threshold); notifies admins.
+    /// New value → the BFFs must be rebuilt after adding it (Refit binds the Abstraction DLL).</summary>
+    ContactReceived              = 920,
 }

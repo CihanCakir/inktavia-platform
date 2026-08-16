@@ -158,6 +158,43 @@ public sealed class LocationRepository : ILocationRepository
         return (IReadOnlyList<LocationNeighborhoodDocument>)result;
     }
 
+    public Task<LocationNeighborhoodDocument?> GetNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string neighborhoodCode, CancellationToken cancellationToken = default)
+    {
+        var normalizedCountry = countryCode.Trim().ToUpperInvariant();
+        var normalizedCity = cityCode.Trim();
+        var normalizedDistrict = districtCode.Trim();
+        var normalizedNeighborhood = neighborhoodCode.Trim();
+        return _neighborhoods.FindAsync(
+            x => x.CountryCode == normalizedCountry && x.CityCode == normalizedCity &&
+                 x.DistrictCode == normalizedDistrict && x.NeighborhoodCode == normalizedNeighborhood,
+            cancellationToken: cancellationToken)!;
+    }
+
+    // M3 — by-slug reads (slugs are stored lower-cased; normalize the same way).
+    public Task<LocationCountryDocument?> GetCountryBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        var s = slug.Trim().ToLowerInvariant();
+        return _countries.FindAsync(x => x.Slug == s, cancellationToken: cancellationToken)!;
+    }
+
+    public Task<LocationCityDocument?> GetCityBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        var s = slug.Trim().ToLowerInvariant();
+        return _cities.FindAsync(x => x.Slug == s, cancellationToken: cancellationToken)!;
+    }
+
+    public Task<LocationDistrictDocument?> GetDistrictBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        var s = slug.Trim().ToLowerInvariant();
+        return _districts.FindAsync(x => x.Slug == s, cancellationToken: cancellationToken)!;
+    }
+
+    public Task<LocationNeighborhoodDocument?> GetNeighborhoodBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        var s = slug.Trim().ToLowerInvariant();
+        return _neighborhoods.FindAsync(x => x.Slug == s, cancellationToken: cancellationToken)!;
+    }
+
     public async Task UpsertNeighborhoodAsync(LocationNeighborhoodDocument document, CancellationToken cancellationToken = default)
     {
         document.CountryCode = document.CountryCode.Trim().ToUpperInvariant();

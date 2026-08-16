@@ -1,5 +1,6 @@
 using Aizen.Bff.Marine.Web.Application.Common.RemoteClients.Raw;
 using Aizen.Bff.Marine.Web.Application.Contracts.Pricing;
+using Aizen.Modules.Payment.Abstraction.Dto;
 
 namespace Aizen.Bff.Marine.Web.Application.Pricing;
 
@@ -45,4 +46,28 @@ public static class WebPricingMapper
     // Wire DateTimes arrive with an unpredictable Kind; normalize to a UTC-based offset so the projection never throws.
     private static DateTimeOffset? ToUtcOffset(DateTime? value)
         => value is { } v ? new DateTimeOffset(DateTime.SpecifyKind(v, DateTimeKind.Utc)) : null;
+
+    /// <summary>
+    /// M1 — module published pricing terms → web terms. Passthrough reshape of an already-stripped module DTO; the
+    /// web DTO simply has no property that could carry an economics internal, so nothing sensitive can leak.
+    /// </summary>
+    public static WebPricingTermsDto ToWebTerms(PublicPricingTermsDto t) => new()
+    {
+        EffectiveFrom = t.EffectiveFrom,
+        Commission = new WebCommissionTermsDto
+        {
+            Audience = t.Commission.Audience,
+            Label = t.Commission.Label,
+            StandardRatePercent = t.Commission.StandardRatePercent,
+            Note = t.Commission.Note,
+        },
+        CustomerPlatformFee = t.CustomerPlatformFee is { } f ? new WebPlatformFeeTermsDto
+        {
+            Model = f.Model.ToString(),
+            RatePercent = f.RatePercent,
+            MinAmount = f.MinAmount,
+            MaxAmount = f.MaxAmount,
+            Currency = f.Currency,
+        } : null,
+    };
 }

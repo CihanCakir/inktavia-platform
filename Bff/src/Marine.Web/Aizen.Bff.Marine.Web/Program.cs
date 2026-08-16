@@ -111,6 +111,24 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0,
             });
     });
+
+    // M4 — WRITE surface (POST /web/contact): a per-IP limit STRICTER than public-read-ip (a few submits/min), and
+    // NOT bypassed by the trusted-caller secret (a contact form is user-driven, so it partitions on the real caller
+    // IP regardless). Config RateLimiting:ContactSubmit (defaults 5 / 60s).
+    var contactCfg = builder.Configuration.GetSection("RateLimiting:ContactSubmit");
+    var contactPermit = contactCfg.GetValue("PermitLimit", 5);
+    var contactWindow = contactCfg.GetValue("WindowSeconds", 60);
+    options.AddPolicy("contact-submit", httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? TrustedWebCaller.UnknownIpPartitionKey,
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = contactPermit,
+                Window = TimeSpan.FromSeconds(contactWindow),
+                SegmentsPerWindow = 6,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+            }));
 });
 
 var app = builder.Build();

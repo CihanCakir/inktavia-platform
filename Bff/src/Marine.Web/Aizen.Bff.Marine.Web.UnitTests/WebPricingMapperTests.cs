@@ -2,6 +2,8 @@ using System.Reflection;
 using Aizen.Bff.Marine.Web.Application.Common.RemoteClients.Raw;
 using Aizen.Bff.Marine.Web.Application.Contracts.Pricing;
 using Aizen.Bff.Marine.Web.Application.Pricing;
+using Aizen.Modules.Payment.Abstraction.Dto;
+using Aizen.Modules.Payment.Abstraction.Enum;
 using FluentAssertions;
 
 namespace Aizen.Bff.Marine.Web.UnitTests;
@@ -65,5 +67,61 @@ public sealed class WebPricingMapperTests
         names.Should().NotContain("CargoDryDiscountRate");
         names.Should().NotContain("InkCoinEarnMultiplier");
         names.Should().NotContain("MaxActiveOffers");
+    }
+
+    // ── M1 pricing terms fold-in ─────────────────────────────────────────────────
+
+    [Fact]
+    public void Terms_mapper_carries_only_headline_figures()
+    {
+        var module = new PublicPricingTermsDto(
+            Currency: "TRY",
+            Commission: new PublicCommissionTermsDto("provider", "Standard marketplace commission", 15.0m,
+                "Standard platform commission; individual rates may vary by plan, category or agreement."),
+            CustomerPlatformFee: new PublicPlatformFeeTermsDto(
+                PlatformFeeModel.PercentageWithBounds, 2.5m, 99m, 1500m, "TRY"),
+            EffectiveFrom: new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+
+        var web = WebPricingMapper.ToWebTerms(module);
+
+        web.Commission.Audience.Should().Be("provider");
+        web.Commission.StandardRatePercent.Should().Be(15.0m);
+        web.Commission.Note.Should().Contain("may vary");
+        web.CustomerPlatformFee!.Model.Should().Be("PercentageWithBounds");   // enum → string, no module type leaked
+        web.CustomerPlatformFee.RatePercent.Should().Be(2.5m);
+        web.CustomerPlatformFee.MinAmount.Should().Be(99m);
+        web.CustomerPlatformFee.MaxAmount.Should().Be(1500m);
+        web.EffectiveFrom.Should().Be(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+    }
+
+    [Fact]
+    public void Terms_mapper_passes_through_null_rate_and_null_fee_block()
+    {
+        var module = new PublicPricingTermsDto(
+            Currency: "TRY",
+            Commission: new PublicCommissionTermsDto("provider", "Standard marketplace commission", null, "note"),
+            CustomerPlatformFee: null,
+            EffectiveFrom: null);
+
+        var web = WebPricingMapper.ToWebTerms(module);
+        web.Commission.StandardRatePercent.Should().BeNull();
+        web.CustomerPlatformFee.Should().BeNull();
+        web.EffectiveFrom.Should().BeNull();
+    }
+
+    [Fact]
+    public void Web_terms_dtos_carry_no_economics_internals()
+    {
+        var all = Props<WebPricingTermsDto>()
+            .Concat(Props<WebCommissionTermsDto>())
+            .Concat(Props<WebPlatformFeeTermsDto>())
+            .ToArray();
+
+        foreach (var forbidden in new[]
+                 {
+                     "CostShare", "Tevkifat", "Withhold", "ProfitProtection", "Snapshot", "Net", "Gross",
+                     "ProviderProfileId", "CategoryCode", "CustomerType", "Notes", "RuleCode", "Vat", "Benefit",
+                 })
+            all.Should().NotContain(n => n.Contains(forbidden), $"'{forbidden}' must never surface publicly");
     }
 }

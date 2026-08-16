@@ -63,4 +63,31 @@ public sealed class ProviderServiceCategoryRepository : IProviderServiceCategory
 
         return rows.Select(r => new ProviderAreaRow(r.Id, r.UserId)).ToList();
     }
+
+    public async Task<int> CountForAreaAsync(
+        string cityCode, string? serviceCategoryCode, int cap, CancellationToken ct = default)
+    {
+        var city = cityCode.Trim().ToUpperInvariant();
+        var limit = Math.Max(0, cap);
+
+        // Same eligibility filter as GetProvidersForAreaAsync (approved + active organizer profiles in the city).
+        var query = _db.UserProfiles.AsNoTracking()
+            .Where(p => p.RoleContext == WorkshopRoleContext.Organizer
+                     && p.ApprovalStatus == ApprovalStatus.Approved
+                     && p.Status == ProfileStatus.Active
+                     && !p.IsDeleted
+                     && p.City == city);
+
+        if (!string.IsNullOrWhiteSpace(serviceCategoryCode))
+        {
+            // Canonical stored form is lower(SERVICE_PROVIDER_CATEGORY.Code); normalize the incoming code the same way.
+            var cat = serviceCategoryCode.Trim().ToLowerInvariant();
+            query = query.Where(p => _db.ProviderServiceCategories
+                .Any(c => c.ProfileId == p.Id && c.ServiceCategoryCode == cat && !c.IsDeleted));
+        }
+
+        // Server-side LIMIT then COUNT: EF emits COUNT over a capped subquery, so at most `cap` rows are considered
+        // and NO provider ids/rows cross the boundary — only the bounded integer does.
+        return await query.OrderBy(p => p.Id).Take(limit).CountAsync(ct);
+    }
 }

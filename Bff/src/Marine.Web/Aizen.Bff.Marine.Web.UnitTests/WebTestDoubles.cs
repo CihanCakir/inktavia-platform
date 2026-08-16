@@ -5,10 +5,32 @@ using Aizen.Modules.Content.Abstraction.Dto;
 using Aizen.Modules.Content.Abstraction.Enum;
 using Aizen.Modules.Content.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
+using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
+using Aizen.Modules.Notification.Abstraction.Request;
+using Aizen.Modules.Notification.Abstraction.Response;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Location;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupItem;
 
 namespace Aizen.Bff.Marine.Web.UnitTests;
+
+// ── Notification (contact intake) remote stub ─────────────────────────────────────
+
+internal sealed class FakeNotificationRemoteCall : INotificationRemoteCall
+{
+    public AizenApiResponse<SubmitContactResponse>? Response { get; set; }
+    public SubmitContactRequest? LastRequest { get; private set; }
+    public string? LastForwardedFor { get; private set; }
+
+    public Task<AizenApiResponse<SubmitContactResponse>> SubmitContact(SubmitContactRequest request, string? forwardedFor)
+    {
+        LastRequest = request;
+        LastForwardedFor = forwardedFor;
+        return Task.FromResult(Response ?? new AizenApiResponse<SubmitContactResponse>
+        {
+            Body = new SubmitContactResponse { Accepted = true, TicketRef = "CT-TEST123456" },
+        });
+    }
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -123,6 +145,16 @@ internal sealed class FakeReferenceDataRemoteCall : IReferenceDataRemoteCall
 
     public Task<AizenApiResponse<List<LookupItemDto>>> GetLookupItems(string groupCode, bool onlyActive = true)
         => Task.FromResult(LookupsResponse!);
+
+    // M3 by-slug resolver stub — settable per test; defaults to a null-body response.
+    public AizenApiResponse<LocationBySlugDto?>? LocationBySlugResponse { get; set; }
+    public string? LastBySlug { get; private set; }
+
+    public Task<AizenApiResponse<LocationBySlugDto?>> GetLocationBySlug(string slug)
+    {
+        LastBySlug = slug;
+        return Task.FromResult(LocationBySlugResponse ?? new AizenApiResponse<LocationBySlugDto?>());
+    }
 }
 
 // ── Identity remote stub ──────────────────────────────────────────────────────────
@@ -150,6 +182,18 @@ internal sealed class FakeIdentityRemoteCall : IIdentityRemoteCall
         return Task.FromResult(_profile is null
             ? new AizenApiResponse<OrganizerProfileDetailDto>()   // null body ⇒ unlinked
             : Env.Ok(_profile));
+    }
+
+    // M2 availability stub — settable per test; defaults to a null-body response.
+    public AizenApiResponse<ProviderAreaAvailabilityDto>? AvailabilityResponse { get; set; }
+    public string? LastAvailabilityCity { get; private set; }
+    public string? LastAvailabilityCategory { get; private set; }
+
+    public Task<AizenApiResponse<ProviderAreaAvailabilityDto>> GetProviderAreaAvailability(string cityCode, string? categoryCode = null)
+    {
+        LastAvailabilityCity = cityCode;
+        LastAvailabilityCategory = categoryCode;
+        return Task.FromResult(AvailabilityResponse ?? new AizenApiResponse<ProviderAreaAvailabilityDto>());
     }
 }
 

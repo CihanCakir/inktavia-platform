@@ -199,4 +199,82 @@ public sealed class LocationReferenceService : ILocationReferenceService
         var list = await _repo.GetStreetsByNeighborhoodAsync(countryCode, cityCode, districtCode, neighborhoodCode, onlyActive, cancellationToken);
         return list.Select(x => x.ToDto()).ToList();
     }
+
+    // ── M3 single reads + by-slug resolver ─────────────────────────────────────
+
+    public async Task<DistrictDto?> GetDistrictAsync(string countryCode, string cityCode, string districtCode, CancellationToken cancellationToken = default)
+        => (await _repo.GetDistrictAsync(countryCode, cityCode, districtCode, cancellationToken))?.ToDto();
+
+    public async Task<NeighborhoodDto?> GetNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string neighborhoodCode, CancellationToken cancellationToken = default)
+        => (await _repo.GetNeighborhoodAsync(countryCode, cityCode, districtCode, neighborhoodCode, cancellationToken))?.ToDto();
+
+    public async Task<LocationBySlugDto?> ResolveBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(slug))
+            return null;
+
+        var country = await _repo.GetCountryBySlugAsync(slug, cancellationToken);
+        if (country is not null)
+            return new LocationBySlugDto
+            {
+                LocationType = "country", Code = country.CountryCode, Slug = country.Slug!,
+                Name = Display(country.Name, country.CountryCode), ParentChain = new(),
+            };
+
+        var city = await _repo.GetCityBySlugAsync(slug, cancellationToken);
+        if (city is not null)
+        {
+            var co = await _repo.GetCountryAsync(city.CountryCode, cancellationToken);
+            return new LocationBySlugDto
+            {
+                LocationType = "city", Code = city.CityCode, Slug = city.Slug!,
+                Name = Display(city.Name, city.CityCode),
+                ParentChain = new() { Ref("country", city.CountryCode, co?.Name) },
+            };
+        }
+
+        var district = await _repo.GetDistrictBySlugAsync(slug, cancellationToken);
+        if (district is not null)
+        {
+            var co = await _repo.GetCountryAsync(district.CountryCode, cancellationToken);
+            var ci = await _repo.GetCityAsync(district.CountryCode, district.CityCode, cancellationToken);
+            return new LocationBySlugDto
+            {
+                LocationType = "district", Code = district.DistrictCode, Slug = district.Slug!,
+                Name = Display(district.Name, district.DistrictCode),
+                ParentChain = new()
+                {
+                    Ref("country", district.CountryCode, co?.Name),
+                    Ref("city", district.CityCode, ci?.Name),
+                },
+            };
+        }
+
+        var nb = await _repo.GetNeighborhoodBySlugAsync(slug, cancellationToken);
+        if (nb is not null)
+        {
+            var co = await _repo.GetCountryAsync(nb.CountryCode, cancellationToken);
+            var ci = await _repo.GetCityAsync(nb.CountryCode, nb.CityCode, cancellationToken);
+            var di = await _repo.GetDistrictAsync(nb.CountryCode, nb.CityCode, nb.DistrictCode, cancellationToken);
+            return new LocationBySlugDto
+            {
+                LocationType = "neighborhood", Code = nb.NeighborhoodCode, Slug = nb.Slug!,
+                Name = Display(nb.Name, nb.NeighborhoodCode),
+                ParentChain = new()
+                {
+                    Ref("country", nb.CountryCode, co?.Name),
+                    Ref("city", nb.CityCode, ci?.Name),
+                    Ref("district", nb.DistrictCode, di?.Name),
+                },
+            };
+        }
+
+        return null;
+    }
+
+    private static LocationRefDto Ref(string type, string code, IReadOnlyDictionary<string, string>? name)
+        => new() { LocationType = type, Code = code, Name = name is null ? code : Display(name, code) };
+
+    private static string Display(IReadOnlyDictionary<string, string> name, string fallbackCode)
+        => name.GetValueOrDefault("en") ?? name.Values.FirstOrDefault() ?? fallbackCode;
 }

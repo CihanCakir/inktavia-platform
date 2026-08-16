@@ -78,31 +78,93 @@ from `code`).
 **No `seo`/`availableLangs`** — this is a taxonomy grid (a lookup item has no body or translation set). Rich,
 indexable per-service pages are **editorial content** under `web/content`, not here.
 
-## Locations — `api/v1/web/locations` 🟡 EXISTING (partial, W4)
+## Locations — `api/v1/web/locations` ✅ EXISTING (W4 + M3 slug resolver)
 
-Code-keyed hierarchy only (country → city → district). No single-slug resolver and no `region`/`marina` types yet
-(⛔ below).
 | Verb | Route | Returns |
 |---|---|---|
-| GET | `/countries/{countryCode}` | location detail (country) |
-| GET | `/countries/{countryCode}/cities/{cityCode}` | location detail (city) |
-| GET | `/countries/{countryCode}/cities/{cityCode}/districts/{districtCode}` | location detail (district) |
+| GET | `/{slug}` | **M3 collapsed lookup** — location by flat slug (identity + parent chain) |
+| GET | `/countries/{countryCode}` | location detail (country) — coordinate-rich |
+| GET | `/countries/{countryCode}/cities/{cityCode}` | location detail (city) — coordinate-rich |
+| GET | `/countries/{countryCode}/cities/{cityCode}/districts/{districtCode}` | location detail (district) — coordinate-rich |
 
-**Detail shape:** `{ locationType: "country"|"city"|"district", code, name, parentChain[{ locationType, code, name }],
-latitude?, longitude?, isCoastal? }`.
+**Prefer `/{slug}`** for identity + breadcrumb (the SEO/URL path). The code-keyed routes are kept for
+coordinate-rich detail (the slug route returns `latitude/longitude/isCoastal` as null — the module resolver is
+minimal). Slugs are deterministic, globally unique, Turkish-aware, and parent-qualified for lower levels
+(`istanbul-kadikoy`).
+**Detail shape:** `{ locationType: "country"|"city"|"district"|"neighborhood", code, name,
+parentChain[{ locationType, code, name }], latitude?, longitude?, isCoastal? }`.
 **Withheld:** database ids. **Honesty note:** if a parent record can't be resolved, its `parentChain` entry uses the
 real **code** as the display name — never a fabricated name.
+**Still ⛔:** `region`/`marina` location types — a data-sourcing project (no dataset yet), see `MARINE_WEB_BLOCKED.md` §3.
 
-## Pricing — `api/v1/web/pricing` 🟡 EXISTING (partial, W4)
+## Pricing — `api/v1/web/pricing` ✅ EXISTING (W4 plans + M1 terms)
 
-### `GET /` — published subscription tiers
-**Returned:** `{ currency: "TRY", providerPlans[], participantPlans[] }`, each plan:
-`{ audience: "provider"|"participant", planCode, name, description, monthlyPriceTRY, annualPriceTRY?, badgeLabel?,
-trialDays?, features[], sortOrder, effectiveFrom? }`.
-**Withheld:** database `id` (`planCode` is the public key), per-viewer `isCurrent`, `isActive`, and discount-rate
+### `GET /` — published subscription tiers **and** published commercial terms
+**Returned:** `{ currency: "TRY", providerPlans[], participantPlans[], terms? }`.
+
+Each plan: `{ audience: "provider"|"participant", planCode, name, description, monthlyPriceTRY, annualPriceTRY?,
+badgeLabel?, trialDays?, features[], sortOrder, effectiveFrom? }`.
+**Plan withheld:** database `id` (`planCode` is the public key), per-viewer `isCurrent`, `isActive`, and discount-rate
 mechanics (`serviceDiscountRate`/`cargoDryDiscountRate`/`inkCoinEarnMultiplier`) / `maxActiveOffers` (benefits are
 conveyed via the authored `features[]`, not raw rates).
-**Partial:** commission model, customer platform fee and the VAT flag are admin-only in Payment → ⛔ below.
+
+`terms` (M1, from Payment's Global published defaults — null if the terms read is unavailable):
+```jsonc
+{
+  "commission": {                       // provider-facing standard headline
+    "audience": "provider",
+    "label": "Standard marketplace commission",
+    "standardRatePercent": 15.0,        // Global + Standard-priority + effective-now rule; null if none — never faked
+    "note": "Standard platform commission; individual rates may vary by plan, category or agreement."
+  },
+  "customerPlatformFee": {              // customer-facing Global fee headline; null if none resolves
+    "model": "PercentageWithBounds",    // Percentage | Fixed | PercentageWithBounds | Waived
+    "ratePercent": 2.5,                 // Percentage / PercentageWithBounds only
+    "minAmount": 99, "maxAmount": 1500, // PercentageWithBounds only
+    "currency": "TRY"
+  },
+  "effectiveFrom": "2026-01-01T00:00:00Z"  // max EffectiveFrom of the two source Global rules
+}
+```
+**Terms withheld (never surfaced):** cost-share rates, tevkifat/withholding mechanics, profit-protection internals,
+economics/commission-allocation snapshots, per-provider commission benefits/overrides, category/customer-type
+override rows, rule `notes`/`ruleCode`/user ids/DB ids. **VAT is intentionally omitted entirely** (no `vatIncluded`,
+no rate) — its treatment is not a published headline. The commission figure is the Global **Standard** default only —
+never the Emergency surge or any negotiated per-provider rate.
+
+## Service × location — `api/v1/web/service-pages` ✅ EXISTING (M2 + M3 slug form)
+
+### `GET /{serviceSlug}/{locationSlug}` (M3) — or `GET /{serviceSlug}?cityCode={cityCode}` (M2 interim)
+Prefer the **`/{serviceSlug}/{locationSlug}`** slug form: `locationSlug` is resolved to its city via the location
+resolver (a district/neighborhood uses its parent city — availability is **city-keyed**). The interim `?cityCode=`
+form still works.
+**Returned:** `{ service: {...}, location: { cityCode }, availability }`.
+- `service` — the catalogue tile (same shape as `web/services`): `{ code, slug, name, description, iconKey, colorCode, sortOrder }`.
+- `location` — **interim: `{ cityCode }` only** (the availability read-model is city-keyed). Upgrades to the full
+  location detail when M3 ships the location-slug resolver.
+- `availability` — the **coarse** signal `"available" | "limited" | "none"`.
+
+**Withheld (never surfaced):** provider count, provider ids/user ids, names, scores, ranking. The count is bucketed
+inside Identity and never crosses the module boundary; the BFF only ever sees/returns the enum.
+**Unknown `serviceSlug`** ⇒ clean not-found. **Availability fails safe to `none`** if the signal is momentarily
+unavailable (never over-states).
+**Interim → full:** the `{serviceSlug}/{locationSlug}` slug form and district/marina granularity are pending M3 (the
+read-model is city-keyed) — see `MARINE_WEB_BLOCKED.md` §4.
+
+## Contact submit — `api/v1/web/contact` ✅ EXISTING (M4) — the only WRITE surface
+
+### `POST /` — anonymous contact form (stricter `contact-submit` rate limit)
+This is a **WRITE**, on a **tighter** limit than the reads (a few submits/min per IP). Forward from your Server
+Action; validate **shape only** — the BFF and Notification module never trust the payload.
+**Request:** `{ name, email, subject, message, sourcePage?, captchaToken? }` — **plus a hidden honeypot field** a real
+user leaves empty (a filled honeypot is silently treated as spam). Do **not** send the visitor's IP — the BFF forwards
+it as `X-Forwarded-For` for the module to hash.
+**Response:** `{ accepted: bool, ticketRef?: string }` — `accepted` is **always true** on a successful call (a spammy
+message is silently accepted so bots learn nothing); `ticketRef` is an opaque handle (never a database id).
+**Withheld:** everything else — spam score, IP hash, status, DB id. **Captcha** is accepted-and-ignored until a
+provider (Turnstile/hCaptcha) is wired server-side.
+**Ownership note:** folded into the Notification module as the interim owner; a future Support module could take it
+over without changing this contract.
 
 ## Participant engagement — `api/v1/web/me/content/*` — FROZEN, NOT IN THIS CONTRACT
 Built, tested, **unconsumed**. The website has no auth and never calls it. Excluded from this contract; kept for a
@@ -118,11 +180,9 @@ Each links to its unblock spec (owner module, exact route, web-safe fields) in
 | Status | Projection | Intended route | Blocked because |
 |---|---|---|---|
 | ⛔ | Service detail (rich, slugged) | `GET api/v1/web/services/{slug}` | lookup is code-keyed, no body — rich pages live in `web/content` (spec §2) |
-| ⛔ | Location single-slug resolver + `region`/`marina` types | `GET api/v1/web/locations/{slug}` | ReferenceData has no per-level slug, no flat resolver, no region/marina (spec §3) |
-| ⛔ | Service × location landing | `GET api/v1/web/service-pages/{serviceSlug}/{locationSlug}` | no public **coarse** availability read (`ProviderCatalog` is `[Authorize]`) (spec §4) |
-| ⛔ | Full pricing terms (commission / platform fee / VAT) | folds into `GET api/v1/web/pricing` | those reads are admin-only in Payment (spec §5) |
+| ⛔ | Location `region` / `marina` types | (part of `api/v1/web/locations`) | slug resolver + single reads are **EXISTING** (M3); `region`/`marina` need a sourced dataset — a data-sourcing project (spec §3) |
+| 🟡 | Service × location — **district/marina-level** availability | `GET api/v1/web/service-pages/{serviceSlug}/{locationSlug}` | slug form is **EXISTING** (M3); availability stays **city-keyed** — finer granularity needs a district/marina read-model (spec §4) |
 | ⛔ | CargoDry catalogue + product | `GET api/v1/web/cargodry`, `.../{slug}` | `CargoDryPublicController` exposes only `POST validate` (spec §6) |
-| ⛔ | Contact submit | `POST api/v1/web/contact` | no module owns anonymous persistence + spam scoring + notification (spec §7) |
 
 **PROPOSED:** none outstanding — every designed website route is either EXISTING above or BLOCKED here. When a module
 ships one of the blocked endpoints, the BFF adds the projection over it (same rules: anonymous, cached, field-stripped,

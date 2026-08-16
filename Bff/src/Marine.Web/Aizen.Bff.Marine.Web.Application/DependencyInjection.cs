@@ -72,12 +72,19 @@ public static class DependencyInjection
             CreateRemoteCall<IReferenceDataRemoteCall>(
                 CreateHttpClient(provider, nameof(IReferenceDataRemoteCall))));
 
-        // W4 — Payment module client (public subscription plans for the pricing page). Base URL from
-        // RemoteCalls:IPaymentPlanRemoteCall:BaseUrl (→ the payment-api host). The plan GETs are anonymous on the
+        // W4/M1 — Payment module client (public subscription plans + published pricing terms for the pricing page).
+        // Base URL from RemoteCalls:IPaymentRemoteCall:BaseUrl (→ the payment-api host). All reads are anonymous on
+        // the module, so no additional service role is required.
+        services.AddTransient<IPaymentRemoteCall>(provider =>
+            CreateRemoteCall<IPaymentRemoteCall>(
+                CreateHttpClient(provider, nameof(IPaymentRemoteCall))));
+
+        // M4 — Notification module client (public contact intake). Base URL from
+        // RemoteCalls:INotificationRemoteCall:BaseUrl (→ the notification-api host). The endpoint is anonymous on the
         // module, so no additional service role is required.
-        services.AddTransient<IPaymentPlanRemoteCall>(provider =>
-            CreateRemoteCall<IPaymentPlanRemoteCall>(
-                CreateHttpClient(provider, nameof(IPaymentPlanRemoteCall))));
+        services.AddTransient<INotificationRemoteCall>(provider =>
+            CreateRemoteCall<INotificationRemoteCall>(
+                CreateHttpClient(provider, nameof(INotificationRemoteCall))));
 
         return services;
     }

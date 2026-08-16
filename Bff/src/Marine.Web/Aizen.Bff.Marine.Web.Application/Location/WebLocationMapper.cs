@@ -13,6 +13,24 @@ public static class WebLocationMapper
     public const string City = "city";
     public const string District = "district";
 
+    /// <summary>
+    /// M3 — flat by-slug resolver result → web location detail. The module resolver is minimal (identity + parent
+    /// chain), so coordinates/coastal are null on the slug route; the coordinate-rich detail stays on the code-keyed
+    /// routes.
+    /// </summary>
+    public static WebLocationDetailDto FromBySlug(LocationBySlugDto d) => new()
+    {
+        LocationType = d.LocationType,
+        Code = d.Code,
+        Name = d.Name,
+        ParentChain = d.ParentChain
+            .Select(p => new WebLocationRefDto { LocationType = p.LocationType, Code = p.Code, Name = p.Name })
+            .ToList(),
+        Latitude = null,
+        Longitude = null,
+        IsCoastal = null,
+    };
+
     public static WebLocationDetailDto ToCountryDetail(CountryDto c) => new()
     {
         LocationType = Country,

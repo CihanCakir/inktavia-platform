@@ -48,6 +48,19 @@ public sealed class PlatformFeeRuleRepository : IPlatformFeeRuleRepository
     public Task<PlatformFeeRuleEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.PlatformFeeRules.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<PlatformFeeRuleEntity?> GetGlobalRuleAsync(string currencyCode, DateTime atUtc, CancellationToken ct = default)
+    {
+        var currency = currencyCode.ToUpperInvariant();
+        return _db.PlatformFeeRules
+            .AsNoTracking()
+            .Where(x => x.CategoryCode == null && x.CustomerType == null && x.CurrencyCode == currency
+                        && x.IsActive
+                        && x.EffectiveFrom <= atUtc
+                        && (x.EffectiveTo == null || atUtc < x.EffectiveTo))
+            .OrderByDescending(x => x.EffectiveFrom)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<(List<PlatformFeeRuleEntity> Items, int Total)> GetPagedAsync(
         PlatformFeeModel?     model,
         CommissionRuleStatus? status,

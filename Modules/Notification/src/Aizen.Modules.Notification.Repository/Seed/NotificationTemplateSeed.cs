@@ -38,6 +38,12 @@ public sealed class NotificationTemplateSeed
             "New Service Request: {{requestCode}}",
             "A new service request {{requestCode}} has been created for {{serviceName}}."),
 
+        // M4 — anonymous website contact received → admin fan-out.
+        NotificationTemplateEntity.Create("CONTACT_RECEIVED_INAPP", "Contact Message Received (In-App)",
+            NotificationType.ContactReceived, NotificationChannel.InApp,
+            "New contact message: {{subject}}",
+            "New website contact from {{name}} — \"{{subject}}\" (ref {{ticketRef}})."),
+
         // N-C region fan-out — provider-facing "new job in your area".
         NotificationTemplateEntity.Create("SR_AREA_OPPORTUNITY_INAPP", "Service Request in Your Area (In-App)",
             NotificationType.ServiceRequestAreaOpportunity, NotificationChannel.InApp,

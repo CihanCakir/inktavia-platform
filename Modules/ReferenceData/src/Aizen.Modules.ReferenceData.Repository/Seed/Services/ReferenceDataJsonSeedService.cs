@@ -17,6 +17,7 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
     private readonly LookupJsonSeedService _lookupService;
     private readonly SystemJsonSeedService _systemService;
     private readonly LocationJsonSeedService _locationService;
+    private readonly LocationSlugBackfillService _locationSlugBackfill;
 
     public ReferenceDataJsonSeedService(
         IOptions<ReferenceDataSeedOptions> options,
@@ -25,7 +26,8 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
         MeasurementJsonSeedService measurementService,
         LookupJsonSeedService lookupService,
         SystemJsonSeedService systemService,
-        LocationJsonSeedService locationService)
+        LocationJsonSeedService locationService,
+        LocationSlugBackfillService locationSlugBackfill)
     {
         _options = options.Value;
         _currencyService = currencyService;
@@ -34,6 +36,7 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
         _lookupService = lookupService;
         _systemService = systemService;
         _locationService = locationService;
+        _locationSlugBackfill = locationSlugBackfill;
     }
 
     public async Task SeedAllAsync(CancellationToken cancellationToken = default)
@@ -59,6 +62,8 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
     public async Task SeedLocationDocumentsAsync(CancellationToken cancellationToken = default)
     {
         await _locationService.SeedAsync(cancellationToken);
+        // M3 — assign deterministic slugs after the location docs are seeded (idempotent; only fills missing slugs).
+        await _locationSlugBackfill.BackfillAsync(cancellationToken);
     }
 
     public async Task SeedLookupTreeAsync(CancellationToken cancellationToken = default)

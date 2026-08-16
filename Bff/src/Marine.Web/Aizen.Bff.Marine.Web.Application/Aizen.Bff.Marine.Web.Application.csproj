@@ -24,6 +24,10 @@
     <ProjectReference Include="../../../../Modules/Identity/src/Aizen.Modules.Identity.Abstraction/Aizen.Modules.Identity.Abstraction.csproj" />
     <!-- W3: ReferenceData public lookups (countries / cities / lookup-items) — module DTOs via .Abstraction only. -->
     <ProjectReference Include="../../../../Modules/ReferenceData/src/Aizen.Modules.ReferenceData.Abstraction/Aizen.Modules.ReferenceData.Abstraction.csproj" />
+    <!-- M1: Payment public pricing terms — PublicPricingTermsDto via .Abstraction only (plans still use local mirrors). -->
+    <ProjectReference Include="../../../../Modules/Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
+    <!-- M4: Notification public contact intake — SubmitContactRequest/Response via .Abstraction only. -->
+    <ProjectReference Include="../../../../Modules/Notification/src/Aizen.Modules.Notification.Abstraction/Aizen.Modules.Notification.Abstraction.csproj" />
   </ItemGroup>
 
   <ItemGroup>

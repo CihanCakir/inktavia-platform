@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<LookupJsonSeedService>();
         services.AddScoped<SystemJsonSeedService>();
         services.AddScoped<LocationJsonSeedService>();
+        services.AddScoped<LocationSlugBackfillService>();
         services.AddScoped<IReferenceDataJsonSeedService, ReferenceDataJsonSeedService>();
 
         return services;

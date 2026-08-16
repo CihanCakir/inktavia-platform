@@ -15,6 +15,11 @@ public static class DependencyInjection
         services.AddScoped<ITemplateInterpolator, TemplateInterpolator>();
         services.AddScoped<IPushSender, WebPushSender>();
 
+        // M4 — contact-intake spam thresholds (config-driven; IpHashSalt from secret).
+        if (configuration is not null)
+            services.Configure<Command.SubmitContactMessage.ContactIntakeOptions>(
+                configuration.GetSection(Command.SubmitContactMessage.ContactIntakeOptions.SectionName));
+
         // FCM sender: the real FirebaseAdmin FcmSender when the Firebase service account is configured
         // (ProjectId + PrivateKey + ClientEmail present, injected via env/secret), otherwise the dev logging stub —
         // so the module builds/runs/tests with no credentials. The stub is retained as the no-creds fallback.

@@ -3,6 +3,7 @@ using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction.RemoteCall;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Entities.Onboarding;
+using Aizen.Modules.Identity.Domain.Entities.ProviderServiceCategory;
 using Aizen.Modules.Identity.Domain.Enum;
 using Aizen.Modules.Identity.Domain.Interface;
 using Aizen.Modules.Identity.Domain.Interface.Repository;
@@ -232,7 +233,9 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
         {
             if (el.ValueKind != JsonValueKind.String) continue;
             var v = el.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) codes.Add(v);
+            // CANON — store the canonical lower(SERVICE_PROVIDER_CATEGORY.Code) form. Accepts both the legacy
+            // onboarding ids and the post-CANON-e canonical codes during the frontend transition.
+            if (!string.IsNullOrWhiteSpace(v)) codes.Add(ProviderServiceCategoryCanonicalMap.ToCanonical(v));
         }
         return codes;
     }

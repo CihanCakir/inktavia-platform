@@ -11,13 +11,13 @@ public sealed class GetWebPricingQueryHandler
 {
     private const string SettlementCurrency = "TRY";
 
-    private readonly IPaymentPlanRemoteCall _plans;
+    private readonly IPaymentRemoteCall _payment;
     private readonly ILogger<GetWebPricingQueryHandler> _logger;
 
     public GetWebPricingQueryHandler(
-        IPaymentPlanRemoteCall plans, ILogger<GetWebPricingQueryHandler> logger)
+        IPaymentRemoteCall payment, ILogger<GetWebPricingQueryHandler> logger)
     {
-        _plans = plans;
+        _payment = payment;
         _logger = logger;
     }
 
@@ -27,8 +27,8 @@ public sealed class GetWebPricingQueryHandler
         try
         {
             // Active plans only (includeInactive=false default); both endpoints are anonymous on the module.
-            var provider = await _plans.GetProviderPlans();
-            var participant = await _plans.GetParticipantPlans();
+            var provider = await _payment.GetProviderPlans();
+            var participant = await _payment.GetParticipantPlans();
 
             return new WebPricingDto
             {
@@ -41,12 +41,29 @@ public sealed class GetWebPricingQueryHandler
                     .OrderBy(p => p.SortOrder).ThenBy(p => p.Name)
                     .Select(WebPricingMapper.ToWebPlan)
                     .ToList(),
+                // M1 — published commercial terms folded into the same response (best-effort: a terms failure leaves
+                // Terms null and still renders the plan tiers).
+                Terms = await TryGetTermsAsync(),
             };
         }
         catch (Refit.ApiException ex)
         {
             _logger.LogWarning(ex, "Web pricing failed (status {Status}).", ex.StatusCode);
             throw new AizenBusinessException("Pricing is currently unavailable.");
+        }
+    }
+
+    private async Task<WebPricingTermsDto?> TryGetTermsAsync()
+    {
+        try
+        {
+            var terms = await _payment.GetPublicPricingTerms();
+            return terms is null ? null : WebPricingMapper.ToWebTerms(terms);
+        }
+        catch (Refit.ApiException ex)
+        {
+            _logger.LogWarning(ex, "Web pricing terms unavailable (status {Status}); returning plans only.", ex.StatusCode);
+            return null;
         }
     }
 }

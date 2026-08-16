@@ -6,6 +6,7 @@ using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
 using Aizen.Modules.Identity.Application.AdminUsers.GetAdminUserIds;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetParticipantProfileIdByUserId;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfileContactEmail;
+using Aizen.Modules.Identity.Application.ProviderEligibility.GetProviderAreaAvailability;
 using Aizen.Modules.Identity.Application.ProviderEligibility.GetProvidersForArea;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
@@ -301,6 +302,23 @@ public sealed class QueryController : AizenWebApiController
     {
         var result = await _sender.ProcessAsync(
             new GetProvidersForAreaQuery { CityCode = cityCode, CategoryCode = categoryCode, Take = take }, ct);
+        return SetResponse(result);
+    }
+
+    // M2 — public COARSE availability for a (city, optional canonical category): available / limited / none. Same
+    // internal-read pattern as providers/for-area ([AllowAnonymous] behind the cluster NetworkPolicy). Unlike
+    // providers/for-area this returns ONLY the bucketed verdict — no count, no provider ids. The category is a
+    // canonical SERVICE_PROVIDER_CATEGORY.Code; the read-model compares it against the stored lower(Code) form.
+    [HttpGet("providers/for-area/availability")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProviderAreaAvailabilityDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderAreaAvailabilityDto>> GetProviderAreaAvailability(
+        [FromQuery] string cityCode,
+        [FromQuery] string? categoryCode = null,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(
+            new GetProviderAreaAvailabilityQuery { CityCode = cityCode, CategoryCode = categoryCode }, ct);
         return SetResponse(result);
     }
 

@@ -72,11 +72,38 @@ public sealed class LocationController : AizenWebApiController
         return SetResponse(result);
     }
 
+    // M3 — single district read (repo method already existed; replaces the BFF's list-filter workaround).
+    [HttpGet("{countryCode}/cities/{cityCode}/districts/{districtCode}")]
+    [ProducesResponseType(typeof(DistrictDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<DistrictDto?>> GetDistrict([FromRoute] string countryCode, [FromRoute] string cityCode, [FromRoute] string districtCode, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<DistrictDto?>(new GetDistrictDetailQuery(countryCode, cityCode, districtCode), ct);
+        return SetResponse(result);
+    }
+
     [HttpGet("{countryCode}/cities/{cityCode}/districts/{districtCode}/neighborhoods")]
     [ProducesResponseType(typeof(IReadOnlyList<NeighborhoodDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<IReadOnlyList<NeighborhoodDto>>> GetNeighborhoods([FromRoute] string countryCode, [FromRoute] string cityCode, [FromRoute] string districtCode, [FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<IReadOnlyList<NeighborhoodDto>>(new GetNeighborhoodsByDistrictQuery(countryCode, cityCode, districtCode, onlyActive), ct);
+        return SetResponse(result);
+    }
+
+    // M3 — single neighborhood read.
+    [HttpGet("{countryCode}/cities/{cityCode}/districts/{districtCode}/neighborhoods/{neighborhoodCode}")]
+    [ProducesResponseType(typeof(NeighborhoodDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NeighborhoodDto?>> GetNeighborhood([FromRoute] string countryCode, [FromRoute] string cityCode, [FromRoute] string districtCode, [FromRoute] string neighborhoodCode, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<NeighborhoodDto?>(new GetNeighborhoodDetailQuery(countryCode, cityCode, districtCode, neighborhoodCode), ct);
+        return SetResponse(result);
+    }
+
+    // M3 — flat by-slug resolver: maps a single slug to its location + parent chain. Public reads only.
+    [HttpGet("by-slug/{slug}")]
+    [ProducesResponseType(typeof(LocationBySlugDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<LocationBySlugDto?>> GetBySlug([FromRoute] string slug, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<LocationBySlugDto?>(new GetLocationBySlugQuery(slug), ct);
         return SetResponse(result);
     }
 }

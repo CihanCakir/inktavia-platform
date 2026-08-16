@@ -76,7 +76,9 @@ public sealed class ProviderEligibilityBackfillSeeder
                 var codes = TryGetCategoryCodes(draft);
                 if (codes.Count > 0)
                 {
-                    foreach (var code in codes.Select(c => c.Trim().ToLowerInvariant()).Distinct())
+                    // CANON — write the canonical lower(SERVICE_PROVIDER_CATEGORY.Code) form (legacy ids remapped),
+                    // matching the live onboarding write path and the data migration.
+                    foreach (var code in codes.Select(ProviderServiceCategoryCanonicalMap.ToCanonical).Distinct())
                         await _db.ProviderServiceCategories.AddAsync(
                             ProviderServiceCategoryEntity.Create(profile.Id, profile.UserId, code), ct);
                     categoryProviders++;

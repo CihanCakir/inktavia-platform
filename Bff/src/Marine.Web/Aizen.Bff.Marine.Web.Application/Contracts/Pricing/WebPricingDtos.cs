@@ -12,6 +12,43 @@ public sealed class WebPricingDto
 
     public List<WebPlanDto> ProviderPlans { get; set; } = new();
     public List<WebPlanDto> ParticipantPlans { get; set; } = new();
+
+    /// <summary>
+    /// Published commercial terms (M1) — the Global standard commission headline + the Global platform-fee headline.
+    /// Null when the terms read is unavailable (the plan tiers still render). Carries no economics internals.
+    /// </summary>
+    public WebPricingTermsDto? Terms { get; set; }
+}
+
+/// <summary>
+/// Web-facing published pricing terms (M1). A reshape of the module <c>PublicPricingTermsDto</c> — itself already
+/// stripped to headline figures. Deliberately carries NO cost-share, tevkifat/withholding, profit-protection,
+/// economics/commission-allocation snapshot, per-provider override, or VAT field.
+/// </summary>
+public sealed class WebPricingTermsDto
+{
+    public WebCommissionTermsDto Commission { get; set; } = default!;
+    public WebPlatformFeeTermsDto? CustomerPlatformFee { get; set; }
+    public DateTimeOffset? EffectiveFrom { get; set; }
+}
+
+/// <summary>Provider-facing standard commission headline. <see cref="StandardRatePercent"/> is null when none resolves.</summary>
+public sealed class WebCommissionTermsDto
+{
+    public string Audience { get; set; } = default!;   // "provider"
+    public string Label { get; set; } = default!;
+    public decimal? StandardRatePercent { get; set; }
+    public string Note { get; set; } = default!;
+}
+
+/// <summary>Customer-facing Global platform-fee headline. <see cref="Model"/> is the fee model name (string).</summary>
+public sealed class WebPlatformFeeTermsDto
+{
+    public string Model { get; set; } = default!;      // Percentage | Fixed | PercentageWithBounds | Waived
+    public decimal? RatePercent { get; set; }
+    public decimal? MinAmount { get; set; }
+    public decimal? MaxAmount { get; set; }
+    public string Currency { get; set; } = default!;
 }
 
 /// <summary>

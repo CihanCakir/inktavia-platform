@@ -24,8 +24,9 @@ public static class WebServiceMapper
     /// <summary>
     /// Deterministic code → URL segment: lower-case, non-alphanumerics collapsed to single dashes, trimmed. This is a
     /// pure transform of an existing value (e.g. <c>ENGINE_REPAIR</c> → <c>engine-repair</c>) — no new data invented.
+    /// Public so the service-pages resolver can reverse-match a slug back to its catalogue Code with the SAME transform.
     /// </summary>
-    private static string ToSlug(string code)
+    public static string ToSlug(string code)
     {
         var sb = new StringBuilder(code.Length);
         var lastDash = false;

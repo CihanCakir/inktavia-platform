@@ -79,6 +79,18 @@ public interface ICommissionRuleRepository
 
     Task<CommissionRuleStatsResult> GetStatsAsync(CancellationToken ct = default);
 
+    /// <summary>
+    /// Returns the PUBLISHED STANDARD default commission rule for the public pricing surface: scope
+    /// <see cref="CommissionRuleType.Global"/>, priority <see cref="CommissionRulePriority.Standard"/>, active, and
+    /// effective at <paramref name="atUtc"/> (<c>EffectiveFrom &lt;= atUtc AND (EffectiveTo == null OR atUtc &lt;
+    /// EffectiveTo)</c>) — the latest <c>EffectiveFrom</c> among those. Deliberately EXCLUDES higher-priority
+    /// Emergency overrides and any scheduled/expired rule, so it is a stable public headline — NOT the volatile
+    /// effective-now billing resolution done by <see cref="ResolveAsync"/>, and NOT the <see cref="GetStatsAsync"/>
+    /// KPI (which ignores priority/window). Returns null when no such rule exists — the caller must not fabricate a
+    /// rate.
+    /// </summary>
+    Task<CommissionRuleEntity?> GetPublishedStandardGlobalRuleAsync(DateTime atUtc, CancellationToken ct = default);
+
     // ── Write ─────────────────────────────────────────────────────────────────
 
     Task AddAsync(CommissionRuleEntity entity, CancellationToken ct = default);

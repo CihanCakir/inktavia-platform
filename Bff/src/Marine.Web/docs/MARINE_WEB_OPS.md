@@ -49,7 +49,7 @@ Keep this secret in sync across environments.
 | `RemoteCalls:IContentRemoteCall:BaseUrl` | → content-api host |
 | `RemoteCalls:IIdentityRemoteCall:BaseUrl` | → identity-api host |
 | `RemoteCalls:IReferenceDataRemoteCall:BaseUrl` | → reference-data-api host (W4 services/locations) |
-| `RemoteCalls:IPaymentPlanRemoteCall:BaseUrl` | → payment-api host (W4 `web/pricing`). The plan GETs are `[AllowAnonymous]` on Payment, so **no new Keycloak role** is required. |
+| `RemoteCalls:IPaymentRemoteCall:BaseUrl` | → payment-api host (W4 plans + M1 `public/pricing-terms` for `web/pricing`). All these GETs are `[AllowAnonymous]` on Payment, so **no new Keycloak role** is required. |
 | `MarineWebPublic:TrustedCallerSecret` | **`__FROM_SECRET__`** — the trusted server-caller secret. Provision it and inject the SAME value into the Next.js server so it can send the `X-Aizen-Web-Caller` header. Server-side only; never expose to a browser. Empty ⇒ the trusted tier is disabled and the Next.js server is throttled by the strict per-IP limit. |
 | `MarineWebPublic:Seo` | W3.2 indexability thresholds behind the `ISeoIndexabilityPolicy` seam: `RequirePublished` (def true), `RequireTitle` (def true), `RequireDescription` (def false), `MinBodyLength` (def 200). Config-managed so SEO owners retune without a deploy; `// FUTURE:` migrates the source to ReferenceData `SystemParameter`. |
 | `MarineWebPublic:TrustedRateLimit` | `PermitLimit` (def 6000) / `WindowSeconds` (def 60) for the shared trusted partition. Set `PermitLimit <= 0` for effectively unlimited. |

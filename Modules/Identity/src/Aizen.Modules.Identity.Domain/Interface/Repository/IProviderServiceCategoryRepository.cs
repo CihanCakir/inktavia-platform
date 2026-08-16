@@ -17,4 +17,13 @@ public interface IProviderServiceCategoryRepository
     /// </summary>
     Task<List<ProviderAreaRow>> GetProvidersForAreaAsync(
         string cityCode, string? serviceCategoryCode, int take, CancellationToken ct = default);
+
+    /// <summary>
+    /// M2 — counts eligible providers for a (city, optional category), fetching AT MOST <paramref name="cap"/> rows
+    /// (server-side LIMIT) so a coarse verdict never materializes a full list or a real total. Same eligibility
+    /// filter as <see cref="GetProvidersForAreaAsync"/> (approved + active organizer profiles in the city; optional
+    /// canonical category). Returns a value in <c>[0, cap]</c> — the caller buckets it and discards the number.
+    /// </summary>
+    Task<int> CountForAreaAsync(
+        string cityCode, string? serviceCategoryCode, int cap, CancellationToken ct = default);
 }

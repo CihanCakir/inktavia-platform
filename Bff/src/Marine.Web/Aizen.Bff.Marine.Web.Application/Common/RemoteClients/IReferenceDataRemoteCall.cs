@@ -14,6 +14,10 @@ namespace Aizen.Bff.Marine.Web.Application.Common.RemoteClients;
 /// </summary>
 public interface IReferenceDataRemoteCall : IAizenRemoteCall
 {
+    // M3 — flat by-slug resolver (public / AllowAnonymous). Returns the location + parent chain, or null body.
+    [AizenRemoteCallGet("/api/v1/reference-data/locations/by-slug/{slug}")]
+    Task<AizenApiResponse<LocationBySlugDto?>> GetLocationBySlug(string slug);
+
     // Country reference (public / AllowAnonymous on the module, but sent with the service token anyway).
     [AizenRemoteCallGet("/api/v1/reference-data/locations/countries")]
     Task<AizenApiResponse<List<CountryDto>>> GetCountries([Refit.Query] bool onlyActive = true);

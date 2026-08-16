@@ -18,6 +18,10 @@
   { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "MARINA_SUPPORT",       "name": "Marina Support",       "description": null, "iconKey": null, "colorCode": null, "sortOrder": 8,  "isDefault": false, "isActive": true },
   { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "PAINTING_POLISHING",   "name": "Painting & Polishing", "description": null, "iconKey": null, "colorCode": null, "sortOrder": 9,  "isDefault": false, "isActive": true },
   { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "WINTERIZATION",        "name": "Winterization",        "description": null, "iconKey": null, "colorCode": null, "sortOrder": 10, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "HULL_MAINTENANCE",     "name": "Hull & Paint",         "description": null, "iconKey": null, "colorCode": null, "sortOrder": 11, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "RIGGING_SAILS",        "name": "Rigging & Sails",      "description": null, "iconKey": null, "colorCode": null, "sortOrder": 12, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "UPHOLSTERY",           "name": "Upholstery",           "description": null, "iconKey": null, "colorCode": null, "sortOrder": 13, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "CONCIERGE_SUPPORT",    "name": "Concierge Support",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 14, "isDefault": false, "isActive": true },
 
   { "groupCode": "CARGODRY_PRODUCT_TYPE", "code": "CARGODRY_BASIC",  "name": "CargoDry Basic",  "description": "Entry-level moisture absorber", "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
   { "groupCode": "CARGODRY_PRODUCT_TYPE", "code": "CARGODRY_SENSE",  "name": "CargoDry Sense",  "description": "Smart sensor-enabled moisture absorber", "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },

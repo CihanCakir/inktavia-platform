@@ -28,6 +28,7 @@ public sealed class WebCacheAttribute : Attribute, IResultFilter
     public const int ServicesMaxAge = 3600,   ServicesSwr = 86400;    // W4 service catalogue (lookup taxonomy) — change rarely
     public const int LocationsMaxAge = 3600,  LocationsSwr = 86400;   // W4 location detail (reference geography) — change rarely
     public const int PricingMaxAge = 1800,    PricingSwr = 86400;     // W4 public pricing (published plan terms) — change rarely
+    public const int ServicePageMaxAge = 300, ServicePageSwr = 3600;  // M2 service×location landing (coarse availability) — moderate
 
     private readonly int _maxAge;
     private readonly int _staleWhileRevalidate;

@@ -12,6 +12,7 @@ public sealed class NotificationDbContext : AizenDbContext
     public DbSet<NotificationTemplateEntity>   NotificationTemplates   => Set<NotificationTemplateEntity>();
     public DbSet<UserDeviceTokenEntity>        UserDeviceTokens        => Set<UserDeviceTokenEntity>();
     public DbSet<NotificationPreferenceEntity> NotificationPreferences => Set<NotificationPreferenceEntity>();
+    public DbSet<ContactMessageEntity>         ContactMessages         => Set<ContactMessageEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

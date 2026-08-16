@@ -16,10 +16,10 @@ Fresh reachability re-verified on the current branch (Step 0). Verdicts: **REACH
 | 1 | Service catalogue | `GET api/v1/web/services` | ✅ REACHABLE | `GET /api/v1/reference-data/lookup-groups/lookup-items/SERVICE_PROVIDER_CATEGORY` (service-token role `reference_data_read`) |
 | 2 | Service detail | `GET api/v1/web/services/{slug}` | ⛔ BLOCKED | none — lookup is Code-keyed with no body; rich per-service pages are editorial content, already served by `api/v1/web/content` |
 | 3 | Location detail | `GET api/v1/web/locations/...` | 🟡 PARTIAL | `LocationController [AllowAnonymous]` country/city/district **by code** — implemented; region/marina/slug below |
-| 4 | Service × location | `GET api/v1/web/service-pages/{serviceSlug}/{locationSlug}` | ⛔ BLOCKED | none — `ProviderCatalogController` is `[Authorize]`; no public availability read |
-| 5 | Public pricing | `GET api/v1/web/pricing` | 🟡 PARTIAL | `ParticipantPlanController` + `ProviderPlanController` GETs are `[AllowAnonymous]` — implemented; commission/fee/VAT below |
+| 4 | Service × location | `GET api/v1/web/service-pages/{serviceSlug}` (interim, cityCode query) | ✅ REACHABLE (M2 done) | Identity `GET /providers/for-area/availability` (`[AllowAnonymous]`, coarse enum) + W4 catalogue; full `/{serviceSlug}/{locationSlug}` slug form pending M3 |
+| 5 | Public pricing | `GET api/v1/web/pricing` | ✅ REACHABLE (M1 done) | plans (`[AllowAnonymous]` plan GETs) **+** `GET /api/v1/payment/public/pricing-terms` (M1, `[AllowAnonymous]`) — commission/fee terms folded in; VAT deliberately omitted |
 | 6 | CargoDry catalogue + product | `GET api/v1/web/cargodry`, `.../{slug}` | ⛔ BLOCKED | none — `CargoDryPublicController` exposes only `POST validate` |
-| 7 | Contact submit | `POST api/v1/web/contact` | ⛔ BLOCKED | none — no module owns anonymous inbound persistence + spam scoring + notification |
+| 7 | Contact submit | `POST api/v1/web/contact` | ✅ REACHABLE (M4 done) | `POST /api/v1/notification/public/contact` (`[AllowAnonymous]`) — folded into Notification (interim owner); persist + spam-score + admin notify |
 
 ---
 
@@ -39,68 +39,78 @@ slugged "service entity" with editorial content anywhere in the modules.
   `seoTitle`, `seoDescription`, `heroMediaKey?`. No provider data, no economics.
 - Slug rules must reuse the reserved-slug guard (W3.4).
 
-## 3 — Location detail — region / marina types, slug resolver, per-location services — BLOCKED (rest is PARTIAL)
+## 3 — Location enrichment — slug resolver + single reads ✅ DONE (M3-1); region/marina ⛔ BLOCKED (data-sourcing)
 
-**Implemented (real):** `country`, `city`, `district` detail **by hierarchical code** with `locationType` + resolved
-`parentChain[]`, from `LocationController`'s `[AllowAnonymous]` reads.
+**DONE (M3-1):**
+1. **Single-slug resolver.** ReferenceData location docs now carry a deterministic, globally-unique, reserved-guarded
+   `Slug` (Turkish-aware; backfilled idempotently at startup; partial-unique index per collection). Flat resolver
+   `GET /api/v1/reference-data/locations/by-slug/{slug}` (`[AllowAnonymous]`) → `{ locationType, code, name,
+   parentChain[], slug }`. The BFF collapses to **`GET api/v1/web/locations/{slug}`** (code-keyed routes KEPT for
+   back-compat + coordinate-rich detail).
+2. **Single reads.** `GET .../districts/{districtCode}` and `GET .../neighborhoods/{neighborhoodCode}` — replace the
+   BFF's district list-filter workaround.
+3. **Service × location slug form.** M2's `service-pages` upgraded to **`GET api/v1/web/service-pages/{serviceSlug}/{locationSlug}`**
+   (locationSlug → city via the resolver; availability stays **city-keyed**). The interim `?cityCode=` form still works.
 
-**Still blocked:**
-1. **`region` and `marina` location types.** The ReferenceData geography hierarchy is
-   country → city → district → neighborhood only. The website's generic location model also wants `region` and
-   `marina`.
-   - Unblock: ReferenceData adds `region` (between country and city, or as a city grouping) and `marina` (a point of
-     interest under city/district) as first-class geography, each with a public read
-     `GET /api/v1/reference-data/locations/.../regions|marinas` returning `{ code, name, parentCodes, lat?, lon? }`.
-2. **Single-slug resolver.** Locations are code-keyed and hierarchical; there is no `GET /locations/{slug}` that maps a
-   flat slug to a location + its ancestors.
-   - Unblock: ReferenceData adds a slug column per geography level (reusing the reserved-slug guard) and a flat
-     resolver `GET /api/v1/reference-data/locations/by-slug/{slug}` → `{ locationType, code, name, parentChain[], slug }`.
-     Then the BFF collapses its three code routes into `GET api/v1/web/locations/{slug}`.
-3. **Single-district / single-neighborhood read.** Only a **districts-by-city list** exists (the BFF resolves a
-   district by filtering it); neighborhoods are list-only.
-   - Unblock: add `GET .../districts/{districtCode}` and `GET .../neighborhoods/{neighborhoodCode}` single reads.
-4. **Available services per location.** The website wants "services available in this location"; no module exposes a
-   public location→service availability read (see #4).
+**Still BLOCKED — `region` and `marina` location types (a data-sourcing project, not code):**
+The hierarchy is country → city → district → neighborhood only. Adding `region`/`marina` needs **new Mongo
+collections + public reads AND a sourced dataset** — a regions list (per country, with city groupings) and a marina
+POI dataset (names + coordinates + parent geography). **No source data exists today** (the only `marina` in the repo
+is the `MARINA_SUPPORT` service category, not a place). Deferred until a dataset is provided; the BFF will not
+fabricate a geography.
 
-## 4 — Service × location landing — BLOCKED
+**Available services per location** is delivered by the service × location signal (§4).
 
-**Why blocked.** The aggregated landing needs a **coarse availability signal** (`available` / `limited` / `none` —
-never a raw provider count) for a (service, location) pair. The provider catalogue lives on
-`ProviderCatalogController` (`api/v1/service-requests/provider/catalog`), which is `[Authorize]` — provider-only,
-never public — and it exposes per-provider rows, not an aggregate signal.
+## 4 — Service × location landing — ✅ DONE (M2, interim code form)
 
-**Unblock spec:**
-- Owner: ServiceRequest (reads the provider eligibility/coverage read-model, e.g. the I2 `GetProvidersForArea`
-  projection) with input from Profile.
-- Route: `GET /api/v1/service-requests/public/availability?serviceCode={c}&locationCode={l}` — `[AllowAnonymous]`
-  (in-cluster) or a service-token read role.
-- **Web-safe response — coarse only:** `{ serviceCode, locationCode, availability: "available"|"limited"|"none" }`.
-  The endpoint must bucket internally and **never** return a provider count, provider ids, names, scores, or ranking.
-- Optional (commercially approved only): `priceRange: { min, max, currency }` derived from published terms — omit
-  entirely unless approved.
-- The BFF then aggregates service summary (#1) + location summary (#3) + this signal into one
-  `GET api/v1/web/service-pages/{serviceSlug}/{locationSlug}` projection (one call from the page, never four).
+**Resolved.** The coverage read-model is Identity's I2 (`provider_service_categories` + `UserProfile.City`), already
+`[AllowAnonymous]`. M2 added a **coarse** sibling endpoint and a BFF aggregation:
 
-## 5 — Public pricing — commission model, customer platform fee, VAT flag — BLOCKED (plans are PARTIAL)
+- **Identity** — `GET /api/v1/identity/providers/for-area/availability?cityCode={c}&categoryCode={cat}`
+  (`[AllowAnonymous]`, mirrors `providers/for-area`, no new role) → CQRS `GetProviderAreaAvailabilityQuery` →
+  `ProviderAreaAvailabilityDto { cityCode, categoryCode?, availability }`. Buckets internally from config
+  `Availability:Thresholds` (`LimitedMin`=1, `AvailableMin`=3): `0`→none, `1..2`→limited, `≥3`→available. The query
+  fetches **at most `AvailableMin` rows** (`CountForAreaAsync` uses a server-side `LIMIT` then `COUNT`), so no
+  provider count/ids ever leave the module.
+- **BFF** — `GET api/v1/web/service-pages/{serviceSlug}?cityCode={cityCode}` (`[AllowAnonymous]`, `[WebCache]`,
+  trusted-caller aware). Resolves `serviceSlug` → `SERVICE_PROVIDER_CATEGORY.Code` (reverse of the W4 slug transform;
+  unknown slug → clean not-found), aggregates service summary (#1) + city summary (#3) + the availability enum into
+  one `WebServicePageDto`. Carries only the enum — no count/ids.
+- The category filter matches because provider eligibility now stores canonical `lower(SERVICE_PROVIDER_CATEGORY.Code)`
+  (see the CANON track) — the BFF passes the Code, the module compares `Code.ToLowerInvariant()`.
 
-**Implemented (real):** published **subscription tiers** (provider + participant plans) via the two
-`[AllowAnonymous]` plan GETs — `planCode`, `name`, `description`, `monthlyPriceTRY`, `annualPriceTRY?`, `badgeLabel`,
-`trialDays?`, `features[]`, `sortOrder`, `effectiveFrom`, `currency: TRY`.
+**Still blocked (city-keyed read-model):**
+- **District / marina availability.** Coverage is keyed by `UserProfile.City` only; there is no district/marina
+  granularity. Availability accepts a **city code** only.
+  - Unblock: the eligibility read-model would need finer location keying (ties into #3's region/marina work).
+- **Full `{serviceSlug}/{locationSlug}` slug form.** The interim route takes `cityCode` as a query code because
+  locations have no slug resolver yet (#3). When M3 ships `GET /locations/by-slug/{slug}`, the BFF upgrades to
+  `GET api/v1/web/service-pages/{serviceSlug}/{locationSlug}` (resolve locationSlug → cityCode) with no change to the
+  availability signal.
+- **`priceRange`** — omitted (no approved per-(service, location) published price exists; unchanged from the audit).
 
-**Still blocked** — everything else the pricing projection wants is on **admin-only** controllers:
-- **Commission model** — `CommissionRuleController` is `[Authorize(Roles = "Admin")]`.
-- **Customer platform fee** — `PlatformFeeRuleController` is `[Authorize(Roles = "Admin")]`.
-- **VAT flag / effective-from for commercial terms** — no anonymous read.
+## 5 — Public pricing — commission model, customer platform fee, VAT flag — ✅ DONE (M1)
 
-**Unblock spec:**
-- Owner: Payment.
-- Route: `GET /api/v1/payment/public/pricing-terms` — `[AllowAnonymous]` (in-cluster) or a service-token read role.
-- **Web-safe, published commercial terms ONLY:**
-  `{ commissionModel: { label, ratePercent }, customerPlatformFee: { amount|percent, currency }, vatIncluded: bool,
-  currency, effectiveFrom }`.
-- **Must NOT expose:** cost-share rates, tevkifat/withholding mechanics, profit-protection internals, per-provider
-  commission benefits, or any economics snapshot. Publish only the headline figures a customer is quoted.
-- The BFF folds these into the existing `api/v1/web/pricing` response alongside the plan tiers.
+**Resolved.** Payment now exposes `GET /api/v1/payment/public/pricing-terms` (`[AllowAnonymous]`, in-cluster —
+mirrors the sibling anonymous plan GETs, no new Keycloak role) via `PaymentPublicController` → CQRS
+`GetPublicPricingTermsQuery`. The BFF folds it into `api/v1/web/pricing` as a `terms` block beside the plan tiers.
+
+**Published (headline only):**
+- **Commission** — the Global **Standard-priority, effective-now** rule's rate (`GetPublishedStandardGlobalRuleAsync`),
+  as `standardRatePercent` (nullable, never fabricated) + a "may vary by plan/category/agreement" note, framed as
+  provider-facing. Deliberately EXCLUDES the Emergency surge, scheduled/expired rules, and per-provider/plan/category
+  negotiated rates. (This is NOT the old `GetStatsAsync` `GlobalBaseRate` KPI, which ignored priority/window.)
+- **Customer platform fee** — the Global fee rule (no category, no customer type, TRY): `model`, `ratePercent`
+  (Percentage/PercentageWithBounds), `minAmount`/`maxAmount` (PercentageWithBounds).
+- **effectiveFrom** — max EffectiveFrom of the two source Global rules.
+
+**VAT: intentionally omitted entirely** (no `vatIncluded`, no rate) — `PlatformFeeRuleEntity.VatRate` is optional/null
+and resolved at transaction time, and its treatment awaits YMM sign-off, so it is not a publishable headline.
+
+**Confirmed never surfaced:** cost-share rates, tevkifat/withholding mechanics, profit-protection internals,
+economics/commission-allocation snapshots, per-provider commission benefits/overrides, category/customer-type override
+rows, rule `notes`/`ruleCode`/user ids/DB ids — none are modelled in `PublicPricingTermsDto`, proven by a
+field-stripping test. The commission/fee **admin** controllers and every economics-calculation path are untouched.
 
 ## 6 — CargoDry catalogue + product — BLOCKED
 
@@ -116,17 +126,22 @@ commercially approved for public display.
   public display — otherwise omit (the website renders without an `Offer`).
 - Reserved-slug guard (W3.4) applies to product slugs.
 
-## 7 — Contact submit — BLOCKED
+## 7 — Contact submit — ✅ DONE (M4, folded into Notification as interim owner)
 
-**Why blocked.** No module owns anonymous inbound contact: persistence + spam scoring + notification/routing to a
-support inbox. The BFF must **not** stand up its own store (it has no database — a core constraint).
+**Resolved.** Owner = **Notification** (interim — a future dedicated Support/ContactIntake module could take it over;
+contact intake is a distinct bounded context from notification delivery).
 
-**Unblock spec:**
-- Owner: Notification (or a Support module).
-- Route: `POST /api/v1/{module}/public/contact` — `[AllowAnonymous]`, **stricter rate limit than reads**.
-- Request (validated shape only — the Next.js Server Action forwards it and must never be trusted):
-  `{ name, email, subject, message, sourcePage?, captchaToken? }`.
-- Server-side responsibilities: shape + server validation, spam scoring, persistence, and notification to the support
-  inbox. Returns `{ accepted: bool, ticketRef? }`.
-- The BFF then adds `POST api/v1/web/contact` on a dedicated `contact-submit` rate-limit policy (stricter than
-  `public-read-ip`), thin → CQRS → the module command.
+- **Notification** — `POST /api/v1/notification/public/contact` (`PublicContactController`, `[AllowAnonymous]`,
+  in-cluster) → CQRS `SubmitContactMessageCommand`. FluentValidation shape check; **spam scoring** (honeypot ⇒ max
+  score; link count / message length / all-caps heuristics + a per-IP submission-rate penalty, thresholds from config
+  `ContactIntake`); **persists** a `ContactMessageEntity` (Postgres `contact_messages`: name/email/subject/message,
+  `SourcePage?`, `Status`, `SpamScore`, opaque `TicketRef`, **salted `IpHash` — never the raw IP**, `CreatedAt`);
+  **below threshold** → admin fan-out (`GetAdminUserIds` + one `SendNotificationCommand` per admin,
+  `NotificationType.ContactReceived`=920, InApp template). Always returns `{ accepted:true, ticketRef }` — a spammer
+  learns nothing. **Captcha:** `captchaToken` accepted-and-ignored behind a documented `// FUTURE:` verifier seam.
+- **BFF** — `POST api/v1/web/contact` (`[AllowAnonymous]`, thin → CQRS → module) on the **stricter `contact-submit`**
+  rate-limit policy (default 5/60s per IP, tighter than `public-read-ip`; not bypassed by the trusted-caller secret).
+  Forwards the caller IP as `X-Forwarded-For` for the module to hash. Untrusted payload end to end.
+
+**Request** `{ name, email, subject, message, sourcePage?, captchaToken? }` (+ a hidden honeypot field).
+**Response** `{ accepted, ticketRef? }` — no DB id, no internal fields.

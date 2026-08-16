@@ -20,6 +20,31 @@ public sealed class ReferenceDataMongoIndexInitializer
         await CreateDistrictIndexesAsync(cancellationToken);
         await CreateNeighborhoodIndexesAsync(cancellationToken);
         await CreateStreetIndexesAsync(cancellationToken);
+        await CreateSlugIndexesAsync(cancellationToken);
+    }
+
+    // M3 — per-collection UNIQUE slug index, PARTIAL on { Slug: { $exists: true } } so docs not yet backfilled
+    // (no Slug field) are excluded from the unique constraint. Global cross-level uniqueness is guaranteed by the
+    // deterministic backfill; these indexes protect intra-collection uniqueness and back the by-slug lookups.
+    private async Task CreateSlugIndexesAsync(CancellationToken cancellationToken)
+    {
+        await CreateSlugIndexAsync<LocationCountryDocument>(ReferenceDataMongoCollectionNames.Countries, "ux_country_slug", cancellationToken);
+        await CreateSlugIndexAsync<LocationCityDocument>(ReferenceDataMongoCollectionNames.Cities, "ux_city_slug", cancellationToken);
+        await CreateSlugIndexAsync<LocationDistrictDocument>(ReferenceDataMongoCollectionNames.Districts, "ux_district_slug", cancellationToken);
+        await CreateSlugIndexAsync<LocationNeighborhoodDocument>(ReferenceDataMongoCollectionNames.Neighborhoods, "ux_neighborhood_slug", cancellationToken);
+    }
+
+    private Task CreateSlugIndexAsync<TDoc>(string collectionName, string indexName, CancellationToken cancellationToken)
+    {
+        var collection = _mongoDatabase.GetCollection<TDoc>(collectionName);
+        var options = new CreateIndexOptions<TDoc>
+        {
+            Unique = true,
+            Name = indexName,
+            PartialFilterExpression = Builders<TDoc>.Filter.Exists("Slug"),
+        };
+        var model = new CreateIndexModel<TDoc>(Builders<TDoc>.IndexKeys.Ascending("Slug"), options);
+        return collection.Indexes.CreateOneAsync(model, cancellationToken: cancellationToken);
     }
 
     private Task CreateCountryIndexesAsync(CancellationToken cancellationToken)
