@@ -40,8 +40,20 @@ Keep this secret in sync across environments.
   the `public-read-ip` rate limiter partitions on the real IP).
 
 ## 3. Deployment (docker-compose / k8s)
-- Add a `marine-web-bff` service to compose/k8s alongside the other BFFs.
-- Wire environment config for all sections below.
+- ✅ **docker-compose DONE** — two services added to `docker-compose.yaml`:
+  - **`content-api`** (Content module host, Mongo-only) — host port **`${CONTENT_API_PORT:-7111}`** → 8080. The
+    Marine.Web BFF's `IContentRemoteCall` targets it; it was previously absent from compose.
+  - **`bff-marine-web`** (this BFF) — host port **`${BFF_MARINE_WEB_PORT:-17005}`** → 8080. `depends_on`
+    content-api + identity-api + reference-data-api + payment-api + notification-api (+ keycloak, rabbitmq, redis).
+  - Dockerfile: `./Bff/build/Dockerfile.Marine.Web` (publishes `Aizen.Bff.Marine.Web.csproj`).
+  - Redis DBs: content-api **18**, bff-marine-web **17**. Assertion parity: content-api `BffAssertion__SharedSecret`
+    and the BFF `MarineWebKeycloak__ModuleAssertionSecret` both resolve `${AIZEN_BFF_ASSERTION_SECRET}`.
+  - keycloak-init (`infrastructure/keycloak/init.sh`) creates the `marine-web-bff` confidential service-account
+    client (+ `reference_data_read`/`identity_read` grants — **boot-critical**), the `web_user` realm role, and the
+    public `inktavia-web` SPA client (frozen /me only). `.env.example` carries the new vars + dev defaults.
+- k8s: mirror the same env; still to do per cluster.
+- ⚠️ **`MARINE_WEB_TRUSTED_CALLER_SECRET` must ALSO be injected into the Next.js server** as the `X-Aizen-Web-Caller`
+  header value — otherwise the SSR server trips the strict per-IP read limit.
 
 ## 4. Per-environment configuration
 | Section | Notes |

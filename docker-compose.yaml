@@ -325,6 +325,78 @@ services:
       - "${BFF_MARINE_MOBILE_PORT:-17003}:8080"
     networks: [aizen]
 
+  # Public-website BFF (server-rendered Next.js consumer). Anonymous read surface + M4 contact WRITE. Mirrors
+  # bff-marine-mobile. NOTE: the ${MARINE_WEB_TRUSTED_CALLER_SECRET} value MUST also be injected into the Next.js
+  # server as the X-Aizen-Web-Caller header — otherwise the SSR server trips the strict per-IP read limit.
+  bff-marine-web:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.Marine.Web
+    container_name: bff-marine-web
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - redis
+      - content-api
+      - identity-api
+      - reference-data-api
+      - payment-api
+      - notification-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      # AppType.Worker — the BFF hosts the ContentPublished/Unpublished revalidation consumers. Same broker block.
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # BFF -> module calls (Keycloak service token injected by the delegating handler).
+      RemoteCalls__IContentRemoteCall__BaseUrl: http://content-api:8080
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      RemoteCalls__IPaymentRemoteCall__BaseUrl: http://payment-api:8080
+      RemoteCalls__INotificationRemoteCall__BaseUrl: http://notification-api:8080
+      # W2.1 — trusted server-caller secret. The Next.js server sends this as X-Aizen-Web-Caller; inject the SAME
+      # value there. Empty ⇒ the SSR server is throttled by the strict per-IP read limit.
+      MarineWebPublic__TrustedCallerSecret: ${MARINE_WEB_TRUSTED_CALLER_SECRET:-local-dev-only-change-me}
+      MarineWebPublic__TrustedRateLimit__PermitLimit: 6000
+      MarineWebPublic__TrustedRateLimit__WindowSeconds: 60
+      # W3.2 — SEO indexability thresholds (ISeoIndexabilityPolicy).
+      MarineWebPublic__Seo__RequirePublished: "true"
+      MarineWebPublic__Seo__RequireTitle: "true"
+      MarineWebPublic__Seo__RequireDescription: "false"
+      MarineWebPublic__Seo__MinBodyLength: 200
+      # W2.2 — outbound cache-revalidation webhook to the Next.js server.
+      MarineWebPublic__Revalidate__Url: ${MARINE_WEB_BASE:-http://localhost:3000}/api/revalidate
+      MarineWebPublic__Revalidate__Secret: ${MARINE_WEB_REVALIDATE_SECRET:-}
+      # Rate limits: per-IP reads (unchanged) + the stricter M4 contact-submit WRITE limit.
+      RateLimiting__PublicRead__PermitLimit: 120
+      RateLimiting__PublicRead__WindowSeconds: 60
+      RateLimiting__ContactSubmit__PermitLimit: 5
+      RateLimiting__ContactSubmit__WindowSeconds: 60
+      # CORS: local browser dev only (server-to-server calls do not exercise CORS).
+      Cors__AllowedOrigins__0: ${MARINE_WEB_BASE:-http://localhost:3000}
+      # Redis — BFF distributed-cache (DB 17, chosen in W0).
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=17
+      # MarineWebKeycloak — the FROZEN /me surface only (the website never authenticates). Mirrors the mobile block.
+      MarineWebKeycloak__BaseUrl: http://keycloak:8080
+      MarineWebKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineWebKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineWebKeycloak__Realm: inktavia-realm
+      MarineWebKeycloak__Audience: marine-web-bff
+      MarineWebKeycloak__RequireHttpsMetadata: "false"
+      MarineWebKeycloak__AdminClientId: marine-web-bff
+      MarineWebKeycloak__AdminClientSecret: ${KEYCLOAK_MARINE_WEB_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineWebKeycloak__ClientId: inktavia-web
+      MarineWebKeycloak__BffClientId: marine-web-bff
+      MarineWebKeycloak__WebUserRole: web_user
+      MarineWebKeycloak__ParticipantProfileIdAttributeName: participant_profile_id
+      # Sent to Content as X-Aizen-Bff-Assertion (frozen /me). MUST equal content-api's BffAssertion__SharedSecret.
+      MarineWebKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+    ports:
+      - "${BFF_MARINE_WEB_PORT:-17005}:8080"
+    networks: [aizen]
+
 
   # Example modules (expand as needed)
   # Second replica of the BFF — ONLY for proving the Redis SignalR backplane locally.
@@ -542,6 +614,47 @@ services:
       ReferenceDataSeed__SeedLocationDocuments: "true"
     ports:
       - "7104:8080"
+    networks: [aizen]
+
+  # Content module host (Mongo-only). Consumed by bff-marine-web (IContentRemoteCall). Mirrors reference-data-api's
+  # Mongo wiring + notification-api's message-bus keys (Content publishes ContentPublished/ContentUnpublished).
+  content-api:
+    build:
+      context: .
+      dockerfile: ./Modules/Content/build/Dockerfile
+    container_name: content-api
+    depends_on:
+      - mongo
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      # AizenMongoContext reads DatabaseSettings:ContentMongo (ContentMongoDbContext.ConfigurationKey = "ContentMongo").
+      # The database name lives in the connection-string path — matches the module's appsettings (aizen_content);
+      # authSource=admin because the mongo service's root user authenticates against the admin db.
+      DatabaseSettings__ContentMongo__Type: Mongo
+      DatabaseSettings__ContentMongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017/aizen_content?authSource=admin
+      DistributedCache__InstanceName: "Content:"
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=18
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      MessageBroker__QueueSettings__VirtualHost: ${RABBITMQ_VHOST:-/}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: content-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Trust the Marine.Web BFF's /me assertions (X-Aizen-Bff-Assertion). This shared secret MUST equal the BFF's
+      # MarineWebKeycloak__ModuleAssertionSecret — both resolve ${AIZEN_BFF_ASSERTION_SECRET}.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: marine-web-bff
+      # Demo content seed — off by default.
+      Content__Seed__Demo: "false"
+    ports:
+      - "${CONTENT_API_PORT:-7111}:8080"
     networks: [aizen]
 
   vessel-api:

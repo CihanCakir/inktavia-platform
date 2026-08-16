@@ -1,7 +1,7 @@
 # Inktavia Marine OS — CI/CD + Self-Hosted Kubernetes Go-Live Roadmap
 
-**Sürüm:** 1.1 · **Tarih:** 2026-08-16 · **Sahip:** Cihan Çakır
-*(v1.1: A1 frontend repoları ve A2 donanım cevaplandı → §1.3 frontend envanteri, §1.4 donanım kararı, Faz 10 detaylandırıldı, domain haritası koddaki gerçeğe hizalandı)*
+**Sürüm:** 1.2 · **Tarih:** 2026-08-16 · **Sahip:** Cihan Çakır
+*(v1.1: frontend envanteri + donanım değerlendirmesi + Faz 0. **v1.2: D1 değişti — Windows/Hyper-V yerine bare-metal Ubuntu + k3s.** Faz 1 yeniden yazıldı, §1.5 bellek bütçesi ve §1.6 .NET bellek ayarı eklendi.)*
 **Kapsam:** `inktavia-platform` monorepo (11 modül + 5 BFF + Gateway) + 3 frontend (Admin Panel, Provider Portal, Inktavia Web) → kendi kasanda çalışan k3s cluster'ı, GHCR üzerinden versiyonlanmış image'lar, GitOps ile kontrollü deploy, `inktavia.com` altında yayın.
 
 ---
@@ -10,7 +10,8 @@
 
 | # | Karar | Seçim | Gerekçe |
 |---|---|---|---|
-| D1 | K8s tabanı | **Windows 10 Pro + Hyper-V → Ubuntu Server VM → k3s** | Windows kurulumu korunur, VM snapshot'ı ile geri dönüş kolay, gerçek Linux CNI (NetworkPolicy uygulanır) |
+| D1 ~~v1.0~~ | ~~K8s tabanı~~ | ~~Windows 10 Pro + Hyper-V → Ubuntu VM~~ | **v1.2'de iptal** — 15,9 GB bütçede Windows + Hyper-V ~3–4 GB (≈%25) yiyor |
+| **D1** | **K8s tabanı** | **Bare-metal Ubuntu Server 24.04 LTS + k3s** (Windows silinir) | Kullanılabilir belleğin tamamına yakını uygulamalara kalır; VHDX katmanı yok → disk hem hızlı hem **233 GB SSD yetiyor, SSD alımı gerekmiyor**; Windows 10 destek-sonu riski ortadan kalkar |
 | D2 | Container registry | **GHCR** (`ghcr.io/cihancakir/inktavia/*`) | Repo zaten GitHub'da, işletme maliyeti sıfır, kasa çökse bile image'lar ayakta |
 | D3 | "Private/Public" anlamı | **Ağ erişimi (ingress)** | Modüller ClusterIP + NetworkPolicy ile kapalı; sadece BFF'ler internete açık. Image'ların tamamı GHCR'da **private** kalır (tek görünürlük politikası = daha az hata yüzeyi) |
 | D4 | Dış erişim | **Cloudflare Tunnel** | Statik IP / port forward / firewall açma yok; kasanın gerçek IP'si gizli; ücretsiz TLS + WAF + DDoS. Ev/ofis hattında tek makul yol |
@@ -72,13 +73,15 @@
 
 | Bileşen | Değer | Yeterli mi? |
 |---|---|---|
-| CPU | AMD Ryzen 5 1600 — 6 çekirdek / 12 iş parçacığı, 3.2 GHz | ⚠️ Yeterli ama dar. VM'e 8 vCPU ver, host'a 4 kalsın |
-| RAM | **32 GB takılı / 15,9 GB kullanılabilir** | 🔴 **BLOKER — önce bu çözülmeli** |
-| SSD | 233 GB Samsung 860 EVO (Windows burada) | 🔴 Yetersiz — VM + veritabanları sığmaz |
-| HDD | 932 GB Seagate ST1000VX005 (SkyHawk, gözetim diski) | 🟡 Yedek/MinIO için uygun, **veritabanı için değil** |
-| GPU | GTX 1060 3GB | ⚪ İlgisiz (ileride ML/görsel işleme düşünülürse not) |
+| CPU | AMD Ryzen 5 1600 — 6 çekirdek / 12 iş parçacığı, 3.2 GHz | 🟡 Yeterli. Tümü Linux'a kalır. **Build kasada yapılmayacak** (CI GitHub-hosted) |
+| RAM | **32 GB takılı / 15,9 GB kullanılabilir** | 🔴 Tek gerçek bloker — §1.4a |
+| SSD | 233 GB Samsung 860 EVO | 🟢 **Bare-metal'de yeterli** — VHDX yok. Ubuntu + k3s + PostgreSQL/Mongo/Redis buraya |
+| HDD | 932 GB Seagate ST1000VX005 (SkyHawk) | 🟢 MinIO nesne deposu + yedekler (sıralı I/O, IOPS gerekmez) |
+| GPU | GTX 1060 3GB | ⚪ Linux'ta `nomodeset` gerekebilir; kurulum dışında ilgisiz |
 
-### 🔴 R1a — "32 GB takılı, 15,9 GB kullanılabilir"
+> **v1.2 notu:** Disk artık bloker değil. Bare-metal kararı 400 GB'lık VHDX ihtiyacını ortadan kaldırdı — **1 TB SSD alımı iptal.** Almak istersen tabii ki iyi olur ama go-live'ı bekletmiyor.
+
+### 🔴 §1.4a — "32 GB takılı, 15,9 GB kullanılabilir"
 
 Bu normal değil. Ryzen 1600'de tümleşik GPU yok, yani 16 GB'ın donanıma ayrılması için bir sebep yok. En olası üç neden, kontrol sırasıyla:
 
@@ -100,35 +103,83 @@ wmic memorychip get BankLabel,DeviceLocator,Capacity,Speed,Manufacturer
 
 (1) ve (2) temizse: kasayı aç, modülleri yeniden otur, BIOS'ta XMP/DOCP'yi kapat (Zen 1 bellek uyumluluğu meşhur şekilde hassastır), tek tek test et. `mdsched.exe` ile Windows Bellek Tanılama çalıştır.
 
-**Neden bloker:** Tam yığın için gerçekçi bütçe —
+Bu kontrolü **yapmadın** (2026-08-16 itibarıyla). 2 dakikalık bir iş ve sonucu tüm kapasite planını ikiye katlayabilir — Faz 1'e başlamadan önce yap. Aşağıdaki bütçe, kötü senaryoyu (15,9 GB) varsayarak kuruldu; 32 GB gelirse her şey rahatlar.
 
-| Katman | RAM |
-|---|---|
-| 11 modül API (.NET 9, ~180 MB) | ~2,0 GB |
-| 4 BFF | ~0,9 GB |
-| 3 frontend (2 nginx + 1 Next.js) | ~0,3 GB |
-| k3s control plane + ingress + Argo CD | ~1,8 GB |
-| Prometheus + Grafana + Loki | ~2,0 GB |
-| **Cluster toplam** | **~7 GB** (rahat çalışma için 10 GB) |
-| PostgreSQL + Mongo + Keycloak + RabbitMQ + Redis + MinIO | ~5,5 GB |
-| Windows host | ~3 GB |
-| **GENEL TOPLAM** | **~19–21 GB** |
+---
 
-32 GB ile rahat. **15,9 GB ile tam yığın çalışmaz.**
+## 1.5 Bellek Bütçesi — Bare-Metal, 15,9 GB Senaryosu
 
-**15,9 GB'da kalırsan Plan B:** tek namespace (prod veya dev, ikisi birden değil), observability yığını kapalı (metrics-server + `kubectl logs` ile idare), her modül `limits.memory: 384Mi` ve `DOTNET_GCHeapHardLimit` ile sıkılaştırılmış, Loki yok. Bu bir *demo* ortamı olur, prod değil.
+| Katman | Bileşen | RAM |
+|---|---|---|
+| **Sistem** | Ubuntu Server 24.04 (başsız) | 0,6 GB |
+| | k3s control plane (SQLite, etcd değil) | 0,7 GB |
+| | ingress-nginx + metrics-server + sealed-secrets | 0,25 GB |
+| | Argo CD (server + repo-server + controller + redis) | 0,6 GB |
+| | **ara toplam** | **2,15 GB** |
+| **Stateful** | PostgreSQL (`shared_buffers=512MB`) | 1,2 GB |
+| (cluster dışı) | MongoDB (`wiredTigerCacheSizeGB=0.5`) | 0,9 GB |
+| | Keycloak (`-Xmx768m`) | 1,0 GB |
+| | RabbitMQ | 0,4 GB |
+| | Redis (`maxmemory 256mb`) | 0,3 GB |
+| | MinIO | 0,3 GB |
+| | **ara toplam** | **4,1 GB** |
+| **Prod uygulama** | 11 modül × ~220 MB | 2,4 GB |
+| | 4 BFF × ~220 MB | 0,9 GB |
+| | 3 frontend (2 nginx + 1 Next.js) | 0,3 GB |
+| | **ara toplam** | **3,6 GB** |
+| **Gözlem** | Prometheus (15 gün) + Grafana, Loki YOK | 1,2 GB |
+| | **ÇALIŞAN TOPLAM** | **≈ 11,0 GB** |
+| | *kalan (page cache + tepe yükler)* | *≈ 4,9 GB* |
 
-### 🔴 R1b — Disk
+Bu **çalışır**. Rahat değil ama gerçek bir prod ortamı.
 
-233 GB SSD'de Windows varken 400 GB'lık bir VM diski sığmaz ve HDD'ye kurulan bir k3s + PostgreSQL kabul edilemez derecede yavaş olur (etcd fsync gecikmesine çok duyarlıdır).
+### Dev namespace meselesi — dürüst değerlendirme
 
-**Yapılacak sıralama:**
-1. **1 TB SATA SSD ekle.** Bu bütçedeki en yüksek getirili tek harcama — anakart AM4 ise muhtemelen boş SATA portu var, hatta M.2 NVMe slotu olabilir (B350/X370 çoğunda var).
-2. Yeni SSD'yi VM'e ver: sistem + k3s + PostgreSQL/Mongo/Redis burada.
-3. Mevcut 932 GB HDD: **yedekler + MinIO nesne deposu** (sıralı okuma/yazma, IOPS gerektirmez).
-4. Mevcut 233 GB SSD: Windows host'ta kalsın.
+`prod + dev` seçtin. Dev'in tam kopyası **+3,6 GB** demek → toplam 14,6 GB, geriye 1,3 GB kalır. PostgreSQL ve MongoDB page cache'e muhtaç; o kadar dar bir alanda OOM-kill'lerle uğraşırsın ve ilk kurban genelde prod pod'u olur.
 
-SSD alınana kadar: VM diskini 120 GB olarak SSD'de tut, MinIO'yu HDD'ye bind-mount et, observability'yi kapalı başlat.
+**Çözüm — dev namespace var ama varsayılan olarak sıfırda:**
+
+```bash
+# scripts/dev-env.sh
+up)   kubectl -n inktavia-dev scale deploy --all --replicas=1 ;;
+down) kubectl -n inktavia-dev scale deploy --all --replicas=0 ;;
+only) kubectl -n inktavia-dev scale deploy/$2 --replicas=1 ;;   # tek modül
+```
+
+Argo CD dev Application'larını `replicas: 0` ile senkronize eder; sen bir değişikliği k8s'te denemek istediğinde `./scripts/dev-env.sh only identity-api` dersin. Bir-iki modül = ~0,5 GB, sorunsuz sığar. İş bitince `down`.
+
+Böylece istediğin dev ortamına sahipsin, sadece 7/24 çalışmıyor. **RAM 32 GB'a çıkarsa** `dev-env.sh up` kalıcı hale gelir ve bu kısıt kendiliğinden kalkar.
+
+### Disk yerleşimi (bare-metal)
+
+| Disk | Bölüm | İçerik |
+|---|---|---|
+| SSD 233 GB | `/` (LVM) | Ubuntu + k3s (`/var/lib/rancher`, ~30 GB image) |
+| | `/srv/data` | PostgreSQL · MongoDB · Redis · RabbitMQ |
+| HDD 932 GB | `/srv/objects` | MinIO nesne deposu |
+| | `/srv/backup` | pg_dump · mongodump · LVM snapshot arşivi |
+
+LVM kullan — bare-metal'de VM snapshot'ını kaybettiğin için, upgrade öncesi `lvcreate --snapshot` tek geri dönüş mekanizman olacak.
+
+---
+
+## 1.6 .NET Bellek Ayarı — 15 servis, 6 çekirdek
+
+Bu kutuda tek başına en büyük kazancı veren ayar:
+
+```yaml
+env:
+  - name: DOTNET_gcServer
+    value: "0"                    # Workstation GC
+  - name: DOTNET_GCConserveMemory
+    value: "5"
+```
+
+**Neden:** `Microsoft.NET.Sdk.Web` varsayılan olarak **Server GC** kullanır ve Server GC çekirdek başına ayrı heap ayırır. 6 çekirdekli bir makinede 15 ayrı .NET süreci çalıştırdığında bu, hiç kullanılmayacak onlarca heap demek. Workstation GC'ye geçmek servis başına 60–120 MB tasarruf ettirir — 15 servis üzerinden **~1,5 GB**. Bedeli: yüksek eşzamanlılıkta biraz daha fazla GC duraklaması; senin trafik profilinde fark edilmez.
+
+Ayrıca .NET, container'ın cgroup bellek limitini kendisi okur ve GC heap üst sınırını buna göre ayarlar — yani `limits.memory: 320Mi` yazmak aynı zamanda GC'yi de terbiye eder. Bu iki mekanizma birlikte çalışır.
+
+Bunlar Helm `values` dosyalarında ortak bir `env` bloğu olarak F6'da tanımlanacak.
 
 ---
 
@@ -141,39 +192,39 @@ SSD alınana kadar: VM diskini 120 GB olarak SSD'de tut, MinIO'yu HDD'ye bind-mo
                  │  Cloudflare (DNS/TLS)│  inktavia.com + alt alanlar
                  │  WAF · DDoS · Access │
                  └──────────┬───────────┘
-                            │ Cloudflare Tunnel (outbound-only)
+                            │ Cloudflare Tunnel (yalnız outbound — içeri port YOK)
 ╔═══════════════════════════▼════════════════════════════════════╗
-║  WINDOWS 10 PRO KASA                                           ║
-║  ┌──────────────────────────────────────────────────────────┐  ║
-║  │ Hyper-V: VM "inktavia-k3s"  (Ubuntu Server 24.04 LTS)     │  ║
-║  │                                                          │  ║
-║  │  ┌── k3s cluster ─────────────────────────────────────┐  │  ║
-║  │  │  cloudflared ─► ingress-nginx                      │  │  ║
-║  │  │                      │                             │  │  ║
-║  │  │        ┌─────────────┼─────────────┐               │  │  ║
-║  │  │        ▼             ▼             ▼               │  │  ║
-║  │  │   bff-adminpanel  bff-provider  bff-marine-web ...  │  │  ║
-║  │  │        │             │             │   [tier: bff] │  │  ║
-║  │  │        └─────────────┼─────────────┘               │  │  ║
-║  │  │                      ▼   NetworkPolicy: sadece BFF │  │  ║
-║  │  │   identity · payment · vessel · cargodry · ...      │  │  ║
-║  │  │                 [tier: module — INGRESS YOK]        │  │  ║
-║  │  │                                                    │  │  ║
-║  │  │  Argo CD · Sealed Secrets · Prometheus · Grafana    │  │  ║
-║  │  └────────────────────────┬───────────────────────────┘  │  ║
-║  │                           │ cluster dışı (host network)   │  ║
-║  │  PostgreSQL · MongoDB · Redis · RabbitMQ · MinIO · Keycloak│  ║
-║  └──────────────────────────────────────────────────────────┘  ║
+║  KASA — bare-metal Ubuntu Server 24.04 LTS (inktavia-node-1)    ║
+║  Ryzen 5 1600 · 15,9 GB (hedef 32) · SSD 233 GB · HDD 932 GB    ║
+║                                                                ║
+║  ┌── k3s (tek node, SQLite) ──────────────────────────────────┐ ║
+║  │  cloudflared ─► ingress-nginx                              │ ║
+║  │                      │                                     │ ║
+║  │        ┌─────────────┼─────────────┬──────────────┐        │ ║
+║  │        ▼             ▼             ▼              ▼        │ ║
+║  │  bff-adminpanel  bff-provider  bff-marine-web  web-* (SPA) │ ║
+║  │        │             │             │      [tier: bff]      │ ║
+║  │        └─────────────┼─────────────┘                       │ ║
+║  │                      ▼   NetworkPolicy: yalnızca BFF'lerden │ ║
+║  │   identity · payment · vessel · cargodry · ... (11 modül)   │ ║
+║  │                 [tier: module — INGRESS YOK]                │ ║
+║  │                                                            │ ║
+║  │  ns: inktavia-prod (7Gi kota) · inktavia-dev (2Gi, çoğunlukla 0)│ ║
+║  │  platform: Argo CD · Sealed Secrets · Prometheus · Grafana  │ ║
+║  └────────────────────────┬───────────────────────────────────┘ ║
+║                           │ k3s dışı, aynı host'ta docker compose║
+║  PostgreSQL · MongoDB · Redis · RabbitMQ · Keycloak  → SSD       ║
+║  MinIO · yedekler                                    → HDD       ║
 ╚════════════════════════════════════════════════════════════════╝
             ▲                                    ▲
             │ image pull (private)               │ git sync
-    ghcr.io/cihancakir/inktavia/*        github.com/CihanCakir/inktavia-platform
+    ghcr.io/cihancakir/inktavia/*        github.com/CihanCakir/*
             ▲
             │ push
-    GitHub Actions (build · test · scan · sign)
+    GitHub Actions (build · test · scan · sign) — kasada ASLA build yok
 ```
 
-**Neden stateful bileşenler cluster dışında?** `infrastructure/k8s/README.md` bunu zaten şart koşuyor. Tek node'lu bir k3s'te PostgreSQL'i pod olarak koşturmak, node yeniden başladığında veri riski + kurtarma karmaşıklığı demek. VM içinde systemd/docker ile çalışan Postgres'i yedeklemek ve geri yüklemek çok daha basit.
+**Neden stateful bileşenler k3s dışında?** `infrastructure/k8s/README.md` bunu zaten şart koşuyor. Tek node'lu bir k3s'te PostgreSQL'i pod olarak koşturmak, node yeniden başladığında veri riski + kurtarma karmaşıklığı demek. Aynı host'ta docker compose ile çalışan Postgres'i yedeklemek, sınırlamak ve geri yüklemek çok daha basit — ve bellek limitini `mem_limit` ile doğrudan kontrol edersin (§1.5'te bu belirleyici).
 
 ---
 
@@ -281,59 +332,108 @@ git check-ignore -v .env.local .env.test      # her satır bir kural göstermeli
 
 ---
 
-## FAZ 1 — Sunucu Kasanın Hazırlanması
+## FAZ 1 — Kasayı Bare-Metal Ubuntu Sunucuya Çevir
 
-**Süre:** ~1 gün (+ donanım tedarik süresi) · **Çıktı:** SSH ile erişilebilen, sabit IP'li Ubuntu VM
+**Süre:** ~1 gün · **Çıktı:** SSH ile erişilebilen, sabit IP'li, başsız Linux sunucu
+**⚠️ Bu faz geri dönüşsüz: Windows kurulumu silinecek.**
 
-### 1.1 Donanım engellerini kaldır — *bunlar bitmeden Faz 2'ye geçme*
+### 1.1 Silmeden ÖNCE — geri alınamayacak şeyler
 
-§1.4'teki iki bloker:
+- [ ] **Windows'ta ne varsa yedekle.** Belgeler, indirilenler, masaüstü, tarayıcı profilleri, lisans anahtarları, herhangi bir proje klasörü. Kasada duran ve başka kopyası olmayan hiçbir şey kalmamalı. (Faz 0'daki repo push'u tam da bu yüzden Faz 1'den önce.)
+- [ ] **Windows lisans anahtarını not al:** `wmic path SoftwareLicensingService get OA3xOriginalProductKey`
+- [ ] **RAM kontrolünü şimdi yap** (§1.4a). Windows'tayken en kolayı; silindikten sonra Linux'ta `dmidecode` ile bakacaksın.
+- [ ] **Kurtarma USB'si hazırla:** Ubuntu Server 24.04 LTS ISO + Rufus/Ventoy. Bare-metal'de "geri al" düğmesi yok; kurulum medyası senin geri alma düğmen.
+- [ ] **BIOS'a girebildiğini doğrula** (`Del` / `F2`), USB boot sırası ayarlı, Secure Boot kapalı.
 
-- [ ] **RAM 32 GB olarak görünüyor** (`msconfig` sınırı kaldırıldı / modüller yeniden oturtuldu / arızalı modül değişti)
-- [ ] **1 TB SSD takıldı** (veya: SSD alınana kadar küçültülmüş plan bilinçli olarak kabul edildi)
-- [ ] BIOS'ta **SVM (AMD-V) etkin** — Hyper-V bunsuz VM başlatamaz
-- [ ] BIOS'ta **IOMMU** etkin (opsiyonel, ileride cihaz geçişi için)
+### 1.2 Ubuntu Server 24.04 LTS kurulumu
 
-```powershell
-# Sanallaştırma açık mı?
-systeminfo | findstr /C:"Hyper-V"
-```
+| Ayar | Seçim | Neden |
+|---|---|---|
+| Kurulum tipi | **Ubuntu Server** (minimized değil) | `minimized` bazı tanılama araçlarını atar |
+| Disk | **SSD (233 GB)** — Custom, **LVM ile** | `/boot` 1 GB, geri kalanı tek VG; snapshot için **%20 boş bırak** |
+| HDD (932 GB) | Kurulumda dokunma | Sonra `/srv/objects` + `/srv/backup` olarak bağlanacak |
+| Swap | Kapalı veya ≤2 GB | k8s swap istemez; 2 GB emniyet supabı kabul edilebilir |
+| OpenSSH server | ✅ Kur | Kasaya bir daha monitör takmamak için |
+| SSH anahtarı | GitHub'dan içe aktar (`CihanCakir`) | Parolayla SSH'ı kapatacağız |
+| Snap paketleri | Hiçbiri | Gereksiz bellek |
 
-### 1.2 Hyper-V + VM
-```powershell
-# Yönetici PowerShell
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All   # yeniden başlatma ister
-New-VMSwitch -Name "InktaviaExternal" -NetAdapterName "Ethernet" -AllowManagementOS $true
-New-VM -Name "inktavia-k3s" -Generation 2 -MemoryStartupBytes 24GB `
-       -NewVHDPath "E:\VMs\inktavia-k3s.vhdx" -NewVHDSizeBytes 400GB -SwitchName "InktaviaExternal"
-Set-VM -Name "inktavia-k3s" -ProcessorCount 8 -StaticMemory
-Set-VMFirmware -VMName "inktavia-k3s" -EnableSecureBoot Off   # Ubuntu için
-Set-VM -Name "inktavia-k3s" -AutomaticStartAction Start -AutomaticStartDelay 60
-```
-`E:\` = yeni 1 TB SSD. Boyutlandırma tablosu:
+GTX 1060 ile kurulum ekranı bozulursa boot parametresine `nomodeset` ekle.
 
-| Senaryo | VM RAM | vCPU | VHDX | Not |
-|---|---|---|---|---|
-| RAM düzeldi + yeni SSD var | 24 GB | 8 | 400 GB (yeni SSD) | Hedef yapılandırma |
-| RAM düzeldi, SSD yok | 24 GB | 8 | 120 GB (mevcut SSD) + MinIO HDD'ye bind | Sıkışık ama çalışır |
-| RAM 15,9'da kaldı | 11 GB | 8 | 120 GB | Yalnız tek namespace, observability kapalı — **demo, prod değil** |
+### 1.3 İlk açılış — temel hazırlık
 
-Ubuntu Server 24.04 LTS ISO ile kur. Kurulumda: OpenSSH server ✅, LVM ✅, swap kapalı (k8s isteği).
-
-### 1.3 VM içinde temel hazırlık
 ```bash
 sudo apt update && sudo apt -y upgrade
-sudo swapoff -a && sudo sed -i '/ swap / s/^/#/' /etc/fstab
 sudo timedatectl set-timezone Europe/Istanbul
-# Router'da MAC rezervasyonu ile sabit IP ver (örn. 192.168.1.50)
-sudo ufw allow 22/tcp && sudo ufw allow 6443/tcp && sudo ufw enable
+sudo hostnamectl set-hostname inktavia-node-1
+
+# RAM gerçekten ne? Windows'taki 15,9 GB burada da mı?
+free -h
+sudo dmidecode -t memory | grep -E "Size:|Locator:|Speed:"    # kaç modül, kaç GB
+
+sudo swapoff -a && sudo sed -i '/ swap / s/^/#/' /etc/fstab   # 2 GB bıraktıysan atla
+
+# HDD'yi bağla
+sudo mkfs.ext4 /dev/sdb1 && sudo mkdir -p /srv/objects /srv/backup
+echo '/dev/sdb1 /srv/objects ext4 defaults,noatime 0 2' | sudo tee -a /etc/fstab
+sudo mount -a
 ```
 
+**Sabit IP** (`/etc/netplan/01-static.yaml`):
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp3s0:                         # gerçek adı `ip a` ile öğren
+      dhcp4: false
+      addresses: [192.168.1.50/24]
+      routes: [{to: default, via: 192.168.1.1}]
+      nameservers: {addresses: [1.1.1.1, 8.8.8.8]}
+```
+```bash
+sudo netplan apply
+```
+Router'da da MAC rezervasyonu yap — iki taraflı sabitleme, "IP değişti, cluster çöktü" gecelerini önler.
+
+**Sertleştirme:**
+```bash
+sudo sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo systemctl restart ssh
+
+sudo ufw default deny incoming && sudo ufw default allow outgoing
+sudo ufw allow from 192.168.1.0/24 to any port 22 proto tcp     # SSH yalnız LAN
+sudo ufw allow from 192.168.1.0/24 to any port 6443 proto tcp   # k8s API yalnız LAN
+sudo ufw enable
+
+sudo apt -y install unattended-upgrades && sudo dpkg-reconfigure -plow unattended-upgrades
+```
+
+> **80/443 açılmıyor.** Cloudflare Tunnel dışa doğru bağlantı kurar; içeri hiçbir port açılmaz. D4 kararının somut karşılığı bu.
+
+### 1.4 Bare-metal'de neyi kaybettin, yerine ne koyduk
+
+| Hyper-V'de olan | Bare-metal karşılığı |
+|---|---|
+| VM checkpoint | **LVM snapshot** — `sudo lvcreate -L 20G -s -n before-upgrade /dev/ubuntu-vg/ubuntu-lv` |
+| Windows'tan konsol | **SSH** + isteğe bağlı `cockpit` (web arayüzü, ~80 MB) |
+| VM'i kapatıp kasayı kullanma | Yok — kasa artık yalnızca sunucu |
+| Hızlı geri yükleme | **Kurtarma USB + yedek + IaC** (Helm/GitOps sayesinde cluster yeniden kurulabilir) |
+
+`cockpit` öneririm: `sudo apt install cockpit` → `https://192.168.1.50:9090`. Disk, servis, log ve bellek durumunu SSH açmadan görürsün; ileride Cloudflare Access arkasına alınabilir.
+
+### 1.5 Uzaktan açma (opsiyonel ama faydalı)
+
+```bash
+sudo apt -y install ethtool && sudo ethtool -s enp3s0 wol g
+```
+BIOS'ta "Power On By PCI-E / Wake on LAN" da etkinleştirilmeli. Kasa kapandığında fiziksel olarak yanına gitmemek için.
+
 ### ✅ Faz 1 tamamlanma kriteri
-- [ ] Windows'tan `ssh cihan@192.168.1.50` çalışıyor
-- [ ] VM Windows açılışında otomatik başlıyor (`AutomaticStartAction`)
-- [ ] `free -h` en az 24 GB gösteriyor, swap 0
-- [ ] Hyper-V checkpoint alındı: `Checkpoint-VM -Name inktavia-k3s -SnapshotName "clean-ubuntu"`
+- [ ] Windows'taki her şey yedeklendi (silme geri alınamaz)
+- [ ] Mac'ten `ssh cihan@192.168.1.50` anahtarla giriyor, parolayla girilemiyor
+- [ ] `free -h` → **umarız ~31 GB**; ~15 GB ise §1.5'teki kısıtlı plan geçerli
+- [ ] `df -h` → SSD `/`, HDD `/srv/objects`
+- [ ] Kasa yeniden başlatıldı, her şey otomatik geldi, monitör bağlı değil
+- [ ] İlk LVM snapshot alındı (`clean-ubuntu`)
 
 ---
 
@@ -359,12 +459,35 @@ sed -i '' 's/127.0.0.1/192.168.1.50/' ~/.kube/inktavia.yaml
 export KUBECONFIG=~/.kube/inktavia.yaml && kubectl get nodes
 ```
 
-### 2.2 Namespace'ler ve etiketler
+### 2.2 Namespace'ler, kota ve dev scale-to-zero
 ```bash
 kubectl create namespace inktavia-prod
 kubectl create namespace inktavia-dev
 kubectl create namespace platform      # argocd, monitoring, cloudflared
 ```
+
+**ResourceQuota — dev'in prod'u boğmasını engelleyen tek mekanizma** (§1.5 kararı):
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: dev-cap, namespace: inktavia-dev}
+spec:
+  hard:
+    limits.memory: "2Gi"        # dev TOPLAM 2 GB'ı geçemez
+    limits.cpu: "3"
+    pods: "8"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata: {name: prod-cap, namespace: inktavia-prod}
+spec:
+  hard:
+    limits.memory: "7Gi"
+    limits.cpu: "9"
+```
+Kota, dev'de yanlışlıkla 15 pod ayağa kaldırdığında **prod'u değil dev'i** durdurur. 15,9 GB'lık bir kutuda bu isteğe bağlı değil.
+
+Dev'i açıp kapatan yardımcı (`scripts/dev-env.sh`) F7'de GitOps ile birlikte yazılacak.
 
 ### 2.3 Platform bileşenleri
 ```bash
@@ -400,21 +523,25 @@ kubectl -n inktavia-prod run probe --rm -it --image=curlimages/curl --restart=Ne
 
 ## FAZ 3 — Stateful Altyapı (Cluster Dışı)
 
-**Süre:** ~1 gün · **Çıktı:** VM host'unda çalışan, yedeklenen veri katmanı
+**Süre:** ~1 gün · **Çıktı:** Aynı makinede, k3s'in yanında çalışan, yedeklenen veri katmanı
 
-Aynı VM'in host tarafında `docker compose` ile: PostgreSQL 16, MongoDB, Redis, RabbitMQ, MinIO, Keycloak. Mevcut `docker-compose.yaml`'dan **yalnızca infra servisleri** ayıklanarak `infrastructure/host-stack/docker-compose.prod.yaml` üretilecek (uygulama servisleri artık k8s'te).
+Bare-metal'de "cluster dışı" = **aynı Linux host'ta systemd/docker ile**, k3s'in yönetmediği süreçler olarak. `docker compose` ile: PostgreSQL 16, MongoDB, Redis, RabbitMQ, MinIO, Keycloak. Mevcut `docker-compose.yaml`'dan **yalnızca infra servisleri** ayıklanarak `infrastructure/host-stack/docker-compose.prod.yaml` üretilecek (uygulama servisleri artık k8s'te).
 
 Kritik noktalar:
-- Bind mount'lar `/srv/inktavia/{pgdata,mongo,minio,rabbitmq}` altında — VM disk'inde, yedeklenebilir.
-- Servisler **yalnızca** VM'in özel IP'sine bind edilir (`127.0.0.1` değil, `192.168.1.50`), çünkü k8s pod'ları bu adrese bağlanacak.
-- Keycloak `KC_HOSTNAME=id.inktavia.com`, `KC_PROXY=edge`, realm import + OTP SPI jar'ı mount edilir (`infrastructure/keycloak/providers/`).
-- Pod'lardan erişim için k8s'te `ExternalName`/headless Service tanımları: `postgres.inktavia-prod.svc` → `192.168.1.50:5432`.
-- **Günlük yedek:** `pg_dump` + `mongodump` + MinIO `mc mirror` → ikinci fiziksel disk **ve** haftalık dış kopya (Backblaze B2 / harici disk). Tek kasadasın; RAID yedek değildir.
+- Veri yolları: `/srv/data/{pgdata,mongo,rabbitmq,redis}` (SSD) · `/srv/objects/minio` (HDD) · yedekler `/srv/backup` (HDD).
+- Servisler `192.168.1.50` üzerine bind edilir (yalnız `127.0.0.1` değil) — k8s pod'ları CNI ağından bu adrese bağlanacak.
+- Bellek sınırları **compose'da açıkça verilmeli** (§1.5 bütçesi): `mem_limit` ile Postgres 1.2g, Mongo 0.9g, Keycloak 1g, RabbitMQ 0.4g, Redis 0.3g, MinIO 0.3g. Aksi halde PostgreSQL page cache'i tüm belleği yer ve k3s OOM-kill'e girer.
+- PostgreSQL ayarı: `shared_buffers=512MB`, `effective_cache_size=1GB`, `max_connections=200` (15 servis × pool).
+- Keycloak: `KC_HOSTNAME=auth.inktavia.com`, `KC_PROXY=edge`, `JAVA_OPTS_APPEND=-Xmx768m`, realm import + OTP SPI jar mount (`infrastructure/keycloak/providers/`).
+- Pod'lardan erişim: k8s'te `Service` + `Endpoints` (selector'sız) ile `postgres.inktavia-prod.svc` → `192.168.1.50:5432`. Böylece connection string'ler ortamdan bağımsız kalır.
+- **Günlük yedek:** `pg_dump` + `mongodump` + MinIO `mc mirror` → `/srv/backup` (HDD) **ve** haftalık dış kopya (Backblaze B2 / harici disk). Tek kasadasın ve artık RAID'in bile yok — dış kopya pazarlık konusu değil.
 
 ### ✅ Faz 3 tamamlanma kriteri
 - [ ] Cluster içindeki bir test pod'u Postgres'e bağlanabiliyor
-- [ ] Keycloak `id.inktavia.com` üzerinden açılıyor, realm yüklü, OTP SPI aktif
+- [ ] `docker stats` → hiçbir infra container'ı bütçesini aşmıyor
+- [ ] Keycloak `auth.inktavia.com` üzerinden açılıyor, realm yüklü, OTP SPI aktif
 - [ ] `restore` provası **yapıldı** (yedek alınan bir dump boş bir DB'ye geri yüklendi)
+- [ ] Dış kopya hedefi (B2 veya harici disk) kuruldu ve ilk kopya alındı
 
 ---
 
@@ -550,10 +677,13 @@ imagePullSecrets:
 Tek node'da limitsiz pod = tüm cluster'ı düşürme yetkisi. Başlangıç değerleri:
 ```yaml
 resources:
-  requests: { cpu: 100m, memory: 256Mi }
-  limits:   { cpu: 1000m, memory: 768Mi }   # BFF'ler ve Identity için 1Gi
+  requests: { cpu: 50m,  memory: 200Mi }
+  limits:   { cpu: 800m, memory: 320Mi }    # Identity ve BFF'ler için 448Mi
+env:
+  - { name: DOTNET_gcServer,        value: "0" }   # §1.6 — servis başına ~60-120 MB tasarruf
+  - { name: DOTNET_GCConserveMemory, value: "5" }
 ```
-Ayrıca namespace başına `ResourceQuota` + `LimitRange`.
+Bu değerler §1.5'teki 15,9 GB bütçesine göre hesaplandı. RAM 32 GB'a çıkarsa limitleri gevşetebilirsin — ama `limits` alanını **hiç boş bırakma**; tek node'da limitsiz bir pod tüm cluster'ı düşürme yetkisine sahiptir. Ayrıca namespace başına `ResourceQuota` (F2.2'de tanımlandı) + `LimitRange`.
 
 ### 6.4 Etiketler, probe'lar, güvenlik bağlamı
 ```yaml
@@ -785,10 +915,10 @@ Backend'in `gitops-bump` akışıyla aynı GitOps repo'suna yazarlar — böylec
 
 **Süre:** ~1–2 gün
 
-- **Metrik:** kube-prometheus-stack (Prometheus + Grafana + Alertmanager). Mevcut `observability/` klasöründeki dashboard'lar taşınır.
-- **Log:** Loki + Promtail (tek node'da ELK ağırdır).
+- **Metrik:** kube-prometheus-stack (Prometheus + Grafana + Alertmanager), **15 gün retention**, Mevcut `observability/` klasöründeki dashboard'lar taşınır.
+- **Log:** ⚠️ §1.5 bütçesinde **Loki yok** — 15,9 GB'da yeri yok. Başlangıçta `kubectl logs` + k3s'in journald entegrasyonu ile idare et. RAM 32 GB'a çıkarsa Loki + Promtail eklenir (~0,8 GB).
 - **Alarm:** pod CrashLoop, node disk > %80, sertifika < 14 gün, RabbitMQ kuyruk birikmesi, Postgres bağlantı doygunluğu → e-posta/Telegram.
-- **Yedek:** Faz 3'teki günlük dump + haftalık dış kopya + Hyper-V checkpoint (aylık, upgrade öncesi).
+- **Yedek:** Faz 3'teki günlük dump + haftalık dış kopya + **LVM snapshot** (her upgrade öncesi; bare-metal'de VM checkpoint'in yerini bu alıyor).
 - **DR provası:** VM'i sıfırdan kurup yedekten dönme senaryosunu **bir kez uçtan uca yap**. Denenmemiş yedek yedek değildir.
 
 ---
@@ -809,9 +939,9 @@ Backend'in `gitops-bump` akışıyla aynı GitOps repo'suna yazarlar — böylec
 | Faz | İş | Süre | Bağımlılık |
 |---|---|---|---|
 | **0** | **Repoları GitHub'a al (acil)** | **1 s** | — |
-| 1 | Kasa + Hyper-V + Ubuntu VM | 1 g | **RAM + SSD** |
+| 1 | **Windows'u sil → bare-metal Ubuntu** | 1 g | F0 + yedek |
 | 2 | k3s + ingress + NetworkPolicy | 1 g | F1 |
-| 3 | Stateful infra + yedek | 1 g | F1 |
+| 3 | Stateful infra + bellek limitleri + yedek | 1 g | F1 |
 | 4 | GHCR + versiyonlama sözleşmesi | 0.5 g | — *(paralel yapılabilir)* |
 | 5 | CI: Dockerfile + image pipeline | 2 g | F4 |
 | 6 | **Helm standardizasyonu (güvenlik)** | 1–2 g | F4 |
@@ -842,11 +972,13 @@ F6 kritik yolda ve aynı zamanda tek gerçek **güvenlik borcu**. Modül ingress
 
 | # | Risk | Etki | Önlem |
 |---|---|---|---|
-| **R0** | **İki frontend repo yalnızca lokal diskte** (G9) | Disk arızası = iki proje tamamen kayıp | **Faz 0 — bugün** |
-| **R1a** | **RAM 15,9 GB kullanılabilir** (32 GB takılı) | Tam yığın çalışmaz | §1.4'teki teşhis sırası; çözülmezse Plan B (demo ortamı) |
-| **R1b** | **SSD 233 GB, HDD veritabanı için uygun değil** | k3s/etcd + Postgres kabul edilemez yavaş | 1 TB SSD ekle (en yüksek getirili tek harcama) |
-| R1c | Ryzen 1600 = 6 çekirdek, 2017 | Build ve yük altında dar | VM'e 8 vCPU; CI'ı GitHub-hosted'da tut (kasada build etme) |
-| R2 | **Windows 10 destek dışı** (Ekim 2025'te bitti) | Güvenlik yaması yok | Cloudflare Tunnel sayesinde host internete açık değil; yine de orta vadede Windows 11 veya bare-metal Linux planla |
+| **R0** | **İki frontend repo yalnızca lokal diskte** (G9) | Disk arızası = iki proje tamamen kayıp | **Faz 0 — bugün, Windows silinmeden önce** |
+| **R1a** | **RAM 15,9 GB kullanılabilir** (32 GB takılı) | Bütçe yarıya iner; dev namespace 7/24 çalışamaz | §1.4a teşhisi (2 dk, **henüz yapılmadı**); çözülmezse §1.5 kısıtlı plan + dev scale-to-zero |
+| **R1b** | ~~SSD yetersiz~~ | — | ✅ **Kapandı** — bare-metal kararı VHDX ihtiyacını kaldırdı |
+| R1c | Ryzen 1600 = 6 çekirdek, 2017 | Yük altında dar | CI'ı GitHub-hosted'da tut — **kasada asla build etme** |
+| **R1d** | **Windows silinince geri dönüş yok** | Yanlış giderse kasa günlerce kullanılamaz | Faz 1.1 yedek listesi + kurtarma USB'si + LVM snapshot disiplini |
+| **R1e** | **Kasa artık tek amaçlı** | Başka iş için kullanamazsın | Bilinçli kabul edildi (2026-08-16) |
+| ~~R2~~ | ~~Windows 10 destek dışı~~ | — | ✅ **Kapandı** — bare-metal Ubuntu 24.04 LTS (2029'a kadar destekli) |
 | R3 | **Tek kasa = tek arıza noktası** | Toplam kesinti | UPS + test edilmiş yedek + "kaç saat kesinti kabul edilebilir?" sorusunu şimdi cevapla |
 | R4 | **Ev/ofis interneti** | Upload hızı ve kesintiler | Yedek hat (mobil) veya kritik anda VPS'e failover planı |
 | R5 | **Modül ingress'i açık** (G3) | Kimlik taklidi | F6 + CI kontrolü |
@@ -888,19 +1020,19 @@ docs/DevOps/RUNBOOK.md
 | **A6** | **`aizen-bff` (`Bff/src/Aizen.Bff`) hâlâ canlı mı?** | 5. bir image üretilecek mi, yoksa devre dışı mı |
 | **A7** | **Admin API host adı** `marine-os-admin-api.` mı kalsın, `admin-api.` mı olsun? | Tek satırlık değişiklik, sadece tutarlılık |
 | **A8** | **Vite runtime-config (Seçenek B) kabul mü?** ~20 satır frontend değişikliği | Kabul edilmezse ortam başına ayrı image üretmek zorundayız |
+| **A9** | **Kasada Windows'a ihtiyacın olan başka bir şey var mı?** | Faz 1 geri dönüşsüz; silmeden önce cevabı kesin olmalı |
 
 ---
 
 ## 10. Bir Sonraki Adım
 
-Sıra artık net, çünkü iki cevabın planı değiştirdi:
+**1. BUGÜN — Faz 0 (1 saat, senin işin).** İki frontend repo yalnızca senin diskinde. Ayrıca Windows'u sileceğimiz için Faz 0 artık sadece bir yedekleme değil, **Faz 1'in ön koşulu**. `.env.local` / `.env.test` gitignore kontrolünü atlama.
 
-**1. BUGÜN — Faz 0 (1 saat, senin işin).** İki frontend repo yalnızca senin diskinde duruyor ve o disk, birazdan söküp yeniden yapılandıracağın makineyle aynı ekosistemde. GitHub'a push et. Bundan önce `.env.local` / `.env.test` gitignore kontrolünü atlama.
+**2. BU HAFTA — RAM kontrolü (2 dakika, senin işin).** `msconfig → Boot → Advanced options → Maximum memory`. Windows silinmeden önce yap; sonuç 32 GB çıkarsa §1.5'teki tüm kısıtlar (dev scale-to-zero, sıkı limitler, Loki yokluğu) kendiliğinden kalkar. 2 dakikalık bir kontrolün planın yarısını değiştirmesi nadir görülür — bu onlardan biri.
 
-**2. BU HAFTA — Donanım (senin işin).** `msconfig` bellek sınırını kontrol et; 32 GB göründüğünde haber ver. 1 TB SSD siparişini de bu arada ver — Faz 2'ye kadar elinde olsun.
+**3. PARALELDE — F6.1 (birlikte yapacağımız iş, kasa beklemeden).**
+11 modül chart'ında `ingress.enabled: false` + `scripts/ci/assert-no-module-ingress.sh`. Açık duran güvenlik borcunu kapatır, donanımdan tamamen bağımsız, bugün bitebilir.
 
-**3. PARALELDE — F6.1 + F4 (birlikte yapacağımız iş, kasa beklemeden).**
-- **F6.1:** 11 modül chart'ında `ingress.enabled: false` + `scripts/ci/assert-no-module-ingress.sh`. Bu açık duran güvenlik borcunu kapatır ve donanımdan bağımsız.
-- **F4:** GHCR'a elle bir `identity-api` image'ı push — tüm zinciri 20 dakikada doğrular.
+Sonrasında **F4** (GHCR'a elle ilk image push'u — zinciri 20 dakikada doğrular) ve **F5** (CI matrix'i) yine kasa beklemeden ilerler. Kasa hazır olduğunda F1→F2→F3 ile birleşir.
 
-F6.1 ile başlamayı öneriyorum: en kısa, en yüksek değerli ve hiçbir şeye bağlı değil. "Başla" dediğinde 11 chart'ın düzenlemesini ve CI kontrol script'ini yazarım.
+**F6.1 ile başlamayı öneriyorum.** "Başla" dediğinde 11 chart'ın düzenlemesini ve CI kontrol script'ini yazarım.
