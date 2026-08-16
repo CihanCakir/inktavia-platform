@@ -107,6 +107,19 @@ builder.Services.AddRateLimiter(opts =>
         limiter.QueueLimit           = 0;
     });
     opts.RejectionStatusCode = 429;
+    // A throttle must be an UNMISTAKABLE typed 429 — not a bodiless response that reads like the masked-OK
+    // path. Emit the standard envelope (stable errorCode 42900 + Retry-After) so the client can tell
+    // "slow down" apart from success or an upstream error.
+    opts.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        if (context.Lease.TryGetMetadata(System.Threading.RateLimiting.MetadataName.RetryAfter, out var retryAfter))
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)retryAfter.TotalSeconds).ToString(System.Globalization.NumberFormatInfo.InvariantInfo);
+        await context.HttpContext.Response.WriteAsync(
+            "{\"header\":{\"isSuccess\":false,\"errorCode\":42900,\"errorMessage\":\"Too many attempts. Please wait a moment and try again.\"},\"body\":null}",
+            token);
+    };
 });
 
 var app = builder.Build();

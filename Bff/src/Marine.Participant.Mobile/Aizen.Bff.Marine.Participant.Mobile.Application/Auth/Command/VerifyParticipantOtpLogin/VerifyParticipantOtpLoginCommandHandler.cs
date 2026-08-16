@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.Services;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Auth.OtpLogin;
@@ -5,6 +6,7 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 using Microsoft.Extensions.Logging;
+using Refit;
 
 namespace Aizen.Bff.Marine.Participant.Mobile.Application.Auth;
 
@@ -34,17 +36,21 @@ public sealed class VerifyParticipantOtpLoginCommandHandler
             var result = await _identity.VerifyParticipantOtpLogin(new VerifyProviderOtpLoginRequest
             { LoginRequestId = request.LoginRequestId, OtpCode = request.OtpCode });
             var data = result.Body;
+            // A 2xx with Verified:false is a legitimate business outcome (wrong/expired code) — handled below
+            // as a 400. Only genuine downstream/infra failures (non-2xx, timeout, transport) reach the catch.
             if (data is { Verified: true })
                 loginTicket = data.LoginTicket;
         }
+        catch (ApiException apiEx)
+        {
+            throw Upstream((int)apiEx.StatusCode, apiEx);
+        }
         catch (Exception ex)
         {
-            // Identity/transport failure — clean business error, no internals leaked.
-            _logger.LogError(ex, "Participant OTP login verify (Identity call) failed.");
-            throw new AizenBusinessException("Sign-in could not be completed. Please try again.");
+            throw Upstream(null, ex);
         }
 
-        // Wrong/expired code, or verified without a mintable ticket → business error (400, not 500).
+        // Wrong/expired code, or verified without a mintable ticket → business error (400, not 502).
         if (string.IsNullOrEmpty(loginTicket))
             throw new AizenBusinessException("The code is invalid or has expired. Please request a new code.");
 
@@ -58,5 +64,14 @@ public sealed class VerifyParticipantOtpLoginCommandHandler
             ExpiresIn = tokens.ExpiresIn,
             TokenType = tokens.TokenType,
         };
+    }
+
+    private AizenUpstreamException Upstream(int? status, Exception? ex)
+    {
+        var correlationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
+        _logger.LogError(ex,
+            "[{Code}] Participant OTP login verify failed (upstream=Identity status={Status}). correlationId={CorrelationId}",
+            AizenUpstreamException.StableCode, status, correlationId);
+        return new AizenUpstreamException(correlationId, status);
     }
 }

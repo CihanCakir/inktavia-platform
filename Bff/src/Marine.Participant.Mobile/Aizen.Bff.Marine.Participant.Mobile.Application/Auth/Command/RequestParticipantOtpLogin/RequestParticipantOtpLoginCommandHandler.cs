@@ -1,8 +1,11 @@
+using System.Diagnostics;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Auth.OtpLogin;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 using Microsoft.Extensions.Logging;
+using Refit;
 
 namespace Aizen.Bff.Marine.Participant.Mobile.Application.Auth;
 
@@ -19,27 +22,48 @@ public sealed class RequestParticipantOtpLoginCommandHandler
     public override async Task<MobileOtpSendResponse?> Handle(
         RequestParticipantOtpLoginCommand request, CancellationToken ct)
     {
+        // Anti-enumeration is done INSIDE Identity: RequestParticipantOtpLogin always returns 200 with a
+        // (real or synthetic) LoginRequestId regardless of whether the account exists. So a 2xx body is the
+        // safe uniform response and we pass it straight through. Only genuine downstream/infra failures
+        // (403 stripped role, 5xx, timeout, unparseable/empty body) get here as an error — those must SURFACE
+        // as 502, never be masked into a 200 with an empty loginRequestId (the bug this fixes).
+        MobileOtpSendResponse? passthrough;
         try
         {
             var result = await _identity.RequestParticipantOtpLogin(new RequestProviderOtpLoginRequest
             { Channel = request.Channel, Identifier = request.Identifier });
             var data = result.Body;
-            if (data is not null)
-                return new MobileOtpSendResponse
+            passthrough = data is not null
+                ? new MobileOtpSendResponse
                 {
                     LoginRequestId = data.LoginRequestId,
                     MaskedTarget = data.MaskedTarget,
                     ExpiresInSeconds = data.ExpiresInSeconds,
-                };
+                }
+                : null;
+        }
+        catch (ApiException apiEx)
+        {
+            throw Upstream((int)apiEx.StatusCode, apiEx);
         }
         catch (Exception ex)
         {
-            // Anti-enumeration + resilience: never surface which identifiers exist or that Identity hiccuped.
-            _logger.LogError(ex, "Participant OTP login request failed.");
+            throw Upstream(null, ex);
         }
 
-        // Identity unreachable or null body — return a neutral shape (Identity always mints a synthetic id,
-        // so a real request never reaches here empty; this is the defensive fallback only).
-        return new MobileOtpSendResponse();
+        // 2xx but empty/unparseable body — never legitimate here (Identity always mints an id) → surface.
+        if (passthrough is null || string.IsNullOrEmpty(passthrough.LoginRequestId))
+            throw Upstream(null, null, "empty body / blank loginRequestId");
+
+        return passthrough;
+    }
+
+    private AizenUpstreamException Upstream(int? status, Exception? ex, string? note = null)
+    {
+        var correlationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
+        _logger.LogError(ex,
+            "[{Code}] Participant OTP login request failed (upstream=Identity status={Status} {Note}). correlationId={CorrelationId}",
+            AizenUpstreamException.StableCode, status, note, correlationId);
+        return new AizenUpstreamException(correlationId, status);
     }
 }
