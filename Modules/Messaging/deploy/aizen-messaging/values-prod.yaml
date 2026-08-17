@@ -61,10 +61,13 @@ probes:
     periodSeconds: 5
     failureThreshold: 60   # 5 dakika — açılışta EF migration çalışıyor
 
+# Ölçüldü (2026-08-17, boşta): modüller 114–258Mi, Payment en yüksek (Hangfire).
+# İstek = zamanlayıcının REZERVE ettiği miktar → gerçek kullanıma yakın olmalı.
+# Tavan = GC tepe noktası için pay → boştakinin ~3 katı.
 resources:
   requests:
     cpu: 50m
-    memory: 220Mi
+    memory: 160Mi
   limits:
     cpu: 500m
     memory: 420Mi
@@ -101,10 +104,14 @@ env:
   # Tek veritabanı (inktavia_store), modül başına ayrı PostgreSQL şeması.
   # Maximum Pool Size=12 KRİTİK: max_connections=200 ve 15 servis var (15×12=180).
   # appsettings'teki 300 değeri 15 modülde 4500 bağlantı demekti.
+  - name: DatabaseSettings__Messaging__Type
+    value: "PostgreSQL"
   - name: DatabaseSettings__Messaging__ConnectionString
     value: "Host=postgres;Port=5432;Database=inktavia_store;Username=aizen;Password=$(POSTGRES_PASSWORD);Maximum Pool Size=12"
+  - name: DatabaseSettings__MessagingMongo__Type
+    value: "Mongo"
   - name: DatabaseSettings__MessagingMongo__ConnectionString
-    value: "mongodb://aizen:$(MONGO_PASSWORD)@mongo:27017/Messaging?authSource=admin"
+    value: "mongodb://aizen:$(MONGO_PASSWORD)@mongo:27017/aizen_messaging?authSource=admin"
   - name: DistributedCache__InstanceName
     value: "Messaging:"
   # Tüm modüller Redis db 13'ü paylaşıyor; anahtarlar InstanceName ile ayrışıyor.
