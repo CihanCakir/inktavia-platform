@@ -1,92 +1,168 @@
-# Default values for aizen-marine.web.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# aizen-bff-marine.web — üretim değerleri (inktavia-prod)
+#
+# ⚠️ BU DOSYA PUBLIC BİR REPODA. Sırlar Sealed Secret'tan env olarak geliyor.
+#    $(VAR) genişletmesi YALNIZ listede daha önce tanımlanmış değişkenler için çalışır.
+#
+# BFF'lerin modüllerden iki farkı var:
+#   1. INGRESS AÇIK — internete bakan tek katman bunlar. Modüllerde kapalı olması bir
+#      güvenlik şartıydı (bkz. Modules/*/values-prod.yaml).
+#   2. PostgreSQL YOK — yalnız Redis + RabbitMQ. Bağlantı havuzu hesabına girmiyorlar.
+#
+# Deploy:
+#   helm upgrade --install aizen-bff-marine.web . -n inktavia-prod -f values-prod.yaml \
+#     --set image.tag=sha-$(git rev-parse --short=7 origin/develop)
 
 replicaCount: 1
 
 image:
-  repository: nexus.local:8083/aizen/bff/marine.web
-  pullPolicy: Always
-  tag: "latest"
+  repository: ghcr.io/cihancakir/inktavia/bff-marine-web
+  pullPolicy: IfNotPresent
+  tag: ""
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: ghcr-pull
+
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
-
 podSecurityContext: {}
-  # fsGroup: 2000
-
 securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 service:
   type: ClusterIP
   port: 80
+  targetPort: 8080
 
 ingress:
   enabled: true
   className: "nginx"
   annotations:
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
   hosts:
-    - host: bff-marine.web.aizen.local
+    - host: web-api.inktavia.com
       paths:
-          - path: /
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: aizen-bff-marine.web
-                port:
-                  number: 80
+        - path: /
+          pathType: Prefix
+  # TLS Cloudflare Tunnel'da sonlanacak (Faz 9); origin sertifikası gerekmiyor.
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+probes:
+  path: /info
+  startup:
+    periodSeconds: 5
+    failureThreshold: 24   # 2 dakika — BFF'lerde migration yok, modüllerden hızlı açılır
+
+# BFF'ler modüllerden hafif: EF/migration yok, iş mantığı modüllerde.
+resources:
+  requests:
+    cpu: 25m
+    memory: 120Mi
+  limits:
+    cpu: 400m
+    memory: 320Mi
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
 
 env:
-- name: ASPNETCORE_ENVIRONMENT 
-  value: Production      
-- name: TZ
-  value: Europe/Istanbul 
+  # ── Sırlar ───────────────────────────────────────────────────────────────────
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: REDIS_PASSWORD }
+  - name: RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: RABBITMQ_PASSWORD }
+  - name: KC_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: KEYCLOAK_MARINE_WEB_BFF_CLIENT_SECRET }
+  - name: BffAssertion__SharedSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
+  - name: WEB_TRUSTED_CALLER_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: MARINE_WEB_TRUSTED_CALLER_SECRET }
+  - name: WEB_REVALIDATE_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: MARINE_WEB_REVALIDATE_SECRET }
+
+  # ── Çalışma ortamı ───────────────────────────────────────────────────────────
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: TZ
+    value: Europe/Istanbul
+
+  # ── Önbellek ve mesaj kuyruğu ────────────────────────────────────────────────
+  - name: DistributedCache__InstanceName
+    value: "MarineWebBff:"
+  - name: DistributedCache__Configuration
+    value: "redis:6379,password=$(REDIS_PASSWORD),abortConnect=False,defaultDatabase=17"
+  - name: MessageBroker__QueueSettings__HostName
+    value: "rabbitmq"
+  - name: MessageBroker__QueueSettings__Port
+    value: "5672"
+  - name: MessageBroker__QueueSettings__VirtualHost
+    value: "/"
+  - name: MessageBroker__QueueSettings__UserName
+    value: "aizen"
+  - name: MessageBroker__QueueSettings__Password
+    value: "$(RABBITMQ_PASSWORD)"
+
+  # ── Keycloak ─────────────────────────────────────────────────────────────────
+  # ⚠️ FAZ 9 BORCU: Authority token'daki issuer ile BİREBİR eşleşmek zorunda.
+  # Şu an her şey cluster içinden konuştuğu için http://keycloak:8080 doğru. Tünel
+  # kurulup tarayıcı https://auth.inktavia.com üzerinden token aldığında issuer
+  # değişecek ve bu değerler güncellenmezse doğrulama 401 verir.
+  - name: MarineWebKeycloak__BaseUrl
+    value: "http://keycloak:8080"
+  - name: MarineWebKeycloak__Authority
+    value: "http://keycloak:8080/realms/inktavia-realm"
+  - name: MarineWebKeycloak__MetadataAddress
+    value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
+  - name: MarineWebKeycloak__Realm
+    value: "inktavia-realm"
+  - name: MarineWebKeycloak__Audience
+    value: "marine-web-bff"
+  - name: MarineWebKeycloak__RequireHttpsMetadata
+    value: "false"
+  - name: MarineWebKeycloak__AdminClientSecret
+    value: "$(KC_CLIENT_SECRET)"
+
+  # ── CORS ─────────────────────────────────────────────────────────────────────
+  # CORS ingress'te DEĞİL uygulamada: dört BFF de kodda CORS kuruyor, ingress'te de
+  # yapsaydık çift Access-Control-Allow-Origin başlığı çıkar ve tarayıcı reddederdi.
+  - name: Cors__AllowedOrigins__0
+    value: "https://inktavia.com"
+  - name: Cors__AllowedOrigins__1
+    value: "https://www.inktavia.com"
+
+  # ── Marine Web public yüzey ──────────────────────────────────────────────────
+  - name: MarineWebPublic__TrustedCallerSecret
+    value: "$(WEB_TRUSTED_CALLER_SECRET)"
+  - name: MarineWebPublic__Revalidate__Secret
+    value: "$(WEB_REVALIDATE_SECRET)"
+  # Revalidate URL Next.js sitesine gidiyor; Faz 10'da frontend yayına alınınca dolacak.
+  # - name: MarineWebPublic__Revalidate__Url
+  #   value: "https://inktavia.com/api/revalidate"
+
+  # ── Modül çağrıları ──────────────────────────────────────────────────────────
+  # Hepsi cluster içi ClusterIP servisleri; port 80 → container 8080.
+  - name: RemoteCalls__IContentRemoteCall__BaseUrl
+    value: "http://aizen-content"
+  - name: RemoteCalls__IIdentityRemoteCall__BaseUrl
+    value: "http://aizen-identity"
+  - name: RemoteCalls__INotificationRemoteCall__BaseUrl
+    value: "http://aizen-notification"
+  - name: RemoteCalls__IPaymentRemoteCall__BaseUrl
+    value: "http://aizen-payment"
+  - name: RemoteCalls__IReferenceDataRemoteCall__BaseUrl
+    value: "http://aizen-referencedata"
