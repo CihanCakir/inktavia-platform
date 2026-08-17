@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "aizen-bff-marine.web.name" -}}
+{{- define "aizen-bff-marine-mobile.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "aizen-bff-marine.web.fullname" -}}
+{{- define "aizen-bff-marine-mobile.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "aizen-bff-marine.web.chart" -}}
+{{- define "aizen-bff-marine-mobile.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "aizen-bff-marine.web.labels" -}}
-helm.sh/chart: {{ include "aizen-bff-marine.web.chart" . }}
-{{ include "aizen-bff-marine.web.selectorLabels" . }}
+{{- define "aizen-bff-marine-mobile.labels" -}}
+helm.sh/chart: {{ include "aizen-bff-marine-mobile.chart" . }}
+{{ include "aizen-bff-marine-mobile.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "aizen-bff-marine.web.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "aizen-bff-marine.web.name" . }}
+{{- define "aizen-bff-marine-mobile.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "aizen-bff-marine-mobile.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "aizen-bff-marine.web.serviceAccountName" -}}
+{{- define "aizen-bff-marine-mobile.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "aizen-bff-marine.web.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "aizen-bff-marine-mobile.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

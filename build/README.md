@@ -64,6 +64,42 @@ Eskiden her bileşenin kendi Dockerfile'ı vardı ve bu üç somut soruna yol a�
 15 kopyayı senkronda tutmak bu hataların kaynağıydı. Tek dosya + `components.json` bunu
 yapısal olarak imkânsız kılıyor.
 
+## Seçici derleme — hangi imaj ne zaman derlenir
+
+Her push'ta 15 imajı birden derlemiyoruz. `scripts/ci/affected-components.py` değişen
+dosyalardan yalnızca etkilenen bileşenleri hesaplıyor.
+
+**Dizin adına bakmak yetmez.** `Modules/Payment/src/Aizen.Modules.Payment.Abstraction`
+içindeki bir değişiklik `Profile`'ı da etkiler, çünkü Profile ona `ProjectReference` veriyor.
+"Payment değişti → payment derle" demek 13 imajı bayat bırakırdı. Bu yüzden script tüm
+`.csproj` dosyalarından gerçek referans grafiğini çıkarıyor ve her bileşenin **geçişli**
+bağımlılık kümesini hesaplıyor.
+
+| Değişiklik | Derlenen |
+|---|---|
+| `Modules/CargoDry/src/**` | 1 (cargodry) |
+| `Bff/src/AdminPanel/**` | 1 (bff-adminpanel) |
+| `Modules/Payment/src/*.Abstraction/**` | 14 (Payment'a bağlı her şey) |
+| `Core/**` | 15 |
+| `build/Dockerfile`, `build/components.json`, `.dockerignore` | 15 |
+| `*/deploy/**`, `docs/**`, `scripts/**`, `*.md` | **0 — iş atlanır** |
+| Karşılaştırma noktası yok (yeni dal, force-push) | 15 |
+
+Son satır kasıtlı: neyin değiştiğini bilemediğimizde "hiç derleme" değil "hepsini derle"
+diyoruz. Fazladan derleme birkaç dakika, bayat imajla deploy ise sessiz bir hata.
+
+Aynı şekilde, kaynak ağacında bir dosya hiçbir projeye eşlenemezse script yine hepsini
+derliyor — tanımadığı bir şeyi görmezden gelmiyor.
+
+### Elle sınamak
+
+```bash
+echo "Modules/Payment/src/Aizen.Modules.Payment.Abstraction/X.cs" \
+  | python3 scripts/ci/affected-components.py
+```
+
+stdout'a CI matrisi, stderr'e hangi bileşenlerin neden seçildiği yazılır.
+
 ## Bilinen borçlar (Faz 5/6)
 
 - Katman önbelleği: önce yalnız `.csproj`'ları kopyalayıp restore etmek, sonra kaynağı

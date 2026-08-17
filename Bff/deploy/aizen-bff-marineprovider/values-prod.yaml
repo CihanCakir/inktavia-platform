@@ -94,6 +94,30 @@ env:
     valueFrom:
       secretKeyRef: { name: bff-assertion, key: SharedSecret }
 
+  # ── BFF assertion izin listesi ───────────────────────────────────────────────
+  # Paylaşılan sır TEK BAŞINA yetmez ve kod bunu fail-closed reddediyor:
+  #   "SharedSecret is configured but AllowedClientIds is empty. An empty allowlist
+  #    would let ANY caller holding a valid service-account token assert ANY user id."
+  # Doğru davranış — bu liste, sırrı bilen bir çağıranın hangi client kimliğiyle
+  # gelebileceğini sınırlar. Sır sızsa bile listede olmayan bir client geçemez.
+  - name: BffAssertion__AllowedClientIds__0
+    value: "admin-panel-bff"
+  - name: BffAssertion__AllowedClientIds__1
+    value: "provider-portal-bff"
+  - name: BffAssertion__AllowedClientIds__2
+    value: "marine-web-bff"
+  - name: BffAssertion__AllowedClientIds__3
+    value: "marine-mobile-bff"
+
+  # ── Elastic APM ──────────────────────────────────────────────────────────────
+  # appsettings'te ServerUrl "__FROM_ENV__" yer tutucusuyla duruyor; ajan bunu URL
+  # sanıp ayrıştırmada patlıyor ve saniyede bir 127.0.0.1:8200'e bağlanmaya çalışıyor.
+  # Gözlemlenebilirlik yığını Faz 11'in işi; o zamana kadar kapalı.
+  - name: ElasticApm__Enabled
+    value: "false"
+  - name: ElasticApm__ServerUrl
+    value: ""
+
   # ── Çalışma ortamı ───────────────────────────────────────────────────────────
   - name: ASPNETCORE_ENVIRONMENT
     value: Production

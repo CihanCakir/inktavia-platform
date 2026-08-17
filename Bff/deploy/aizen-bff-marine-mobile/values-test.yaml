@@ -46,13 +46,13 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: dev-bff-marine.participant.mobile.aizen.local
+    - host: test-bff-marine.participant.mobile.aizen.local
       paths:
           - path: /
             pathType: ImplementationSpecific
             backend:
               service:
-                name: aizen-bff-marine.participant.mobile
+                name: aizen-bff-marine-mobile
                 port:
                   number: 80
   tls: []
@@ -87,6 +87,6 @@ affinity: {}
 
 env:
 - name: ASPNETCORE_ENVIRONMENT 
-  value: dev      
+  value: test      
 - name: TZ
   value: Europe/Istanbul 
