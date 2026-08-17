@@ -1,5 +1,4 @@
 using Aizen.Modules.ReferenceData.Abstraction.Enum;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Domain.Entities.System;
 using Aizen.Modules.ReferenceData.Domain.Entities.SystemParameter;
 using Aizen.Modules.ReferenceData.Domain.Interface;
@@ -113,8 +112,9 @@ public sealed class SystemJsonSeedService
 
     private async Task SeedSystemParametersAsync(CancellationToken cancellationToken)
     {
-        if (await _dbContext.SystemParameters.AnyAsync(cancellationToken)) return;
-
+        // NB: no whole-table AnyAsync short-circuit here — the per-key GetByKeyAsync upsert below is duplicate-safe and
+        // ADDITIVE, so newly-added parameters (e.g. the VAT/KDV keys) seed even on an already-populated DB without
+        // wiping. Existing keys are updated in place; nothing is duplicated.
         var models = await _reader.ReadListAsync<SystemParameterSeedModel>("System/system-parameters.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)

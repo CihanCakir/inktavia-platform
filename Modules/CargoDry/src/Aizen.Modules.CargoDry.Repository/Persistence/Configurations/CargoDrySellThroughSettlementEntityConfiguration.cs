@@ -1,0 +1,114 @@
+using Aizen.Modules.CargoDry.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Aizen.Modules.CargoDry.Repository.Persistence.Configurations;
+
+public sealed class CargoDrySellThroughSettlementEntityConfiguration
+    : IEntityTypeConfiguration<CargoDrySellThroughSettlementEntity>
+{
+    public void Configure(EntityTypeBuilder<CargoDrySellThroughSettlementEntity> builder)
+    {
+        builder.ToTable("sell_through_settlements");
+        builder.HasKey(x => x.Id);
+
+        // ── Identity ───────────────────────────────────────────────────────────
+        // MaxLength 100 to accommodate: STS-{providerProfileId}-{currencyCode}-{productCode}-{yyyyMM}
+        builder.Property(x => x.SettlementCode).HasMaxLength(100).IsRequired();
+        builder.HasIndex(x => x.SettlementCode).IsUnique();
+
+        // ── Scope ──────────────────────────────────────────────────────────────
+        builder.Property(x => x.ConsignmentAgreementId).IsRequired();
+        builder.Property(x => x.ProviderProfileId).IsRequired();
+        builder.Property(x => x.ProductCode).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.BatchCode).HasMaxLength(100);
+
+        // ── Kit counts ─────────────────────────────────────────────────────────
+        builder.Property(x => x.TotalKitCount).IsRequired().HasDefaultValue(0);
+        builder.Property(x => x.SettledKitCount).IsRequired().HasDefaultValue(0);
+
+        // ── Financials ─────────────────────────────────────────────────────────
+        builder.Property(x => x.TotalSaleAmount).HasColumnType("numeric(18,4)").IsRequired();
+        builder.Property(x => x.TotalCommissionAmount).HasColumnType("numeric(18,4)").IsRequired();
+        builder.Property(x => x.ProviderPayoutAmount).HasColumnType("numeric(18,4)").IsRequired();
+        builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
+
+        // ── Period ─────────────────────────────────────────────────────────────
+        builder.Property(x => x.PeriodStartUtc).IsRequired();
+        builder.Property(x => x.PeriodEndUtc).IsRequired();
+
+        // ── Status ─────────────────────────────────────────────────────────────
+        builder.Property(x => x.Status).HasConversion<int>().IsRequired();
+
+        // ── Settlement audit ───────────────────────────────────────────────────
+        builder.Property(x => x.ScheduledSettlementDate);
+        builder.Property(x => x.SettledAtUtc);
+        builder.Property(x => x.SettledByUserId);
+        builder.Property(x => x.DisputeReason).HasMaxLength(1000);
+        builder.Property(x => x.Note).HasMaxLength(1000);
+
+        // ── Phase 4A ───────────────────────────────────────────────────────────
+        builder.Property(x => x.ReadyForSettlementAtUtc);
+
+        // ── Phase 4B: Payment preparation ──────────────────────────────────────
+        // PayoutRecordId is a cross-module reference to Payment.PayoutRecordEntity.
+        // No EF FK constraint — module boundary maintained via Id only.
+        builder.Property(x => x.PayoutRecordId);
+        builder.Property(x => x.PaymentPreparedAtUtc);
+        builder.Property(x => x.PaymentPreparedByUserId);
+        builder.Property(x => x.PaymentPreparationNote).HasMaxLength(1000);
+
+        // ── Phase 4C: Invoice preparation ──────────────────────────────────────
+        // InvoiceId is a cross-module reference to Payment.InvoiceHeaderEntity.
+        // No EF FK constraint — module boundary maintained via Id only.
+        // Settlement status remains Scheduled after invoice preparation (Option B lifecycle).
+        builder.Property(x => x.InvoiceId);
+        builder.Property(x => x.InvoicePreparedAtUtc);
+        builder.Property(x => x.InvoicePreparedByUserId);
+        builder.Property(x => x.InvoicePreparationNote).HasMaxLength(1000);
+
+        // Filtered index for quick idempotency check in PrepareInvoice handler
+        builder.HasIndex(x => x.InvoiceId)
+            .HasDatabaseName("IX_sell_through_settlements_InvoiceId")
+            .HasFilter("\"InvoiceId\" IS NOT NULL");
+
+        // ── Phase 4D: Payout lifecycle / closure ──────────────────────────────
+        builder.Property(x => x.PayoutCompletedAtUtc);
+        builder.Property(x => x.PayoutCompletedByUserId);
+        builder.Property(x => x.PayoutCompletionReference).HasMaxLength(500);
+        builder.Property(x => x.PayoutFailureReason).HasMaxLength(1000);
+        builder.Property(x => x.PayoutLifecycleNote).HasMaxLength(1000);
+
+        // ── Audit ──────────────────────────────────────────────────────────────
+        builder.Property(x => x.CreatedAtUtc).IsRequired();
+
+        // ── Query indexes ──────────────────────────────────────────────────────
+        builder.HasIndex(x => x.ConsignmentAgreementId);
+        builder.HasIndex(x => x.ProviderProfileId);
+        builder.HasIndex(x => x.CurrencyCode);
+        builder.HasIndex(x => x.ProductCode);
+        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.PeriodStartUtc);
+        builder.HasIndex(x => x.PeriodEndUtc);
+
+        // Legacy composite for agreement-based queries
+        builder.HasIndex(new[]
+        {
+            nameof(CargoDrySellThroughSettlementEntity.ConsignmentAgreementId),
+            nameof(CargoDrySellThroughSettlementEntity.ProductCode),
+            nameof(CargoDrySellThroughSettlementEntity.Status),
+        });
+
+        // Phase 3.2: approved grouping index — Provider + Currency + Product + Month + Status
+        // Used by GetOpenForProviderCurrencyProductPeriodAsync (idempotency lookup on activation).
+        builder.HasIndex(new[]
+        {
+            nameof(CargoDrySellThroughSettlementEntity.ProviderProfileId),
+            nameof(CargoDrySellThroughSettlementEntity.CurrencyCode),
+            nameof(CargoDrySellThroughSettlementEntity.ProductCode),
+            nameof(CargoDrySellThroughSettlementEntity.PeriodStartUtc),
+            nameof(CargoDrySellThroughSettlementEntity.PeriodEndUtc),
+            nameof(CargoDrySellThroughSettlementEntity.Status),
+        });
+    }
+}

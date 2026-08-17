@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Location;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Abstraction.Request.Location;
 using Aizen.Modules.ReferenceData.Application.Location.Commands;
 using Microsoft.AspNetCore.Authorization;

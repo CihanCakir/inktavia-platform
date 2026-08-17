@@ -1,15 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Starter/src/Aizen.Core.Starter/Aizen.Core.Starter.csproj" />
+    <ProjectReference Include="../../../../Core/UnitOfWork/src/Aizen.Core.UnitOfWork/Aizen.Core.UnitOfWork.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Payment.Application/Aizen.Modules.Payment.Application.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Payment.Repository/Aizen.Modules.Payment.Repository.csproj" />
+    <!-- CargoDry.Abstraction — required for CargoDryKitRenewalPaymentConsumer (inbound message type) -->
+    <ProjectReference Include="../../../../Modules/CargoDry/src/Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Update="Resource\**" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <EmbeddedResource Include="Resource\aizen_error_messages.json" />
   </ItemGroup>
+
 
 </Project>

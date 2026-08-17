@@ -1,4 +1,3 @@
-using Aizen.Modules.FileStorage.Abstraction.Model;
 
 namespace Aizen.Modules.FileStorage.Repository.Providers.S3;
 
@@ -18,5 +17,11 @@ public sealed class S3ObjectStorageOptions
     /// <summary>Use HTTP instead of HTTPS. Only true for local MinIO.</summary>
     public bool UseHttp { get; set; }
     public int UploadUrlExpirationMinutes { get; set; } = 15;
-    public int ReadUrlExpirationMinutes { get; set; } = 60;
+    public int ReadUrlExpirationMinutes { get; set; } = 5;
+    /// <summary>
+    /// Browser-reachable endpoint used ONLY when signing presigned URLs (upload/read). The browser cannot resolve
+    /// the internal container hostname, and SigV4 signs the Host header, so the URL must be signed against the host
+    /// the client will actually call. Falls back to ServiceUrl when null (e.g. real AWS S3, where both are the same).
+    /// </summary>
+    public string? PublicServiceUrl { get; set; }
 }

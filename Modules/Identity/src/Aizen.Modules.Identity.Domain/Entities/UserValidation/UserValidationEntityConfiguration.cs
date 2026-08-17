@@ -30,7 +30,8 @@ namespace Aizen.Modules.Identity.Domain.Entities.UserValidation
             builder.HasOne(x => x.UserProfile)
                    .WithMany()
                    .HasForeignKey(x => x.UserProfileId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .IsRequired(false)
+                   .OnDelete(DeleteBehavior.SetNull);
         }
     }
 

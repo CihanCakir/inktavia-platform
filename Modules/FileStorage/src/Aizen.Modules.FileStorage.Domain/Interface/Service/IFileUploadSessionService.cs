@@ -1,5 +1,4 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.UploadSession;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.UploadSession;
 
 namespace Aizen.Modules.FileStorage.Domain.Interface.Service;

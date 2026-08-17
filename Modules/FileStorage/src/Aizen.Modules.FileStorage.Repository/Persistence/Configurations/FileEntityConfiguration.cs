@@ -26,6 +26,12 @@ public sealed class FileEntityConfiguration : IEntityTypeConfiguration<FileEntit
         builder.Property(x => x.Category).HasConversion<int>().IsRequired();
         builder.Property(x => x.Status).HasConversion<int>().IsRequired();
 
+        // Override the base class [DatabaseGenerated(Computed)] — FileStorage assigns PublicId
+        // application-side in FileEntity.Create. Without this, EF skips the value on INSERT.
+        builder.Property(x => x.PublicId)
+               .ValueGeneratedNever()
+               .IsRequired();
+
         builder.HasIndex(x => x.FileCode).IsUnique();
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.Category);

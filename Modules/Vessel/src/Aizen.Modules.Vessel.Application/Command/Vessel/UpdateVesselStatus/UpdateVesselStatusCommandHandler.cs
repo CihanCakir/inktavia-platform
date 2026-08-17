@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 
@@ -35,6 +34,9 @@ public sealed class UpdateVesselStatusCommandHandler : AizenCommandHandler<Updat
 
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateStatusHistoryAsync(request.VesselId, cancellationToken);
+        // The user vessel list carries the status per item; evict its default page too so the list/Home badge
+        // reflects the new status immediately (mirrors Archive/Restore, which already invalidate this list).
+        await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
         return new UpdateVesselStatusResponse(request.VesselId, request.Request.Status);
     }

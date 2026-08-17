@@ -17,6 +17,11 @@ namespace Aizen.Modules.Identity.Domain.Interface.Repository
         /// Telefon numarasına göre kullanıcıyı kontrol eder.
         /// </summary>
         Task<UserEntity?> CheckUserByPhoneNumber(string phoneNumber, bool disableTracking = false);
+
+        /// <summary>
+        /// Verilen Keycloak subject'ine bağlı kullanıcıyı döner; bağlı değilse null.
+        /// </summary>
+        Task<UserEntity?> GetUserByKeycloakSubjectAsync(string keycloakSubjectId, CancellationToken cancellationToken = default);
         /// <summary>
         /// Kullanıcının başarısız giriş sayısını arttırır, gerekiyorsa lockout uygular.
         /// </summary>

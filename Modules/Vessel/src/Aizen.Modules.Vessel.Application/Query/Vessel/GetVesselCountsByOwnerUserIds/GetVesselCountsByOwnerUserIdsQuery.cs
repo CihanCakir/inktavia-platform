@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
-using Aizen.Modules.Vessel.Abstraction.Model;
 
 namespace Aizen.Modules.Vessel.Application.Query.Vessel;
 

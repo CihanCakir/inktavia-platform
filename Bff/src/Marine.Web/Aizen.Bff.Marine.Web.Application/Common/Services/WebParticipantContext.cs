@@ -1,0 +1,80 @@
+using Aizen.Bff.Marine.Web.Application.Common.Options;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using System.Security.Claims;
+
+namespace Aizen.Bff.Marine.Web.Application.Common.Services;
+
+/// <summary>
+/// Resolves the authenticated participant identity from the inbound Keycloak access token.
+/// SECURITY: participantProfileId is NEVER taken from the request body/query — only from the
+/// verified token's participant_profile_id claim (or, later, an Identity lookup by Keycloak sub).
+/// </summary>
+public interface IWebParticipantContext
+{
+    bool IsAuthenticated { get; }
+    string? KeycloakSubject { get; }
+    string? Email { get; }
+    string? PreferredUsername { get; }
+    string? FirstName { get; }
+    string? LastName { get; }
+    bool EmailVerified { get; }
+    long? ParticipantProfileId { get; }
+    bool HasProfileLink { get; }
+    IReadOnlyList<string> Roles { get; }
+    bool IsInRole(string role);
+}
+
+internal sealed class WebParticipantContext : IWebParticipantContext
+{
+    private readonly ClaimsPrincipal? _user;
+    private readonly MarineWebKeycloakOptions _options;
+
+    public WebParticipantContext(IHttpContextAccessor httpContextAccessor, IOptions<MarineWebKeycloakOptions> options)
+    {
+        _user = httpContextAccessor.HttpContext?.User;
+        _options = options.Value;
+    }
+
+    public bool IsAuthenticated => _user?.Identity?.IsAuthenticated ?? false;
+
+    public string? KeycloakSubject => First("sub", ClaimTypes.NameIdentifier);
+
+    public string? Email => First("email", ClaimTypes.Email);
+
+    public string? PreferredUsername => First("preferred_username");
+
+    public string? FirstName => First("given_name", ClaimTypes.GivenName);
+
+    public string? LastName => First("family_name", ClaimTypes.Surname);
+
+    public bool EmailVerified =>
+        string.Equals(First("email_verified"), "true", StringComparison.OrdinalIgnoreCase);
+
+    public long? ParticipantProfileId
+    {
+        get
+        {
+            var raw = First(_options.ParticipantProfileIdAttributeName);
+            return long.TryParse(raw, out var id) ? id : null;
+        }
+    }
+
+    public bool HasProfileLink => ParticipantProfileId is > 0;
+
+    public IReadOnlyList<string> Roles =>
+        _user?.FindAll(ClaimTypes.Role).Select(c => c.Value).Distinct().ToList() ?? new List<string>();
+
+    public bool IsInRole(string role) => _user?.IsInRole(role) ?? false;
+
+    private string? First(params string[] claimTypes)
+    {
+        if (_user is null) return null;
+        foreach (var type in claimTypes)
+        {
+            var value = _user.FindFirst(type)?.Value;
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        }
+        return null;
+    }
+}

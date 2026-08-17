@@ -1,6 +1,5 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
@@ -23,14 +22,18 @@ public sealed class FileAccessService : IFileAccessService
         var file = await _fileRepository.GetByIdAsync(fileId, cancellationToken)
             ?? throw new KeyNotFoundException($"File with id '{fileId}' not found.");
 
-        if (file.Status != FileStatus.Ready)
-            throw new InvalidOperationException("File is not ready.");
+        // A file is readable once its bytes are in the bucket. We keep `Uploaded` readable so providers
+        // can view documents they just uploaded before the async virus scan completes. Once the scan
+        // finishes the file moves to `Ready` (clean) or `Quarantined` (threat). Quarantined files are
+        // NOT readable. All other terminal states (Rejected, Deleted) are also blocked (fail closed).
+        if (file.Status is not (FileStatus.Uploaded or FileStatus.Ready))
+            throw new InvalidOperationException($"File is not readable (status: {file.Status}).");
 
         var url = await _storageProvider.GenerateReadUrlAsync(file.BucketName, file.ObjectKey, expiresIn, cancellationToken);
 
         return new FileAccessUrlDto
         {
-            FileId = file.PublicId ?? Guid.Empty,
+            FileId = file.PublicId ?? throw new InvalidOperationException($"File {file.Id} has no PublicId — this is a data integrity bug."),
             ReadUrl = url,
             ExpiresAt = DateTime.UtcNow.Add(expiresIn)
         };

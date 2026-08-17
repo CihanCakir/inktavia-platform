@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Entities.UserAgreement;
 using Aizen.Modules.Identity.Domain.Entities.UserExternalLogin;
+using Aizen.Modules.Identity.Domain.Entities.OtpLogin;
+using Aizen.Modules.Identity.Domain.Entities.Onboarding;
+using Aizen.Modules.Identity.Domain.Entities.ProviderServiceCategory;
+using Aizen.Modules.Identity.Domain.Entities.PasswordRecovery;
 using Aizen.Modules.Identity.Domain.Entities.UserValidation;
 
 namespace Aizen.Modules.Identity.Repository.Context
@@ -40,6 +44,13 @@ namespace Aizen.Modules.Identity.Repository.Context
 
         public DbSet<VerificationDocumentEntity> VerificationDocuments { get; set; } = null!;
         public DbSet<RiskSignalEntity> RiskSignals { get; set; } = null!;
+        public DbSet<ProviderPasswordRecoveryRequestEntity> ProviderPasswordRecoveryRequests { get; set; } = null!;
+        public DbSet<ParticipantPasswordRecoveryRequestEntity> ParticipantPasswordRecoveryRequests { get; set; } = null!;
+        public DbSet<ProviderOtpLoginRequestEntity> ProviderOtpLoginRequests { get; set; } = null!;
+        public DbSet<AdminOtpLoginRequestEntity> AdminOtpLoginRequests { get; set; } = null!;
+        public DbSet<ParticipantOtpLoginRequestEntity> ParticipantOtpLoginRequests { get; set; } = null!;
+        public DbSet<ProviderOnboardingEntity> ProviderOnboarding { get; set; } = null!;
+        public DbSet<ProviderServiceCategoryEntity> ProviderServiceCategories { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,6 +68,13 @@ namespace Aizen.Modules.Identity.Repository.Context
             modelBuilder.ApplyConfiguration(new UserValidationEntityConfiguration());
             modelBuilder.ApplyConfiguration(new VerificationDocumentEntityConfiguration());
             modelBuilder.ApplyConfiguration(new RiskSignalEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ProviderPasswordRecoveryRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ParticipantPasswordRecoveryRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ProviderOtpLoginRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new AdminOtpLoginRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ParticipantOtpLoginRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ProviderOnboardingEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ProviderServiceCategoryEntityConfiguration());
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

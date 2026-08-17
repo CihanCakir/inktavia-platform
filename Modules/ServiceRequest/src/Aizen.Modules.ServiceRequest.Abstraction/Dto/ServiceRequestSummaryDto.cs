@@ -1,5 +1,4 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Dto;
 
@@ -16,6 +15,11 @@ public sealed class ServiceRequestSummaryDto
     public long VesselId { get; set; }
     public long OwnerUserId { get; set; }
     public long? ProviderProfileId { get; set; }
+    /// <summary>
+    /// Assigned provider's USER id (from the active assignment; null when unassigned). Additive data-completeness
+    /// field so the BFF can resolve the provider display name via Identity (which keys by user id, not profile id).
+    /// </summary>
+    public long? ProviderUserId { get; set; }
     public string? LocationMarinaName { get; set; }
     public string? LocationCityCode { get; set; }
     public string? LocationCountryCode { get; set; }

@@ -1,3 +1,4 @@
+using Aizen.Core.Cache.Extension;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Starter;
@@ -8,6 +9,7 @@ using Aizen.Modules.Identity.Repository.Context;
 using Aizen.Core.Domain.Abstraction.Extension;
 using Aizen.Modules.Identity.Repository;
 using Aizen.Modules.Identity.Extensions;
+using Aizen.Modules.Identity.Abstraction.Options;
 
 var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
@@ -30,11 +32,16 @@ builder.Services.AddAizenUnitOfWork<IdentityDbContext>(builder.Configuration, "I
 
 builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
 
+// M2 — coarse provider-area availability bucketing thresholds (config-driven; defaults limited=1, available=3).
+builder.Services.Configure<AvailabilityThresholdsOptions>(
+    builder.Configuration.GetSection(AvailabilityThresholdsOptions.SectionName));
+
+builder.Services.AddAizenCache(builder.Configuration);
 builder.Services.AddInktaviaService(builder.Configuration).AddInktaviaRepository();
 
 builder.Services.AddIdentityMockData(builder.Configuration);
 
-// builder.Services.AddInktaviaAuthorizationPolicies();
+builder.Services.AddInktaviaAuthorizationPolicies();
 
 builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(IdentityDbContext).Assembly);
 

@@ -21,8 +21,10 @@ public sealed class GetProviderResponseTimeReportQueryHandler
             .AsNoTracking()
             .Where(c => c.ContextType == MessagingContextType.ServiceRequest && !c.IsDeleted);
 
-        if (query.From.HasValue) conversationsQuery = conversationsQuery.Where(c => c.CreateDate >= query.From.Value.DateTime);
-        if (query.To.HasValue)   conversationsQuery = conversationsQuery.Where(c => c.CreateDate <= query.To.Value.DateTime);
+        // CreateDate is a timestamptz column; DateTimeOffset.DateTime yields Kind=Unspecified which Npgsql rejects.
+        // Use UtcDateTime (Kind=Utc) so the parameter binds correctly.
+        if (query.From.HasValue) conversationsQuery = conversationsQuery.Where(c => c.CreateDate >= query.From.Value.UtcDateTime);
+        if (query.To.HasValue)   conversationsQuery = conversationsQuery.Where(c => c.CreateDate <= query.To.Value.UtcDateTime);
 
         var conversations = await conversationsQuery
             .Select(c => new

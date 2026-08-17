@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.ExchangeRate;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Application.ExchangeRate.Queries;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +33,14 @@ public sealed class ExchangeRateController : AizenWebApiController
     public async Task<AizenApiResponse<IReadOnlyList<ExchangeRateDto>>> GetByCurrency([FromRoute] string currencyCode, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<IReadOnlyList<ExchangeRateDto>>(new GetExchangeRatesByCurrencyQuery(currencyCode), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("resolve")]
+    [ProducesResponseType(typeof(ExchangeRateResolveDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ExchangeRateResolveDto>> Resolve([FromQuery] string fromCurrencyCode, [FromQuery] string toCurrencyCode, [FromQuery] DateTimeOffset asOfUtc, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ExchangeRateResolveDto>(new ResolveExchangeRateQuery(fromCurrencyCode, toCurrencyCode, asOfUtc), ct);
         return SetResponse(result);
     }
 

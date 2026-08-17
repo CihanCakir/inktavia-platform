@@ -1,4 +1,4 @@
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 
@@ -6,5 +6,10 @@ namespace Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 public sealed class RejectServiceRequestOfferRequest
 {
     public long OfferId { get; set; }
+
+    /// <summary>N-E structured reject reason (owner).</summary>
+    public OfferRejectReason? ReasonCode { get; set; }
+
+    /// <summary>Optional free-text note (kept alongside the structured reason).</summary>
     public string? Reason { get; set; }
 }

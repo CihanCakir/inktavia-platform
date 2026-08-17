@@ -1,5 +1,4 @@
 using Aizen.Core.Domain;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
@@ -17,6 +16,16 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
     public DateTime? ReviewedAt { get; private set; }
     public long? ReviewedByUserId { get; private set; }
     public string? ReviewNotes { get; private set; }
+    /// <summary>N-E structured reason when the owner rejects the completion. Null otherwise / for pre-taxonomy rows.</summary>
+    public CompletionRejectReason? RejectReasonCode { get; private set; }
+    public int? ClientRating { get; private set; }
+
+    // ── N3-C — completion auto-approval (append-only; UTC) ──
+    /// <summary>UTC deadline after which a still-pending completion is auto-approved (= SubmittedAt + AutoApproveWindowDays).
+    /// Null for rows submitted before N3-C (never auto-approved).</summary>
+    public DateTime? AutoApproveAt { get; private set; }
+    /// <summary>UTC time the "approaching" reminder was sent — the once-guard so the reminder never re-fires.</summary>
+    public DateTime? AutoApproveReminderSentAt { get; private set; }
 
     public ServiceRequestCompletionEntity() { }
 
@@ -48,12 +57,13 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
         ReviewNotes = reviewNotes;
     }
 
-    public void RejectByOwner(long reviewerUserId, string? reviewNotes)
+    public void RejectByOwner(long reviewerUserId, string? reviewNotes, CompletionRejectReason? reasonCode = null)
     {
         Status = ServiceRequestCompletionStatus.RejectedByOwner;
         ReviewedAt = DateTime.UtcNow;
         ReviewedByUserId = reviewerUserId;
         ReviewNotes = reviewNotes;
+        RejectReasonCode = reasonCode;
     }
 
     public void DisputeByOwner(long reviewerUserId, string? reviewNotes)
@@ -63,4 +73,18 @@ public sealed class ServiceRequestCompletionEntity : AizenEntityWithAudit
         ReviewedByUserId = reviewerUserId;
         ReviewNotes = reviewNotes;
     }
+
+    public void RateByClient(int rating)
+    {
+        if (rating is < 1 or > 5)
+            throw new ArgumentOutOfRangeException(nameof(rating), rating, "Client rating must be between 1 and 5.");
+
+        ClientRating = rating;
+    }
+
+    /// <summary>N3-C — freeze the auto-approval deadline at submission (SubmittedAt + window). UTC.</summary>
+    public void ScheduleAutoApproval(DateTime autoApproveAtUtc) => AutoApproveAt = autoApproveAtUtc;
+
+    /// <summary>N3-C — stamp that the approaching reminder was sent (once-guard).</summary>
+    public void MarkAutoApproveReminderSent() => AutoApproveReminderSentAt = DateTime.UtcNow;
 }

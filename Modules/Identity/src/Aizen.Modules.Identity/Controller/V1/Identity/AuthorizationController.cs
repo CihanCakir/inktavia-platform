@@ -1,6 +1,7 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto;
+using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.InktaviaStore.Application.Identity;
@@ -99,9 +100,9 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
         // =================================
         [HttpPost("login/phone")]
         [AllowAnonymous]
-        [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(VerifyProviderOtpLoginResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<AizenApiResponse<UserLoginResponse>> LoginWithPhone([FromBody] LoginWithPhoneRequest req, CancellationToken ct)
+        public async Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> LoginWithPhone([FromBody] LoginWithPhoneRequest req, CancellationToken ct)
         {
             var result = await _sender.ProcessAsync(
                 new LoginWithPhoneNumberCommand(req.PhoneNumber, req.Password, req.DeviceId, req.NotificationToken), ct);
@@ -113,9 +114,9 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
         // POST /api/v1/auth/login/username
         // =================================
         [HttpPost("login/username")]
-        [ProducesResponseType(typeof(UserLoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(VerifyProviderOtpLoginResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<AizenApiResponse<UserLoginResponse>> LoginWithUsername([FromBody] LoginWithUsernameRequest req, CancellationToken ct)
+        public async Task<AizenApiResponse<VerifyProviderOtpLoginResponse>> LoginWithUsername([FromBody] LoginWithUsernameRequest req, CancellationToken ct)
         {
             var result = await _sender.ProcessAsync(
                 new LoginWithUsernameCommand(req.Username, req.Pin, req.DeviceId, req.NotificationToken), ct);

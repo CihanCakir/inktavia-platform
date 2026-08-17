@@ -87,6 +87,9 @@ namespace Aizen.Modules.Messaging.Repository.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<int?>("Topic")
+                        .HasColumnType("integer");
+
                     b.Property<int>("UnreadCountByAdmin")
                         .HasColumnType("integer");
 
@@ -97,6 +100,8 @@ namespace Aizen.Modules.Messaging.Repository.Migrations
                     b.HasIndex("LastMessageAt");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("Topic");
 
                     b.HasIndex("ContextType", "ContextId")
                         .IsUnique();
@@ -144,6 +149,18 @@ namespace Aizen.Modules.Messaging.Repository.Migrations
                     b.Property<bool>("IsInternalNote")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("LocationLabel")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal?>("LocationLat")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("numeric(10,7)");
+
+                    b.Property<decimal?>("LocationLng")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("numeric(10,7)");
+
                     b.Property<string>("ModerationReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -178,6 +195,10 @@ namespace Aizen.Modules.Messaging.Repository.Migrations
                     b.Property<DateTimeOffset>("SentAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("SourceKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
@@ -188,6 +209,11 @@ namespace Aizen.Modules.Messaging.Repository.Migrations
                     b.HasIndex("ModerationStatus");
 
                     b.HasIndex("SentAt");
+
+                    b.HasIndex("ConversationId", "SourceKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_conversation_messages_ConversationId_SourceKey")
+                        .HasFilter("\"SourceKey\" IS NOT NULL");
 
                     b.ToTable("conversation_messages", "messaging");
                 });

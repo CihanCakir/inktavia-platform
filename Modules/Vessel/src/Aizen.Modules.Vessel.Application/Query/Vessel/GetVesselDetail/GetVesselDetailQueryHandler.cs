@@ -1,7 +1,6 @@
 using Aizen.Core.Cache.Abstraction.Common;
 using Aizen.Core.CQRS.Abstraction.Handler;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 

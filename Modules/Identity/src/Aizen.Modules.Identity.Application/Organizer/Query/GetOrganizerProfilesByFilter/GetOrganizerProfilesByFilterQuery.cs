@@ -9,14 +9,24 @@ public sealed class GetOrganizerProfilesByFilterQuery : AizenPagedQuery<Organize
     public string? FirstName { get; }
     public string? LastName { get; }
     public string? ApprovalStatus { get; }
+    public string? SearchTerm { get; }
+    public string? Status { get; }
+    public string? City { get; }
+    public string? Country { get; }
+    public string? OnboardingStatus { get; }
     public int PageIndex { get; }
     public int PageSize { get; }
 
-    public GetOrganizerProfilesByFilterQuery(string? firstName, string? lastName, string? approvalStatus, int pageIndex, int pageSize)
+    public GetOrganizerProfilesByFilterQuery(string? firstName, string? lastName, string? approvalStatus, string? searchTerm, string? status, string? city, string? country, string? onboardingStatus, int pageIndex, int pageSize)
     {
         FirstName = firstName;
         LastName = lastName;
         ApprovalStatus = approvalStatus;
+        SearchTerm = searchTerm;
+        Status = status;
+        City = city;
+        Country = country;
+        OnboardingStatus = onboardingStatus;
         PageIndex = pageIndex;
         PageSize = pageSize;
     }

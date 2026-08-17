@@ -45,6 +45,8 @@ public sealed class ServiceRequestStatusChangedConsumer
                 { "toStatus",    message.ToStatus.ToString() },
             },
             MetadataJson = $"{{\"serviceRequestId\":{message.ServiceRequestId}}}",
+            ReferenceType = "ServiceRequest",
+            ReferenceId   = message.ServiceRequestId,
         }, ct);
     }
 

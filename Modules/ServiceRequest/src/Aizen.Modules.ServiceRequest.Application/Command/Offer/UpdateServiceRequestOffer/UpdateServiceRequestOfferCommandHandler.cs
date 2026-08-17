@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
@@ -37,6 +36,10 @@ public sealed class UpdateServiceRequestOfferCommandHandler : AizenCommandHandle
         var offer = await _offerRepository.GetByIdAsync(request.OfferId, cancellationToken)
             ?? throw new InvalidOperationException($"Offer {request.OfferId} not found.");
 
+        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
+        if (offer.ProviderUserId != currentUserId)
+            throw new UnauthorizedAccessException("You do not have permission to modify this offer.");
+
         var req = request.Request;
         offer.Update(
             offer.TotalAmount,
@@ -50,7 +53,6 @@ public sealed class UpdateServiceRequestOfferCommandHandler : AizenCommandHandle
 
         _offerRepository.Update(offer);
 
-        var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, offer.ProviderProfileId,
             ServiceRequestRealtimeEventType.OfferUpdated, offer.ToDto(),
             currentUserId, ServiceRequestActorType.Provider, cancellationToken);

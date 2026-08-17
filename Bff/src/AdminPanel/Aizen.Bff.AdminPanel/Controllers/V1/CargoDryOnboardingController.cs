@@ -1,4 +1,4 @@
-using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
+using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 using Aizen.Core.Infrastructure.Api;
@@ -13,15 +13,10 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 [Tags("Onboarding - CargoDry")]
 public sealed class CargoDryOnboardingController : AizenWebApiController
 {
-    private readonly IAdminCargoDryBffRemoteCall _cargoDry;
+    private readonly ICargoDryRemoteCall _cargoDry;
 
-    public CargoDryOnboardingController(
-        IHttpContextAccessor httpContextAccessor,
-        IAdminCargoDryBffRemoteCall cargoDry)
-        : base(httpContextAccessor)
-    {
-        _cargoDry = cargoDry;
-    }
+    public CargoDryOnboardingController(IHttpContextAccessor httpContextAccessor, ICargoDryRemoteCall cargoDry)
+        : base(httpContextAccessor) => _cargoDry = cargoDry;
 
     /// <summary>
     /// POST /api/v1/onboarding/cargodry/validate

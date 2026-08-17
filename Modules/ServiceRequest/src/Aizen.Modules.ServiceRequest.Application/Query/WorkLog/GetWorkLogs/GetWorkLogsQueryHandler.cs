@@ -1,5 +1,4 @@
 using Aizen.Core.CQRS.Handler;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 
@@ -70,26 +69,87 @@ public sealed class GetWorkLogsQueryHandler : AizenQueryHandler<GetWorkLogsQuery
             Activities = activities
         };
 
-        var jobHealth = ComputeJobHealth(sr, workLogs.Count);
+        var jobHealth = ComputeJobHealth(sr, phaseDtos, workLogs.Count);
 
         return new GetWorkLogsResponse(
             sr.Id.ToString(), sr.Title, currentPhase, phaseDtos, logEntries, providerActivity, jobHealth);
     }
 
     private static JobHealthDto ComputeJobHealth(
-        Domain.Entities.ServiceRequest.ServiceRequestEntity sr, int logCount)
+        Domain.Entities.ServiceRequest.ServiceRequestEntity sr,
+        List<WorkPhaseSummaryDto> phases,
+        int logCount)
     {
         var daysRemaining = sr.RequestedEndDate.HasValue
             ? (int)(sr.RequestedEndDate.Value - DateTime.UtcNow).TotalDays
             : 0;
         daysRemaining = Math.Max(0, daysRemaining);
 
+        // Short-circuit: terminal statuses override the phase score
+        var srStatus = sr.Status.ToString();
+        if (srStatus is "Completed" or "Cancelled")
+        {
+            return new JobHealthDto
+            {
+                Score            = srStatus == "Completed" ? 100 : 0,
+                Label            = srStatus == "Completed" ? "Completed" : "Cancelled",
+                DaysRemaining    = 0,
+                MilestoneReached = phases.LastOrDefault(p => p.Status == "Completed")?.Title ?? string.Empty
+            };
+        }
+        if (srStatus is "DisputeOpened")
+        {
+            return new JobHealthDto
+            {
+                Score            = 20,
+                Label            = "Disputed",
+                DaysRemaining    = daysRemaining,
+                MilestoneReached = phases.LastOrDefault(p => p.Status == "Completed")?.Title ?? string.Empty
+            };
+        }
+        if (srStatus is "CompletionSubmitted")
+        {
+            return new JobHealthDto
+            {
+                Score            = 90,
+                Label            = "Pending Review",
+                DaysRemaining    = daysRemaining,
+                MilestoneReached = phases.LastOrDefault(p => p.Status == "Completed")?.Title ?? string.Empty
+            };
+        }
+
+        // Dynamic score from phases
+        int score;
+        string label;
+        if (phases.Count == 0)
+        {
+            // No phases defined: use log activity as a rough proxy
+            score = logCount > 5 ? 65 : logCount > 0 ? 40 : 20;
+            label = score >= 60 ? "Good" : "At Risk";
+        }
+        else
+        {
+            var completed   = phases.Count(p => p.Status == "Completed");
+            var inProgress  = phases.Count(p => p.Status == "In Progress");
+            // Each completed phase = full weight; in-progress = half weight
+            var weightedDone = completed + inProgress * 0.5;
+            score = (int)Math.Round(weightedDone / phases.Count * 100);
+
+            // Penalise overdue
+            if (sr.RequestedEndDate.HasValue && DateTime.UtcNow > sr.RequestedEndDate.Value)
+                score = Math.Max(0, score - 20);
+
+            label = score >= 80 ? "Good"
+                  : score >= 50 ? "At Risk"
+                  : "Critical";
+        }
+
         return new JobHealthDto
         {
-            Score = 75,
-            Label = "Good",
-            DaysRemaining = daysRemaining,
-            MilestoneReached = logCount.ToString()
+            Score            = score,
+            Label            = label,
+            DaysRemaining    = daysRemaining,
+            MilestoneReached = phases.LastOrDefault(p => p.Status == "Completed")?.Title ?? string.Empty
         };
     }
 }

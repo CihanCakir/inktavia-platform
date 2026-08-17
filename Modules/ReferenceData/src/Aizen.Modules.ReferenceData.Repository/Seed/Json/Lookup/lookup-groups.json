@@ -37,5 +37,11 @@
   { "code": "PAYMENT_METHOD_TYPE",       "parentCode": "PAYMENT",         "name": "Payment Method Type",          "description": "Supported payment methods",                  "groupType": 7,  "sortOrder": 1,  "isSystemGroup": false, "isActive": true },
   { "code": "PAYMENT_STATUS",            "parentCode": "PAYMENT",         "name": "Payment Status",               "description": "Status of a payment transaction",            "groupType": 7,  "sortOrder": 2,  "isSystemGroup": false, "isActive": true },
   { "code": "CURRENCY_USAGE_TYPE",       "parentCode": "PAYMENT",         "name": "Currency Usage Type",          "description": "How a currency is used on the platform",     "groupType": 7,  "sortOrder": 3,  "isSystemGroup": false, "isActive": true },
-  { "code": "COMMISSION_TYPE",           "parentCode": "PAYMENT",         "name": "Commission Type",              "description": "Commission calculation types",               "groupType": 7,  "sortOrder": 4,  "isSystemGroup": false, "isActive": true }
+  { "code": "COMMISSION_TYPE",           "parentCode": "PAYMENT",         "name": "Commission Type",              "description": "Commission calculation types",               "groupType": 7,  "sortOrder": 4,  "isSystemGroup": false, "isActive": true },
+
+  { "code": "MARINE_PRICING",            "parentCode": "MARINE",          "name": "Deniz Fiyatlandırma",          "description": "Marine pricing attribute lookup groups (R4)",         "groupType": 2, "sortOrder": 5, "isSystemGroup": false, "isActive": true },
+  { "code": "ENGINE_INSTALLATION_TYPE",  "parentCode": "MARINE_PRICING",  "name": "Motor Kurulum Tipi",           "description": "Engine installation type (inboard/outboard/shaft)",   "groupType": 2, "sortOrder": 1, "isSystemGroup": false, "isActive": true },
+  { "code": "ENGINE_CLASS",              "parentCode": "MARINE_PRICING",  "name": "Motor Sınıfı",                 "description": "Engine class/configuration (V8/V12/V16...)",           "groupType": 2, "sortOrder": 2, "isSystemGroup": false, "isActive": true },
+  { "code": "PAINT_TYPE",                "parentCode": "MARINE_PRICING",  "name": "Boya Tipi",                    "description": "Paint type (antifouling/epoxy/topcoat...)",            "groupType": 2, "sortOrder": 3, "isSystemGroup": false, "isActive": true },
+  { "code": "WORK_DIFFICULTY",           "parentCode": "MARINE_PRICING",  "name": "İş Zorluğu",                   "description": "Work difficulty level (easy/medium/hard)",            "groupType": 2, "sortOrder": 4, "isSystemGroup": false, "isActive": true }
 ]

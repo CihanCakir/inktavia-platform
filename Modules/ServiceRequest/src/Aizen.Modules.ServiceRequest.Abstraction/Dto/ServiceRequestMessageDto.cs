@@ -1,5 +1,4 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Dto;
 
@@ -14,5 +13,8 @@ public sealed class ServiceRequestMessageDto
     public bool IsRead { get; set; }
     public DateTime? ReadAt { get; set; }
     public Guid? AttachmentFileId { get; set; }
+    public decimal? LocationLat { get; set; }
+    public decimal? LocationLng { get; set; }
+    public string? LocationLabel { get; set; }
     public DateTime CreatedAt { get; set; }
 }

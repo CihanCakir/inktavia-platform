@@ -1,4 +1,3 @@
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Response.WorkLog;
 

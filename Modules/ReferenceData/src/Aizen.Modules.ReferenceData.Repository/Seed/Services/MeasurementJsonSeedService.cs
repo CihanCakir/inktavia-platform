@@ -1,5 +1,4 @@
 using Aizen.Modules.ReferenceData.Abstraction.Enum;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Domain.Entities.Measurement;
 using Aizen.Modules.ReferenceData.Domain.Interface;
 using Aizen.Modules.ReferenceData.Repository.Context;
@@ -31,8 +30,9 @@ public sealed class MeasurementJsonSeedService
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        if (await _dbContext.MeasurementUnits.AnyAsync(cancellationToken)) return;
-
+        // Idempotency is per-code (GetByCodeAsync upsert below), so the loop runs on every
+        // startup: pre-existing rows are updated in place and newly added codes (e.g. the R3
+        // pricing units KILOMETER/SQUARE_METER) are inserted even on an already-seeded DB.
         var models = await _reader.ReadListAsync<MeasurementUnitSeedModel>("Measurement/measurement-units.json", cancellationToken: cancellationToken);
 
         foreach (var model in models)

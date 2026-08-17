@@ -1,6 +1,5 @@
 using Aizen.Core.Realtime.Hubs;
 using Aizen.Core.Realtime.Abstraction.Interfaces;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 

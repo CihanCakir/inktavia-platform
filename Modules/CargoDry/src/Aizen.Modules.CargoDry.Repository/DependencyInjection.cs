@@ -15,11 +15,24 @@ public static class DependencyInjection
         this IServiceCollection services, IConfiguration configuration)
     {
         // ── PostgreSQL ─────────────────────────────────────────────────────────
-        services.AddScoped<ICargoDryProductRepository, CargoDryProductRepository>();
-        services.AddScoped<ICargoDryKitRepository,     CargoDryKitRepository>();
-        services.AddScoped<ICargoDryBatchRepository,   CargoDryBatchRepository>();
+        services.AddScoped<ICargoDryProductRepository,              CargoDryProductRepository>();
+        services.AddScoped<ICargoDryKitRepository,                  CargoDryKitRepository>();
+        services.AddScoped<ICargoDryBatchRepository,                CargoDryBatchRepository>();
+        services.AddScoped<ICargoDryConsignmentAgreementRepository, CargoDryConsignmentAgreementRepository>();
+        services.AddScoped<ICargoDryProviderInventoryRepository,     CargoDryProviderInventoryRepository>();
+        services.AddScoped<ICargoDryInventoryMovementRepository,     CargoDryInventoryMovementRepository>();
+        services.AddScoped<ICargoDrySalesAttributionRepository,          CargoDrySalesAttributionRepository>();
+        services.AddScoped<ICargoDrySellThroughSettlementRepository,     CargoDrySellThroughSettlementRepository>();
+        services.AddScoped<ICargoDrySettlementAutomationRunRepository,   CargoDrySettlementAutomationRunRepository>();
+        // Phase 9 — Kit lifecycle event repository
+        services.AddScoped<ICargoDryKitLifecycleEventRepository, CargoDryKitLifecycleEventRepository>();
+        // Phase 11 — Renewal preparation repository
+        services.AddScoped<ICargoDryRenewalPreparationRepository, CargoDryRenewalPreparationRepository>();
+        services.AddScoped<ICargoDryStockRequestRepository, CargoDryStockRequestRepository>();
+        services.AddScoped<ICargoDryProviderMilestoneAwardRepository, CargoDryProviderMilestoneAwardRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
+        services.AddScoped<CargoDryProviderMockSeed>();
 
         // ── MongoDB ────────────────────────────────────────────────────────────
         // IMongoClient and IMongoDatabase are NOT registered here.
@@ -43,6 +56,9 @@ public static class DependencyInjection
 
         var batchSeeder = scope.ServiceProvider.GetRequiredService<CargoDryBatchMockSeed>();
         await batchSeeder.SeedAsync(ct);
+
+        var providerSeeder = scope.ServiceProvider.GetRequiredService<CargoDryProviderMockSeed>();
+        await providerSeeder.SeedAsync(ct);
 
         var mongoIndexer = scope.ServiceProvider.GetRequiredService<CargoDryMongoIndexInitializer>();
         await mongoIndexer.InitializeAsync(ct);

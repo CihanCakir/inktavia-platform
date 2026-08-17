@@ -1,5 +1,4 @@
 using Aizen.Modules.Vessel.Abstraction.Dto.Engine;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using MiniUow.Paging;
 
 namespace Aizen.Modules.Vessel.Abstraction.Response.Engine;

@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Document;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
 using Aizen.Modules.Vessel.Application.Command.Document;
@@ -69,6 +68,15 @@ public sealed class VesselDocumentController : AizenWebApiController
     public async Task<AizenApiResponse<UpdateVesselDocumentStatusResponse?>> UpdateStatus([FromRoute] long vesselId, [FromRoute] long documentId, [FromBody] VesselDocumentStatus status, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<UpdateVesselDocumentStatusResponse>(new UpdateVesselDocumentStatusCommand(vesselId, documentId, status), ct);
+        return SetResponse(result);
+    }
+
+    [HttpPatch("{documentId:long}/approve")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ApproveVesselDocumentResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ApproveVesselDocumentResponse?>> Approve([FromRoute] long vesselId, [FromRoute] long documentId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ApproveVesselDocumentResponse>(new ApproveVesselDocumentCommand(vesselId, documentId), ct);
         return SetResponse(result);
     }
 }

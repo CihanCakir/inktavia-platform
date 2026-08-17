@@ -1,3 +1,4 @@
+using Aizen.Core.Cache.Extension;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Starter;
@@ -22,12 +23,18 @@ builder.Services.AddAizenUnitOfWork<NotificationDbContext>(builder.Configuration
     options.UseLazyLoadingProxies  = false;
 });
 
+// ── Cache (not included by Operation starter — register explicitly) ───────────
+builder.Services.AddAizenCache(builder.Configuration);
+
 // ── Repository / Application ───────────────────────────────────────────────────
 builder.Services.AddNotificationRepository();
-builder.Services.AddNotificationApplicationServices();
+builder.Services.AddNotificationApplicationServices(builder.Configuration);
 
 // ── SignalR ────────────────────────────────────────────────────────────────────
-builder.Services.AddSignalR();
+var signalRBuilder = builder.Services.AddSignalR();
+var signalRRedisConn = builder.Configuration["Realtime:SignalR:RedisConnectionString"];
+if (!string.IsNullOrWhiteSpace(signalRRedisConn))
+    signalRBuilder.AddStackExchangeRedis(signalRRedisConn);
 builder.Services.AddScoped<IInAppNotificationPusher, NotificationHubPusher>();
 
 var app = builder.Build();

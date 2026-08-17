@@ -15,11 +15,15 @@ namespace Aizen.Core.Cache;
 internal sealed class AizenDistributedCache : AizenCacheBase, IAizenDistributedCache, IDistributedCache
 {
     private readonly IDistributedCache _distributedCache;
+    // The InstanceName that RedisCache prepends to every read/set key. The raw StackExchange
+    // path (_database) does NOT prepend it, so read-cache eviction must add it explicitly.
+    private readonly string _instanceName;
     private static ConnectionMultiplexer _connectionMultiplexer;
     private static IDatabase _database;
     public AizenDistributedCache(IOptions<RedisCacheOptions> options)
     {
         this._distributedCache = new RedisCache(options);
+        this._instanceName = options.Value.InstanceName ?? string.Empty;
         _connectionMultiplexer = ConnectionMultiplexer.Connect(Connection.RedisConnection);
         _connectionMultiplexer.UseElasticApm();
         _database = _connectionMultiplexer.GetDatabase();
@@ -202,11 +206,23 @@ internal sealed class AizenDistributedCache : AizenCacheBase, IAizenDistributedC
 
     public async Task<bool> RemoveNoHash(string key)
     {
-       
+
         if (await AnyAsync(key))
         {
             if (await Database.KeyDeleteAsync(key, CommandFlags.None))
                 return true;
+        }
+        return false;
+    }
+
+    public async Task<bool> RemoveReadCacheEntry(string key)
+    {
+        // The read/set path (RedisCache) stores under InstanceName + key on the same Redis DB,
+        // so evict the InstanceName-prefixed physical key.
+        var physicalKey = _instanceName + key;
+        if (await AnyAsync(physicalKey))
+        {
+            return await Database.KeyDeleteAsync(physicalKey, CommandFlags.None);
         }
         return false;
     }

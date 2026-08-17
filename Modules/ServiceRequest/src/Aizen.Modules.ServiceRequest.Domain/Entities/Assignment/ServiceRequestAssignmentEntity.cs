@@ -1,5 +1,4 @@
 using Aizen.Core.Domain;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
 
@@ -19,7 +18,10 @@ public sealed class ServiceRequestAssignmentEntity : AizenEntityWithAudit
     public DateTime? ActualStartDate { get; private set; }
     public DateTime? ActualEndDate { get; private set; }
     public string? ProviderNotes { get; private set; }
+    /// <summary>Free-text reject note (N-E: the ReasonNote; the structured reason lives in <see cref="RejectReasonCode"/>).</summary>
     public string? RejectionReason { get; private set; }
+    /// <summary>N-E structured reject reason (provider). Null for pre-taxonomy rows (backfilled to Other).</summary>
+    public AssignmentRejectReason? RejectReasonCode { get; private set; }
     public string? CancellationReason { get; private set; }
 
     private readonly List<ServiceRequestWorkLogEntity> _workLogs = new();
@@ -52,10 +54,11 @@ public sealed class ServiceRequestAssignmentEntity : AizenEntityWithAudit
 
     public void Accept() => Status = ServiceRequestAssignmentStatus.Accepted;
 
-    public void Reject(string? reason)
+    public void Reject(string? reason, AssignmentRejectReason? reasonCode = null)
     {
         Status = ServiceRequestAssignmentStatus.Rejected;
         RejectionReason = reason;
+        RejectReasonCode = reasonCode;
     }
 
     public void Schedule(DateTime start, DateTime? end)

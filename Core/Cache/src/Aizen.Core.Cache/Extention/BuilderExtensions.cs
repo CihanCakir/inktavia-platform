@@ -31,6 +31,11 @@ namespace Aizen.Core.Cache.Extension
             services.AddSingleton(typeof(IDistributedCache), x => x.GetRequiredService<AizenDistributedCache>());
             services.AddSingleton(typeof(IAizenDistributedCache), x => x.GetRequiredService<AizenDistributedCache>());
 
+            // Unified IAizenCache facade — resolves to the distributed (Redis) cache so multi-replica
+            // consumers share state. Previously unregistered, which made any consumer (e.g. the Messaging
+            // MessageContentPolicyService, on the message-send path) fail to activate.
+            services.AddSingleton(typeof(IAizenCache), x => x.GetRequiredService<AizenDistributedCache>());
+
             return services;
         }
     }

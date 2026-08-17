@@ -6,7 +6,6 @@ using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Entities;

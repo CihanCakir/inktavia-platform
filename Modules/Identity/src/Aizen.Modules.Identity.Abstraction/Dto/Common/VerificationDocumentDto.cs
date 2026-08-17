@@ -3,7 +3,7 @@ namespace Aizen.Modules.Identity.Abstraction.Dto.Common;
 public class VerificationDocumentDto
 {
     public long Id { get; set; }
-    public long FileId { get; set; }
+    public Guid FileId { get; set; }
     public string Name { get; set; } = null!;
     public string DocumentType { get; set; } = null!;
     public string? Format { get; set; }

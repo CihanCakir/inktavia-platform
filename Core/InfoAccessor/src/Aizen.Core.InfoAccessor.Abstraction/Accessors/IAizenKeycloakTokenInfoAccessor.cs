@@ -25,4 +25,10 @@ public class AizenKeycloakTokenInfo : IAizenInfo
 
     /// <summary>The raw bearer token string for downstream forwarding if needed.</summary>
     public string RawToken { get; set; }
+
+    /// <summary>
+    /// Provider (Organizer) profile id asserted by a trusted BFF via X-Aizen-Provider-Profile-Id.
+    /// Populated only when a valid BFF assertion accompanies a Keycloak service token.
+    /// </summary>
+    public long? ProviderProfileId { get; set; }
 }

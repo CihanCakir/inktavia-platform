@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Message;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.UploadSession;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.CompleteUploadSession;

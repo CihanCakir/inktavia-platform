@@ -1,6 +1,7 @@
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
 using Aizen.Modules.ServiceRequest.Repository.Repositories;
+using Aizen.Modules.ServiceRequest.Repository.Seed;
 using Aizen.Modules.ServiceRequest.Repository.Seed.MockData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,19 +18,24 @@ public static class DependencyInjection
     {
         services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
         services.AddScoped<IServiceRequestOfferRepository, ServiceRequestOfferRepository>();
+        services.AddScoped<IServiceChangeOrderRepository, ServiceChangeOrderRepository>();   // BE-S11b
         services.AddScoped<IServiceRequestAssignmentRepository, ServiceRequestAssignmentRepository>();
-        services.AddScoped<IServiceRequestMessageRepository, ServiceRequestMessageRepository>();
+        // BE_WC4b — IServiceRequestMessageRepository removed: sr.Messages has no writer left (the 5 lifecycle dual-writes
+        // + the SR chat write are gone; Messaging is the sole store). The table is kept as frozen historical/audit data.
         services.AddScoped<IServiceRequestWorkLogRepository, ServiceRequestWorkLogRepository>();
         services.AddScoped<IServiceRequestCompletionRepository, ServiceRequestCompletionRepository>();
         services.AddScoped<IServiceRequestDisputeRepository, ServiceRequestDisputeRepository>();
+        services.AddScoped<IMaintenanceScheduleRepository, MaintenanceScheduleRepository>();   // S12
         services.AddScoped<IWorkPhaseRepository, WorkPhaseRepository>();
-        services.AddScoped<IServiceRequestConversationRepository, ServiceRequestConversationRepository>();
+        // BE_WC3c — IServiceRequestConversationRepository removed (its only readers, the SR conversation list/detail
+        // read endpoints, were retired; chat conversations are served by the Messaging store).
 
         return services;
     }
 
     public static IServiceCollection AddServiceRequestServices(this IServiceCollection services)
     {
+        services.AddScoped<PricingAttributeDefinitionSeeder>();
         return services;
     }
 
@@ -54,6 +60,10 @@ public static class DependencyInjection
         var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(ct);
         if (pendingMigrations.Any())
             await dbContext.Database.MigrateAsync(ct);
+
+        // S2a — idempotent marine pricing attribute definitions (dedupe by code; runs regardless of mock toggle).
+        var pricingSeeder = scope.ServiceProvider.GetRequiredService<PricingAttributeDefinitionSeeder>();
+        await pricingSeeder.SeedAsync(ct);
 
         // Run mock data seeder
         var mockSeeder = scope.ServiceProvider.GetRequiredService<ServiceRequestMockDataSeeder>();

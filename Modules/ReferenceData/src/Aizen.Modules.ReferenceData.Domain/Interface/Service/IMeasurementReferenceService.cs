@@ -12,5 +12,7 @@ public interface IMeasurementReferenceService
     Task DeactivateAsync(long id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MeasurementUnitDto>> GetListAsync(bool onlyActive, CancellationToken cancellationToken = default);
     Task<MeasurementUnitDto?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+    /// <summary>R3 — resolves a measurement unit by its (normalized) code; null if none.</summary>
+    Task<MeasurementUnitDto?> GetByCodeAsync(string code, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MeasurementUnitDto>> GetByTypeAsync(MeasurementUnitType unitType, bool onlyActive, CancellationToken cancellationToken = default);
 }

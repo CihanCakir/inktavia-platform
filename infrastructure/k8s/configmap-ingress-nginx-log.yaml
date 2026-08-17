@@ -1,0 +1,38 @@
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+# Ingress access-log format: log the PATH, never the query string.
+#
+# WHY: the SignalR handshake carries the end-user's Keycloak access token as `?access_token=…` (a browser
+# WebSocket cannot send an Authorization header). nginx's default log format uses $request_uri, which INCLUDES
+# the query string — so with the default configuration every hub connection writes a live access token into
+# the access log, where it is then shipped to whatever aggregates logs, retained for months, and readable by
+# anyone with log access.
+#
+# $uri is the path without the query string. That is the whole fix.
+#
+# This ConfigMap belongs to the ingress-nginx controller (namespace ingress-nginx, name ingress-nginx-controller).
+# Merge these keys into the existing ConfigMap — do not overwrite unrelated settings.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+data:
+  # Identical to the upstream default except: $request_uri → $uri  (path only, no query string).
+  log-format-upstream: >-
+    $remote_addr - $remote_user [$time_local] "$request_method $uri $server_protocol"
+    $status $body_bytes_sent "$http_referer" "$http_user_agent"
+    $request_length $request_time [$proxy_upstream_name] [$proxy_alternative_upstream_name]
+    $upstream_addr $upstream_response_length $upstream_response_time $upstream_status $req_id
+
+  # The Referer header can also leak a URL that contained a token. We never put tokens in REST URLs (the BFF
+  # accepts ?access_token= only on /hubs), so this is belt-and-braces — but the belt is cheap.
+  enable-underscores-in-headers: "true"
+---
+# Verification (do this, do not assume):
+#
+#   kubectl -n ingress-nginx logs deploy/ingress-nginx-controller | grep -c "access_token="
+#
+# Expect 0. If it is not 0, the ConfigMap did not take effect, or something else is logging the raw URL —
+# find it before going to production. A token in a log file is a token that has leaked; it just hasn't been
+# used yet.

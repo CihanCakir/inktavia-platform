@@ -18,8 +18,14 @@ public sealed class CargoDryProductEntityConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.Description).HasMaxLength(1000);
         builder.Property(x => x.ValidityDays).IsRequired();
         builder.Property(x => x.HasSmartDevice).IsRequired().HasDefaultValue(false);
+        builder.Property(x => x.DeviceType).HasMaxLength(100);
         builder.Property(x => x.RetailPrice).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(x => x.CurrencyCode).HasMaxLength(10).IsRequired();
+        // ── Commercial pricing (Phase 0, July 2026) ───────────────────────────
+        builder.Property(x => x.WholesalePrice).HasColumnType("decimal(18,2)");         // null = no resale configured
+        builder.Property(x => x.ConsignmentPrice).HasColumnType("decimal(18,2)");       // null = use RetailPrice as fallback
+        builder.Property(x => x.ProviderCommissionRate).HasColumnType("decimal(6,4)");  // 0.00-1.00; null = no commission
+
         // IsActive: mapped by AizenEntityWithAudit base configuration
         // CreateDate / ModifyDate: mapped by AizenEntityWithAudit base configuration — DO NOT re-map
     }

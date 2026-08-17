@@ -1,4 +1,3 @@
-using Aizen.Modules.CargoDry.Abstraction.Model;
 using Aizen.Modules.CargoDry.Domain.MongoDocuments;
 using MongoDB.Driver;
 

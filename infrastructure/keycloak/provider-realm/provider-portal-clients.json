@@ -1,0 +1,67 @@
+{
+  "_comment": "Partial import for realm inktavia-realm. Use: kcadm.sh create partialImport -r inktavia-realm -f provider-portal-clients.json  (or Admin Console → Realm settings → Partial import). Replace ${...} placeholders; never commit real secrets.",
+  "ifResourceExists": "SKIP",
+  "roles": {
+    "realm": [
+      { "name": "provider_pending", "description": "Provider registered / pending approval" },
+      { "name": "provider_user", "description": "Approved + active provider" },
+      { "name": "provider_restricted", "description": "Restricted / suspended provider (runtime status still authoritative)" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "provider-portal",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:3002/*", "https://provider.inktavia.com/*"],
+      "webOrigins": ["http://localhost:3002", "https://provider.inktavia.com"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "protocolMappers": [
+        {
+          "name": "provider_profile_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "provider_profile_id",
+            "claim.name": "provider_profile_id",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "aud-provider-portal-bff",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "provider-portal-bff",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "provider-portal-bff",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET}"
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "config": {
+        "clientId": "${GOOGLE_OAUTH_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_OAUTH_CLIENT_SECRET}",
+        "defaultScope": "openid profile email"
+      }
+    }
+  ]
+}

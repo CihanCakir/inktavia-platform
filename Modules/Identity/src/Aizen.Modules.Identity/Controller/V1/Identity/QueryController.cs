@@ -2,9 +2,14 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
+using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
+using Aizen.Modules.Identity.Application.AdminUsers.GetAdminUserIds;
+using Aizen.Modules.Identity.Application.ParticipantLookup.GetParticipantProfileIdByUserId;
+using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfileContactEmail;
+using Aizen.Modules.Identity.Application.ProviderEligibility.GetProviderAreaAvailability;
+using Aizen.Modules.Identity.Application.ProviderEligibility.GetProvidersForArea;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
 using Aizen.Modules.Identity.Abstraction.Dto.Venue;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request.Common;
 using Aizen.Modules.Identity.Abstraction.Request.Organizer;
 using Aizen.Modules.Identity.Abstraction.Request.Participant;
@@ -267,7 +272,7 @@ public sealed class QueryController : AizenWebApiController
     public async Task<AizenApiResponse<IPaginate<OrganizerProfileListItemDto>>> GetOrganizerProfilesByFilter([FromQuery] GetOrganizerProfilesByFilterRequest req, CancellationToken ct)
     {
         var result = await _sender.ProcessAsync(
-            new GetOrganizerProfilesByFilterQuery(req.FirstName, req.LastName, req.ApprovalStatus, req.PageIndex, req.PageSize), ct);
+            new GetOrganizerProfilesByFilterQuery(req.FirstName, req.LastName, req.ApprovalStatus, req.SearchTerm, req.Status, req.City, req.Country, req.OnboardingStatus, req.PageIndex, req.PageSize), ct);
         return SetResponse(result);
     }
 
@@ -278,6 +283,83 @@ public sealed class QueryController : AizenWebApiController
     {
         var result = await _sender.ProcessAsync(
             new GetOrganizerProfileListQuery(req.FirstName, req.LastName, req.ApprovalStatus), ct);
+        return SetResponse(result);
+    }
+
+    // ─── I2 provider-eligibility read-model (internal) ───────────────────────────
+    // Returns active+approved provider profile/user ids operating in a city (+ optional category). Internal,
+    // module-to-module read (called by the Notification worker for N-C region fan-out, and travel S4). Follows the
+    // established internal-read pattern (ReferenceData LocationController): [AllowAnonymous] because these Aizen module
+    // APIs have no public ingress — only the BFFs are admitted by the cluster NetworkPolicy. Returns ids only (no PII).
+    [HttpGet("providers/for-area")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IList<ProviderForAreaDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IList<ProviderForAreaDto>>> GetProvidersForArea(
+        [FromQuery] string cityCode,
+        [FromQuery] string? categoryCode = null,
+        [FromQuery] int take = 500,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(
+            new GetProvidersForAreaQuery { CityCode = cityCode, CategoryCode = categoryCode, Take = take }, ct);
+        return SetResponse(result);
+    }
+
+    // M2 — public COARSE availability for a (city, optional canonical category): available / limited / none. Same
+    // internal-read pattern as providers/for-area ([AllowAnonymous] behind the cluster NetworkPolicy). Unlike
+    // providers/for-area this returns ONLY the bucketed verdict — no count, no provider ids. The category is a
+    // canonical SERVICE_PROVIDER_CATEGORY.Code; the read-model compares it against the stored lower(Code) form.
+    [HttpGet("providers/for-area/availability")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProviderAreaAvailabilityDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderAreaAvailabilityDto>> GetProviderAreaAvailability(
+        [FromQuery] string cityCode,
+        [FromQuery] string? categoryCode = null,
+        CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(
+            new GetProviderAreaAvailabilityQuery { CityCode = cityCode, CategoryCode = categoryCode }, ct);
+        return SetResponse(result);
+    }
+
+    // N-D — internal read: numeric UserIds of admin users, for the support-request admin fan-out (ids only, no PII).
+    // Same internal-read pattern as providers/for-area (anonymous behind the cluster NetworkPolicy).
+    [HttpGet("admin/user-ids")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IList<long>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IList<long>>> GetAdminUserIds(CancellationToken ct)
+    {
+        var result = await _sender.ProcessAsync(new GetAdminUserIdsQuery(), ct);
+        return SetResponse(result);
+    }
+
+    // BE_NF1b — internal read: participant USER id → participant PROFILE id, so the Notification module can file
+    // owner-facing notifications under the profile id (where the owner inbox + device tokens resolve). Same
+    // internal-read pattern as providers/for-area / admin/user-ids: [AllowAnonymous] behind the cluster NetworkPolicy —
+    // notification-api's S2S remote calls carry no bearer token, so the IdentityRead/BFF-service-account policy is not
+    // reachable here. Ids only, no PII.
+    [HttpGet("participant/profile-id")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ParticipantProfileIdDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ParticipantProfileIdDto>> GetParticipantProfileIdByUserId(
+        [FromQuery] long userId, CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(new GetParticipantProfileIdByUserIdQuery { UserId = userId }, ct);
+        return SetResponse(result);
+    }
+
+    // BE_NF2 — internal read: a profile's contact email by UserProfiles.Id, so the Notification module can address an
+    // Email-channel delivery to the same recipient the InApp notification is filed under. [AllowAnonymous] like the
+    // other internal reads (notification-api's S2S calls carry no token). PRIVACY NOTE: unlike the ids-only endpoints,
+    // this returns email (PII) — it stays internal behind the cluster NetworkPolicy; prod hardening (a notification-api
+    // service token → IdentityRead) is a recommended follow-up.
+    [HttpGet("profiles/contact-email")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProfileContactEmailDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfileContactEmailDto>> GetProfileContactEmail(
+        [FromQuery] long profileId, CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(new GetProfileContactEmailByProfileIdQuery { ProfileId = profileId }, ct);
         return SetResponse(result);
     }
 }

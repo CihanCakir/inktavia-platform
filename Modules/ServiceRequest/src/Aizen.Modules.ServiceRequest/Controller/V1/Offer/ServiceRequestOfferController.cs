@@ -1,9 +1,17 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer;
+using Aizen.Modules.ServiceRequest.Application.Command.Offer.SaveOfferDraft;
+using Aizen.Modules.ServiceRequest.Application.Command.Offer.PreviewOffer;
+using Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
+using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferCommissionPreview;
+using Aizen.Modules.ServiceRequest.Application.Query.Offer.GetOfferPartTermsPreview;
+using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetServiceRequestOffersForOwner;
+using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetServiceRequestOfferForOwner;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
+using Aizen.Modules.Payment.Abstraction.RemoteCall.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,6 +59,61 @@ public sealed class ServiceRequestOfferController : AizenWebApiController
         return SetResponse(result);
     }
 
+    /// <summary>
+    /// BE-S7 offer-builder commission preview: per-line resolved rate / commission / provider-net + transaction totals.
+    /// Compute-on-demand (nothing persisted). Optional <paramref name="providerPlanId"/> so plan-tier rates resolve.
+    /// </summary>
+    [HttpGet("{offerId:long}/commission-preview")]
+    [ProducesResponseType(typeof(ResolveLineCommissionsRemoteCallResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolveLineCommissionsRemoteCallResponse?>> CommissionPreview(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId,
+        [FromQuery] long? providerPlanId = null, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ResolveLineCommissionsRemoteCallResponse>(
+            new GetOfferCommissionPreviewQuery(offerId, providerPlanId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-S5c offer-builder part-terms preview: the cost-free allowance (max customer discount + funded split +
+    /// min-receivable) per Product/Consumable line. Compute-on-demand (nothing persisted). Never returns supplier cost /
+    /// dealer margin — only the derived caps (§20.9 confidentiality).
+    /// </summary>
+    [HttpGet("{offerId:long}/part-terms-preview")]
+    [ProducesResponseType(typeof(ResolvePartLineAllowancesRemoteCallResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ResolvePartLineAllowancesRemoteCallResponse?>> PartTermsPreview(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<ResolvePartLineAllowancesRemoteCallResponse>(
+            new GetOfferPartTermsPreviewQuery(offerId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-MO2 — the offers RECEIVED on the caller-owner's service request (cost-free; excludes other providers'
+    /// Drafts). Owner-scoped in the handler (the caller must own the SR); identity from the trusted context.
+    /// </summary>
+    [HttpGet("received")]
+    [ProducesResponseType(typeof(GetServiceRequestOffersForOwnerResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetServiceRequestOffersForOwnerResponse?>> GetReceived(
+        [FromRoute] long serviceRequestId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetServiceRequestOffersForOwnerResponse>(
+            new GetServiceRequestOffersForOwnerQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>BE-MO2 — one received offer with its full cost-free breakdown (owner-scoped).</summary>
+    [HttpGet("received/{offerId:long}")]
+    [ProducesResponseType(typeof(GetServiceRequestOfferForOwnerResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetServiceRequestOfferForOwnerResponse?>> GetReceivedDetail(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetServiceRequestOfferForOwnerResponse>(
+            new GetServiceRequestOfferForOwnerQuery(serviceRequestId, offerId), ct);
+        return SetResponse(result);
+    }
+
     [HttpPatch("{offerId:long}/reject")]
     [ProducesResponseType(typeof(RejectServiceRequestOfferResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<RejectServiceRequestOfferResponse?>> Reject(
@@ -66,6 +129,43 @@ public sealed class ServiceRequestOfferController : AizenWebApiController
         [FromRoute] long serviceRequestId, [FromRoute] long offerId, [FromBody] WithdrawServiceRequestOfferRequest req, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<WithdrawServiceRequestOfferResponse>(new WithdrawServiceRequestOfferCommand(serviceRequestId, offerId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Aggregate save: get-or-create the caller's Draft, replace items, recompute server-authoritative totals.
+    /// Client-sent totals are ignored.
+    /// </summary>
+    [HttpPut("draft")]
+    [ProducesResponseType(typeof(SaveOfferDraftResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SaveOfferDraftResponse?>> SaveDraft(
+        [FromRoute] long serviceRequestId, [FromBody] SaveOfferDraftRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<SaveOfferDraftResponse>(new SaveOfferDraftCommand(serviceRequestId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Runs the calculation service on the inputs without persisting. Returns computed totals.
+    /// </summary>
+    [HttpPost("preview")]
+    [ProducesResponseType(typeof(PreviewOfferResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<PreviewOfferResponse?>> Preview(
+        [FromRoute] long serviceRequestId, [FromBody] SaveOfferDraftRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<PreviewOfferResponse>(new PreviewOfferCommand(serviceRequestId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// Draft → Submitted. Idempotent on idempotency key. Rejects empty offers.
+    /// </summary>
+    [HttpPatch("{offerId:long}/submit")]
+    [ProducesResponseType(typeof(SubmitOfferResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SubmitOfferResponse?>> Submit(
+        [FromRoute] long serviceRequestId, [FromRoute] long offerId, [FromBody] SubmitOfferRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<SubmitOfferResponse>(new SubmitOfferCommand(serviceRequestId, offerId, req), ct);
         return SetResponse(result);
     }
 }

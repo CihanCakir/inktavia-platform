@@ -1,12 +1,11 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
 namespace Aizen.Modules.FileStorage.Application.Queries.ValidateFileOwnership;
 
-[DocumentationInfo("Validate file ownership query handler", "Delegates to IFileOwnershipService and wraps the result in FileValidationResultDto.")]
+[DocumentationInfo("Validate file ownership query handler", "Resolves the file by Guid, delegates to IFileOwnershipService and wraps the result in FileValidationResultDto.")]
 public sealed class ValidateFileOwnershipQueryHandler : AizenQueryHandler<ValidateFileOwnershipQuery, FileValidationResultDto>
 {
     private readonly IFileOwnershipService _ownershipService;
@@ -20,11 +19,11 @@ public sealed class ValidateFileOwnershipQueryHandler : AizenQueryHandler<Valida
 
     public override async Task<FileValidationResultDto> Handle(ValidateFileOwnershipQuery request, CancellationToken cancellationToken)
     {
-        var file = await _fileRepository.GetByIdAsync(request.FileId, cancellationToken);
-        var fileGuid = file?.PublicId ?? Guid.Empty;
+        var file = await _fileRepository.GetByGuidAsync(request.FileId, cancellationToken)
+            ?? throw new KeyNotFoundException($"File not found: {request.FileId}");
 
         var isValid = await _ownershipService.ValidateOwnershipAsync(
-            request.FileId,
+            file.Id,
             request.Request.OwnerModule,
             request.Request.OwnerEntityType,
             request.Request.OwnerEntityId,
@@ -32,7 +31,7 @@ public sealed class ValidateFileOwnershipQueryHandler : AizenQueryHandler<Valida
 
         return new FileValidationResultDto
         {
-            FileId = fileGuid,
+            FileId = file.PublicId ?? Guid.Empty,
             IsValid = isValid,
             Reason = isValid ? null : "File is not linked to the specified owner."
         };

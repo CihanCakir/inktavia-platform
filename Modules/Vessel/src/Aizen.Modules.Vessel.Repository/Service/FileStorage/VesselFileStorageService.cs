@@ -2,8 +2,8 @@ using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File;
-using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
-using Aizen.Modules.Vessel.Abstraction.Model;
+using Aizen.Modules.FileStorage.Abstraction.Request.Access;
+using Aizen.Modules.FileStorage.Abstraction.Request.File;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 
 namespace Aizen.Modules.Vessel.Repository.Service.FileStorage;
@@ -23,23 +23,12 @@ public sealed class VesselFileStorageService : IVesselFileStorageService
         string accessToken,
         CancellationToken cancellationToken = default)
     {
-        var response = await _remoteCall.GetFileMetadata(fileId, $"Bearer {accessToken}");
+        var response = (await _remoteCall.GetFileMetadata(fileId, $"Bearer {accessToken}"))?.Body;
 
         if (response is null)
             throw new KeyNotFoundException($"File {fileId} not found in FileStorage.");
 
-        return new FileMetadataDto
-        {
-            FileId = response.FileId,
-            FileCode = response.FileCode,
-            OriginalFileName = response.OriginalFileName,
-            ContentType = response.ContentType,
-            Extension = response.Extension,
-            SizeInBytes = response.SizeInBytes,
-            Visibility = response.Visibility,
-            Status = response.Status,
-            UploadedAt = response.UploadedAt
-        };
+        return response;
     }
 
     public async Task EnsureFileCanBeAttachedToVesselAsync(
@@ -73,23 +62,23 @@ public sealed class VesselFileStorageService : IVesselFileStorageService
     {
         var ownerEntityGuid = LongToGuid(vesselRelatedEntityId);
 
-        var request = new LinkFileToOwnerRemoteCallRequest
+        var request = new LinkFileToOwnerRequest
         {
             OwnerModule = nameof(FileOwnerModule.Vessel),
             OwnerEntityType = ownerEntityType,
             OwnerEntityId = ownerEntityGuid
         };
 
-        var response = await _remoteCall.LinkFileToOwner(fileId, request, $"Bearer {accessToken}");
+        var response = (await _remoteCall.LinkFileToOwner(fileId, request, $"Bearer {accessToken}"))?.Body;
 
-        return new FileOwnerReferenceDto
+        return response ?? new FileOwnerReferenceDto
         {
-            FileId = response.FileId,
+            FileId = fileId,
             OwnerModule = nameof(FileOwnerModule.Vessel),
             OwnerEntityType = ownerEntityType,
             OwnerEntityId = ownerEntityGuid,
             LinkedAt = DateTime.UtcNow,
-            IsActive = response.IsLinked
+            IsActive = true
         };
     }
 
@@ -101,10 +90,10 @@ public sealed class VesselFileStorageService : IVesselFileStorageService
     {
         try
         {
-            var response = await _remoteCall.CreateReadUrl(
+            var response = (await _remoteCall.CreateReadUrl(
                 fileId,
-                new CreateFileReadUrlRemoteCallRequest { ExpiresIn = expiresIn },
-                $"Bearer {accessToken}");
+                new CreateReadUrlRequest { ExpiresIn = expiresIn },
+                $"Bearer {accessToken}"))?.Body;
 
             if (response is null)
                 return null;

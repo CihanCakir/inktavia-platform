@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
@@ -55,10 +54,11 @@ public sealed class CreateVesselCommandHandler : AizenCommandHandler<CreateVesse
             request.Request.HomeMarinaName,
             request.Request.Visibility);
 
-        await _vesselRepository.AddAsync(entity, cancellationToken);
+        // Attach the primary owner through the aggregate so EF assigns the VesselId FK from the vessel's
+        // generated key on save (a separate scalar-FK insert captured VesselId before persist → FK violation).
+        entity.AddOwner(currentUserId, null, VesselOwnershipRole.PrimaryOwner, true);
 
-        var owner = VesselOwnerEntity.Create(entity.Id, currentUserId, null, VesselOwnershipRole.PrimaryOwner, true);
-        await _ownerRepository.AddAsync(owner, cancellationToken);
+        await _vesselRepository.AddAsync(entity, cancellationToken);
 
         await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 

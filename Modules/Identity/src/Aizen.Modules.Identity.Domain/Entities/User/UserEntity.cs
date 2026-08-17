@@ -81,6 +81,34 @@ namespace Aizen.Modules.Identity.Domain.Entities
             };
             // Not: External login’de parola geçmişi eklemiyoruz
         }
+
+        /// <summary>
+        /// Creates a Keycloak-backed Identity user (no local password / no password history).
+        /// Keycloak is the authentication authority; Identity is the domain/profile store.
+        /// </summary>
+        public static UserEntity CreateFromKeycloak(
+            string email,
+            string? phoneNumber,
+            string keycloakSubjectId,
+            bool emailVerified = false)
+        {
+            if (string.IsNullOrWhiteSpace(keycloakSubjectId))
+                throw new ArgumentException("Keycloak subject id cannot be empty.", nameof(keycloakSubjectId));
+
+            var user = new UserEntity
+            {
+                UserName = email,
+                Email = email,
+                PhoneNumber = phoneNumber,
+                EmailConfirmed = emailVerified,
+                LoginType = LoginType.Keycloak,
+                SecurityStamp = Guid.NewGuid().ToString("N"),
+                CreatedAt = DateTime.UtcNow
+            };
+            user.SetKeycloakSubjectId(keycloakSubjectId);
+            return user;
+        }
+
         public void SetModified() => ModifiedAt = DateTime.UtcNow;
 
         // ---- ROL ----

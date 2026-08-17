@@ -1,5 +1,4 @@
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
 namespace Aizen.Modules.FileStorage.Repository.Services;

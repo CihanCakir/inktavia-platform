@@ -14,7 +14,9 @@ public class UserDeviceBlockEntity : AizenEntityWithAudit
     public string IpAddress { get; private set; } = default!;
     public bool IsActive { get; private set; }
 
-    private UserDeviceBlockEntity() { }
+    // EF Core lazy-loading proxies (Castle DynamicProxy) subclass the entity, so the parameterless ctor must be
+    // at least protected. A private one makes every query that materializes this type fail at runtime.
+    protected UserDeviceBlockEntity() { }
 
     /// <summary>
     /// Yeni bir cihaz blok kaydı oluşturur (factory)

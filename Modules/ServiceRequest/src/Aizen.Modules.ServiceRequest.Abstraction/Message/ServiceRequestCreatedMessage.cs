@@ -1,6 +1,5 @@
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Message;
 
@@ -13,4 +12,15 @@ public sealed class ServiceRequestCreatedMessage : AizenBaseMessage
     public long VesselId { get; set; }
     public string ServiceCategoryCode { get; set; } = default!;
     public ServiceRequestPriority Priority { get; set; }
+
+    /// <summary>Human-readable, so a consumer can render a notification without calling back into this module.</summary>
+    public string Title { get; set; } = default!;
+
+    /// <summary>
+    /// Where the work is. The provider BFF fans this event out to the providers who operate in that city — city
+    /// equality, not a radius search. Proximity/geo discovery is a different module and deliberately not this one.
+    /// </summary>
+    public string? LocationCityCode { get; set; }
+    public string? LocationCountryCode { get; set; }
+    public string? LocationMarinaName { get; set; }
 }

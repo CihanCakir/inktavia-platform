@@ -38,7 +38,14 @@ public static class BuilderExtensions
             })
             .ConfigureApplicationPartManager(c =>
             {
-                c.FeatureProviders.Add(new GenericRestControllerFeatureProvider());
+                // HARDENING_GENERIC_CRUD_AND_SERVICE_TOKEN: the generic per-entity read controllers
+                // (AizenGenericApi) are OFF by default (fail-closed). They are unused scaffolding and were an
+                // anonymous read surface. A host may opt in with GenericEntityApi:Enabled=true; even then the
+                // controllers require [Authorize].
+                if (configuration.GetValue<bool>("GenericEntityApi:Enabled"))
+                {
+                    c.FeatureProviders.Add(new GenericRestControllerFeatureProvider());
+                }
             });
 
         return services;

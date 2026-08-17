@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.Access;
 using Aizen.Modules.FileStorage.Abstraction.Request.File;
 using Aizen.Modules.FileStorage.Application.Commands.CreateReadUrl;
@@ -12,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Modules.FileStorage.Controller.V1.File;
 
 [ApiController]
-[Route("api/v1/files/{fileId:long}/access")]
+[Route("api/v1/files/{fileId:guid}/access")]
 [Tags("FileAccess")]
 [Authorize]
 [DocumentationInfo("File access controller", "API endpoints for generating pre-signed URLs and validating file ownership.")]
@@ -29,7 +28,7 @@ public sealed class FileAccessController : AizenWebApiController
     [HttpPost("read-url")]
     [ProducesResponseType(typeof(FileAccessUrlDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileAccessUrlDto?>> CreateReadUrl(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         [FromBody] CreateReadUrlRequest req,
         CancellationToken ct = default)
     {
@@ -41,7 +40,7 @@ public sealed class FileAccessController : AizenWebApiController
     [HttpPost("validate-ownership")]
     [ProducesResponseType(typeof(FileValidationResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileValidationResultDto?>> ValidateOwnership(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         [FromBody] ValidateFileOwnershipRequest req,
         CancellationToken ct = default)
     {

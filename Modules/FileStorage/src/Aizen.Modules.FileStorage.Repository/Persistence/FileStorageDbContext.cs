@@ -1,5 +1,4 @@
 using Aizen.Core.EFCore;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Entities.Access;
 using Aizen.Modules.FileStorage.Domain.Entities.File;
 using Aizen.Modules.FileStorage.Domain.Entities.Processing;
@@ -14,8 +13,6 @@ public sealed class FileStorageDbContext : AizenDbContext
     public FileStorageDbContext(DbContextOptions<FileStorageDbContext> options) : base(options) { }
 
     public DbSet<FileEntity> Files => Set<FileEntity>();
-    public DbSet<FileVersionEntity> FileVersions => Set<FileVersionEntity>();
-    public DbSet<FileAccessPolicyEntity> FileAccessPolicies => Set<FileAccessPolicyEntity>();
     public DbSet<FileOwnerReferenceEntity> FileOwnerReferences => Set<FileOwnerReferenceEntity>();
     public DbSet<FileUploadSessionEntity> FileUploadSessions => Set<FileUploadSessionEntity>();
     public DbSet<FileProcessingJobEntity> FileProcessingJobs => Set<FileProcessingJobEntity>();

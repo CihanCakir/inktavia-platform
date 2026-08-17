@@ -23,6 +23,8 @@ public class
     public override async Task<TEntity?> Handle(AizenUpdateEntityCommand<TEntity> request,
         CancellationToken cancellationToken)
     {
+        GenericEntitySyncGuard.EnsureAllowed<TEntity>();
+
         var entity = request.Entity;
         var entityRepository = UnitOfWork.GetRepository<TEntity>();
         await Task.Run(() => { entityRepository.Update(entity); }, cancellationToken);

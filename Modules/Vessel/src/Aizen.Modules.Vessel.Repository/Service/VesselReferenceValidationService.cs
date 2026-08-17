@@ -1,4 +1,3 @@
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using Microsoft.EntityFrameworkCore;

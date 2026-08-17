@@ -17,7 +17,14 @@ public interface ILocationRepository
     Task UpsertDistrictAsync(LocationDistrictDocument document, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<LocationNeighborhoodDocument>> GetNeighborhoodsByDistrictAsync(string countryCode, string cityCode, string districtCode, bool onlyActive, CancellationToken cancellationToken = default);
+    Task<LocationNeighborhoodDocument?> GetNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string neighborhoodCode, CancellationToken cancellationToken = default);
     Task UpsertNeighborhoodAsync(LocationNeighborhoodDocument document, CancellationToken cancellationToken = default);
+
+    // M3 — flat by-slug reads (one hit at most, given globally-unique slugs).
+    Task<LocationCountryDocument?> GetCountryBySlugAsync(string slug, CancellationToken cancellationToken = default);
+    Task<LocationCityDocument?> GetCityBySlugAsync(string slug, CancellationToken cancellationToken = default);
+    Task<LocationDistrictDocument?> GetDistrictBySlugAsync(string slug, CancellationToken cancellationToken = default);
+    Task<LocationNeighborhoodDocument?> GetNeighborhoodBySlugAsync(string slug, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<LocationStreetDocument>> GetStreetsByNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string? neighborhoodCode, bool onlyActive, CancellationToken cancellationToken = default);
     Task UpsertStreetAsync(LocationStreetDocument document, CancellationToken cancellationToken = default);

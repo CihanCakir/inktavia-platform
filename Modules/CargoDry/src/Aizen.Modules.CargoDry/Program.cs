@@ -1,6 +1,7 @@
 using Aizen.Core.Cache.Extension;
 using Aizen.Core.Data.Mongo.Extensions;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.InfoAccessor.Extensions;
 using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Starter;
 using Aizen.Modules.CargoDry.Application;
@@ -38,6 +39,9 @@ builder.Services.AddCargoDryRepository(builder.Configuration);
 // by AizenOperationServiceConfiguration when AppType.Scheduler is in TypeInclude.
 // Scheduler storage type and options are read from appsettings.json "Scheduler" section.
 builder.Services.AddCargoDryApplication();
+
+// ── Identity + BFF Assertion (provider-scoped endpoints) ─────────────────────
+builder.Services.AddAizenInfoAccessor(builder.Configuration);
 
 // ── Redis Cache (IAizenDistributedCache — required by cacheable handlers) ─────
 builder.Services.AddAizenCache(builder.Configuration);

@@ -4,7 +4,6 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Dto.Document;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Entities.Vessel;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Repository.Persistence;
@@ -48,7 +47,11 @@ public sealed class GetVesselDocumentsQueryHandler : AizenQueryHandler<GetVessel
                 ExpiresAt = d.ExpiresAt,
                 Status = d.DocumentStatus,
                 Notes = d.Notes,
-                IsActive = d.IsActive
+                IsActive = d.IsActive,
+                DocumentCategory = d.DocumentCategory,
+                IssuingAuthority = d.IssuingAuthority,
+                ApprovedAt = d.ApprovedAt,
+                ApprovedByUserId = d.ApprovedByUserId
             },
             predicate: d => d.VesselId == request.VesselId,
             orderBy: q => q.OrderByDescending(d => d.Id),
@@ -81,4 +84,10 @@ public sealed class GetVesselDocumentsQueryHandler : AizenQueryHandler<GetVessel
 
     public AizenCacheType CacheType => AizenCacheType.Distributed;
     public AizenCacheOptions CacheOptions => new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15) };
+
+    // Never cache the access-URL variant: presigned URLs are time-limited and must be fresh, AND the admin BFF
+    // (which always requests them, keyed on IncludeAccessUrls=true/60m) would otherwise read a stale entry the
+    // metadata-keyed invalidation cannot evict. Only the metadata-only (IncludeAccessUrls=false) variant is cached.
+    public bool ShouldCache(object request)
+        => request is not GetVesselDocumentsQuery q || !q.IncludeAccessUrls;
 }

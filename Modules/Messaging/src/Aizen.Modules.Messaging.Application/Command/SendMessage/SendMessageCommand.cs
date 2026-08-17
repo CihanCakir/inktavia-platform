@@ -17,6 +17,10 @@ public sealed class SendMessageCommand : AizenCommand<SendMessageResponse>
     public string? UploadSessionCode       { get; }
     public string? Checksum                { get; }
     public string? LocationJson            { get; }
+    // BE_WC2 — discrete geo payload persisted to the WC0 columns when Type == Location (parity with the SR write path).
+    public decimal? LocationLat            { get; }
+    public decimal? LocationLng            { get; }
+    public string? LocationLabel           { get; }
 
     public SendMessageCommand(
         long conversationId,
@@ -28,7 +32,10 @@ public sealed class SendMessageCommand : AizenCommand<SendMessageResponse>
         string? attachmentFileType,
         string? uploadSessionCode = null,
         string? checksum = null,
-        string? locationJson = null)
+        string? locationJson = null,
+        decimal? locationLat = null,
+        decimal? locationLng = null,
+        string? locationLabel = null)
     {
         ConversationId          = conversationId;
         Content                 = content;
@@ -40,5 +47,8 @@ public sealed class SendMessageCommand : AizenCommand<SendMessageResponse>
         UploadSessionCode       = uploadSessionCode;
         Checksum                = checksum;
         LocationJson            = locationJson;
+        LocationLat             = locationLat;
+        LocationLng             = locationLng;
+        LocationLabel           = locationLabel;
     }
 }

@@ -1,7 +1,9 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Assignment;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -17,21 +19,37 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
     private readonly IServiceRequestAssignmentRepository _assignmentRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public StartServiceRequestAssignmentCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestAssignmentRepository assignmentRepository,
-        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher)
+        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _assignmentRepository = assignmentRepository;
         _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<StartServiceRequestAssignmentResponse?> Handle(StartServiceRequestAssignmentCommand request, CancellationToken cancellationToken)
     {
+        // Ownership guard
+        var providerProfileId = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
+        if (providerProfileId <= 0)
+            throw new AizenBusinessException("Provider identity could not be resolved.");
+
         var assignment = await _assignmentRepository.GetByIdAsync(request.AssignmentId, cancellationToken)
-            ?? throw new InvalidOperationException($"Assignment {request.AssignmentId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        if (assignment.ProviderProfileId != providerProfileId)
+            throw new AizenBusinessException("Job not found.");
+
         var sr = await _srRepository.GetByIdAsync(assignment.ServiceRequestId, cancellationToken)
-            ?? throw new InvalidOperationException($"ServiceRequest {assignment.ServiceRequestId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        // State guard: only startable from Assigned or Scheduled
+        if (sr.Status != ServiceRequestStatus.Assigned && sr.Status != ServiceRequestStatus.Scheduled)
+            throw new AizenBusinessException("SR_JOB_NOT_STARTABLE");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         assignment.Start();
@@ -48,6 +66,18 @@ public sealed class StartServiceRequestAssignmentCommandHandler : AizenCommandHa
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, assignment.ProviderProfileId,
             ServiceRequestRealtimeEventType.WorkStarted, assignment.ToDto(),
             currentUserId, ServiceRequestActorType.Provider, cancellationToken);
+
+        // BE_WC1 — first-class lifecycle event (ALWAYS published) → Messaging generates the JOB_STARTED System message.
+        await _messagePublisher.PublishAsync(new ServiceRequestAssignmentStartedMessage
+        {
+            ServiceRequestId = sr.Id, RequestCode = sr.RequestCode, AssignmentId = assignment.Id,
+            ProviderProfileId = assignment.ProviderProfileId, StartedByUserId = currentUserId,
+            OwnerUserId = sr.OwnerUserId, // BE_NF3 — carry the owner so Notification can notify them of job start.
+            OccurredAt = DateTimeOffset.UtcNow,
+        }, cancellationToken);
+
+        // BE_WC4b — the JOB_STARTED System message is produced solely by the Messaging WC1 lifecycle consumer (from the
+        // ServiceRequestAssignmentStartedMessage above). The SR module no longer writes sr.Messages.
 
         return new StartServiceRequestAssignmentResponse(assignment.Id);
     }

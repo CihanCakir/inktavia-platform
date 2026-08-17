@@ -38,6 +38,8 @@ public sealed class CargoDryKitRenewedConsumer
                 ["renewalType"]   = message.RenewalType,
             },
             MetadataJson = $"{{\"kitId\":{message.KitId}}}",
+            ReferenceType = "CargoDry",
+            ReferenceId   = message.KitId,
         }, ct);
 
         _logger.LogInformation("Notification sent for CargoDryKitRenewed: {KitCode}", message.KitCode);

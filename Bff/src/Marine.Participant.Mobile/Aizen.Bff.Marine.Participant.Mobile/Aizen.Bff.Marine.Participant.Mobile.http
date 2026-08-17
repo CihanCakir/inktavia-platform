@@ -1,0 +1,6 @@
+@Aizen.Bff.Marine.Participant.Mobile_HostAddress = http://localhost:5257
+
+GET {{Aizen.Bff.Marine.Participant.Mobile_HostAddress}}/api/v1/mobile/me
+Accept: application/json
+
+###

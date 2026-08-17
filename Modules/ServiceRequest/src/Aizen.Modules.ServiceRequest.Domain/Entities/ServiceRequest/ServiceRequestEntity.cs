@@ -1,5 +1,4 @@
 using Aizen.Core.Domain;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
@@ -32,7 +31,10 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public string? OwnerNotes { get; private set; }
     public DateTime? ExpiresAt { get; private set; }
     public DateTime? CancelledAt { get; private set; }
+    /// <summary>Free-text cancel note (N-E: the ReasonNote; the structured reason lives in <see cref="CancelReasonCode"/>).</summary>
     public string? CancelReason { get; private set; }
+    /// <summary>N-E structured cancel reason. Null for rows cancelled before the taxonomy existed (backfilled to Other).</summary>
+    public ServiceRequestCancelReason? CancelReasonCode { get; private set; }
     public long? CancelledByUserId { get; private set; }
 
     public string? Category { get; private set; }
@@ -41,6 +43,19 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public string? AssignedProviderName { get; private set; }
     public DateTimeOffset? DisputedAt { get; private set; }
     public string? DisputeReason { get; private set; }
+
+    /// <summary>
+    /// Payment module transaction ID created when offer is accepted (escrow held).
+    /// Populated by AcceptServiceRequestOfferCommandHandler via IPaymentModuleRemoteCall.
+    /// Required by ReleasePaymentCommandHandler to release escrow.
+    /// </summary>
+    public long? PaymentTransactionId { get; private set; }
+
+    /// <summary>UTC timestamp when the request transitioned from Draft to Open. Idempotent: a republish does not overwrite.</summary>
+    public DateTime? PublishedAt { get; private set; }
+
+    /// <summary>UTC timestamp of the last owner content edit (UpdateProfile). Not set by publish, status change, or offer flows.</summary>
+    public DateTime? ContentUpdatedAt { get; private set; }
 
     private readonly List<ServiceRequestItemEntity> _items = new();
     public IReadOnlyCollection<ServiceRequestItemEntity> Items => _items.AsReadOnly();
@@ -142,17 +157,23 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
         LocationLongitude = locationLongitude;
         OwnerNotes = ownerNotes;
         ExpiresAt = expiresAt;
+        ContentUpdatedAt = DateTime.UtcNow;
     }
 
     public void ChangeStatus(ServiceRequestStatus newStatus) => Status = newStatus;
 
-    public void Publish() => Status = ServiceRequestStatus.Open;
+    public void Publish()
+    {
+        Status = ServiceRequestStatus.Open;
+        PublishedAt ??= DateTime.UtcNow;
+    }
 
-    public void Cancel(long cancelledByUserId, string? reason)
+    public void Cancel(long cancelledByUserId, string? reason, ServiceRequestCancelReason? reasonCode = null)
     {
         Status = ServiceRequestStatus.Cancelled;
         CancelledAt = DateTime.UtcNow;
         CancelReason = reason;
+        CancelReasonCode = reasonCode;
         CancelledByUserId = cancelledByUserId;
         IsActive = false;
     }
@@ -181,6 +202,15 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     {
         AssignedProviderName = providerName;
         Status = ServiceRequestStatus.Assigned;
+    }
+
+    /// <summary>
+    /// Stores the Payment module transaction ID after escrow is created.
+    /// Called immediately after IPaymentModuleRemoteCall.CreateEscrowAsync succeeds.
+    /// </summary>
+    public void SetPaymentTransaction(long transactionId)
+    {
+        PaymentTransactionId = transactionId;
     }
 
     public void ReleasePayment()

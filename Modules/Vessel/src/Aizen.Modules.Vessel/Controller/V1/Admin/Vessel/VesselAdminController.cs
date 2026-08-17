@@ -2,7 +2,6 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
@@ -54,6 +53,26 @@ public sealed class VesselAdminController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<List<VesselCountByOwnerDto>>(
             new GetVesselCountsByOwnerUserIdsQuery(userIds ?? Array.Empty<long>()), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("names-by-ids")]
+    [ProducesResponseType(typeof(List<VesselNameDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<VesselNameDto>?>> GetNamesByIds(
+        [FromQuery] long[] vesselIds,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<List<VesselNameDto>>(
+            new GetVesselNamesByIdsQuery(vesselIds ?? Array.Empty<long>()), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("stats/status-counts")]
+    [ProducesResponseType(typeof(List<VesselStatusCountDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<VesselStatusCountDto>?>> GetStatusCounts(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<List<VesselStatusCountDto>>(
+            new GetVesselStatusCountsQuery(), ct);
         return SetResponse(result);
     }
 

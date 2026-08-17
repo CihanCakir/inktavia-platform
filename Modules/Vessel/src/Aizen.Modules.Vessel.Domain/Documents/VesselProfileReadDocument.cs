@@ -1,6 +1,5 @@
 using Aizen.Core.Data.Mongo.Document;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Aizen.Modules.Vessel.Domain.Documents;

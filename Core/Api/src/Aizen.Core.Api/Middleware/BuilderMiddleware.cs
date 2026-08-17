@@ -31,6 +31,7 @@ namespace Aizen.Core.Api.Middleware
 
                     var statusCode = exceptionFeature.Error switch
                     {
+                        AizenUpstreamException => 502,
                         AizenBusinessException => 400,
                         _ => 500
                     };
@@ -41,6 +42,12 @@ namespace Aizen.Core.Api.Middleware
                     {
                         var aizenEx = (AizenException)exceptionFeature.Error;
                         response.Header.ErrorMessage = aizenEx.GetErrorMessage(lang);
+                    }
+                    // A downstream/infra failure carries an opaque correlation id that ties this response to
+                    // the server-side Error log — echo it (not the real upstream status) so support can trace it.
+                    if (exceptionFeature.Error is AizenUpstreamException upstream)
+                    {
+                        response.Header.ErrorDetails = $"correlationId={upstream.CorrelationId}";
                     }
 
                     context.Response.ContentType = "application/json";

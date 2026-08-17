@@ -33,6 +33,28 @@ builder.Services.AddAizenInfoAccessor(builder.Configuration);
 builder.Services.AddServiceRequestRepository();
 builder.Services.AddServiceRequestServices();
 
+// BE_WC4b — the WriteCutover flag machinery is gone (Phase-4 complete): the SR module no longer writes sr.Messages
+// chat/System rows; the Messaging store is the sole producer, unconditionally.
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.OfferCalculationService>();
+// FIX_ASSIGNMENT_ON_ACCEPT — shared create-assignment path (owner auto-accept + manual endpoint; idempotent).
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.ServiceRequestAssignmentCreator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.UnitCodeValidator>();
+
+// ── Pricing attributes (BE-S2) ──
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.ReferenceDataLookupClient>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeDefinitionValidator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeValidator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Pricing.PricingAttributeSnapshotResolver>();
+
+// ── Travel / mobilization pricing (BE-S4) ──
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Travel.TravelPricingValidator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Travel.TravelPricingSnapshotResolver>();
+
+// ── Offer FX (BE-S3) — submit-time foreign→TRY conversion + point-in-time rate snapshot ──
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Fx.IExchangeRateSource,
+    Aizen.Modules.ServiceRequest.Application.Services.Fx.ExchangeRateSource>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Fx.OfferFxResolver>();
+
 builder.Services.AddServiceRequestMockData(builder.Configuration);
 
 builder.Services.AddScoped<ServiceRequestRealtimePublisher>();

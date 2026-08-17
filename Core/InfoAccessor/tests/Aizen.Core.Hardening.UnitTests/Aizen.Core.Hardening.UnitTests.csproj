@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Reflecting over ASP.NET controllers + [Authorize]/[AllowAnonymous] needs the ASP.NET framework ref. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="FluentAssertions" Version="8.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aizen.Core.InfoAccessor\Aizen.Core.InfoAccessor.csproj" />
+    <ProjectReference Include="..\..\..\Starter\src\Aizen.Core.Starter.Bff\Aizen.Core.Starter.Bff.csproj" />
+    <ProjectReference Include="..\..\..\Api\src\Aizen.Core.Api\Aizen.Core.Api.csproj" />
+  </ItemGroup>
+
+</Project>

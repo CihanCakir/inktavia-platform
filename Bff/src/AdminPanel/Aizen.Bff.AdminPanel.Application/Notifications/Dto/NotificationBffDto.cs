@@ -9,6 +9,8 @@ public sealed class NotificationBffDto
     public string          Body         { get; init; } = default!;
     public bool            IsRead       { get; init; }
     public string?         MetadataJson { get; init; }
+    public string?         ReferenceType { get; init; }
+    public long?           ReferenceId   { get; init; }
     public DateTimeOffset  CreatedAt    { get; init; }
     public DateTimeOffset? ReadAt       { get; init; }
 }
@@ -18,4 +20,10 @@ public sealed class NotificationListBffDto
     public List<NotificationBffDto> Items       { get; init; } = [];
     public int                      Total       { get; init; }
     public int                      UnreadCount { get; init; }
+}
+
+[DocumentationInfo("Notification unread-count BFF DTO", "Badge count for the authenticated user's notification bell.")]
+public sealed class NotificationUnreadCountBffDto
+{
+    public int UnreadCount { get; init; }
 }

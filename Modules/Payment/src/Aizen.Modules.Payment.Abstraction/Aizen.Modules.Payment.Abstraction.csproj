@@ -1,9 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Core/Api/src/Aizen.Core.Api.Abstraction/Aizen.Core.Api.Abstraction.csproj" />
+    <ProjectReference Include="../../../../Modules/FileStorage/src/Aizen.Modules.FileStorage.Abstraction/Aizen.Modules.FileStorage.Abstraction.csproj" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Common/src/Aizen.Core.Common.Abstraction/Aizen.Core.Common.Abstraction.csproj" />
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

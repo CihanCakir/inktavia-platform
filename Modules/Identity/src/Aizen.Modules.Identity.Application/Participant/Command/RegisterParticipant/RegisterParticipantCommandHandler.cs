@@ -3,7 +3,6 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Enum;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Interface;

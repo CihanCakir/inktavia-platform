@@ -2,7 +2,9 @@ using Aizen.Core.Api.Middleware;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Domain;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Identity.Abstraction;
+using Aizen.Modules.Identity.Abstraction.Message;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Interface;
@@ -14,11 +16,16 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
     {
         private readonly IUserProfileRepository _profileRepo;
         private readonly UserManager<UserEntity> _userManager;
+        private readonly IAizenMessagePublisher _publisher;
 
-        public RejectOrganizerProfileCommandHandler(IUserProfileRepository profileRepo, UserManager<UserEntity> userManager)
+        public RejectOrganizerProfileCommandHandler(
+            IUserProfileRepository profileRepo,
+            UserManager<UserEntity> userManager,
+            IAizenMessagePublisher publisher)
         {
             _profileRepo = profileRepo;
             _userManager = userManager;
+            _publisher = publisher;
         }
         public override async Task<VenueOrganizationRegistrationResponse?> Handle(RejectOrganizerProfileCommand request, CancellationToken ct)
         {
@@ -44,6 +51,17 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
             // 1) Profil reddet
             profile.Reject(request.Reason ?? "No reason provided", request.ReasonCategory, request.InternalNote, request.ReviewedBy);
             _profileRepo.UpdateProfileAsync(profile);
+
+            await _publisher.PublishAsync(new ProviderProfileRejectedMessage
+            {
+                ProfileId = request.ProfileId,
+                UserId = request.UserId,
+                Email = user.Email,
+                ProfileType = "organizer",
+                Reason = request.Reason ?? "No reason provided",
+                ReasonCategory = request.ReasonCategory,
+                RejectedAtUtc = profile.RejectedAt ?? DateTime.UtcNow,
+            }, ct);
 
             return new VenueOrganizationRegistrationResponse(
                 Success: true,

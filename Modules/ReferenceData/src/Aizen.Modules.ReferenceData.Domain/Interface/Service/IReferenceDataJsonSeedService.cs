@@ -1,4 +1,3 @@
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 
 namespace Aizen.Modules.ReferenceData.Domain.Interface.Service;
 

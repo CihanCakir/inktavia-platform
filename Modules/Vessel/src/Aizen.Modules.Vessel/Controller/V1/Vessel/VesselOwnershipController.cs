@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 using Aizen.Modules.Vessel.Application.Command.Ownership;

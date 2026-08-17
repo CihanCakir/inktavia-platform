@@ -1,6 +1,5 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 
 namespace Aizen.Modules.Vessel.Domain.Entities.Vessel;
 

@@ -19,6 +19,14 @@ namespace Aizen.Modules.Identity.Abstraction.Model
             public string Issuer { get; init; } = "https://accounts.google.com";
             public string[] Scopes { get; init; } = new[] { "openid", "email", "profile" };
             public string CallbackPath { get; init; } = "/auth/oauth/callback/google";
+
+            // Native (mobile SDK) id_token validation. Aud on native tokens is the app's Web/iOS Google
+            // client id — configured here (deployment secret). NativeJwksInline pins the JWKS (test/high-sec);
+            // when empty the real JWKS is fetched from NativeJwksUrl.
+            public string[] NativeAudiences { get; init; } = Array.Empty<string>();
+            public string? NativeIssuer { get; init; }
+            public string NativeJwksUrl { get; init; } = "https://www.googleapis.com/oauth2/v3/certs";
+            public string? NativeJwksInline { get; init; }
         }
         public sealed class AppleOptions
         {
@@ -31,6 +39,12 @@ namespace Aizen.Modules.Identity.Abstraction.Model
             public string Issuer { get; init; } = "https://appleid.apple.com";
             public string[] Scopes { get; init; } = new[] { "name", "email" };
             public string CallbackPath { get; init; } = "/auth/oauth/callback/apple";
+
+            // Native (mobile SDK) id_token validation. Aud on native Apple tokens is the app bundle id.
+            public string[] NativeAudiences { get; init; } = Array.Empty<string>();
+            public string? NativeIssuer { get; init; }
+            public string NativeJwksUrl { get; init; } = "https://appleid.apple.com/auth/keys";
+            public string? NativeJwksInline { get; init; }
         }
     }
 }

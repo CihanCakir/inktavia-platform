@@ -1,114 +1,93 @@
-using Aizen.Core.Api.Middleware;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Core.InfoAccessor.Abstraction;
-using Aizen.Core.Infrastructure.Exception;
-using Aizen.Modules.Identity.Abstraction;
-using Aizen.Modules.Identity.Abstraction.Request;
-using Aizen.Modules.Identity.Abstraction.Response;
+using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
+using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Domain.Entities;
-using Aizen.Modules.Identity.Domain.Interface;
 using Aizen.Modules.Identity.Domain.Interface.Repository;
+using Aizen.Modules.Identity.Domain.Interface.Service;
 using Microsoft.AspNetCore.Identity;
 
 namespace Aizen.Modules.InktaviaStore.Application.Identity.Command
 {
-    public class LoginWithPhoneNumberCommandHandler : AizenCommandHandler<LoginWithPhoneNumberCommand, UserLoginResponse>
+    /// <summary>
+    /// Admin credential login (phone + password) → Keycloak handoff (Option 2). Same design as
+    /// <see cref="LoginWithUsername.LoginWithUsernameCommandHandler"/>: Identity verifies the local password +
+    /// lockout, then mints a single-use Keycloak login-ticket (admin-panel client) for the resolved admin and
+    /// returns the handoff shape. Failures return <c>verified:false</c> (HTTP 200, anti-enumeration) — never 500.
+    /// </summary>
+    public class LoginWithPhoneNumberCommandHandler : AizenCommandHandler<LoginWithPhoneNumberCommand, VerifyProviderOtpLoginResponse>
     {
-        private const int ValidAttemptNumber = 2;
-
-        private readonly PasswordValidator<UserEntity> _passwordValidator;
         private readonly UserManager<UserEntity> _userManager;
         private readonly SignInManager<UserEntity> _signInManager;
-        private readonly IAuthorizationService _authorizationService;
         private readonly IUserRepository _userRepository;
-        private readonly IUserProfileRepository _userProfileRepository;
-        private readonly IUserDeviceRepository _userDeviceRepository;
-        private readonly IAizenInfoAccessor _infoAccessor;
+        private readonly IProviderOtpLoginTicketService _ticketService;
 
+        private const string ClientId = "admin-panel";
+        private const string HandoffAction = "redirect_to_keycloak_handoff";
+        private const string HandoffRequiredAction = "keycloak_handoff_required";
 
         public LoginWithPhoneNumberCommandHandler(
-            PasswordValidator<UserEntity> passwordValidator,
             UserManager<UserEntity> userManager,
             SignInManager<UserEntity> signInManager,
             IUserRepository userRepository,
-            IUserProfileRepository userProfileRepository,
-            IUserDeviceRepository userDeviceRepository,
-            IAuthorizationService authorizationService,
-            IAizenInfoAccessor infoAccessor)
+            IProviderOtpLoginTicketService ticketService)
         {
-            _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
-            _passwordValidator = passwordValidator;
             _userManager = userManager;
             _signInManager = signInManager;
             _userRepository = userRepository;
-            _userProfileRepository = userProfileRepository;
-            _userDeviceRepository = userDeviceRepository;
-            _infoAccessor = infoAccessor;
+            _ticketService = ticketService;
         }
 
-        public override async Task<UserLoginResponse?> Handle(LoginWithPhoneNumberCommand request, CancellationToken cancellationToken)
+        public override async Task<VerifyProviderOtpLoginResponse?> Handle(
+            LoginWithPhoneNumberCommand request, CancellationToken cancellationToken)
         {
-            // 1. Kullanıcıyı getir
-            var user = await _userRepository.GetUserByPhoneNumber(request.PhoneNumber, disableTracking: false)
-                        ?? throw new AizenBusinessException(((int)AizenErrorCode.UserNotFound).ToString());
+            var user = await _userRepository.GetUserByPhoneNumber(request.PhoneNumber, disableTracking: false);
+            if (user is null || !user.PhoneNumberConfirmed)
+                return InvalidCredentials();
 
+            // Credential verification is unchanged: verify the local password, honor lockout.
+            var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+            if (!signInResult.Succeeded)
+                return InvalidCredentials();
 
-            if (!user.PhoneNumberConfirmed)
-                throw new AizenBusinessException(((int)AizenErrorCode.PhoneNotConfirmed).ToString());
+            // Admin gate + Keycloak subject required to vouch for the user to Keycloak (mirrors the OTP admin gate).
+            if (string.IsNullOrWhiteSpace(user.KeycloakSubjectId))
+                return InvalidCredentials();
+            if (!await _userManager.IsInRoleAsync(user, RoleNames.Admin))
+                return InvalidCredentials();
 
-            // 2. Bloklu mu kontrol et
-            if (await _userManager.IsLockedOutAsync(user))
-                throw new AizenBusinessException(((int)AizenErrorCode.CurrentDeviceHasBeenLockup).ToString());
-
-            // 3. Giriş denemesi
-            var signIn = await _signInManager.PasswordSignInAsync(user.PhoneNumber, request.Password, true, true);
-
-            if (!signIn.Succeeded)
-            {
-                if (user.AccessFailedCount >= ValidAttemptNumber)
-                    await _userRepository.BlockUser(user);
-
-                await _userRepository.FailLogin(user);
-                throw new AizenBusinessException(((int)AizenErrorCode.LoginFailedForPasswordBlockedUser).ToString());
-            }
-
-            // 1. Kullanıcının profilleri var mı?
-            var profiles = await _userProfileRepository.GetProfileByIdAsync(user.Id);
-            if (profiles == null)
-                throw new AizenBusinessException(((int)AizenErrorCode.  UserHasNoActiveProfileInThisPanel).ToString());
-
-            // 4. Profil kontrolü (aktif profil var mı?)
-            var appCode =  _infoAccessor.AppInfoAccessor.AppInfo.Code;
-            var roleContext = appCode switch
-            {
-                "ORGANIZER" => WorkshopRoleContext.Organizer,
-                "VENUE" => WorkshopRoleContext.VenueOwner,
-                _ => WorkshopRoleContext.Participant
-            };
-
-            var hasProfile = await _userProfileRepository.HasProfileForContextAsync(user.Id, roleContext);
-            if (!hasProfile)
-                throw new AizenBusinessException(((int)AizenErrorCode.UserHasNoActiveProfileInThisPanel).ToString());
-
-            var activeProfileId = await _userProfileRepository.GetActiveProfileIdAsync(user.Id, roleContext);
-
-            // 5. Token oluştur
-            var result = await _authorizationService.CreateLoginToken(new UserLoginRequest
-            {
-                DeviceId = request.DeviceId,
-                Email = user.Email,
-                FirstName = profiles.FirstName,
-                NationalityId = profiles.NationalityId,
-                PhoneNumber = user.PhoneNumber,
-                LastName = profiles.LastName,
-                UserId = user.Id,
-                NotificationToken = request.NotificationToken,
-                RoleContext = roleContext,
-                ActiveProfileId = profiles.Id
-            });
-
-
-            return result;
+            return await MintHandoffAsync(user.KeycloakSubjectId!, cancellationToken);
         }
+
+        private async Task<VerifyProviderOtpLoginResponse> MintHandoffAsync(string keycloakSubjectId, CancellationToken ct)
+        {
+            try
+            {
+                var ticket = await _ticketService.MintAsync(keycloakSubjectId, ClientId, ct);
+                return new VerifyProviderOtpLoginResponse
+                {
+                    Verified = true,
+                    NextAction = HandoffAction,
+                    LoginTicket = ticket.LoginTicket,
+                    ExpiresInSeconds = ticket.ExpiresInSeconds,
+                    Message = "Credentials verified. Redirecting to complete sign-in.",
+                };
+            }
+            catch
+            {
+                return new VerifyProviderOtpLoginResponse
+                {
+                    Verified = true,
+                    NextAction = HandoffRequiredAction,
+                    Message = "Credentials verified. Sign-in redirect is temporarily unavailable.",
+                };
+            }
+        }
+
+        private static VerifyProviderOtpLoginResponse InvalidCredentials() => new()
+        {
+            Verified = false,
+            NextAction = HandoffRequiredAction,
+            Message = "Invalid phone number or password.",
+        };
     }
 }

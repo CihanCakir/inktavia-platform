@@ -39,6 +39,17 @@ namespace Aizen.Modules.Identity.Repository.Identity.Repository
             return await query.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber);
         }
 
+        public async Task<UserEntity?> GetUserByKeycloakSubjectAsync(
+            string keycloakSubjectId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(keycloakSubjectId))
+                return null;
+
+            return await _dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.KeycloakSubjectId == keycloakSubjectId, cancellationToken);
+        }
+
         public async Task BlockUser(UserEntity user)
         {
             // Kullanıcıya lockout süresi uygula (örnek: 15 dakika)

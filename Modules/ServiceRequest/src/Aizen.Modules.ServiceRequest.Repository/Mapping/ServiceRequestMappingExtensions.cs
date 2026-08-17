@@ -1,8 +1,9 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Maintenance;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
@@ -48,6 +49,7 @@ public static class ServiceRequestMappingExtensions
         VesselId = entity.VesselId,
         OwnerUserId = entity.OwnerUserId,
         ProviderProfileId = entity.Assignment?.ProviderProfileId,
+        ProviderUserId = entity.Assignment?.ProviderUserId,
         LocationMarinaName = entity.LocationMarinaName,
         LocationCityCode = entity.LocationCityCode,
         LocationCountryCode = entity.LocationCountryCode,
@@ -110,7 +112,25 @@ public static class ServiceRequestMappingExtensions
         EstimatedEndDate = entity.EstimatedEndDate,
         EstimatedDurationMinutes = entity.EstimatedDurationMinutes,
         ExpiresAt = entity.ExpiresAt,
+        Subtotal = entity.Subtotal,
+        TaxTotal = entity.TaxTotal,
+        DiscountTotal = entity.DiscountTotal,
+        GrandTotal = entity.GrandTotal,
+        DepositType = entity.DepositType,
+        DepositValue = entity.DepositValue,
+        PaymentTermsNote = entity.PaymentTermsNote,
+        WarrantyNote = entity.WarrantyNote,
+        SubmittedAt = entity.SubmittedAt,
+        ViewedAt = entity.ViewedAt,
         Items = entity.Items.Select(i => i.ToDto()).ToList(),
+        // BE-S3 — offer-level FX rate snapshots (empty for a TRY-only offer)
+        FxSnapshots = entity.FxSnapshots.Select(f => new Abstraction.Dto.OfferFxSnapshotDto
+        {
+            SourceCurrencyCode     = f.SourceCurrencyCode,
+            SettlementCurrencyCode = f.SettlementCurrencyCode,
+            Rate                   = f.Rate,
+            RateDate               = f.RateDate,
+        }).ToList(),
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
     };
@@ -124,8 +144,19 @@ public static class ServiceRequestMappingExtensions
         Quantity = entity.Quantity,
         UnitPrice = entity.UnitPrice,
         CurrencyCode = entity.CurrencyCode,
+        // BE-S3 — surface both figures: source (foreign) + converted TRY. Non-null SourceUnitPrice ⇒ the line was converted.
+        SourceUnitPrice = entity.SourceUnitPrice,
+        SourceCurrencyCode = entity.SourceUnitPrice.HasValue ? entity.CurrencyCode : null,
+        SettlementCurrencyCode = Domain.Entities.Offer.OfferFxConstants.SettlementCurrency,
         SortOrder = entity.SortOrder,
-        IsDiscount = entity.IsDiscount
+        UnitCode = entity.UnitCode,
+        TaxRate = entity.TaxRate,
+        DiscountType = entity.DiscountType,
+        DiscountValue = entity.DiscountValue,
+        LineSubtotal = entity.LineSubtotal,
+        TaxAmount = entity.TaxAmount,
+        LineTotal = entity.LineTotal,
+        DiscountAmount = entity.DiscountAmount
     };
 
     public static ServiceRequestAssignmentDto ToDto(this ServiceRequestAssignmentEntity entity) => new()
@@ -172,7 +203,11 @@ public static class ServiceRequestMappingExtensions
         SubmittedAt = entity.SubmittedAt,
         ReviewedAt = entity.ReviewedAt,
         ReviewedByUserId = entity.ReviewedByUserId,
-        ReviewNotes = entity.ReviewNotes
+        ReviewNotes = entity.ReviewNotes,
+        ClientRating = entity.ClientRating,
+        RejectReasonCode = entity.RejectReasonCode,
+        AutoApproveAt = entity.AutoApproveAt,
+        AutoApproveReminderSentAt = entity.AutoApproveReminderSentAt
     };
 
     public static ServiceRequestDisputeDto ToDto(this ServiceRequestDisputeEntity entity) => new()
@@ -187,7 +222,10 @@ public static class ServiceRequestMappingExtensions
         ResolutionNotes = entity.ResolutionNotes,
         ResolvedByAdminUserId = entity.ResolvedByAdminUserId,
         ResolvedAt = entity.ResolvedAt,
-        OpenedAt = entity.OpenedAt
+        OpenedAt = entity.OpenedAt,
+        ResolutionOutcome = entity.ResolutionOutcome,
+        ResolutionRefundAmount = entity.ResolutionRefundAmount,
+        PaymentOutcomeAppliedAt = entity.PaymentOutcomeAppliedAt
     };
 
     public static ServiceRequestDetailDto ToDetailDto(this ServiceRequestEntity entity) => new()
@@ -197,6 +235,7 @@ public static class ServiceRequestMappingExtensions
         Attachments = entity.Attachments.Select(a => a.ToDto()).ToList(),
         Offers = entity.Offers.Select(o => o.ToDto()).ToList(),
         Assignment = entity.Assignment?.ToDto(),
+        WorkLogs = entity.Assignment?.WorkLogs.Select(w => w.ToDto()).ToList() ?? new(),
         Completion = entity.Completion?.ToDto(),
         Dispute = entity.Dispute?.ToDto(),
         StatusHistory = entity.StatusHistory.Select(s => s.ToDto()).ToList()
@@ -212,6 +251,142 @@ public static class ServiceRequestMappingExtensions
         IsRead = entity.IsRead,
         ReadAt = entity.ReadAt,
         AttachmentFileId = entity.AttachmentFileId,
+        LocationLat = entity.LocationLat,
+        LocationLng = entity.LocationLng,
+        LocationLabel = entity.LocationLabel,
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow
     };
+
+    // --- Provider-specific mappings (privacy-filtered) ---
+
+    /// <summary>
+    /// Provider-safe projection: no OwnerUserId, coordinates snapped to ~500m grid.
+    /// Same snapping algorithm as the discovery SQL projection.
+    /// </summary>
+    public static ProviderServiceRequestDto ToProviderDto(this ServiceRequestEntity entity) => new()
+    {
+        Id = entity.Id,
+        RequestCode = entity.RequestCode,
+        Title = entity.Title,
+        Description = entity.Description,
+        Status = entity.Status,
+        Priority = entity.Priority,
+        ServiceCategoryCode = entity.ServiceCategoryCode,
+        ServiceTypeCode = entity.ServiceTypeCode,
+        RequestedStartDate = entity.RequestedStartDate,
+        RequestedEndDate = entity.RequestedEndDate,
+        ExpiresAt = entity.ExpiresAt,
+        LocationCountryCode = entity.LocationCountryCode,
+        LocationCityCode = entity.LocationCityCode,
+        LocationMarinaName = entity.LocationMarinaName,
+        ApproxLatitude = SnapCoordinate(entity.LocationLatitude, entity.Id),
+        ApproxLongitude = SnapCoordinate(entity.LocationLongitude, entity.Id),
+        VesselId = entity.VesselId,
+        VesselName = entity.VesselName,
+        OwnerNotes = entity.OwnerNotes,
+        PublishedAt = entity.PublishedAt,
+        CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
+        UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
+    };
+
+    public static WorkScopeItemDto ToWorkScopeDto(this ServiceRequestItemEntity entity) => new()
+    {
+        Id = entity.Id,
+        ItemType = entity.ItemType,
+        Title = entity.Title,
+        Description = entity.Description,
+        Quantity = entity.Quantity,
+        UnitCode = entity.UnitCode,
+        SortOrder = entity.SortOrder
+    };
+
+    public static ProviderAttachmentMetaDto ToProviderAttachmentMetaDto(this ServiceRequestAttachmentEntity entity) => new()
+    {
+        Id = entity.Id,
+        FileId = entity.FileId,
+        AttachmentType = entity.AttachmentType,
+        Title = entity.Title,
+        CreatedAt = entity.CreateDate ?? DateTime.UtcNow
+    };
+
+    /// <summary>
+    /// Assembles the full provider detail aggregate. Filters offers to the caller's own only.
+    /// </summary>
+    public static ProviderServiceRequestDetailDto ToProviderDetailDto(this ServiceRequestEntity entity, long providerProfileId)
+    {
+        // A provider can hold more than one live offer on a request (e.g. a leftover Draft plus the Accepted
+        // one). A plain FirstOrDefault returns whichever the collection yields first (the lowest id — usually the
+        // stale draft), so the detail page rendered "make an offer" for a request the provider had already won.
+        // Pick the FURTHEST-PROGRESSED offer instead: Accepted > active > terminal > Draft, newest as tiebreak.
+        var myOffer = entity.Offers
+            .Where(o => o.ProviderProfileId == providerProfileId && !o.IsDeleted)
+            .OrderByDescending(o => MyOfferRank(o.Status))
+            .ThenByDescending(o => o.Id)
+            .FirstOrDefault();
+
+        return new ProviderServiceRequestDetailDto
+        {
+            Request = entity.ToProviderDto(),
+            WorkScope = entity.Items
+                .Where(i => !i.IsDeleted)
+                .OrderBy(i => i.SortOrder)
+                .Select(i => i.ToWorkScopeDto())
+                .ToList(),
+            Attachments = entity.Attachments
+                .Where(a => !a.IsDeleted)
+                .OrderByDescending(a => a.CreateDate)
+                .Select(a => a.ToProviderAttachmentMetaDto())
+                .ToList(),
+            MyOffer = myOffer?.ToDto(),
+            Timeline = entity.StatusHistory
+                .OrderByDescending(s => s.OccurredAt)
+                .Select(s => s.ToDto())
+                .ToList(),
+            OfferCount = entity.Offers.Count(o => !o.IsDeleted),
+            AttachmentCount = entity.Attachments.Count(a => !a.IsDeleted)
+        };
+    }
+
+    /// <summary>
+    /// Lifecycle precedence for choosing a provider's authoritative offer when several exist on one request.
+    /// A won (Accepted) offer must always outrank a stale Draft; a live/pending offer outranks a terminal one.
+    /// </summary>
+    private static int MyOfferRank(ServiceRequestOfferStatus status) => status switch
+    {
+        ServiceRequestOfferStatus.Accepted => 4,
+        ServiceRequestOfferStatus.Submitted => 3,
+        ServiceRequestOfferStatus.UnderReview => 3,
+        ServiceRequestOfferStatus.Rejected => 2,
+        ServiceRequestOfferStatus.Withdrawn => 2,
+        ServiceRequestOfferStatus.Expired => 2,
+        ServiceRequestOfferStatus.Draft => 1,
+        _ => 0,
+    };
+
+    public static MaintenanceScheduleDto ToDto(this MaintenanceScheduleEntity entity) => new()
+    {
+        Id = entity.Id,
+        VesselId = entity.VesselId,
+        OwnerUserId = entity.OwnerUserId,
+        ServiceCategoryCode = entity.ServiceCategoryCode,
+        ServiceTypeCode = entity.ServiceTypeCode,
+        RecommendedIntervalMonths = entity.RecommendedIntervalMonths,
+        ReminderLeadDays = entity.ReminderLeadDays,
+        LastPerformedAt = entity.LastPerformedAt,
+        NextDueAt = entity.NextDueAt,
+        ReminderSentAt = entity.ReminderSentAt,
+        IsActive = entity.IsActive,
+        Notes = entity.Notes
+    };
+
+    /// <summary>
+    /// Snaps a coordinate to a ~500m grid with deterministic per-row jitter.
+    /// Same algorithm as the discovery SQL projection in ServiceRequestRepository.
+    /// </summary>
+    private static decimal? SnapCoordinate(decimal? raw, long entityId)
+    {
+        if (raw is null) return null;
+        var jitter = (entityId % 7 - 3) * 0.001;
+        return (decimal)(Math.Round(((double)raw.Value + jitter) / 0.005) * 0.005);
+    }
 }

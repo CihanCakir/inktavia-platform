@@ -1,4 +1,4 @@
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Persistence;
@@ -16,6 +16,7 @@ public sealed class ServiceRequestOfferRepository : IServiceRequestOfferReposito
     public Task<ServiceRequestOfferEntity?> GetByIdAsync(long id, CancellationToken ct = default)
         => _db.ServiceRequestOffers
             .Include(x => x.Items)
+            .Include(x => x.FxSnapshots)   // BE-S3: the acceptance path reads the frozen rate per source currency
             .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, ct);
 
     public async Task<IReadOnlyList<ServiceRequestOfferEntity>> GetByServiceRequestIdAsync(long serviceRequestId, CancellationToken ct = default)
@@ -34,6 +35,39 @@ public sealed class ServiceRequestOfferRepository : IServiceRequestOfferReposito
             .Skip(skip)
             .Take(take)
             .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<ServiceRequestOfferEntity>> GetByProviderProfileIdWithSrAsync(
+        long providerProfileId, ServiceRequestOfferStatus? statusFilter, int skip, int take, CancellationToken ct = default)
+    {
+        var query = _db.ServiceRequestOffers
+            .AsNoTracking()
+            .Where(x => x.ProviderProfileId == providerProfileId && !x.IsDeleted);
+
+        if (statusFilter.HasValue)
+            query = query.Where(x => x.Status == statusFilter.Value);
+
+        return await query
+            .OrderByDescending(x => x.CreateDate)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+    }
+
+    public Task<ServiceRequestOfferEntity?> GetDraftByProviderAndRequestAsync(long providerProfileId, long serviceRequestId, CancellationToken ct = default)
+        => _db.ServiceRequestOffers
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.ProviderProfileId == providerProfileId
+                && x.ServiceRequestId == serviceRequestId
+                && x.Status == ServiceRequestOfferStatus.Draft
+                && !x.IsDeleted, ct);
+
+    public Task<ServiceRequestOfferEntity?> GetByProviderRequestAndIdempotencyAsync(long providerProfileId, long serviceRequestId, CancellationToken ct = default)
+        => _db.ServiceRequestOffers
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.ProviderProfileId == providerProfileId
+                && x.ServiceRequestId == serviceRequestId
+                && x.Status == ServiceRequestOfferStatus.Submitted
+                && !x.IsDeleted, ct);
 
     public Task AddAsync(ServiceRequestOfferEntity entity, CancellationToken ct = default)
         => _db.ServiceRequestOffers.AddAsync(entity, ct).AsTask();

@@ -26,18 +26,25 @@ public sealed class ServiceRequestOfferAcceptedConsumer
 
     public override async Task ExecuteCommitMessage(ServiceRequestOfferAcceptedMessage message, CancellationToken ct)
     {
-        await _sender.Send(new SendNotificationCommand
-        {
-            RecipientUserId = message.OwnerUserId,
-            Type            = NotificationType.OfferAccepted,
-            Channel         = NotificationChannel.InApp,
-            Variables = new Dictionary<string, string>
+        // BE_NF3 — OfferAccepted is a PROVIDER-facing event ("your offer was accepted"). It previously mis-notified the
+        // OWNER by the raw OwnerUserId, InApp only. Notify the provider by ProviderProfileId (where the provider inbox +
+        // push resolve), multi-channel (InApp + web/FCM push + email). (An optional owner "you accepted an offer"
+        // confirmation is deferred — the meaningful notification is the provider's.)
+        if (message.ProviderProfileId == 0) return;
+
+        await NotificationChannelDispatch.SendInAppAndEmailAsync(
+            _sender, message.ProviderProfileId, NotificationType.OfferAccepted,
+            new Dictionary<string, string>
             {
                 { "serviceRequestId", message.ServiceRequestId.ToString() },
                 { "offerId",          message.OfferId.ToString() },
             },
-            MetadataJson = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"offerId\":{message.OfferId}}}",
-        }, ct);
+            $"{{\"serviceRequestId\":{message.ServiceRequestId},\"offerId\":{message.OfferId}}}",
+            "ServiceRequest", message.ServiceRequestId, ct);
+
+        _logger.LogInformation(
+            "OfferAccepted SR={SrId} Offer={OfferId} → notified provider {ProviderProfileId}.",
+            message.ServiceRequestId, message.OfferId, message.ProviderProfileId);
     }
 
     public override Task ExecuteRollbackMessage(ServiceRequestOfferAcceptedMessage message, AizenMessageError ex, CancellationToken ct)

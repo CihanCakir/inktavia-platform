@@ -74,8 +74,13 @@ public static class BuilderExtensions
         services.AddScoped<IAizenUnitOfWork<TContext>, AizenUnitOfWork<TContext>>();
         services.Scan(scanner =>
         {
+            // Exclude the non-generic IAizenUnitOfWork from the scan: it is already registered explicitly above,
+            // and the command decorator injects IEnumerable<IAizenUnitOfWork> and calls SaveChangesAsync() once
+            // PER registration. A second (duplicate) registration here made every command save TWICE per request
+            // — a re-INSERT of the still-tracked new entity (duplicate rows / doubled side-effects; surfaced as a
+            // unique-index violation on vessel create). The UoW stays the sole save, firing exactly once.
             scanner.AddTypes(typeof(AizenUnitOfWork<>))
-                .AsImplementedInterfaces()
+                .AsImplementedInterfaces(t => t != typeof(IAizenUnitOfWork))
                 .WithScopedLifetime();
         });
 

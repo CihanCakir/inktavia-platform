@@ -5,7 +5,6 @@ using Aizen.Modules.Vessel.Abstraction.Dto.Media;
 using Aizen.Modules.Vessel.Abstraction.Dto.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Dto.Specification;
 using Aizen.Modules.Vessel.Abstraction.Dto.Status;
-using Aizen.Modules.Vessel.Abstraction.Model;
 
 namespace Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
 

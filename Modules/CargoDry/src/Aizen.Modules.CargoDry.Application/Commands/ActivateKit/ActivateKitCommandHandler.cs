@@ -1,43 +1,53 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
+using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Abstraction.Message;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryAnalytics;
+using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Aizen.Modules.CargoDry.Domain.MongoDocuments;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.ActivateKit;
 
 public sealed class ActivateKitCommandHandler
     : AizenCommandHandler<ActivateKitCommand, CargoDryKitDto>
 {
-    private readonly IActivationTokenService          _tokenService;
-    private readonly ICargoDryKitRepository           _kits;
-    private readonly ICargoDryProductRepository       _products;
-    private readonly IAizenMessagePublisher           _publisher;
-    private readonly ICargoDryActivationLogRepository _activationLogs;
-    private readonly IAizenDistributedCache           _cache;
-    private readonly ILogger<ActivateKitCommandHandler> _logger;
+    private readonly IActivationTokenService               _tokenService;
+    private readonly ICargoDryKitRepository                _kits;
+    private readonly ICargoDryProductRepository            _products;
+    private readonly ICargoDryKitLifecycleEventRepository  _lifecycleEvents;
+    private readonly IAizenMessagePublisher                _publisher;
+    private readonly ICargoDryActivationLogRepository      _activationLogs;
+    private readonly IAizenDistributedCache                _cache;
+    private readonly ILogger<ActivateKitCommandHandler>    _logger;
+    private readonly ICargoDryCommercialActivationService  _commercialActivation;
 
     public ActivateKitCommandHandler(
-        IActivationTokenService tokenService,
-        ICargoDryKitRepository kits,
-        ICargoDryProductRepository products,
-        IAizenMessagePublisher publisher,
-        ICargoDryActivationLogRepository activationLogs,
-        IAizenDistributedCache cache,
-        ILogger<ActivateKitCommandHandler> logger)
+        IActivationTokenService               tokenService,
+        ICargoDryKitRepository                kits,
+        ICargoDryProductRepository            products,
+        ICargoDryKitLifecycleEventRepository  lifecycleEvents,
+        IAizenMessagePublisher                publisher,
+        ICargoDryActivationLogRepository      activationLogs,
+        IAizenDistributedCache                cache,
+        ILogger<ActivateKitCommandHandler>    logger,
+        ICargoDryCommercialActivationService  commercialActivation)
     {
-        _tokenService   = tokenService;
-        _kits           = kits;
-        _products       = products;
-        _publisher      = publisher;
-        _activationLogs = activationLogs;
-        _cache          = cache;
-        _logger         = logger;
+        _tokenService         = tokenService;
+        _kits                 = kits;
+        _products             = products;
+        _lifecycleEvents      = lifecycleEvents;
+        _publisher            = publisher;
+        _activationLogs       = activationLogs;
+        _cache                = cache;
+        _logger               = logger;
+        _commercialActivation = commercialActivation;
     }
 
     public override async Task<CargoDryKitDto?> Handle(ActivateKitCommand request, CancellationToken ct)
@@ -51,16 +61,56 @@ public sealed class ActivateKitCommandHandler
         var product = await _products.GetByCodeAsync(kit.ProductCode, ct)
             ?? throw new InvalidOperationException($"Product not found: {kit.ProductCode}");
 
+        var previousStatus = kit.Status.ToString();
+
         var existingActiveKit = await _kits.GetActiveByVesselAsync(request.VesselId, kit.ProductCode, ct);
         existingActiveKit?.MarkExpired();
 
         kit.Activate(request.UserId, request.VesselId, product.ValidityDays);
+
+        // Decision N18/N19: a kit with no SalesChannel does NOT complete activation — Activate() marks it
+        // CommercialReviewRequired and returns early, leaving ActivatedAt/ExpiresAt null. Honor that documented
+        // return path here instead of proceeding to publish/log/map (which dereferenced the null timestamps and
+        // NRE'd). Nothing is persisted or published on this path; the kit needs admin commercial review first.
+        if (kit.Status != CargoDryKitStatus.Activated)
+            throw new AizenBusinessException("SR_CARGODRY_KIT_COMMERCIAL_REVIEW_REQUIRED");
+
+        // ── Phase 3: resolve commercial attribution (stages entities, does not SaveChanges) ──
+        await _commercialActivation.ResolveAsync(kit.Id, request.UserId, ct);
 
         await _kits.SaveChangesAsync(ct);
 
         await _cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);
         await _cache.RemoveAsync<GetCargoDryAnalyticsResponse>("cargodry:analytics:snapshot", ct);
 
+        // ── Phase 9: SQL lifecycle event ──────────────────────────────────────
+        var metadata = JsonSerializer.Serialize(new
+        {
+            ActivationMethod = request.Method.ToString(),
+            ActivationSource = request.Source.ToString(),
+            DeviceInfo       = request.DeviceInfo,
+            IpAddress        = request.IpAddress,
+            ValidityDays     = product.ValidityDays,
+            ExpiresAt        = kit.ExpiresAt?.ToString("O"),
+        });
+
+        var lifecycleEvent = CargoDryKitLifecycleEventEntity.Create(
+            kitId:          kit.Id,
+            kitCode:        kit.KitCode,
+            serialNumber:   kit.SerialNumber,
+            batchCode:      kit.BatchCode,
+            productCode:    kit.ProductCode,
+            eventType:      CargoDryKitLifecycleEventType.Activated,
+            previousStatus: previousStatus,
+            newStatus:      kit.Status.ToString(),
+            actorUserId:    (long?)request.UserId,
+            actorType:      request.Source == ActivationSource.AdminPanel ? "Admin" : "Participant",
+            metadataJson:   metadata);
+
+        await _lifecycleEvents.AddAsync(lifecycleEvent, ct);
+        await _lifecycleEvents.SaveChangesAsync(ct);
+
+        // ── MongoDB activation log (existing, fire-and-forget) ────────────────
         var logDoc = new CargoDryActivationLogDocument
         {
             KitId            = kit.Id,
@@ -93,28 +143,39 @@ public sealed class ActivateKitCommandHandler
             ProductName  = product.Name,
             OwnerUserId  = request.UserId,
             VesselId     = request.VesselId,
-            ActivatedAt  = kit.ActivatedAt!.Value,
-            ExpiresAt    = kit.ExpiresAt!.Value,
+            // Belt-and-suspenders: the Activated status check above guarantees these are set, but never `!.Value`
+            // a nullable a domain branch (N18) can legitimately leave null. Fall back to now/expiry if ever unset.
+            ActivatedAt  = kit.ActivatedAt ?? throw new AizenBusinessException("SR_CARGODRY_KIT_COMMERCIAL_REVIEW_REQUIRED"),
+            ExpiresAt    = kit.ExpiresAt   ?? throw new AizenBusinessException("SR_CARGODRY_KIT_COMMERCIAL_REVIEW_REQUIRED"),
             ValidityDays = product.ValidityDays,
         }, ct);
 
         return new CargoDryKitDto
         {
-            Id                = kit.Id,
-            SerialNumber      = kit.SerialNumber,
-            KitCode           = kit.KitCode,
-            ProductCode       = kit.ProductCode,
-            ProductName       = product.Name,
-            BatchCode         = kit.BatchCode,
-            Status            = kit.Status,
-            OwnerUserId       = kit.OwnerUserId,
-            VesselId          = kit.VesselId,
-            ActivatedAt       = kit.ActivatedAt,
-            ExpiresAt         = kit.ExpiresAt,
-            EfficiencyPercent = kit.EfficiencyPercent,
-            DaysUntilExpiry   = kit.DaysUntilExpiry,
-            RenewalCount      = kit.RenewalCount,
-            ManufacturedAt    = kit.ManufacturedAt,
+            Id                   = kit.Id,
+            SerialNumber         = kit.SerialNumber,
+            KitCode              = kit.KitCode,
+            ProductCode          = kit.ProductCode,
+            ProductName          = product.Name,
+            BatchCode            = kit.BatchCode,
+            Status               = kit.Status,
+            OwnerUserId          = kit.OwnerUserId,
+            VesselId             = kit.VesselId,
+            ActivatedAt          = kit.ActivatedAt,
+            ExpiresAt            = kit.ExpiresAt,
+            EfficiencyPercent    = kit.EfficiencyPercent,
+            DaysUntilExpiry      = kit.DaysUntilExpiry,
+            RenewalCount         = kit.RenewalCount,
+            ManufacturedAt       = kit.ManufacturedAt,
+            // Phase 0 commercial fields
+            ProviderProfileId    = kit.ProviderProfileId,
+            SalesChannel         = kit.SalesChannel,
+            CommercialModel      = kit.CommercialModel,
+            StockLocationType    = kit.StockLocationType,
+            InvoiceId            = kit.InvoiceId,
+            PaymentTransactionId = kit.PaymentTransactionId,
+            // Phase 0 addendum
+            WarehouseId          = kit.WarehouseId,
         };
     }
 }

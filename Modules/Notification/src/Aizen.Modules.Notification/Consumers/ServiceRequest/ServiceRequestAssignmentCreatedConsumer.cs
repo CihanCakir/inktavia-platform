@@ -35,14 +35,13 @@ public sealed class ServiceRequestAssignmentCreatedConsumer
         if (message.ScheduledStartDate.HasValue)
             variables["scheduledStartDate"] = message.ScheduledStartDate.Value.ToString("O");
 
-        await _sender.Send(new SendNotificationCommand
-        {
-            RecipientUserId = message.ProviderUserId,
-            Type            = NotificationType.AssignmentCreated,
-            Channel         = NotificationChannel.InApp,
-            Variables       = variables,
-            MetadataJson    = $"{{\"serviceRequestId\":{message.ServiceRequestId},\"assignmentId\":{message.AssignmentId}}}",
-        }, ct);
+        // Key by ProviderProfileId (where the provider inbox + push pipeline look), not the raw ProviderUserId. C2 fix.
+        // BE_NF2: InApp (+web/FCM push) + Email.
+        await NotificationChannelDispatch.SendInAppAndEmailAsync(
+            _sender, message.ProviderProfileId, NotificationType.AssignmentCreated,
+            variables,
+            $"{{\"serviceRequestId\":{message.ServiceRequestId},\"assignmentId\":{message.AssignmentId}}}",
+            "ServiceRequest", message.ServiceRequestId, ct);
     }
 
     public override Task ExecuteRollbackMessage(ServiceRequestAssignmentCreatedMessage message, AizenMessageError ex, CancellationToken ct)

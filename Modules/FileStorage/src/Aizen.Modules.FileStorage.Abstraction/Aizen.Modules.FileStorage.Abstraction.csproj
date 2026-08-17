@@ -10,5 +10,12 @@
   <ItemGroup>
     <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
     <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
+    <!-- M4e: the vessel S2S remote calls consume the AizenApiResponse envelope from the real file-storage endpoints. -->
+    <ProjectReference Include="../../../../Core/Api/src/Aizen.Core.Api.Abstraction/Aizen.Core.Api.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/Common/src/Aizen.Core.Common.Abstraction/Aizen.Core.Common.Abstraction.csproj" />
+    <Using Include="Aizen.Core.Common.Abstraction" />
   </ItemGroup>
 </Project>

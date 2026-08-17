@@ -36,7 +36,8 @@ public sealed class ConversationMessagesController : AizenWebApiController
         var command = new SendMessageCommand(
             conversationId, request.Content, request.Type, request.IsInternalNote,
             request.AttachmentFileStorageId, request.AttachmentFileName, request.AttachmentFileType,
-            request.UploadSessionCode, request.Checksum, request.LocationJson);
+            request.UploadSessionCode, request.Checksum, request.LocationJson,
+            request.LocationLat, request.LocationLng, request.LocationLabel);
         var result = await _cqrs.ProcessAsync<SendMessageResponse>(command, ct);
         return SetResponse(result);
     }

@@ -1,0 +1,71 @@
+using Aizen.Core.Messagebus.Abstraction.Messages;
+using Aizen.Core.Realtime.MessageConsumers;
+using Aizen.Modules.Messaging.Abstraction.Message;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
+
+namespace Aizen.Bff.MarineProvider.Realtime;
+
+// One zero-logic closing subclass of the framework's GENERIC RealtimeEventConsumer<TMessage, TResult> per module
+// bus event the provider surface consumes. They exist ONLY so the Aizen messagebus consumer scan finds a concrete,
+// non-generic consumer type in this BFF entry assembly (open generics aren't auto-closed) and hosts it — the same
+// pattern as the admin BFF's AdminMessagingRealtimeConsumer. They carry NO per-event broadcast code: the framework
+// consumer forwards the bus message to IRealtimeEventIngress, which applies ProviderEventSocketMapper and
+// broadcasts over the shared socket path. (ADR: do not hand-roll per-event consumers.)
+//
+// These run only because the BFF's AizenAppInfo includes AppType.Worker (enables bus consumption).
+
+// BE_WC4b — removed the dangling MessageAddedRealtimeConsumer<ServiceRequestMessageSentMessage>: the SR chat-mirror
+// event is gone (Phase-4 complete). Provider chat realtime rides MessagingMessageSentMessage (below). The offer/city
+// consumers further down are on their own ServiceRequest.* message types and are untouched.
+
+/// <summary>BE_WC2 — Bus → provider hub: a native Messaging message was sent in a conversation this provider participates
+/// in. Routed to the recipient "user:{userId}" groups (the event carries RecipientUserIds, not a provider profile id).
+/// Fires in BOTH flag states — with the write flip OFF the SR sync republishes this event, so the repoint is
+/// decoupled from the write cutover and always keeps provider chat realtime working.</summary>
+public sealed class MessagingMessageAddedRealtimeConsumer
+    : RealtimeEventConsumer<MessagingMessageSentMessage, AizenMessageResult>
+{
+    public MessagingMessageAddedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}
+
+/// <summary>Bus → provider hub: this provider's offer was accepted.</summary>
+public sealed class OfferAcceptedRealtimeConsumer
+    : RealtimeEventConsumer<ServiceRequestOfferAcceptedMessage, AizenMessageResult>
+{
+    public OfferAcceptedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}
+
+/// <summary>Bus → provider hub: this provider's offer was rejected.</summary>
+public sealed class OfferRejectedRealtimeConsumer
+    : RealtimeEventConsumer<ServiceRequestOfferRejectedMessage, AizenMessageResult>
+{
+    public OfferRejectedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}
+
+/// <summary>Bus → provider hub: a request became biddable in a city.</summary>
+public sealed class ServiceRequestPublishedRealtimeConsumer
+    : RealtimeEventConsumer<ServiceRequestPublishedMessage, AizenMessageResult>
+{
+    public ServiceRequestPublishedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}
+
+/// <summary>Bus → provider hub: a service request's details were updated.</summary>
+public sealed class ServiceRequestUpdatedRealtimeConsumer
+    : RealtimeEventConsumer<ServiceRequestUpdatedMessage, AizenMessageResult>
+{
+    public ServiceRequestUpdatedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}
+
+/// <summary>Bus → provider hub: a service request was cancelled.</summary>
+public sealed class ServiceRequestCancelledRealtimeConsumer
+    : RealtimeEventConsumer<ServiceRequestCancelledMessage, AizenMessageResult>
+{
+    public ServiceRequestCancelledRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}
+
+/// <summary>Bus → provider hub: a service request's priority changed.</summary>
+public sealed class ServiceRequestUrgencyChangedRealtimeConsumer
+    : RealtimeEventConsumer<ServiceRequestUrgencyChangedMessage, AizenMessageResult>
+{
+    public ServiceRequestUrgencyChangedRealtimeConsumer(IServiceProvider sp) : base(sp) { }
+}

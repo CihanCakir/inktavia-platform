@@ -43,7 +43,14 @@ public static class BuilderExtensions
                 cfg.ConfigureEndpoints(context);
             });
 
-            var consumers = AizenModuleAssemblyDiscovery.GetInstance().ModuleAssemblies.SelectMany(x => x.GetTypes())
+            // Scan module assemblies AND the entry assembly for message consumers. The entry assembly
+            // scan is needed for BFFs that host bus consumers (e.g. the realtime bridge consumers in
+            // MarineProvider BFF). Without it, consumers in Aizen.Bff.* are invisible to MassTransit.
+            var discovery = AizenModuleAssemblyDiscovery.GetInstance();
+            var assembliesToScan = discovery.ModuleAssemblies
+                .Append(discovery.EntryAssembly)
+                .Distinct();
+            var consumers = assembliesToScan.SelectMany(x => x.GetTypes())
                 .Where(x => x is { IsClass: true, IsAbstract: false } &&
                             typeof(IAizenMessageConsumer).IsAssignableFrom(x) && !x.IsGenericType);
             foreach (var consumer in consumers)
@@ -66,6 +73,12 @@ public static class BuilderExtensions
                 assembly.GetTypes()
                     .Where(type =>
                         type is { IsClass: true, IsAbstract: false } && typeof(AizenEntity).IsAssignableFrom(type))
+                    // HARDENING_MESSAGEBUS_GENERIC_CONSUMER_OPTOUT: skip domain-authored,
+                    // invariant-guarded entities marked [NoMessagebusSync]. They are built
+                    // only via a validating factory; a generic consumer would let an inbound
+                    // message insert/update/delete them with none of the guards. Opt-out
+                    // (blocklist) — every other entity keeps its generic consumer as before.
+                    .Where(type => !MessagebusSyncPolicy.IsGenericSyncBlocked(type))
                     .ForEach(type =>
                     {
                         Type genericTypeDefinition = typeof(AizenGenericConsumer<>);

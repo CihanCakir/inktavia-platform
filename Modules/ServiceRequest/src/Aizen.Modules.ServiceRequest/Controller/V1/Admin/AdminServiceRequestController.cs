@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
@@ -43,6 +42,24 @@ public sealed class AdminServiceRequestController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetAdminServiceRequestListResponse>(
             new GetAdminServiceRequestListQuery(filter), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("stats")]
+    [ProducesResponseType(typeof(GetAdminServiceRequestStatsResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetAdminServiceRequestStatsResponse?>> GetStats(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetAdminServiceRequestStatsResponse>(
+            new GetAdminServiceRequestStatsQuery(), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("stats/status-breakdown")]
+    [ProducesResponseType(typeof(List<ServiceRequestStatusCountDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<ServiceRequestStatusCountDto>?>> GetStatusBreakdown(CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<List<ServiceRequestStatusCountDto>>(
+            new GetAdminServiceRequestStatusBreakdownQuery(), ct);
         return SetResponse(result);
     }
 

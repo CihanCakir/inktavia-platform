@@ -1,6 +1,5 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Entities.Access;
 using Aizen.Modules.FileStorage.Domain.Entities.Processing;
 using Aizen.Modules.FileStorage.Domain.Entities.UploadSession;
@@ -65,6 +64,7 @@ public sealed class FileEntity : AizenEntityWithAudit
             StorageProvider = storageProvider,
             Visibility = visibility,
             Category = category,
+            PublicId = Guid.NewGuid(),
             Status = FileStatus.Created,
             UploadedByUserId = uploadedByUserId,
             IsActive = true
@@ -115,5 +115,33 @@ public sealed class FileEntity : AizenEntityWithAudit
     public void UpdateVisibility(FileVisibility visibility)
     {
         Visibility = visibility;
+    }
+
+    public void UpdateActualSize(long actualSizeInBytes)
+    {
+        SizeInBytes = actualSizeInBytes;
+    }
+
+    public void MarkRejected(string? reason = null)
+    {
+        Status = FileStatus.Rejected;
+    }
+
+    /// <summary>
+    /// Marks the file as quarantined after a virus/malware scan detected a threat.
+    /// Quarantined files are NOT readable and NOT attachable.
+    /// </summary>
+    public void MarkQuarantined()
+    {
+        Status = FileStatus.Quarantined;
+    }
+
+    /// <summary>
+    /// Promotes the file to Ready after passing the virus/malware scan.
+    /// Only valid from the Uploaded state.
+    /// </summary>
+    public void PromoteToReady()
+    {
+        Status = FileStatus.Ready;
     }
 }

@@ -1,5 +1,4 @@
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 
 namespace Aizen.Modules.FileStorage.Abstraction.Request.UploadSession;
 
@@ -14,4 +13,9 @@ public sealed class CreateUploadSessionRequest
     public string? OwnerModule { get; set; }
     public string? OwnerEntityType { get; set; }
     public Guid? OwnerEntityId { get; set; }
+    /// <summary>
+    /// When true, the presigned upload URL is signed with the internal S3 endpoint (ServiceUrl, e.g. http://minio:9000)
+    /// instead of the browser-facing PublicServiceUrl. Use for server-to-server uploads where the browser is never involved.
+    /// </summary>
+    public bool ServerSideUpload { get; set; }
 }

@@ -1,59 +1,45 @@
-using Aizen.Modules.Payment.Extensions;
-using Aizen.Modules.Payment.Services;
-using Microsoft.OpenApi.Models;
+using Aizen.Core.Cache.Extension;
+using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.UnitOfWork.Extension;
+using Aizen.Core.Starter;
+using Aizen.Modules.Payment.Application;
+using Aizen.Modules.Payment.Repository;
+using Aizen.Modules.Payment.Repository.Persistence;
+using Aizen.Core.Common.Extension;
 
-var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
-builder.Services.AddKeycloakAuthentication(builder.Configuration);
-builder.Services.AddInktaviaAuthorizationPolicies();
-
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+var builder = AizenApplicationBuilder.CreateBuilder(new AizenAppInfo
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Payment API", Version = "v1" });
+    Name        = "Payment",
+    Type        = AppType.Operation,
+    TypeInclude = { AppType.Api, AppType.Worker, AppType.Scheduler },
+}, args);
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter your Keycloak access token. Example: Bearer {access_token}"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+builder.Services.AddAizenUnitOfWork<PaymentDbContext>(builder.Configuration, "Payment", options =>
+{
+    options.UseMigration          = true;
+    options.MigrationAssembly     = "Aizen.Modules.Payment.Repository";
+    options.UseLazyLoadingProxies = false;
 });
 
-var app = builder.Build();
+// ── Repository ─────────────────────────────────────────────────────────────────
+builder.Services.AddPaymentRepository(builder.Configuration);
 
-if (app.Environment.IsDevelopment())
+builder.Services.AddPaymentApplication(builder.Configuration);
+
+builder.Services.AddAizenCache(builder.Configuration);
+builder.Services.AddAizenErrorLocalization(builder.Configuration, typeof(PaymentDbContext).Assembly);
+
+var app = builder.Build();
+await app.SeedPaymentAsync();
+
+// ── BE-P12: idempotent financial-ledger backfill from the existing immutable sources (safe to re-run). ──
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var backfill = scope.ServiceProvider.GetRequiredService<
+        Aizen.Modules.Payment.Application.Services.FinancialLedgerBackfillService>();
+    await backfill.BackfillAsync();
 }
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
 app.Run();
-

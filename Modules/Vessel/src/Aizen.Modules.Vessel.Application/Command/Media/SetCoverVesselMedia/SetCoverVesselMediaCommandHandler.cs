@@ -2,7 +2,6 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Vessel.Abstraction.Message;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Abstraction.Response.Media;
@@ -51,6 +50,9 @@ public sealed class SetCoverVesselMediaCommandHandler : AizenCommandHandler<SetC
 
         await _invalidation.InvalidateMediaAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
+        // The user vessel list carries the cover URL (M4f) — evict it so the new cover shows on the list/Home card
+        // immediately (the list is keyed by the owner's UserId; the participant edits their own vessel).
+        await _invalidation.InvalidateUserVesselListAsync(currentUserId, cancellationToken);
 
         await _publisher.PublishAsync(new VesselCoverMediaChangedMessage
         {

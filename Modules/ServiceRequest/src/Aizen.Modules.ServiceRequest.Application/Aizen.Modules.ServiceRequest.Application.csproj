@@ -16,6 +16,12 @@
     <ProjectReference Include="../../../../Core/Validation/src/Aizen.Core.Validation/Aizen.Core.Validation.csproj" />
     <ProjectReference Include="../Aizen.Modules.ServiceRequest.Repository/Aizen.Modules.ServiceRequest.Repository.csproj" />
     <ProjectReference Include="../../../../Core/Realtime/src/Aizen.Core.Realtime.Abstraction/Aizen.Core.Realtime.Abstraction.csproj" />
+    <!-- Payment.Abstraction: IPaymentModuleRemoteCall for escrow lifecycle calls -->
+    <ProjectReference Include="../../../Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

@@ -2,7 +2,6 @@ using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Consumers;
 using Aizen.Core.Messagebus.Abstraction.Messages;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.UploadSession;
 using Aizen.Modules.FileStorage.Application.Commands.CreateUploadSession;
 using Microsoft.Extensions.DependencyInjection;

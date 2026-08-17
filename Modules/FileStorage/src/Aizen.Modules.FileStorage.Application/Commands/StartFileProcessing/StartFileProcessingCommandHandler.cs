@@ -2,13 +2,12 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Processing;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.StartFileProcessing;
 
-[DocumentationInfo("Start file processing command handler", "Delegates to IFileProcessingService to enqueue a job, then publishes FileProcessingRequestedMessage.")]
+[DocumentationInfo("Start file processing command handler", "Resolves the file by Guid, delegates to IFileProcessingService to enqueue a job, then publishes FileProcessingRequestedMessage.")]
 public sealed class StartFileProcessingCommandHandler : AizenCommandHandler<StartFileProcessingCommand, FileProcessingJobDto>
 {
     private readonly IFileProcessingService _processingService;
@@ -27,10 +26,10 @@ public sealed class StartFileProcessingCommandHandler : AizenCommandHandler<Star
 
     public override async Task<FileProcessingJobDto?> Handle(StartFileProcessingCommand command, CancellationToken cancellationToken)
     {
-        var file = await _fileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new KeyNotFoundException($"File with id '{command.FileId}' not found.");
+        var file = await _fileRepository.GetByGuidAsync(command.FileId, cancellationToken)
+            ?? throw new KeyNotFoundException($"File not found: {command.FileId}");
 
-        var job = await _processingService.StartProcessingAsync(command.FileId, command.Request.ProcessingType, cancellationToken);
+        var job = await _processingService.StartProcessingAsync(file.Id, command.Request.ProcessingType, cancellationToken);
 
         await _publisher.PublishAsync(new FileProcessingRequestedMessage
         {

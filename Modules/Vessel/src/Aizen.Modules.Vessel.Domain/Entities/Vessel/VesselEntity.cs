@@ -1,6 +1,5 @@
 using Aizen.Core.Domain;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 
 namespace Aizen.Modules.Vessel.Domain.Entities.Vessel;
 
@@ -92,6 +91,16 @@ public sealed class VesselEntity : AizenEntityWithAudit
             IsArchived = false,
             IsActive = true
         };
+    }
+
+    /// <summary>Attach an owner through the aggregate so EF sets the VesselId FK from the generated key on save.
+    /// (Inserting the owner via a separate repository with a scalar VesselId captured before the vessel is
+    /// persisted leaves VesselId = 0 and violates the FK — this keeps the graph consistent on create.)</summary>
+    public VesselOwnerEntity AddOwner(long userId, long? userProfileId, VesselOwnershipRole role, bool isPrimary)
+    {
+        var owner = VesselOwnerEntity.Create(Id, userId, userProfileId, role, isPrimary);
+        _owners.Add(owner);
+        return owner;
     }
 
     public void UpdateProfile(

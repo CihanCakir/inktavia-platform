@@ -13,4 +13,8 @@
       Include="..\Aizen.Modules.Identity.Repository\Aizen.Modules.Identity.Repository.csproj" />
 	</ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Aizen.Modules.Identity.Abstraction.Model" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,4 @@
 using Aizen.Core.Domain;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -15,6 +14,9 @@ public sealed class ServiceRequestMessageEntity : AizenEntityWithAudit
     public bool IsRead { get; private set; }
     public DateTime? ReadAt { get; private set; }
     public Guid? AttachmentFileId { get; private set; }
+    public decimal? LocationLat { get; private set; }
+    public decimal? LocationLng { get; private set; }
+    public string? LocationLabel { get; private set; }
 
     public ServiceRequestEntity ServiceRequest { get; private set; } = default!;
 
@@ -38,6 +40,20 @@ public sealed class ServiceRequestMessageEntity : AizenEntityWithAudit
             IsRead = false,
             AttachmentFileId = attachmentFileId,
             IsActive = true
+        };
+    }
+
+    public static ServiceRequestMessageEntity CreateLocation(
+        long serviceRequestId, long senderUserId, ServiceRequestMessageSenderType senderType,
+        decimal lat, decimal lng, string? label)
+    {
+        return new ServiceRequestMessageEntity
+        {
+            ServiceRequestId = serviceRequestId, SenderUserId = senderUserId, SenderType = senderType,
+            MessageType = ServiceRequestMessageType.Location,
+            Content = label ?? $"{lat},{lng}",
+            LocationLat = lat, LocationLng = lng, LocationLabel = label,
+            IsRead = false, IsActive = true
         };
     }
 

@@ -1,6 +1,5 @@
 using Aizen.Modules.FileStorage.Abstraction.Dto.UploadSession;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.UploadSession;
 using Aizen.Modules.FileStorage.Domain.Entities.File;
 using Aizen.Modules.FileStorage.Domain.Entities.UploadSession;
@@ -74,7 +73,7 @@ public sealed class FileUploadSessionService : IFileUploadSessionService
         await _db.SaveChangesAsync(cancellationToken);
 
         var expiresIn = TimeSpan.FromMinutes(_options.UploadUrlExpirationMinutes);
-        var uploadUrl = await _storageProvider.GenerateUploadUrlAsync(bucketName, objectKey, request.ContentType, expiresIn, cancellationToken);
+        var uploadUrl = await _storageProvider.GenerateUploadUrlAsync(bucketName, objectKey, request.ContentType, expiresIn, request.ServerSideUpload, cancellationToken);
 
         var sessionCode = Guid.NewGuid().ToString("N").ToUpperInvariant();
         var session = FileUploadSessionEntity.Create(
@@ -95,7 +94,7 @@ public sealed class FileUploadSessionService : IFileUploadSessionService
 
         return new FileUploadSessionDto
         {
-            FileId = file.PublicId ?? Guid.Empty,
+            FileId = file.PublicId ?? throw new InvalidOperationException("FileEntity.PublicId was not assigned."),
             UploadSessionCode = sessionCode,
             UploadUrl = uploadUrl,
             BucketName = bucketName,

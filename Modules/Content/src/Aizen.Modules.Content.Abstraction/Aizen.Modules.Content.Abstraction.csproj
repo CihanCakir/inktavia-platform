@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- AizenBaseMessage for integration events (ContentPublishedMessage, ...) — see §4.9 -->
+    <ProjectReference Include="..\..\..\..\Core\Messagebus\src\Aizen.Core.Messagebus.Abstraction\Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\Common\src\Aizen.Core.Common.Abstraction\Aizen.Core.Common.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
+
+</Project>

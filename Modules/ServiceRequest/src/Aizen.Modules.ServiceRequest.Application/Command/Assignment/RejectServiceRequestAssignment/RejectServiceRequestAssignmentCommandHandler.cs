@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Assignment;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
@@ -33,7 +32,7 @@ public sealed class RejectServiceRequestAssignmentCommandHandler : AizenCommandH
             ?? throw new InvalidOperationException($"ServiceRequest {assignment.ServiceRequestId} not found.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        assignment.Reject(request.Request.Reason);
+        assignment.Reject(request.Request.Reason, request.Request.ReasonCode);
         _assignmentRepository.Update(assignment);
 
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, assignment.ProviderProfileId,

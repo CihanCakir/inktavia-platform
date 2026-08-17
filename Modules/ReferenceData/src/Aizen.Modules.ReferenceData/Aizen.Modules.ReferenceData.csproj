@@ -32,4 +32,8 @@
     <EmbeddedResource Include="Resource\aizen_error_messages.json" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

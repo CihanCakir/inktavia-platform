@@ -12,4 +12,8 @@
     <ProjectReference Include="../Aizen.Modules.ReferenceData.Repository/Aizen.Modules.ReferenceData.Repository.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Using Include="Aizen.Core.Common.Abstraction" />
+  </ItemGroup>
 </Project>

@@ -1,11 +1,12 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Vessel.Abstraction.Enum;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Aizen.Modules.Vessel.Application.Command.Vessel;
 using Aizen.Modules.Vessel.Application.Query.Vessel;
+using Aizen.Modules.Vessel.Application.Query.Vessel.GetVesselSummaries;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -20,15 +21,27 @@ namespace Aizen.Modules.Vessel.Controller.V1.Vessel;
 public sealed class VesselController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
+    private readonly IAizenInfoAccessor _info;
 
-    public VesselController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
+    public VesselController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs, IAizenInfoAccessor info)
         : base(httpContextAccessor)
     {
         _cqrs = cqrs;
+        _info = info;
     }
 
-    private long CurrentUserId =>
-        long.Parse(ContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    // Resolve the caller's user id the same way the module's command handlers do — from the InfoAccessor,
+    // which is populated by both real user tokens AND the trusted-BFF identity assertion (BFF service-token
+    // callers carry no numeric NameIdentifier claim). Falls back to a numeric NameIdentifier claim if present.
+    private long CurrentUserId
+    {
+        get
+        {
+            var fromInfo = _info.UserInfoAccessor.UserInfo.UserId;
+            if (fromInfo > 0) return fromInfo;
+            return long.TryParse(ContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+        }
+    }
 
     [HttpPost]
     [ProducesResponseType(typeof(CreateVesselResponse), StatusCodes.Status200OK)]
@@ -96,6 +109,26 @@ public sealed class VesselController : AizenWebApiController
     public async Task<AizenApiResponse<UpdateVesselStatusResponse?>> UpdateStatus([FromRoute] long vesselId, [FromBody] UpdateVesselStatusRequest req, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<UpdateVesselStatusResponse>(new UpdateVesselStatusCommand(vesselId, req), ct);
+        return SetResponse(result);
+    }
+
+    [HttpGet("summary")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(GetVesselSummariesResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetVesselSummariesResponse?>> GetSummaries(
+        [FromQuery(Name = "ids")] string idsParam,
+        CancellationToken ct = default)
+    {
+        var ids = string.IsNullOrWhiteSpace(idsParam)
+            ? Array.Empty<long>()
+            : idsParam.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => long.TryParse(s.Trim(), out var id) ? id : 0)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToArray();
+
+        var result = await _cqrs.ProcessAsync<GetVesselSummariesResponse>(
+            new GetVesselSummariesQuery(ids), ct);
         return SetResponse(result);
     }
 

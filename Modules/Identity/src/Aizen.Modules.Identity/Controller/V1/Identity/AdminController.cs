@@ -2,11 +2,12 @@ using System.Security.Claims;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.Identity.Abstraction.Dto.Common;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.Identity.Abstraction.Response;
 using Aizen.Modules.InktaviaStore.Application.Identity;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer;
+using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.ReactivateOrganizerProfile;
+using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.SuspendOrganizerProfile;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Venue;
 using Aizen.Modules.InktaviaStore.Application.Identity.Query.Common;
 using Microsoft.AspNetCore.Authorization;
@@ -71,6 +72,43 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             return SetResponse(result);
         }
 
+        // POST /api/v1/identity/admin/organizers/{userId}/profiles/{profileId}/suspend
+        [HttpPost("admin/organizers/{userId}/profiles/{profileId}/suspend")]
+        [ProducesResponseType(typeof(SuspendOrganizerProfileResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<AizenApiResponse<SuspendOrganizerProfileResponse>> SuspendOrganizer(
+            [FromRoute] long userId,
+            [FromRoute] long profileId,
+            [FromBody] SuspendProfileRequest? req,
+            CancellationToken ct)
+        {
+            var result = await _sender.ProcessAsync(
+                new SuspendOrganizerProfileCommand(userId, profileId, req?.Reason),
+                ct);
+
+            return SetResponse(result);
+        }
+
+        // POST /api/v1/identity/admin/organizers/{userId}/profiles/{profileId}/reactivate
+        [HttpPost("admin/organizers/{userId}/profiles/{profileId}/reactivate")]
+        [ProducesResponseType(typeof(ReactivateOrganizerProfileResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<AizenApiResponse<ReactivateOrganizerProfileResponse>> ReactivateOrganizer(
+            [FromRoute] long userId,
+            [FromRoute] long profileId,
+            CancellationToken ct)
+        {
+            var result = await _sender.ProcessAsync(
+                new ReactivateOrganizerProfileCommand(userId, profileId),
+                ct);
+
+            return SetResponse(result);
+        }
+
         // POST /api/v1/identity/admin/venues/{userId}/profiles/{profileId}/approve
         [HttpPost("admin/venues/{userId}/profiles/{profileId}/approve")]
         [ProducesResponseType(typeof(VenueOrganizationRegistrationResponse), StatusCodes.Status200OK)]
@@ -120,12 +158,9 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             [FromBody] AddVerificationDocumentRequest req,
             CancellationToken ct)
         {
-            var adminUserId = long.TryParse(
-                ContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0L;
-
             var result = await _sender.ProcessAsync(
                 new AddOrganizerVerificationDocumentCommand(userId, profileId, req.FileId,
-                    req.Name, req.DocumentType, req.Format, req.FileSizeDisplay, req.Issuer, adminUserId),
+                    req.DocumentType, req.Issuer),
                 ct);
 
             return SetResponse(result);
@@ -142,12 +177,9 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             [FromBody] AddVerificationDocumentRequest req,
             CancellationToken ct)
         {
-            var adminUserId = long.TryParse(
-                ContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0L;
-
             var result = await _sender.ProcessAsync(
                 new AddVenueVerificationDocumentCommand(userId, profileId, req.FileId,
-                    req.Name, req.DocumentType, req.Format, req.FileSizeDisplay, req.Issuer, adminUserId),
+                    req.DocumentType, req.Issuer),
                 ct);
 
             return SetResponse(result);

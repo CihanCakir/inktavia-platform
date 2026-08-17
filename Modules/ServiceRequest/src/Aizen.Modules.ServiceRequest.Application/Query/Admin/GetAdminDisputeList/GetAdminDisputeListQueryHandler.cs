@@ -1,5 +1,4 @@
 using Aizen.Core.CQRS.Handler;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
@@ -17,7 +16,9 @@ public sealed class GetAdminDisputeListQueryHandler : AizenQueryHandler<GetAdmin
     {
         var filter = request.Filter;
         var skip = filter.PageIndex * filter.PageSize;
-        var disputes = await _repository.GetAllOpenAsync(skip, filter.PageSize, cancellationToken);
-        return new GetAdminDisputeListResponse(disputes.Select(d => d.ToDto()).ToList(), disputes.Count);
+        // Default (null status) now lists disputes of ALL statuses, not just Open; the filter narrows to one status
+        // and the total reflects that filter.
+        var (disputes, total) = await _repository.GetAllAsync(filter.Status, skip, filter.PageSize, cancellationToken);
+        return new GetAdminDisputeListResponse(disputes.Select(d => d.ToDto()).ToList(), total);
     }
 }

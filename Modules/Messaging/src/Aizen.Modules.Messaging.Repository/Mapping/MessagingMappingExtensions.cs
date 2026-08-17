@@ -18,6 +18,7 @@ public static class MessagingMappingExtensions
         Timestamp   = entity.LastMessageAt,
         UnreadCount = entity.UnreadCountByAdmin,
         Status      = entity.Status.ToString(),
+        Topic       = entity.Topic?.ToString(),
     };
 
     public static ChatMessageDto ToDto(this ConversationMessageEntity entity) => new()
@@ -30,6 +31,7 @@ public static class MessagingMappingExtensions
         Type             = entity.Type.ToString(),
         IsInternalNote   = entity.IsInternalNote,
         ModerationStatus = entity.ModerationStatus.ToString(),
+        ModerationReason = entity.ModerationReason,
         Timestamp        = entity.SentAt,
         Attachments      = entity.Attachments.Select(a => new AttachmentDto(
             a.FileStorageId ?? string.Empty,

@@ -1,10 +1,10 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Application.Command.Dispute;
+using Aizen.Modules.ServiceRequest.Application.Query.Dispute;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -68,6 +68,21 @@ public sealed class ServiceRequestDisputeController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<ResolveServiceRequestDisputeResponse>(
             new ResolveServiceRequestDisputeCommand(disputeId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// BE-S13a — the consolidated dispute case file for admin adjudication: dispute + SR timeline + cost-free offer
+    /// economics + work-logs + completion evidence + conversation messages + P10 payment/refund state + N-E reason.
+    /// </summary>
+    [HttpGet("{disputeId:long}/case")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(GetDisputeCaseDetailResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetDisputeCaseDetailResponse?>> GetCase(
+        [FromRoute] long serviceRequestId, [FromRoute] long disputeId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<GetDisputeCaseDetailResponse>(
+            new GetDisputeCaseDetailQuery(disputeId), ct);
         return SetResponse(result);
     }
 }

@@ -70,7 +70,7 @@
       },
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5073"
+        "ASPNETCORE_URLS": "http://localhost:7102"
       }
     },
     {
@@ -88,7 +88,7 @@
       },
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5295"
+        "ASPNETCORE_URLS": "http://localhost:7103"
       }
     },
     {
@@ -266,6 +266,7 @@
       "configurations": [
         "AdminPanel BFF",
         "Identity",
+        "Payment",
         "ReferenceData",
         "Vessel",
         "FileStorage",
@@ -273,6 +274,21 @@
         "Messaging",
         "Notification",
         "CargoDry"
+      ],
+      "stopAll": true
+    },
+      {
+      "name": "Selected Only",
+      "configurations": [
+        "AdminPanel BFF",
+        "Identity",
+        "Payment",
+        "Vessel",
+        "ServiceRequest",
+        "Messaging",
+        "Profile",
+        "CargoDry",
+        "FileStorage"
       ],
       "stopAll": true
     }

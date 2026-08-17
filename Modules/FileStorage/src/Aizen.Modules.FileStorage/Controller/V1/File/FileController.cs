@@ -3,7 +3,6 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.Access;
 using Aizen.Modules.FileStorage.Abstraction.Request.File;
 using Aizen.Modules.FileStorage.Application.Commands.DeleteFile;
@@ -31,30 +30,30 @@ public sealed class FileController : AizenWebApiController
         _cqrs = cqrs;
     }
 
-    [HttpGet("{fileId:long}")]
+    [HttpGet("{fileId:guid}")]
     [ProducesResponseType(typeof(FileDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileDto?>> GetById(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<FileDto>(new GetFileByIdQuery(fileId), ct);
         return SetResponse(result);
     }
 
-    [HttpGet("{fileId:long}/metadata")]
+    [HttpGet("{fileId:guid}/metadata")]
     [ProducesResponseType(typeof(FileMetadataDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileMetadataDto?>> GetMetadata(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<FileMetadataDto>(new GetFileMetadataQuery(fileId), ct);
         return SetResponse(result);
     }
 
-    [HttpDelete("{fileId:long}")]
+    [HttpDelete("{fileId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Delete(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         [FromBody] DeleteFileRequest req,
         CancellationToken ct = default)
     {
@@ -63,10 +62,10 @@ public sealed class FileController : AizenWebApiController
         return Ok(result);
     }
 
-    [HttpPut("{fileId:long}/visibility")]
+    [HttpPut("{fileId:guid}/visibility")]
     [ProducesResponseType(typeof(FileDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileDto?>> UpdateVisibility(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         [FromBody] FileVisibility visibility,
         CancellationToken ct = default)
     {
@@ -75,10 +74,10 @@ public sealed class FileController : AizenWebApiController
         return SetResponse(result);
     }
 
-    [HttpPost("{fileId:long}/owners")]
+    [HttpPost("{fileId:guid}/owners")]
     [ProducesResponseType(typeof(FileOwnerReferenceDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileOwnerReferenceDto?>> LinkToOwner(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         [FromBody] LinkFileToOwnerRequest req,
         CancellationToken ct = default)
     {

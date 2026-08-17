@@ -1,8 +1,11 @@
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
+using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Abstraction.Message;
+using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 using Aizen.Modules.CargoDry.Domain.MongoDocuments;
 using Microsoft.Extensions.Logging;
@@ -11,24 +14,30 @@ namespace Aizen.Modules.CargoDry.Application.Commands.RevokeKit;
 
 public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitCommand, RevokeKitResponse>
 {
-    private readonly ICargoDryKitRepository           _kits;
-    private readonly IAizenMessagePublisher           _publisher;
-    private readonly ICargoDryActivationLogRepository _activationLogs;
-    private readonly IAizenDistributedCache           _cache;
-    private readonly ILogger<RevokeKitCommandHandler> _logger;
+    private readonly ICargoDryKitRepository                _kits;
+    private readonly ICargoDryKitLifecycleEventRepository  _lifecycleEvents;
+    private readonly IAizenMessagePublisher                _publisher;
+    private readonly ICargoDryActivationLogRepository      _activationLogs;
+    private readonly IAizenDistributedCache                _cache;
+    private readonly IAizenInfoAccessor                    _info;
+    private readonly ILogger<RevokeKitCommandHandler>      _logger;
 
     public RevokeKitCommandHandler(
-        ICargoDryKitRepository kits,
-        IAizenMessagePublisher publisher,
-        ICargoDryActivationLogRepository activationLogs,
-        IAizenDistributedCache cache,
-        ILogger<RevokeKitCommandHandler> logger)
+        ICargoDryKitRepository               kits,
+        ICargoDryKitLifecycleEventRepository lifecycleEvents,
+        IAizenMessagePublisher               publisher,
+        ICargoDryActivationLogRepository     activationLogs,
+        IAizenDistributedCache               cache,
+        IAizenInfoAccessor                   info,
+        ILogger<RevokeKitCommandHandler>     logger)
     {
-        _kits           = kits;
-        _publisher      = publisher;
-        _activationLogs = activationLogs;
-        _cache          = cache;
-        _logger         = logger;
+        _kits            = kits;
+        _lifecycleEvents = lifecycleEvents;
+        _publisher       = publisher;
+        _activationLogs  = activationLogs;
+        _cache           = cache;
+        _info            = info;
+        _logger          = logger;
     }
 
     public override async Task<RevokeKitResponse> Handle(RevokeKitCommand request, CancellationToken ct)
@@ -36,11 +45,32 @@ public sealed class RevokeKitCommandHandler : AizenCommandHandler<RevokeKitComma
         var kit = await _kits.GetByIdAsync(request.KitId, ct)
             ?? throw new InvalidOperationException($"Kit {request.KitId} not found");
 
+        var previousStatus = kit.Status.ToString();
+        var adminUserId    = _info.UserInfoAccessor.UserInfo.UserId;
+
         kit.Revoke(request.Reason);
         await _kits.SaveChangesAsync(ct);
 
+        // ── Phase 9: SQL lifecycle event ──────────────────────────────────────
+        var lifecycleEvent = CargoDryKitLifecycleEventEntity.Create(
+            kitId:          kit.Id,
+            kitCode:        kit.KitCode,
+            serialNumber:   kit.SerialNumber,
+            batchCode:      kit.BatchCode,
+            productCode:    kit.ProductCode,
+            eventType:      CargoDryKitLifecycleEventType.Revoked,
+            previousStatus: previousStatus,
+            newStatus:      kit.Status.ToString(),
+            actorUserId:    adminUserId,
+            actorType:      "Admin",
+            reason:         request.Reason);
+
+        await _lifecycleEvents.AddAsync(lifecycleEvent, ct);
+        await _lifecycleEvents.SaveChangesAsync(ct);
+
         await _cache.RemoveAsync<CargoDryStatsDto>("cargodry:stats:global", ct);
 
+        // ── MongoDB activation log (existing, fire-and-forget) ────────────────
         var logDoc = new CargoDryActivationLogDocument
         {
             KitId        = kit.Id,

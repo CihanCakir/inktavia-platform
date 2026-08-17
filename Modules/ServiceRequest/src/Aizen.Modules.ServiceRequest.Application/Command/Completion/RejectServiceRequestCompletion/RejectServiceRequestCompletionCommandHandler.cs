@@ -1,7 +1,8 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -17,13 +18,16 @@ public sealed class RejectServiceRequestCompletionCommandHandler : AizenCommandH
     private readonly IServiceRequestCompletionRepository _completionRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public RejectServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestCompletionRepository completionRepository,
-        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher)
+        IAizenInfoAccessor info, ServiceRequestRealtimePublisher realtimePublisher,
+        IAizenMessagePublisher messagePublisher)
     {
         _srRepository = srRepository; _completionRepository = completionRepository;
         _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<RejectServiceRequestCompletionResponse?> Handle(RejectServiceRequestCompletionCommand request, CancellationToken cancellationToken)
@@ -34,7 +38,7 @@ public sealed class RejectServiceRequestCompletionCommandHandler : AizenCommandH
             ?? throw new InvalidOperationException($"No completion found for ServiceRequest {request.ServiceRequestId}.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        completion.RejectByOwner(currentUserId, request.Request.ReviewNotes);
+        completion.RejectByOwner(currentUserId, request.Request.ReviewNotes, request.Request.ReasonCode);
         _completionRepository.Update(completion);
 
         var prevStatus = sr.Status;
@@ -48,6 +52,16 @@ public sealed class RejectServiceRequestCompletionCommandHandler : AizenCommandH
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, null,
             ServiceRequestRealtimeEventType.CompletionRejected, completion.ToDto(),
             currentUserId, ServiceRequestActorType.Owner, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestCompletionRejectedMessage
+        {
+            ServiceRequestId = sr.Id,
+            CompletionId = completion.Id,
+            ProviderUserId = completion.ProviderUserId,
+            OwnerUserId = currentUserId,
+            ReviewNotes = request.Request.ReviewNotes,
+            ReasonCode = request.Request.ReasonCode
+        }, cancellationToken);
 
         return new RejectServiceRequestCompletionResponse(completion.Id);
     }

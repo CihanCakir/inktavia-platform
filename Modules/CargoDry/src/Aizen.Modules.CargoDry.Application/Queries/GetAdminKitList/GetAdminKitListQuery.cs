@@ -6,11 +6,13 @@ namespace Aizen.Modules.CargoDry.Application.Queries.GetAdminKitList;
 
 public sealed class GetAdminKitListQuery : AizenQuery<GetAdminKitListResponse>
 {
-    public CargoDryKitStatus? Status   { get; init; }
-    public string?            Search   { get; init; }
-    public long?              VesselId { get; init; }
-    public int                Page     { get; init; } = 1;
-    public int                PageSize { get; init; } = 25;
+    public CargoDryKitStatus? Status      { get; init; }
+    public string?            Search      { get; init; }
+    public long?              VesselId    { get; init; }
+    public long?              OwnerUserId { get; init; }
+    public string?            BatchCode   { get; init; }
+    public int                Page        { get; init; } = 1;
+    public int                PageSize    { get; init; } = 25;
 }
 
 public sealed class GetAdminKitListResponse

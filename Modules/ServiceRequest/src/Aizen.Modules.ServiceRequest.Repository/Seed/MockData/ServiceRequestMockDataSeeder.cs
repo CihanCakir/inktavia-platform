@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Text.Json;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
+using Aizen.Modules.ServiceRequest.Domain.Entities.Catalog;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
@@ -73,7 +73,15 @@ public sealed class ServiceRequestMockDataSeeder
         await SeedCompletionsAsync(basePath, ct);
         await SeedDisputesAsync(basePath, ct);
         await SeedMessagesAsync(basePath, ct);
+        await SeedAttachmentsAsync(ct);
+        await SeedCatalogItemsAsync(ct);
+        await SeedTemplatesAsync(ct);
+        await SeedConversationAsync(ct);
+        await SeedAcceptedJobAsync(ct);
+        await ResetJob91001Async(ct);
         await AdvanceSequencesAsync(ct);
+        // QA4 — runs AFTER AdvanceSequencesAsync so identity-generated ids are past the explicitly-seeded ids.
+        await BackfillStatusHistoriesAsync(ct);
 
         _logger.LogInformation("ServiceRequest MockData seeder completed.");
     }
@@ -104,8 +112,8 @@ public sealed class ServiceRequestMockDataSeeder
                 locationCountryCode: model.LocationCountryCode,
                 locationCityCode: model.LocationCityCode,
                 locationMarinaName: model.LocationMarinaName,
-                locationLatitude: null,
-                locationLongitude: null,
+                locationLatitude: model.LocationLatitude,
+                locationLongitude: model.LocationLongitude,
                 ownerNotes: null,
                 expiresAt: null);
 
@@ -115,6 +123,11 @@ public sealed class ServiceRequestMockDataSeeder
             entity.ModifyDate = DateTime.UtcNow;
             entity.IsDeleted = false;
             entity.IsActive = model.Status != 90 && model.Status != 91 && model.Status != 99;
+
+            // Set PublishedAt for biddable statuses so they appear in provider discovery
+            var status = (ServiceRequestStatus)model.Status;
+            if (status is ServiceRequestStatus.Open or ServiceRequestStatus.WaitingForOffer or ServiceRequestStatus.OfferReceived)
+                SetPrivateProperty(entity, "PublishedAt", (DateTime?)DateTime.UtcNow);
 
             if (model.Status == 90 && !string.IsNullOrWhiteSpace(model.CancelReason))
                 entity.Cancel(model.OwnerUserId, model.CancelReason);
@@ -252,6 +265,19 @@ public sealed class ServiceRequestMockDataSeeder
             entity.CreateDate = DateTime.UtcNow;
             entity.ModifyDate = DateTime.UtcNow;
             entity.IsDeleted = false;
+
+            // Line economics snapshots are normally set by the offer pricing-calc service (10c), which the mock seeder
+            // bypasses — so they defaulted to 0, leaving accepted-offer economics degenerate (LineSubtotal 0 ⇒ the P8
+            // combiner sees a ~₺0 base and rejects on the min-contribution gate). Compute them here from qty × unitPrice so
+            // a seeded offer has a coherent, acceptable economics base (Exempt lines contribute 0 to the commission base).
+            var lineSubtotal = decimal.Round(entity.Quantity * entity.UnitPrice, 2);
+            var taxAmount    = decimal.Round(lineSubtotal * entity.TaxRate, 2);
+            SetPrivateProperty(entity, "LineSubtotal", lineSubtotal);
+            SetPrivateProperty(entity, "TaxAmount", taxAmount);
+            SetPrivateProperty(entity, "LineTotal", lineSubtotal + taxAmount);
+            SetPrivateProperty(entity, "DiscountAmount", 0m);
+            SetPrivateProperty(entity, "CommissionBaseAmount",
+                entity.CommissionEligibility == LineCommissionEligibility.Exempt ? 0m : lineSubtotal);
 
             await SaveEntityAsync(entity, _db.ServiceRequestOfferItems, ct, $"offer item {model.Id}");
         }
@@ -451,6 +477,450 @@ public sealed class ServiceRequestMockDataSeeder
         }
     }
 
+    /// <summary>
+    private async Task SeedCatalogItemsAsync(CancellationToken ct)
+    {
+        const long provider2ProfileId = 100011;
+        var seeds = new[]
+        {
+            (Id: 60001L, Type: ServiceRequestOfferItemType.Service, Title: "Gövde Basınçlı Yıkama", Unit: "PIECE", Price: 1250m, Tax: 0.20m),
+            (Id: 60002L, Type: ServiceRequestOfferItemType.Product, Title: "Antifouling Boya — Jotun", Unit: "LITER", Price: 480m, Tax: 0.20m),
+            (Id: 60003L, Type: ServiceRequestOfferItemType.Service, Title: "Pasta Cila", Unit: (string?)null, Price: 900m, Tax: 0.20m),
+            (Id: 60004L, Type: ServiceRequestOfferItemType.Labor, Title: "Tekne Altı İşçilik (saat)", Unit: "HOUR", Price: 350m, Tax: 0.20m),
+        };
+
+        foreach (var s in seeds)
+        {
+            if (await _db.ProviderCatalogItems.AnyAsync(c => c.Id == s.Id, ct)) continue;
+
+            var entity = ProviderCatalogItemEntity.Create(
+                provider2ProfileId, s.Type, s.Title, null,
+                1, s.Unit, s.Price, "TRY", s.Tax);
+            entity.Id = s.Id;
+            entity.CreateDate = DateTime.UtcNow;
+            entity.ModifyDate = DateTime.UtcNow;
+            entity.IsDeleted = false;
+
+            await SaveEntityAsync(entity, _db.ProviderCatalogItems, ct, $"catalog item {s.Id}");
+        }
+    }
+
+    private async Task SeedTemplatesAsync(CancellationToken ct)
+    {
+        const long templateId = 70001;
+        const long provider2ProfileId = 100011;
+
+        if (await _db.ProviderOfferTemplates.AnyAsync(t => t.Id == templateId, ct)) return;
+
+        var template = ProviderOfferTemplateEntity.Create(provider2ProfileId, "Standart Karina Bakımı",
+            "Gövde yıkama + antifouling + cila — standart tekne altı bakım paketi");
+        template.Id = templateId;
+        template.CreateDate = DateTime.UtcNow;
+        template.ModifyDate = DateTime.UtcNow;
+        template.IsDeleted = false;
+
+        var items = new[]
+        {
+            ProviderOfferTemplateItemEntity.Create(ServiceRequestOfferItemType.Service, "Gövde Basınçlı Yıkama", null, 1, "PIECE", 1250, "TRY", 0.20m, OfferDiscountType.None, null, 0),
+            ProviderOfferTemplateItemEntity.Create(ServiceRequestOfferItemType.Product, "Antifouling Boya — Jotun", null, 2, "LITER", 480, "TRY", 0.20m, OfferDiscountType.None, null, 1),
+            ProviderOfferTemplateItemEntity.Create(ServiceRequestOfferItemType.Service, "Pasta Cila", null, 1, null, 900, "TRY", 0.20m, OfferDiscountType.None, null, 2),
+        };
+        template.ReplaceItems(items);
+
+        _db.ProviderOfferTemplates.Add(template);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+            _logger.LogDebug("Seeded template {TemplateId}.", templateId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to seed template {TemplateId}, skipping.", templateId);
+            _db.ChangeTracker.Clear();
+        }
+    }
+
+    /// <summary>Seeds a realistic conversation on SR 9011 for the Messages page.</summary>
+    private async Task SeedConversationAsync(CancellationToken ct)
+    {
+        const long srId = 9011;
+        const long firstMsgId = 80001;
+
+        if (await _db.ServiceRequestMessages.AnyAsync(m => m.Id == firstMsgId, ct)) return;
+        if (!await _db.ServiceRequests.AnyAsync(r => r.Id == srId, ct)) return;
+
+        var fileId = new Guid("a0a0a0a0-b1b1-c2c2-d3d3-e4e4e4e4e4e4");
+        var baseTime = DateTime.UtcNow.AddHours(-3);
+        var msgs = new (long Id, long Sender, ServiceRequestMessageSenderType SType, ServiceRequestMessageType MType, string Content, Guid? File, decimal? Lat, decimal? Lng, string? Label, bool Unread)[]
+        {
+            (80001, 10008, ServiceRequestMessageSenderType.Owner, ServiceRequestMessageType.Text, "Merhaba, teklifinizi aldım. Dümen arızası acil mi yoksa planlı bakımda mı yapılabilir?", null, null, null, null, true),
+            (80002, 100011, ServiceRequestMessageSenderType.Provider, ServiceRequestMessageType.Text, "Merhaba, acil müdahale gerekiyor. Hidrolik hortum sızıntısı varsa tekne hareket ettirilemez.", null, null, null, null, false),
+            (80003, 10008, ServiceRequestMessageSenderType.Owner, ServiceRequestMessageType.Image, "Hasar fotoğrafı", fileId, null, null, null, true),
+            (80004, 10008, ServiceRequestMessageSenderType.Owner, ServiceRequestMessageType.Location, "Çeşme Marina", null, 38.3235m, 26.3050m, "Çeşme Marina", true),
+            (80005, 0, ServiceRequestMessageSenderType.System, ServiceRequestMessageType.StatusChange, "OFFER_ACCEPTED", null, null, null, null, false),
+        };
+
+        foreach (var m in msgs)
+        {
+            ServiceRequestMessageEntity entity;
+            if (m.Lat.HasValue && m.Lng.HasValue)
+                entity = ServiceRequestMessageEntity.CreateLocation(srId, m.Sender, m.SType, m.Lat.Value, m.Lng.Value, m.Label);
+            else
+                entity = ServiceRequestMessageEntity.Create(srId, m.Sender, m.SType, m.MType, m.Content, m.File);
+
+            entity.Id = m.Id;
+            entity.CreateDate = baseTime.AddMinutes((m.Id - firstMsgId) * 10);
+            entity.ModifyDate = entity.CreateDate;
+            entity.IsDeleted = false;
+            if (!m.Unread) entity.MarkAsRead();
+
+            await SaveEntityAsync(entity, _db.ServiceRequestMessages, ct, $"conversation msg {m.Id}");
+        }
+    }
+
+    /// <summary>
+    /// Seeds one accepted offer + assignment (job) for provider2 on SR 9011.
+    /// Uses domain entities directly. Idempotent on offer/assignment ids.
+    /// </summary>
+    private async Task SeedAcceptedJobAsync(CancellationToken ct)
+    {
+        const long srId = 9011;
+        const long offerId = 90001;
+        const long assignmentId = 91001;
+        const long provider2ProfileId = 100011;
+        const long provider2UserId = 100011;
+        const long ownerUserId = 10008;
+
+        // Guard: already seeded
+        if (await _db.ServiceRequestAssignments.AnyAsync(a => a.Id == assignmentId, ct)) return;
+        if (!await _db.ServiceRequests.AnyAsync(r => r.Id == srId, ct)) return;
+
+        // 1. Create and accept an offer (if not already present)
+        if (!await _db.ServiceRequestOffers.AnyAsync(o => o.Id == offerId, ct))
+        {
+            var offer = ServiceRequestOfferEntity.Create(
+                srId, provider2ProfileId, provider2UserId,
+                5000m, "TRY", "Dümen sistemi komple onarım", null,
+                DateTime.UtcNow.AddDays(3), DateTime.UtcNow.AddDays(5), 960, null);
+            offer.Id = offerId;
+            offer.CreateDate = DateTime.UtcNow;
+            offer.ModifyDate = DateTime.UtcNow;
+            offer.IsDeleted = false;
+
+            // Submit then accept
+            SetPrivateProperty(offer, "Status", ServiceRequestOfferStatus.Accepted);
+            SetPrivateProperty(offer, "AcceptedAt", (DateTime?)DateTime.UtcNow);
+            SetPrivateProperty(offer, "SubmittedAt", (DateTime?)DateTime.UtcNow.AddMinutes(-30));
+
+            _db.ServiceRequestOffers.Add(offer);
+            try { await _db.SaveChangesAsync(ct); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to seed offer {OfferId}.", offerId); _db.ChangeTracker.Clear(); return; }
+        }
+
+        // 2. Set SR status to Assigned
+        var sr = await _db.ServiceRequests.FirstOrDefaultAsync(r => r.Id == srId, ct);
+        if (sr is not null && sr.Status != ServiceRequestStatus.Assigned)
+        {
+            sr.ChangeStatus(ServiceRequestStatus.Assigned);
+            sr.Assign(provider2ProfileId, "Marine Teknik Çeşme");
+            await _db.SaveChangesAsync(ct);
+        }
+
+        // 3. Create assignment
+        var assignment = ServiceRequestAssignmentEntity.Create(
+            srId, offerId, provider2ProfileId, provider2UserId,
+            null, DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(3));
+        assignment.Id = assignmentId;
+        assignment.CreateDate = DateTime.UtcNow;
+        assignment.ModifyDate = DateTime.UtcNow;
+        assignment.IsDeleted = false;
+
+        _db.ServiceRequestAssignments.Add(assignment);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("Seeded accepted job: assignment {AssignmentId} on SR {SrId}.", assignmentId, srId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to seed assignment {AssignmentId}.", assignmentId);
+            _db.ChangeTracker.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Dev/Local reset: clears test work logs, completion, lifecycle messages on job 91001 / SR 9011,
+    /// resets to Assigned, and seeds offer line items if missing. Idempotent.
+    /// </summary>
+    private async Task ResetJob91001Async(CancellationToken ct)
+    {
+        try
+        {
+        const long srId = 9011;
+        const long assignmentId = 91001;
+        const long offerId = 90001;
+
+        var sr = await _db.ServiceRequests.FirstOrDefaultAsync(r => r.Id == srId, ct);
+        if (sr is null) return;
+
+        var assignment = await _db.ServiceRequestAssignments.FirstOrDefaultAsync(a => a.Id == assignmentId, ct);
+        if (assignment is null) return;
+
+        // Idempotent guard: if already Assigned and no work logs, nothing to do (except maybe offer items)
+        var hasWorkLogs = await _db.ServiceRequestWorkLogs.AnyAsync(w => w.ServiceRequestAssignmentId == assignmentId, ct);
+        var needsReset = sr.Status != ServiceRequestStatus.Assigned || hasWorkLogs;
+
+        if (needsReset)
+        {
+            // 1. Delete work logs
+            var workLogs = await _db.ServiceRequestWorkLogs.Where(w => w.ServiceRequestAssignmentId == assignmentId).ToListAsync(ct);
+            _db.ServiceRequestWorkLogs.RemoveRange(workLogs);
+
+            // 2. Delete completion
+            var completion = await _db.ServiceRequestCompletions.FirstOrDefaultAsync(c => c.ServiceRequestId == srId, ct);
+            if (completion is not null) _db.ServiceRequestCompletions.Remove(completion);
+
+            // 3. Remove lifecycle system messages (keep OFFER_ACCEPTED)
+            var sysMessages = await _db.ServiceRequestMessages
+                .Where(m => m.ServiceRequestId == srId && m.SenderType == ServiceRequestMessageSenderType.System
+                    && m.MessageType == ServiceRequestMessageType.StatusChange && m.Content != "OFFER_ACCEPTED")
+                .ToListAsync(ct);
+            _db.ServiceRequestMessages.RemoveRange(sysMessages);
+
+            // 4. Trim status history after Assigned
+            var historyToRemove = await _db.ServiceRequestStatusHistories
+                .Where(h => h.ServiceRequestId == srId
+                    && h.ToStatus != ServiceRequestStatus.Assigned
+                    && h.ToStatus != ServiceRequestStatus.OfferAccepted
+                    && h.ToStatus != ServiceRequestStatus.Open
+                    && h.ToStatus != ServiceRequestStatus.WaitingForOffer
+                    && h.ToStatus != ServiceRequestStatus.OfferReceived)
+                .ToListAsync(ct);
+            _db.ServiceRequestStatusHistories.RemoveRange(historyToRemove);
+
+            // 5. Reset assignment + SR
+            SetPrivateProperty(assignment, "Status", ServiceRequestAssignmentStatus.Accepted);
+            SetPrivateProperty(assignment, "ActualStartDate", (DateTime?)null);
+            SetPrivateProperty(assignment, "ActualEndDate", (DateTime?)null);
+            sr.ChangeStatus(ServiceRequestStatus.Assigned);
+
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("Reset job 91001 / SR 9011 to Assigned.");
+        }
+
+        // 7. Seed offer line items directly via DbContext (bypass ReplaceItems guard on Accepted offer)
+        if (!await _db.ServiceRequestOfferItems.AnyAsync(i => i.ServiceRequestOfferId == offerId, ct))
+        {
+            var offer = await _db.ServiceRequestOffers.FirstOrDefaultAsync(o => o.Id == offerId, ct);
+            if (offer is not null)
+            {
+                var currency = offer.CurrencyCode;
+                var itemDefs = new (ServiceRequestOfferItemType Type, string Title, decimal Qty, string Unit, decimal Price, int Sort)[]
+                {
+                    (ServiceRequestOfferItemType.Labor, "Gövde Temizliği İşçiliği", 24, "HOUR", 45, 0),
+                    (ServiceRequestOfferItemType.Product, "International Ultra 300 Antifouling", 15, "LITER", 120, 1),
+                    (ServiceRequestOfferItemType.Service, "Sarf Malzeme Paketi", 1, "PIECE", 250, 2),
+                };
+
+                foreach (var d in itemDefs)
+                {
+                    var item = ServiceRequestOfferItemEntity.Create(
+                        offerId, d.Type, d.Title, null, d.Qty, d.Price, currency, d.Sort, d.Unit, 0.20m);
+                    var lineSub = Math.Round(d.Qty * d.Price, 2, MidpointRounding.AwayFromZero);
+                    var lineTax = Math.Round(lineSub * 0.20m, 2, MidpointRounding.AwayFromZero);
+                    item.SetComputedTotals(lineSub, 0, lineTax, lineSub + lineTax);
+                    _db.ServiceRequestOfferItems.Add(item);
+                }
+
+                // subtotal=3130, taxTotal=626, grandTotal=3756
+                offer.SetComputedTotals(3130m, 0, 626m, 3756m, 250m, 1800m, 1080m, 0, 0, 0, 0, 0);
+
+                if (string.IsNullOrWhiteSpace(offer.Description))
+                    SetPrivateProperty(offer, "Description",
+                        "Teknenin su altı kısmındaki kekamozların temizlenmesi, zımparalanması ve seçilen yüksek kaliteli antifouling boyanın iki kat uygulanması işidir.");
+
+                _db.ServiceRequestOffers.Update(offer);
+                await _db.SaveChangesAsync(ct);
+                _logger.LogInformation("Seeded offer 90001 line items (3 items, GrandTotal=3756).");
+            }
+        }
+
+        // Optional: seed demo conversation messages
+        var hasConvoMessages = await _db.ServiceRequestMessages.AnyAsync(
+            m => m.ServiceRequestId == srId && m.SenderType == ServiceRequestMessageSenderType.Owner
+                 && m.MessageType == ServiceRequestMessageType.Text && !m.IsDeleted, ct);
+        if (!hasConvoMessages)
+        {
+            var baseTime = DateTime.UtcNow.AddHours(-2);
+            var msg1 = ServiceRequestMessageEntity.Create(srId, 10008, ServiceRequestMessageSenderType.Owner,
+                ServiceRequestMessageType.Text,
+                "Selamlar, boya uygulaması öncesi gövde zımpara bittikten sonra bir fotoğraf paylaşabilir misiniz? Son durumu görmek isterim.", null);
+            msg1.CreateDate = baseTime;
+            msg1.ModifyDate = baseTime;
+            msg1.IsDeleted = false;
+
+            var msg2 = ServiceRequestMessageEntity.Create(srId, 100011, ServiceRequestMessageSenderType.Provider,
+                ServiceRequestMessageType.Text,
+                "Tabii ki, zımpara işlemi şu an devam ediyor. Öğleden sonra temizlik bitince detaylı fotoğraf göndereceğim.", null);
+            msg2.CreateDate = baseTime.AddMinutes(15);
+            msg2.ModifyDate = baseTime.AddMinutes(15);
+            msg2.IsDeleted = false;
+
+            _db.ServiceRequestMessages.AddRange(msg1, msg2);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ResetJob91001Async skipped (dev seed, non-fatal).");
+            _db.ChangeTracker.Clear();
+        }
+    }
+
+    /// Seeds a single attachment on the emergency request (SR 9011) for end-to-end gallery/read-url testing.
+    /// Uses a deterministic FileId so it can be linked to a real MinIO object later.
+    /// </summary>
+    private async Task SeedAttachmentsAsync(CancellationToken ct)
+    {
+        const long attachmentId = 50001;
+        const long serviceRequestId = 9011;
+        var fileId = new Guid("a0a0a0a0-b1b1-c2c2-d3d3-e4e4e4e4e4e4");
+
+        if (await _db.ServiceRequestAttachments.AnyAsync(a => a.Id == attachmentId, ct))
+            return;
+
+        // Only seed if the parent SR exists
+        if (!await _db.ServiceRequests.AnyAsync(r => r.Id == serviceRequestId, ct))
+            return;
+
+        var entity = ServiceRequestAttachmentEntity.Create(
+            serviceRequestId: serviceRequestId,
+            fileId: fileId,
+            attachmentType: ServiceRequestAttachmentType.Photo,
+            title: "Dümen sistemi hasar fotoğrafı",
+            description: "Hidrolik hortum sızıntısı gösteren fotoğraf",
+            uploaderUserId: 10008,
+            uploaderActorType: ServiceRequestActorType.Owner);
+
+        entity.Id = attachmentId;
+        entity.CreateDate = DateTime.UtcNow;
+        entity.ModifyDate = DateTime.UtcNow;
+        entity.IsDeleted = false;
+
+        await SaveEntityAsync(entity, _db.ServiceRequestAttachments, ct, $"attachment {attachmentId}");
+    }
+
+    // ── QA4 — status-history backfill for seed SRs ──────────────────────────────────────────────
+    // Seed SRs (9001–9011, etc.) are inserted directly at their terminal status with NO history, so the admin
+    // timeline renders empty. This writes the plausible transition chain up to each SR's current status with
+    // backdated UTC timestamps — ONLY for SRs whose history is empty, so it is duplicate-safe on re-run.
+
+    private static readonly ServiceRequestStatus[] HappyPath =
+    {
+        ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.OfferReceived,
+        ServiceRequestStatus.OfferAccepted, ServiceRequestStatus.Assigned, ServiceRequestStatus.Scheduled,
+        ServiceRequestStatus.InProgress, ServiceRequestStatus.CompletionSubmitted, ServiceRequestStatus.Completed,
+    };
+
+    private async Task BackfillStatusHistoriesAsync(CancellationToken ct)
+    {
+        var srs = await _db.ServiceRequests
+            .Where(sr => !_db.ServiceRequestStatusHistories.Any(h => h.ServiceRequestId == sr.Id))
+            .Select(sr => new { sr.Id, sr.Status, sr.CreateDate, sr.ModifyDate })
+            .ToListAsync(ct);
+
+        var backfilled = 0;
+        foreach (var sr in srs)
+        {
+            var chain = PlausibleStatusChain(sr.Status);
+            if (chain.Count < 2) continue; // Draft (or unknown) — no transitions to record yet
+
+            var start = (sr.CreateDate ?? DateTime.UtcNow.AddDays(-2));
+            var end = (sr.ModifyDate ?? DateTime.UtcNow);
+            if (end <= start) end = start.AddHours(chain.Count);
+            if (end > DateTime.UtcNow) end = DateTime.UtcNow;
+
+            var transitions = chain.Count - 1;
+            for (var i = 0; i < transitions; i++)
+            {
+                var from = chain[i];
+                var to = chain[i + 1];
+                var occurredAt = start.AddSeconds((end - start).TotalSeconds * (i + 1) / transitions);
+
+                var entity = ServiceRequestStatusHistoryEntity.Create(
+                    serviceRequestId: sr.Id, fromStatus: from, toStatus: to,
+                    reason: TransitionReason(to), actorUserId: null, actorType: TransitionActor(to));
+                SetPrivateProperty(entity, "OccurredAt", occurredAt);
+                entity.CreateDate = occurredAt;
+                entity.ModifyDate = occurredAt;
+                entity.IsDeleted = false;
+                // Id left unset → DB identity assigns a safe id (sequence already advanced past seeded ids).
+                await SaveEntityAsync(entity, _db.ServiceRequestStatusHistories, ct, $"backfill history SR {sr.Id} {from}->{to}");
+            }
+            backfilled++;
+        }
+
+        if (backfilled > 0)
+            _logger.LogInformation("QA4 backfilled status history for {Count} seed service request(s).", backfilled);
+    }
+
+    private static IReadOnlyList<ServiceRequestStatus> PlausibleStatusChain(ServiceRequestStatus target)
+    {
+        switch (target)
+        {
+            case ServiceRequestStatus.Draft:
+                return new[] { ServiceRequestStatus.Draft };
+            case ServiceRequestStatus.WaitingForOffer:
+                return new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.WaitingForOffer };
+            case ServiceRequestStatus.Cancelled:
+                return new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.OfferReceived, ServiceRequestStatus.Cancelled };
+            case ServiceRequestStatus.Expired:
+                return new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.Expired };
+            case ServiceRequestStatus.DisputeOpened:
+                return new[]
+                {
+                    ServiceRequestStatus.Draft, ServiceRequestStatus.Open, ServiceRequestStatus.OfferReceived,
+                    ServiceRequestStatus.OfferAccepted, ServiceRequestStatus.Assigned, ServiceRequestStatus.InProgress,
+                    ServiceRequestStatus.CompletionSubmitted, ServiceRequestStatus.DisputeOpened,
+                };
+        }
+
+        var idx = Array.IndexOf(HappyPath, target);
+        if (idx >= 0) return HappyPath.Take(idx + 1).ToArray();
+
+        return target == ServiceRequestStatus.Open
+            ? new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open }
+            : new[] { ServiceRequestStatus.Draft, ServiceRequestStatus.Open, target };
+    }
+
+    private static string TransitionReason(ServiceRequestStatus to) => to switch
+    {
+        ServiceRequestStatus.Open => "Service request published",
+        ServiceRequestStatus.WaitingForOffer => "Awaiting provider offers",
+        ServiceRequestStatus.OfferReceived => "First offer received",
+        ServiceRequestStatus.OfferAccepted => "Owner accepted an offer",
+        ServiceRequestStatus.Assigned => "Provider assigned",
+        ServiceRequestStatus.Scheduled => "Work scheduled",
+        ServiceRequestStatus.InProgress => "Work started",
+        ServiceRequestStatus.CompletionSubmitted => "Completion submitted",
+        ServiceRequestStatus.Completed => "Completion approved",
+        ServiceRequestStatus.DisputeOpened => "Dispute opened",
+        ServiceRequestStatus.Cancelled => "Request cancelled",
+        ServiceRequestStatus.Expired => "Request expired",
+        _ => $"Status changed to {to}",
+    };
+
+    private static ServiceRequestActorType TransitionActor(ServiceRequestStatus to) => to switch
+    {
+        ServiceRequestStatus.Open or ServiceRequestStatus.OfferAccepted or ServiceRequestStatus.Completed
+            or ServiceRequestStatus.Cancelled or ServiceRequestStatus.DisputeOpened => ServiceRequestActorType.Owner,
+        ServiceRequestStatus.OfferReceived or ServiceRequestStatus.Scheduled or ServiceRequestStatus.InProgress
+            or ServiceRequestStatus.CompletionSubmitted => ServiceRequestActorType.Provider,
+        ServiceRequestStatus.Assigned => ServiceRequestActorType.Admin,
+        _ => ServiceRequestActorType.System,
+    };
+
     private async Task SaveEntityAsync<T>(T entity, Microsoft.EntityFrameworkCore.DbSet<T> dbSet, CancellationToken ct, string label)
         where T : class
     {
@@ -515,7 +985,8 @@ public sealed class ServiceRequestMockDataSeeder
         string Title, string? Description, int Status, int Priority,
         DateTime? RequestedStartDate, DateTime? RequestedEndDate,
         string? LocationCountryCode, string? LocationCityCode, string? LocationMarinaName,
-        string? CancelReason = null);
+        string? CancelReason = null,
+        decimal? LocationLatitude = null, decimal? LocationLongitude = null);
 
     private sealed record MockServiceRequestItemModel(
         long Id, long ServiceRequestId, int ItemType,

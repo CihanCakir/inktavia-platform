@@ -1,0 +1,50 @@
+using Aizen.Bff.AdminPanel.Application.Identity.Dto;
+using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
+using Aizen.Bff.AdminPanel.Application.Common.Warnings;
+using Aizen.Core.CQRS.Handler;
+
+namespace Aizen.Bff.AdminPanel.Application.Identity.Query;
+
+[DocumentationInfo("Get admin profiles query handler", "Fetches organizer, venue and participant profile lists in parallel for the admin identity overview screen.")]
+public sealed class GetProfilesBffQueryHandler
+    : AizenQueryHandler<GetProfilesBffQuery, AdminUserOverviewResponse>
+{
+    private readonly IIdentityRemoteCall _identity;
+
+    public GetProfilesBffQueryHandler(IIdentityRemoteCall identity)
+    {
+        _identity = identity;
+    }
+
+    public override async Task<AdminUserOverviewResponse?> Handle(
+        GetProfilesBffQuery request, CancellationToken cancellationToken)
+    {
+        var response = new AdminUserOverviewResponse();
+
+        var orgTask = _identity.SearchOrganizerProfiles(request.PageIndex, request.PageSize);
+        var venueTask = _identity.SearchVenueProfiles(request.PageIndex, request.PageSize);
+        var participantTask = _identity.SearchParticipantProfiles(request.PageIndex, request.PageSize);
+
+        await Task.WhenAll(
+            orgTask.ContinueWith(_ => { }),
+            venueTask.ContinueWith(_ => { }),
+            participantTask.ContinueWith(_ => { }));
+
+        if (orgTask.IsCompletedSuccessfully)
+            response.Organizers = orgTask.Result.Body;
+        else
+            response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Identity.Organizers"));
+
+        if (venueTask.IsCompletedSuccessfully)
+            response.Venues = venueTask.Result.Body;
+        else
+            response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Identity.Venues"));
+
+        if (participantTask.IsCompletedSuccessfully)
+            response.Participants = participantTask.Result.Body;
+        else
+            response.Warnings.Add(AdminBffWarning.ModuleUnavailable("Identity.Participants"));
+
+        return response;
+    }
+}

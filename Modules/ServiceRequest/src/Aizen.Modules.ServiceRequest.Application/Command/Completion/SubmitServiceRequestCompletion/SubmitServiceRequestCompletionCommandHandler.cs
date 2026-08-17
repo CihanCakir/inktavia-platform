@@ -1,13 +1,17 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
+using Aizen.Modules.ServiceRequest.Application.Completion;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Microsoft.Extensions.Configuration;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Completion;
 
@@ -19,28 +23,54 @@ public sealed class SubmitServiceRequestCompletionCommandHandler : AizenCommandH
     private readonly IServiceRequestCompletionRepository _completionRepository;
     private readonly IAizenInfoAccessor _info;
     private readonly ServiceRequestRealtimePublisher _realtimePublisher;
+    private readonly IAizenMessagePublisher _messagePublisher;
+    private readonly IConfiguration _config;
 
     public SubmitServiceRequestCompletionCommandHandler(
         IServiceRequestRepository srRepository, IServiceRequestAssignmentRepository assignmentRepository,
         IServiceRequestCompletionRepository completionRepository, IAizenInfoAccessor info,
-        ServiceRequestRealtimePublisher realtimePublisher)
+        ServiceRequestRealtimePublisher realtimePublisher, IAizenMessagePublisher messagePublisher,
+        IConfiguration config)
     {
         _srRepository = srRepository; _assignmentRepository = assignmentRepository;
         _completionRepository = completionRepository; _info = info; _realtimePublisher = realtimePublisher;
+        _messagePublisher = messagePublisher; _config = config;
     }
 
     public override async Task<SubmitServiceRequestCompletionResponse?> Handle(SubmitServiceRequestCompletionCommand request, CancellationToken cancellationToken)
     {
+        // Ownership guard
+        var providerProfileId = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
+        if (providerProfileId <= 0)
+            throw new AizenBusinessException("Provider identity could not be resolved.");
+
         var assignment = await _assignmentRepository.GetByIdAsync(request.AssignmentId, cancellationToken)
-            ?? throw new InvalidOperationException($"Assignment {request.AssignmentId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        if (assignment.ProviderProfileId != providerProfileId)
+            throw new AizenBusinessException("Job not found.");
+
         var sr = await _srRepository.GetByIdAsync(assignment.ServiceRequestId, cancellationToken)
-            ?? throw new InvalidOperationException($"ServiceRequest {assignment.ServiceRequestId} not found.");
+            ?? throw new AizenBusinessException("Job not found.");
+
+        // State guard: only completable from InProgress
+        if (sr.Status != ServiceRequestStatus.InProgress)
+            throw new AizenBusinessException("SR_JOB_NOT_COMPLETABLE");
+
+        // Evidence required
+        if (request.Request.EvidenceFileId is null || request.Request.EvidenceFileId == Guid.Empty)
+            throw new AizenBusinessException("SR_COMPLETION_EVIDENCE_REQUIRED");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         var req = request.Request;
 
         var completion = ServiceRequestCompletionEntity.Create(
             sr.Id, assignment.Id, currentUserId, req.CompletionNotes, req.EvidenceFileId);
+
+        // N3-C — freeze the auto-approval deadline at submission (SubmittedAt + configured window). UTC.
+        var windowDays = CompletionAutoApprovalOptions.WindowDays(_config);
+        completion.ScheduleAutoApproval(
+            CompletionAutoApprovalOptions.ComputeAutoApproveAt(completion.SubmittedAt, windowDays));
 
         await _completionRepository.AddAsync(completion, cancellationToken);
 
@@ -59,6 +89,14 @@ public sealed class SubmitServiceRequestCompletionCommandHandler : AizenCommandH
         await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, assignment.ProviderProfileId,
             ServiceRequestRealtimeEventType.CompletionSubmitted, completion.ToDto(),
             currentUserId, ServiceRequestActorType.Provider, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestCompletionSubmittedMessage
+        {
+            ServiceRequestId = sr.Id,
+            CompletionId = completion.Id,
+            OwnerUserId = sr.OwnerUserId,
+            ProviderUserId = currentUserId
+        }, cancellationToken);
 
         return new SubmitServiceRequestCompletionResponse(completion.ToDto());
     }

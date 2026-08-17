@@ -15,15 +15,24 @@ public sealed class NotificationRepository : INotificationRepository
     public Task<NotificationEntity?> GetByIdAsync(long id, CancellationToken ct)
         => _db.Notifications.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    // BE_NF1 (D4) — the inbox is the list of canonical LOGICAL notifications = the InApp channel row. Email + web/FCM
+    // push are delivery mechanisms, not list rows. Without the Channel filter, once N-F2 emits Email/Push rows the same
+    // logical event would appear as a duplicate second row (count + list). Filter every recipient read to InApp so list,
+    // total count, unread count, and bulk-mark all agree on the one canonical row. Harmless today (all rows are InApp).
     public Task<List<NotificationEntity>> GetByRecipientAsync(long userId, int skip, int take, CancellationToken ct)
         => _db.Notifications
-            .Where(x => x.RecipientUserId == userId)
-            .OrderByDescending(x => x.CreatedAt)
+            .Where(x => x.RecipientUserId == userId && x.Channel == NotificationChannel.InApp)
+            .OrderByDescending(x => x.ReadAt == null)   // unread first
+            .ThenByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.Id)                // deterministic tiebreaker
             .Skip(skip).Take(take)
             .ToListAsync(ct);
 
+    public Task<int> CountByRecipientAsync(long userId, CancellationToken ct)
+        => _db.Notifications.CountAsync(x => x.RecipientUserId == userId && x.Channel == NotificationChannel.InApp, ct);
+
     public Task<int> GetUnreadCountAsync(long userId, CancellationToken ct)
-        => _db.Notifications.CountAsync(x => x.RecipientUserId == userId && x.ReadAt == null, ct);
+        => _db.Notifications.CountAsync(x => x.RecipientUserId == userId && x.Channel == NotificationChannel.InApp && x.ReadAt == null, ct);
 
     public async Task AddAsync(NotificationEntity entity, CancellationToken ct)
     {
@@ -37,11 +46,11 @@ public sealed class NotificationRepository : INotificationRepository
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task BulkMarkAsReadAsync(long userId, CancellationToken ct)
+    public async Task<int> BulkMarkAsReadAsync(long userId, CancellationToken ct)
     {
         var now = DateTimeOffset.UtcNow;
-        await _db.Notifications
-            .Where(x => x.RecipientUserId == userId && x.ReadAt == null)
+        return await _db.Notifications
+            .Where(x => x.RecipientUserId == userId && x.Channel == NotificationChannel.InApp && x.ReadAt == null)
             .ExecuteUpdateAsync(s =>
                 s.SetProperty(x => x.ReadAt, now)
                  .SetProperty(x => x.Status, NotificationStatus.Read), ct);

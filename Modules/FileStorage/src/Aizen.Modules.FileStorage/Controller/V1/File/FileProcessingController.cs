@@ -1,7 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Processing;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Abstraction.Request.Processing;
 using Aizen.Modules.FileStorage.Application.Commands.StartFileProcessing;
 using Aizen.Modules.FileStorage.Application.Commands.UpdateFileProcessingResult;
@@ -12,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Aizen.Modules.FileStorage.Controller.V1.File;
 
 [ApiController]
-[Route("api/v1/files/{fileId:long}/processing")]
+[Route("api/v1/files/{fileId:guid}/processing")]
 [Tags("FileProcessing")]
 [Authorize]
 [DocumentationInfo("File processing controller", "API endpoints for managing background processing jobs for files.")]
@@ -29,7 +28,7 @@ public sealed class FileProcessingController : AizenWebApiController
     [HttpPost("start")]
     [ProducesResponseType(typeof(FileProcessingJobDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<FileProcessingJobDto?>> Start(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         [FromBody] StartFileProcessingRequest req,
         CancellationToken ct = default)
     {
@@ -41,7 +40,7 @@ public sealed class FileProcessingController : AizenWebApiController
     [HttpPut("result")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateResult(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         [FromBody] UpdateFileProcessingResultRequest req,
         CancellationToken ct = default)
     {
@@ -53,7 +52,7 @@ public sealed class FileProcessingController : AizenWebApiController
     [HttpGet("jobs")]
     [ProducesResponseType(typeof(IReadOnlyList<FileProcessingJobDto>), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<IReadOnlyList<FileProcessingJobDto>?>> GetJobs(
-        [FromRoute] long fileId,
+        [FromRoute] Guid fileId,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<IReadOnlyList<FileProcessingJobDto>>(

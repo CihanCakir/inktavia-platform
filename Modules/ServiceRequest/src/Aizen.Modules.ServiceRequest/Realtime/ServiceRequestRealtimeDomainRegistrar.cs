@@ -1,6 +1,5 @@
 using Aizen.Core.Realtime.Abstraction.Domain;
 using Aizen.Core.Realtime.Abstraction.Interfaces;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Realtime;
 

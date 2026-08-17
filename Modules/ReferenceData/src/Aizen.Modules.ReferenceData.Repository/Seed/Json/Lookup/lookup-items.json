@@ -18,6 +18,10 @@
   { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "MARINA_SUPPORT",       "name": "Marina Support",       "description": null, "iconKey": null, "colorCode": null, "sortOrder": 8,  "isDefault": false, "isActive": true },
   { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "PAINTING_POLISHING",   "name": "Painting & Polishing", "description": null, "iconKey": null, "colorCode": null, "sortOrder": 9,  "isDefault": false, "isActive": true },
   { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "WINTERIZATION",        "name": "Winterization",        "description": null, "iconKey": null, "colorCode": null, "sortOrder": 10, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "HULL_MAINTENANCE",     "name": "Hull & Paint",         "description": null, "iconKey": null, "colorCode": null, "sortOrder": 11, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "RIGGING_SAILS",        "name": "Rigging & Sails",      "description": null, "iconKey": null, "colorCode": null, "sortOrder": 12, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "UPHOLSTERY",           "name": "Upholstery",           "description": null, "iconKey": null, "colorCode": null, "sortOrder": 13, "isDefault": false, "isActive": true },
+  { "groupCode": "SERVICE_PROVIDER_CATEGORY", "code": "CONCIERGE_SUPPORT",    "name": "Concierge Support",    "description": null, "iconKey": null, "colorCode": null, "sortOrder": 14, "isDefault": false, "isActive": true },
 
   { "groupCode": "CARGODRY_PRODUCT_TYPE", "code": "CARGODRY_BASIC",  "name": "CargoDry Basic",  "description": "Entry-level moisture absorber", "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
   { "groupCode": "CARGODRY_PRODUCT_TYPE", "code": "CARGODRY_SENSE",  "name": "CargoDry Sense",  "description": "Smart sensor-enabled moisture absorber", "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
@@ -49,5 +53,53 @@
   { "groupCode": "PAYMENT_STATUS", "code": "FAILED",              "name": "Failed",              "description": null, "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true },
   { "groupCode": "PAYMENT_STATUS", "code": "CANCELED",            "name": "Canceled",            "description": null, "iconKey": null, "colorCode": "#9E9E9E", "sortOrder": 4, "isDefault": false, "isActive": true },
   { "groupCode": "PAYMENT_STATUS", "code": "REFUNDED",            "name": "Refunded",            "description": null, "iconKey": null, "colorCode": "#2196F3", "sortOrder": 5, "isDefault": false, "isActive": true },
-  { "groupCode": "PAYMENT_STATUS", "code": "PARTIALLY_REFUNDED",  "name": "Partially Refunded",  "description": null, "iconKey": null, "colorCode": "#03A9F4", "sortOrder": 6, "isDefault": false, "isActive": true }
+  { "groupCode": "PAYMENT_STATUS", "code": "PARTIALLY_REFUNDED",  "name": "Partially Refunded",  "description": null, "iconKey": null, "colorCode": "#03A9F4", "sortOrder": 6, "isDefault": false, "isActive": true },
+
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "INBOARD",    "name": "İçten Takma",  "description": "Inboard",    "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "OUTBOARD",   "name": "Kıçtan Takma", "description": "Outboard",   "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "STERNDRIVE", "name": "Kıç Tahrik",   "description": "Sterndrive", "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "SHAFT",      "name": "Şaft Tahrik",  "description": "Shaft drive","iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_INSTALLATION_TYPE", "code": "POD",        "name": "Pod Tahrik",   "description": "Pod drive",  "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "ENGINE_CLASS", "code": "V6",     "name": "V6",     "description": "V6 engine",     "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "V8",     "name": "V8",     "description": "V8 engine",     "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": true,  "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "V12",    "name": "V12",    "description": "V12 engine",    "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "V16",    "name": "V16",    "description": "V16 engine",    "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_CLASS", "code": "INLINE", "name": "Sıralı", "description": "Inline engine", "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "PAINT_TYPE", "code": "ANTIFOULING", "name": "Zehirli Boya (Antifouling)", "description": "Antifouling", "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "EPOXY",       "name": "Epoksi",                     "description": "Epoxy",       "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "TOPCOAT",     "name": "Son Kat",                    "description": "Topcoat",     "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "PRIMER",      "name": "Astar",                      "description": "Primer",      "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "PAINT_TYPE", "code": "GELCOAT",     "name": "Jelkot",                     "description": "Gelcoat",     "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "WORK_DIFFICULTY", "code": "EASY",   "name": "Kolay", "description": "Easy",   "iconKey": null, "colorCode": "#4CAF50", "sortOrder": 1, "isDefault": false, "isActive": true },
+  { "groupCode": "WORK_DIFFICULTY", "code": "MEDIUM", "name": "Orta",  "description": "Medium", "iconKey": null, "colorCode": "#FF9800", "sortOrder": 2, "isDefault": true,  "isActive": true },
+  { "groupCode": "WORK_DIFFICULTY", "code": "HARD",   "name": "Zor",   "description": "Hard",   "iconKey": null, "colorCode": "#F44336", "sortOrder": 3, "isDefault": false, "isActive": true },
+
+  { "groupCode": "FUEL_TYPE", "code": "DIESEL",   "name": "Dizel",    "description": "Diesel",   "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "GASOLINE", "name": "Benzin",   "description": "Gasoline", "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "ELECTRIC", "name": "Elektrik", "description": "Electric", "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "HYBRID",   "name": "Hibrit",   "description": "Hybrid",   "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "FUEL_TYPE", "code": "LNG",      "name": "LNG",      "description": "LNG",      "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "ENGINE_TYPE", "code": "INBOARD",    "name": "İçten Takma",  "description": "Inboard",    "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "OUTBOARD",   "name": "Dıştan Takma", "description": "Outboard",   "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "STERNDRIVE", "name": "Kıç Tahrik",   "description": "Sterndrive", "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "JET_DRIVE",  "name": "Jet Tahrik",   "description": "Jet drive",  "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "ENGINE_TYPE", "code": "SAIL",       "name": "Yelken",       "description": "Sail",       "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "HULL_MATERIAL", "code": "FIBERGLASS",   "name": "Fiberglas",    "description": "Fiberglass",    "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "STEEL",        "name": "Çelik",        "description": "Steel",         "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "ALUMINUM",     "name": "Alüminyum",    "description": "Aluminum",      "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "WOOD",         "name": "Ahşap",        "description": "Wood",          "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "HULL_MATERIAL", "code": "CARBON_FIBER", "name": "Karbon Fiber", "description": "Carbon fiber",  "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+
+  { "groupCode": "DOCUMENT_TYPE", "code": "REGISTRATION",       "name": "Tekne Ruhsatı",         "description": "Registration certificate", "iconKey": null, "colorCode": null, "sortOrder": 1, "isDefault": true,  "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "INSURANCE",          "name": "Sigorta Poliçesi",      "description": "Insurance policy",         "iconKey": null, "colorCode": null, "sortOrder": 2, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "SAFETY_CERTIFICATE", "name": "Güvenlik Sertifikası",  "description": "Safety certificate",       "iconKey": null, "colorCode": null, "sortOrder": 3, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "TONNAGE_CERTIFICATE","name": "Tonaj Belgesi",         "description": "Tonnage certificate",      "iconKey": null, "colorCode": null, "sortOrder": 4, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "RADIO_LICENSE",      "name": "Telsiz Ruhsatı",        "description": "Radio licence",            "iconKey": null, "colorCode": null, "sortOrder": 5, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "SURVEY_REPORT",      "name": "Sörvey Raporu",         "description": "Survey report",            "iconKey": null, "colorCode": null, "sortOrder": 6, "isDefault": false, "isActive": true },
+  { "groupCode": "DOCUMENT_TYPE", "code": "OTHER",              "name": "Diğer",                 "description": "Other",                    "iconKey": null, "colorCode": null, "sortOrder": 99, "isDefault": false, "isActive": true }
 ]

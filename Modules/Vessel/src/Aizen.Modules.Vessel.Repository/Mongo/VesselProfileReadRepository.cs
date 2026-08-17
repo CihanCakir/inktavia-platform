@@ -1,4 +1,3 @@
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Domain.Documents;
 using Aizen.Modules.Vessel.Repository.Persistence;
 using MongoDB.Driver;

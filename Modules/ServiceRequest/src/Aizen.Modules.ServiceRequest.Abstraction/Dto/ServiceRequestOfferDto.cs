@@ -1,5 +1,4 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Dto;
 
@@ -19,7 +18,28 @@ public sealed class ServiceRequestOfferDto
     public DateTime? EstimatedEndDate { get; set; }
     public int? EstimatedDurationMinutes { get; set; }
     public DateTime? ExpiresAt { get; set; }
+
+    // Computed totals
+    public decimal Subtotal { get; set; }
+    public decimal TaxTotal { get; set; }
+    public decimal DiscountTotal { get; set; }
+    public decimal GrandTotal { get; set; }
+
+    // Commercial terms
+    public OfferDepositType DepositType { get; set; }
+    public decimal? DepositValue { get; set; }
+    public string? PaymentTermsNote { get; set; }
+    public string? WarrantyNote { get; set; }
+
+    // Lifecycle
+    public DateTime? SubmittedAt { get; set; }
+    public DateTime? ViewedAt { get; set; }
+
     public List<ServiceRequestOfferItemDto> Items { get; set; } = new();
+
+    /// <summary>BE-S3 — offer-level FX rate snapshots (one per non-TRY source currency); empty for a TRY-only offer.</summary>
+    public List<OfferFxSnapshotDto> FxSnapshots { get; set; } = new();
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

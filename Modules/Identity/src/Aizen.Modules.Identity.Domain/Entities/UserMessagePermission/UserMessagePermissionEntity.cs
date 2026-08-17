@@ -31,7 +31,9 @@ namespace Aizen.Modules.Identity.Domain.Entities
         public long? ActiveProfileId { get; private set; }
         public virtual UserProfileEntity? ActiveProfile { get; private set; }
 
-        private UserMessagePermissionEntity() { }
+        // EF Core lazy-loading proxies (Castle DynamicProxy) subclass the entity, so the parameterless ctor must be
+        // at least protected. A private one makes every query that materializes this type fail at runtime.
+        protected UserMessagePermissionEntity() { }
 
         // -------- Factory (idempotent amaçlı anahtar: User + Type + Content) --------
         public static UserMessagePermissionEntity Create(

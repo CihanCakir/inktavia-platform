@@ -41,6 +41,9 @@ namespace Aizen.Modules.Identity.Domain.Entities
         public string? ReviewedBy { get; private set; }
         public DateTime? ReviewedAt { get; private set; }
 
+        public bool PhoneVerified { get; private set; }
+        public DateTime? PhoneVerifiedAt { get; private set; }
+
         public virtual ICollection<VerificationDocumentEntity> VerificationDocuments { get; private set; }
             = new List<VerificationDocumentEntity>();
 
@@ -92,6 +95,14 @@ namespace Aizen.Modules.Identity.Domain.Entities
             ReviewedAt = DateTime.UtcNow;
             RejectReason = null;
             RejectedAt = null;
+
+            // Approving a profile is what makes it usable. Leaving Status as-is meant an approved provider stayed
+            // Inactive forever: the BFF's CanEnterWorkspace is `Approved && Active`, so the SPA parked them on the
+            // "provisioning" screen with an "under review" message that would never change. A suspended profile is
+            // NOT reactivated here — lifting a suspension is a separate, deliberate decision (Reactivate()).
+            if (Status != ProfileStatus.Suspended)
+                Status = ProfileStatus.Active;
+
             Touch();
         }
 
@@ -121,6 +132,19 @@ namespace Aizen.Modules.Identity.Domain.Entities
             VerificationDocuments.Add(document);
         }
 
+        /// <summary>
+        /// Soft-deletes a verification document identified by its FilePublicId (Guid).
+        /// Returns true when found and removed, false otherwise.
+        /// </summary>
+        public bool RemoveVerificationDocument(Guid filePublicId)
+        {
+            var doc = VerificationDocuments.FirstOrDefault(d => d.FilePublicId == filePublicId && !d.IsDeleted);
+            if (doc is null) return false;
+            doc.MarkDeleted();
+            SetModified();
+            return true;
+        }
+
         public void SetCompanyName(string? companyName)
         {
             CompanyName = companyName;
@@ -131,6 +155,44 @@ namespace Aizen.Modules.Identity.Domain.Entities
         {
             City = city;
             Country = country;
+            SetModified();
+        }
+
+        public void MarkPhoneVerified(DateTime utcNow)
+        {
+            PhoneVerified = true;
+            PhoneVerifiedAt = utcNow;
+            SetModified();
+        }
+
+        /// <summary>
+        /// Suspends the profile (ProfileStatus = Suspended). Does not change ApprovalStatus.
+        /// Idempotent. Optional reason is stored in the existing InternalNote field when provided.
+        /// </summary>
+        public void Suspend(string? reason = null)
+        {
+            if (Status == ProfileStatus.Suspended)
+                return; // idempotent
+
+            Status = ProfileStatus.Suspended;
+            if (!string.IsNullOrWhiteSpace(reason))
+                InternalNote = reason;
+            SetModified();
+        }
+
+        /// <summary>
+        /// Reactivates an Approved profile (ProfileStatus = Active). Never approves a Pending/Rejected
+        /// profile — approval remains the responsibility of the Approve command. Idempotent.
+        /// </summary>
+        public void Reactivate()
+        {
+            if (ApprovalStatus != ApprovalStatus.Approved)
+                throw new AizenBusinessException(((int)AizenErrorCode.ProfileStatusInvalidForAction).ToString());
+
+            if (Status == ProfileStatus.Active)
+                return; // idempotent
+
+            Status = ProfileStatus.Active;
             SetModified();
         }
 

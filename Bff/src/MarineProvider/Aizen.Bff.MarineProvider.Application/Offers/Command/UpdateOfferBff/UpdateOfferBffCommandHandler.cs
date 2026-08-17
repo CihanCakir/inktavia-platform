@@ -1,0 +1,39 @@
+using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
+using Aizen.Bff.MarineProvider.Application.Common.Services;
+using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
+
+namespace Aizen.Bff.MarineProvider.Application.Offers;
+
+public sealed class UpdateOfferBffCommandHandler
+    : AizenCommandHandler<UpdateOfferBffCommand, UpdateOfferBffResponse>
+{
+    private readonly IProviderProfileResolver _resolver;
+    private readonly IProviderIdentityHolder _identityHolder;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
+
+    public UpdateOfferBffCommandHandler(
+        IProviderProfileResolver resolver,
+        IProviderIdentityHolder identityHolder,
+        IServiceRequestRemoteCall serviceRequest)
+    {
+        _resolver = resolver;
+        _identityHolder = identityHolder;
+        _serviceRequest = serviceRequest;
+    }
+
+    public override async Task<UpdateOfferBffResponse?> Handle(UpdateOfferBffCommand request, CancellationToken ct)
+    {
+        await _resolver.ResolveAsync(ct);
+        if (_identityHolder.ProfileId is null or 0)
+            throw new AizenBusinessException("Provider identity could not be resolved.");
+
+        var result = await _serviceRequest.UpdateOffer(request.ServiceRequestId, request.OfferId, request.Body);
+
+        return new UpdateOfferBffResponse
+        {
+            Success = result.Header?.IsSuccess == true,
+            Message = result.Header?.IsSuccess != true ? result.Header?.ErrorMessage : null,
+        };
+    }
+}

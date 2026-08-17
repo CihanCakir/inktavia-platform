@@ -15,9 +15,13 @@
     <ProjectReference Include="..\..\..\..\Modules\ServiceRequest\src\Aizen.Modules.ServiceRequest.Abstraction\Aizen.Modules.ServiceRequest.Abstraction.csproj" />
     <ProjectReference Include="..\..\..\..\Modules\Messaging\src\Aizen.Modules.Messaging.Abstraction\Aizen.Modules.Messaging.Abstraction.csproj" />
     <ProjectReference Include="..\..\..\..\Modules\CargoDry\src\Aizen.Modules.CargoDry.Abstraction\Aizen.Modules.CargoDry.Abstraction.csproj" />
+    <ProjectReference Include="..\..\..\..\Modules\Payment\src\Aizen.Modules.Payment.Abstraction\Aizen.Modules.Payment.Abstraction.csproj" />
+    <!-- Consume Content's publish event (ContentPublishedConsumer). Cross-module = .Abstraction only. -->
+    <ProjectReference Include="..\..\..\..\Modules\Content\src\Aizen.Modules.Content.Abstraction\Aizen.Modules.Content.Abstraction.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

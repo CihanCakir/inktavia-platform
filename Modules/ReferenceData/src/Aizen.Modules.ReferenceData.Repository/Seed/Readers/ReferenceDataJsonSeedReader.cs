@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Repository.Options;
 using Microsoft.Extensions.Options;
 

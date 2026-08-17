@@ -1,4 +1,3 @@
-using Aizen.Modules.ReferenceData.Abstraction.Model;
 using Aizen.Modules.ReferenceData.Repository.Seed.Models.Currency;
 using Aizen.Modules.ReferenceData.Repository.Seed.Readers;
 

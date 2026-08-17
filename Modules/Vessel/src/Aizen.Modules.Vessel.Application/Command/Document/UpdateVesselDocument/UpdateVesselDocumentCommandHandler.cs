@@ -2,11 +2,11 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.Vessel.Abstraction.Message;
-using Aizen.Modules.Vessel.Abstraction.Model;
 using Aizen.Modules.Vessel.Application.Mapping;
 using Aizen.Modules.Vessel.Domain.Interface.Repository;
 using Aizen.Modules.Vessel.Domain.Interface.Service;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.Vessel.Application.Command.Document;
@@ -23,6 +23,7 @@ public sealed class UpdateVesselDocumentCommandHandler : AizenCommandHandler<Upd
     private readonly IVesselFileStorageService _fileStorage;
     private readonly IAizenMessagePublisher _publisher;
     private readonly IAizenInfoAccessor _info;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<UpdateVesselDocumentCommandHandler> _logger;
 
     public UpdateVesselDocumentCommandHandler(
@@ -32,6 +33,7 @@ public sealed class UpdateVesselDocumentCommandHandler : AizenCommandHandler<Upd
         IVesselFileStorageService fileStorage,
         IAizenMessagePublisher publisher,
         IAizenInfoAccessor info,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<UpdateVesselDocumentCommandHandler> logger)
     {
         _documentRepository = documentRepository;
@@ -40,13 +42,16 @@ public sealed class UpdateVesselDocumentCommandHandler : AizenCommandHandler<Upd
         _fileStorage = fileStorage;
         _publisher = publisher;
         _info = info;
+        _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
 
     public override async Task<UpdateVesselDocumentResponse?> Handle(UpdateVesselDocumentCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        var isAdmin = _info.UserInfoAccessor.UserInfo.Roles.Contains("Admin");
+        // Roles is empty on a BFF assertion S2S call; fall back to the framework principal (service token carries Admin).
+        var isAdmin = _info.UserInfoAccessor.UserInfo.Roles?.Contains("Admin") == true
+            || _httpContextAccessor.HttpContext?.User?.IsInRole("Admin") == true;
         var accessToken = _info.UserInfoAccessor.UserInfo.AccessToken;
 
         var document = await _documentRepository.GetByIdWithVesselAsync(request.DocumentId, cancellationToken)

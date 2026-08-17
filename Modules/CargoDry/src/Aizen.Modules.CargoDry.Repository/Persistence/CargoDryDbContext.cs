@@ -4,16 +4,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.CargoDry.Repository.Persistence;
 
-[Abstraction.Model.DocumentationInfo("CargoDry EF DbContext",
+[DocumentationInfo("CargoDry EF DbContext",
     "EF Core context for the CargoDry module PostgreSQL schema.")]
 public sealed class CargoDryDbContext : AizenDbContext
 {
     public CargoDryDbContext(DbContextOptions<CargoDryDbContext> options) : base(options) { }
 
-    public DbSet<CargoDryProductEntity>  Products  => Set<CargoDryProductEntity>();
-    public DbSet<CargoDryBatchEntity>    Batches   => Set<CargoDryBatchEntity>();
-    public DbSet<CargoDryKitEntity>      Kits      => Set<CargoDryKitEntity>();
-    public DbSet<CargoDryRenewalEntity>  Renewals  => Set<CargoDryRenewalEntity>();
+    public DbSet<CargoDryProductEntity>              Products               => Set<CargoDryProductEntity>();
+    public DbSet<CargoDryBatchEntity>               Batches                => Set<CargoDryBatchEntity>();
+    public DbSet<CargoDryKitEntity>                 Kits                   => Set<CargoDryKitEntity>();
+    public DbSet<CargoDryRenewalEntity>             Renewals               => Set<CargoDryRenewalEntity>();
+    public DbSet<CargoDryConsignmentAgreementEntity>  ConsignmentAgreements => Set<CargoDryConsignmentAgreementEntity>();
+    public DbSet<CargoDryProviderInventoryEntity>     ProviderInventories    => Set<CargoDryProviderInventoryEntity>();
+    public DbSet<CargoDryInventoryMovementEntity>     InventoryMovements     => Set<CargoDryInventoryMovementEntity>();
+    public DbSet<CargoDryStockRequestEntity>            StockRequests          => Set<CargoDryStockRequestEntity>();
+    public DbSet<CargoDrySalesAttributionEntity>      SalesAttributions      => Set<CargoDrySalesAttributionEntity>();
+    public DbSet<CargoDrySellThroughSettlementEntity>      SellThroughSettlements      => Set<CargoDrySellThroughSettlementEntity>();
+    public DbSet<CargoDrySettlementAutomationRunEntity>    SettlementAutomationRuns    => Set<CargoDrySettlementAutomationRunEntity>();
+    public DbSet<CargoDrySettlementAutomationRunItemEntity> SettlementAutomationRunItems => Set<CargoDrySettlementAutomationRunItemEntity>();
+    // Phase 9 — Kit lifecycle history (PostgreSQL, append-only)
+    public DbSet<CargoDryKitLifecycleEventEntity> KitLifecycleEvents => Set<CargoDryKitLifecycleEventEntity>();
+    // Phase 11 — Renewal preparation workflow
+    public DbSet<CargoDryRenewalPreparationEntity> RenewalPreparations => Set<CargoDryRenewalPreparationEntity>();
+    // CE-6c — Provider milestone awards (idempotent)
+    public DbSet<CargoDryProviderMilestoneAwardEntity> ProviderMilestoneAwards => Set<CargoDryProviderMilestoneAwardEntity>();
     // ActivationLogs — moved to MongoDB (CargoDryMongoDbContext)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

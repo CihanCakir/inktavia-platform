@@ -334,3 +334,33 @@ ASALocalRun/
 
 # Local environment overrides (not for Docker)
 appsettings.Local.json
+.env
+
+# Claude Code local settings
+.claude/
+**/.claude/
+
+# Claude Code local state (machine-specific, never committed)
+.claude/
+**/.claude/
+
+# Claude Code local state (machine-specific, never committed)
+.claude/
+**/.claude/
+
+# Claude Code local state (machine-specific, never committed)
+.claude/
+**/.claude/
+
+# Internal engineering and business documentation lives in a private repository
+# (inktavia-docs). Only the curated numbered sections are published here.
+/docs/*
+!/docs/00-overview/
+!/docs/01-git-governance/
+!/docs/02-microservices/
+!/docs/03-performance/
+!/docs/04-database/
+!/docs/05-messaging/
+!/docs/06-nosql-redis/
+!/docs/07-security/
+!/docs/08-load-test/

@@ -34,8 +34,16 @@ public sealed class MessagingMessageSentConsumer
 
         var metadataJson = $"{{\"conversationId\":{message.ConversationId}}}";
 
-        var tasks = message.RecipientUserIds.Select(recipientId =>
-            _sender.Send(new SendNotificationCommand
+        // Send per-recipient notifications SEQUENTIALLY. The prior Task.WhenAll fired every recipient's
+        // SendNotificationCommand concurrently over this consumer's single scoped DbContext, which for a
+        // conversation with >1 recipient races EF Core ("The connection is already in a transaction and
+        // cannot participate in another transaction") → the commit throws → the racing recipients LOSE their
+        // notification. (Latent pre-WS2: the two-phase double-commit's second delivery attempt masked it;
+        // exactly-once exposed it.) A sequential loop lets each command complete before the next starts, so
+        // every recipient is notified exactly once. Behavior is otherwise identical.
+        foreach (var recipientId in message.RecipientUserIds)
+        {
+            await _sender.Send(new SendNotificationCommand
             {
                 RecipientUserId = recipientId,
                 Type            = NotificationType.NewMessageReceived,
@@ -45,10 +53,11 @@ public sealed class MessagingMessageSentConsumer
                     { "senderName",        message.SenderName },
                     { "conversationTitle", message.ConversationTitle },
                 },
-                MetadataJson = metadataJson,
-            }, ct));
-
-        await Task.WhenAll(tasks);
+                MetadataJson  = metadataJson,
+                ReferenceType = "Message",
+                ReferenceId   = message.ConversationId,
+            }, ct);
+        }
     }
 
     public override Task ExecuteRollbackMessage(MessagingMessageSentMessage message, AizenMessageError ex, CancellationToken ct)

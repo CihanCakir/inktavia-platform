@@ -43,7 +43,14 @@ public class AizenBffServiceConfiguration : IAizenServiceConfiguration
             })
             .ConfigureApplicationPartManager(c =>
             {
-                c.FeatureProviders.Add(new BffRestControllerFeatureProvider());
+                // HARDENING_GENERIC_CRUD_AND_SERVICE_TOKEN: the generic per-entity full-CRUD controllers
+                // (AizenGenericBffApi) are OFF by default (fail-closed). They are unused scaffolding and were
+                // an anonymous write/delete surface. A host may opt in with GenericBffCrud:Enabled=true only
+                // where a specific, authenticated need exists; even then the controllers require [Authorize].
+                if (configuration.GetValue<bool>("GenericBffCrud:Enabled"))
+                {
+                    c.FeatureProviders.Add(new BffRestControllerFeatureProvider());
+                }
             });
 
         services.AddAizenIOC(configuration);

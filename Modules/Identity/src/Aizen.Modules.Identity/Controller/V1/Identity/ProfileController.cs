@@ -1,6 +1,5 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
-using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.InktaviaStore.Application.Identity;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.UpdateOrganizerProfile;

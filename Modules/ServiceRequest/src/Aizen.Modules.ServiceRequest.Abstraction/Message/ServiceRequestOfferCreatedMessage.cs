@@ -1,5 +1,5 @@
 using Aizen.Core.Messagebus.Abstraction.Messages;
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
+using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Message;
 
@@ -10,6 +10,21 @@ public sealed class ServiceRequestOfferCreatedMessage : AizenBaseMessage
     public long OfferId { get; set; }
     public long ProviderProfileId { get; set; }
     public long ProviderUserId { get; set; }
+
+    /// <summary>
+    /// BE_NF1 (D2) — the owning requester's user id, so the Notification module can notify the owner (not only the
+    /// provider) when an offer lands. Additive; defaults to 0 for any legacy publisher that omits it (owner then skipped).
+    /// </summary>
+    public long OwnerUserId { get; set; }
+
     public decimal TotalAmount { get; set; }
     public string CurrencyCode { get; set; } = "USD";
+
+    /// <summary>
+    /// BE_WC1b — the offer's lifecycle status at publish time. The real create path (<c>CreateServiceRequestOffer</c>)
+    /// calls <c>offer.Submit()</c> so this is <c>Submitted</c>; a draft create would be <c>Draft</c>. The Messaging
+    /// OFFER-card consumer writes the card only when this is <c>>= Submitted</c> (a Draft yields no card). Additive:
+    /// existing consumers (Notification) ignore it. Defaults to <c>Draft</c> for any legacy publisher that omits it.
+    /// </summary>
+    public ServiceRequestOfferStatus Status { get; set; } = ServiceRequestOfferStatus.Draft;
 }

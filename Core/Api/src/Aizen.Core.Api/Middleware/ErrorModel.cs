@@ -221,6 +221,9 @@ public enum AizenErrorCode
 
     TokenNotFound = 40101,
     RefreshTokenTimeOut = 40102,
+    // Genuine downstream/infra failure (Identity/Keycloak/file-storage 401/403/5xx, timeout, transport,
+    // unparseable body) surfaced by a BFF instead of being masked as a synthetic 200 → HTTP 502.
+    AuthUpstreamError = 40200,
     UnknownApplicationContext = 40091,
     AccessTokenRequiredForThisPanel = 40111,
     DeviceIdRequired = 40031,

@@ -32,9 +32,8 @@ public sealed class GetCargoDryStatsQueryHandler
         var (hit, cached) = await _cache.TryGetAsync<CargoDryStatsDto>(CacheKey, ct);
         if (hit) return cached;
 
-        var stats         = await _kits.GetStatsAsync(ct);
-        var batches       = await _batches.GetAllAsync(ct);
-        var activeBatches = batches.Count(b => !b.IsRevoked);
+        var stats         = await _kits.GetStatsAsync(ct: ct);
+        var activeBatches = await _batches.CountActiveBatchesAsync(ct);
 
         var result = new CargoDryStatsDto
         {
@@ -46,7 +45,9 @@ public sealed class GetCargoDryStatsQueryHandler
             RevokedKits        = stats.Revoked,
             TodayActivations   = stats.TodayActivations,
             TotalBatches       = activeBatches,
-            RenewalRatePercent = 0,
+            RenewalRatePercent = stats.Total > 0
+                ? Math.Round(stats.WithRenewals / (double)stats.Total * 100, 1)
+                : 0,
         };
 
         await _cache.SetAsync(result, CacheKey,

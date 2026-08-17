@@ -3,13 +3,12 @@ using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.FileStorage.Abstraction.Enum;
 using Aizen.Modules.FileStorage.Abstraction.Message;
-using Aizen.Modules.FileStorage.Abstraction.Model;
 using Aizen.Modules.FileStorage.Domain.Interface.Repository;
 using Aizen.Modules.FileStorage.Domain.Interface.Service;
 
 namespace Aizen.Modules.FileStorage.Application.Commands.DeleteFile;
 
-[DocumentationInfo("Delete file command handler", "Loads the file entity, delegates to IFileStorageService to soft-delete, then publishes FileDeletedMessage.")]
+[DocumentationInfo("Delete file command handler", "Resolves the file by Guid, delegates to IFileStorageService to soft-delete, then publishes FileDeletedMessage.")]
 public sealed class DeleteFileCommandHandler : AizenCommandHandler<DeleteFileCommand, bool>
 {
     private readonly IFileStorageService _storageService;
@@ -33,14 +32,14 @@ public sealed class DeleteFileCommandHandler : AizenCommandHandler<DeleteFileCom
     {
         var userId = _info.UserInfoAccessor.UserInfo.UserId;
 
-        var file = await _fileRepository.GetByIdAsync(command.FileId, cancellationToken)
-            ?? throw new KeyNotFoundException($"File with id '{command.FileId}' not found.");
+        var file = await _fileRepository.GetByGuidAsync(command.FileId, cancellationToken)
+            ?? throw new KeyNotFoundException($"File not found: {command.FileId}");
 
         var fileId = file.PublicId ?? Guid.Empty;
         var objectKey = file.ObjectKey;
         var bucketName = file.BucketName;
 
-        var deleted = await _storageService.DeleteFileAsync(command.FileId, userId, cancellationToken);
+        var deleted = await _storageService.DeleteFileAsync(file.Id, userId, cancellationToken);
 
         if (deleted)
         {

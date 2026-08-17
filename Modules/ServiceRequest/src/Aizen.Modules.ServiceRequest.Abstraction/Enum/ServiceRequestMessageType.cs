@@ -1,4 +1,3 @@
-using Aizen.Modules.ServiceRequest.Abstraction.Model;
 
 namespace Aizen.Modules.ServiceRequest.Abstraction.Enum;
 
@@ -7,5 +6,8 @@ public enum ServiceRequestMessageType
 {
     Text = 1,
     SystemNotification = 2,
-    StatusChange = 3
+    StatusChange = 3,
+    Offer = 4,
+    Image = 5,
+    Location = 6
 }

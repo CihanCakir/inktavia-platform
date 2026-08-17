@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Messaging.Abstraction.Enum;
 using Aizen.Modules.Messaging.Abstraction.Response.Messaging;
 using Aizen.Modules.Messaging.Application.Realtime;
@@ -7,6 +8,7 @@ using Aizen.Modules.Messaging.Domain.Entities.Conversation;
 using Aizen.Modules.Messaging.Domain.Interface;
 using Aizen.Modules.Messaging.Domain.Interface.Repository;
 using Aizen.Modules.Messaging.Repository.Mapping;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,6 +28,7 @@ public sealed class SendMessageCommandHandler
     private readonly IAizenInfoAccessor _info;
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _config;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<SendMessageCommandHandler> _logger;
 
     public SendMessageCommandHandler(
@@ -37,6 +40,7 @@ public sealed class SendMessageCommandHandler
         IAizenInfoAccessor info,
         IServiceProvider serviceProvider,
         IConfiguration config,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<SendMessageCommandHandler> logger)
     {
         _conversationRepository = conversationRepository;
@@ -47,6 +51,7 @@ public sealed class SendMessageCommandHandler
         _info                   = info;
         _serviceProvider        = serviceProvider;
         _config                 = config;
+        _httpContextAccessor    = httpContextAccessor;
         _logger                 = logger;
     }
 
@@ -60,8 +65,29 @@ public sealed class SendMessageCommandHandler
             throw new InvalidOperationException("Cannot send message to a closed conversation.");
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
-        var participant   = conversation.Participants.FirstOrDefault(p => p.UserId == currentUserId)
-            ?? throw new UnauthorizedAccessException("Sender is not a participant of this conversation.");
+        // Admins intervene on conversations they don't participate in (W2 internal-note intervention). Read the
+        // role from the authenticated principal — the SAME source [Authorize(Roles="Admin")] uses. NB: the admin
+        // BFF forwards a service token + X-Aizen-User-Id assertion, and AizenUserInfo.Roles is empty on that
+        // assertion path, so UserInfo.Roles is NOT usable here; the service principal still carries the Admin role.
+        var isAdmin       = _httpContextAccessor.HttpContext?.User?.IsInRole("Admin") == true;
+
+        var participant   = conversation.Participants.FirstOrDefault(p => p.UserId == currentUserId);
+        if (participant is null && !isAdmin)
+            throw new UnauthorizedAccessException("Sender is not a participant of this conversation.");
+
+        // Non-participant admin → synthesize the sender identity on the message only. The admin is deliberately
+        // NOT added as a participant (keeps participant lists + unread counts correct). AizenUserInfo carries no
+        // display name, so fall back to "Admin".
+        var senderDisplayName = participant?.DisplayName ?? "Admin";
+        var senderRole        = participant?.Role ?? MessagingParticipantRole.Admin;
+
+        // BE_WC2 anti-harassment gate — mirrors the SR SendServiceRequestMessage handler: a Provider cannot free-text
+        // until the Owner has sent a message in this conversation. Owner / Admin / System / Support sends are ungated.
+        if (senderRole == MessagingParticipantRole.Provider
+            && !await _messageRepository.HasOwnerMessageAsync(conversation.Id, cancellationToken))
+        {
+            throw new AizenBusinessException("SR_MSG_CHANNEL_LOCKED");
+        }
 
         // Content moderation — Location type skips text checks
         var policyResult = await _contentPolicy.EvaluateAsync(
@@ -76,11 +102,16 @@ public sealed class SendMessageCommandHandler
         }
 
         var message = ConversationMessageEntity.Create(
-            conversation.Id, currentUserId, participant.DisplayName,
-            participant.Role, request.Content, request.Type, request.IsInternalNote);
+            conversation.Id, currentUserId, senderDisplayName,
+            senderRole, request.Content, request.Type, request.IsInternalNote);
 
         if (policyResult.RequiresReview)
             message.Flag(policyResult.ViolationReason!);
+
+        // BE_WC2 — persist the discrete geo payload onto the WC0 columns for a Location message (parity with the SR
+        // write path + the sync mirror). Content still carries the JSON for legacy readers.
+        if (request.Type == MessageType.Location)
+            message.SetLocation(request.LocationLat, request.LocationLng, request.LocationLabel);
 
         // Attachment handling — legacy direct FileStorageId path
         if (!string.IsNullOrEmpty(request.AttachmentFileStorageId))
@@ -119,10 +150,18 @@ public sealed class SendMessageCommandHandler
             await _realtimePublisher.PublishModerationEventAsync(
                 conversation.Id, message.Id, "REVIEW_REQUIRED", policyResult.ViolationReason!, cancellationToken);
 
-        var participantIds = conversation.Participants.Select(p => p.UserId);
-        await _realtimePublisher.PublishMessageSentAsync(
-            conversation.Id, conversation.ContextId, conversation.ContextType,
-            message.ToDto(), participantIds, cancellationToken);
+        // SAFETY: never broadcast internal admin notes to the participant-facing conversation group /
+        // user channels. The MessageSent DTO carries Content + IsInternalNote, so an unconditional publish
+        // would leak the note to any participant client that joins messaging:conv:{id}. Mirror the same
+        // !IsInternalNote gate used by the Notification bus publish below. Live admin delivery of internal
+        // notes is deferred to a later wave (admin-only thin event), not this full-DTO participant broadcast.
+        if (!request.IsInternalNote)
+        {
+            var participantIds = conversation.Participants.Select(p => p.UserId);
+            await _realtimePublisher.PublishMessageSentAsync(
+                conversation.Id, conversation.ContextId, conversation.ContextType,
+                message.ToDto(), participantIds, cancellationToken);
+        }
 
         // Fire-and-forget LLM analysis — only for text messages, non-blocking
         var llmEnabled = _config.GetValue<bool>("Messaging:LlmModeration:Enabled", defaultValue: false);
@@ -164,7 +203,7 @@ public sealed class SendMessageCommandHandler
                     ConversationId    = conversation.Id,
                     ConversationTitle = conversation.Title,
                     SenderUserId      = currentUserId,
-                    SenderName        = participant.DisplayName,
+                    SenderName        = senderDisplayName,
                     ContextType       = conversation.ContextType,
                     ContextId         = conversation.ContextId,
                     RecipientUserIds  = recipientIds,

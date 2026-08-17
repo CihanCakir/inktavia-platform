@@ -8,6 +8,9 @@ public interface ICargoDryBatchRepository
     Task<List<CargoDryBatchEntity>> GetAllAsync(CancellationToken ct = default);
     Task<List<CargoDryBatchEntity>> GetAllForReportAsync(
         DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
+    /// <summary>SQL COUNT(*) for non-revoked batches — avoids materialising all rows.</summary>
+    Task<int> CountActiveBatchesAsync(CancellationToken ct = default);
+
     Task AddAsync(CargoDryBatchEntity entity, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

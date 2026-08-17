@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-aizen}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aizenpw}
-      POSTGRES_DB: ${POSTGRES_DB:-aizen}
+      POSTGRES_DB: ${POSTGRES_DB:-inktavia_store}
     ports:
       - "5432:5432"
     volumes:
@@ -66,16 +66,25 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
 
-      KC_HOSTNAME: ${KC_HOSTNAME:-localhost}
-      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
+      # KC 25 docker pattern: frontend hostname is a FULL URL (browser-facing localhost:8080), while
+      # backchannel stays DYNAMIC so in-cluster callers (services fetching JWKS/metadata over the docker network)
+      # get the request host (keycloak:8080) — reachable internally. A bare hostname + dynamic backchannel refuses
+      # to boot on KC 25; a bare hostname + non-dynamic backchannel advertises localhost URLs unreachable inside the
+      # network. Full URL + dynamic backchannel satisfies both.
+      KC_HOSTNAME: ${KC_HOSTNAME:-http://localhost:8080}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
       KC_PROXY: "none"
+      # DEBUG for the custom OTP-login authenticator so its ticket/HMAC/consume decisions are visible
+      # in `docker logs keycloak`. Everything else stays at INFO.
+      KC_LOG_LEVEL: ${KEYCLOAK_LOG_LEVEL:-INFO,com.inktavia:debug}
     ports:
       - "8080:8080"
     volumes:
       - ./infrastructure/keycloak/inktavia-realm-realm.json:/opt/keycloak/data/import/inktavia-realm-realm.json:ro
+      - ./infrastructure/keycloak/providers/provider-otp-login-authenticator.jar:/opt/keycloak/providers/provider-otp-login-authenticator.jar:ro
     networks: [aizen]
 
   keycloak-init:
@@ -88,6 +97,8 @@ services:
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      OTP_LOGIN_TICKET_SECRET: ${OTP_LOGIN_TICKET_SECRET:-}
+      OTP_LOGIN_CONSUME_SECRET: ${OTP_LOGIN_CONSUME_SECRET:-}
     volumes:
       - ./infrastructure/keycloak/init.sh:/init/init.sh:ro
     networks: [aizen]
@@ -125,6 +136,7 @@ services:
       - cargodry-api
       - messaging-api
       - notification-api
+      - payment-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -132,10 +144,28 @@ services:
       MessageBroker__QueueSettings__Port: 5672
       MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
       MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
-      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
-      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
-      KEYCLOAK_AUDIENCE: bff-adminpanel
-      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # ── Admin BFF inbound auth: Keycloak RS256 (mirrors MarineProviderKeycloak) ──
+      AdminPanelKeycloak__BaseUrl: http://keycloak:8080
+      AdminPanelKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      AdminPanelKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      AdminPanelKeycloak__Realm: inktavia-realm
+      AdminPanelKeycloak__Audience: admin-panel-bff
+      AdminPanelKeycloak__RequireHttpsMetadata: "false"
+      AdminPanelKeycloak__AdminClientId: admin-panel-bff
+      AdminPanelKeycloak__AdminClientSecret: ${KEYCLOAK_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      AdminPanelKeycloak__AdminPanelClientId: admin-panel
+      AdminPanelKeycloak__AdminPanelBffClientId: admin-panel-bff
+      AdminPanelKeycloak__AdminRole: Admin
+      # Trusted-BFF identity assertion. Must match each module's BffAssertion__SharedSecret.
+      # FAIL-CLOSED (HARDENING_GENERIC_CRUD_AND_SERVICE_TOKEN): empty is allowed ONLY in Development
+      # (feature disabled). Outside Development every host requires a non-empty AIZEN_BFF_ASSERTION_SECRET or
+      # it will refuse to start. Set AIZEN_BFF_ASSERTION_SECRET (env/k8s secret, NOT in the repo) for prod/staging.
+      # X-Aizen-User-Id is resolved via Keycloak subject → Identity by-subject lookup (no user-id claim mapper needed).
+      AdminPanelKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      # ── BFF→module Keycloak service token ──
+      KeycloakServiceToken__Authority: http://keycloak:8080/realms/inktavia-realm
+      KeycloakServiceToken__TokenEndpoint: http://keycloak:8080/realms/inktavia-realm/protocol/openid-connect/token
+      KeycloakServiceToken__ClientSecret: ${KEYCLOAK_BFF_CLIENT_SECRET:-local-dev-only-change-me}
       RemoteCalls__IIdentityAdminBffRemoteCall__BaseUrl: http://identity-api:8080
       RemoteCalls__IVesselAdminBffRemoteCall__BaseUrl: http://vessel-api:8080
       RemoteCalls__IFileStorageAdminBffRemoteCall__BaseUrl: http://file-storage-api:8080
@@ -144,12 +174,303 @@ services:
       RemoteCalls__IAdminCargoDryBffRemoteCall__BaseUrl: http://cargodry-api:8080
       RemoteCalls__IAdminMessagingBffRemoteCall__BaseUrl: http://messaging-api:8080
       RemoteCalls__INotificationBffRemoteCall__BaseUrl: http://notification-api:8080
+      # ── Realtime edge (BFF-hosted SignalR on Aizen.Core.Realtime) ──
+      # Redis backplane (required for k8s multi-replica; group broadcasts must reach all pods).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=14
+      # CORS: the admin SPA connects to /hubs/admin-messaging with the Keycloak bearer; its browser origin must
+      # be allow-listed (credentials required). Dev: admin-web dev server. k8s: the admin-web ingress host(s).
+      Realtime__SignalR__AllowedOrigins__0: ${ADMIN_WEB_ORIGIN:-http://localhost:3000}
       RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl: http://notification-api:8080
+      RemoteCalls__IAdminPaymentBffRemoteCall__BaseUrl: http://payment-api:8080
     ports:
       - "${BFF_ADMINPANEL_PORT:-17001}:8080"
     networks: [aizen]
 
+  bff-marineprovider:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.MarineProvider
+    container_name: bff-marineprovider
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - redis
+      - identity-api
+      - service-request-api
+      - file-storage-api
+      - cargodry-api
+      - reference-data-api
+      - vessel-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # Inbound auth (Keycloak full IdP). Authority = browser-facing issuer; MetadataAddress = in-cluster JWKS.
+      MarineProviderKeycloak__BaseUrl: http://keycloak:8080
+      MarineProviderKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineProviderKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineProviderKeycloak__Realm: inktavia-realm
+      MarineProviderKeycloak__Audience: provider-portal-bff
+      MarineProviderKeycloak__RequireHttpsMetadata: "false"
+      MarineProviderKeycloak__AdminClientId: provider-portal-bff
+      MarineProviderKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineProviderKeycloak__ProviderPortalClientId: provider-portal
+      MarineProviderKeycloak__ProviderPortalBffClientId: provider-portal-bff
+      MarineProviderKeycloak__ProviderPendingRole: provider_pending
+      MarineProviderKeycloak__ProviderUserRole: provider_user
+      MarineProviderKeycloak__ProviderRestrictedRole: provider_restricted
+      MarineProviderKeycloak__ProviderProfileIdAttributeName: provider_profile_id
+      MarineProviderKeycloak__VerifyEmailRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/verify-callback
+      # BFF → module calls (Keycloak service token injected by the delegating handler)
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Phase 3 — provider reads conversations/threads from the unified Messaging module
+      RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
+      RemoteCalls__IPaymentRemoteCall__BaseUrl: http://payment-api:8080
+      # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
+      MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      RateLimiting__PasswordRecovery__PermitPerWindow: 10
+      RateLimiting__PasswordRecovery__WindowSeconds: 300
+      # Redis — backs the per-provider upload-session rate limit (IAizenDistributedCache).
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=14
+      # Redis backplane for SignalR (separate DB from cache — FLUSHDB on 14 must not kill realtime).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
+      # CORS: browser SPA origin(s) allowed to call the BFF cross-origin (public + authenticated XHR).
+      Cors__AllowedOrigins__0: ${PROVIDER_WEB_BASE:-http://localhost:3002}
+    ports:
+      - "${BFF_MARINEPROVIDER_PORT:-17002}:8080"
+    networks: [aizen]
+
+  bff-marine-mobile:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.Marine.Participant.Mobile
+    container_name: bff-marine-mobile
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - redis
+      - identity-api
+      - reference-data-api
+      - vessel-api
+      - service-request-api
+      - cargodry-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # Inbound auth (Keycloak full IdP). Authority = browser-facing issuer; MetadataAddress = in-cluster JWKS.
+      MarineMobileKeycloak__BaseUrl: http://keycloak:8080
+      MarineMobileKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineMobileKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineMobileKeycloak__Realm: inktavia-realm
+      MarineMobileKeycloak__Audience: marine-mobile-bff
+      MarineMobileKeycloak__RequireHttpsMetadata: "false"
+      MarineMobileKeycloak__AdminClientId: marine-mobile-bff
+      MarineMobileKeycloak__AdminClientSecret: ${KEYCLOAK_MARINE_MOBILE_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineMobileKeycloak__ClientId: inktavia-mobile
+      MarineMobileKeycloak__BffClientId: marine-mobile-bff
+      MarineMobileKeycloak__MobileUserRole: mobile_user
+      MarineMobileKeycloak__ParticipantProfileIdAttributeName: participant_profile_id
+      MarineMobileKeycloak__VerifyEmailRedirectUri: ${MARINE_MOBILE_BASE:-http://localhost:19006}/auth/verify-callback
+      # Server-side native ticket→session handoff redirect (registered on inktavia-mobile by keycloak init.sh).
+      # Never actually called back — the BFF reads the code from the authorize 302 — but must match a
+      # registered redirect_uri and be identical in the authorize + token requests.
+      MarineMobileKeycloak__BffRedirectUri: ${MARINE_MOBILE_BFF_REDIRECT_URI:-http://localhost:17003/auth/callback}
+      # BFF -> module calls (Keycloak service token injected by the delegating handler)
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      # Vessel reads (M4a) + create trio (M4b). Base URL was missing here — M4a registered neither the
+      # RemoteCalls entry nor the DI client, so the vessel calls could not reach vessel-api. Fixed with M4b.
+      RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      # Owner service-request create/list/detail/cancel (BE_MO1) → the ServiceRequest module owner endpoints.
+      RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Owner CargoDry validate/activate/my-kits (BE_MO11a) → the CargoDry module owner endpoints.
+      RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
+      # Owner participant membership (BE_MO7) → the Payment module owner endpoints.
+      RemoteCalls__IParticipantMembershipRemoteCall__BaseUrl: http://payment-api:8080
+      # Owner notifications inbox/read/device-token/preferences (BE_MO9c) → the Notification module owner endpoints.
+      RemoteCalls__INotificationRemoteCall__BaseUrl: http://notification-api:8080
+      # Owner chat reads (BE_MO10a) → the Messaging module participant-scoped /conversations/mine endpoints.
+      # (The owner chat WRITE reuses the service-request-api remote call above — no new base URL for the write.)
+      RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
+      # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted participant identity.
+      MarineMobileKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      RateLimiting__PasswordRecovery__PermitPerWindow: 10
+      RateLimiting__PasswordRecovery__WindowSeconds: 300
+      # Redis - backs BFF distributed-cache needs (separate DB from other BFFs).
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=16
+      # BE-MO9b — realtime (owner notification bell) SignalR Redis backplane. REQUIRED for K8s multi-replica so a
+      # RabbitMQ consumer on one pod re-broadcasts the frame to the pod holding the participant's socket. Uses a
+      # SEPARATE Redis DB (15) from the mobile cache (16) so a cache FLUSHDB never drops live sockets; groups are
+      # prefix-isolated ("mobile-notification:{id}") so sharing DB 15 with other realtime services is safe.
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
+      Realtime__SignalR__AllowedOrigins__0: ${MARINE_MOBILE_BASE:-http://localhost:19006}
+      # CORS: mobile client origin(s) allowed to call the BFF cross-origin.
+      Cors__AllowedOrigins__0: ${MARINE_MOBILE_BASE:-http://localhost:19006}
+    ports:
+      - "${BFF_MARINE_MOBILE_PORT:-17003}:8080"
+    networks: [aizen]
+
+  # Public-website BFF (server-rendered Next.js consumer). Anonymous read surface + M4 contact WRITE. Mirrors
+  # bff-marine-mobile. NOTE: the ${MARINE_WEB_TRUSTED_CALLER_SECRET} value MUST also be injected into the Next.js
+  # server as the X-Aizen-Web-Caller header — otherwise the SSR server trips the strict per-IP read limit.
+  bff-marine-web:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.Marine.Web
+    container_name: bff-marine-web
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - redis
+      - content-api
+      - identity-api
+      - reference-data-api
+      - payment-api
+      - notification-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      # AppType.Worker — the BFF hosts the ContentPublished/Unpublished revalidation consumers. Same broker block.
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # BFF -> module calls (Keycloak service token injected by the delegating handler).
+      RemoteCalls__IContentRemoteCall__BaseUrl: http://content-api:8080
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      RemoteCalls__IPaymentRemoteCall__BaseUrl: http://payment-api:8080
+      RemoteCalls__INotificationRemoteCall__BaseUrl: http://notification-api:8080
+      # W2.1 — trusted server-caller secret. The Next.js server sends this as X-Aizen-Web-Caller; inject the SAME
+      # value there. Empty ⇒ the SSR server is throttled by the strict per-IP read limit.
+      MarineWebPublic__TrustedCallerSecret: ${MARINE_WEB_TRUSTED_CALLER_SECRET:-local-dev-only-change-me}
+      MarineWebPublic__TrustedRateLimit__PermitLimit: 6000
+      MarineWebPublic__TrustedRateLimit__WindowSeconds: 60
+      # W3.2 — SEO indexability thresholds (ISeoIndexabilityPolicy).
+      MarineWebPublic__Seo__RequirePublished: "true"
+      MarineWebPublic__Seo__RequireTitle: "true"
+      MarineWebPublic__Seo__RequireDescription: "false"
+      MarineWebPublic__Seo__MinBodyLength: 200
+      # W2.2 — outbound cache-revalidation webhook to the Next.js server.
+      MarineWebPublic__Revalidate__Url: ${MARINE_WEB_BASE:-http://localhost:3000}/api/revalidate
+      MarineWebPublic__Revalidate__Secret: ${MARINE_WEB_REVALIDATE_SECRET:-}
+      # Rate limits: per-IP reads (unchanged) + the stricter M4 contact-submit WRITE limit.
+      RateLimiting__PublicRead__PermitLimit: 120
+      RateLimiting__PublicRead__WindowSeconds: 60
+      RateLimiting__ContactSubmit__PermitLimit: 5
+      RateLimiting__ContactSubmit__WindowSeconds: 60
+      # CORS: local browser dev only (server-to-server calls do not exercise CORS).
+      Cors__AllowedOrigins__0: ${MARINE_WEB_BASE:-http://localhost:3000}
+      # Redis — BFF distributed-cache (DB 17, chosen in W0).
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=17
+      # MarineWebKeycloak — the FROZEN /me surface only (the website never authenticates). Mirrors the mobile block.
+      MarineWebKeycloak__BaseUrl: http://keycloak:8080
+      MarineWebKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineWebKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineWebKeycloak__Realm: inktavia-realm
+      MarineWebKeycloak__Audience: marine-web-bff
+      MarineWebKeycloak__RequireHttpsMetadata: "false"
+      MarineWebKeycloak__AdminClientId: marine-web-bff
+      MarineWebKeycloak__AdminClientSecret: ${KEYCLOAK_MARINE_WEB_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineWebKeycloak__ClientId: inktavia-web
+      MarineWebKeycloak__BffClientId: marine-web-bff
+      MarineWebKeycloak__WebUserRole: web_user
+      MarineWebKeycloak__ParticipantProfileIdAttributeName: participant_profile_id
+      # Sent to Content as X-Aizen-Bff-Assertion (frozen /me). MUST equal content-api's BffAssertion__SharedSecret.
+      MarineWebKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+    ports:
+      - "${BFF_MARINE_WEB_PORT:-17005}:8080"
+    networks: [aizen]
+
+
   # Example modules (expand as needed)
+  # Second replica of the BFF — ONLY for proving the Redis SignalR backplane locally.
+  # In Kubernetes this is just `replicas: 2`; docker-compose cannot scale a service that pins
+  # container_name and a host port, so the replica is spelled out. Identical image, identical env,
+  # same Redis and same RabbitMQ — the ONLY differences are the container name and the host port.
+  #
+  # The test: point the browser at instance 1 only. RabbitMQ hands each published message to exactly
+  # ONE of the two (competing consumers). Roughly half will be consumed by instance 2 — an instance
+  # that holds no socket. Without the backplane those events vanish silently. With it, all arrive.
+  bff-marineprovider-2:
+    build:
+      context: .
+      dockerfile: ./Bff/build/Dockerfile.MarineProvider
+    container_name: bff-marineprovider-2
+    depends_on:
+      - keycloak
+      - rabbitmq
+      - redis
+      - identity-api
+      - service-request-api
+      - file-storage-api
+      - cargodry-api
+      - reference-data-api
+      - vessel-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      # Inbound auth (Keycloak full IdP). Authority = browser-facing issuer; MetadataAddress = in-cluster JWKS.
+      MarineProviderKeycloak__BaseUrl: http://keycloak:8080
+      MarineProviderKeycloak__Authority: http://localhost:8080/realms/inktavia-realm
+      MarineProviderKeycloak__MetadataAddress: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      MarineProviderKeycloak__Realm: inktavia-realm
+      MarineProviderKeycloak__Audience: provider-portal-bff
+      MarineProviderKeycloak__RequireHttpsMetadata: "false"
+      MarineProviderKeycloak__AdminClientId: provider-portal-bff
+      MarineProviderKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      MarineProviderKeycloak__ProviderPortalClientId: provider-portal
+      MarineProviderKeycloak__ProviderPortalBffClientId: provider-portal-bff
+      MarineProviderKeycloak__ProviderPendingRole: provider_pending
+      MarineProviderKeycloak__ProviderUserRole: provider_user
+      MarineProviderKeycloak__ProviderRestrictedRole: provider_restricted
+      MarineProviderKeycloak__ProviderProfileIdAttributeName: provider_profile_id
+      MarineProviderKeycloak__VerifyEmailRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/verify-callback
+      # BFF → module calls (Keycloak service token injected by the delegating handler)
+      RemoteCalls__IIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      RemoteCalls__IServiceRequestRemoteCall__BaseUrl: http://service-request-api:8080
+      # Phase 3 — provider reads conversations/threads from the unified Messaging module
+      RemoteCalls__IMessagingRemoteCall__BaseUrl: http://messaging-api:8080
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      RemoteCalls__IVesselRemoteCall__BaseUrl: http://vessel-api:8080
+      RemoteCalls__ICargoDryRemoteCall__BaseUrl: http://cargodry-api:8080
+      RemoteCalls__IPaymentRemoteCall__BaseUrl: http://payment-api:8080
+      # Sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity (Phase 32).
+      MarineProviderKeycloak__ModuleAssertionSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      RateLimiting__PasswordRecovery__PermitPerWindow: 10
+      RateLimiting__PasswordRecovery__WindowSeconds: 300
+      # Redis — backs the per-provider upload-session rate limit (IAizenDistributedCache).
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=14
+      # Redis backplane for SignalR (separate DB from cache — FLUSHDB on 14 must not kill realtime).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
+      # CORS: browser SPA origin(s) allowed to call the BFF cross-origin (public + authenticated XHR).
+      Cors__AllowedOrigins__0: ${PROVIDER_WEB_BASE:-http://localhost:3002}
+    ports:
+      - "${BFF_MARINEPROVIDER_2_PORT:-17012}:8080"
+    networks: [aizen]
+
+  # Example modules (expand as needed)
+
   minio:
     image: minio/minio:latest
     container_name: inktavia-minio
@@ -160,6 +481,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:3002,http://localhost:3000
     volumes:
       - minio_data:/data
     healthcheck:
@@ -198,7 +520,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Identity: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Identity: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Redis__Host: redis:6379
       Identity__Authority: http://keycloak:8080/realms/${KC_REALM:-inktavia-realm}
       Messaging__RabbitMQ__Host: rabbitmq
@@ -210,6 +532,51 @@ services:
       KEYCLOAK_AUDIENCE: identity-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       ElasticApm__Enabled: "false"
+      IdentityKeycloak__Enabled: "true"
+      IdentityKeycloak__BaseUrl: http://keycloak:8080
+      IdentityKeycloak__Realm: inktavia-realm
+      IdentityKeycloak__AdminClientId: provider-portal-bff
+      # KEYSTONE: identity-api authenticates to Keycloak (user provisioning / subject linkage) as the
+      # provider-portal-bff admin client. This had NO default, so a missing env var resolved to BLANK and
+      # silently degraded identity-api's admin path. Default to the dev secret (same value marine-provider-bff
+      # already defaults to) so every consumer resolves identically even without .env; override via .env in dev.
+      IdentityKeycloak__AdminClientSecret: ${KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET:-local-dev-only-change-me}
+      RemoteCalls__IIdentityFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      RemoteCalls__IIdentityReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      # Trusted-BFF identity assertion (module side). Empty = disabled. Must match the BFF's ModuleAssertionSecret.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # marine-mobile-bff asserts the participant identity for profile update (M3a); mirrors the provider/admin BFFs.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
+      IdentityKeycloak__ProviderPendingRole: provider_pending
+      IdentityKeycloak__ProviderUserRole: provider_user
+      IdentityKeycloak__ProviderRestrictedRole: provider_restricted
+      IdentityKeycloak__RevokeSessionsOnSuspend: "true"
+      PasswordRecovery__OtpLength: 6
+      PasswordRecovery__OtpTtlSeconds: 300
+      PasswordRecovery__ResendCooldownSeconds: 60
+      PasswordRecovery__MaxAttempts: 5
+      PasswordRecovery__ResetTokenTtlSeconds: 300
+      # DEV-ONLY: exposes the recovery OTP in logs. Safe default is FALSE; opt in locally via .env
+      # (PASSWORD_RECOVERY_DEV_EXPOSE_OTP=true + PASSWORD_RECOVERY_LOG_LEVEL=Debug). Never true in shared/test/prod.
+      PasswordRecovery__DeliveryMode: ${PASSWORD_RECOVERY_DELIVERY_MODE:-Notification}
+      PasswordRecovery__DevExposeOtp: ${PASSWORD_RECOVERY_DEV_EXPOSE_OTP:-false}
+      PasswordRecovery__MaxRequestsPerIdentifierPerWindow: 5
+      PasswordRecovery__IdentifierWindowSeconds: 3600
+      Logging__LogLevel__Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery: ${PASSWORD_RECOVERY_LOG_LEVEL:-Information}
+      Logging__LogLevel__Aizen.Modules.Identity.Repository.Identity.Service.OtpLogin: ${PASSWORD_RECOVERY_LOG_LEVEL:-Information}
+      OtpLogin__OtpLength: 6
+      OtpLogin__OtpTtlSeconds: 300
+      OtpLogin__ResendCooldownSeconds: 60
+      OtpLogin__MaxAttempts: 5
+      OtpLogin__MaxRequestsPerIdentifierPerWindow: 5
+      OtpLogin__IdentifierWindowSeconds: 3600
+      OtpLoginTicket__Secret: ${OTP_LOGIN_TICKET_SECRET:-}
+      OtpLoginTicket__ConsumeSecret: ${OTP_LOGIN_CONSUME_SECRET:-}
+      OtpLoginTicket__TtlSeconds: 120
+      OtpLoginTicket__KeycloakAuthorizeBaseUrl: http://localhost:8080
+      OtpLoginTicket__SpaRedirectUri: ${PROVIDER_WEB_BASE:-http://localhost:3002}/auth/callback
     ports:
       - "7101:8080"
     networks: [aizen]
@@ -228,7 +595,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
@@ -239,8 +606,55 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: reference-data-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      DatabaseSettings__ReferenceData__Type: PostgreSQL
+      DatabaseSettings__ReferenceData__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=12
+      ReferenceDataSeed__Enabled: "true"
+      ReferenceDataSeed__SeedEfEntities: "true"
+      ReferenceDataSeed__SeedLocationDocuments: "true"
     ports:
       - "7104:8080"
+    networks: [aizen]
+
+  # Content module host (Mongo-only). Consumed by bff-marine-web (IContentRemoteCall). Mirrors reference-data-api's
+  # Mongo wiring + notification-api's message-bus keys (Content publishes ContentPublished/ContentUnpublished).
+  content-api:
+    build:
+      context: .
+      dockerfile: ./Modules/Content/build/Dockerfile
+    container_name: content-api
+    depends_on:
+      - mongo
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      # AizenMongoContext reads DatabaseSettings:ContentMongo (ContentMongoDbContext.ConfigurationKey = "ContentMongo").
+      # The database name lives in the connection-string path — matches the module's appsettings (aizen_content);
+      # authSource=admin because the mongo service's root user authenticates against the admin db.
+      DatabaseSettings__ContentMongo__Type: Mongo
+      DatabaseSettings__ContentMongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017/aizen_content?authSource=admin
+      DistributedCache__InstanceName: "Content:"
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=18
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      MessageBroker__QueueSettings__VirtualHost: ${RABBITMQ_VHOST:-/}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: content-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Trust the Marine.Web BFF's /me assertions (X-Aizen-Bff-Assertion). This shared secret MUST equal the BFF's
+      # MarineWebKeycloak__ModuleAssertionSecret — both resolve ${AIZEN_BFF_ASSERTION_SECRET}.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: marine-web-bff
+      # Demo content seed — off by default.
+      Content__Seed__Demo: "false"
+    ports:
+      - "${CONTENT_API_PORT:-7111}:8080"
     networks: [aizen]
 
   vessel-api:
@@ -256,7 +670,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
       Messaging__RabbitMQ__Port: 5672
@@ -266,6 +680,19 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: vessel-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Trusted-BFF identity assertion. marine-mobile-bff scopes /vessels/current-user to the participant (M4a);
+      # admin-panel-bff + provider-portal-bff carry admin/provider identity for the vessel document/media register
+      # step (the module validates the uploaded file via file-storage-api). Mirrors file-storage-api's allow-list.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
+      # Vessel documents (M4e): the module validates the uploaded file via file-storage-api before attaching it.
+      RemoteCalls__IFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      DatabaseSettings__Vessel__Type: PostgreSQL
+      DatabaseSettings__Vessel__ConnectionString: Host=postgres;Database=inktavia_store;Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=11
     ports:
       - "7105:8080"
     networks: [aizen]
@@ -285,7 +712,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
@@ -294,6 +721,8 @@ services:
       Messaging__RabbitMQ__Password: ${RABBITMQ_PASSWORD:-aizenpw}
       KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      DatabaseSettings__FileStorage__Type: PostgreSQL
+      DatabaseSettings__FileStorage__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       KEYCLOAK_AUDIENCE: file-storage-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
       S3ObjectStorage__Provider: MinIO
@@ -302,8 +731,15 @@ services:
       S3ObjectStorage__Region: us-east-1
       S3ObjectStorage__BucketName: ${MINIO_BUCKET_NAME:-inktavia-filestorage-local}
       S3ObjectStorage__ServiceUrl: http://minio:9000
+      S3ObjectStorage__PublicServiceUrl: ${MINIO_PUBLIC_URL:-http://localhost:9000}
       S3ObjectStorage__ForcePathStyle: "true"
       S3ObjectStorage__UseHttp: "true"
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # marine-mobile-bff uploads participant avatars (M3c); its resolve-by-subject sets the identity holder,
+      # so the delegating handler asserts on the upload-session calls too — allow-list it to avoid 1102.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
     ports:
       - "7106:8080"
     networks: [aizen]
@@ -322,7 +758,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Default: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       Redis__Host: redis:6379
       Messaging__RabbitMQ__Host: rabbitmq
@@ -333,6 +769,21 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: service-request-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Database (ServiceRequest schema in inktavia_store postgres)
+      DatabaseSettings__ServiceRequest__Type: PostgreSQL
+      DatabaseSettings__ServiceRequest__ConnectionString: Host=postgres;Database=inktavia_store;Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      # Trusted-BFF identity assertion (Phase 32): accept X-Aizen-Provider-Profile-Id from the MarineProvider BFF.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE_MO1: honor the marine-mobile-bff assertion so the owner app can create/list/detail its service requests.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
+      # Redis backplane for SignalR (ServiceRequestHub).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
+      RemoteCalls__IServiceRequestReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      # BE_WC3b — read the dispute case chat transcript from the canonical Messaging store (internal S2S read).
+      RemoteCalls__IServiceRequestMessagingRemoteCall__BaseUrl: http://messaging-api:8080
     ports:
       - "7107:8080"
     networks: [aizen]
@@ -351,7 +802,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__CargoDry: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__CargoDry: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       ConnectionStrings__CargoDryMongo: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       MongoDb__DatabaseName: aizen_cargodry
       DistributedCache__InstanceName: "CargoDry:"
@@ -369,6 +820,12 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: cargodry-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE_MO11a — trust the mobile BFF assertion so the owner's validate/activate/my-kits resolve UserInfo.UserId from
+      # the asserted participant (so activate and GetMyKits share one id-space). Mirrors the MO1/MO9c/MO10a fixes.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       ElasticApm__Enabled: "false"
     ports:
       - "7108:8080"
@@ -388,7 +845,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Messaging: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Messaging: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
       DistributedCache__InstanceName: "Messaging:"
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=13
@@ -401,7 +858,19 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: messaging-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Trusted-BFF identity assertion (module side). Empty = disabled. Must match the BFF's ModuleAssertionSecret.
+      # Phase 3: required so the MarineProvider BFF's X-Aizen-User-Id assertion resolves the provider identity that
+      # scopes the participant-scoped conversation reads (/conversations/mine + /by-context/mine).
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE-MO10a — trust the mobile BFF assertion so the owner's /conversations/mine + /by-context/mine reads resolve
+      # the asserted participant. Mirrors the MO9c notification-api fix.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       ElasticApm__Enabled: "false"
+      # Redis backplane for SignalR (MessagingHub).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
     ports:
       - "7109:8080"
     networks: [aizen]
@@ -419,7 +888,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Notification: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__Notification: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__Notification__Type: PostgreSQL
+      DatabaseSettings__Notification__ConnectionString: Host=postgres;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
       DistributedCache__InstanceName: "Notification:"
       DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=13
       MessageBroker__QueueSettings__HostName: rabbitmq
@@ -431,9 +902,83 @@ services:
       KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
       KEYCLOAK_AUDIENCE: notification-api
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # Trust the MarineProvider BFF assertion so provider-scoped notification reads/writes
+      # resolve the asserted identity (UserId + ProviderProfileId). Mirrors cargodry-api.
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      # BE-MO9c — trust the mobile BFF assertion so the owner notification surface (inbox/read/device-token/
+      # preferences) resolves the asserted participant identity (ProviderProfileId). Mirrors the other module APIs.
+      BffAssertion__AllowedClientIds__2: marine-mobile-bff
       ElasticApm__Enabled: "false"
+      Email__Host: ${SMTP_HOST:-}
+      Email__Port: ${SMTP_PORT:-587}
+      Email__User: ${SMTP_USER:-}
+      Email__Password: ${SMTP_PASSWORD:-}
+      Email__FromAddress: ${SMTP_FROM:-no-reply@inktavia.com}
+      Email__FromName: ${SMTP_FROM_NAME:-Inktavia Marine}
+      Email__UseSsl: ${SMTP_USE_SSL:-true}
+      # VAPID Web Push
+      Vapid__Subject: ${VAPID_SUBJECT:-}
+      Vapid__PublicKey: ${VAPID_PUBLIC_KEY:-}
+      Vapid__PrivateKey: ${VAPID_PRIVATE_KEY:-}
+      # N-C region fan-out — resolve area-eligible providers from Identity I2 read-model (internal call)
+      RemoteCalls__INotificationIdentityRemoteCall__BaseUrl: http://identity-api:8080
+      # Redis backplane for SignalR (NotificationHub).
+      Realtime__SignalR__UseRedisBackplane: "true"
+      Realtime__SignalR__RedisConnectionString: redis:6379,abortConnect=false,defaultDatabase=15
     ports:
       - "7110:8080"
+    networks: [aizen]
+
+  payment-api:
+    build:
+      context: .
+      dockerfile: ./Modules/Payment/build/Dockerfile
+    container_name: payment-api
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+      - rabbitmq
+      - reference-data-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      DatabaseSettings__Payment__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DatabaseSettings__PaymentScheduler__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB:-inktavia_store};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DistributedCache__InstanceName: "Payment:"
+      DistributedCache__Configuration: redis:6379,abortConnect=False,defaultDatabase=14
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      MessageBroker__QueueSettings__VirtualHost: ${RABBITMQ_VHOST:-/}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: payment-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      # payment-api → reference-data-api system-parameter reads (fee/VAT params for economics). Auth = forwarded caller token.
+      RemoteCalls__IPaymentReferenceDataRemoteCall__BaseUrl: http://reference-data-api:8080
+      Iyzico__ApiKey: ${IYZICO_API_KEY:-sandbox_api_key_placeholder}
+      Iyzico__SecretKey: ${IYZICO_SECRET_KEY:-sandbox_secret_key_placeholder}
+      Iyzico__BaseUrl: ${IYZICO_BASE_URL:-https://sandbox-api.iyzipay.com}
+      Iyzico__WebhookSecret: ${IYZICO_WEBHOOK_SECRET:-}
+      Iyzico__CallbackUrl: ${IYZICO_CALLBACK_URL:-http://localhost:3000/payment/callback}
+      Scheduler__StorageType: PostgreSQL
+      Scheduler__RetryAttempts: 3
+      Scheduler__UseFilter: "true"
+      Scheduler__RouteUrl: /hangfire
+      Scheduler__DatabaseKey: PaymentScheduler
+      Scheduler__SchemaName: payment-scheduler
+      ElasticApm__Enabled: "false"
+      BffAssertion__SharedSecret: ${AIZEN_BFF_ASSERTION_SECRET:-}
+      BffAssertion__AllowedClientIds__0: provider-portal-bff
+      BffAssertion__AllowedClientIds__1: admin-panel-bff
+      RemoteCalls__IPaymentFileStorageRemoteCall__BaseUrl: http://file-storage-api:8080
+      Payment__IbanEncryptionKey: ${PAYMENT_IBAN_ENCRYPTION_KEY:-local-dev-iban-key-change-me!!!!!}
+    ports:
+      - "${PAYMENT_API_PORT:-7102}:8080"
     networks: [aizen]
 
   # Load testing - k6
