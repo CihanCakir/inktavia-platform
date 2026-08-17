@@ -32,8 +32,7 @@ on:
     branches: [develop]
 
 permissions:
-  # contents: write — dev sürüm işaretçisini ilerleten commit için gerekli.
-  contents: write
+  contents: read
   packages: write
 
 concurrency:
@@ -245,26 +244,72 @@ jobs:
     needs: complete-tags
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
+    # En az yetki: yalnız bu iş yazabiliyor, diğerleri read.
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: develop
 
-      - run: |
+      - id: bump
+        name: Sürüm işaretçisini güncelle
+        run: |
           set -euo pipefail
           SHA7="${{ needs.complete-tags.outputs.sha7 }}"
           F=gitops/apps/dev-appset.yaml
 
           CUR=$(grep -oP '(?<=value: )sha-[0-9a-f]{7}' "$F" || echo "yok")
           if [ "$CUR" = "sha-$SHA7" ]; then
-            echo "dev zaten sha-$SHA7 — değişiklik yok"; exit 0
+            echo "dev zaten sha-$SHA7 — yapılacak bir şey yok"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           sed -i -E "s|(^ +value: )sha-[0-9a-f]{7}\b|\1sha-${SHA7}|" "$F"
           grep -n "value: sha-" "$F"
 
+          BRANCH="ci/dev-bump-${SHA7}"
           git config user.name  "inktavia-ci"
           git config user.email "ci@inktavia.com"
+          git checkout -b "$BRANCH"
           git add "$F"
           git commit -m "chore(gitops): dev sürümü ${CUR} → sha-${SHA7}"
-          git push origin develop
+          git push origin "$BRANCH"
+
+          echo "changed=true"        >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH"      >> "$GITHUB_OUTPUT"
+          echo "cur=$CUR"            >> "$GITHUB_OUTPUT"
+
+      # develop korumalı (protect-develop ruleset'i: PR zorunlu, doğrudan push kapalı)
+      # ve github-actions[bot] bypass listesine EKLENEMİYOR — GitHub bu repoda Actions'ı
+      # bypass aktörü olarak sunmuyor. Bu yüzden CI doğrudan push etmiyor, PR açıyor.
+      # Auto-merge zorunlu check'ler (build, test) geçince kendisi birleştiriyor:
+      # otomasyon tam, koruma bozulmuyor, her dev deploy'u git geçmişinde kalıyor.
+      - name: PR aç ve auto-merge'e al
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+          CUR: ${{ steps.bump.outputs.cur }}
+          SHA7: ${{ needs.complete-tags.outputs.sha7 }}
+        run: |
+          set -euo pipefail
+          gh pr create \
+            --base develop --head "$BRANCH" \
+            --title "chore(gitops): dev sürümü sha-${SHA7}" \
+            --body "$(cat <<EOF
+          Dev ortamının sürüm işaretçisini \`${CUR}\` değerinden \`sha-${SHA7}\` değerine taşır.
+
+          Otomatik üretildi: \`${{ github.sha }}\` commit'i için imajlar yayınlandıktan sonra.
+          Argo CD bu birleştirmeden sonra \`inktavia-dev\` ortamını kendiliğinden günceller.
+
+          Prod etkilenmez — prod sürümü \`gitops/apps/prod-appset.yaml\` içinde ayrı durur ve
+          yalnızca elle terfi ettirilir.
+          EOF
+          )"
+
+          # Zorunlu check'ler (build, test) geçtiğinde kendiliğinden birleşir.
+          gh pr merge --auto --squash "$BRANCH"
+          echo "PR açıldı ve auto-merge etkinleştirildi: $BRANCH"
