@@ -1,0 +1,277 @@
+# Inktavia — host stack (k3s DIŞI stateful altyapı)
+#
+# Bu dosya inktavia-node-1 üzerinde docker ile çalışır; uygulama servisleri (modüller,
+# BFF'ler, frontend'ler) k3s'te olduğu için burada YOKTUR.
+#
+# Neden k3s dışında: infrastructure/k8s/README.md bunu şart koşuyor. Tek node'lu bir
+# cluster'da PostgreSQL'i pod olarak koşturmak, node yeniden başladığında veri riski ve
+# kurtarma karmaşıklığı demek. Ayrıca bellek sınırını burada `mem_limit` ile doğrudan
+# kontrol edebiliyoruz — 15,9 GB'lık bir kutuda bu belirleyici.
+#
+# Kullanım:
+#   cd /srv/host-stack
+#   docker compose -f docker-compose.prod.yaml up -d
+#
+# Portlar 0.0.0.0'a DEĞİL, LAN adresine bağlanır: Docker yayınlanan portlar için UFW'yi
+# atlar (kendi iptables zincirlerini önce ekler), bu yüzden dinlenen adresi biz kısıtlıyoruz.
+# Modemde port yönlendirme olmadığı için dışarıdan erişim yoktur.
+
+name: inktavia-host-stack
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  # ─────────────────────────────────────────────────────────────────────
+  # PostgreSQL — uygulama veritabanı (SSD)
+  # ─────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 1200m
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-inktavia_store}
+    command:
+      - postgres
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=1536MB
+      - -c
+      - max_connections=200
+      - -c
+      - work_mem=8MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - wal_compression=on
+    ports:
+      - "${BIND_IP}:5432:5432"
+    volumes:
+      - /srv/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-inktavia_store}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [aizen]
+
+  # ─────────────────────────────────────────────────────────────────────
+  # MongoDB — ReferenceData konum dokümanları (SSD)
+  # ─────────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 900m
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    command: ["--wiredTigerCacheSizeGB", "0.5", "--bind_ip_all"]
+    ports:
+      - "${BIND_IP}:27017:27017"
+    volumes:
+      - /srv/data/mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks: [aizen]
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Redis — SignalR backplane + cache + rate-limit sayaçları
+  # Kalıcılık yok (backplane ve cache); maxmemory-policy volatile-lru çünkü
+  # allkeys-lru, TTL'siz anahtarları da atıp rate-limit sayaçlarını sıfırlayabilir.
+  # ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 300m
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - volatile-lru
+      - --requirepass
+      - ${REDIS_PASSWORD}
+    ports:
+      - "${BIND_IP}:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks: [aizen]
+
+  # ─────────────────────────────────────────────────────────────────────
+  # RabbitMQ — modüller arası event bus
+  # ─────────────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 400m
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    ports:
+      - "${BIND_IP}:5672:5672"     # AMQP
+      - "${BIND_IP}:15672:15672"   # Management UI — yalnız LAN
+    volumes:
+      - /srv/data/rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks: [aizen]
+
+  # ─────────────────────────────────────────────────────────────────────
+  # MinIO — nesne deposu (HDD, sıralı I/O yeterli)
+  # ─────────────────────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 300m
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_API_CORS_ALLOW_ORIGIN: ${MINIO_CORS_ORIGINS:-https://admin.inktavia.com,https://partner.inktavia.com}
+    ports:
+      - "${BIND_IP}:9000:9000"
+      - "${BIND_IP}:9001:9001"     # konsol — yalnız LAN
+    volumes:
+      - /srv/objects/minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks: [aizen]
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    restart: "no"
+    logging: *default-logging
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      mc mb -p local/${MINIO_BUCKET_NAME:-inktavia-filestorage};
+      mc anonymous set none local/${MINIO_BUCKET_NAME:-inktavia-filestorage};
+      exit 0;
+      "
+    networks: [aizen]
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Keycloak + kendi veritabanı
+  # Sürüm 25.0.0'da SABİT: realm export'u ve özel OTP SPI jar'ı bu sürüme göre
+  # derlendi. Yükseltme ayrı bir iş, burada değil.
+  # ─────────────────────────────────────────────────────────────────────
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: keycloak-db
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 300m
+    environment:
+      POSTGRES_USER: ${KC_DB_USER:-keycloak}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+      POSTGRES_DB: ${KC_DB_NAME:-keycloak}
+    volumes:
+      - /srv/data/keycloak-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KC_DB_USER:-keycloak}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [aizen]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.0
+    container_name: keycloak
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 1024m
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    # start-dev DEĞİL: üretim modu. hostname-strict=false + proxy-headers=xforwarded
+    # kombinasyonu hem LAN'dan (http://192.168.1.50:8080) hem ileride Cloudflare Tunnel
+    # arkasından (https://auth.inktavia.com) çalışır — Keycloak URL'leri istek
+    # başlıklarından türetir. Faz 9'da tünel kurulunca KC_HOSTNAME sabitlenecek.
+    command:
+      - start
+      - --import-realm
+      - --http-port=8080
+      - --http-enabled=true
+      - --hostname-strict=false
+      - --proxy-headers=xforwarded
+      - --spi-connections-http-client-default-disable-trust-manager=true
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME:-keycloak}
+      KC_DB_USERNAME: ${KC_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_LOG_LEVEL: ${KEYCLOAK_LOG_LEVEL:-INFO}
+      JAVA_OPTS_APPEND: "-Xmx768m -XX:MaxMetaspaceSize=192m"
+    ports:
+      - "${BIND_IP}:8080:8080"
+    volumes:
+      - /srv/host-stack/keycloak/inktavia-realm-realm.json:/opt/keycloak/data/import/inktavia-realm-realm.json:ro
+      - /srv/host-stack/keycloak/providers/provider-otp-login-authenticator.jar:/opt/keycloak/providers/provider-otp-login-authenticator.jar:ro
+    networks: [aizen]
+
+  # Tek seferlik: client'ları, secret'ları ve OTP akışını kurar.
+  # Varsayılan olarak ÇALIŞMAZ; gerektiğinde:
+  #   docker compose -f docker-compose.prod.yaml --profile init up keycloak-init
+  keycloak-init:
+    image: quay.io/keycloak/keycloak:25.0.0
+    container_name: keycloak-init
+    restart: "no"
+    profiles: [init]
+    logging: *default-logging
+    depends_on:
+      - keycloak
+    entrypoint: ["/bin/bash", "/init/init.sh"]
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      OTP_LOGIN_TICKET_SECRET: ${OTP_LOGIN_TICKET_SECRET}
+      OTP_LOGIN_CONSUME_SECRET: ${OTP_LOGIN_CONSUME_SECRET}
+    volumes:
+      - /srv/host-stack/keycloak/init.sh:/init/init.sh:ro
+    networks: [aizen]
+
+networks:
+  aizen:
+    name: aizen
