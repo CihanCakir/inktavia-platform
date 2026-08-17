@@ -364,3 +364,9 @@ appsettings.Local.json
 !/docs/06-nosql-redis/
 !/docs/07-security/
 !/docs/08-load-test/
+
+# Project shell scripts are version-controlled. The blanket *.sh rule above was
+# silently dropping CI guards and infrastructure setup scripts from the repo.
+!scripts/**/*.sh
+!infrastructure/**/*.sh
+!**/build/*.sh
