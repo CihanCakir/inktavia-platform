@@ -33,20 +33,38 @@ spec:
           {{- toYaml .Values.env | nindent 10 }}                
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          # image.tag ZORUNLU. Chart.AppVersion'a düşmesine izin vermiyoruz: sessizce
+          # var olmayan bir sürümü deneyip ImagePullBackOff'a düşmek yerine, helm
+          # render aşamasında yüksek sesle patlasın.
+          image: "{{ .Values.image.repository }}:{{ required "image.tag zorunlu — deploy sırasında --set image.tag=sha-<7hex> ver" .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
+          # Açılışta EF migration çalışıyor (UseMigration = true). Boş bir veritabanında
+          # bu dakikalar sürebilir; startupProbe olmadan liveness pod'u ölü sanıp öldürür
+          # ve migration hiç tamamlanamaz — sonsuz restart döngüsü.
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probes.path | default "/info" }}
+              port: http
+            periodSeconds: {{ .Values.probes.startup.periodSeconds | default 5 }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold | default 60 }}
           livenessProbe:
             httpGet:
-              path: /info
+              path: {{ .Values.probes.path | default "/info" }}
               port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /info
+              path: {{ .Values.probes.path | default "/info" }}
               port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
