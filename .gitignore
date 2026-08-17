@@ -339,3 +339,7 @@ appsettings.Local.json
 # Claude Code local settings
 .claude/
 **/.claude/
+
+# Claude Code local state (machine-specific, never committed)
+.claude/
+**/.claude/
