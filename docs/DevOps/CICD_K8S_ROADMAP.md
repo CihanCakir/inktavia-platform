@@ -1,7 +1,7 @@
 # Inktavia Marine OS — CI/CD + Self-Hosted Kubernetes Go-Live Roadmap
 
-**Sürüm:** 1.2 · **Tarih:** 2026-08-16 · **Sahip:** Cihan Çakır
-*(v1.1: frontend envanteri + donanım değerlendirmesi + Faz 0. **v1.2: D1 değişti — Windows/Hyper-V yerine bare-metal Ubuntu + k3s.** Faz 1 yeniden yazıldı, §1.5 bellek bütçesi ve §1.6 .NET bellek ayarı eklendi.)*
+**Sürüm:** 1.3 · **Tarih:** 2026-08-16 · **Sahip:** Cihan Çakır
+*(v1.1: frontend envanteri + donanım değerlendirmesi + Faz 0. **v1.2: D1 değişti — Windows/Hyper-V yerine bare-metal Ubuntu + k3s.** Faz 1 yeniden yazıldı, §1.5 bellek bütçesi ve §1.6 .NET bellek ayarı eklendi. **v1.3: §1.7 — 16 GB kapasite kararı, duyarlılık analizi, açılış izdihamı önlemleri, SSD ömür kontrolü.**)*
 **Kapsam:** `inktavia-platform` monorepo (11 modül + 5 BFF + Gateway) + 3 frontend (Admin Panel, Provider Portal, Inktavia Web) → kendi kasanda çalışan k3s cluster'ı, GHCR üzerinden versiyonlanmış image'lar, GitOps ile kontrollü deploy, `inktavia.com` altında yayın.
 
 ---
@@ -180,6 +180,128 @@ env:
 Ayrıca .NET, container'ın cgroup bellek limitini kendisi okur ve GC heap üst sınırını buna göre ayarlar — yani `limits.memory: 320Mi` yazmak aynı zamanda GC'yi de terbiye eder. Bu iki mekanizma birlikte çalışır.
 
 Bunlar Helm `values` dosyalarında ortak bir `env` bloğu olarak F6'da tanımlanacak.
+
+---
+
+## 1.7 "16 GB + mevcut SSD ile 11 modül + 4 BFF + 3 site kalkar mı?" — Kapasite Kararı
+
+**Kısa cevap: Evet, kalkar.** Yaklaşık 11,2 GB kullanır, ~4,7 GB boşta kalır. Ama neyi feda ettiğini bilerek yap.
+
+### Bellek — kalem kalem
+
+| Katman | Bileşen | RAM |
+|---|---|---|
+| **Sistem** | Ubuntu Server (başsız) | 0,50 GB |
+| | k3s server + containerd | 0,90 GB |
+| | ingress-nginx | 0,15 GB |
+| | metrics-server + sealed-secrets + cloudflared | 0,12 GB |
+| | Argo CD (4 bileşen) | 0,60 GB |
+| | | **2,27 GB** |
+| **Stateful** | PostgreSQL (`shared_buffers=512MB`) | 1,20 GB |
+| (k3s dışı) | MongoDB (`wiredTigerCache=0.5`) | 0,90 GB |
+| | Keycloak (`-Xmx768m`) | 1,00 GB |
+| | RabbitMQ | 0,35 GB |
+| | Redis (`maxmemory 256mb`) | 0,30 GB |
+| | MinIO | 0,30 GB |
+| | | **4,05 GB** |
+| **Uygulama** | 11 modül × 220 MB | 2,42 GB |
+| (prod, 1 replika) | 4 BFF × 240 MB | 0,96 GB |
+| | web-admin + web-provider (nginx statik) | 0,05 GB |
+| | web-marine (Next.js SSR) | 0,25 GB |
+| | | **3,68 GB** |
+| **Gözlem** | Prometheus (15 gün) + Grafana | 1,15 GB |
+| | **TOPLAM** | **11,15 GB** |
+| | *boşta kalan (page cache + tepe)* | ***4,75 GB*** |
+
+### Duyarlılık analizi — tahminim yanlışsa ne olur?
+
+Yukarıdaki tek kritik varsayım: **servis başına ~220 MB**. Yanılırsam:
+
+| Servis başına gerçek RSS | Toplam kullanım | Boşta kalan | Durum |
+|---|---|---|---|
+| 220 MB (tahmin) | 11,2 GB | 4,7 GB | 🟢 Rahat |
+| 300 MB | 12,3 GB | 3,6 GB | 🟢 Çalışır |
+| 400 MB | 13,8 GB | 2,1 GB | 🟡 Gözlem kapatılmalı |
+| 500 MB | 15,3 GB | 0,6 GB | 🔴 Yetmez |
+
+400 MB'a kadar ayakta kalıyor. .NET 9 + workstation GC + 320Mi cgroup limitiyle 500 MB'a çıkması için servislerin bellek sızdırması gerekir. **Yani cevap sağlam, kıl payı değil.**
+
+### Neyi feda ediyorsun
+
+| Kayıp | Sonuç | Ne zaman geri gelir |
+|---|---|---|
+| **Her serviste tek replika** | Pod yeniden başlarken o modül birkaç saniye kesintiye uğrar. HA yok. | RAM 32 GB |
+| **dev namespace 7/24 çalışamaz** | Scale-to-zero, ihtiyaç anında seçmeli açılır | RAM 32 GB |
+| **Loki yok** | Merkezi log yok; `kubectl logs` + journald | RAM 32 GB |
+| **Prometheus 15 gün, 60 sn scrape** | Uzun dönem trend analizi yok | RAM 32 GB |
+| **Yatay ölçekleme yok** | Yük artarsa dikey sınıra çarparsın | İkinci node |
+
+### 🔴 Gerçek risk: açılış izdihamı (startup stampede)
+
+Bu kurulumda OOM'un olacağı an, normal çalışma değil — **node yeniden başladığında 18 pod'un aynı anda ayağa kalkmaya çalışması.** .NET servisleri açılışta (JIT, EF Core migration kontrolü, DI grafiği) kararlı durumdan %50-80 fazla bellek ister. 18 servis × tepe = geçici olarak 5-6 GB fazla talep.
+
+Üç zorunlu önlem:
+
+1. **Argo CD sync wave'leri** — hepsini birden değil, dalga dalga başlat:
+   `argocd.argoproj.io/sync-wave: "0"` ReferenceData/Identity → `"1"` diğer modüller → `"2"` BFF'ler → `"3"` frontend
+2. **PriorityClass** — stateful ve ingress asla kurban seçilmesin:
+   `system-cluster-critical` ingress'e, özel yüksek öncelik BFF'lere, varsayılan modüllere
+3. **startupProbe** — `failureThreshold: 30, periodSeconds: 10` (5 dakika tolerans). Yoksa yavaş açılan pod'u liveness öldürür ve sonsuz döngüye girer.
+
+### CPU — Ryzen 5 1600 yeter mi?
+
+Boşta 18 pod toplam ~0,5-1 çekirdek kullanır; 12 iş parçacığının çoğu boşta kalır. **Kapasite sorunu yok.** Sorun *gecikme*: Zen 1'in tek çekirdek performansı 2026 standardında zayıf (modern bir çekirdeğin yaklaşık yarısı), .NET istek gecikmesi buna duyarlıdır. p95 yanıt sürelerinin modern bir sunucudakinin ~1,5-2 katı olmasını bekle.
+
+Onlarca eşzamanlı kullanıcı ve dakikada birkaç yüz istek için fazlasıyla yeterli. Viral bir lansman için değil. **Kritik kural: kasada asla build yapma** — CI GitHub-hosted kalacak, yoksa `dotnet build` tüm çekirdekleri doyurur ve prod istekleri kuyruğa girer.
+
+### Disk — 233 GB SSD yeter mi?
+
+| Kalem | Alan |
+|---|---|
+| Ubuntu + paketler | 12 GB |
+| k3s + container image'ları (3 nesil, katman paylaşımlı) | 12 GB |
+| PostgreSQL (1. yıl tahmini) | 10 GB |
+| MongoDB | 5 GB |
+| RabbitMQ + Redis | 2 GB |
+| Prometheus TSDB (15 gün) | 3 GB |
+| **LVM snapshot rezervi** | 45 GB |
+| **Toplam** | **~89 GB / 233 GB** |
+
+Rahat sığıyor, ~144 GB boş kalıyor. Büyüme MinIO'da olacak (tekne fotoğrafları, belgeler, kanıt dosyaları) ve o zaten 932 GB HDD'de.
+
+Container image'ları katman paylaşımı sayesinde beklenenden çok az yer tutar: `aspnet:9.0` taban katmanı 15 image için **bir kez** saklanır, her servisin kendi katmanı ~80 MB. Yine de image GC ayarlanmalı, yoksa `sha-` etiketli eski sürümler birikir.
+
+### ⚠️ Devam etmeden önce SSD sağlığını kontrol et
+
+860 EVO 250 GB'ın ömür değeri **150 TBW** ve bu disk 2018'den beri Windows altında çalışıyor olabilir. Üretim veritabanını üzerine koymadan önce ne kadar yıpranmış olduğunu bil:
+
+- **Windows'tayken:** CrystalDiskInfo indir → "Sağlık Durumu" yüzdesi + "Toplam Ana Bilgisayar Yazma" değeri
+- **Ubuntu'da:** `sudo smartctl -a /dev/sda | grep -Ei "Wear_Leveling|Total_LBAs_Written|Power_On_Hours"`
+
+Sağlık %90 üstündeyse sorun yok. %70'in altındaysa veritabanını HDD'ye alıp SSD'yi yalnızca sistem/image için kullanmayı konuşuruz — ya da o zaman SSD alımı gerçekten gündeme gelir.
+
+### Tahminimi ölçüye çevir (10 dakika, bugün yapılabilir)
+
+Yukarıdaki 220 MB benim tahminim. Kendi servislerinin gerçek rakamını Mac'inde ölçebilirsin:
+
+```bash
+cd ~/Desktop/Mine/DEV/addesso-project
+docker compose up -d
+sleep 180                                   # ısınma + migration
+docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}" | sort -k2 -h
+```
+
+Çıktıdaki `*-api` satırlarının ortalaması 220 MB civarındaysa tablo doğru. 350 MB'ın üstündeyse birlikte limitleri ve gözlem yığınını yeniden ayarlarız.
+
+### Ne zaman yetmez hale gelir
+
+Bu kurulum **MVP lansmanı ve ilk gerçek kullanıcılar** için yeterli. Şu üç sinyalden biri geldiğinde büyümek gerekir:
+
+1. `kubectl top nodes` sürekli %85 bellek üstünde
+2. Herhangi bir serviste OOMKilled sayacı artıyor
+3. p95 yanıt süresi 800 ms'yi geçiyor
+
+Büyüme sırası, maliyet/fayda oranına göre: **RAM 32 GB** (en ucuz, en büyük etki) → **ikinci node** (k3s agent, gerçek HA) → **modern CPU/anakart**.
 
 ---
 

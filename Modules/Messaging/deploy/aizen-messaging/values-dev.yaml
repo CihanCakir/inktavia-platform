@@ -40,7 +40,14 @@ service:
   port: 80
 
 ingress:
-  enabled: true
+  # SECURITY: modules must NEVER be reachable from outside the cluster.
+  # A module trusts the identity the BFF asserts (X-Aizen-User-Id + a shared
+  # secret). Anyone who can reach a module and holds that secret can
+  # impersonate ANY user by changing the header. Two things prevent it:
+  # this flag, and infrastructure/k8s/networkpolicy-internal-modules.yaml.
+  # See infrastructure/k8s/README.md.
+  # Enforced in CI by scripts/ci/assert-no-module-ingress.sh
+  enabled: false
   className: "nginx"
   annotations:
     # kubernetes.io/ingress.class: nginx
