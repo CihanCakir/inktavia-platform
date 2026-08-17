@@ -40,29 +40,63 @@ env:
 
 jobs:
   prepare:
-    name: bileşen matrisi
+    name: etkilenen bileşenler
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.build-matrix.outputs.matrix }}
       count: ${{ steps.build-matrix.outputs.count }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Değişen dosyaları hesaplayabilmek için geçmiş gerekiyor.
+          fetch-depth: 0
 
-      - id: build-matrix
-        name: components.json → matris
+      - id: changed
+        name: Değişen dosyalar
         run: |
           set -euo pipefail
-          MATRIX=$(jq -c '{include: .components}' build/components.json)
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+            git fetch --no-tags origin "${{ github.base_ref }}" >/dev/null 2>&1 || true
+            git diff --name-only "$BASE...HEAD" > changed.txt
+          else
+            BEFORE="${{ github.event.before }}"
+            # Yeni dal veya force-push'ta 'before' ya sıfırlardan oluşur ya da artık yoktur.
+            # Böyle bir durumda neyin değiştiğini bilemeyiz → temkinli davranıp hepsini derleriz.
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+               || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+              echo "BİLİNMİYOR" > changed.txt
+            else
+              git diff --name-only "$BEFORE" "${{ github.sha }}" > changed.txt
+            fi
+          fi
+          echo "değişen dosyalar:"; sed 's/^/  /' changed.txt
+
+      - id: build-matrix
+        name: Etkilenen bileşenleri hesapla
+        run: |
+          set -euo pipefail
+          if grep -qx 'BİLİNMİYOR' changed.txt; then
+            MATRIX=$(jq -c '{include: .components}' build/components.json)
+            echo "::notice::Karşılaştırma noktası yok → tüm bileşenler derlenecek"
+          else
+            MATRIX=$(python3 scripts/ci/affected-components.py < changed.txt)
+          fi
           COUNT=$(echo "$MATRIX" | jq '.include | length')
-          [ "$COUNT" -gt 0 ] || { echo "::error::components.json boş"; exit 1; }
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           echo "count=$COUNT"   >> "$GITHUB_OUTPUT"
-          echo "$COUNT bileşen:"
-          echo "$MATRIX" | jq -r '.include[].id'
+          {
+            echo "### Etkilenen bileşenler: ${COUNT}/15"
+            echo '```'
+            echo "$MATRIX" | jq -r '.include[].id'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: ${{ matrix.id }}
     needs: prepare
+    # Yalnız chart/doküman değiştiyse hiçbir imaj derlenmez ve iş tamamen atlanır.
+    if: needs.prepare.outputs.count != '0'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
