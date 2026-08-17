@@ -1,0 +1,74 @@
+# ÜRETİLMİŞ DOSYA — elle düzenleme, tek istisna aşağıdaki image.tag satırı.
+# Kaynak: build/components.json · Yeniden üret: python3 gitops/render-appsets.py
+#
+# Dev sürümünü CI her develop merge'inde OTOMATİK günceller.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: inktavia-dev
+  namespace: platform
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - id: cargodry
+            chart: Modules/CargoDry/deploy/aizen-cargodry
+          - id: content
+            chart: Modules/Content/deploy/aizen-content
+          - id: filestorage
+            chart: Modules/FileStorage/deploy/aizen-filestorage
+          - id: identity
+            chart: Modules/Identity/deploy/aizen-identity
+          - id: messaging
+            chart: Modules/Messaging/deploy/aizen-messaging
+          - id: notification
+            chart: Modules/Notification/deploy/aizen-notification
+          - id: payment
+            chart: Modules/Payment/deploy/aizen-payment
+          - id: profile
+            chart: Modules/Profile/deploy/aizen-profile
+          - id: referencedata
+            chart: Modules/ReferenceData/deploy/aizen-referencedata
+          - id: servicerequest
+            chart: Modules/ServiceRequest/deploy/aizen-servicerequest
+          - id: vessel
+            chart: Modules/Vessel/deploy/aizen-vessel
+          - id: bff-adminpanel
+            chart: Bff/deploy/aizen-bff-adminpanel
+          - id: bff-marineprovider
+            chart: Bff/deploy/aizen-bff-marineprovider
+          - id: bff-marine-web
+            chart: Bff/deploy/aizen-bff-marine-web
+          - id: bff-marine-mobile
+            chart: Bff/deploy/aizen-bff-marine-mobile
+  template:
+    metadata:
+      name: 'aizen-{{.id}}-dev'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/CihanCakir/inktavia-platform.git
+        targetRevision: develop
+        path: '{{.chart}}'
+        helm:
+          # Mevcut Helm sürüm adlarıyla BİREBİR aynı olmalı — yoksa devir olmaz,
+          # Argo CD ikinci bir kopya yaratır.
+          releaseName: 'aizen-{{.id}}'
+          valueFiles:
+            - values-dev.yaml
+          parameters:
+            # ▼▼▼ TEK SÜRÜM İŞARETÇİSİ ▼▼▼
+            - name: image.tag
+              value: sha-146071d
+            # ▲▲▲ TEK SÜRÜM İŞARETÇİSİ ▲▲▲
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: inktavia-dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false

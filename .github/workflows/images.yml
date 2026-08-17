@@ -24,6 +24,10 @@ name: images
 on:
   push:
     branches: [develop]
+    # CI'ın kendi attığı sürüm-ilerletme commit'i yalnız gitops/ altını değiştirir.
+    # Bu satır olmadan o commit workflow'u yeniden tetikler ve SONSUZ DÖNGÜ oluşur.
+    paths-ignore:
+      - 'gitops/**'
   pull_request:
     branches: [develop]
 
@@ -165,3 +169,147 @@ jobs:
               echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Seçici derleme yalnız değişen bileşeni üretir. Ama GitOps TEK bir sürüm
+  # işaretçisi kullanıyor: `sha-<commit>`. Bu commit'te derlenmeyen bir bileşenin
+  # o etiketi olmazsa Argo CD ImagePullBackOff verir.
+  #
+  # Çözüm: değişmeyen bileşenlerin `develop` etiketini `sha-<commit>` olarak da
+  # işaretle. Bu registry tarafında MANIFEST KOPYASI — yeniden derleme yok, saniyeler.
+  # Sonuç: her commit 15 bileşen için eksiksiz ve tutarlı bir etiket seti üretir,
+  # deploy ve geri alma atomik kalır.
+  # ───────────────────────────────────────────────────────────────────────────
+  complete-tags:
+    name: etiket setini tamamla
+    needs: [prepare, build]
+    if: >-
+      always() && github.event_name == 'push' &&
+      needs.prepare.result == 'success' &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped')
+    runs-on: ubuntu-latest
+    outputs:
+      sha7: ${{ steps.tag.outputs.sha7 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: tag
+        run: |
+          set -euo pipefail
+          SHA7=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "sha7=$SHA7" >> "$GITHUB_OUTPUT"
+
+          echo '${{ needs.prepare.outputs.matrix }}' | jq -r '.include[].id' | sort > built.txt
+          jq -r '.components[].id' build/components.json | sort > all.txt
+          comm -13 built.txt all.txt > unchanged.txt
+
+          echo "derlenen : $(tr '\n' ' ' < built.txt)"
+          echo "etiketlenecek: $(tr '\n' ' ' < unchanged.txt)"
+
+          while read -r id; do
+            [ -n "$id" ] || continue
+            SRC="${REGISTRY}/${id}:develop"
+            DST="${REGISTRY}/${id}:sha-${SHA7}"
+            if ! docker buildx imagetools create -t "$DST" "$SRC"; then
+              echo "::error::$id için '$SRC' bulunamadı. Etiket seti eksik kalır ve"
+              echo "::error::Argo CD ImagePullBackOff verir. Tüm bileşenleri bir kez derleyin."
+              exit 1
+            fi
+            echo "  $id: develop → sha-${SHA7}"
+          done < unchanged.txt
+
+      - name: Özet
+        run: |
+          {
+            echo "### Etiket seti tamamlandı"
+            echo "Tüm 15 bileşen artık \`sha-${{ steps.tag.outputs.sha7 }}\` etiketiyle mevcut."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Dev sürüm işaretçisini ilerlet. Argo CD gitops/apps/dev-appset.yaml dosyasını
+  # izliyor; bu commit'ten sonra dev ortamı kendiliğinden yeni sürüme geçer.
+  #
+  # PROD BİLEREK YOK: prod işaretçisini bir insan bir PR ile değiştirir. Tek node,
+  # tek operatörlü bir kurulumda otomatik prod deploy, hatayı fark etmeden yayına
+  # almak demektir.
+  # ───────────────────────────────────────────────────────────────────────────
+  bump-dev:
+    name: dev sürümünü ilerlet
+    needs: complete-tags
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    # En az yetki: yalnız bu iş yazabiliyor, diğerleri read.
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - id: bump
+        name: Sürüm işaretçisini güncelle
+        run: |
+          set -euo pipefail
+          SHA7="${{ needs.complete-tags.outputs.sha7 }}"
+          F=gitops/apps/dev-appset.yaml
+
+          CUR=$(grep -oP '(?<=value: )sha-[0-9a-f]{7}' "$F" || echo "yok")
+          if [ "$CUR" = "sha-$SHA7" ]; then
+            echo "dev zaten sha-$SHA7 — yapılacak bir şey yok"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          sed -i -E "s|(^ +value: )sha-[0-9a-f]{7}\b|\1sha-${SHA7}|" "$F"
+          grep -n "value: sha-" "$F"
+
+          BRANCH="ci/dev-bump-${SHA7}"
+          git config user.name  "inktavia-ci"
+          git config user.email "ci@inktavia.com"
+          git checkout -b "$BRANCH"
+          git add "$F"
+          git commit -m "chore(gitops): dev sürümü ${CUR} → sha-${SHA7}"
+          git push origin "$BRANCH"
+
+          echo "changed=true"        >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH"      >> "$GITHUB_OUTPUT"
+          echo "cur=$CUR"            >> "$GITHUB_OUTPUT"
+
+      # develop korumalı (protect-develop ruleset'i: PR zorunlu, doğrudan push kapalı)
+      # ve github-actions[bot] bypass listesine EKLENEMİYOR — GitHub bu repoda Actions'ı
+      # bypass aktörü olarak sunmuyor. Bu yüzden CI doğrudan push etmiyor, PR açıyor.
+      # Auto-merge zorunlu check'ler (build, test) geçince kendisi birleştiriyor:
+      # otomasyon tam, koruma bozulmuyor, her dev deploy'u git geçmişinde kalıyor.
+      - name: PR aç ve auto-merge'e al
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+          CUR: ${{ steps.bump.outputs.cur }}
+          SHA7: ${{ needs.complete-tags.outputs.sha7 }}
+        run: |
+          set -euo pipefail
+          gh pr create \
+            --base develop --head "$BRANCH" \
+            --title "chore(gitops): dev sürümü sha-${SHA7}" \
+            --body "$(cat <<EOF
+          Dev ortamının sürüm işaretçisini \`${CUR}\` değerinden \`sha-${SHA7}\` değerine taşır.
+
+          Otomatik üretildi: \`${{ github.sha }}\` commit'i için imajlar yayınlandıktan sonra.
+          Argo CD bu birleştirmeden sonra \`inktavia-dev\` ortamını kendiliğinden günceller.
+
+          Prod etkilenmez — prod sürümü \`gitops/apps/prod-appset.yaml\` içinde ayrı durur ve
+          yalnızca elle terfi ettirilir.
+          EOF
+          )"
+
+          # Zorunlu check'ler (build, test) geçtiğinde kendiliğinden birleşir.
+          gh pr merge --auto --squash "$BRANCH"
+          echo "PR açıldı ve auto-merge etkinleştirildi: $BRANCH"
