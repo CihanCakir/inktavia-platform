@@ -1,0 +1,118 @@
+{
+  "_comment": [
+    "Inktavia image bileşenleri — TEK KAYNAK.",
+    "CI matrisi, Helm chart'ları ve deploy script'leri bu dosyadan okur.",
+    "Yeni bir modul/BFF eklerken SADECE buraya satir eklenir.",
+    "id  = ghcr.io/cihancakir/inktavia/<id> imaj adi (nokta YOK, chart adlarinda olabilir)",
+    "Tag sozlesmesi: sha-<7hex> degismez ve deploy edilen tek tag turudur; 'latest' YASAK."
+  ],
+  "registry": "ghcr.io/cihancakir/inktavia",
+  "dockerfile": "build/Dockerfile",
+  "components": [
+    {
+      "id": "cargodry",
+      "kind": "module",
+      "project": "Modules/CargoDry/src/Aizen.Modules.CargoDry/Aizen.Modules.CargoDry.csproj",
+      "dll": "Aizen.Modules.CargoDry.dll",
+      "chart": "Modules/CargoDry/deploy/aizen-cargodry"
+    },
+    {
+      "id": "content",
+      "kind": "module",
+      "project": "Modules/Content/src/Aizen.Modules.Content/Aizen.Modules.Content.csproj",
+      "dll": "Aizen.Modules.Content.dll",
+      "chart": "Modules/Content/deploy/aizen-content"
+    },
+    {
+      "id": "filestorage",
+      "kind": "module",
+      "project": "Modules/FileStorage/src/Aizen.Modules.FileStorage/Aizen.Modules.FileStorage.csproj",
+      "dll": "Aizen.Modules.FileStorage.dll",
+      "chart": "Modules/FileStorage/deploy/aizen-filestorage"
+    },
+    {
+      "id": "identity",
+      "kind": "module",
+      "project": "Modules/Identity/src/Aizen.Modules.Identity/Aizen.Modules.Identity.csproj",
+      "dll": "Aizen.Modules.Identity.dll",
+      "chart": "Modules/Identity/deploy/aizen-identity"
+    },
+    {
+      "id": "messaging",
+      "kind": "module",
+      "project": "Modules/Messaging/src/Aizen.Modules.Messaging/Aizen.Modules.Messaging.csproj",
+      "dll": "Aizen.Modules.Messaging.dll",
+      "chart": "Modules/Messaging/deploy/aizen-messaging"
+    },
+    {
+      "id": "notification",
+      "kind": "module",
+      "project": "Modules/Notification/src/Aizen.Modules.Notification/Aizen.Modules.Notification.csproj",
+      "dll": "Aizen.Modules.Notification.dll",
+      "chart": "Modules/Notification/deploy/aizen-notification"
+    },
+    {
+      "id": "payment",
+      "kind": "module",
+      "project": "Modules/Payment/src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj",
+      "dll": "Aizen.Modules.Payment.dll",
+      "chart": "Modules/Payment/deploy/aizen-payment"
+    },
+    {
+      "id": "profile",
+      "kind": "module",
+      "project": "Modules/Profile/src/Aizen.Modules.Profile/Aizen.Modules.Profile.csproj",
+      "dll": "Aizen.Modules.Profile.dll",
+      "chart": "Modules/Profile/deploy/aizen-profile"
+    },
+    {
+      "id": "referencedata",
+      "kind": "module",
+      "project": "Modules/ReferenceData/src/Aizen.Modules.ReferenceData/Aizen.Modules.ReferenceData.csproj",
+      "dll": "Aizen.Modules.ReferenceData.dll",
+      "chart": "Modules/ReferenceData/deploy/aizen-referencedata"
+    },
+    {
+      "id": "servicerequest",
+      "kind": "module",
+      "project": "Modules/ServiceRequest/src/Aizen.Modules.ServiceRequest/Aizen.Modules.ServiceRequest.csproj",
+      "dll": "Aizen.Modules.ServiceRequest.dll",
+      "chart": "Modules/ServiceRequest/deploy/aizen-servicerequest"
+    },
+    {
+      "id": "vessel",
+      "kind": "module",
+      "project": "Modules/Vessel/src/Aizen.Modules.Vessel/Aizen.Modules.Vessel.csproj",
+      "dll": "Aizen.Modules.Vessel.dll",
+      "chart": "Modules/Vessel/deploy/aizen-vessel"
+    },
+    {
+      "id": "bff-adminpanel",
+      "kind": "bff",
+      "project": "Bff/src/AdminPanel/Aizen.Bff.AdminPanel/Aizen.Bff.AdminPanel.csproj",
+      "dll": "Aizen.Bff.AdminPanel.dll",
+      "chart": "Bff/deploy/aizen-bff-adminpanel"
+    },
+    {
+      "id": "bff-marineprovider",
+      "kind": "bff",
+      "project": "Bff/src/MarineProvider/Aizen.Bff.MarineProvider/Aizen.Bff.MarineProvider.csproj",
+      "dll": "Aizen.Bff.MarineProvider.dll",
+      "chart": "Bff/deploy/aizen-bff-marineprovider"
+    },
+    {
+      "id": "bff-marine-web",
+      "kind": "bff",
+      "project": "Bff/src/Marine.Web/Aizen.Bff.Marine.Web/Aizen.Bff.Marine.Web.csproj",
+      "dll": "Aizen.Bff.Marine.Web.dll",
+      "chart": "Bff/deploy/aizen-bff-marine.web"
+    },
+    {
+      "id": "bff-marine-mobile",
+      "kind": "bff",
+      "project": "Bff/src/Marine.Participant.Mobile/Aizen.Bff.Marine.Participant.Mobile/Aizen.Bff.Marine.Participant.Mobile.csproj",
+      "dll": "Aizen.Bff.Marine.Participant.Mobile.dll",
+      "chart": "Bff/deploy/aizen-bff-marine.participant.mobile"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# Build context'e girmesi gereken tek şey kaynak kod: Core/, Modules/, Bff/
+# Bunun dışındaki her şey imajı büyütmeden ve cache'i boşuna bozmadan dışarıda kalır.
+#
+# ⚠️ .env* satırı güvenlik içindir: sır içeren bir dosya build context'ine girerse
+#    imaj katmanlarında iz bırakabilir. Repo public olduğu için burada ekstra dikkatliyiz.
+
+**/bin/
+**/obj/
+**/node_modules/
+**/TestResults/
+**/.vs/
+**/.vscode/
+**/.idea/
+**/*.user
+**/.DS_Store
+
+.git/
+.github/
+.env
+.env.*
+!.env.example
+
+docs/
+observability/
+infrastructure/
+tools/
+scripts/
+test_paginate.csx
+docker-compose*.yaml
+*.md

@@ -1,0 +1,133 @@
+# Inktavia — container imajlarının GHCR'a inşası ve itilmesi (Faz 4/5)
+#
+# Bileşen listesi burada DEĞİL, build/components.json içinde. Yeni bir modül eklerken
+# bu dosyaya dokunmuyorsun — tek kaynak orası.
+#
+# Kimlik: PAT yok. GitHub Actions'ın kendi GITHUB_TOKEN'ı `packages: write` iznini alıyor.
+# Cluster'ın çekmek için ayrı ve YALNIZCA `read:packages` yetkili bir token'ı var (Sealed
+# Secret olarak `ghcr-pull`). İtme yetkisi cluster'da bulunmaz.
+#
+# Tag sözleşmesi (roadmap §3):
+#   sha-<7hex>  değişmez, deploy edilen TEK tag türü
+#   develop     değişebilir, yalnız insan gözü için
+#   latest      YASAK — üretilmiyor
+
+name: images
+
+# İki tetikleyici, iki farklı amaç:
+#   pull_request → SADECE inşa eder, itmez. Amaç Dockerfile'ın derlendiğini merge'den
+#                  ÖNCE öğrenmek. Bozuk bir imaj develop'a hiç ulaşmaz.
+#   push:develop → inşa eder ve GHCR'a iter. Gerçek yayın yolu budur.
+#
+# workflow_dispatch bilerek YOK: "Run workflow" düğmesi yalnız varsayılan dalda (main)
+# duran workflow'lar için görünür, main ise şu an geride. Eklemek yanıltıcı olurdu.
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: images-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io/cihancakir/inktavia
+
+jobs:
+  prepare:
+    name: bileşen matrisi
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+      count: ${{ steps.build-matrix.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: build-matrix
+        name: components.json → matris
+        run: |
+          set -euo pipefail
+          MATRIX=$(jq -c '{include: .components}' build/components.json)
+          COUNT=$(echo "$MATRIX" | jq '.include | length')
+          [ "$COUNT" -gt 0 ] || { echo "::error::components.json boş"; exit 1; }
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT"   >> "$GITHUB_OUTPUT"
+          echo "$COUNT bileşen:"
+          echo "$MATRIX" | jq -r '.include[].id'
+
+  build:
+    name: ${{ matrix.id }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: GHCR'a giriş
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        name: Tag'leri hesapla
+        run: |
+          set -euo pipefail
+          SHA7=$(echo "${{ github.sha }}" | cut -c1-7)
+          # sha-<7hex> her zaman üretilir ve DEĞİŞMEZ — deploy edilen tek tag türü budur.
+          TAGS="${REGISTRY}/${{ matrix.id }}:sha-${SHA7}"
+          # 'develop' yalnızca develop'a push'ta ve yalnızca insan gözü için. 'latest' asla.
+          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            TAGS="${TAGS}"$'\n'"${REGISTRY}/${{ matrix.id }}:develop"
+          fi
+          echo "sha7=${SHA7}" >> "$GITHUB_OUTPUT"
+          { echo 'tags<<__TAGS_EOF__'; echo "${TAGS}"; echo '__TAGS_EOF__'; } >> "$GITHUB_OUTPUT"
+
+      - name: İnşa et ve it
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/Dockerfile
+          # Sunucu amd64 (Ryzen 5 1600). Bu satır olmadan runner'ın mimarisine
+          # bağımlı kalırdık; elle Mac'ten build edildiğinde arm64 çıkıp
+          # sunucuda "exec format error" verirdi.
+          platforms: linux/amd64
+          # PR'da itmiyoruz: amaç derlendiğini görmek, registry'yi yarım imajla kirletmek değil.
+          push: ${{ github.event_name != 'pull_request' }}
+          load: false
+          provenance: false
+          build-args: |
+            PROJECT=${{ matrix.project }}
+            DLL=${{ matrix.dll }}
+          tags: ${{ steps.meta.outputs.tags }}
+          # image.source etiketi paketi repoya bağlar — GHCR'da paketin hangi repodan
+          # geldiğini ve izinlerini bu belirler.
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=${{ matrix.id }}
+          cache-from: type=gha,scope=${{ matrix.id }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.id }}
+
+      - name: Özet
+        run: |
+          {
+            echo "### ${{ matrix.id }}"
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "_yalnız derlendi, itilmedi (PR)_"
+            else
+              echo '```'
+              echo "${{ steps.meta.outputs.tags }}"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

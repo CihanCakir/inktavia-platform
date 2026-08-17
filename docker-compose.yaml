@@ -123,7 +123,10 @@ services:
   bff-adminpanel:
     build:
       context: .
-      dockerfile: ./Bff/build/Dockerfile.AdminPanel
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Bff/src/AdminPanel/Aizen.Bff.AdminPanel/Aizen.Bff.AdminPanel.csproj
+        DLL: Aizen.Bff.AdminPanel.dll
     container_name: bff-adminpanel
     depends_on:
       - keycloak
@@ -190,7 +193,10 @@ services:
   bff-marineprovider:
     build:
       context: .
-      dockerfile: ./Bff/build/Dockerfile.MarineProvider
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Bff/src/MarineProvider/Aizen.Bff.MarineProvider/Aizen.Bff.MarineProvider.csproj
+        DLL: Aizen.Bff.MarineProvider.dll
     container_name: bff-marineprovider
     depends_on:
       - keycloak
@@ -252,7 +258,10 @@ services:
   bff-marine-mobile:
     build:
       context: .
-      dockerfile: ./Bff/build/Dockerfile.Marine.Participant.Mobile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Bff/src/Marine.Participant.Mobile/Aizen.Bff.Marine.Participant.Mobile/Aizen.Bff.Marine.Participant.Mobile.csproj
+        DLL: Aizen.Bff.Marine.Participant.Mobile.dll
     container_name: bff-marine-mobile
     depends_on:
       - keycloak
@@ -331,7 +340,10 @@ services:
   bff-marine-web:
     build:
       context: .
-      dockerfile: ./Bff/build/Dockerfile.Marine.Web
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Bff/src/Marine.Web/Aizen.Bff.Marine.Web/Aizen.Bff.Marine.Web.csproj
+        DLL: Aizen.Bff.Marine.Web.dll
     container_name: bff-marine-web
     depends_on:
       - keycloak
@@ -410,7 +422,10 @@ services:
   bff-marineprovider-2:
     build:
       context: .
-      dockerfile: ./Bff/build/Dockerfile.MarineProvider
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Bff/src/MarineProvider/Aizen.Bff.MarineProvider/Aizen.Bff.MarineProvider.csproj
+        DLL: Aizen.Bff.MarineProvider.dll
     container_name: bff-marineprovider-2
     depends_on:
       - keycloak
@@ -510,7 +525,10 @@ services:
   identity-api:
     build:
       context: .
-      dockerfile: ./Modules/Identity/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/Identity/src/Aizen.Modules.Identity/Aizen.Modules.Identity.csproj
+        DLL: Aizen.Modules.Identity.dll
     container_name: identity-api
     depends_on:
       - postgres
@@ -584,7 +602,10 @@ services:
   reference-data-api:
     build:
       context: .
-      dockerfile: ./Modules/ReferenceData/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/ReferenceData/src/Aizen.Modules.ReferenceData/Aizen.Modules.ReferenceData.csproj
+        DLL: Aizen.Modules.ReferenceData.dll
     container_name: reference-data-api
     depends_on:
       - postgres
@@ -621,7 +642,10 @@ services:
   content-api:
     build:
       context: .
-      dockerfile: ./Modules/Content/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/Content/src/Aizen.Modules.Content/Aizen.Modules.Content.csproj
+        DLL: Aizen.Modules.Content.dll
     container_name: content-api
     depends_on:
       - mongo
@@ -660,7 +684,10 @@ services:
   vessel-api:
     build:
       context: .
-      dockerfile: ./Modules/Vessel/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/Vessel/src/Aizen.Modules.Vessel/Aizen.Modules.Vessel.csproj
+        DLL: Aizen.Modules.Vessel.dll
     container_name: vessel-api
     depends_on:
       - postgres
@@ -700,7 +727,10 @@ services:
   file-storage-api:
     build:
       context: .
-      dockerfile: ./Modules/FileStorage/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/FileStorage/src/Aizen.Modules.FileStorage/Aizen.Modules.FileStorage.csproj
+        DLL: Aizen.Modules.FileStorage.dll
     container_name: file-storage-api
     depends_on:
       - postgres
@@ -747,7 +777,10 @@ services:
   service-request-api:
     build:
       context: .
-      dockerfile: ./Modules/ServiceRequest/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/ServiceRequest/src/Aizen.Modules.ServiceRequest/Aizen.Modules.ServiceRequest.csproj
+        DLL: Aizen.Modules.ServiceRequest.dll
     container_name: service-request-api
     depends_on:
       - postgres
@@ -791,7 +824,10 @@ services:
   cargodry-api:
     build:
       context: .
-      dockerfile: ./Modules/CargoDry/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/CargoDry/src/Aizen.Modules.CargoDry/Aizen.Modules.CargoDry.csproj
+        DLL: Aizen.Modules.CargoDry.dll
     container_name: cargodry-api
     depends_on:
       - postgres
@@ -834,7 +870,10 @@ services:
   messaging-api:
     build:
       context: .
-      dockerfile: ./Modules/Messaging/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/Messaging/src/Aizen.Modules.Messaging/Aizen.Modules.Messaging.csproj
+        DLL: Aizen.Modules.Messaging.dll
     container_name: messaging-api
     depends_on:
       - postgres
@@ -878,7 +917,10 @@ services:
   notification-api:
     build:
       context: .
-      dockerfile: ./Modules/Notification/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/Notification/src/Aizen.Modules.Notification/Aizen.Modules.Notification.csproj
+        DLL: Aizen.Modules.Notification.dll
     container_name: notification-api
     depends_on:
       - postgres
@@ -934,7 +976,10 @@ services:
   payment-api:
     build:
       context: .
-      dockerfile: ./Modules/Payment/build/Dockerfile
+      dockerfile: ./build/Dockerfile
+      args:
+        PROJECT: Modules/Payment/src/Aizen.Modules.Payment/Aizen.Modules.Payment.csproj
+        DLL: Aizen.Modules.Payment.dll
     container_name: payment-api
     depends_on:
       - postgres
