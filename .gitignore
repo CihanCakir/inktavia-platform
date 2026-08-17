@@ -370,3 +370,9 @@ appsettings.Local.json
 !scripts/**/*.sh
 !infrastructure/**/*.sh
 !**/build/*.sh
+
+# Project shell scripts are version-controlled. The blanket *.sh rule above was
+# silently dropping CI guards and infrastructure setup scripts from the repo.
+!scripts/**/*.sh
+!infrastructure/**/*.sh
+!**/build/*.sh
