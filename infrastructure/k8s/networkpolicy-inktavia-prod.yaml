@@ -1,0 +1,87 @@
+# ÜRETİLMİŞ DOSYA — elle düzenleme.
+# Kaynak: build/components.json
+# Yeniden üret: python3 infrastructure/k8s/render-networkpolicy.py inktavia-prod
+#
+# NEDEN BU BİR GÜVENLİK KONTROLÜ, SÜS DEĞİL:
+# Modüller son kullanıcı token'ını görmez; BFF'in ilettiği kimliğe güvenirler
+# (X-Aizen-User-Id + paylaşılan sır + AllowedClientIds). Bir modüle ULAŞABİLEN ve sırrı
+# bilen biri istediği kullanıcıyı taklit edebilir. Ağ izolasyonu bu yüzden kimlik
+# doğrulama tasarımının parçasıdır, üzerine eklenen bir katman değil.
+#
+# ⚠️ NetworkPolicy'yi UYGULAYAN bir CNI şart. Bu cluster'da k3s/kube-router ile
+# sentetik test yapıldı ve uygulandığı KANITLANDI (politikasız 200, default-deny sonrası
+# bağlantı kurulamıyor). Başka bir ortama taşınırsa yeniden doğrulanmalı.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: modules-ingress-restricted
+  namespace: inktavia-prod
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - aizen-cargodry
+          - aizen-content
+          - aizen-filestorage
+          - aizen-identity
+          - aizen-messaging
+          - aizen-notification
+          - aizen-payment
+          - aizen-profile
+          - aizen-referencedata
+          - aizen-servicerequest
+          - aizen-vessel
+  policyTypes:
+    - Ingress
+  ingress:
+    # 1) BFF'ler — modüllere çağrı yapan asıl katman.
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - aizen-bff-adminpanel
+                  - aizen-bff-marineprovider
+                  - aizen-bff-marine-web
+                  - aizen-bff-marine-mobile
+      ports:
+        - protocol: TCP
+          port: 8080
+
+    # 2) Modüller arası çağrılar (servicerequest→payment, identity→filestorage, …).
+    #    Modüler monolitte bunlar normal; kapatmak uygulamayı kırar.
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - aizen-cargodry
+                  - aizen-content
+                  - aizen-filestorage
+                  - aizen-identity
+                  - aizen-messaging
+                  - aizen-notification
+                  - aizen-payment
+                  - aizen-profile
+                  - aizen-referencedata
+                  - aizen-servicerequest
+                  - aizen-vessel
+      ports:
+        - protocol: TCP
+          port: 8080
+
+    # 3) Kubelet sağlık probe'ları. Probe pod'dan değil DÜĞÜMDEN gelir; podSelector
+    #    onu kapsamaz. Bu kural olmadan startup/liveness probe'ları düşer ve 11 modül
+    #    birden yeniden başlatılır.
+    - from:
+        - ipBlock:
+            cidr: 192.168.1.50/32
+      ports:
+        - protocol: TCP
+          port: 8080
+
