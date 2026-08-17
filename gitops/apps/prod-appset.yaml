@@ -68,5 +68,9 @@ spec:
       destination:
         server: https://kubernetes.default.svc
         namespace: inktavia-prod
-      # syncPolicy YOK — senkronizasyon ELLE tetiklenir.
-      # Devir doğrulandıktan sonra automated/prune/selfHeal açılacak.
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
