@@ -1,0 +1,81 @@
+# Namespace'ler, kaynak kotaları ve LimitRange'ler.
+#
+# Bunlar 2026-08-17'de elle kubectl ile kurulmuştu ve hiçbir yerde tanımlı değildi;
+# cluster yeniden kurulsa kaybolurlardı. Buraya alındı.
+#
+# ⚠️ ResourceQuota TEK BAŞINA BİR TUZAKTIR: kotası olan bir namespace'te limit
+# belirtmeyen HER pod reddedilir — test pod'ları dahil. LimitRange varsayılanları
+# sağladığı için ikisi birlikte durmak zorunda.
+#
+# Kota değerleri ÖLÇÜME dayanıyor (2026-08-17):
+#   15 servis gerçekte ~2,5Gi kullanıyor; 420Mi'ler tavan, rezervasyon değil.
+#   Gerçek rezervasyon requests toplamı = ~2,4Gi.
+#   9Gi seçildi çünkü 15 servisin tavan toplamı 5,8Gi ve rolling update sırasında
+#   her güncellenen deployment geçici olarak İKİ pod çalıştırıyor. 7Gi ile iki
+#   eşzamanlı güncelleme kotayı doldurup pod'ları Pending'de bırakıyordu.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inktavia-prod
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inktavia-dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: platform
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: prod-cap
+  namespace: inktavia-prod
+spec:
+  hard:
+    limits.memory: 9Gi
+    limits.cpu: "14"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dev-cap
+  namespace: inktavia-dev
+spec:
+  hard:
+    limits.memory: 2Gi
+    limits.cpu: "3"
+    pods: "8"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: defaults
+  namespace: inktavia-prod
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 500m
+        memory: 320Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 200Mi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: defaults
+  namespace: inktavia-dev
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 500m
+        memory: 320Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 200Mi

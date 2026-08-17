@@ -31,9 +31,14 @@ comps = json.load(open(os.path.join(ROOT, "build/components.json"), encoding="ut
 # ve seçici derleme sıfır imaj üretti, yani o etiketle imaj yok.
 ENVS = {
     "prod": dict(ns="inktavia-prod", values="values-prod.yaml", tag="sha-146071d",
-                 # Prod'da otomatik sync KAPALI başlıyor: 15 canlı servisin devri
-                 # doğrulanmadan prune/selfHeal açmak riskli. Devir teyit edilince açılacak.
-                 automated=False,
+                 # Otomatik sync 2026-08-17'de AÇILDI. Kapalı başlamıştı: 15 canlı servis
+                 # helm CLI ile yönetiliyordu ve devrin çakışmasız olduğu doğrulanmadan
+                 # prune/selfHeal açmak riskliydi. Devir kanıtlandıktan sonra açıldı
+                 # (tracking-id eklendi, kaynak sayısı artmadı, hepsi Synced/Healthy).
+                 #
+                 # Bundan sonra `helm upgrade` ile elle müdahale ETMEYİN — selfHeal geri alır.
+                 # Prod'a çıkışın tek yolu bu dosyadaki image.tag satırını değiştiren PR'dır.
+                 automated=True,
                  note="Prod sürümü ELLE terfi ettirilir. Bu satırı değiştiren PR, prod'a\n"
                       "#     çıkışın tek kapısıdır — tek node, tek operatör, otomatik prod deploy\n"
                       "#     hatayı fark etmeden yayına almak demek."),
