@@ -1,4 +1,4 @@
-# aizen-bff-marine.web — üretim değerleri (inktavia-prod)
+# aizen-bff-marine-web — üretim değerleri (inktavia-prod)
 #
 # ⚠️ BU DOSYA PUBLIC BİR REPODA. Sırlar Sealed Secret'tan env olarak geliyor.
 #    $(VAR) genişletmesi YALNIZ listede daha önce tanımlanmış değişkenler için çalışır.
@@ -9,7 +9,7 @@
 #   2. PostgreSQL YOK — yalnız Redis + RabbitMQ. Bağlantı havuzu hesabına girmiyorlar.
 #
 # Deploy:
-#   helm upgrade --install aizen-bff-marine.web . -n inktavia-prod -f values-prod.yaml \
+#   helm upgrade --install aizen-bff-marine-web . -n inktavia-prod -f values-prod.yaml \
 #     --set image.tag=sha-$(git rev-parse --short=7 origin/develop)
 
 replicaCount: 1

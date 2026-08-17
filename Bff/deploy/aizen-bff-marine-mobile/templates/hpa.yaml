@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "aizen-bff-marine.participant.mobile.fullname" . }}
+  name: {{ include "aizen-bff-marine-mobile.fullname" . }}
   labels:
-    {{- include "aizen-bff-marine.participant.mobile.labels" . | nindent 4 }}
+    {{- include "aizen-bff-marine-mobile.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "aizen-bff-marine.participant.mobile.fullname" . }}
+    name: {{ include "aizen-bff-marine-mobile.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

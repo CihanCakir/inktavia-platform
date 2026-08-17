@@ -105,14 +105,14 @@
       "kind": "bff",
       "project": "Bff/src/Marine.Web/Aizen.Bff.Marine.Web/Aizen.Bff.Marine.Web.csproj",
       "dll": "Aizen.Bff.Marine.Web.dll",
-      "chart": "Bff/deploy/aizen-bff-marine.web"
+      "chart": "Bff/deploy/aizen-bff-marine-web"
     },
     {
       "id": "bff-marine-mobile",
       "kind": "bff",
       "project": "Bff/src/Marine.Participant.Mobile/Aizen.Bff.Marine.Participant.Mobile/Aizen.Bff.Marine.Participant.Mobile.csproj",
       "dll": "Aizen.Bff.Marine.Participant.Mobile.dll",
-      "chart": "Bff/deploy/aizen-bff-marine.participant.mobile"
+      "chart": "Bff/deploy/aizen-bff-marine-mobile"
     }
   ]
 }
