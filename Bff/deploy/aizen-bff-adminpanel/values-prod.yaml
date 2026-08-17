@@ -1,94 +1,178 @@
-# Default values for aizen-adminpanel.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# aizen-bff-adminpanel — üretim değerleri (inktavia-prod)
+#
+# ⚠️ BU DOSYA PUBLIC BİR REPODA. Sırlar Sealed Secret'tan env olarak geliyor.
+#    $(VAR) genişletmesi YALNIZ listede daha önce tanımlanmış değişkenler için çalışır.
+#
+# BFF'lerin modüllerden iki farkı var:
+#   1. INGRESS AÇIK — internete bakan tek katman bunlar. Modüllerde kapalı olması bir
+#      güvenlik şartıydı (bkz. Modules/*/values-prod.yaml).
+#   2. PostgreSQL YOK — yalnız Redis + RabbitMQ. Bağlantı havuzu hesabına girmiyorlar.
+
+# SignalR/WebSocket: ingress-nginx bağlantıyı 60 sn'de kapatmasın diye timeout 3600'e
+# çekildi. Aksi hâlde canlı mesajlaşma dakikada bir sessizce kopar ve istemci reconnect eder.
+#
+# Deploy:
+#   helm upgrade --install aizen-bff-adminpanel . -n inktavia-prod -f values-prod.yaml \
+#     --set image.tag=sha-$(git rev-parse --short=7 origin/develop)
 
 replicaCount: 1
 
 image:
-  repository: nexus.local:8083/aizen/bff/adminpanel
-  pullPolicy: Always
-  tag: "latest"
+  repository: ghcr.io/cihancakir/inktavia/bff-adminpanel
+  pullPolicy: IfNotPresent
+  tag: ""
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: ghcr-pull
+
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
-
 podSecurityContext: {}
-  # fsGroup: 2000
-
 securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 80
+  targetPort: 8080
 
 ingress:
   enabled: true
   className: "nginx"
   annotations:
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
   hosts:
-    - host: bff-adminpanel.aizen.local
+    - host: admin-api.inktavia.com
       paths:
-          - path: /
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: aizen-bff-adminpanel
-                port:
-                  number: 8080
+        - path: /
+          pathType: Prefix
+  # TLS Cloudflare Tunnel'da sonlanacak (Faz 9); origin sertifikası gerekmiyor.
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+probes:
+  path: /info
+  startup:
+    periodSeconds: 5
+    failureThreshold: 24   # 2 dakika — BFF'lerde migration yok, modüllerden hızlı açılır
+
+# BFF'ler modüllerden hafif: EF/migration yok, iş mantığı modüllerde.
+resources:
+  requests:
+    cpu: 25m
+    memory: 120Mi
+  limits:
+    cpu: 400m
+    memory: 320Mi
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
 
 env:
-- name: ASPNETCORE_ENVIRONMENT 
-  value: Production      
-- name: ASPNETCORE_URLS
-  value: http://+:8080
-- name: TZ
-  value: Europe/Istanbul
+  # ── Sırlar ───────────────────────────────────────────────────────────────────
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: REDIS_PASSWORD }
+  - name: RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: RABBITMQ_PASSWORD }
+  - name: KC_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: KEYCLOAK_ADMIN_PANEL_BFF_CLIENT_SECRET }
+  - name: BffAssertion__SharedSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
+
+  # ── Çalışma ortamı ───────────────────────────────────────────────────────────
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: TZ
+    value: Europe/Istanbul
+
+  # ── Önbellek ve mesaj kuyruğu ────────────────────────────────────────────────
+  - name: DistributedCache__InstanceName
+    value: "AdminPanelBff:"
+  - name: DistributedCache__Configuration
+    value: "redis:6379,password=$(REDIS_PASSWORD),abortConnect=False,defaultDatabase=13"
+  - name: MessageBroker__QueueSettings__HostName
+    value: "rabbitmq"
+  - name: MessageBroker__QueueSettings__Port
+    value: "5672"
+  - name: MessageBroker__QueueSettings__VirtualHost
+    value: "/"
+  - name: MessageBroker__QueueSettings__UserName
+    value: "aizen"
+  - name: MessageBroker__QueueSettings__Password
+    value: "$(RABBITMQ_PASSWORD)"
+
+  # ── Keycloak ─────────────────────────────────────────────────────────────────
+  # ⚠️ FAZ 9 BORCU: Authority token'daki issuer ile BİREBİR eşleşmek zorunda.
+  # Şu an her şey cluster içinden konuştuğu için http://keycloak:8080 doğru. Tünel
+  # kurulup tarayıcı https://auth.inktavia.com üzerinden token aldığında issuer
+  # değişecek ve bu değerler güncellenmezse doğrulama 401 verir.
+  - name: AdminPanelKeycloak__BaseUrl
+    value: "http://keycloak:8080"
+  - name: AdminPanelKeycloak__Authority
+    value: "http://keycloak:8080/realms/inktavia-realm"
+  - name: AdminPanelKeycloak__MetadataAddress
+    value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
+  - name: AdminPanelKeycloak__Realm
+    value: "inktavia-realm"
+  - name: AdminPanelKeycloak__Audience
+    value: "admin-panel-bff"
+  - name: AdminPanelKeycloak__RequireHttpsMetadata
+    value: "false"
+  - name: AdminPanelKeycloak__AdminClientSecret
+    value: "$(KC_CLIENT_SECRET)"
+
+  # ── Keycloak servis token'ı ──────────────────────────────────────────────────
+  - name: KeycloakServiceToken__Authority
+    value: "http://keycloak:8080/realms/inktavia-realm"
+  - name: KeycloakServiceToken__TokenEndpoint
+    value: "http://keycloak:8080/realms/inktavia-realm/protocol/openid-connect/token"
+  - name: KeycloakServiceToken__ClientId
+    value: "admin-panel-bff"
+  - name: KeycloakServiceToken__ClientSecret
+    value: "$(KC_CLIENT_SECRET)"
+  - name: KeycloakServiceToken__CacheKeyPrefix
+    value: "inktavia:admin-panel-bff:keycloak-service-token"
+
+  # ── CORS ─────────────────────────────────────────────────────────────────────
+  # CORS ingress'te DEĞİL uygulamada: dört BFF de kodda CORS kuruyor, ingress'te de
+  # yapsaydık çift Access-Control-Allow-Origin başlığı çıkar ve tarayıcı reddederdi.
+  - name: Realtime__SignalR__AllowedOrigins__0
+    value: "https://admin.inktavia.com"
+
+  # ── Modül çağrıları ──────────────────────────────────────────────────────────
+  # Hepsi cluster içi ClusterIP servisleri; port 80 → container 8080.
+  - name: RemoteCalls__IAdminCargoDryBffRemoteCall__BaseUrl
+    value: "http://aizen-cargodry"
+  - name: RemoteCalls__IAdminMessagingBffRemoteCall__BaseUrl
+    value: "http://aizen-messaging"
+  - name: RemoteCalls__IAdminPaymentBffRemoteCall__BaseUrl
+    value: "http://aizen-payment"
+  - name: RemoteCalls__IFileStorageAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-filestorage"
+  - name: RemoteCalls__IIdentityAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-identity"
+  - name: RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-notification"
+  - name: RemoteCalls__INotificationBffRemoteCall__BaseUrl
+    value: "http://aizen-notification"
+  - name: RemoteCalls__IReferenceDataAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-referencedata"
+  - name: RemoteCalls__IServiceRequestAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-servicerequest"
+  - name: RemoteCalls__IVesselAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-vessel"
