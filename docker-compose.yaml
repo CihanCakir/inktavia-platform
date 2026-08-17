@@ -122,6 +122,9 @@ services:
       - file-storage-api
       - service-request-api
       - reference-data-api
+      - cargodry-api
+      - messaging-api
+      - notification-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -138,6 +141,10 @@ services:
       RemoteCalls__IFileStorageAdminBffRemoteCall__BaseUrl: http://file-storage-api:8080
       RemoteCalls__IServiceRequestAdminBffRemoteCall__BaseUrl: http://service-request-api:8080
       RemoteCalls__IReferenceDataAdminBffRemoteCall__BaseUrl: http://reference-data-api:8080
+      RemoteCalls__IAdminCargoDryBffRemoteCall__BaseUrl: http://cargodry-api:8080
+      RemoteCalls__IAdminMessagingBffRemoteCall__BaseUrl: http://messaging-api:8080
+      RemoteCalls__INotificationBffRemoteCall__BaseUrl: http://notification-api:8080
+      RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl: http://notification-api:8080
     ports:
       - "${BFF_ADMINPANEL_PORT:-17001}:8080"
     networks: [aizen]
@@ -328,6 +335,105 @@ services:
       KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
     ports:
       - "7107:8080"
+    networks: [aizen]
+
+  cargodry-api:
+    build:
+      context: .
+      dockerfile: ./Modules/CargoDry/build/Dockerfile
+    container_name: cargodry-api
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__CargoDry: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      ConnectionStrings__CargoDryMongo: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
+      MongoDb__DatabaseName: aizen_cargodry
+      DistributedCache__InstanceName: "CargoDry:"
+      DistributedCache__Configuration: redis:6379,abortConnect=False
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      MessageBroker__QueueSettings__VirtualHost: ${RABBITMQ_VHOST:-/}
+      CargoDry__ActivationTokenSecret: ${CARGODRY_ACTIVATION_SECRET:-local-dev-only-change-me-32chars!!!}
+      CargoDry__ActivationTokenTtlMinutes: 5
+      CargoDry__RateLimiting__ValidateEndpoint__PermitLimit: 100
+      CargoDry__RateLimiting__ValidateEndpoint__WindowSeconds: 60
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: cargodry-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      ElasticApm__Enabled: "false"
+    ports:
+      - "7108:8080"
+    networks: [aizen]
+
+  messaging-api:
+    build:
+      context: .
+      dockerfile: ./Modules/Messaging/build/Dockerfile
+    container_name: messaging-api
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Messaging: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      Mongo__ConnectionString: mongodb://${MONGO_USER:-aizen}:${MONGO_PASSWORD:-aizenpw}@mongo:27017
+      DistributedCache__InstanceName: "Messaging:"
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=13
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      MessageBroker__QueueSettings__VirtualHost: ${RABBITMQ_VHOST:-/}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: messaging-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      ElasticApm__Enabled: "false"
+    ports:
+      - "7109:8080"
+    networks: [aizen]
+
+  notification-api:
+    build:
+      context: .
+      dockerfile: ./Modules/Notification/build/Dockerfile
+    container_name: notification-api
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+      - rabbitmq
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Notification: Host=postgres;Database=${POSTGRES_DB:-aizen};Username=${POSTGRES_USER:-aizen};Password=${POSTGRES_PASSWORD:-aizenpw}
+      DistributedCache__InstanceName: "Notification:"
+      DistributedCache__Configuration: redis:6379,abortConnect=false,defaultDatabase=13
+      MessageBroker__QueueSettings__HostName: rabbitmq
+      MessageBroker__QueueSettings__Port: 5672
+      MessageBroker__QueueSettings__UserName: ${RABBITMQ_USER:-aizen}
+      MessageBroker__QueueSettings__Password: ${RABBITMQ_PASSWORD:-aizenpw}
+      MessageBroker__QueueSettings__VirtualHost: ${RABBITMQ_VHOST:-/}
+      KEYCLOAK_AUTHORITY: http://localhost:8080/realms/inktavia-realm
+      KEYCLOAK_METADATA_ADDRESS: http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration
+      KEYCLOAK_AUDIENCE: notification-api
+      KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+      ElasticApm__Enabled: "false"
+    ports:
+      - "7110:8080"
     networks: [aizen]
 
   # Load testing - k6

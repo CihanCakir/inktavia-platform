@@ -8,19 +8,16 @@ public sealed class RequestVenueDocumentUploadUrlCommand : AizenCommand<Document
 {
     public long UserId { get; }
     public long ProfileId { get; }
-    public string UserToken { get; }
     public string FileName { get; }
     public string ContentType { get; }
     public long FileSizeBytes { get; }
     public string DocumentType { get; }
 
     public RequestVenueDocumentUploadUrlCommand(
-        long userId, long profileId, string userToken,
-        string fileName, string contentType, long fileSizeBytes, string documentType)
+        long userId, long profileId,        string fileName, string contentType, long fileSizeBytes, string documentType)
     {
         UserId = userId;
         ProfileId = profileId;
-        UserToken = userToken;
         FileName = fileName;
         ContentType = contentType;
         FileSizeBytes = fileSizeBytes;

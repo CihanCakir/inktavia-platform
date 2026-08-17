@@ -45,9 +45,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestListQuery(userToken, status, vesselId, pageIndex, pageSize), ct);
+            new GetAdminServiceRequestListQuery(status, vesselId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -58,9 +57,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
         [FromQuery] int take = 10,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetServiceRequestsByVesselHistoryQuery(vesselId, userToken, take), ct);
+            new GetServiceRequestsByVesselHistoryQuery(vesselId, take), ct);
         return SetResponse(result);
     }
 
@@ -72,9 +70,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminDisputeListQuery(userToken, status, pageIndex, pageSize), ct);
+            new GetAdminDisputeListQuery(status, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -83,9 +80,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AdminServiceRequestOperationDetailResponse>> GetServiceRequestDetail(
         long serviceRequestId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestOperationDetailQuery(serviceRequestId, userToken), ct);
+            new GetAdminServiceRequestOperationDetailQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -94,9 +90,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<CancelServiceRequestResponse>> CancelServiceRequest(
         long serviceRequestId, [FromBody] CancelServiceRequestRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new CancelServiceRequestCommand(serviceRequestId, request, userToken), ct);
+            new CancelServiceRequestCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -105,9 +100,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<ApproveServiceRequestCompletionResponse>> ApproveCompletion(
         long serviceRequestId, [FromBody] ApproveServiceRequestCompletionRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ApproveCompletionCommand(serviceRequestId, request, userToken), ct);
+            new ApproveCompletionCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -116,9 +110,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<RejectServiceRequestCompletionResponse>> RejectCompletion(
         long serviceRequestId, [FromBody] RejectServiceRequestCompletionRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectCompletionCommand(serviceRequestId, request, userToken), ct);
+            new RejectCompletionCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -128,9 +121,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, long disputeId,
         [FromBody] ChangeServiceRequestDisputeStatusRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ChangeDisputeStatusCommand(serviceRequestId, disputeId, request, userToken), ct);
+            new ChangeDisputeStatusCommand(serviceRequestId, disputeId, request), ct);
         return SetResponse(result);
     }
 
@@ -140,9 +132,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
         long serviceRequestId, long disputeId,
         [FromBody] ResolveServiceRequestDisputeRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ResolveDisputeCommand(serviceRequestId, disputeId, request, userToken), ct);
+            new ResolveDisputeCommand(serviceRequestId, disputeId, request), ct);
         return SetResponse(result);
     }
 
@@ -150,8 +141,7 @@ public sealed class ServiceRequestsController : AizenWebApiController
     [ProducesResponseType(typeof(AdminServiceRequestFilterOptionsResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminServiceRequestFilterOptionsResponse>> GetFilterOptions(CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminServiceRequestFilterOptionsQuery(userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminServiceRequestFilterOptionsQuery(), ct);
         return SetResponse(result);
     }
 
@@ -160,9 +150,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AdminServiceRequestTimelineResponse>> GetTimeline(
         long serviceRequestId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestTimelineQuery(serviceRequestId, userToken), ct);
+            new GetAdminServiceRequestTimelineQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -171,9 +160,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<UpdateServiceRequestStatusResponse>> UpdateStatus(
         long serviceRequestId, [FromBody] UpdateServiceRequestStatusRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new UpdateServiceRequestStatusCommand(serviceRequestId, request, userToken), ct);
+            new UpdateServiceRequestStatusCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -182,9 +170,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AssignProviderResponse>> AssignProvider(
         long serviceRequestId, [FromBody] AssignProviderRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new AssignServiceRequestProviderCommand(serviceRequestId, request, userToken), ct);
+            new AssignServiceRequestProviderCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -193,9 +180,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<CompleteServiceRequestResponse>> Complete(
         long serviceRequestId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new CompleteServiceRequestAdminCommand(serviceRequestId, userToken), ct);
+            new CompleteServiceRequestAdminCommand(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -204,9 +190,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<DisputeServiceRequestResponse>> Dispute(
         long serviceRequestId, [FromBody] DisputeServiceRequestRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new DisputeServiceRequestAdminCommand(serviceRequestId, request, userToken), ct);
+            new DisputeServiceRequestAdminCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -215,9 +200,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AdminServiceRequestOffersResponse>> GetOffers(
         long serviceRequestId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminServiceRequestOffersQuery(serviceRequestId, userToken), ct);
+            new GetAdminServiceRequestOffersQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -226,9 +210,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AcceptServiceRequestOfferResponse>> AcceptOffer(
         long serviceRequestId, long offerId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new AcceptServiceRequestOfferAdminCommand(serviceRequestId, offerId, userToken), ct);
+            new AcceptServiceRequestOfferAdminCommand(serviceRequestId, offerId), ct);
         return SetResponse(result);
     }
 
@@ -237,9 +220,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<RejectServiceRequestOfferResponse>> RejectOffer(
         long serviceRequestId, long offerId, [FromBody] RejectServiceRequestOfferRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RejectServiceRequestOfferAdminCommand(serviceRequestId, offerId, request, userToken), ct);
+            new RejectServiceRequestOfferAdminCommand(serviceRequestId, offerId, request), ct);
         return SetResponse(result);
     }
 
@@ -248,9 +230,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AdminWorkLogsResponse>> GetWorkLogs(
         long serviceRequestId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminWorkLogsQuery(serviceRequestId, userToken), ct);
+            new GetAdminWorkLogsQuery(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -259,9 +240,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AddWorkLogEntryResponse>> AddWorkLogEntry(
         long serviceRequestId, [FromBody] AddWorkLogEntryRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new AddWorkLogEntryAdminCommand(serviceRequestId, request, userToken), ct);
+            new AddWorkLogEntryAdminCommand(serviceRequestId, request), ct);
         return SetResponse(result);
     }
 
@@ -270,9 +250,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<UpdateWorkPhaseResponse>> UpdateWorkPhase(
         long serviceRequestId, int phaseNumber, [FromBody] UpdateWorkPhaseRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new UpdateWorkPhaseAdminCommand(serviceRequestId, phaseNumber, request, userToken), ct);
+            new UpdateWorkPhaseAdminCommand(serviceRequestId, phaseNumber, request), ct);
         return SetResponse(result);
     }
 
@@ -281,9 +260,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<ReleasePaymentResponse>> ReleasePayment(
         long serviceRequestId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ReleasePaymentAdminCommand(serviceRequestId, userToken), ct);
+            new ReleasePaymentAdminCommand(serviceRequestId), ct);
         return SetResponse(result);
     }
 
@@ -292,9 +270,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AdminConversationsResponse>> GetConversations(
         [FromQuery] string? filter, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminConversationsQuery(filter, userToken), ct);
+            new GetAdminConversationsQuery(filter), ct);
         return SetResponse(result);
     }
 
@@ -303,9 +280,8 @@ public sealed class ServiceRequestsController : AizenWebApiController
     public async Task<AizenApiResponse<AdminConversationDetailResponse>> GetConversationDetail(
         long conversationId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminConversationDetailQuery(conversationId, userToken), ct);
+            new GetAdminConversationDetailQuery(conversationId), ct);
         return SetResponse(result);
     }
 }

@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
 namespace Aizen.Core.Infrastructure.CQRS.Extension;
@@ -33,7 +34,7 @@ public static class BuilderExtensions
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-
+                options.SerializerSettings.Converters.Add(new StringEnumConverter());
             })
             .ConfigureApplicationPartManager(c =>
             {

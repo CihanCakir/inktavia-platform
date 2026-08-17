@@ -6,7 +6,6 @@ namespace Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Query;
 [DocumentationInfo("Get profile approval queue BFF query", "Fetches combined organizer+venue approval queue with filters and pagination.")]
 public sealed class GetProfileApprovalQueueBffQuery : AizenQuery<AdminProfileApprovalQueueBffResponse>
 {
-    public string UserToken { get; }
     public int PageIndex { get; }
     public int PageSize { get; }
     public string? SearchTerm { get; }
@@ -17,7 +16,6 @@ public sealed class GetProfileApprovalQueueBffQuery : AizenQuery<AdminProfileApp
     public string? RiskLevel { get; }
 
     public GetProfileApprovalQueueBffQuery(
-        string userToken,
         int pageIndex,
         int pageSize,
         string? searchTerm,
@@ -27,7 +25,6 @@ public sealed class GetProfileApprovalQueueBffQuery : AizenQuery<AdminProfileApp
         string? submittedTo,
         string? riskLevel)
     {
-        UserToken = userToken;
         PageIndex = pageIndex;
         PageSize = pageSize;
         SearchTerm = searchTerm;

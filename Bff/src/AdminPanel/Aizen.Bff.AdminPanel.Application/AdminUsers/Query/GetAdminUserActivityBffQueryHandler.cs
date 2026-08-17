@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -14,20 +13,17 @@ public sealed class GetAdminUserActivityBffQueryHandler
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IVesselAdminBffRemoteCall _vessel;
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetAdminUserActivityBffQueryHandler> _logger;
 
     public GetAdminUserActivityBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
         IVesselAdminBffRemoteCall vessel,
         IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetAdminUserActivityBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -37,11 +33,8 @@ public sealed class GetAdminUserActivityBffQueryHandler
         var response = new AdminUserActivityBffResponse { Page = request.Page, PageSize = request.PageSize };
         var events = new List<AdminUserActivityEventBffDto>();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -54,7 +47,7 @@ public sealed class GetAdminUserActivityBffQueryHandler
         long userId;
         try
         {
-            var profileResult = await _identity.GetAdminUserProfileDetail(request.ProfileId, authHeader, request.UserToken);
+            var profileResult = await _identity.GetAdminUserProfileDetail(request.ProfileId);
             if (profileResult?.Header?.IsSuccess != true || profileResult.Body == null)
             {
                 _logger.LogWarning("[UserActivityBff] Profile {ProfileId} not found.", request.ProfileId);
@@ -91,7 +84,7 @@ public sealed class GetAdminUserActivityBffQueryHandler
         {
             try
             {
-                var loginResult = await _identity.GetUserLoginHistory(userId, authHeader, request.UserToken, pageSize: 200);
+                var loginResult = await _identity.GetUserLoginHistory(userId, pageSize: 200);
                 if (loginResult?.Header?.IsSuccess == true && loginResult.Body != null)
                 {
                     foreach (var login in loginResult.Body)
@@ -131,8 +124,7 @@ public sealed class GetAdminUserActivityBffQueryHandler
             try
             {
                 var vesselResult = await _vessel.GetAdminVesselList(
-                    authHeader, request.UserToken,
-                    pageIndex: 0, pageSize: 200,
+pageIndex: 0, pageSize: 200,
                     ownerUserId: userId);
 
                 if (vesselResult?.Header?.IsSuccess == true && vesselResult.Body?.Vessels?.Items != null)
@@ -173,8 +165,7 @@ public sealed class GetAdminUserActivityBffQueryHandler
             try
             {
                 var statusResult = await _vessel.GetVesselStatusHistoryByOwner(
-                    authHeader, request.UserToken,
-                    ownerUserId: userId,
+ownerUserId: userId,
                     pageSize: 200);
 
                 if (statusResult?.Header?.IsSuccess == true && statusResult.Body?.Items != null)
@@ -218,8 +209,7 @@ public sealed class GetAdminUserActivityBffQueryHandler
             try
             {
                 var srResult = await _serviceRequest.GetAdminServiceRequestList(
-                    authHeader, request.UserToken,
-                    ownerUserId: userId,
+ownerUserId: userId,
                     pageIndex: 0,
                     pageSize: 200);
 

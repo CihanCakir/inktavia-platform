@@ -1,4 +1,5 @@
 using Aizen.Core.Api.Middleware;
+using Aizen.Core.InfoAccessor.Extensions.UserInfo;
 using Aizen.Core.Starter.Abstraction;
 using Aizen.Core.Starter.Abstraction.Middleware;
 using Microsoft.AspNetCore.Builder;
@@ -17,6 +18,10 @@ public class AizenBffApplicationConfiguration : IAizenApplicationConfiguration
         app.UseSwagger();
         app.UseSwaggerUI();
         app.UseHttpsRedirection();
+        // Populates IAizenUserInfoAccessor.UserInfo from X-Aizen-User-Token header.
+        // Must run after routing but before controllers so that the delegating handler
+        // can forward the identity JWT to downstream microservices.
+        app.UseUserInfoMiddleware();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

@@ -89,8 +89,7 @@ public sealed class AuthController : AizenWebApiController
     public async Task<AizenApiResponse<ChangePasswordDto>> ChangePassword(
         [FromBody] ChangePasswordRequest req, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new ChangePasswordCommand(req, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new ChangePasswordCommand(req), ct);
         return SetResponse(result);
     }
 }

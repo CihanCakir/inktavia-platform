@@ -8,7 +8,6 @@ public sealed class RegisterVenueVerificationDocumentCommand : AizenCommand<Regi
 {
     public long UserId { get; }
     public long ProfileId { get; }
-    public string UserToken { get; }
     public string FileId { get; }               // FileStorage FileId (Guid as string)
     public string UploadSessionCode { get; }
     public string DocumentType { get; }
@@ -18,14 +17,12 @@ public sealed class RegisterVenueVerificationDocumentCommand : AizenCommand<Regi
     public string? Issuer { get; }
 
     public RegisterVenueVerificationDocumentCommand(
-        long userId, long profileId, string userToken,
-        string fileId, string uploadSessionCode,
+        long userId, long profileId,        string fileId, string uploadSessionCode,
         string documentType, string name,
         string? format, string? fileSizeDisplay, string? issuer)
     {
         UserId = userId;
         ProfileId = profileId;
-        UserToken = userToken;
         FileId = fileId;
         UploadSessionCode = uploadSessionCode;
         DocumentType = documentType;

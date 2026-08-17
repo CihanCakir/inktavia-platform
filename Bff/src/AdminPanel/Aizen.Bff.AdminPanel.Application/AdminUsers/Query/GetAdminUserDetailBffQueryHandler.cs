@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -13,18 +12,15 @@ public sealed class GetAdminUserDetailBffQueryHandler
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetAdminUserDetailBffQueryHandler> _logger;
 
     public GetAdminUserDetailBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
         IVesselAdminBffRemoteCall vessel,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetAdminUserDetailBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -33,11 +29,8 @@ public sealed class GetAdminUserDetailBffQueryHandler
     {
         var response = new AdminUserDetailBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -48,7 +41,7 @@ public sealed class GetAdminUserDetailBffQueryHandler
 
         try
         {
-            var identityResult = await _identity.GetAdminUserProfileDetail(request.ProfileId, authHeader, request.UserToken);
+            var identityResult = await _identity.GetAdminUserProfileDetail(request.ProfileId);
 
             if (identityResult?.Header?.IsSuccess != true || identityResult.Body == null)
             {
@@ -63,8 +56,7 @@ public sealed class GetAdminUserDetailBffQueryHandler
             try
             {
                 var vesselResult = await _vessel.GetAdminVesselList(
-                    authHeader, request.UserToken,
-                    pageIndex: 0, pageSize: 1,
+pageIndex: 0, pageSize: 1,
                     ownerUserId: p.UserId);
 
                 vesselCount = (int)(vesselResult?.Body?.Vessels?.Count ?? 0);

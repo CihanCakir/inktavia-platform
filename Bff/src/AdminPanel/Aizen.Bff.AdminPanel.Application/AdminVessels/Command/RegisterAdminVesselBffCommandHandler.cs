@@ -1,5 +1,4 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
@@ -11,21 +10,16 @@ public sealed class RegisterAdminVesselBffCommandHandler
     : AizenCommandHandler<RegisterAdminVesselBffCommand, CreateVesselResponse>
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     public RegisterAdminVesselBffCommandHandler(
-        IVesselAdminBffRemoteCall vessel,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IVesselAdminBffRemoteCall vessel)
     {
         _vessel = vessel;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<CreateVesselResponse?> Handle(
         RegisterAdminVesselBffCommand request, CancellationToken cancellationToken)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
 
         var adminRequest = new CreateAdminVesselRequest
         {
@@ -47,7 +41,7 @@ public sealed class RegisterAdminVesselBffCommandHandler
             OwnerProfileId = request.Payload.OwnerProfileId
         };
 
-        var result = await _vessel.CreateAdminVessel(adminRequest, authHeader, request.UserToken);
+        var result = await _vessel.CreateAdminVessel(adminRequest);
         return result?.Body;
     }
 }

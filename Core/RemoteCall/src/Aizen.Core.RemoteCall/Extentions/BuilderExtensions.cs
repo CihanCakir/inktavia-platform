@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Aizen.Core.Configuration.Extensions;
 using Refit;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Aizen.Core.RemoteCall.Extensions;
 
@@ -23,7 +24,11 @@ public static class BuilderExtensions
         new SystemTextJsonContentSerializer(new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            Converters = { new PaginateJsonConverterFactory() }
+            Converters =
+            {
+                new JsonStringEnumConverter(),   // handles string enums from Newtonsoft API responses
+                new PaginateJsonConverterFactory()
+            }
         }));
 
     // Keep internal alias for the extension methods below.

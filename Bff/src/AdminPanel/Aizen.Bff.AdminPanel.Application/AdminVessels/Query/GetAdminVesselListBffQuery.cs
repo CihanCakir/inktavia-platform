@@ -6,7 +6,6 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 [DocumentationInfo("Get admin vessel list BFF query", "Query for the Vessel Management List with UI-specific filters and enriched response.")]
 public sealed class GetAdminVesselListBffQuery : AizenQuery<AdminVesselListBffResponse>
 {
-    public string UserToken { get; }
     public int PageIndex { get; }
     public int PageSize { get; }
     public string? SearchTerm { get; }
@@ -16,11 +15,10 @@ public sealed class GetAdminVesselListBffQuery : AizenQuery<AdminVesselListBffRe
     public int[]? OperationalStatuses { get; }
 
     public GetAdminVesselListBffQuery(
-        string userToken, int pageIndex, int pageSize,
+        int pageIndex, int pageSize,
         string? searchTerm, bool? isArchived,
         int[]? assetTypes, int[]? ownershipStatuses, int[]? operationalStatuses)
     {
-        UserToken = userToken;
         PageIndex = pageIndex;
         PageSize = pageSize;
         SearchTerm = searchTerm;

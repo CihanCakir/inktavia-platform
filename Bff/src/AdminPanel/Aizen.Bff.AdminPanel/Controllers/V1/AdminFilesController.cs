@@ -29,9 +29,8 @@ public sealed class FilesController : AizenWebApiController
     public async Task<AizenApiResponse<AdminFileReviewOverviewResponse>> GetFileReviewOverview(
         long fileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminFileReviewOverviewQuery(fileId, userToken), ct);
+            new GetAdminFileReviewOverviewQuery(fileId), ct);
         return SetResponse(result);
     }
 
@@ -40,9 +39,8 @@ public sealed class FilesController : AizenWebApiController
     public async Task<AizenApiResponse<List<FileAccessUrlResult>>> BulkGenerateReadUrls(
         [FromBody] BulkGenerateReadUrlsRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new BulkGenerateReadUrlsCommand(request.FileIds, request.ExpiresInMinutes, userToken), ct);
+            new BulkGenerateReadUrlsCommand(request.FileIds, request.ExpiresInMinutes), ct);
         return SetResponse(result);
     }
 
@@ -51,9 +49,8 @@ public sealed class FilesController : AizenWebApiController
     public async Task<AizenApiResponse<AdminBffCommandResultDto>> DeleteFile(
         long fileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new DeleteFileCommand(fileId, userToken), ct);
+            new DeleteFileCommand(fileId), ct);
         return SetResponse(result);
     }
 
@@ -62,9 +59,8 @@ public sealed class FilesController : AizenWebApiController
     public async Task<AizenApiResponse<FileAccessUrlResult>> CreateFileReadUrl(
         long fileId, [FromBody] CreateReadUrlRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new CreateFileReadUrlCommand(fileId, request.ExpiresInMinutes, userToken), ct);
+            new CreateFileReadUrlCommand(fileId, request.ExpiresInMinutes), ct);
         return SetResponse(result);
     }
 
@@ -73,9 +69,8 @@ public sealed class FilesController : AizenWebApiController
     public async Task<AizenApiResponse<Aizen.Bff.AdminPanel.Application.Common.RemoteClients.EmptyResult>> UpdateVisibility(
         long fileId, [FromBody] UpdateVisibilityRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new UpdateFileVisibilityCommand(fileId, request.Visibility, userToken), ct);
+            new UpdateFileVisibilityCommand(fileId, request.Visibility), ct);
         return SetResponse(result);
     }
 }

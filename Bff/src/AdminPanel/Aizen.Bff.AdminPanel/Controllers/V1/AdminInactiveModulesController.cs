@@ -8,7 +8,7 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 /// <summary>
 /// Returns 501 Not Implemented for inactive or future module endpoints.
 /// These modules are not yet active in the current platform release:
-///   CargoDry, Notification (template management), Payment, Reporting, Analytics.
+///   Notification (template management), Payment, Reporting, Analytics.
 /// Routes are registered to avoid 404 responses and return a clear not-implemented envelope.
 /// </summary>
 [ApiController]
@@ -19,26 +19,6 @@ public sealed class AdminInactiveModulesController : AizenWebApiController
 {
     public AdminInactiveModulesController(IHttpContextAccessor httpContextAccessor)
         : base(httpContextAccessor) { }
-
-    // ─── CargoDry ────────────────────────────────────────────────────────────
-
-    [HttpGet("cargodry/kits")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult GetCargoDryKits() => NotImplementedEnvelope("CargoDry");
-
-    [HttpPost("cargodry/kits/activate")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult ActivateCargoDryKit() => NotImplementedEnvelope("CargoDry");
-
-    // ─── Notification templates ───────────────────────────────────────────────
-
-    [HttpGet("notification-templates")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult GetNotificationTemplates() => NotImplementedEnvelope("Notification");
-
-    [HttpPost("notification-templates")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult CreateNotificationTemplate() => NotImplementedEnvelope("Notification");
 
     // ─── Payment ─────────────────────────────────────────────────────────────
 

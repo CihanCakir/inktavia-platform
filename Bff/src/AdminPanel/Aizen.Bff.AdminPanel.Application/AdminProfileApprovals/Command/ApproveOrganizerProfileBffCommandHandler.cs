@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -12,16 +11,13 @@ public sealed class ApproveOrganizerProfileBffCommandHandler
     : AizenCommandHandler<ApproveOrganizerProfileBffCommand, ProfileApprovalDecisionBffResponse>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<ApproveOrganizerProfileBffCommandHandler> _logger;
 
     public ApproveOrganizerProfileBffCommandHandler(
         IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<ApproveOrganizerProfileBffCommandHandler> logger)
     {
         _identity = identity;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -30,11 +26,8 @@ public sealed class ApproveOrganizerProfileBffCommandHandler
     {
         var response = new ProfileApprovalDecisionBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -44,7 +37,7 @@ public sealed class ApproveOrganizerProfileBffCommandHandler
         }
 
         var result = await _identity.ApproveOrganizerProfileAdmin(
-            request.UserId, request.ProfileId, authHeader, request.UserToken);
+            request.UserId, request.ProfileId);
 
         if (result?.Header?.IsSuccess != true)
         {

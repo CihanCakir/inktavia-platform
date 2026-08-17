@@ -5,10 +5,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 
 public sealed class GetReferenceDataCountriesQuery : AizenQuery<CountryListResult>
 {
-    public string UserToken { get; }
 
-    public GetReferenceDataCountriesQuery(string userToken)
+    public GetReferenceDataCountriesQuery()
     {
-        UserToken = userToken;
     }
 }

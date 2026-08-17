@@ -164,6 +164,60 @@
       }
     },
     {
+      "name": "Messaging",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.Messaging",
+      "program": "${workspaceFolder}/Modules/Messaging/src/Aizen.Modules.Messaging/bin/Debug/net9.0/Aizen.Modules.Messaging.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/Messaging/src/Aizen.Modules.Messaging",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:7108"
+      }
+    },
+    {
+      "name": "Notification",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.Notification",
+      "program": "${workspaceFolder}/Modules/Notification/src/Aizen.Modules.Notification/bin/Debug/net9.0/Aizen.Modules.Notification.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/Notification/src/Aizen.Modules.Notification",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:7109"
+      }
+    },
+    {
+      "name": "CargoDry",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Aizen.Modules.CargoDry",
+      "program": "${workspaceFolder}/Modules/CargoDry/src/Aizen.Modules.CargoDry/bin/Debug/net9.0/Aizen.Modules.CargoDry.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Modules/CargoDry/src/Aizen.Modules.CargoDry",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:7110"
+      }
+    },
+    {
       "name": "AdminPanel BFF",
       "type": "coreclr",
       "request": "launch",
@@ -200,7 +254,10 @@
         "ReferenceData",
         "Vessel",
         "FileStorage",
-        "ServiceRequest"
+        "ServiceRequest",
+        "Messaging",
+        "Notification",
+        "CargoDry"
       ],
       "stopAll": true
     },
@@ -212,7 +269,10 @@
         "ReferenceData",
         "Vessel",
         "FileStorage",
-        "ServiceRequest"
+        "ServiceRequest",
+        "Messaging",
+        "Notification",
+        "CargoDry"
       ],
       "stopAll": true
     }

@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
@@ -11,13 +10,10 @@ public sealed class GetAdminWorkLogsQueryHandler
     : AizenQueryHandler<GetAdminWorkLogsQuery, AdminWorkLogsResponse>
 {
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public GetAdminWorkLogsQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    public GetAdminWorkLogsQueryHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminWorkLogsResponse?> Handle(
@@ -27,11 +23,9 @@ public sealed class GetAdminWorkLogsQueryHandler
 
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            var authHeader = $"Bearer {serviceToken}";
 
             var result = await _serviceRequest.GetAdminWorkLogs(
-                request.ServiceRequestId, authHeader, request.UserToken);
+                request.ServiceRequestId);
             response.WorkLogs = result.Body;
         }
         catch

@@ -7,14 +7,12 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Query;
 public sealed class GetServiceRequestsByVesselHistoryQuery : AizenQuery<ServiceRequestVesselHistoryBffResponse>
 {
     public long VesselId { get; }
-    public string UserToken { get; }
     public int Take { get; }
     public string[]? Statuses { get; }
 
-    public GetServiceRequestsByVesselHistoryQuery(long vesselId, string userToken, int take = 10, string[]? statuses = null)
+    public GetServiceRequestsByVesselHistoryQuery(long vesselId, int take = 10, string[]? statuses = null)
     {
         VesselId = vesselId;
-        UserToken = userToken;
         Take = take;
         Statuses = statuses;
     }

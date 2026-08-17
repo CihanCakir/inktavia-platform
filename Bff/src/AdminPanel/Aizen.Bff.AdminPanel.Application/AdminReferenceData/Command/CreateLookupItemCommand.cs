@@ -8,10 +8,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Command;
 public sealed class CreateLookupItemCommand : AizenCommand<LookupItemDto>
 {
     public CreateLookupItemRequest Request { get; }
-    public string UserToken { get; }
-    public CreateLookupItemCommand(CreateLookupItemRequest request, string userToken)
+    public CreateLookupItemCommand(CreateLookupItemRequest request)
     {
         Request = request;
-        UserToken = userToken;
     }
 }

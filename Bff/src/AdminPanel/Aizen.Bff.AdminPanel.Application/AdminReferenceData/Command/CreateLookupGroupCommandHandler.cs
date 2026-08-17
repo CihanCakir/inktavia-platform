@@ -1,5 +1,4 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupGroup;
 
@@ -10,22 +9,17 @@ public sealed class CreateLookupGroupCommandHandler
     : AizenCommandHandler<CreateLookupGroupCommand, LookupGroupDto>
 {
     private readonly IReferenceDataAdminBffRemoteCall _referenceData;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     public CreateLookupGroupCommandHandler(
-        IReferenceDataAdminBffRemoteCall referenceData,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IReferenceDataAdminBffRemoteCall referenceData)
     {
         _referenceData = referenceData;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<LookupGroupDto?> Handle(CreateLookupGroupCommand request, CancellationToken ct)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(ct);
-        var authHeader = $"Bearer {serviceToken}";
 
-        var result = await _referenceData.CreateLookupGroup(request.Request, authHeader, request.UserToken);
+        var result = await _referenceData.CreateLookupGroup(request.Request);
         return result.Body;
     }
 }

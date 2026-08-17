@@ -1,0 +1,39 @@
+using Aizen.Core.Domain;
+using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Abstraction.Model;
+
+namespace Aizen.Modules.CargoDry.Domain.Entities;
+
+[DocumentationInfo("CargoDry Renewal entity",
+    "Audit record for each kit renewal event. Stores the payment reference, added days, " +
+    "and renewal type (OnlinePurchase / PhysicalKit / AdminExtension).")]
+public sealed class CargoDryRenewalEntity : AizenEntityWithAudit
+{
+    public long           KitId        { get; private set; }
+    public long           OwnerUserId  { get; private set; }
+    public DateTimeOffset RenewedAt    { get; private set; }
+    public DateTimeOffset NewExpiresAt { get; private set; }
+    public int            AddedDays    { get; private set; }
+    public RenewalType    RenewalType  { get; private set; }
+    public string?        PaymentRef   { get; private set; }
+    public long?          AdminUserId  { get; private set; }
+
+    private CargoDryRenewalEntity() { }
+
+    public static CargoDryRenewalEntity Create(
+        long kitId, long ownerUserId, DateTimeOffset newExpiresAt,
+        int addedDays, RenewalType type,
+        string? paymentRef = null, long? adminUserId = null)
+        => new()
+        {
+            KitId        = kitId,
+            OwnerUserId  = ownerUserId,
+            RenewedAt    = DateTimeOffset.UtcNow,
+            NewExpiresAt = newExpiresAt,
+            AddedDays    = addedDays,
+            RenewalType  = type,
+            PaymentRef   = paymentRef,
+            AdminUserId  = adminUserId,
+            IsActive     = true,
+        };
+}

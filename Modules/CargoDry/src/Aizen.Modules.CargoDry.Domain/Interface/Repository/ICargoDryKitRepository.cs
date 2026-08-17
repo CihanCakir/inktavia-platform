@@ -1,0 +1,34 @@
+using Aizen.Modules.CargoDry.Abstraction.Enum;
+using Aizen.Modules.CargoDry.Domain.Entities;
+
+namespace Aizen.Modules.CargoDry.Domain.Interface.Repository;
+
+public interface ICargoDryKitRepository
+{
+    Task<CargoDryKitEntity?> GetByIdAsync(long id, CancellationToken ct = default);
+    Task<CargoDryKitEntity?> GetBySerialAsync(string serialNumber, CancellationToken ct = default);
+    Task<List<CargoDryKitEntity>> GetByOwnerAsync(long userId, CancellationToken ct = default);
+    Task<CargoDryKitEntity?> GetActiveByVesselAsync(long vesselId, string productCode, CancellationToken ct = default);
+    Task<List<CargoDryKitEntity>> GetExpiringAsync(int withinDays, CancellationToken ct = default);
+    Task<List<CargoDryKitEntity>> GetExpiredUnmarkedAsync(CancellationToken ct = default);
+    Task<(List<CargoDryKitEntity> Items, int Total)> GetPagedAsync(
+        CargoDryKitStatus? status, string? search, long? vesselId, int skip, int take, CancellationToken ct = default);
+    Task<List<CargoDryKitEntity>> GetAllAsync(CancellationToken ct = default);
+    Task<List<CargoDryKitEntity>> GetAllForReportAsync(
+        DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default);
+    Task<CargoDryStatsProjection> GetStatsAsync(CancellationToken ct = default);
+    Task AddAsync(CargoDryKitEntity entity, CancellationToken ct = default);
+    Task AddRangeAsync(IEnumerable<CargoDryKitEntity> entities, CancellationToken ct = default);
+    Task SaveChangesAsync(CancellationToken ct = default);
+}
+
+public sealed class CargoDryStatsProjection
+{
+    public int Total { get; init; }
+    public int Available { get; init; }
+    public int Active { get; init; }
+    public int Expiring { get; init; }
+    public int Expired { get; init; }
+    public int Revoked { get; init; }
+    public int TodayActivations { get; init; }
+}

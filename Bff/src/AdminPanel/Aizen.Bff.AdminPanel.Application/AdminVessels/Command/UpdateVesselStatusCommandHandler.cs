@@ -1,7 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Command;
 
@@ -10,22 +9,17 @@ public sealed class UpdateVesselStatusCommandHandler
     : AizenCommandHandler<UpdateVesselStatusCommand, UpdateVesselStatusResponse>
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public UpdateVesselStatusCommandHandler(IVesselAdminBffRemoteCall vessel,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    public UpdateVesselStatusCommandHandler(IVesselAdminBffRemoteCall vessel)
     {
         _vessel = vessel;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<UpdateVesselStatusResponse?> Handle(
         UpdateVesselStatusCommand request, CancellationToken cancellationToken)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
 
-        var result = await _vessel.UpdateVesselStatus(request.VesselId, request.Payload, authHeader, request.UserToken);
+        var result = await _vessel.UpdateVesselStatus(request.VesselId, request.Payload);
         return result.Body;
     }
 }

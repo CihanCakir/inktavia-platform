@@ -2,7 +2,6 @@ using Aizen.Bff.AdminPanel.Application.AdminDashboard.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminDashboard.Query;
 
@@ -13,18 +12,15 @@ public sealed class GetAdminDashboardOverviewQueryHandler
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IVesselAdminBffRemoteCall _vessel;
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     public GetAdminDashboardOverviewQueryHandler(
         IIdentityAdminBffRemoteCall identity,
         IVesselAdminBffRemoteCall vessel,
-        IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IServiceRequestAdminBffRemoteCall serviceRequest)
     {
         _identity = identity;
         _vessel = vessel;
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminDashboardOverviewResponse?> Handle(
@@ -32,14 +28,11 @@ public sealed class GetAdminDashboardOverviewQueryHandler
     {
         var response = new AdminDashboardOverviewResponse();
 
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
-
-        var vesselTask = _vessel.GetAdminVesselList(authHeader, request.UserToken);
-        var srTask = _serviceRequest.GetAdminServiceRequestList(authHeader, request.UserToken);
-        var disputeTask = _serviceRequest.GetAdminDisputeList(authHeader, request.UserToken);
-        var orgTask = _identity.SearchOrganizerProfiles(authHeader, request.UserToken);
-        var venueTask = _identity.SearchVenueProfiles(authHeader, request.UserToken);
+        var vesselTask = _vessel.GetAdminVesselList();
+        var srTask = _serviceRequest.GetAdminServiceRequestList();
+        var disputeTask = _serviceRequest.GetAdminDisputeList();
+        var orgTask = _identity.SearchOrganizerProfiles();
+        var venueTask = _identity.SearchVenueProfiles();
 
         await Task.WhenAll(
             vesselTask.ContinueWith(_ => { }),

@@ -1,27 +1,30 @@
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
+using Microsoft.Extensions.Logging;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 
-[DocumentationInfo("Get admin vessel detail BFF query handler", "Aggregates vessel detail with service history for the Vessel Detail Overview page. CargoDry module not yet integrated.")]
+[DocumentationInfo("Get admin vessel detail BFF query handler", "Aggregates vessel detail, service history, and CargoDry kit data for the Vessel Detail Overview page.")]
 public sealed class GetAdminVesselDetailBffQueryHandler
     : AizenQueryHandler<GetAdminVesselDetailBffQuery, AdminVesselDetailBffResponse>
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
+    private readonly IAdminCargoDryBffRemoteCall _cargoDry;
+    private readonly ILogger<GetAdminVesselDetailBffQueryHandler> _logger;
 
     public GetAdminVesselDetailBffQueryHandler(
         IVesselAdminBffRemoteCall vessel,
         IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IAdminCargoDryBffRemoteCall cargoDry,
+        ILogger<GetAdminVesselDetailBffQueryHandler> logger)
     {
         _vessel = vessel;
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
+        _cargoDry = cargoDry;
+        _logger = logger;
     }
 
     public override async Task<AdminVesselDetailBffResponse?> Handle(
@@ -29,12 +32,9 @@ public sealed class GetAdminVesselDetailBffQueryHandler
     {
         var response = new AdminVesselDetailBffResponse();
 
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
-
-        var vesselTask = _vessel.GetVesselById(request.VesselId, authHeader, request.UserToken);
+        var vesselTask = _vessel.GetVesselById(request.VesselId);
         var serviceHistoryTask = _serviceRequest.GetAdminServiceRequestList(
-            authHeader, request.UserToken, vesselId: request.VesselId, pageIndex: 0, pageSize: 10);
+vesselId: request.VesselId, pageIndex: 0, pageSize: 10);
 
         await Task.WhenAll(
             vesselTask.ContinueWith(_ => { }),
@@ -50,6 +50,17 @@ public sealed class GetAdminVesselDetailBffQueryHandler
         var spec = v.Specification;
         var primaryEngine = v.Engines?.FirstOrDefault(e => e.IsPrimary);
         var currentLocation = v.CurrentLocation;
+
+        List<CargoDryKitBffDto> cargoDryKits = [];
+        try
+        {
+            var kitsResult = await _cargoDry.GetKitsAsync(status: null, search: null, vesselId: request.VesselId, page: 0, pageSize: 100, ct: cancellationToken);
+            cargoDryKits = kitsResult?.Items ?? [];
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CargoDry kit fetch failed for vessel {VesselId}", request.VesselId);
+        }
 
         response.Vessel = new VesselDetailBffDto
         {
@@ -98,7 +109,7 @@ public sealed class GetAdminVesselDetailBffQueryHandler
                 RangeNm = primaryEngine.RangeNm,
                 IsPrimary = primaryEngine.IsPrimary
             } : null,
-            CargoDryKits = new(), // CargoDry module not yet integrated
+            CargoDryKits = cargoDryKits,
             DocumentSummaries = v.Documents?.Select(d => new DocumentSummaryBffDto
             {
                 Id = d.Id,

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../Core/CQRS/src/Aizen.Core.CQRS/Aizen.Core.CQRS.csproj" />
+    <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <ProjectReference Include="../Aizen.Modules.Notification.Domain/Aizen.Modules.Notification.Domain.csproj" />
+    <ProjectReference Include="../../../ServiceRequest/src/Aizen.Modules.ServiceRequest.Abstraction/Aizen.Modules.ServiceRequest.Abstraction.csproj" />
+    <ProjectReference Include="../../../Messaging/src/Aizen.Modules.Messaging.Abstraction/Aizen.Modules.Messaging.Abstraction.csproj" />
+  </ItemGroup>
+</Project>

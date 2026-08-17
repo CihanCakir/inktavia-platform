@@ -9,13 +9,11 @@ public sealed class RejectVenueProfileBffCommand : AizenCommand<ProfileApprovalD
     public long UserId { get; }
     public long ProfileId { get; }
     public string Reason { get; }
-    public string UserToken { get; }
 
-    public RejectVenueProfileBffCommand(long userId, long profileId, string reason, string userToken)
+    public RejectVenueProfileBffCommand(long userId, long profileId, string reason)
     {
         UserId = userId;
         ProfileId = profileId;
         Reason = reason;
-        UserToken = userToken;
     }
 }

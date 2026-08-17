@@ -27,6 +27,11 @@ namespace Aizen.Core.Scheduler.Extensions
         public bool UseFilter { get; set; } = true;
         public string RouteUrl { get; set; }
         public string DatabaseKey { get; set; } = "Scheduler";
+        /// <summary>
+        /// PostgreSQL schema name for Hangfire tables. Defaults to "hangfire".
+        /// Set per-module to isolate job tables (e.g. "cargodry-scheduler").
+        /// </summary>
+        public string SchemaName { get; set; } = "hangfire";
     }
 
     internal static class BaseBuilderExtension
@@ -99,7 +104,13 @@ namespace Aizen.Core.Scheduler.Extensions
                             config.UseFilter(new HttpContextJobFilterAttribute(provider));
                         }
 
-                        config.UsePostgreSqlStorage(databaseSettings.Value.ConnectionString);
+                        config.UsePostgreSqlStorage(o =>
+                        {
+                            o.UseNpgsqlConnection(databaseSettings.Value.ConnectionString);
+                        }, new PostgreSqlStorageOptions
+                        {
+                            SchemaName = options.SchemaName,
+                        });
                         config.UseHeartbeatPage(checkInterval: TimeSpan.FromSeconds(_heartbeatInterval));
                     });
                 }

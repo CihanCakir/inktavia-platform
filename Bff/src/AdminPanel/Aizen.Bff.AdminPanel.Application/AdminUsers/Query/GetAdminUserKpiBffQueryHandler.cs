@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -12,16 +11,13 @@ public sealed class GetAdminUserKpiBffQueryHandler
     : AizenQueryHandler<GetAdminUserKpiBffQuery, AdminUserKpiBffResponse>
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetAdminUserKpiBffQueryHandler> _logger;
 
     public GetAdminUserKpiBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetAdminUserKpiBffQueryHandler> logger)
     {
         _identity = identity;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -30,11 +26,8 @@ public sealed class GetAdminUserKpiBffQueryHandler
     {
         var response = new AdminUserKpiBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -46,10 +39,10 @@ public sealed class GetAdminUserKpiBffQueryHandler
         try
         {
             // Four parallel scalar queries — pageSize=1 minimises data transfer while still returning TotalCount.
-            var totalTask = _identity.SearchProfiles(authHeader, request.UserToken, pageSize: 1);
-            var pendingTask = _identity.SearchProfiles(authHeader, request.UserToken, approvalStatus: "Pending", pageSize: 1);
-            var suspendedTask = _identity.SearchProfiles(authHeader, request.UserToken, status: "Inactive", pageSize: 1);
-            var activeTodayTask = _identity.GetActiveTodayUserCount(authHeader, request.UserToken);
+            var totalTask = _identity.SearchProfiles(pageSize: 1);
+            var pendingTask = _identity.SearchProfiles(approvalStatus: "Pending", pageSize: 1);
+            var suspendedTask = _identity.SearchProfiles(status: "Inactive", pageSize: 1);
+            var activeTodayTask = _identity.GetActiveTodayUserCount();
 
             await Task.WhenAll(totalTask, pendingTask, suspendedTask, activeTodayTask);
 

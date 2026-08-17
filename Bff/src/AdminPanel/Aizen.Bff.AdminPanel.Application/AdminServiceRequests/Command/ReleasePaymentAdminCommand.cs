@@ -6,11 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class ReleasePaymentAdminCommand : AizenCommand<ReleasePaymentResponse>
 {
     public long ServiceRequestId { get; }
-    public string UserToken { get; }
 
-    public ReleasePaymentAdminCommand(long serviceRequestId, string userToken)
+    public ReleasePaymentAdminCommand(long serviceRequestId)
     {
         ServiceRequestId = serviceRequestId;
-        UserToken = userToken;
     }
 }

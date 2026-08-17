@@ -27,8 +27,7 @@ public sealed class UsersController : AizenWebApiController
     [ProducesResponseType(typeof(AdminUserKpiBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminUserKpiBffResponse>> GetUsersKpi(CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminUserKpiBffQuery(userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminUserKpiBffQuery(), ct);
         return SetResponse(result);
     }
 
@@ -45,9 +44,8 @@ public sealed class UsersController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminUserListBffQuery(userToken, search, role, status, identityType, registeredFrom, registeredTo, page, pageSize), ct);
+            new GetAdminUserListBffQuery(search, role, status, identityType, registeredFrom, registeredTo, page, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -59,8 +57,7 @@ public sealed class UsersController : AizenWebApiController
     public async Task<AizenApiResponse<AdminUserQuickBffResponse>> GetUserQuick(
         long profileId, CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminUserQuickBffQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminUserQuickBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -70,8 +67,7 @@ public sealed class UsersController : AizenWebApiController
     public async Task<AizenApiResponse<AdminUserDetailBffResponse>> GetUserDetail(
         long profileId, CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminUserDetailBffQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminUserDetailBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -82,8 +78,7 @@ public sealed class UsersController : AizenWebApiController
     public async Task<AizenApiResponse<AdminUserVesselsBffResponse>> GetUserVessels(
         long profileId, CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminUserVesselsBffQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminUserVesselsBffQuery(profileId), ct);
         return SetResponse(result);
     }
 
@@ -98,11 +93,10 @@ public sealed class UsersController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         DateOnly? from = DateOnly.TryParse(dateFrom, out var df) ? df : null;
         DateOnly? to = DateOnly.TryParse(dateTo, out var dt) ? dt : null;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminUserActivityBffQuery(profileId, userToken, category, from, to, page, pageSize), ct);
+            new GetAdminUserActivityBffQuery(profileId, category, from, to, page, pageSize), ct);
         return SetResponse(result);
     }
 }

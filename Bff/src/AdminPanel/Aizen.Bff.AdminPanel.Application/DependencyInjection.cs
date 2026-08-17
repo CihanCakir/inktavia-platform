@@ -5,15 +5,19 @@ using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.Cache.Extension;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Core.RemoteCall.Extensions;
-using RemoteCallBuilderExtensions = Aizen.Core.RemoteCall.Extensions.BuilderExtensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Refit;
+using RemoteCallBuilderExtensions = Aizen.Core.RemoteCall.Extensions.BuilderExtensions;
 
 namespace Aizen.Bff.AdminPanel.Application;
 
-[DocumentationInfo("Admin Panel BFF DI registration", "Registers BFF-specific remote call interfaces and application-layer services. BFF remote call interfaces are not auto-discovered by AizenModuleAssemblyDiscovery (assembly name lacks 'Abstraction'), so they are registered manually here. Also registers Aizen Core/Cache (Redis) required by the Keycloak service-token provider.")]
+[DocumentationInfo("Admin Panel BFF DI registration",
+    "Registers BFF remote call interfaces and application-layer services. " +
+    "All downstream HTTP calls are routed through AdminPanelBffAuthDelegatingHandler which " +
+    "automatically injects Authorization (Keycloak service token) and X-Aizen-User-Token " +
+    "(identity JWT from IAizenUserInfoAccessor). AuthorizationForwardingHandler is no longer used.")]
 public static class DependencyInjection
 {
     public static IServiceCollection AddAdminPanelBffApplication(
@@ -29,58 +33,76 @@ public static class DependencyInjection
 
         services.AddScoped<IAdminPanelBffKeycloakServiceTokenProvider, AdminPanelBffKeycloakServiceTokenProvider>();
 
-        services.AddTransient<AuthorizationForwardingHandler>();
+        // Central auth handler — wired into every downstream HttpClient.
+        services.AddTransient<AdminPanelBffAuthDelegatingHandler>();
+
+        // ── Remote call registrations ──────────────────────────────────────────
 
         services.AddTransient<IIdentityAdminBffRemoteCall>(provider =>
         {
-            var factory = provider.GetRequiredService<IHttpClientFactory>();
-            var httpClient = factory.CreateClient(nameof(IIdentityAdminBffRemoteCall));
-            // Prevent identity remote calls from hanging indefinitely on wrong credentials or unreachable service.
-            httpClient.Timeout = TimeSpan.FromSeconds(15);
-            return RestService.For<IIdentityAdminBffRemoteCall>(httpClient, RemoteCallBuilderExtensions.AizenRefitSettings);
+            var client = CreateHttpClient(provider, nameof(IIdentityAdminBffRemoteCall));
+            client.Timeout = TimeSpan.FromSeconds(15);
+            return CreateRemoteCall<IIdentityAdminBffRemoteCall>(client);
         });
 
         services.AddTransient<IVesselAdminBffRemoteCall>(provider =>
-        {
-            var factory = provider.GetRequiredService<IHttpClientFactory>();
-            return RestService.For<IVesselAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IVesselAdminBffRemoteCall)),
-                RemoteCallBuilderExtensions.AizenRefitSettings);
-        });
+            CreateRemoteCall<IVesselAdminBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IVesselAdminBffRemoteCall))));
 
         services.AddTransient<IFileStorageAdminBffRemoteCall>(provider =>
-        {
-            var factory = provider.GetRequiredService<IHttpClientFactory>();
-            return RestService.For<IFileStorageAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IFileStorageAdminBffRemoteCall)),
-                RemoteCallBuilderExtensions.AizenRefitSettings);
-        });
+            CreateRemoteCall<IFileStorageAdminBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IFileStorageAdminBffRemoteCall))));
 
         services.AddTransient<IServiceRequestAdminBffRemoteCall>(provider =>
-        {
-            var remoteCallConfigs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
-            remoteCallConfigs.TryGetValue(nameof(IServiceRequestAdminBffRemoteCall), out var srConfig);
-
-            var forwardingHandler = provider.GetRequiredService<AuthorizationForwardingHandler>();
-            forwardingHandler.InnerHandler = new HttpClientHandler();
-
-            var httpClient = new HttpClient(forwardingHandler);
-            if (srConfig?.BaseUrl is not null)
-                httpClient.BaseAddress = new Uri(srConfig.BaseUrl);
-
-            return RestService.For<IServiceRequestAdminBffRemoteCall>(
-                httpClient,
-                RemoteCallBuilderExtensions.AizenRefitSettings);
-        });
+            CreateRemoteCall<IServiceRequestAdminBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IServiceRequestAdminBffRemoteCall))));
 
         services.AddTransient<IReferenceDataAdminBffRemoteCall>(provider =>
-        {
-            var factory = provider.GetRequiredService<IHttpClientFactory>();
-            return RestService.For<IReferenceDataAdminBffRemoteCall>(
-                factory.CreateClient(nameof(IReferenceDataAdminBffRemoteCall)),
-                RemoteCallBuilderExtensions.AizenRefitSettings);
-        });
+            CreateRemoteCall<IReferenceDataAdminBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IReferenceDataAdminBffRemoteCall))));
+
+        services.AddTransient<IAdminCargoDryBffRemoteCall>(provider =>
+            CreateRemoteCall<IAdminCargoDryBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IAdminCargoDryBffRemoteCall))));
+
+        services.AddTransient<INotificationBffRemoteCall>(provider =>
+            CreateRemoteCall<INotificationBffRemoteCall>(
+                CreateHttpClient(provider, nameof(INotificationBffRemoteCall))));
+
+        services.AddTransient<IAdminMessagingBffRemoteCall>(provider =>
+            CreateRemoteCall<IAdminMessagingBffRemoteCall>(
+                CreateHttpClient(provider, nameof(IAdminMessagingBffRemoteCall))));
+
+        services.AddTransient<INotificationAdminBffRemoteCall>(provider =>
+            // Key matches docker-compose: RemoteCalls__IAdminNotificationBffRemoteCall__BaseUrl
+            CreateRemoteCall<INotificationAdminBffRemoteCall>(
+                CreateHttpClient(provider, "IAdminNotificationBffRemoteCall")));
 
         return services;
     }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Builds an HttpClient with <see cref="AdminPanelBffAuthDelegatingHandler"/> as the outermost
+    /// handler and <see cref="HttpClientHandler"/> as the inner transport.
+    /// BaseAddress is resolved from <see cref="RemoteCallConfigurations"/>.
+    /// </summary>
+    private static HttpClient CreateHttpClient(IServiceProvider provider, string clientName)
+    {
+        var authHandler = provider.GetRequiredService<AdminPanelBffAuthDelegatingHandler>();
+        authHandler.InnerHandler = new HttpClientHandler();
+
+        var configs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
+        configs.TryGetValue(clientName, out var cfg);
+
+        var client = new HttpClient(authHandler);
+        if (cfg?.BaseUrl is not null)
+            client.BaseAddress = new Uri(cfg.BaseUrl);
+
+        return client;
+    }
+
+    private static T CreateRemoteCall<T>(HttpClient client) where T : class
+        => RestService.For<T>(client, RemoteCallBuilderExtensions.AizenRefitSettings);
 }

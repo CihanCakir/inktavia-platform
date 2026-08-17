@@ -6,11 +6,9 @@ namespace Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Command;
 public sealed class CompleteServiceRequestAdminCommand : AizenCommand<CompleteServiceRequestResponse>
 {
     public long ServiceRequestId { get; }
-    public string UserToken { get; }
 
-    public CompleteServiceRequestAdminCommand(long serviceRequestId, string userToken)
+    public CompleteServiceRequestAdminCommand(long serviceRequestId)
     {
         ServiceRequestId = serviceRequestId;
-        UserToken = userToken;
     }
 }

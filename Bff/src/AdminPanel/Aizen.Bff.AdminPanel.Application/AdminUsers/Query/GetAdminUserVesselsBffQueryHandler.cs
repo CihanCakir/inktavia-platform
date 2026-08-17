@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminUsers.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Microsoft.Extensions.Logging;
@@ -13,18 +12,15 @@ public sealed class GetAdminUserVesselsBffQueryHandler
 {
     private readonly IIdentityAdminBffRemoteCall _identity;
     private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetAdminUserVesselsBffQueryHandler> _logger;
 
     public GetAdminUserVesselsBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
         IVesselAdminBffRemoteCall vessel,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetAdminUserVesselsBffQueryHandler> logger)
     {
         _identity = identity;
         _vessel = vessel;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -33,11 +29,8 @@ public sealed class GetAdminUserVesselsBffQueryHandler
     {
         var response = new AdminUserVesselsBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -50,7 +43,7 @@ public sealed class GetAdminUserVesselsBffQueryHandler
         long userId;
         try
         {
-            var identityResult = await _identity.GetAdminUserProfileDetail(request.ProfileId, authHeader, request.UserToken);
+            var identityResult = await _identity.GetAdminUserProfileDetail(request.ProfileId);
             if (identityResult?.Header?.IsSuccess != true || identityResult.Body == null)
             {
                 _logger.LogWarning("[UserVesselsBff] Profile {ProfileId} not found.", request.ProfileId);
@@ -68,8 +61,7 @@ public sealed class GetAdminUserVesselsBffQueryHandler
         try
         {
             var vesselResult = await _vessel.GetAdminVesselList(
-                authHeader, request.UserToken,
-                pageIndex: 0, pageSize: 50,
+pageIndex: 0, pageSize: 50,
                 ownerUserId: userId);
 
             if (vesselResult?.Header?.IsSuccess != true)

@@ -1,7 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.AdminServiceRequests.Dto;
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
@@ -12,14 +11,11 @@ public sealed class GetServiceRequestsByVesselHistoryQueryHandler
     : AizenQueryHandler<GetServiceRequestsByVesselHistoryQuery, ServiceRequestVesselHistoryBffResponse>
 {
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     public GetServiceRequestsByVesselHistoryQueryHandler(
-        IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IServiceRequestAdminBffRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<ServiceRequestVesselHistoryBffResponse?> Handle(
@@ -29,11 +25,9 @@ public sealed class GetServiceRequestsByVesselHistoryQueryHandler
 
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            var authHeader = $"Bearer {serviceToken}";
 
             var result = await _serviceRequest.GetAdminServiceRequestList(
-                authHeader, request.UserToken, vesselId: request.VesselId, pageIndex: 0, pageSize: request.Take);
+vesselId: request.VesselId, pageIndex: 0, pageSize: request.Take);
 
             if (result?.Body?.Items != null)
             {

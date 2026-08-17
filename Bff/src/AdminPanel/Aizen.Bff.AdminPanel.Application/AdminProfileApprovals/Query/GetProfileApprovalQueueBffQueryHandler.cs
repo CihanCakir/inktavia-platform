@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminProfileApprovals.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
@@ -16,16 +15,13 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
     private const int MaxFetchPerType = 200;
 
     private readonly IIdentityAdminBffRemoteCall _identity;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
     private readonly ILogger<GetProfileApprovalQueueBffQueryHandler> _logger;
 
     public GetProfileApprovalQueueBffQueryHandler(
         IIdentityAdminBffRemoteCall identity,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider,
         ILogger<GetProfileApprovalQueueBffQueryHandler> logger)
     {
         _identity = identity;
-        _serviceTokenProvider = serviceTokenProvider;
         _logger = logger;
     }
 
@@ -34,11 +30,8 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
     {
         var response = new AdminProfileApprovalQueueBffResponse();
 
-        string authHeader;
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            authHeader = $"Bearer {serviceToken}";
         }
         catch (Exception ex)
         {
@@ -56,11 +49,11 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
 
         // Fetch organizers and venues in parallel.
         var orgTask = includeOrganizers
-            ? FetchOrganizersAsync(authHeader, request.UserToken, identityStatusFilter, cancellationToken)
+            ? FetchOrganizersAsync(identityStatusFilter, cancellationToken)
             : Task.FromResult<(List<OrganizerProfileListItemDto> items, long total)>((new(), 0));
 
         var venTask = includeVenues
-            ? FetchVenuesAsync(authHeader, request.UserToken, identityStatusFilter, cancellationToken)
+            ? FetchVenuesAsync(identityStatusFilter, cancellationToken)
             : Task.FromResult<(List<VenueProfileListItemDto> items, long total)>((new(), 0));
 
         await Task.WhenAll(orgTask, venTask);
@@ -121,12 +114,12 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
     }
 
     private async Task<(List<OrganizerProfileListItemDto> items, long total)> FetchOrganizersAsync(
-        string authHeader, string userToken, string? approvalStatus, CancellationToken ct)
+        string? approvalStatus, CancellationToken ct)
     {
         try
         {
             var result = await _identity.GetAdminOrganizerProfilesByStatus(
-                authHeader, userToken, approvalStatus, pageIndex: 0, pageSize: MaxFetchPerType);
+                approvalStatus, pageIndex: 0, pageSize: MaxFetchPerType);
 
             if (result?.Header?.IsSuccess != true)
             {
@@ -145,12 +138,12 @@ public sealed class GetProfileApprovalQueueBffQueryHandler
     }
 
     private async Task<(List<VenueProfileListItemDto> items, long total)> FetchVenuesAsync(
-        string authHeader, string userToken, string? approvalStatus, CancellationToken ct)
+        string? approvalStatus, CancellationToken ct)
     {
         try
         {
             var result = await _identity.GetAdminVenueProfilesByStatus(
-                authHeader, userToken, approvalStatus, pageIndex: 0, pageSize: MaxFetchPerType);
+                approvalStatus, pageIndex: 0, pageSize: MaxFetchPerType);
 
             if (result?.Header?.IsSuccess != true)
             {

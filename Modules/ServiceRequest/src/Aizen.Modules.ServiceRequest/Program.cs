@@ -6,8 +6,6 @@ using Aizen.Core.Infrastructure.UnitOfWork.Extension;
 using Aizen.Core.Realtime.Extensions;
 using Aizen.Core.Realtime.Abstraction.Interfaces;
 using Aizen.Core.Starter;
-using Aizen.Core.Common.Extension;
-using Aizen.Core.Domain.Abstraction.Extension;
 using Aizen.Modules.ServiceRequest.Application.Realtime;
 using Aizen.Modules.ServiceRequest.Hubs;
 using Aizen.Modules.ServiceRequest.Realtime;

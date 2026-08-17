@@ -1,7 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Core.CQRS.Handler;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 
 namespace Aizen.Bff.AdminPanel.Application.AdminFiles.Command;
 
@@ -10,22 +9,17 @@ public sealed class DeleteFileCommandHandler
     : AizenCommandHandler<DeleteFileCommand, AdminBffCommandResultDto>
 {
     private readonly IFileStorageAdminBffRemoteCall _fileStorage;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public DeleteFileCommandHandler(IFileStorageAdminBffRemoteCall fileStorage,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    public DeleteFileCommandHandler(IFileStorageAdminBffRemoteCall fileStorage)
     {
         _fileStorage = fileStorage;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminBffCommandResultDto?> Handle(
         DeleteFileCommand request, CancellationToken cancellationToken)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
 
-        var result = await _fileStorage.DeleteFile(request.FileId, authHeader, request.UserToken);
+        var result = await _fileStorage.DeleteFile(request.FileId);
 
         return result.Header.IsSuccess
             ? AdminBffCommandResultDto.Ok()

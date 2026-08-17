@@ -29,8 +29,7 @@ public sealed class VenuesController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new SearchVenueProfilesQuery(userToken, pageIndex, pageSize), ct);
+        var result = await _cqrs.ProcessAsync(new SearchVenueProfilesQuery(pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -39,8 +38,7 @@ public sealed class VenuesController : AizenWebApiController
     public async Task<AizenApiResponse<VenueProfileResult>> GetProfileById(
         Guid profileId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetVenueProfileByIdQuery(profileId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetVenueProfileByIdQuery(profileId), ct);
         return SetResponse(result);
     }
 }

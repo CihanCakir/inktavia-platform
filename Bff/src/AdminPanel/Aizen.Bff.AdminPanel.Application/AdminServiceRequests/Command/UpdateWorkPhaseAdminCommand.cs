@@ -9,13 +9,11 @@ public sealed class UpdateWorkPhaseAdminCommand : AizenCommand<UpdateWorkPhaseRe
     public long ServiceRequestId { get; }
     public int PhaseNumber { get; }
     public UpdateWorkPhaseRequest Payload { get; }
-    public string UserToken { get; }
 
-    public UpdateWorkPhaseAdminCommand(long serviceRequestId, int phaseNumber, UpdateWorkPhaseRequest payload, string userToken)
+    public UpdateWorkPhaseAdminCommand(long serviceRequestId, int phaseNumber, UpdateWorkPhaseRequest payload)
     {
         ServiceRequestId = serviceRequestId;
         PhaseNumber = phaseNumber;
         Payload = payload;
-        UserToken = userToken;
     }
 }

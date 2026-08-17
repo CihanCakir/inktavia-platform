@@ -6,10 +6,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminIdentity.Query;
 public sealed class GetOrganizerProfileWithUserQuery : AizenQuery<OrganizerProfileWithUserResult>
 {
     public Guid ProfileId { get; }
-    public string UserToken { get; }
-    public GetOrganizerProfileWithUserQuery(Guid profileId, string userToken)
+    public GetOrganizerProfileWithUserQuery(Guid profileId)
     {
         ProfileId = profileId;
-        UserToken = userToken;
     }
 }

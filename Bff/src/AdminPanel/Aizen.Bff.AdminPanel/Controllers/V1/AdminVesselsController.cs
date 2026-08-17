@@ -38,9 +38,8 @@ public sealed class VesselsController : AizenWebApiController
         [FromQuery] int[]? operationalStatuses = null,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselListBffQuery(userToken, pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses), ct);
+            new GetAdminVesselListBffQuery(pageIndex, pageSize, searchTerm, isArchived, assetTypes, ownershipStatuses, operationalStatuses), ct);
         return SetResponse(result);
     }
 
@@ -50,8 +49,7 @@ public sealed class VesselsController : AizenWebApiController
     [ProducesResponseType(typeof(AdminVesselRegisterBootstrapBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselRegisterBootstrapBffResponse>> GetVesselRegisterBootstrap(CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminVesselRegisterBootstrapQuery(userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminVesselRegisterBootstrapQuery(), ct);
         return SetResponse(result);
     }
 
@@ -60,8 +58,7 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<CreateVesselResponse>> RegisterVessel(
         [FromBody] RegisterAdminVesselBffRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new RegisterAdminVesselBffCommand(request, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new RegisterAdminVesselBffCommand(request), ct);
         return SetResponse(result);
     }
 
@@ -69,8 +66,7 @@ public sealed class VesselsController : AizenWebApiController
     [ProducesResponseType(typeof(AdminVesselFormOptionsResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<AdminVesselFormOptionsResponse>> GetFormOptions(CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminVesselFormOptionsQuery(userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminVesselFormOptionsQuery(), ct);
         return SetResponse(result);
     }
 
@@ -79,9 +75,8 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<AdminVesselDetailBffResponse>> GetVesselDetail(
         long vesselId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselDetailBffQuery(vesselId, userToken), ct);
+            new GetAdminVesselDetailBffQuery(vesselId), ct);
         return SetResponse(result);
     }
 
@@ -90,9 +85,8 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<ArchiveVesselResponse>> ArchiveVessel(
         long vesselId, [FromBody] ArchiveVesselRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new ArchiveVesselCommand(vesselId, request, userToken), ct);
+            new ArchiveVesselCommand(vesselId, request), ct);
         return SetResponse(result);
     }
 
@@ -101,9 +95,8 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<RestoreVesselResponse>> RestoreVessel(
         long vesselId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RestoreVesselCommand(vesselId, userToken), ct);
+            new RestoreVesselCommand(vesselId), ct);
         return SetResponse(result);
     }
 
@@ -112,9 +105,8 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<UpdateVesselStatusResponse>> UpdateVesselStatus(
         long vesselId, [FromBody] UpdateVesselStatusRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new UpdateVesselStatusCommand(vesselId, request, userToken), ct);
+            new UpdateVesselStatusCommand(vesselId, request), ct);
         return SetResponse(result);
     }
 
@@ -123,9 +115,8 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<RemoveVesselDocumentResponse>> RemoveVesselDocument(
         long vesselId, long documentId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new RemoveVesselDocumentCommand(vesselId, documentId, userToken), ct);
+            new RemoveVesselDocumentCommand(vesselId, documentId), ct);
         return SetResponse(result);
     }
 
@@ -134,8 +125,7 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<GetVesselDetailResponse>> GetVesselById(
         long vesselId, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new GetAdminVesselByIdQuery(vesselId, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new GetAdminVesselByIdQuery(vesselId), ct);
         return SetResponse(result);
     }
 
@@ -146,9 +136,8 @@ public sealed class VesselsController : AizenWebApiController
         [FromQuery] string? statusFilter = null,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselDocumentsBffQuery(vesselId, userToken, statusFilter), ct);
+            new GetAdminVesselDocumentsBffQuery(vesselId, statusFilter), ct);
         return SetResponse(result);
     }
 
@@ -157,8 +146,7 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
         long vesselId, [FromBody] UpdateVesselRequest request, CancellationToken ct)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
-        var result = await _cqrs.ProcessAsync(new UpdateVesselCommand(vesselId, request, userToken), ct);
+        var result = await _cqrs.ProcessAsync(new UpdateVesselCommand(vesselId, request), ct);
         return SetResponse(result);
     }
 
@@ -171,9 +159,8 @@ public sealed class VesselsController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselMediaBffQuery(vesselId, userToken, mediaType, pageIndex, pageSize), ct);
+            new GetAdminVesselMediaBffQuery(vesselId, mediaType, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 
@@ -185,9 +172,8 @@ public sealed class VesselsController : AizenWebApiController
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var userToken = HttpContext.Request.Headers["X-Aizen-User-Token"].FirstOrDefault() ?? string.Empty;
         var result = await _cqrs.ProcessAsync(
-            new GetAdminVesselStatusHistoryQuery(vesselId, userToken, pageIndex, pageSize), ct);
+            new GetAdminVesselStatusHistoryQuery(vesselId, pageIndex, pageSize), ct);
         return SetResponse(result);
     }
 }

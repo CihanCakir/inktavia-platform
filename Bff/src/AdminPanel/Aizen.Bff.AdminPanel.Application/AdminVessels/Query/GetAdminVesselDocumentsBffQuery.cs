@@ -7,13 +7,11 @@ namespace Aizen.Bff.AdminPanel.Application.AdminVessels.Query;
 public sealed class GetAdminVesselDocumentsBffQuery : AizenQuery<AdminVesselDocumentsBffResponse>
 {
     public long VesselId { get; }
-    public string UserToken { get; }
     public string? StatusFilter { get; }
 
-    public GetAdminVesselDocumentsBffQuery(long vesselId, string userToken, string? statusFilter = null)
+    public GetAdminVesselDocumentsBffQuery(long vesselId, string? statusFilter = null)
     {
         VesselId = vesselId;
-        UserToken = userToken;
         StatusFilter = statusFilter;
     }
 }

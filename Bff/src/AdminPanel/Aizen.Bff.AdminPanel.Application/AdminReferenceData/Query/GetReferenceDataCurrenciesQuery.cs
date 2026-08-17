@@ -5,10 +5,8 @@ namespace Aizen.Bff.AdminPanel.Application.AdminReferenceData.Query;
 
 public sealed class GetReferenceDataCurrenciesQuery : AizenQuery<CurrencyListResult>
 {
-    public string UserToken { get; }
 
-    public GetReferenceDataCurrenciesQuery(string userToken)
+    public GetReferenceDataCurrenciesQuery()
     {
-        UserToken = userToken;
     }
 }

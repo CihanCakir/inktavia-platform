@@ -1,5 +1,4 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 
@@ -10,23 +9,18 @@ public sealed class UpdateServiceRequestStatusCommandHandler
     : AizenCommandHandler<UpdateServiceRequestStatusCommand, UpdateServiceRequestStatusResponse>
 {
     private readonly IServiceRequestAdminBffRemoteCall _serviceRequest;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
-    public UpdateServiceRequestStatusCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+    public UpdateServiceRequestStatusCommandHandler(IServiceRequestAdminBffRemoteCall serviceRequest)
     {
         _serviceRequest = serviceRequest;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<UpdateServiceRequestStatusResponse?> Handle(
         UpdateServiceRequestStatusCommand request, CancellationToken cancellationToken)
     {
-        var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-        var authHeader = $"Bearer {serviceToken}";
 
         var result = await _serviceRequest.UpdateAdminServiceRequestStatus(
-            request.ServiceRequestId, request.Payload, authHeader, request.UserToken);
+            request.ServiceRequestId, request.Payload);
         return result.Body;
     }
 }

@@ -1,6 +1,5 @@
 using Aizen.Bff.AdminPanel.Application.AdminVessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
-using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Bff.AdminPanel.Application.Common.Warnings;
 using Aizen.Core.CQRS.Handler;
 
@@ -11,14 +10,11 @@ public sealed class GetAdminVesselMediaBffQueryHandler
     : AizenQueryHandler<GetAdminVesselMediaBffQuery, AdminVesselMediaBffResponse>
 {
     private readonly IVesselAdminBffRemoteCall _vessel;
-    private readonly IAdminPanelBffKeycloakServiceTokenProvider _serviceTokenProvider;
 
     public GetAdminVesselMediaBffQueryHandler(
-        IVesselAdminBffRemoteCall vessel,
-        IAdminPanelBffKeycloakServiceTokenProvider serviceTokenProvider)
+        IVesselAdminBffRemoteCall vessel)
     {
         _vessel = vessel;
-        _serviceTokenProvider = serviceTokenProvider;
     }
 
     public override async Task<AdminVesselMediaBffResponse?> Handle(
@@ -28,11 +24,9 @@ public sealed class GetAdminVesselMediaBffQueryHandler
 
         try
         {
-            var serviceToken = await _serviceTokenProvider.GetAccessTokenAsync(cancellationToken);
-            var authHeader = $"Bearer {serviceToken}";
 
             var result = await _vessel.GetVesselMedia(
-                request.VesselId, authHeader, request.UserToken,
+                request.VesselId,
                 request.PageIndex, request.PageSize);
 
             var items = result?.Body?.Media?.Items;
