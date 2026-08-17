@@ -1,43 +1,64 @@
-# Default values for aizen-content.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# aizen-content — dev değerleri (inktavia-dev)
+#
+# ⚠️ DEV ORTAMI — veri katmanı prod'dan TAMAMEN ayrı.
+#
+# Ayrım beş katmanda birden yapılır; birini atlamak dev'in prod verisine yazması demektir:
+#   PostgreSQL : inktavia_store_dev
+#   MongoDB    : her veritabanı adına _dev soneki
+#   Redis      : defaultDatabase=14 (prod 13)
+#   RabbitMQ   : vhost /dev
+#   MinIO      : inktavia-filestorage-dev
+#
+# ASPNETCORE_ENVIRONMENT=Production BİLEREK: bu ortamın işi geliştirme değil, prod'a
+# çıkmadan önce PROD DAVRANIŞINI sınamak. Development modunda BffAssertion fail-closed
+# kontrolü devre dışı kalır, log seviyesi ve seed davranışı değişir — dev yeşil yanar,
+# prod patlar.
+#
+# replicaCount: 0 — dev kotası 2Gi / 8 pod, 11 modül aynı anda sığmaz.
+# Test edeceğin modülü kaldır:
+#   kubectl -n inktavia-dev scale deploy/aizen-<modul> --replicas=1
+# İşin bitince geri indir; boşta duran pod kotayı ve belleği yer.
+#
+# ⚠️ BU DOSYA PUBLIC BİR REPODA. Hiçbir sır burada düz metin duramaz.
+#    Parolalar `platform-credentials` Sealed Secret'ından geliyor; connection string'lerin
+#    okunabilir kısmı burada, parola kısmı Kubernetes'in $(VAR) genişletmesiyle doluyor.
+#    $(VAR) YALNIZCA listede DAHA ÖNCE tanımlanmış değişkenler için çalışır — bu yüzden
+#    secretKeyRef girdileri en üstte.
+#
+# Deploy:
+#   helm upgrade --install aizen-content . -n inktavia-dev -f values-dev.yaml \
+#     --set image.tag=sha-$(git rev-parse --short=7 origin/develop)
+# Geri alma:
+#   helm rollback aizen-content -n inktavia-dev
 
-replicaCount: 1
+replicaCount: 0
 
 image:
-  repository: nexus.local:8083/aizen/content
-  pullPolicy: Always
-  tag: "latest"
+  repository: ghcr.io/cihancakir/inktavia/content
+  # sha- etiketi değişmez olduğu için IfNotPresent doğru: node yeniden başladığında
+  # GHCR'a gitmeye gerek kalmaz, internet kesikse bile pod ayağa kalkar.
+  pullPolicy: IfNotPresent
+  tag: ""          # ZORUNLU — deploy sırasında --set ile verilir
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: ghcr-pull
+
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
-
 podSecurityContext: {}
-  # fsGroup: 2000
-
 securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 service:
   type: ClusterIP
   port: 80
+  targetPort: 8080
 
 ingress:
   # SECURITY: modules must NEVER be reachable from outside the cluster.
@@ -49,51 +70,113 @@ ingress:
   # Enforced in CI by scripts/ci/assert-no-module-ingress.sh
   enabled: false
   className: "nginx"
-  annotations:
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: dev-aizen-content.aizen.local
-      paths:
-          - path: /
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: aizen-content
-                port:
-                  number: 80
+  annotations: {}
+  hosts: []
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+probes:
+  path: /info
+  startup:
+    periodSeconds: 5
+    failureThreshold: 60   # 5 dakika — açılışta EF migration çalışıyor
+
+# Ölçüldü (2026-08-17, boşta): modüller 114–258Mi, Payment en yüksek (Hangfire).
+# İstek = zamanlayıcının REZERVE ettiği miktar → gerçek kullanıma yakın olmalı.
+# Tavan = GC tepe noktası için pay → boştakinin ~3 katı.
+resources:
+  requests:
+    cpu: 25m
+    memory: 120Mi
+  limits:
+    cpu: 300m
+    memory: 300Mi
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
 
 env:
-- name: ASPNETCORE_ENVIRONMENT 
-  value: dev      
-- name: TZ
-  value: Europe/Istanbul 
+  # ── Sırlar — önce tanımlanmalı ki aşağıdaki $(VAR) genişletmesi çalışsın ──────
+  - name: POSTGRES_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: POSTGRES_PASSWORD }
+  - name: MONGO_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: MONGO_PASSWORD }
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: REDIS_PASSWORD }
+  - name: RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: RABBITMQ_PASSWORD }
+
+  # ── Çalışma ortamı ───────────────────────────────────────────────────────────
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: TZ
+    value: Europe/Istanbul
+
+  # ── Veri katmanı ─────────────────────────────────────────────────────────────
+  # Tek veritabanı (inktavia_store), modül başına ayrı PostgreSQL şeması.
+  # Maximum Pool Size=5 KRİTİK: max_connections=200 ve 15 servis var (15×12=180).
+  # appsettings'teki 300 değeri 15 modülde 4500 bağlantı demekti.
+  - name: DatabaseSettings__ContentMongo__Type
+    value: "Mongo"
+  - name: DatabaseSettings__ContentMongo__ConnectionString
+    value: "mongodb://aizen:$(MONGO_PASSWORD)@mongo:27017/aizen_content_dev?authSource=admin"
+  - name: DistributedCache__InstanceName
+    value: "Content:"
+  # Tüm modüller Redis db 13'ü paylaşıyor; anahtarlar InstanceName ile ayrışıyor.
+  - name: DistributedCache__Configuration
+    value: "redis:6379,password=$(REDIS_PASSWORD),abortConnect=False,defaultDatabase=14"
+
+  - name: MessageBroker__QueueSettings__HostName
+    value: "rabbitmq"
+  - name: MessageBroker__QueueSettings__Port
+    value: "5672"
+  - name: MessageBroker__QueueSettings__VirtualHost
+    value: "/dev"
+  - name: MessageBroker__QueueSettings__UserName
+    value: "aizen"
+  - name: MessageBroker__QueueSettings__Password
+    value: "$(RABBITMQ_PASSWORD)"
+
+  # ── BFF assertion — bu olmadan modül AÇILMAZ ─────────────────────────────────
+  # Core/InfoAccessor, Development dışında boş SharedSecret ile başlatmayı
+  # fail-closed olarak reddediyor: modülün tek kimlik güvencesi bu sır.
+  - name: BffAssertion__SharedSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
+  - name: BffAssertion__AllowedClientIds__0
+    value: "admin-panel-bff"
+  - name: BffAssertion__AllowedClientIds__1
+    value: "provider-portal-bff"
+  - name: BffAssertion__AllowedClientIds__2
+    value: "marine-web-bff"
+  - name: BffAssertion__AllowedClientIds__3
+    value: "marine-mobile-bff"
+
+  # ── Seed/mock kapatma — AÇIKÇA ───────────────────────────────────────────────
+  # Çoğu modülün appsettings.Production.json'ı bunları zaten kapatıyor, ama
+  # CargoDry'nin Production dosyası HİÇ YOK ve base'e düşüyor. Sessiz varsayılana
+  # güvenmek yerine hepsinde açıkça kapatıyoruz — üretime mock veri sızması
+  # geri alınması zor bir hatadır.
+  - name: MockData__Enabled
+    value: "false"
+  - name: MockData__RunOnStartup
+    value: "false"
+  - name: ReferenceDataSeed__Enabled
+    value: "false"
+  - name: CargoDrySeed__Enabled
+    value: "false"
+  - name: MessagingSeed__Enabled
+    value: "false"
+  - name: NotificationSeed__Enabled
+    value: "false"
+  - name: PaymentSeed__Enabled
+    value: "false"
+  - name: RemoteCalls__IFileStorageRemoteCall__BaseUrl
+    value: "http://aizen-filestorage"
