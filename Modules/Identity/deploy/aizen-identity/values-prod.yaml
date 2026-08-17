@@ -1,43 +1,46 @@
-# Default values for aizen-identity.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# aizen-identity — üretim değerleri (inktavia-prod)
+#
+# ⚠️ BU DOSYA PUBLIC BİR REPODA. Hiçbir sır burada düz metin duramaz.
+#    Parolalar Sealed Secret'tan env olarak geliyor; connection string'lerin okunabilir
+#    kısmı burada, parola kısmı Kubernetes'in $(VAR) genişletmesiyle dolduruluyor.
+#    $(VAR) YALNIZCA listede DAHA ÖNCE tanımlanmış değişkenler için çalışır — bu yüzden
+#    secretKeyRef girdileri en üstte.
+#
+# Deploy:
+#   helm upgrade --install aizen-identity . -n inktavia-prod -f values-prod.yaml \
+#     --set image.tag=sha-$(git rev-parse --short=7 origin/develop)
+#
+# Geri alma:
+#   helm rollback aizen-identity -n inktavia-prod
 
 replicaCount: 1
 
 image:
-  repository: nexus.local:8083/aizen/identity
-  pullPolicy: Always
-  tag: "latest"
+  repository: ghcr.io/cihancakir/inktavia/identity
+  # sha- etiketi değişmez olduğu için IfNotPresent doğru seçim: node yeniden başladığında
+  # GHCR'a gitmeye gerek kalmaz, internet kesikse bile pod ayağa kalkar.
+  pullPolicy: IfNotPresent
+  tag: ""          # ZORUNLU — deploy sırasında --set ile verilir, boş bırakılırsa helm patlar
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: ghcr-pull
+
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
-
 podSecurityContext: {}
-  # fsGroup: 2000
-
 securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 service:
   type: ClusterIP
-  port: 80
+  port: 80          # cluster içi çağrılar http://aizen-identity ile gelsin
+  targetPort: 8080  # .NET 9 varsayılanı
 
 ingress:
   # SECURITY: modules must NEVER be reachable from outside the cluster.
@@ -49,51 +52,139 @@ ingress:
   # Enforced in CI by scripts/ci/assert-no-module-ingress.sh
   enabled: false
   className: "nginx"
-  annotations:
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: aizen-identity.aizen.local
-      paths:
-          - path: /
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: aizen-identity
-                port:
-                  number: 80
+  annotations: {}
+  hosts: []
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+probes:
+  path: /info
+  startup:
+    periodSeconds: 5
+    # 60 × 5sn = 5 dakika. Açılışta EF migration çalışıyor ve boş veritabanında
+    # şemayı sıfırdan kuruyor; cömert olmak gerekiyor. Startup geçtikten sonra
+    # liveness normal sıkılığına dönüyor.
+    failureThreshold: 60
+
+# §1.5 bellek bütçesi: prod kotası 7Gi, 15 servis → servis başına ~450Mi tavan.
+# İmajda DOTNET_gcServer=0 zaten ayarlı (Server GC çekirdek başına heap ayırıyordu).
+resources:
+  requests:
+    cpu: 50m
+    memory: 220Mi
+  limits:
+    cpu: 500m
+    memory: 420Mi
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
 
 env:
-- name: ASPNETCORE_ENVIRONMENT 
-  value: Production      
-- name: TZ
-  value: Europe/Istanbul 
+  # ── Sırlar — önce tanımlanmalı ki aşağıdaki $(VAR) genişletmesi çalışsın ──────
+  - name: POSTGRES_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: POSTGRES_PASSWORD }
+  - name: MONGO_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: MONGO_PASSWORD }
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: REDIS_PASSWORD }
+  - name: RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: RABBITMQ_PASSWORD }
+  - name: KEYCLOAK_ADMIN_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: KEYCLOAK_PROVIDER_BFF_CLIENT_SECRET }
+  - name: TOKEN_SECURITY_KEY
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: TOKEN_SECURITY_KEY }
+  - name: OTP_TICKET_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: OTP_LOGIN_TICKET_SECRET }
+  - name: OTP_CONSUME_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: OTP_LOGIN_CONSUME_SECRET }
+
+  # ── Çalışma ortamı ───────────────────────────────────────────────────────────
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: TZ
+    value: Europe/Istanbul
+
+  # ── Veri katmanı ─────────────────────────────────────────────────────────────
+  # Host adları k3s'teki selector'sız Service'ler; hepsi 192.168.1.50'ye çıkıyor.
+  # Maximum Pool Size=12 KRİTİK: PostgreSQL max_connections=200 ve 15 servis var.
+  # appsettings'teki 300 değeri 15 modülde 4500 bağlantı demekti — ilk yükte tükenirdi.
+  - name: DatabaseSettings__Identity__ConnectionString
+    value: "Host=postgres;Port=5432;Database=inktavia_store;Username=aizen;Password=$(POSTGRES_PASSWORD);Maximum Pool Size=12"
+  - name: DatabaseSettings__IdentityMongo__ConnectionString
+    value: "mongodb://aizen:$(MONGO_PASSWORD)@mongo:27017/Identity?authSource=admin"
+  - name: DistributedCache__InstanceName
+    value: "Identity:"
+  - name: DistributedCache__Configuration
+    value: "redis:6379,password=$(REDIS_PASSWORD),abortConnect=False,defaultDatabase=13"
+
+  - name: MessageBroker__QueueSettings__HostName
+    value: "rabbitmq"
+  - name: MessageBroker__QueueSettings__Port
+    value: "5672"
+  - name: MessageBroker__QueueSettings__VirtualHost
+    value: "/"
+  - name: MessageBroker__QueueSettings__UserName
+    value: "aizen"
+  - name: MessageBroker__QueueSettings__Password
+    value: "$(RABBITMQ_PASSWORD)"
+
+  # ── BFF assertion — bu olmadan modül AÇILMAZ ─────────────────────────────────
+  # Core/InfoAccessor: Development dışında boş SharedSecret başlatmayı fail-closed
+  # olarak durduruyor. Doğru davranış: bu sır modülün tek kimlik güvencesi.
+  - name: BffAssertion__SharedSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
+  - name: BffAssertion__AllowedClientIds__0
+    value: "admin-panel-bff"
+  - name: BffAssertion__AllowedClientIds__1
+    value: "provider-portal-bff"
+  - name: BffAssertion__AllowedClientIds__2
+    value: "marine-web-bff"
+  - name: BffAssertion__AllowedClientIds__3
+    value: "marine-mobile-bff"
+
+  # ── Keycloak ─────────────────────────────────────────────────────────────────
+  - name: IdentityKeycloak__Enabled
+    value: "true"
+  - name: IdentityKeycloak__BaseUrl
+    value: "http://keycloak:8080"
+  - name: IdentityKeycloak__Realm
+    value: "inktavia-realm"
+  - name: IdentityKeycloak__AdminClientId
+    value: "provider-portal-bff"
+  - name: IdentityKeycloak__AdminClientSecret
+    value: "$(KEYCLOAK_ADMIN_CLIENT_SECRET)"
+
+  # ── Token imzalama ───────────────────────────────────────────────────────────
+  # appsettings'te "mysecuritykey" tekrarından ibaret bir sabit duruyor ve PUBLIC repoda.
+  # Gerçek anahtar .env'de üretildi ve mühürlendi; buradan eziliyor.
+  - name: TokenOption__SecurityKey
+    value: "$(TOKEN_SECURITY_KEY)"
+
+  # ── OTP → Keycloak devri ─────────────────────────────────────────────────────
+  # Bu iki değer Keycloak'taki özel SPI ile BİREBİR aynı olmak zorunda; uyuşmazsa
+  # OTP → login-ticket devri SESSİZCE başarısız olur (hata vermez, sadece çalışmaz).
+  # İkisi de aynı .env'den mühürlendiği için kaynakta tektirler.
+  - name: OtpLoginTicket__Secret
+    value: "$(OTP_TICKET_SECRET)"
+  - name: OtpLoginTicket__ConsumeSecret
+    value: "$(OTP_CONSUME_SECRET)"
+  # KeycloakAuthorizeBaseUrl tarayıcıya gidiyor, yani cluster içi adres olamaz.
+  # Faz 9'da tünel kurulup auth.inktavia.com ayağa kalkınca doldurulacak.
+  # - name: OtpLoginTicket__KeycloakAuthorizeBaseUrl
+  #   value: "https://auth.inktavia.com/realms/inktavia-realm/protocol/openid-connect/auth"
+
+  # ── Modüller arası çağrı ─────────────────────────────────────────────────────
+  - name: RemoteCalls__IIdentityFileStorageRemoteCall__BaseUrl
+    value: "http://aizen-filestorage"
