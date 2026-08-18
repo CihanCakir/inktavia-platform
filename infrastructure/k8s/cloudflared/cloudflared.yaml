@@ -1,0 +1,108 @@
+---
+# Cloudflare Tunnel connector — inktavia-node-1
+#
+# Neden cluster'da, host'ta değil:
+#   Host'a kurulsaydı elle yönetilen 8. bileşen olurdu ve GitOps'un dışında kalırdı.
+#   Burada Argo CD yönetiyor; restart, upgrade ve durum takibi diğer her şeyle aynı yerden.
+#
+# Tünel tipi: dashboard-yönetimli (remotely-managed).
+#   Yönlendirme kuralları (hangi hostname hangi servise) Cloudflare panelinde tutulur,
+#   cloudflared yalnız token ile bağlanır. Kurallar burada DEĞİL panelde değişir.
+#
+# ⚠️ Tek node'umuz var. podAntiAffinity bilerek "preferred" — "required" olsaydı
+#    ikinci replika sonsuza kadar Pending kalırdı.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudflared
+  labels:
+    app.kubernetes.io/part-of: inktavia-platform
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: cloudflared
+  labels:
+    app.kubernetes.io/name: cloudflared
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cloudflared
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cloudflared
+    spec:
+      # Tek node olduğu için "preferred": ikisi de aynı node'a düşecek ama
+      # çok node'lu bir geleceğe geçtiğimizde kendiliğinden yayılırlar.
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: cloudflared
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: cloudflared
+          # Sürüm sabit — :latest kullanmıyoruz. Yükseltme bilinçli bir commit olmalı.
+          image: cloudflare/cloudflared:2026.8.2
+          args:
+            - tunnel
+            - --no-autoupdate
+            # Metrics + /ready sağlık ucu bu adreste açılır
+            - --metrics
+            - 0.0.0.0:2000
+            # QUIC (UDP 7844) tercih edilir; UDP egress kapalıysa http2'ye düşer
+            - --protocol
+            - auto
+            - run
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflared-tunnel
+                  key: token
+          ports:
+            - name: metrics
+              containerPort: 2000
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 20m
+              memory: 40Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
