@@ -30,7 +30,12 @@ comps = json.load(open(os.path.join(ROOT, "build/components.json"), encoding="ut
 # Güncel develop sha'sı kullanılamazdı — o commit yalnız infrastructure/ değiştirdi
 # ve seçici derleme sıfır imaj üretti, yani o etiketle imaj yok.
 ENVS = {
+    # ── ORTAM ANAHTARI ──────────────────────────────────────────────────────────
+    # replicas: hangi ortamın AÇIK olduğunu belirler. Tek node'da ikisini birden
+    # çalıştırmanın anlamı yok — biri 1 ise diğeri 0 olmalı.
+    # Değiştirmek için:  python3 scripts/ortam-degistir.py dev|prod
     "prod": dict(ns="inktavia-prod", values="values-prod.yaml", tag="sha-146071d",
+                 replicas=0,
                  ignore_replicas=False,
                  # Otomatik sync 2026-08-17'de AÇILDI. Kapalı başlamıştı: 15 canlı servis
                  # helm CLI ile yönetiliyordu ve devrin çakışmasız olduğu doğrulanmadan
@@ -44,6 +49,7 @@ ENVS = {
                       "#     çıkışın tek kapısıdır — tek node, tek operatör, otomatik prod deploy\n"
                       "#     hatayı fark etmeden yayına almak demek."),
     "dev": dict(ns="inktavia-dev", values="values-dev.yaml", tag="sha-146071d",
+                replicas=1,
                 automated=True,
                 # Dev'de replika sayısı GIT'İN DEĞİL operatörün kararı: her şey 0 replika
                 # ile duruyor, sınanacak servis elle kaldırılıyor. ignoreDifferences
@@ -112,6 +118,10 @@ spec:
             - name: image.tag
               value: {c["tag"]}
             # ▲▲▲ TEK SÜRÜM İŞARETÇİSİ ▲▲▲
+            # ▼▼▼ ORTAM ANAHTARI — 0 kapalı, 1 açık ▼▼▼
+            - name: replicaCount
+              value: "{c["replicas"]}"
+            # ▲▲▲ ORTAM ANAHTARI ▲▲▲
       destination:
         server: https://kubernetes.default.svc
         namespace: {c["ns"]}
