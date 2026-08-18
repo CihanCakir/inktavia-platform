@@ -14,12 +14,13 @@
 # INGRESS KAPALI: dev BFF'leri internete açılmıyor. Erişim:
 #   kubectl -n inktavia-dev port-forward deploy/aizen-bff-marine-web 8080:8080
 #
-# replicaCount: 0 — dev kotası 2Gi / 8 pod, 15 servis aynı anda sığmaz.
-# Test edeceğini kaldır:
-#   kubectl -n inktavia-dev scale deploy/aizen-bff-marine-web --replicas=1
-# İşin bitince geri indir; boşta duran pod kotayı ve belleği yer.
 
-replicaCount: 0
+# ⚠️ replicaCount'u BURADAN yönetme. Ortamın açık/kapalı olması
+# gitops/apps/{prod,dev}-appset.yaml içindeki `replicaCount` parametresinden
+# geliyor ve Helm parametresi bu değerin ÜZERİNE yazıyor. Buradaki 1, chart tek
+# başına çalıştırıldığında geçerli olan doğal varsayılan.
+# Ortam değiştirmek için:  python3 scripts/ortam-degistir.py dev|prod
+replicaCount: 1
 
 image:
   repository: ghcr.io/cihancakir/inktavia/bff-marine-web
@@ -47,13 +48,17 @@ service:
   targetPort: 8080
 
 ingress:
-  # KAPALI — dev BFF'leri internete açılmıyor, port-forward ile erişilir.
-  enabled: false
+  # AÇIK — dev ana ortam olduğu için Cloudflare Tunnel üzerinden erişilebilir.
+  # Host'lar dev-* ön ekli; prod host'larıyla asla karışmasın.
+  # ⚠️ Yeni bir dev host'u eklersen Cloudflare'de İKİ yer güncellenmeli:
+  #    1. Tünel yönlendirmesi (Published application routes)
+  #    2. /info için Access uygulaması — yoksa o host'un /info'su açıkta kalır
+  enabled: true
   className: "nginx"
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "25m"
   hosts:
-    - host: web-api.inktavia.com
+    - host: dev-web-api.inktavia.com
       paths:
         - path: /
           pathType: Prefix

@@ -14,24 +14,13 @@
 # kontrolü devre dışı kalır, log seviyesi ve seed davranışı değişir — dev yeşil yanar,
 # prod patlar.
 #
-# replicaCount: 0 — dev kotası 2Gi / 8 pod, 11 modül aynı anda sığmaz.
-# Test edeceğin modülü kaldır:
-#   kubectl -n inktavia-dev scale deploy/aizen-<modul> --replicas=1
-# İşin bitince geri indir; boşta duran pod kotayı ve belleği yer.
-#
-# ⚠️ BU DOSYA PUBLIC BİR REPODA. Hiçbir sır burada düz metin duramaz.
-#    Parolalar `platform-credentials` Sealed Secret'ından geliyor; connection string'lerin
-#    okunabilir kısmı burada, parola kısmı Kubernetes'in $(VAR) genişletmesiyle doluyor.
-#    $(VAR) YALNIZCA listede DAHA ÖNCE tanımlanmış değişkenler için çalışır — bu yüzden
-#    secretKeyRef girdileri en üstte.
-#
-# Deploy:
-#   helm upgrade --install aizen-messaging . -n inktavia-dev -f values-dev.yaml \
-#     --set image.tag=sha-$(git rev-parse --short=7 origin/develop)
-# Geri alma:
-#   helm rollback aizen-messaging -n inktavia-dev
 
-replicaCount: 0
+# ⚠️ replicaCount'u BURADAN yönetme. Ortamın açık/kapalı olması
+# gitops/apps/{prod,dev}-appset.yaml içindeki `replicaCount` parametresinden
+# geliyor ve Helm parametresi bu değerin ÜZERİNE yazıyor. Buradaki 1, chart tek
+# başına çalıştırıldığında geçerli olan doğal varsayılan.
+# Ortam değiştirmek için:  python3 scripts/ortam-degistir.py dev|prod
+replicaCount: 1
 
 image:
   repository: ghcr.io/cihancakir/inktavia/messaging

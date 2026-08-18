@@ -161,5 +161,5 @@ Use a conventional format for clarity:
 - [ ] Add load test scripts and baseline performance report
 
 ---
-
+python3 scripts/ortam-degistir.py
 

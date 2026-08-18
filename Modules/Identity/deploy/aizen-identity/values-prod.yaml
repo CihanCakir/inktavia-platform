@@ -13,6 +13,11 @@
 # Geri alma:
 #   helm rollback aizen-identity -n inktavia-prod
 
+# ⚠️ replicaCount'u BURADAN yönetme. Ortamın açık/kapalı olması
+# gitops/apps/{prod,dev}-appset.yaml içindeki `replicaCount` parametresinden
+# geliyor ve Helm parametresi bu değerin ÜZERİNE yazıyor. Buradaki 1, chart tek
+# başına çalıştırıldığında geçerli olan doğal varsayılan.
+# Ortam değiştirmek için:  python3 scripts/ortam-degistir.py dev|prod
 replicaCount: 1
 
 image:

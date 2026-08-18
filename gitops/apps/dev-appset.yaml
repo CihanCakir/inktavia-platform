@@ -63,6 +63,10 @@ spec:
             - name: image.tag
               value: sha-146071d
             # ▲▲▲ TEK SÜRÜM İŞARETÇİSİ ▲▲▲
+            # ▼▼▼ ORTAM ANAHTARI — 0 kapalı, 1 açık ▼▼▼
+            - name: replicaCount
+              value: "1"
+            # ▲▲▲ ORTAM ANAHTARI ▲▲▲
       destination:
         server: https://kubernetes.default.svc
         namespace: inktavia-dev
