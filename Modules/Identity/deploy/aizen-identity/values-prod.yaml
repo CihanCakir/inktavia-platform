@@ -112,6 +112,18 @@ env:
     valueFrom:
       secretKeyRef: { name: platform-credentials, key: OTP_LOGIN_CONSUME_SECRET }
 
+  # ── Elastic APM ──────────────────────────────────────────────────────────────
+  # appsettings'te ServerUrl "__FROM_ENV__" yer tutucusuyla duruyor; ajan bunu URL
+  # sanıp ayrıştırmada patlıyor ve saniyede bir 127.0.0.1:8200'e bağlanmaya çalışıyor.
+  # Ölçüldü (2026-08-18): modül başına 5 dakikada 20-60 satır log.
+  # Gözlemlenebilirlik yığını Faz 11'in işi; o zamana kadar kapalı.
+  # ⚠️ İkisi birden gerekli — yalnız Enabled=false verilirse ajan yine de
+  #    ServerUrl'i ayrıştırmaya çalışır.
+  - name: ElasticApm__Enabled
+    value: "false"
+  - name: ElasticApm__ServerUrl
+    value: ""
+
   # ── Çalışma ortamı ───────────────────────────────────────────────────────────
   - name: ASPNETCORE_ENVIRONMENT
     value: Production
