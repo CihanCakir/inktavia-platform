@@ -31,6 +31,7 @@ comps = json.load(open(os.path.join(ROOT, "build/components.json"), encoding="ut
 # ve seçici derleme sıfır imaj üretti, yani o etiketle imaj yok.
 ENVS = {
     "prod": dict(ns="inktavia-prod", values="values-prod.yaml", tag="sha-146071d",
+                 ignore_replicas=False,
                  # Otomatik sync 2026-08-17'de AÇILDI. Kapalı başlamıştı: 15 canlı servis
                  # helm CLI ile yönetiliyordu ve devrin çakışmasız olduğu doğrulanmadan
                  # prune/selfHeal açmak riskliydi. Devir kanıtlandıktan sonra açıldı
@@ -44,6 +45,11 @@ ENVS = {
                       "#     hatayı fark etmeden yayına almak demek."),
     "dev": dict(ns="inktavia-dev", values="values-dev.yaml", tag="sha-146071d",
                 automated=True,
+                # Dev'de replika sayısı GIT'İN DEĞİL operatörün kararı: her şey 0 replika
+                # ile duruyor, sınanacak servis elle kaldırılıyor. ignoreDifferences
+                # olmadan selfHeal bunu ~20 saniyede geri alır (2026-08-18'de ölçüldü).
+                # Prod'da BU YOK: orada replika sürüklenmesi geri alınmalı.
+                ignore_replicas=True,
                 note="Dev sürümünü CI her develop merge'inde OTOMATİK günceller."),
 }
 
@@ -54,6 +60,14 @@ for env, c in ENVS.items():
     sync = """  syncPolicy:
     # Yeni Application'lar oluşturulur, silinenler temizlenir.
     preserveResourcesOnDeletion: false""" 
+    ignore = ("""      # Replika sayısı dev'de operatörün kararı — bkz. ENVS["dev"] yorumu.
+      ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/replicas
+""" if c.get("ignore_replicas") else "")
+
     auto = """      syncPolicy:
         automated:
           prune: true
@@ -101,7 +115,7 @@ spec:
       destination:
         server: https://kubernetes.default.svc
         namespace: {c["ns"]}
-{auto}
+{ignore}{auto}
 """
     out = os.path.join(ROOT, f"gitops/apps/{env}-appset.yaml")
     io.open(out, "w", encoding="utf-8").write(body)
