@@ -70,12 +70,6 @@ spec:
       destination:
         server: https://kubernetes.default.svc
         namespace: inktavia-dev
-      # Replika sayısı dev'de operatörün kararı — bkz. ENVS["dev"] yorumu.
-      ignoreDifferences:
-        - group: apps
-          kind: Deployment
-          jsonPointers:
-            - /spec/replicas
       syncPolicy:
         automated:
           prune: true
