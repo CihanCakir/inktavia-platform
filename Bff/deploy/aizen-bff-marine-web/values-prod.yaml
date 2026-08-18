@@ -149,7 +149,7 @@ env:
   - name: MarineWebKeycloak__BaseUrl
     value: "http://keycloak:8080"
   - name: MarineWebKeycloak__Authority
-    value: "http://keycloak:8080/realms/inktavia-realm"
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
   - name: MarineWebKeycloak__MetadataAddress
     value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
   - name: MarineWebKeycloak__Realm

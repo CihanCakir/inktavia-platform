@@ -148,7 +148,7 @@ env:
   - name: AdminPanelKeycloak__BaseUrl
     value: "http://keycloak:8080"
   - name: AdminPanelKeycloak__Authority
-    value: "http://keycloak:8080/realms/inktavia-realm"
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
   - name: AdminPanelKeycloak__MetadataAddress
     value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
   - name: AdminPanelKeycloak__Realm
@@ -162,7 +162,7 @@ env:
 
   # ── Keycloak servis token'ı ──────────────────────────────────────────────────
   - name: KeycloakServiceToken__Authority
-    value: "http://keycloak:8080/realms/inktavia-realm"
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
   - name: KeycloakServiceToken__TokenEndpoint
     value: "http://keycloak:8080/realms/inktavia-realm/protocol/openid-connect/token"
   - name: KeycloakServiceToken__ClientId

@@ -148,7 +148,7 @@ env:
   - name: MarineProviderKeycloak__BaseUrl
     value: "http://keycloak:8080"
   - name: MarineProviderKeycloak__Authority
-    value: "http://keycloak:8080/realms/inktavia-realm"
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
   - name: MarineProviderKeycloak__MetadataAddress
     value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
   - name: MarineProviderKeycloak__Realm
@@ -165,7 +165,7 @@ env:
   # AdminPanel'den kopyalanmış. Provider BFF servis token'ını ADMIN client kimliğiyle
   # isteyecekti ve token önbelleği de admin BFF'iyle çakışacaktı.
   - name: KeycloakServiceToken__Authority
-    value: "http://keycloak:8080/realms/inktavia-realm"
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
   - name: KeycloakServiceToken__TokenEndpoint
     value: "http://keycloak:8080/realms/inktavia-realm/protocol/openid-connect/token"
   - name: KeycloakServiceToken__ClientId
