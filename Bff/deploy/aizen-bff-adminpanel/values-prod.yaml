@@ -141,10 +141,11 @@ env:
     value: "$(RABBITMQ_PASSWORD)"
 
   # ── Keycloak ─────────────────────────────────────────────────────────────────
-  # ⚠️ FAZ 9 BORCU: Authority token'daki issuer ile BİREBİR eşleşmek zorunda.
-  # Şu an her şey cluster içinden konuştuğu için http://keycloak:8080 doğru. Tünel
-  # kurulup tarayıcı https://auth.inktavia.com üzerinden token aldığında issuer
-  # değişecek ve bu değerler güncellenmezse doğrulama 401 verir.
+  # ⚠️ Authority = token'daki issuer. Core/Auth/BuilderExtensions.cs içinde
+  # ValidIssuer DOĞRUDAN bu değere eşitleniyor, metadata'dan türetilmiyor.
+  # Keycloak issuer'ı 2026-08-18'de https://auth.inktavia.com'a sabitlendi.
+  # MetadataAddress ve TokenEndpoint BİLEREK iç adreste kaldı: discovery ve JWKS
+  # cluster içinden çekiliyor, token doğrulaması Cloudflare'e bağımlı değil.
   - name: AdminPanelKeycloak__BaseUrl
     value: "http://keycloak:8080"
   - name: AdminPanelKeycloak__Authority

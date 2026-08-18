@@ -1,94 +1,208 @@
-# Default values for aizen-adminpanel.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# aizen-bff-adminpanel — dev değerleri (inktavia-dev)
+#
+# ⚠️ BU DOSYA PUBLIC BİR REPODA. Sırlar Sealed Secret'tan env olarak geliyor.
+#    $(VAR) genişletmesi YALNIZ listede daha önce tanımlanmış değişkenler için çalışır.
+#
+# ⚠️ DEV ORTAMI. BFF'lerde PostgreSQL/Mongo yok; ayrım Redis ve RabbitMQ'da:
+#   Redis    : defaultDatabase=14 (prod 13)
+#   RabbitMQ : vhost /dev
+#
+# ASPNETCORE_ENVIRONMENT=Production BİLEREK: bu ortamın işi geliştirme değil, prod'a
+# çıkmadan önce PROD DAVRANIŞINI sınamak. Development modunda BffAssertion fail-closed
+# kontrolü devre dışı kalır — dev yeşil yanar, prod patlar.
+#
+# INGRESS KAPALI: dev BFF'leri internete açılmıyor. Erişim:
+#   kubectl -n inktavia-dev port-forward deploy/aizen-bff-adminpanel 8080:8080
+#
+# replicaCount: 0 — dev kotası 2Gi / 8 pod, 15 servis aynı anda sığmaz.
+# Test edeceğini kaldır:
+#   kubectl -n inktavia-dev scale deploy/aizen-bff-adminpanel --replicas=1
+# İşin bitince geri indir; boşta duran pod kotayı ve belleği yer.
 
-replicaCount: 1
+replicaCount: 0
 
 image:
-  repository: nexus.local:8083/aizen/bff/adminpanel
-  pullPolicy: Always
-  tag: "latest"
+  repository: ghcr.io/cihancakir/inktavia/bff-adminpanel
+  pullPolicy: IfNotPresent
+  tag: ""
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: ghcr-pull
+
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
-
 podSecurityContext: {}
-  # fsGroup: 2000
-
 securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 80
+  targetPort: 8080
 
 ingress:
-  enabled: true
+  # KAPALI — dev BFF'leri internete açılmıyor, port-forward ile erişilir.
+  enabled: false
   className: "nginx"
   annotations:
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
   hosts:
-    - host: dev-bff-adminpanel.aizen.local
+    - host: admin-api.inktavia.com
       paths:
-          - path: /
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: aizen-bff-adminpanel
-                port:
-                  number: 8080
+        - path: /
+          pathType: Prefix
+  # TLS Cloudflare Tunnel'da sonlanacak (Faz 9); origin sertifikası gerekmiyor.
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+probes:
+  path: /info
+  startup:
+    periodSeconds: 5
+    failureThreshold: 24   # 2 dakika — BFF'lerde migration yok, modüllerden hızlı açılır
+
+# BFF'ler modüllerden hafif: EF/migration yok, iş mantığı modüllerde.
+resources:
+  requests:
+    cpu: 15m
+    memory: 90Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
 
 env:
-- name: ASPNETCORE_ENVIRONMENT 
-  value: dev      
-- name: ASPNETCORE_URLS
-  value: http://+:8080
-- name: TZ
-  value: Europe/Istanbul
+  # ── Sırlar ───────────────────────────────────────────────────────────────────
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: REDIS_PASSWORD }
+  - name: RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: RABBITMQ_PASSWORD }
+  - name: KC_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: KEYCLOAK_ADMIN_PANEL_BFF_CLIENT_SECRET }
+  - name: BffAssertion__SharedSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
+
+  # ── BFF assertion izin listesi ───────────────────────────────────────────────
+  # Paylaşılan sır TEK BAŞINA yetmez ve kod bunu fail-closed reddediyor:
+  #   "SharedSecret is configured but AllowedClientIds is empty. An empty allowlist
+  #    would let ANY caller holding a valid service-account token assert ANY user id."
+  # Doğru davranış — bu liste, sırrı bilen bir çağıranın hangi client kimliğiyle
+  # gelebileceğini sınırlar. Sır sızsa bile listede olmayan bir client geçemez.
+  - name: BffAssertion__AllowedClientIds__0
+    value: "admin-panel-bff"
+  - name: BffAssertion__AllowedClientIds__1
+    value: "provider-portal-bff"
+  - name: BffAssertion__AllowedClientIds__2
+    value: "marine-web-bff"
+  - name: BffAssertion__AllowedClientIds__3
+    value: "marine-mobile-bff"
+
+  # ── Elastic APM ──────────────────────────────────────────────────────────────
+  # appsettings'te ServerUrl "__FROM_ENV__" yer tutucusuyla duruyor; ajan bunu URL
+  # sanıp ayrıştırmada patlıyor ve saniyede bir 127.0.0.1:8200'e bağlanmaya çalışıyor.
+  # Gözlemlenebilirlik yığını Faz 11'in işi; o zamana kadar kapalı.
+  - name: ElasticApm__Enabled
+    value: "false"
+  - name: ElasticApm__ServerUrl
+    value: ""
+
+  # ── Çalışma ortamı ───────────────────────────────────────────────────────────
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: TZ
+    value: Europe/Istanbul
+
+  # ── Önbellek ve mesaj kuyruğu ────────────────────────────────────────────────
+  - name: DistributedCache__InstanceName
+    value: "AdminPanelBff:"
+  - name: DistributedCache__Configuration
+    value: "redis:6379,password=$(REDIS_PASSWORD),abortConnect=False,defaultDatabase=14"
+  - name: MessageBroker__QueueSettings__HostName
+    value: "rabbitmq"
+  - name: MessageBroker__QueueSettings__Port
+    value: "5672"
+  - name: MessageBroker__QueueSettings__VirtualHost
+    value: "/dev"
+  - name: MessageBroker__QueueSettings__UserName
+    value: "aizen"
+  - name: MessageBroker__QueueSettings__Password
+    value: "$(RABBITMQ_PASSWORD)"
+
+  # ── Keycloak ─────────────────────────────────────────────────────────────────
+  # ⚠️ Authority = token'daki issuer. Core/Auth/BuilderExtensions.cs içinde
+  # ValidIssuer DOĞRUDAN bu değere eşitleniyor, metadata'dan türetilmiyor.
+  # Keycloak issuer'ı 2026-08-18'de https://auth.inktavia.com'a sabitlendi.
+  # MetadataAddress ve TokenEndpoint BİLEREK iç adreste kaldı: discovery ve JWKS
+  # cluster içinden çekiliyor, token doğrulaması Cloudflare'e bağımlı değil.
+  - name: AdminPanelKeycloak__BaseUrl
+    value: "http://keycloak:8080"
+  - name: AdminPanelKeycloak__Authority
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
+  - name: AdminPanelKeycloak__MetadataAddress
+    value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
+  - name: AdminPanelKeycloak__Realm
+    value: "inktavia-realm"
+  - name: AdminPanelKeycloak__Audience
+    value: "admin-panel-bff"
+  - name: AdminPanelKeycloak__RequireHttpsMetadata
+    value: "false"
+  - name: AdminPanelKeycloak__AdminClientSecret
+    value: "$(KC_CLIENT_SECRET)"
+
+  # ── Keycloak servis token'ı ──────────────────────────────────────────────────
+  - name: KeycloakServiceToken__Authority
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
+  - name: KeycloakServiceToken__TokenEndpoint
+    value: "http://keycloak:8080/realms/inktavia-realm/protocol/openid-connect/token"
+  - name: KeycloakServiceToken__ClientId
+    value: "admin-panel-bff"
+  - name: KeycloakServiceToken__ClientSecret
+    value: "$(KC_CLIENT_SECRET)"
+  - name: KeycloakServiceToken__CacheKeyPrefix
+    value: "inktavia:admin-panel-bff:keycloak-service-token"
+
+  # ── CORS ─────────────────────────────────────────────────────────────────────
+  # CORS ingress'te DEĞİL uygulamada: dört BFF de kodda CORS kuruyor, ingress'te de
+  # yapsaydık çift Access-Control-Allow-Origin başlığı çıkar ve tarayıcı reddederdi.
+  - name: Realtime__SignalR__AllowedOrigins__0
+    value: "http://localhost:3000"
+
+  # ── Modül çağrıları ──────────────────────────────────────────────────────────
+  # Hepsi cluster içi ClusterIP servisleri; port 80 → container 8080.
+  - name: RemoteCalls__IAdminCargoDryBffRemoteCall__BaseUrl
+    value: "http://aizen-cargodry"
+  - name: RemoteCalls__IAdminMessagingBffRemoteCall__BaseUrl
+    value: "http://aizen-messaging"
+  - name: RemoteCalls__IAdminPaymentBffRemoteCall__BaseUrl
+    value: "http://aizen-payment"
+  - name: RemoteCalls__IFileStorageAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-filestorage"
+  - name: RemoteCalls__IIdentityAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-identity"
+  - name: RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-notification"
+  - name: RemoteCalls__INotificationBffRemoteCall__BaseUrl
+    value: "http://aizen-notification"
+  - name: RemoteCalls__IReferenceDataAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-referencedata"
+  - name: RemoteCalls__IServiceRequestAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-servicerequest"
+  - name: RemoteCalls__IVesselAdminBffRemoteCall__BaseUrl
+    value: "http://aizen-vessel"

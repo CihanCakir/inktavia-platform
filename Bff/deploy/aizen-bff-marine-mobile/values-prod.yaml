@@ -122,8 +122,13 @@ env:
   # ── Önbellek ve mesaj kuyruğu ────────────────────────────────────────────────
   - name: DistributedCache__InstanceName
     value: "MarineMobileBff:"
+  # ⚠️ defaultDatabase prod=13 / dev=14. Bu numara SERVİSLERİ ayırmaz — onu
+  # DistributedCache__InstanceName yapar (her BFF kendi ön ekini kullanır).
+  # Numaranın tek işlevi prod/dev ayrımı. Servis başına ayrı numara vermeye
+  # kalkma: Redis varsayılanda 16 veritabanı tutar (indis 0-15) ve 16/17 gibi
+  # değerler "ERR DB index is out of range" ile ilk önbellek işleminde patlar.
   - name: DistributedCache__Configuration
-    value: "redis:6379,password=$(REDIS_PASSWORD),abortConnect=False,defaultDatabase=16"
+    value: "redis:6379,password=$(REDIS_PASSWORD),abortConnect=False,defaultDatabase=13"
   - name: MessageBroker__QueueSettings__HostName
     value: "rabbitmq"
   - name: MessageBroker__QueueSettings__Port
@@ -136,10 +141,11 @@ env:
     value: "$(RABBITMQ_PASSWORD)"
 
   # ── Keycloak ─────────────────────────────────────────────────────────────────
-  # ⚠️ FAZ 9 BORCU: Authority token'daki issuer ile BİREBİR eşleşmek zorunda.
-  # Şu an her şey cluster içinden konuştuğu için http://keycloak:8080 doğru. Tünel
-  # kurulup tarayıcı https://auth.inktavia.com üzerinden token aldığında issuer
-  # değişecek ve bu değerler güncellenmezse doğrulama 401 verir.
+  # ⚠️ Authority = token'daki issuer. Core/Auth/BuilderExtensions.cs içinde
+  # ValidIssuer DOĞRUDAN bu değere eşitleniyor, metadata'dan türetilmiyor.
+  # Keycloak issuer'ı 2026-08-18'de https://auth.inktavia.com'a sabitlendi.
+  # MetadataAddress ve TokenEndpoint BİLEREK iç adreste kaldı: discovery ve JWKS
+  # cluster içinden çekiliyor, token doğrulaması Cloudflare'e bağımlı değil.
   - name: MarineMobileKeycloak__BaseUrl
     value: "http://keycloak:8080"
   - name: MarineMobileKeycloak__Authority
