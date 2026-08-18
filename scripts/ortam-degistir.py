@@ -54,9 +54,12 @@ if acik not in APPSET:
     sys.exit(f"HATA: 'dev' ya da 'prod' bekleniyordu, '{acik}' geldi")
 kapali = "dev" if acik == "prod" else "prod"
 
-if durum[acik] == 1 and durum[kapali] == 0:
-    print(f"Zaten {acik} açık, {kapali} kapalı. Yapılacak bir şey yok.")
-    sys.exit(0)
+# ⚠️ ERKEN ÇIKMA. Replika durumu doğru olsa bile kotalar yanlış olabilir —
+# ikisi ayrı dosyalarda ve biri elle değiştirilmiş olabilir. Bu script'in işi
+# ikisini TUTARLI hale getirmek, "değişiklik varsa çalışmak" değil.
+zaten_dogru = durum[acik] == 1 and durum[kapali] == 0
+if zaten_dogru:
+    print(f"Replika durumu zaten doğru ({acik} açık). Kotalar yine de denetleniyor.")
 
 # ── 1) render-appsets.py içindeki kaynak değerler ────────────────────────────
 s = RENDER.read_text(encoding="utf-8")

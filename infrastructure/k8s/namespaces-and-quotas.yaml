@@ -36,8 +36,11 @@ metadata:
   namespace: inktavia-prod
 spec:
   hard:
-    limits.memory: 9Gi
-    limits.cpu: "14"
+    # KAPALI ORTAM — kaynak açık olana verildi.
+    # Bu değerler ortam-degistir.py tarafından yönetiliyor.
+    limits.memory: 2Gi
+    limits.cpu: "3"
+    pods: "4"
 ---
 apiVersion: v1
 kind: ResourceQuota
@@ -46,9 +49,12 @@ metadata:
   namespace: inktavia-dev
 spec:
   hard:
-    limits.memory: 2Gi
-    limits.cpu: "3"
-    pods: "8"
+    # AÇIK ORTAM. 15 servisin tavan toplamı ~4,2Gi; rolling update
+    # sırasında her deployment geçici olarak İKİ pod çalıştırır.
+    # Bu değerler ortam-degistir.py tarafından yönetiliyor.
+    limits.memory: 8Gi
+    limits.cpu: "10"
+    pods: "32"
 ---
 apiVersion: v1
 kind: LimitRange

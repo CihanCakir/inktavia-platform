@@ -51,11 +51,15 @@ ENVS = {
     "dev": dict(ns="inktavia-dev", values="values-dev.yaml", tag="sha-146071d",
                 replicas=1,
                 automated=True,
-                # Dev'de replika sayısı GIT'İN DEĞİL operatörün kararı: her şey 0 replika
-                # ile duruyor, sınanacak servis elle kaldırılıyor. ignoreDifferences
-                # olmadan selfHeal bunu ~20 saniyede geri alır (2026-08-18'de ölçüldü).
-                # Prod'da BU YOK: orada replika sürüklenmesi geri alınmalı.
-                ignore_replicas=True,
+                # ⚠️ ignore_replicas KAPATILDI (2026-08-18).
+                # Kısa bir süre True'ydu: dev'de her şey 0 replika ile duruyor,
+                # sınanacak servis elle kaldırılıyordu ve selfHeal bunu ~20 saniyede
+                # geri alıyordu. Ama dev ANA ORTAM olunca replika sayısı yukarıdaki
+                # `replicas` parametresinden geliyor — ignoreDifferences o alanı
+                # Argo CD'nin görüş alanından çıkardığı için parametre modüllere HİÇ
+                # ULAŞMIYORDU. İki mekanizma birbirini yiyordu.
+                # Elle ölçekleme gerekirse ignoreDifferences değil, `replicas`ı değiştir.
+                ignore_replicas=False,
                 note="Dev sürümünü CI her develop merge'inde OTOMATİK günceller."),
 }
 
