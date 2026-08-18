@@ -1,0 +1,38 @@
+# Cloudflare Tunnel connector'ı Argo CD yönetimine alır.
+#
+# Neden ApplicationSet'e eklenmedi: gitops/apps/*-appset.yaml build/components.json'dan
+# ÜRETİLİYOR ve her elemanı bir Helm chart'ı varsayıyor. cloudflared düz YAML;
+# üretilmiş dosyaya elle eleman eklemek, bir sonraki `render-appsets.py` koşusunda
+# sessizce silinirdi.
+#
+# ⚠️ Bu dosya Argo CD tarafından yönetilmez — gitops/apps/ altındaki her şey gibi
+#    bir kez elle uygulanır:
+#        kubectl apply -f gitops/apps/cloudflared-app.yaml
+#    (app-of-apps kalıbına geçilene kadar bu böyle.)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudflared
+  namespace: platform
+  finalizers:
+    # Application silinirse yönettiği kaynaklar da temizlensin; yetim kalmasın.
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: infrastructure/k8s/cloudflared
+    directory:
+      # Dizin düz: cloudflared.yaml + cloudflared-tunnel-sealed.yaml
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    # Namespace'i manifest'in kendisi tanımlıyor, Argo CD yaratmasın.
+    namespace: cloudflared
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
