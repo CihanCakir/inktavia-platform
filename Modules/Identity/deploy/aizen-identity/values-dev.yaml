@@ -180,6 +180,32 @@ env:
   - name: BffAssertion__AllowedClientIds__3
     value: "marine-mobile-bff"
 
+  # ── Gelen token dogrulamasi (Keycloak semasi) ────────────────────────────────
+  # 🔴 BU BIR YA/YA DA ANAHTARIDIR, ek ayar degil.
+  # Core/Auth/BuilderExtensions.cs:209 —
+  #     if (!string.IsNullOrWhiteSpace(keycloakAuthority)) { ...Keycloak semasi... }
+  #     else { ...TokenOption: simetrik anahtar... }
+  # Bu deger BOSKEN modul TokenOption semasindaydi ve Keycloak'in RS256 token'ini
+  # dogrulayamiyordu: BFF -> Identity cagrilarinin tamami 401 aliyordu
+  # (2026-08-19, saglayici kaydi bu yuzden Identity'ye hic yazilamadi).
+  #
+  # ⚠️ Bu satir eklenince TokenOption ile URETILMIS token'lar artik gecerli DEGIL.
+  # Modulu cagiran baska bir yol varsa once o dogrulanmali.
+  #
+  # Authority = token'daki issuer; ValidIssuer DOGRUDAN buna esitleniyor.
+  # MetadataAddress BILEREK ic adres: JWKS cluster icinden cekilir, Cloudflare'e
+  # bagimli olmaz.
+  - name: Keycloak__Authority
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
+  - name: Keycloak__MetadataAddress
+    value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
+  - name: Keycloak__RequireHttpsMetadata
+    value: "false"
+  # Keycloak__Audience BILEREK YOK. Kod: ValidateAudience = !IsNullOrWhiteSpace(...)
+  # yani bos birakilinca audience dogrulanmaz. "identity-api" yazmak icin once DORT
+  # BFF'in de token'inda bu aud'un bulundugu dogrulanmali; yalniz provider-portal-bff
+  # icin dogrulandi (2026-08-19). Olcmeden yazmak digerlerini sessizce kirar.
+
   # ── Keycloak ─────────────────────────────────────────────────────────────────
   - name: IdentityKeycloak__Enabled
     value: "true"
