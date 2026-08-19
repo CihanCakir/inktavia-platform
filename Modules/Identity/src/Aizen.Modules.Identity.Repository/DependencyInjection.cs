@@ -9,6 +9,7 @@ using Aizen.Modules.Identity.Repository.Identity.Service;
 using Aizen.Modules.Identity.Repository.Identity.Service.Onboarding;
 using Aizen.Modules.Identity.Repository.Identity.Service.OtpLogin;
 using Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery;
+using Aizen.Modules.Identity.Repository.Identity.Service.EmailVerification;
 using Aizen.Modules.Identity.Repository.Seed.MockData;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -101,6 +102,21 @@ namespace Aizen.Modules.Identity.Repository
                 services.AddSingleton<IProviderOtpLoginNotifier, LoggingProviderOtpLoginNotifier>();
             else
                 services.AddScoped<IProviderOtpLoginNotifier, MessageBusProviderOtpLoginNotifier>();
+
+            // E-posta doğrulama (Identity sahipliğinde, uygulama token'ı — Keycloak execute-actions-email yerine)
+            if (configuration is not null)
+            {
+                services.Configure<ProviderEmailVerificationOptions>(
+                    configuration.GetSection(ProviderEmailVerificationOptions.SectionName));
+            }
+            services.AddScoped<IProviderEmailVerificationDomainService, ProviderEmailVerificationDomainService>();
+
+            var emailVerifyDeliveryMode =
+                configuration?.GetValue<string>($"{ProviderEmailVerificationOptions.SectionName}:DeliveryMode") ?? "Notification";
+            if (emailVerifyDeliveryMode.Equals("Logging", StringComparison.OrdinalIgnoreCase))
+                services.AddSingleton<IProviderEmailVerificationNotifier, LoggingProviderEmailVerificationNotifier>();
+            else
+                services.AddScoped<IProviderEmailVerificationNotifier, MessageBusProviderEmailVerificationNotifier>();
 
             return services;
         }
