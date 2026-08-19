@@ -260,18 +260,20 @@ public sealed class IdentityMockDataSeeder
     {
         try
         {
+            // Tablolar 'identity' şemasına taşındığı için ham SQL şema-nitelikli olmalı: bu sorgu search_path'e
+            // (public) güveniyordu; niteliksiz kalırsa taşımadan sonra tabloları bulamaz.
             await _db.Database.ExecuteSqlRawAsync(@"
-                DO $$ 
+                DO $$
                 DECLARE seq_name text;
                 BEGIN
-                    SELECT pg_get_serial_sequence('""Users""', 'Id') INTO seq_name;
+                    SELECT pg_get_serial_sequence('identity.""Users""', 'Id') INTO seq_name;
                     IF seq_name IS NOT NULL THEN
-                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM ""Users""), 0)));
+                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM identity.""Users""), 0)));
                     END IF;
-                    
-                    SELECT pg_get_serial_sequence('""UserProfiles""', 'Id') INTO seq_name;
+
+                    SELECT pg_get_serial_sequence('identity.""UserProfiles""', 'Id') INTO seq_name;
                     IF seq_name IS NOT NULL THEN
-                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM ""UserProfiles""), 0)));
+                        PERFORM setval(seq_name, GREATEST(100000, COALESCE((SELECT MAX(""Id"") FROM identity.""UserProfiles""), 0)));
                     END IF;
                 END $$;", ct);
         }

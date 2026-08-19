@@ -78,6 +78,18 @@ namespace Aizen.Modules.Identity.Repository.Context
             modelBuilder.ApplyConfiguration(new ParticipantOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderOnboardingEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderServiceCategoryEntityConfiguration());
+
+            // Identity modülünün TÜM varlık tablolarını 'public' yerine ayrılmış 'identity' şemasına taşır.
+            // Her modül şu an aynı veritabanında 'public'i paylaşıyor; Identity bunu terk eden ilk modül —
+            // diğer modüllerin kopyalayacağı referans uygulama budur. Tablo başına ToTable(schema) yerine tek
+            // döngü kullanılır ki base ASP.NET Identity tabloları (Users, UserRoles vb.) da kapsansın.
+            //
+            // __EFMigrationsHistory BİLEREK public'te bırakılır (buraya SetSchema uygulanmaz — o bir model
+            // varlığı değildir): EF, bekleyen migration'ları uygulamadan ÖNCE bu tabloyu okur. Şemasını
+            // 'identity'ye taşımak, dolu bir prod veritabanında EF'in geçmişi boş sanıp tüm şemayı sıfırdan
+            // yeniden uygulamaya çalışmasına yol açar. Bu yüzden EF'in bootstrap defteri public'te kalır.
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+                entityType.SetSchema("identity");
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
