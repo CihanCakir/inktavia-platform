@@ -189,7 +189,13 @@ env:
   # ── CORS ─────────────────────────────────────────────────────────────────────
   # CORS ingress'te DEĞİL uygulamada: dört BFF de kodda CORS kuruyor, ingress'te de
   # yapsaydık çift Access-Control-Allow-Origin başlığı çıkar ve tarayıcı reddederdi.
+  # 🔴 Dev host'u listede OLMAK ZORUNDA. Prod'da karşılığı (provider.inktavia.com)
+  # vardı, dev'de yoktu; yani dev'e deploy edilen Provider Portal kendi BFF'ine
+  # tarayıcıdan hiç istek atamazdı. Sıra prod ile aynı: __0 = gerçek host,
+  # __1 = geliştiricinin kendi makinesi.
   - name: Cors__AllowedOrigins__0
+    value: "https://dev-provider.inktavia.com"
+  - name: Cors__AllowedOrigins__1
     value: "http://localhost:3002"
 
   # ── Modül çağrıları ──────────────────────────────────────────────────────────
