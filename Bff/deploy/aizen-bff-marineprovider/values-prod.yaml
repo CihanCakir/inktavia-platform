@@ -163,6 +163,13 @@ env:
     value: "provider-portal-bff"
   - name: MarineProviderKeycloak__RequireHttpsMetadata
     value: "false"
+  # 🔴 appsettings.json'da bu deger "__FROM_ENV__" yer tutucusuyla duruyor ve
+  # buradan doldurulmamisti. BFF, Keycloak'in execute-actions-email ucuna
+  # redirect_uri=__FROM_ENV__ gonderiyordu; Keycloak bunu gecersiz URI sayip
+  # 400 donuyordu ve dogrulama e-postasi HIC gonderilmiyordu (2026-08-19).
+  # Deger, provider-portal istemcisinin redirectUris listesiyle eslesmeli.
+  - name: MarineProviderKeycloak__VerifyEmailRedirectUri
+    value: "https://provider.inktavia.com/onboarding/verify-email"
   - name: MarineProviderKeycloak__AdminClientSecret
     value: "$(KC_CLIENT_SECRET)"
 
