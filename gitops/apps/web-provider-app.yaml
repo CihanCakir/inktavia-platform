@@ -34,7 +34,7 @@ spec:
         # ▼▼▼ TEK SURUM ISARETCISI — elle guncelleniyor ▼▼▼
         # Frontend CI'i henuz bu satiri yazmiyor (cross-repo commit, ayri is).
         - name: image.tag
-          value: "sha-f47454d"
+          value: "sha-d166266"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
