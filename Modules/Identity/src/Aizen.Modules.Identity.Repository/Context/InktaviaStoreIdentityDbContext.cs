@@ -8,6 +8,7 @@ using Aizen.Modules.Identity.Domain.Entities.OtpLogin;
 using Aizen.Modules.Identity.Domain.Entities.Onboarding;
 using Aizen.Modules.Identity.Domain.Entities.ProviderServiceCategory;
 using Aizen.Modules.Identity.Domain.Entities.PasswordRecovery;
+using Aizen.Modules.Identity.Domain.Entities.EmailVerification;
 using Aizen.Modules.Identity.Domain.Entities.UserValidation;
 
 namespace Aizen.Modules.Identity.Repository.Context
@@ -47,6 +48,7 @@ namespace Aizen.Modules.Identity.Repository.Context
         public DbSet<ProviderPasswordRecoveryRequestEntity> ProviderPasswordRecoveryRequests { get; set; } = null!;
         public DbSet<ParticipantPasswordRecoveryRequestEntity> ParticipantPasswordRecoveryRequests { get; set; } = null!;
         public DbSet<ProviderOtpLoginRequestEntity> ProviderOtpLoginRequests { get; set; } = null!;
+        public DbSet<ProviderEmailVerificationEntity> ProviderEmailVerifications { get; set; } = null!;
         public DbSet<AdminOtpLoginRequestEntity> AdminOtpLoginRequests { get; set; } = null!;
         public DbSet<ParticipantOtpLoginRequestEntity> ParticipantOtpLoginRequests { get; set; } = null!;
         public DbSet<ProviderOnboardingEntity> ProviderOnboarding { get; set; } = null!;
@@ -71,6 +73,7 @@ namespace Aizen.Modules.Identity.Repository.Context
             modelBuilder.ApplyConfiguration(new ProviderPasswordRecoveryRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ParticipantPasswordRecoveryRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderOtpLoginRequestEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ProviderEmailVerificationEntityConfiguration());
             modelBuilder.ApplyConfiguration(new AdminOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ParticipantOtpLoginRequestEntityConfiguration());
             modelBuilder.ApplyConfiguration(new ProviderOnboardingEntityConfiguration());
