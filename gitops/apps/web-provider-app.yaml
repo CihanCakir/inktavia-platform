@@ -1,0 +1,47 @@
+# Provider Portal (dev) — Argo CD Application.
+#
+# NEDEN ApplicationSet DEGIL:
+# gitops/apps/{prod,dev}-appset.yaml build/components.json'dan uretiliyor ve
+# TEK ETIKET kuralina dayaniyor: 15 bilesenin hepsi ayni sha'yi paylasiyor,
+# cunku hepsi ayni monorepo'dan derleniyor. web-provider AYRI BIR REPODAN
+# geliyor; oraya konsaydi platform'un sha'sini miras alirdi ve o sha ile
+# web-provider diye bir image hic uretilmemis olurdu → ImagePullBackOff.
+#
+# ⚠️ Bu dosya Argo CD tarafindan YONETILMIYOR — gitops/apps/ altindaki her sey
+#    gibi bir kez elle uygulaniyor:
+#        kubectl apply -f gitops/apps/web-provider-app.yaml
+#    Ikinci frontend geldiginde bunu web-{dev,prod}-appset.yaml'a donusturecegiz.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-provider-dev
+  namespace: platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: Web/deploy/web-provider
+    helm:
+      # ⚠️ releaseName sabit: ileride appset'e tasirken ayni kalmali, yoksa
+      # Argo CD kaynaklari devralmaz, YENILERINI yaratir ve iki kopya kosar.
+      releaseName: web-provider
+      valueFiles:
+        - values-dev.yaml
+      parameters:
+        # ▼▼▼ TEK SURUM ISARETCISI — elle guncelleniyor ▼▼▼
+        # Frontend CI'i henuz bu satiri yazmiyor (cross-repo commit, ayri is).
+        - name: image.tag
+          value: "sha-ace627a"
+        # ▲▲▲
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: inktavia-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
