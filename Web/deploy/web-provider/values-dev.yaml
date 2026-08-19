@@ -1,0 +1,106 @@
+# web-provider — dev degerleri (inktavia-dev)
+#
+# ⚠️ BU DOSYA PUBLIC BIR REPODA. Buradaki hicbir deger sir degil: hepsi zaten
+#    tarayiciya iniyor (SPA'da "gizli" yapilandirma diye bir sey yoktur).
+#    Bir gun buraya sir koymak istersen DUR — yanlis yerdesin.
+#
+# ⚠️ Bu chart, AYRI BIR REPODAN gelen bir image'i deploy ediyor:
+#    github.com/CihanCakir/inktavia-marine-provider-web
+#    Bu yuzden platform monorepo'sunun TEK ETIKET kuralina dahil DEGIL —
+#    kendi sha'si var ve gitops/apps/web-provider-app.yaml icinde duruyor.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cihancakir/inktavia/web-provider
+  pullPolicy: IfNotPresent
+  # Bos: Argo CD Application'daki `image.tag` parametresi dolduruyor.
+  # Bos kalirsa helm render asamasinda YUKSEK SESLE patlar (required).
+  tag: ""
+
+imagePullSecrets:
+  - name: ghcr-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# nginx-unprivileged imaji zaten uid 101 ile kosuyor; burada dogruluyoruz.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  # ⚠️ readOnlyRootFilesystem BILEREK KAPALI. Acilista entrypoint
+  # /usr/share/nginx/html/config.js dosyasini YENIDEN YAZIYOR, nginx de
+  # /var/cache/nginx ve /tmp'ye yaziyor. Acarsan konteyner acilista oler.
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  # ⚠️ Yeni bir dev host'u eklersen Cloudflare'de de bir yer guncellenmeli:
+  #    Tunel yonlendirmesi (Published application routes) → ingress-nginx'e
+  # /info Access uygulamasi bu uygulama icin GEREKMIYOR: statik SPA, /info yok.
+  enabled: true
+  className: "nginx"
+  annotations:
+    # SPA fallback nginx'in KENDI icinde (deploy/nginx.conf, try_files).
+    # Ingress'te ayrica rewrite yapmiyoruz — iki katmanda yonlendirme,
+    # hata ayiklamasi imkansiz bir kombinasyon uretir.
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  hosts:
+    - host: dev-provider.inktavia.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # TLS Cloudflare Tunnel'da sonlaniyor; origin sertifikasi gerekmiyor.
+  tls: []
+
+probes:
+  # nginx.conf icindeki hafif uc nokta. Uygulama bundle'ina dokunmaz, log uretmez.
+  path: /healthz
+
+# Statik dosya sunucusu; olculen kullanim birkac Mi. Tavani dar tuttuk cunku
+# LimitRange varsayilani (320Mi) bunun icin bos yere kota yerdi.
+resources:
+  requests:
+    cpu: 5m
+    memory: 16Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ── ORTAM AYARI ─────────────────────────────────────────────────────────────
+# ConfigMap'e gidiyor, oradan konteyner ortamina, oradan /config.js'e.
+# Bes deger ZORUNLU (entrypoint eksikse konteyneri baslatmiyor):
+#   VITE_APP_ENV, VITE_PROVIDER_BFF_BASE_URL,
+#   VITE_KEYCLOAK_URL, VITE_KEYCLOAK_REALM, VITE_KEYCLOAK_CLIENT_ID
+runtimeEnv:
+  VITE_APP_NAME: "Inktavia Marine Provider Portal"
+  VITE_APP_ENV: "development"
+  # Dev BFF'i tunel uzerinden. Tarayicidan cagrildigi icin PUBLIC adres olmali —
+  # cluster ici "http://aizen-bff-marineprovider" burada CALISMAZ.
+  VITE_PROVIDER_BFF_BASE_URL: "https://dev-provider-api.inktavia.com/api/v1/provider"
+  VITE_KEYCLOAK_URL: "https://auth.inktavia.com"
+  VITE_KEYCLOAK_REALM: "inktavia-realm"
+  VITE_KEYCLOAK_CLIENT_ID: "provider-portal"
+  VITE_DEFAULT_LANGUAGE: "tr"
+  VITE_SUPPORTED_LANGUAGES: "tr,en"
+  VITE_FEATURE_SUBMERCHANT_ONBOARDING: "false"
