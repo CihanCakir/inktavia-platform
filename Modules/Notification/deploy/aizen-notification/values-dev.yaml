@@ -178,8 +178,31 @@ env:
     value: "false"
 
   # ── Bildirim ─────────────────────────────────────────────────────────────────
-  # SMTP kimlik bilgileri HENÜZ YOK → e-posta gönderimi çalışmayacak, modül yine de
-  # açılır. Sağlayıcı seçilince Host/User/Password sealed secret'a eklenip buradan verilir.
+  # Sağlayıcı: Resend (işlemsel e-posta). Neden M365 SMTP'si DEĞİL: Microsoft,
+  # Exchange Online'da SMTP AUTH için temel kimlik doğrulamayı Aralık 2026 sonunda
+  # varsayılan olarak kapatıyor. SmtpEmailSender.cs yalnızca NetworkCredential
+  # kullanıyor (OAuth yok), yani o yol dört ay sonra kırılacaktı.
+  #
+  # 🔴 KÖK SPF KAYDINA DOKUNULMADI. inktavia.com'un SPF'i GoDaddy/M365'e ait
+  # (include:secureserver.net -all) ve DMARC p=reject. DMARC, SPF *veya* DKIM
+  # hizalanırsa geçer; Resend d=inktavia.com ile imzaladığı için DKIM bacağı
+  # yetiyor. SPF'i kurcalamak çalışan insan postasını bozardı.
+  #
+  # UseSsl=true + port 587 = STARTTLS. System.Net.Mail.SmtpClient bu ikiliyi
+  # bu şekilde yorumluyor; 465 verirsek elle TLS gerekir ve bağlantı asılı kalır.
+  - name: SMTP_PASSWORD
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: SMTP_PASSWORD }
+  - name: Email__Host
+    value: "smtp.resend.com"
+  - name: Email__Port
+    value: "587"
+  - name: Email__User
+    value: "resend"
+  - name: Email__Password
+    value: "$(SMTP_PASSWORD)"
+  - name: Email__UseSsl
+    value: "true"
   - name: Email__FromAddress
     value: "no-reply@inktavia.com"
   - name: Email__FromName
