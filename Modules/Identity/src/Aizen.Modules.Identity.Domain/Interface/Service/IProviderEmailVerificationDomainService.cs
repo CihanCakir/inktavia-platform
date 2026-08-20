@@ -3,23 +3,24 @@ using Aizen.Modules.Identity.Domain.Model.EmailVerification;
 namespace Aizen.Modules.Identity.Domain.Interface.Service;
 
 /// <summary>
-/// Uygulama sahipliğindeki sağlayıcı e-posta doğrulama domainini yönetir: üretim / doğrulama / tüketim / yeniden gönderme.
+/// Sağlayıcı e-posta doğrulama domaini — ASP.NET Core Identity'nin YERLEŞİK e-posta onay token'ı üzerine kurulu
+/// (UserManager.GenerateEmailConfirmationTokenAsync / ConfirmEmailAsync). Token bir DataProtection payload'ıdır
+/// (kullanıcı id + amaç + SecurityStamp taşır); tabloda satır DEĞİLDİR ve tek kalıcı etki EmailConfirmed'dir.
 ///
-/// KRİTİK: Bu token KİMSEYİ KİMLİK DOĞRULAMAZ. Hiçbir oturum, çerez veya JWT üretmez; yalnızca Keycloak'taki
-/// emailVerified bayrağının çevrilmesini yetkilendirir. Doğrulama ve tüketim BİLEREK ayrıdır: BFF önce
-/// <see cref="VerifyAsync"/> ile geçerliliği kanıtlar, sonra Keycloak'ta bayrağı çevirir, EN SON
-/// <see cref="ConsumeAsync"/> ile token'ı tüketir. Ters sırada Keycloak patlarsa token yanar ve hesap kilitlenir.
+/// KRİTİK: Bu token KİMSEYİ KİMLİK DOĞRULAMAZ; hiçbir oturum/çerez/JWT üretmez — yalnızca e-posta adresini
+/// doğrular. Kullanıcı sonrasında yine parolasıyla giriş yapar.
+///
+/// Token IDEMPOTENT olduğundan custom tasarımın verify/consume ayrımı KALDIRILDI: <see cref="ConfirmAsync"/>
+/// güvenle tekrar çağrılabilir. Akış sırası (BFF): önce ConfirmAsync (bizim DB), sonra Keycloak emailVerified=true.
+/// Keycloak patlarsa kullanıcı aynı linke tekrar tıklar ve çalışır.
 /// </summary>
 public interface IProviderEmailVerificationDomainService
 {
-    /// <summary>Kayıt sonrası (güvenilir iç çağrı) yeni doğrulama token'ı üretir ve doğrulama e-postasını dağıtır.</summary>
-    Task<EmailVerificationGenerateResult> GenerateAsync(string keycloakSubjectId, string email, CancellationToken ct);
+    /// <summary>Kayıt sonrası doğrulama token'ı üretir ve doğrulama e-postasını dağıtır.</summary>
+    Task<EmailVerificationGenerateResult> GenerateAsync(string email, CancellationToken ct);
 
-    /// <summary>Ham token'ı doğrular (TÜKETMEZ). Başarıda kullanıcı/subject bilgisini döner.</summary>
-    Task<EmailVerificationVerifyResult> VerifyAsync(string token, CancellationToken ct);
-
-    /// <summary>Ham token'ı tüketilmiş işaretler. Keycloak bayrağı çevrildikten SONRA çağrılır.</summary>
-    Task<EmailVerificationConsumeResult> ConsumeAsync(string token, CancellationToken ct);
+    /// <summary>Birleşik token'ı ({userId}.{Base64Url(token)}) onaylar → EmailConfirmed=true. Idempotent.</summary>
+    Task<EmailVerificationConfirmResult> ConfirmAsync(string token, CancellationToken ct);
 
     /// <summary>E-posta ile yeniden doğrulama linki gönderir. Numaralandırma korumalı + hız sınırlı.</summary>
     Task<EmailVerificationResendResult> ResendAsync(string email, CancellationToken ct);

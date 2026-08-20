@@ -17,7 +17,7 @@ public sealed class GenerateProviderEmailVerificationCommandHandler
     public override async Task<GenerateProviderEmailVerificationResponse?> Handle(
         GenerateProviderEmailVerificationCommand request, CancellationToken cancellationToken)
     {
-        var result = await _service.GenerateAsync(request.KeycloakSubjectId, request.Email, cancellationToken);
+        var result = await _service.GenerateAsync(request.Email, cancellationToken);
 
         return new GenerateProviderEmailVerificationResponse
         {

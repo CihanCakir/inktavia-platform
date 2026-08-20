@@ -6,6 +6,5 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.EmailVerifica
 public sealed class GenerateProviderEmailVerificationCommand
     : AizenCommand<GenerateProviderEmailVerificationResponse>
 {
-    public string KeycloakSubjectId { get; set; } = default!;
     public string Email { get; set; } = default!;
 }

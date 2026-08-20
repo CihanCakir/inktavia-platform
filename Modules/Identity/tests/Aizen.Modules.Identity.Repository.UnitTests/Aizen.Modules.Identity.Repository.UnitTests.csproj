@@ -20,6 +20,12 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- Yerleşik e-posta onay token'ı testleri gerçek UserManager + DataProtection ister
+       (GenerateEmailConfirmationTokenAsync/ConfirmEmailAsync). FrameworkReference bunları getirir. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Aizen.Modules.Identity.Repository\Aizen.Modules.Identity.Repository.csproj" />
   </ItemGroup>

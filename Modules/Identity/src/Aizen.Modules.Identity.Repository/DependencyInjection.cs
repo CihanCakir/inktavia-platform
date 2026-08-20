@@ -103,12 +103,23 @@ namespace Aizen.Modules.Identity.Repository
             else
                 services.AddScoped<IProviderOtpLoginNotifier, MessageBusProviderOtpLoginNotifier>();
 
-            // E-posta doğrulama (Identity sahipliğinde, uygulama token'ı — Keycloak execute-actions-email yerine)
+            // E-posta doğrulama (Identity sahipliğinde — Keycloak execute-actions-email yerine).
+            // ASP.NET Core Identity'nin YERLEŞİK e-posta onay token'ı kullanılır (UserManager
+            // .GenerateEmailConfirmationTokenAsync / .ConfirmEmailAsync); token bir DataProtection payload'ıdır,
+            // tabloda satır DEĞİLDİR (yalnızca EmailConfirmed kalıcıdır).
             if (configuration is not null)
             {
                 services.Configure<ProviderEmailVerificationOptions>(
                     configuration.GetSection(ProviderEmailVerificationOptions.SectionName));
             }
+
+            // Token ömrü BİLEREK açıkça 24 saat (86400 sn) yazılır — varsayılana güvenilmez.
+            // DataProtectionTokenProviderOptions, AddDefaultTokenProviders()'ın kaydettiği "Default" sağlayıcı
+            // için GLOBALDİR; bu kod tabanında başka hiçbir yer default sağlayıcıyı kullanmadığından yan etki yok
+            // (parola kurtarma kendi OTP/opak token'ını kullanır). İptal gerekirse: kullanıcının SecurityStamp'ini
+            // değiştir — bu, o kullanıcının diğer token'larını da geçersiz kılar. Ayrı bir iptal yolu KURULMAZ.
+            services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(24));
+
             services.AddScoped<IProviderEmailVerificationDomainService, ProviderEmailVerificationDomainService>();
 
             var emailVerifyDeliveryMode =

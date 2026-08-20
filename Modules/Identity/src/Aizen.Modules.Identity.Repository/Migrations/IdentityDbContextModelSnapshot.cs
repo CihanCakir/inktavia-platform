@@ -25,74 +25,6 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.EmailVerification.ProviderEmailVerificationEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime?>("ConsumedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreateHost")
-                        .HasColumnType("text");
-
-                    b.Property<long?>("CreateUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long?>("DeletedBy")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModifyDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ModifyHost")
-                        .HasColumnType("text");
-
-                    b.Property<long?>("ModifyUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid?>("PublicId")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<string>("TokenSalt")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("provider_email_verifications", (string)null);
-                });
-
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.Onboarding.ProviderOnboardingEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -976,7 +908,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RoleTypeEntity");
+                    b.ToTable("RoleTypeEntity", (string)null);
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserAgreement.AgreementEntity", b =>
@@ -1037,7 +969,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agreements");
+                    b.ToTable("Agreements", (string)null);
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserAgreement.UserAgreementEntity", b =>
@@ -1100,7 +1032,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserAgreements");
+                    b.ToTable("UserAgreements", (string)null);
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserDeviceBlockEntity", b =>
@@ -1162,7 +1094,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserDeviceBlocks");
+                    b.ToTable("UserDeviceBlocks", (string)null);
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserDeviceEntity", b =>
