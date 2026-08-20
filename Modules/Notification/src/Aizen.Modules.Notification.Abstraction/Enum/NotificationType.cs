@@ -77,6 +77,10 @@ public enum NotificationType
     OnboardingRevisionRequested  = 404,
     PasswordRecoveryOtp          = 410,
     OtpLoginCode                 = 411,
+    /// <summary>Provider e-posta doğrulama linki (Identity yayınlar → PROVIDER_EMAIL_VERIFICATION / Email).
+    /// Account/security kategorisindedir (400–412 aralığı) → tercihe takılmadan her zaman teslim edilir.
+    /// New value → the BFFs must be rebuilt after adding it (Refit binds the Abstraction DLL).</summary>
+    ProviderEmailVerification    = 412,
     /// <summary>Content module — "Yeni içerik yayında": a content item was published. Consumed from
     /// ContentPublishedMessage; v1 notifies admins for awareness (see ContentPublishedConsumer). The contract
     /// doc recommended 400 but that value is ProfileApprovalDecision, so Content owns the 500 range.</summary>

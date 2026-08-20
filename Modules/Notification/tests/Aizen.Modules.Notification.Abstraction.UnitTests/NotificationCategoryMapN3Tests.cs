@@ -34,4 +34,18 @@ public sealed class NotificationCategoryMapN3Tests
     public void AutoApproveApproaching_is_not_swallowed_by_the_account_fallback()
         => NotificationCategoryMap.Resolve(NotificationType.CompletionAutoApproveApproaching)
             .Should().NotBe(NotificationCategory.Account);
+
+    /// <summary>
+    /// Tersi değişmez: e-posta doğrulama (412) Account/security olmalı → IsAlwaysDeliver, TERCİHLE SUSTURULAMAZ.
+    /// Bir tercihin doğrulama e-postasını susturabilmesi gerçek ve görünmez bir bug olurdu. 400–412 aralığı
+    /// açıkça Account'a düşer (fallback'e güvenilmez).
+    /// </summary>
+    [Fact]
+    public void ProviderEmailVerification_is_always_deliver_account_security()
+    {
+        var category = NotificationCategoryMap.Resolve(NotificationType.ProviderEmailVerification);
+        category.Should().Be(NotificationCategory.Account);
+        NotificationCategoryMap.IsAlwaysDeliver(category).Should().BeTrue();
+        NotificationCategoryMap.ToggleableCategories.Should().NotContain(category);
+    }
 }

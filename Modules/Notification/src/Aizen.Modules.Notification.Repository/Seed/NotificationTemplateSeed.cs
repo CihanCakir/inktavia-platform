@@ -6,6 +6,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.Notification.Repository.Seed;
 
+/// <summary>
+/// ⚠️ Bu seed YALNIZCA INSERT eder — mevcut bir TemplateCode'u ASLA GÜNCELLEMEZ (bkz. <see cref="SeedAsync"/>'deki
+/// AnyAsync kontrolü). Sonuç: bir template bir kez veritabanına düştükten sonra, buradaki metni (konu/gövde)
+/// değiştirip yeniden deploy etmek O ORTAMDA hiçbir şeyi değiştirmez — gönderilen e-posta eski metinle kalır.
+///
+/// Bu bilinçli bir tercihtir: template'ler admin panelinden runtime'da düzenlenebiliyor
+/// (UpdateNotificationTemplateCommandHandler); otomatik insert-or-update, bir yöneticinin prod'daki düzeltmesini
+/// her deploy'da sessizce geri alırdı. Edit-korumalı bir guard (ör. UpdatedAt) da yarım-doğru olurdu çünkü
+/// UpdatedAt "içerik override edildi" değil "bir şey değişti" demek (SetActive de yazıyor). Doğru çözüm ayrı bir
+/// IsContentOverridden bayrağı olurdu; bugün buna ihtiyaç yok (prod'da template düzenleyen yok) — o yüzden
+/// makine kurmak yerine tuzağı görünür bırakıyoruz.
+///
+/// DEV'DE METNİ TAZELEMEK İÇİN: ilgili satırı elle silin, servis yeniden başlayınca seed onu yeni metinle
+/// yeniden ekler. Örn: <c>DELETE FROM notification.notification_templates WHERE "TemplateCode" = 'PROVIDER_EMAIL_VERIFICATION';</c>
+/// </summary>
 public sealed class NotificationTemplateSeed
 {
     private readonly NotificationDbContext _db;
@@ -398,6 +413,26 @@ public sealed class NotificationTemplateSeed
             NotificationType.OtpLoginCode, NotificationChannel.Sms,
             "Inktavia Login Code",
             "Your Inktavia login code is {{otp}}. Expires in {{expiresMinutes}} min."),
+
+        // ── Provider e-posta doğrulama (Identity uygulama akışı; Keycloak execute-actions-email yerine) ──────────
+        // Konu, e-postanın ne için olduğunu SÖYLER (Keycloak'ın jenerik "Update Your Account"'undan kaçınıyoruz).
+        // Tek değişken {{verifyUrl}} — TAM ham URL hem düğmede (href) hem de görünür metin olarak yer alır; asla
+        // sarılmaz/kısaltılmaz. HTML tek gövde (SmtpEmailSender IsBodyHtml=true). İzleme pikseli YOK.
+        NotificationTemplateEntity.Create("PROVIDER_EMAIL_VERIFICATION", "Provider Email Verification (Email)",
+            NotificationType.ProviderEmailVerification, NotificationChannel.Email,
+            "E-posta adresinizi doğrulayın — Inktavia Marine",
+            @"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1a2b3c;line-height:1.5;"">
+  <h2 style=""color:#0b3d5c;margin:0 0 16px;"">E-posta adresinizi doğrulayın</h2>
+  <p>Merhaba,</p>
+  <p>Inktavia Marine sağlayıcı hesabınızı etkinleştirmek için e-posta adresinizi doğrulamanız gerekiyor. Aşağıdaki düğmeye tıklayarak doğrulamayı tamamlayın:</p>
+  <p style=""text-align:center;margin:28px 0;"">
+    <a href=""{{verifyUrl}}"" style=""background:#0b3d5c;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;display:inline-block;font-weight:bold;"">E-postamı doğrula</a>
+  </p>
+  <p>Düğme çalışmazsa aşağıdaki bağlantıyı tarayıcınıza kopyalayabilirsiniz:</p>
+  <p style=""word-break:break-all;""><a href=""{{verifyUrl}}"" style=""color:#0b3d5c;"">{{verifyUrl}}</a></p>
+  <p style=""color:#6b7c8c;font-size:13px;margin-top:24px;"">Güvenliğiniz için bu bağlantının süresi sınırlıdır. Bu işlemi siz başlatmadıysanız bu e-postayı yok sayabilirsiniz.</p>
+  <p style=""margin-top:24px;"">Inktavia Marine</p>
+</div>"),
 
         // ── CargoDry Provider Milestone Notifications (CE-6c) ──────────────────
         NotificationTemplateEntity.Create("CD_FIRST_SALE_INAPP", "CargoDry First Sale (In-App)",
