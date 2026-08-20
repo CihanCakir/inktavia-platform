@@ -20,9 +20,14 @@ public sealed class ProviderEmailVerificationOptions
 
     /// <summary>
     /// Doğrulama linkinin şablonu. <c>{0}</c> URL-güvenli birleşik token ile değiştirilir
-    /// (<c>{userId}.{Base64Url(token)}</c>). Örn: <c>https://dev-provider.inktavia.com/onboarding/verify-email?token={0}</c>.
+    /// (<c>{userId}.{Base64Url(token)}</c>). Örn: <c>https://provider.inktavia.com/auth/verify-callback?token={0}</c>.
+    ///
+    /// ZORUNLUDUR ve dış yapılandırmadan (values / appsettings) gelir. Varsayılan BİLEREK BOŞTUR:
+    /// buraya "makul ama yanlış" bir varsayılan (ör. dev URL) yazmak, prod kullanıcılarına sessizce dev linki
+    /// göndermek demektir — hiçbir guard'a takılmadan (boş-olmayan her değer geçer). Bu yüzden boş bırakılır ve
+    /// DI'da <c>ValidateOnStart</c> ile başlangıçta patlatılır (bkz. DependencyInjection.AddInktaviaService).
     /// </summary>
-    public string VerifyUrlTemplate { get; set; } = "https://dev-provider.inktavia.com/onboarding/verify-email?token={0}";
+    public string VerifyUrlTemplate { get; set; } = string.Empty;
 
     /// <summary>
     /// <c>Notification</c> (varsayılan) gerçek e-posta teslimi için mesaj kuyruğuna yayınlar.

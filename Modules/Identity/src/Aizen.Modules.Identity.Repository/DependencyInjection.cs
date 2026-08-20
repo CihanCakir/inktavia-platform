@@ -109,8 +109,19 @@ namespace Aizen.Modules.Identity.Repository
             // tabloda satır DEĞİLDİR (yalnızca EmailConfirmed kalıcıdır).
             if (configuration is not null)
             {
-                services.Configure<ProviderEmailVerificationOptions>(
-                    configuration.GetSection(ProviderEmailVerificationOptions.SectionName));
+                // VerifyUrlTemplate ZORUNLUDUR ve dış yapılandırmadan gelir (values / appsettings). Boşsa ya da
+                // '{0}' token yer tutucusu yoksa UYGULAMA BAŞLANGIÇTA PATLAR (ValidateOnStart). Sessizce yanlış
+                // (ör. dev) bir linkle prod'a çıkmaktansa açık bir hatayla durmak yeğdir — konvansiyon:
+                // Core.InfoAccessor.AddAizenInfoAccessor (AddOptions().Validate().ValidateOnStart()).
+                services.AddOptions<ProviderEmailVerificationOptions>()
+                    .Bind(configuration.GetSection(ProviderEmailVerificationOptions.SectionName))
+                    .Validate(
+                        o => !string.IsNullOrWhiteSpace(o.VerifyUrlTemplate) && o.VerifyUrlTemplate.Contains("{0}"),
+                        "ProviderEmailVerification__VerifyUrlTemplate zorunludur fakat boş veya geçersiz. " +
+                        "Doğrulama e-postasındaki link bu şablondan üretilir ve '{0}' token yer tutucusu içermelidir. " +
+                        "values-dev.yaml VE values-prod.yaml'a ekleyin (guard'sız /auth/verify-callback rotasına), örn: " +
+                        "ProviderEmailVerification__VerifyUrlTemplate=https://provider.inktavia.com/auth/verify-callback?token={0}")
+                    .ValidateOnStart();
             }
 
             // Süresi-dolmuş vs geçersiz ayrımı için uzun-ömürlü ikinci onay sağlayıcısı (aynı DataProtection
