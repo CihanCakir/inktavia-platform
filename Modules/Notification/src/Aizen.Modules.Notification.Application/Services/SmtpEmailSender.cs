@@ -33,6 +33,10 @@ public sealed class SmtpEmailSender : IEmailSender
         };
         message.To.Add(toEmail);
 
+        // From no-reply@... olduğundan yanıtlar izlenen bir kutuya gitsin (aksi halde bounce).
+        if (!string.IsNullOrWhiteSpace(_options.ReplyTo))
+            message.ReplyToList.Add(new MailAddress(_options.ReplyTo));
+
         await client.SendMailAsync(message, ct);
 
         var messageId = Guid.NewGuid().ToString();

@@ -204,6 +204,9 @@ env:
     value: "no-reply@inktavia.com"
   - name: Email__FromName
     value: "Inktavia Marine"
+  # From no-reply@... olduğundan yanıtlar izlenen bir kutuya gitsin (aksi halde bounce).
+  - name: Email__ReplyTo
+    value: "info@inktavia.com"
   # ContactIntake.IpHashSalt appsettings'te "__FROM_SECRET__" placeholder'ı ile duruyor:
   # IP adreslerini hash'lemek için kullanılıyor, yani gerçek bir sır olmalı.
   # TOKEN_SECURITY_KEY'i tekrar kullanmıyoruz — ayrı amaç, ayrı anahtar olmalı.

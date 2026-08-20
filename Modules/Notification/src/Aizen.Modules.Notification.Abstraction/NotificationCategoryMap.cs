@@ -19,7 +19,7 @@ public static class NotificationCategoryMap
             140 or 141                 => NotificationCategory.Disputes,
             >= 150 and <= 163          => NotificationCategory.Payments,   // incl. 157 PaymentAuthorized (N-C); 160 price-change, 161/162 boost, 163 budget-low (N1/N4)
             >= 300 and <= 309          => NotificationCategory.CargoDry,
-            >= 400 and <= 411          => NotificationCategory.Account,          // profile + auth/OTP (security)
+            >= 400 and <= 412          => NotificationCategory.Account,          // profile + auth/OTP + e-posta doğrulama (412) — security, always-deliver
             >= 900 and <= 999          => NotificationCategory.Broadcast,   // incl. 910 SupportRequestOpened (N-D)
             _                          => NotificationCategory.Account,          // unknown → treat as always-deliver
         };

@@ -11,4 +11,10 @@ public sealed class EmailOptions
     public string FromAddress { get; set; } = "no-reply@inktavia.com";
     public string FromName { get; set; } = "Inktavia Marine";
     public bool UseSsl { get; set; } = true;
+
+    /// <summary>
+    /// Yanıt adresi. From = no-reply@inktavia.com olduğundan, yanıtlar bounce olmasın diye izlenen bir kutuya
+    /// (info@inktavia.com) yönlendirilir. Boşsa Reply-To eklenmez.
+    /// </summary>
+    public string? ReplyTo { get; set; }
 }
