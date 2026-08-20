@@ -1,6 +1,7 @@
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
+using Aizen.Modules.Identity.Abstraction.Dto.EmailVerification;
 using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
@@ -71,6 +72,20 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/identity/auth/provider-otp-login/resend")]
     Task<AizenApiResponse<ResendProviderOtpLoginResponse>> ResendProviderOtpLogin(
         [AizenRemoteCallBody] ResendProviderOtpLoginRequest request);
+
+    // ── E-posta doğrulama (delegated to Identity — ASP.NET Identity yerleşik onay token'ı) ──────
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-email-verification/generate")]
+    Task<AizenApiResponse<GenerateProviderEmailVerificationResponse>> GenerateProviderEmailVerification(
+        [AizenRemoteCallBody] GenerateProviderEmailVerificationRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-email-verification/confirm")]
+    Task<AizenApiResponse<ConfirmProviderEmailVerificationResponse>> ConfirmProviderEmailVerification(
+        [AizenRemoteCallBody] ConfirmProviderEmailVerificationRequest request);
+
+    [AizenRemoteCallPost("/api/v1/identity/auth/provider-email-verification/resend")]
+    Task<AizenApiResponse<ResendProviderEmailVerificationResponse>> ResendProviderEmailVerification(
+        [AizenRemoteCallBody] ResendProviderEmailVerificationRequest request);
 
     // ── Onboarding (delegated to Identity) ──────────────────────────────────────
 

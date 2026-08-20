@@ -37,6 +37,11 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
     private const string ResendRateLimitKeyPrefix = "provider:emailverify:resend:rl:";
     private const string ResendCooldownKeyPrefix = "provider:emailverify:resend:cd:";
 
+    // Süresi-dolmuş vs geçersiz ayrımı için uzun-ömürlü ikinci token sağlayıcısı (DI'da kayıtlı) ve yerleşik
+    // e-posta onay amacı (UserManager.ConfirmEmailAsync ile aynı: "EmailConfirmation").
+    public const string LongLivedEmailConfirmationProvider = "EmailConfirmationLongLived";
+    private const string ConfirmEmailPurpose = "EmailConfirmation";
+
     public ProviderEmailVerificationDomainService(
         UserManager<UserEntity> userManager,
         IProviderEmailVerificationNotifier notifier,
@@ -76,18 +81,20 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
 
     public async Task<EmailVerificationConfirmResult> ConfirmAsync(string token, CancellationToken ct)
     {
-        var invalid = new EmailVerificationConfirmResult
+        static EmailVerificationConfirmResult Rejected(EmailVerificationConfirmStatus status) => new()
         {
-            Confirmed = false,
-            Message = "Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
+            Status = status,
+            Message = status == EmailVerificationConfirmStatus.Expired
+                ? "Doğrulama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı isteyin."
+                : "Doğrulama bağlantısı geçersiz.",
         };
 
         // Birleşik token: {userId}.{Base64Url(token)}. Bozuk/eksik token istisna FIRLATMADAN reddedilir.
         if (!TryParseCompositeToken(token, out var userId, out var rawToken))
-            return invalid;
+            return Rejected(EmailVerificationConfirmStatus.Invalid);
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null) return invalid;
+        if (user is null) return Rejected(EmailVerificationConfirmStatus.Invalid);
 
         var confirm = await _userManager.ConfirmEmailAsync(user, rawToken);
         if (confirm.Succeeded)
@@ -98,7 +105,16 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
         if (user.EmailConfirmed)
             return Success(user);
 
-        return invalid;
+        // Süresi dolmuş mu, gerçekten geçersiz mi ayır: aynı DataProtection amacına (Name) sahip ama ~10 yıl
+        // ömürlü ikinci sağlayıcıyla yeniden doğrula. Uzun-ömürlüde GEÇERLİ ama 24s altında değil ⇒ süresi dolmuş;
+        // uzun-ömürlüde de geçersiz ⇒ token bozuk/kurcalanmış/yanlış kullanıcı (stamp uyuşmuyor). Durum eklemeden
+        // (tablo yok) çalışır; FE bu ayrıma göre "yeniden gönder" düğmesini gösterir.
+        var validIgnoringExpiry = await _userManager.VerifyUserTokenAsync(
+            user, LongLivedEmailConfirmationProvider, ConfirmEmailPurpose, rawToken);
+
+        return Rejected(validIgnoringExpiry
+            ? EmailVerificationConfirmStatus.Expired
+            : EmailVerificationConfirmStatus.Invalid);
     }
 
     public async Task<EmailVerificationResendResult> ResendAsync(string email, CancellationToken ct)
@@ -133,7 +149,7 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
 
     private EmailVerificationConfirmResult Success(UserEntity user) => new()
     {
-        Confirmed = true,
+        Status = EmailVerificationConfirmStatus.Confirmed,
         UserId = user.Id,
         KeycloakSubjectId = user.KeycloakSubjectId,
         Email = user.Email,

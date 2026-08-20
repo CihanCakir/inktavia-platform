@@ -1,4 +1,5 @@
 using Aizen.Modules.Identity.Domain.Entities;
+using Aizen.Modules.Identity.Domain.Model.EmailVerification;
 using Aizen.Modules.Identity.Repository.Context;
 using Aizen.Modules.Identity.Repository.Identity.Service.EmailVerification;
 using FluentAssertions;
@@ -39,6 +40,13 @@ public sealed class ProviderEmailVerificationDomainServiceTests
                 .AddEntityFrameworkStores<IdentityDbContext>()
                 .AddDefaultTokenProviders();
         services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = tokenLifespan);
+
+        // Süresi-dolmuş vs geçersiz ayrımı: DI ile aynı — uzun-ömürlü ikinci onay sağlayıcısı.
+        services.Configure<LongLivedEmailConfirmationTokenProviderOptions>(_ => { });
+        services.AddTransient<LongLivedEmailConfirmationTokenProvider<UserEntity>>();
+        services.Configure<IdentityOptions>(o =>
+            o.Tokens.ProviderMap[ProviderEmailVerificationDomainService.LongLivedEmailConfirmationProvider] =
+                new TokenProviderDescriptor(typeof(LongLivedEmailConfirmationTokenProvider<UserEntity>)));
 
         var sp = services.BuildServiceProvider();
         return new Harness
@@ -125,6 +133,8 @@ public sealed class ProviderEmailVerificationDomainServiceTests
 
         var result = await service.ConfirmAsync(forged, CT);
         result.Confirmed.Should().BeFalse("A için üretilen token B'yi onaylamamalı");
+        result.Status.Should().Be(EmailVerificationConfirmStatus.Invalid,
+            "yanlış kullanıcı = geçersiz (süresi dolmuş DEĞİL)");
 
         var bReloaded = await h.Users.FindByIdAsync(b.Id.ToString());
         bReloaded!.EmailConfirmed.Should().BeFalse();
@@ -148,6 +158,7 @@ public sealed class ProviderEmailVerificationDomainServiceTests
             var act = async () => await service.ConfirmAsync(bad, CT);
             var result = (await act.Should().NotThrowAsync($"'{bad}' istisna fırlatmamalı")).Subject;
             result.Confirmed.Should().BeFalse($"'{bad}' onaylanmamalı");
+            result.Status.Should().Be(EmailVerificationConfirmStatus.Invalid, $"'{bad}' geçersiz olmalı");
         }
     }
 
@@ -182,6 +193,8 @@ public sealed class ProviderEmailVerificationDomainServiceTests
 
         var result = await service.ConfirmAsync(token, CT);
         result.Confirmed.Should().BeFalse("süresi dolmuş token reddedilmeli");
+        result.Status.Should().Be(EmailVerificationConfirmStatus.Expired,
+            "süresi dolmuş, geçersizden AYIRT EDİLEBİLİR olmalı (FE 'yeniden gönder' düğmesi buna bağlı)");
 
         var reloaded = await h.Users.FindByIdAsync(user.Id.ToString());
         reloaded!.EmailConfirmed.Should().BeFalse("süresi dolmuş token EmailConfirmed'i true yapmamalı");
