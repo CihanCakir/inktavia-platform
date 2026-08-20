@@ -2,179 +2,116 @@ using System.Security.Cryptography;
 using System.Text;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Modules.Identity.Domain.Entities;
-using Aizen.Modules.Identity.Domain.Entities.EmailVerification;
 using Aizen.Modules.Identity.Domain.Interface.Service;
 using Aizen.Modules.Identity.Domain.Model.EmailVerification;
-using Aizen.Modules.Identity.Repository.Context;
 using Aizen.Modules.Identity.Repository.Identity.Service.PasswordRecovery;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.Identity.Repository.Identity.Service.EmailVerification;
 
 /// <summary>
-/// Uygulama sahipliğindeki sağlayıcı e-posta doğrulama domain servisi. Parola kurtarmanın reset-token'ının
-/// kardeşidir: opak <c>{Id}.{secret}</c> token, tuzlu PBKDF2 özeti (ham token ASLA saklanmaz), tek-kullanımlık,
-/// sabit-zamanlı doğrulama. Kripto <see cref="PasswordRecoverySecurity"/>'den yeniden kullanılır.
+/// Sağlayıcı e-posta doğrulama servisi — ASP.NET Core Identity'nin YERLEŞİK e-posta onay token'ı üzerine kurulu.
+/// Custom token tablosu/domaini KALDIRILDI; token bir DataProtection payload'ıdır (kullanıcı id + amaç +
+/// SecurityStamp), tabloda satır değildir ve tek kalıcı etki EmailConfirmed'dir.
 ///
-/// SERT KISIT: Bu servis hiçbir oturum/çerez/JWT üretmez. Token yalnızca Keycloak emailVerified bayrağının
-/// çevrilmesini yetkilendirir; doğrulama (<see cref="VerifyAsync"/>) ve tüketim (<see cref="ConsumeAsync"/>)
-/// bilerek ayrıdır ki BFF önce doğrulasın, Keycloak'ı çevirsin, EN SON tüketsin.
+/// SERT KISIT: hiçbir oturum/çerez/JWT üretilmez. Token IDEMPOTENT olduğundan verify/consume ayrımı yoktur:
+/// <see cref="ConfirmAsync"/> güvenle tekrarlanabilir. Token ömrü DataProtectionTokenProviderOptions.TokenLifespan
+/// (DI'da 24 saat) ile belirlenir. İptal gerekirse kullanıcının SecurityStamp'i değiştirilir (diğer token'larını
+/// da geçersiz kılar); ayrı iptal yolu kurulmaz.
 ///
-/// Sağlayıcı kapsamı, ucun BFF servis-token'ıyla (IdentityWrite, yalnızca MarineProvider BFF) çağrılmasıyla
-/// sağlanır; domain servisi kullanıcı + e-posta düzeyinde çalışır.
+/// Kullanıcı araması UserManager ile yapılır (elle NormalizedEmail sorgusu DEĞİL): yazma da UserManager
+/// normalizer'ından geçtiğinden, elle sorgu farklı normalize ederse bazı kullanıcılar sessizce bulunamaz
+/// (karışık büyük/küçük harf, Türkçe karakter, noktalı adresler).
 /// </summary>
 public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerificationDomainService
 {
-    private readonly IdentityDbContext _db;
+    private readonly UserManager<UserEntity> _userManager;
     private readonly IProviderEmailVerificationNotifier _notifier;
     private readonly IAizenDistributedCache _cache;
     private readonly ProviderEmailVerificationOptions _options;
+    private readonly int _tokenTtlSeconds;
     private readonly ILogger<ProviderEmailVerificationDomainService> _logger;
 
     private const string ResendRateLimitKeyPrefix = "provider:emailverify:resend:rl:";
-    private const string VerifyRateLimitKeyPrefix = "provider:emailverify:attempt:rl:";
+    private const string ResendCooldownKeyPrefix = "provider:emailverify:resend:cd:";
 
     public ProviderEmailVerificationDomainService(
-        IdentityDbContext db,
+        UserManager<UserEntity> userManager,
         IProviderEmailVerificationNotifier notifier,
         IAizenDistributedCache cache,
         IOptions<ProviderEmailVerificationOptions> options,
+        IOptions<DataProtectionTokenProviderOptions> tokenOptions,
         ILogger<ProviderEmailVerificationDomainService> logger)
     {
-        _db = db;
+        _userManager = userManager;
         _notifier = notifier;
         _cache = cache;
         _options = options.Value;
+        // Tek doğruluk kaynağı: gösterilen "kaç saniye geçerli" değeri, token'ı gerçekten sınırlayan
+        // TokenLifespan'den türetilir — iki yerde 24 saati ayrı yazıp sürüklenme riskine girmeyiz.
+        _tokenTtlSeconds = (int)tokenOptions.Value.TokenLifespan.TotalSeconds;
         _logger = logger;
     }
 
-    public async Task<EmailVerificationGenerateResult> GenerateAsync(
-        string keycloakSubjectId, string email, CancellationToken ct)
+    public async Task<EmailVerificationGenerateResult> GenerateAsync(string email, CancellationToken ct)
     {
-        email = email.Trim().ToLowerInvariant();
+        email = email.Trim();
 
         var result = new EmailVerificationGenerateResult
         {
             Accepted = true,
-            MaskedTarget = PasswordRecoverySecurity.MaskEmail(email),
-            ExpiresInSeconds = _options.TokenTtlSeconds,
+            MaskedTarget = PasswordRecoverySecurity.MaskEmail(email.ToLowerInvariant()),
+            ExpiresInSeconds = _tokenTtlSeconds,
             ResendAfterSeconds = _options.ResendCooldownSeconds,
         };
 
-        UserEntity? user = null;
-        try
-        {
-            if (!string.IsNullOrWhiteSpace(keycloakSubjectId))
-                user = await _db.Users.FirstOrDefaultAsync(u => u.KeycloakSubjectId == keycloakSubjectId, ct);
-
-            // Kayıt hemen provisioning sonrası çağrılır; subject henüz yazılmadıysa e-posta ile düş.
-            if (user is null)
-            {
-                var normalized = email.ToUpperInvariant();
-                user = await _db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, ct);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Email verification: user lookup failed during generate.");
-        }
-
-        // Numaralandırma koruması: kullanıcı yoksa bile aynı genel yanıtı döneriz.
-        if (user is null) return result;
+        var user = await FindUserByEmailAsync(email);
+        if (user is null) return result; // numaralandırma koruması
 
         await IssueAndDispatchAsync(user, email, result.MaskedTarget, ct);
         return result;
     }
 
-    public async Task<EmailVerificationVerifyResult> VerifyAsync(string token, CancellationToken ct)
+    public async Task<EmailVerificationConfirmResult> ConfirmAsync(string token, CancellationToken ct)
     {
-        var invalid = new EmailVerificationVerifyResult
+        var invalid = new EmailVerificationConfirmResult
         {
-            Verified = false,
+            Confirmed = false,
             Message = "Doğrulama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
         };
 
-        if (!TryParseToken(token, out var id, out var secret)) return invalid;
-
-        // Mütevazı hız sınırı: tek bir token tutamağının kısa pencerede denenme sayısını sınırla.
-        if (await IsVerifyThrottledAsync(id))
-        {
-            _logger.LogWarning("Email verification: per-token verify rate limit exceeded.");
-            return invalid;
-        }
-
-        var record = await _db.ProviderEmailVerifications.FirstOrDefaultAsync(r => r.Id == id, ct);
-        if (record is null) return invalid;
-
-        if (!record.CanBeConsumed())
+        // Birleşik token: {userId}.{Base64Url(token)}. Bozuk/eksik token istisna FIRLATMADAN reddedilir.
+        if (!TryParseCompositeToken(token, out var userId, out var rawToken))
             return invalid;
 
-        // Sabit-zamanlı doğrulama — yanlış token, doğru uzunlukta karşılaştırmayla sabit zamanda reddedilir.
-        if (!PasswordRecoverySecurity.Verify(secret, record.TokenHash, record.TokenSalt))
-            return invalid;
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return invalid;
 
-        // Başarı — TÜKETMEZ. BFF'in Keycloak'ta çevireceği kullanıcıyı döneriz.
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == record.UserId, ct);
+        var confirm = await _userManager.ConfirmEmailAsync(user, rawToken);
+        if (confirm.Succeeded)
+            return Success(user);
 
-        return new EmailVerificationVerifyResult
-        {
-            Verified = true,
-            UserId = record.UserId,
-            KeycloakSubjectId = user?.KeycloakSubjectId,
-            Email = user?.Email,
-            Message = "Bağlantı doğrulandı.",
-        };
-    }
+        // Idempotency: token bu çağrıda geçersiz olsa bile e-posta ZATEN onaylıysa istenen son durum sağlanmış
+        // demektir — aynı sonucu döneriz (kullanıcı linke ikinci kez / süre dolduktan sonra tıklamış olabilir).
+        if (user.EmailConfirmed)
+            return Success(user);
 
-    public async Task<EmailVerificationConsumeResult> ConsumeAsync(string token, CancellationToken ct)
-    {
-        var failed = new EmailVerificationConsumeResult
-        {
-            Consumed = false,
-            Message = "Doğrulama bağlantısı geçersiz veya süresi dolmuş.",
-        };
-
-        if (!TryParseToken(token, out var id, out var secret)) return failed;
-
-        if (await IsVerifyThrottledAsync(id))
-        {
-            _logger.LogWarning("Email verification: per-token consume rate limit exceeded.");
-            return failed;
-        }
-
-        var record = await _db.ProviderEmailVerifications.FirstOrDefaultAsync(r => r.Id == id, ct);
-        if (record is null) return failed;
-
-        // İkinci kez tüketim / süresi dolmuş → reddedilir (idempotent değil, bilerek: yakılmış token yeniden geçmez).
-        if (!record.CanBeConsumed())
-            return failed;
-
-        if (!PasswordRecoverySecurity.Verify(secret, record.TokenHash, record.TokenSalt))
-            return failed;
-
-        record.MarkConsumed();
-        await _db.SaveChangesAsync(ct);
-
-        return new EmailVerificationConsumeResult
-        {
-            Consumed = true,
-            Message = "E-posta doğrulandı.",
-        };
+        return invalid;
     }
 
     public async Task<EmailVerificationResendResult> ResendAsync(string email, CancellationToken ct)
     {
-        email = email.Trim().ToLowerInvariant();
+        email = email.Trim();
 
         // Numaralandırma koruması: kullanıcı bulunsa da bulunmasa da aynı genel yanıt döner.
         var result = new EmailVerificationResendResult
         {
             Accepted = true,
-            MaskedTarget = PasswordRecoverySecurity.MaskEmail(email),
+            MaskedTarget = PasswordRecoverySecurity.MaskEmail(email.ToLowerInvariant()),
             ResendAfterSeconds = _options.ResendCooldownSeconds,
-            ExpiresInSeconds = _options.TokenTtlSeconds,
+            ExpiresInSeconds = _tokenTtlSeconds,
         };
 
         if (await IsIdentifierThrottledAsync(email))
@@ -183,68 +120,43 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
             return result;
         }
 
-        UserEntity? user = null;
-        try
-        {
-            var normalized = email.ToUpperInvariant();
-            user = await _db.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Email verification: user lookup failed during resend.");
-        }
+        // Soğuma süresi: yakın zamanda gönderildiyse yeni dağıtım yapma (yine de genel yanıt dön).
+        if (await IsInCooldownAsync(email))
+            return result;
 
-        // Zaten doğrulanmışsa veya kullanıcı yoksa sessizce genel yanıt dön (bilgi sızdırma).
+        var user = await FindUserByEmailAsync(email);
         if (user is null || user.EmailConfirmed) return result;
-
-        // Bekleme süresi: en son bekleyen kaydın oluşturulmasından bu yana cooldown geçmediyse yeniden yollama.
-        var latest = await _db.ProviderEmailVerifications
-            .Where(r => r.UserId == user.Id && r.ConsumedAt == null)
-            .OrderByDescending(r => r.Id)
-            .FirstOrDefaultAsync(ct);
-
-        if (latest is not null && !latest.IsExpired())
-        {
-            var elapsed = (DateTime.UtcNow - (latest.CreateDate ?? DateTime.UtcNow)).TotalSeconds;
-            if (elapsed < _options.ResendCooldownSeconds)
-            {
-                result.ResendAfterSeconds = (int)Math.Ceiling(_options.ResendCooldownSeconds - elapsed);
-                return result; // Hâlâ soğuma süresinde — yeni token üretmeyiz, dağıtım yapmayız.
-            }
-        }
 
         await IssueAndDispatchAsync(user, email, result.MaskedTarget, ct);
         return result;
     }
 
+    private EmailVerificationConfirmResult Success(UserEntity user) => new()
+    {
+        Confirmed = true,
+        UserId = user.Id,
+        KeycloakSubjectId = user.KeycloakSubjectId,
+        Email = user.Email,
+        Message = "E-posta doğrulandı.",
+    };
+
     /// <summary>
-    /// Yeni token üretir, önceki bekleyen kayıtları geçersiz kılar (yalnızca en yenisi çalışsın) ve doğrulama
-    /// e-postasını dağıtır. Ham token yalnızca dağıtımda (verifyUrl) görünür — geri döndürülmez.
+    /// Yerleşik onay token'ı üretir, URL-güvenli birleşik token oluşturur, doğrulama linkini kurar ve dağıtır.
+    /// Token yalnızca dağıtımda (verifyUrl) görünür; hiçbir yerde saklanmaz.
     /// </summary>
     private async Task IssueAndDispatchAsync(UserEntity user, string email, string maskedTarget, CancellationToken ct)
     {
-        // Önceki bekleyen tokenları geçersiz kıl.
-        var pending = await _db.ProviderEmailVerifications
-            .Where(r => r.UserId == user.Id && r.ConsumedAt == null)
-            .ToListAsync(ct);
-        foreach (var p in pending) p.MarkConsumed();
+        var rawToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var secret = PasswordRecoverySecurity.GenerateOpaqueToken();
-        var (tokenHash, tokenSalt) = PasswordRecoverySecurity.Hash(secret);
+        // Yerleşik token base64'tür ('+','/','=' içerir) — URL-güvenli DEĞİLDİR. Base64Url'e çevir; dönüşte çöz.
+        // userId açık taşınır ki ConfirmEmailAsync doğrulama için kullanıcıyı bulabilsin (token tek başına
+        // kullanıcıyı bize tanıtmaz — DataProtection payload'ını kullanıcının stamp'iyle çözer).
+        var composite = $"{user.Id}.{Base64UrlEncode(rawToken)}";
+        var verifyUrl = string.Format(_options.VerifyUrlTemplate, composite);
+        var expiresInMinutes = (int)Math.Ceiling(_tokenTtlSeconds / 60.0);
 
-        var entity = ProviderEmailVerificationEntity.Create(
-            userId: user.Id,
-            tokenHash: tokenHash,
-            tokenSalt: tokenSalt,
-            expiresAt: DateTime.UtcNow.AddSeconds(_options.TokenTtlSeconds));
-
-        _db.ProviderEmailVerifications.Add(entity);
-        await _db.SaveChangesAsync(ct);
-
-        // Token = {Id}.{secret}; Id ancak kayıt sonrası bilinir.
-        var rawToken = $"{entity.Id}.{secret}";
-        var verifyUrl = string.Format(_options.VerifyUrlTemplate, Uri.EscapeDataString(rawToken));
-        var expiresInMinutes = (int)Math.Ceiling(_options.TokenTtlSeconds / 60.0);
+        // Soğuma işaretini gönderimden hemen önce koy (dağıtım patlasa da yakın tekrarları sınırlasın).
+        await MarkCooldownAsync(email);
 
         try
         {
@@ -256,27 +168,46 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
         }
     }
 
-    private static bool TryParseToken(string token, out long id, out string secret)
+    private async Task<UserEntity?> FindUserByEmailAsync(string email)
     {
-        id = 0;
-        secret = string.Empty;
+        try
+        {
+            return await _userManager.FindByEmailAsync(email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Email verification: user lookup failed.");
+            return null;
+        }
+    }
+
+    private static bool TryParseCompositeToken(string token, out long userId, out string rawToken)
+    {
+        userId = 0;
+        rawToken = string.Empty;
         if (string.IsNullOrWhiteSpace(token)) return false;
 
         var separator = token.IndexOf('.');
         if (separator <= 0 || separator >= token.Length - 1) return false;
 
-        var idPart = token[..separator];
-        if (!long.TryParse(idPart, out id) || id <= 0) return false;
+        if (!long.TryParse(token[..separator], out userId) || userId <= 0) return false;
 
-        secret = token[(separator + 1)..];
-        return true;
+        try
+        {
+            rawToken = Base64UrlDecode(token[(separator + 1)..]);
+        }
+        catch (FormatException)
+        {
+            return false; // bozuk base64 → istisna fırlatmadan reddet
+        }
+
+        return !string.IsNullOrEmpty(rawToken);
     }
 
-    /// <summary>Yeniden gönderme için tanımlayıcı (e-posta) bazlı hız sınırı. Cache hatasında açık başarısız olur.</summary>
+    // ── Yeniden gönderme hız sınırı / soğuma (durumsuz — cache tabanlı, tablo yok) ───────────────
     private async Task<bool> IsIdentifierThrottledAsync(string identifier)
     {
         if (_options.MaxRequestsPerIdentifierPerWindow <= 0) return false;
-
         var key = $"{ResendRateLimitKeyPrefix}{Sha256Hex(identifier.ToLowerInvariant())}";
         var window = TimeSpan.FromSeconds(_options.IdentifierWindowSeconds);
         try
@@ -293,24 +224,32 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
         }
     }
 
-    /// <summary>Doğrulama/tüketim için token tutamağı (Id) bazlı mütevazı hız sınırı. Cache hatasında açık başarısız olur.</summary>
-    private async Task<bool> IsVerifyThrottledAsync(long id)
+    private async Task<bool> IsInCooldownAsync(string identifier)
     {
-        if (_options.MaxVerifyAttemptsPerWindow <= 0) return false;
-
-        var key = $"{VerifyRateLimitKeyPrefix}{id}";
-        var window = TimeSpan.FromSeconds(_options.VerifyWindowSeconds);
+        if (_options.ResendCooldownSeconds <= 0) return false;
+        var key = $"{ResendCooldownKeyPrefix}{Sha256Hex(identifier.ToLowerInvariant())}";
         try
         {
-            var current = await _cache.GetNoHash<int>(key);
-            if (current >= _options.MaxVerifyAttemptsPerWindow) return true;
-            await _cache.SetNoHash(key, current + 1, window);
-            return false;
+            return await _cache.GetNoHash<int>(key) > 0;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Email verification: per-token rate limit cache error; failing open.");
+            _logger.LogWarning(ex, "Email verification: cooldown cache error; failing open.");
             return false;
+        }
+    }
+
+    private async Task MarkCooldownAsync(string identifier)
+    {
+        if (_options.ResendCooldownSeconds <= 0) return;
+        var key = $"{ResendCooldownKeyPrefix}{Sha256Hex(identifier.ToLowerInvariant())}";
+        try
+        {
+            await _cache.SetNoHash(key, 1, TimeSpan.FromSeconds(_options.ResendCooldownSeconds));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Email verification: cooldown set error; ignoring.");
         }
     }
 
@@ -318,5 +257,23 @@ public sealed class ProviderEmailVerificationDomainService : IProviderEmailVerif
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+
+    // ── Base64Url (bağımsız; PasswordRecoverySecurity.GenerateOpaqueToken ile aynı char eşlemesi) ──
+    private static string Base64UrlEncode(string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    }
+
+    private static string Base64UrlDecode(string value)
+    {
+        var s = value.Replace('-', '+').Replace('_', '/');
+        switch (s.Length % 4)
+        {
+            case 2: s += "=="; break;
+            case 3: s += "="; break;
+        }
+        return Encoding.UTF8.GetString(Convert.FromBase64String(s));
     }
 }

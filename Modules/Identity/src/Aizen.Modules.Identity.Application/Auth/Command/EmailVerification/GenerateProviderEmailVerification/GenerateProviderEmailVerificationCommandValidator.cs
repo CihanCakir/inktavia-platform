@@ -8,7 +8,6 @@ public sealed class GenerateProviderEmailVerificationCommandValidator
 {
     public GenerateProviderEmailVerificationCommandValidator()
     {
-        RuleFor(x => x.KeycloakSubjectId).NotEmpty().MaximumLength(128);
         RuleFor(x => x.Email).NotEmpty().MaximumLength(256);
     }
 }

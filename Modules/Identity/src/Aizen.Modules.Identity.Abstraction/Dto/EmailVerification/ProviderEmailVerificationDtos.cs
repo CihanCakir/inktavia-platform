@@ -4,16 +4,11 @@ namespace Aizen.Modules.Identity.Abstraction.Dto.EmailVerification;
 
 public sealed class GenerateProviderEmailVerificationRequest
 {
-    public string KeycloakSubjectId { get; set; } = default!;
     public string Email { get; set; } = default!;
 }
 
-public sealed class VerifyProviderEmailVerificationRequest
-{
-    public string Token { get; set; } = default!;
-}
-
-public sealed class ConsumeProviderEmailVerificationRequest
+/// <summary>Birleşik token: {userId}.{Base64Url(token)} — tek dizedir (BFF/FE için tek parametre).</summary>
+public sealed class ConfirmProviderEmailVerificationRequest
 {
     public string Token { get; set; } = default!;
 }
@@ -34,18 +29,12 @@ public sealed class GenerateProviderEmailVerificationResponse
     public string Message { get; set; } = string.Empty;
 }
 
-public sealed class VerifyProviderEmailVerificationResponse
+public sealed class ConfirmProviderEmailVerificationResponse
 {
-    public bool Verified { get; set; }
+    public bool Confirmed { get; set; }
     public long? UserId { get; set; }
     public string? KeycloakSubjectId { get; set; }
     public string? Email { get; set; }
-    public string Message { get; set; } = string.Empty;
-}
-
-public sealed class ConsumeProviderEmailVerificationResponse
-{
-    public bool Consumed { get; set; }
     public string Message { get; set; } = string.Empty;
 }
 

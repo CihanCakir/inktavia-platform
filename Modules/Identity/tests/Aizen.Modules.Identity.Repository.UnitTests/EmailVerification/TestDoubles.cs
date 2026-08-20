@@ -6,7 +6,7 @@ namespace Aizen.Modules.Identity.Repository.UnitTests.EmailVerification;
 
 /// <summary>
 /// Süreç-içi sahte dağıtık cache. Yalnızca <see cref="GetNoHash{T}"/> / <see cref="SetNoHash{T}"/> desteklenir
-/// (hız sınırı sayaçları için); testler senkron olduğundan TTL yok sayılır. Diğer üyeler çağrılmaz.
+/// (yeniden gönderme hız sınırı + soğuma sayaçları için); testler senkron olduğundan TTL yok sayılır.
 /// </summary>
 internal sealed class FakeDistributedCache : IAizenDistributedCache
 {
