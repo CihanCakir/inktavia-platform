@@ -69,7 +69,7 @@ public sealed class ProviderEmailVerificationDomainServiceTests
             ResendCooldownSeconds = resendCooldown,
             MaxRequestsPerIdentifierPerWindow = maxPerWindow,
             IdentifierWindowSeconds = 3600,
-            VerifyUrlTemplate = "https://provider.test/onboarding/verify-email?token={0}",
+            VerifyUrlTemplate = "https://provider.test/auth/verify-callback?token={0}",
             DeliveryMode = "Logging",
         };
 

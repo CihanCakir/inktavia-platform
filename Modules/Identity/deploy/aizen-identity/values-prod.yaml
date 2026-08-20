@@ -212,3 +212,13 @@ env:
   # ── Modüller arası çağrı ─────────────────────────────────────────────────────
   - name: RemoteCalls__IIdentityFileStorageRemoteCall__BaseUrl
     value: "http://aizen-filestorage"
+
+  # ── E-posta doğrulama linki ──────────────────────────────────────────────────
+  # NEDEN /auth/verify-callback, /onboarding/verify-email DEĞİL: onboarding rota grubu
+  # kimlik doğrulanmış oturum ister (PendingAllowedGuard → login'e atar). Doğrulama linki
+  # ise oturum AÇIK DEĞİLKEN (çoğu zaman başka cihazda) tıklanır → token yanar, sayfa hiç çalışmaz.
+  # /auth grubu guard'sızdır ve aynı VerifyCallbackPage'i render eder. Sakın "düzenleyip"
+  # onboarding path'ine geri almayın. {0} = URL-güvenli birleşik token (escape EKLEMEYİN).
+  # Host = provider web prod ingress'i (Web/deploy/web-provider/values-prod.yaml), provider-api DEĞİL.
+  - name: ProviderEmailVerification__VerifyUrlTemplate
+    value: "https://provider.inktavia.com/auth/verify-callback?token={0}"
