@@ -61,7 +61,7 @@ spec:
           parameters:
             # ▼▼▼ TEK SÜRÜM İŞARETÇİSİ ▼▼▼
             - name: image.tag
-              value: sha-7a393bd
+              value: sha-c4070e9
             # ▲▲▲ TEK SÜRÜM İŞARETÇİSİ ▲▲▲
             # ▼▼▼ ORTAM ANAHTARI — 0 kapalı, 1 açık ▼▼▼
             - name: replicaCount
