@@ -173,8 +173,6 @@ env:
     value: "false"
   - name: MockData__RunOnStartup
     value: "false"
-  - name: ReferenceDataSeed__Enabled
-    value: "false"
   - name: CargoDrySeed__Enabled
     value: "false"
   - name: MessagingSeed__Enabled
@@ -183,3 +181,19 @@ env:
     value: "false"
   - name: PaymentSeed__Enabled
     value: "false"
+
+  # ── ReferenceData KONUM master verisi — MOCK DEĞİL, ZORUNLU ───────────────────
+  # DİKKAT: Buradaki ReferenceDataSeed__Enabled=true bir MOCK/DEMO anahtarı DEĞİLDİR;
+  # yukarıdaki "seed/mock kapatma" bloğuna GERİ ALMAYIN. Enabled yalnızca ReferenceData
+  # seed sistemini açar; NE tohumlanacağını iki ayrı eksen belirler:
+  #   - SeedEfEntities=false  → EF mock varlıkları (para birimi, ölçü, lookup) KAPALI kalır.
+  #   - SeedLocationDocuments=true → SADECE konum master verisi (ülke/şehir) tohumlanır.
+  # Neden zorunlu: sağlayıcı onboarding "Faaliyet Bölgesi" adımı bu veri olmadan
+  # tamamlanamaz — dev'de de prod'da da. Tekrar çalıştırmak güvenli: LocationJsonSeedService
+  # ülke varsa erken döner (AnyCountryAsync), belge çoğaltmaz.
+  - name: ReferenceDataSeed__Enabled
+    value: "true"
+  - name: ReferenceDataSeed__SeedEfEntities
+    value: "false"
+  - name: ReferenceDataSeed__SeedLocationDocuments
+    value: "true"
