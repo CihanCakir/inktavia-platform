@@ -3,7 +3,9 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Aizen.Bff.MarineProvider.Application.Common.Services;
 
@@ -28,7 +30,13 @@ public interface IProviderKeycloakAdminClient
     Task<string> CreateUserAsync(CreateKeycloakUserRequest request, CancellationToken cancellationToken = default);
     Task SetUserAttributeAsync(string userId, string attributeName, string attributeValue, CancellationToken cancellationToken = default);
     Task AssignRealmRoleAsync(string userId, string roleName, CancellationToken cancellationToken = default);
-    Task SendVerifyEmailAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Keycloak'ta emailVerified=true yapar. Doğrulama, uygulama akışıyla (Identity confirm) tamamlandıktan SONRA
+    /// çağrılır. Tam temsili okuyup geri yazar (read-modify-write) — kısmi PUT'un requiredActions/attributes gibi
+    /// alanları düşürme riskine karşı hiçbir alan kaybedilmez.
+    /// </summary>
+    Task SetEmailVerifiedAsync(string userId, CancellationToken cancellationToken = default);
 }
 
 internal sealed class ProviderKeycloakAdminClient : IProviderKeycloakAdminClient
@@ -137,21 +145,26 @@ internal sealed class ProviderKeycloakAdminClient : IProviderKeycloakAdminClient
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task SendVerifyEmailAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task SetEmailVerifiedAsync(string userId, CancellationToken cancellationToken = default)
     {
         var client = await CreateClientAsync(cancellationToken);
+        var url = $"{_options.AdminApiBaseUrl}/users/{userId}";
 
-        var url = $"{_options.AdminApiBaseUrl}/users/{userId}/execute-actions-email";
-        var query = new List<string>();
-        if (!string.IsNullOrWhiteSpace(_options.ProviderPortalClientId))
-            query.Add($"client_id={Uri.EscapeDataString(_options.ProviderPortalClientId)}");
-        if (!string.IsNullOrWhiteSpace(_options.VerifyEmailRedirectUri))
-            query.Add($"redirect_uri={Uri.EscapeDataString(_options.VerifyEmailRedirectUri!)}");
-        if (query.Count > 0)
-            url += "?" + string.Join("&", query);
+        // READ: tam temsili HAM JSON olarak al. Minimal tipli sınıfa deserialize etseydik requiredActions gibi
+        // modellenmemiş alanlar düşerdi; JsonNode ile TÜM alanlar korunur.
+        var getResponse = await client.GetAsync(url, cancellationToken);
+        getResponse.EnsureSuccessStatusCode();
+        var payload = await getResponse.Content.ReadAsStringAsync(cancellationToken);
+        var user = JsonNode.Parse(payload)?.AsObject()
+                   ?? throw new InvalidOperationException("Keycloak user representation could not be parsed.");
 
-        var response = await client.PutAsJsonAsync(url, new[] { "VERIFY_EMAIL" }, Json, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        // MODIFY: yalnızca emailVerified. Zaten true ise bu idempotenttir.
+        user["emailVerified"] = true;
+
+        // WRITE: tam temsili geri yaz — hiçbir alan kaybedilmez.
+        var content = new StringContent(user.ToJsonString(), Encoding.UTF8, "application/json");
+        var putResponse = await client.PutAsync(url, content, cancellationToken);
+        putResponse.EnsureSuccessStatusCode();
     }
 
     private static KeycloakUserRef Map(UserRepresentation user) =>

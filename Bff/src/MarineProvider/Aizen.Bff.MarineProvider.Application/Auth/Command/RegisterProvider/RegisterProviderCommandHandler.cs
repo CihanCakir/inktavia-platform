@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using Aizen.Bff.MarineProvider.Application.Common.Options;
 using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Bff.MarineProvider.Application.Common.Warnings;
 using Aizen.Bff.MarineProvider.Application.Contracts.Auth;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.Identity.Abstraction.Dto.EmailVerification;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -75,16 +78,17 @@ public sealed class RegisterProviderCommandHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Keycloak user creation failed during provider registration.");
-            response.RegistrationStatus = "Failed";
-            response.Message = "Provider account could not be created at the identity provider. Please try again.";
-            response.Warnings.Add(ProviderBffWarning.CallFailed("Keycloak", ex.GetType().Name));
-            return response;
+            // FATAL: hesap kimlik sağlayıcıda oluşturulamadı → başarı DEĞİL. 502 fırlat ki arayüz 200'e bakıp
+            // "Kayıt başarılı" diyemesin.
+            throw Upstream(ex, "keycloak.createUser");
         }
 
         response.KeycloakUserId = keycloakUserId;
 
         // Provision / link the Identity Organizer profile (idempotent). Keycloak sub == Keycloak user id.
+        // FATAL: provisioning başarısızsa kullanıcı Keycloak'ta VAR ama bizim DB'de YOK → hiç giriş yapamaz.
+        // Bu bir UYARI değil HATA — sessizce "başarılı" dönmek "yarı-oluşmuş hesap"ı gizler. 502 fırlatırız.
+        long? providerProfileId;
         try
         {
             var provision = await _identity.ProvisionFromKeycloak(new ProviderProvisionFromKeycloakRequest
@@ -99,34 +103,32 @@ public sealed class RegisterProviderCommandHandler
                 EmailVerified = false
             });
 
-            var providerProfileId = provision?.Body?.ProviderProfileId;
-            if (providerProfileId is > 0)
-            {
-                response.ProviderProfileId = providerProfileId;
-
-                try
-                {
-                    await _keycloak.SetUserAttributeAsync(
-                        keycloakUserId,
-                        _options.ProviderProfileIdAttributeName,
-                        providerProfileId.Value.ToString(),
-                        cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Writing provider_profile_id attribute failed for {UserId}.", keycloakUserId);
-                    response.Warnings.Add(ProviderBffWarning.CallFailed("Keycloak.SetAttribute", ex.GetType().Name));
-                }
-            }
-            else
-            {
-                response.Warnings.Add(ProviderBffWarning.CallFailed("Identity.Provision", "no provider profile id returned"));
-            }
+            providerProfileId = provision?.Body?.ProviderProfileId;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Identity provisioning failed during provider registration for {UserId}.", keycloakUserId);
-            response.Warnings.Add(ProviderBffWarning.CallFailed("Identity.Provision", ex.GetType().Name));
+            throw Upstream(ex, "identity.provision");
+        }
+
+        if (providerProfileId is not > 0)
+            throw Upstream(null, "identity.provision: no provider profile id returned");
+
+        response.ProviderProfileId = providerProfileId;
+
+        // provider_profile_id attribute'u token'a taşınır. Yazımı başarısız olursa KURTARILABİLİR (yeniden
+        // atanabilir; hesap zaten oluştu) → uyarı, fatal değil.
+        try
+        {
+            await _keycloak.SetUserAttributeAsync(
+                keycloakUserId,
+                _options.ProviderProfileIdAttributeName,
+                providerProfileId.Value.ToString(),
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Writing provider_profile_id attribute failed for {UserId}.", keycloakUserId);
+            response.Warnings.Add(ProviderBffWarning.CallFailed("Keycloak.SetAttribute", ex.GetType().Name));
         }
 
         try
@@ -139,15 +141,19 @@ public sealed class RegisterProviderCommandHandler
             response.Warnings.Add(ProviderBffWarning.CallFailed("Keycloak.AssignRole", ex.GetType().Name));
         }
 
+        // Doğrulama e-postasını tetikle: uygulama akışı (Identity → yerleşik onay token'ı). Keycloak'ın
+        // execute-actions-email'i (İngilizce "Update Your Account") KALDIRILDI — artık yalnızca bizim Türkçe
+        // e-postamız gider. Gönderim başarısızsa KURTARILABİLİR (kullanıcı resend edebilir) → uyarı, fatal değil.
         try
         {
-            await _keycloak.SendVerifyEmailAsync(keycloakUserId, cancellationToken);
+            await _identity.GenerateProviderEmailVerification(
+                new GenerateProviderEmailVerificationRequest { Email = email });
             response.EmailVerificationRequired = true;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Sending verify-email failed for {UserId}.", keycloakUserId);
-            response.Warnings.Add(ProviderBffWarning.CallFailed("Keycloak.VerifyEmail", ex.GetType().Name));
+            _logger.LogWarning(ex, "Triggering email verification failed for {UserId}.", keycloakUserId);
+            response.Warnings.Add(ProviderBffWarning.CallFailed("Identity.GenerateEmailVerification", ex.GetType().Name));
         }
 
         response.RegistrationStatus = alreadyExisted ? "AlreadyRegistered" : "PendingEmailVerification";
@@ -156,5 +162,18 @@ public sealed class RegisterProviderCommandHandler
             : "Provider account created. Please verify your email to continue.";
 
         return response;
+    }
+
+    /// <summary>
+    /// Kurtarılamaz kayıt hatasını 502 olarak yüzeye çıkarır (asla 200 maskesi). Arayüz 200'e bakıp başarı
+    /// diyemez; "hesap oluşturuldu" ile "hesap yarı-oluştu" ayrımı böyle korunur.
+    /// </summary>
+    private AizenUpstreamException Upstream(Exception? ex, string step)
+    {
+        var correlationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
+        _logger.LogError(ex,
+            "[{Code}] Provider registration failed at {Step}. correlationId={CorrelationId}",
+            AizenUpstreamException.StableCode, step, correlationId);
+        return new AizenUpstreamException(correlationId);
     }
 }

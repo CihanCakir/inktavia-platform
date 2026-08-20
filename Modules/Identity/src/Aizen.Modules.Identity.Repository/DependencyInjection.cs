@@ -113,6 +113,16 @@ namespace Aizen.Modules.Identity.Repository
                     configuration.GetSection(ProviderEmailVerificationOptions.SectionName));
             }
 
+            // Süresi-dolmuş vs geçersiz ayrımı için uzun-ömürlü ikinci onay sağlayıcısı (aynı DataProtection
+            // amacı, ~10 yıl ömür). ConfirmAsync, varsayılan sağlayıcı reddettiğinde bununla yeniden doğrular:
+            // burada geçerli ⇒ süresi dolmuş; burada da geçersiz ⇒ token bozuk/kurcalanmış.
+            services.Configure<LongLivedEmailConfirmationTokenProviderOptions>(_ => { });
+            services.AddTransient<LongLivedEmailConfirmationTokenProvider<Domain.Entities.UserEntity>>();
+            services.Configure<Microsoft.AspNetCore.Identity.IdentityOptions>(o =>
+                o.Tokens.ProviderMap[ProviderEmailVerificationDomainService.LongLivedEmailConfirmationProvider] =
+                    new Microsoft.AspNetCore.Identity.TokenProviderDescriptor(
+                        typeof(LongLivedEmailConfirmationTokenProvider<Domain.Entities.UserEntity>)));
+
             // Token ömrü BİLEREK açıkça 24 saat (86400 sn) yazılır — varsayılana güvenilmez.
             // DataProtectionTokenProviderOptions, AddDefaultTokenProviders()'ın kaydettiği "Default" sağlayıcı
             // için GLOBALDİR; bu kod tabanında başka hiçbir yer default sağlayıcıyı kullanmadığından yan etki yok

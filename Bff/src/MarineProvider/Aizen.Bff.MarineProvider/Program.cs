@@ -95,14 +95,23 @@ builder.Services.AddDomainHub<ProviderRealtimeHub>("user");
 // because the framework's RealtimeIngressService (which consumes the single IEventSocketMapper) is a singleton.
 builder.Services.AddSingleton<IEventSocketMapper, ProviderEventSocketMapper>();
 
-// ── IP Rate Limiting (password recovery abuse protection) ─────────────────────
+// ── IP Rate Limiting (password recovery + e-posta doğrulama abuse protection) ─────────────────
 var rlConfig = builder.Configuration.GetSection("RateLimiting:PasswordRecovery");
+var evRlConfig = builder.Configuration.GetSection("RateLimiting:EmailVerification");
 builder.Services.AddRateLimiter(opts =>
 {
     opts.AddFixedWindowLimiter("pwd-recovery-ip", limiter =>
     {
         limiter.PermitLimit          = rlConfig.GetValue<int>("PermitPerWindow", 10);
         limiter.Window               = TimeSpan.FromSeconds(rlConfig.GetValue<int>("WindowSeconds", 300));
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiter.QueueLimit           = 0;
+    });
+    // Anonim confirm/resend uçları için IP başına sınır (link tıklama + yeniden gönderme kötüye kullanımı).
+    opts.AddFixedWindowLimiter("email-verify-ip", limiter =>
+    {
+        limiter.PermitLimit          = evRlConfig.GetValue<int>("PermitPerWindow", 10);
+        limiter.Window               = TimeSpan.FromSeconds(evRlConfig.GetValue<int>("WindowSeconds", 300));
         limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         limiter.QueueLimit           = 0;
     });

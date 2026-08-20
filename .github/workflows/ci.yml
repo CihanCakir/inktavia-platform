@@ -71,3 +71,11 @@ jobs:
       # See infrastructure/k8s/README.md
       - name: Modules must not publish an Ingress
         run: bash scripts/ci/assert-no-module-ingress.sh
+
+      # Doldurulmamış "__FROM_ENV__" / "__FROM_SECRET__" yer-tutucularını yakalar (appsettings ↔ chart values).
+      # ŞİMDİLİK RAPORLA-YALNIZCA (continue-on-error): bugün var olan borç temizlenmeden bloklayıcı yaparsak
+      # herkesin görmezden geldiği kırmızı bir CI oluşur — o, denetimsizlikten kötüdür. Borç kapanınca
+      # 'continue-on-error' satırını KALDIRIN → bloklayıcı olur.
+      - name: Yapılandırma yer-tutucu denetimi (report-only)
+        continue-on-error: true
+        run: python3 build/ci/yer-tutucu-denetimi.py

@@ -15,13 +15,28 @@ public sealed class EmailVerificationGenerateResult
 }
 
 /// <summary>
+/// Onay sonucunun durumu. FE bunun üzerine dallanır: SÜRESİ DOLMUŞ link için "yeniden gönder" düğmesi gösterilir,
+/// GEÇERSİZ link için gösterilmez. Yerleşik token tek bir "Failed" döndürdüğünden bu ayrım servis katmanında
+/// uzun-ömürlü ikinci bir sağlayıcıyla üretilir (bkz. ProviderEmailVerificationDomainService.ConfirmAsync).
+/// </summary>
+public enum EmailVerificationConfirmStatus
+{
+    Confirmed = 0,
+    Expired = 1,
+    Invalid = 2,
+}
+
+/// <summary>
 /// Onay sonucu. Yerleşik token IDEMPOTENT olduğundan iki kez onaylamak zararsızdır — ikinci çağrı da
-/// <see cref="Confirmed"/>=true döner. Ayrı bir "tüketildi" durumu YOKTUR (custom tasarımın verify/consume
+/// <see cref="Status"/>=Confirmed döner. Ayrı bir "tüketildi" durumu YOKTUR (custom tasarımın verify/consume
 /// ayrımı kaldırıldı).
 /// </summary>
 public sealed class EmailVerificationConfirmResult
 {
-    public bool Confirmed { get; set; }
+    public EmailVerificationConfirmStatus Status { get; set; } = EmailVerificationConfirmStatus.Invalid;
+
+    /// <summary>Kısayol: Status == Confirmed.</summary>
+    public bool Confirmed => Status == EmailVerificationConfirmStatus.Confirmed;
 
     /// <summary>Yalnızca başarıda dolar — BFF, Keycloak'ta hangi kullanıcının emailVerified'ını çevireceğini bilsin.</summary>
     public long? UserId { get; set; }

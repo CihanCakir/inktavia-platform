@@ -32,6 +32,10 @@ public sealed class GenerateProviderEmailVerificationResponse
 public sealed class ConfirmProviderEmailVerificationResponse
 {
     public bool Confirmed { get; set; }
+
+    /// <summary>"Confirmed" | "Expired" | "Invalid" — FE bunun üzerine dallanır (yalnızca Expired'da "yeniden gönder").</summary>
+    public string Status { get; set; } = "Invalid";
+
     public long? UserId { get; set; }
     public string? KeycloakSubjectId { get; set; }
     public string? Email { get; set; }

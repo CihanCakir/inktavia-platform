@@ -50,9 +50,6 @@ public sealed class MarineProviderKeycloakOptions
     /// <summary>Keycloak user attribute + token claim carrying the linked Organizer profile id.</summary>
     public string ProviderProfileIdAttributeName { get; set; } = "provider_profile_id";
 
-    /// <summary>Where Keycloak redirects the provider after the Verify Email action.</summary>
-    public string? VerifyEmailRedirectUri { get; set; }
-
     /// <summary>
     /// Shared secret sent to modules as X-Aizen-Bff-Assertion so they honor the BFF-asserted provider identity
     /// (must match each module's BffAssertion:SharedSecret). Empty = no assertion headers are sent.

@@ -22,6 +22,7 @@ public sealed class ConfirmProviderEmailVerificationCommandHandler
         return new ConfirmProviderEmailVerificationResponse
         {
             Confirmed = result.Confirmed,
+            Status = result.Status.ToString(), // Confirmed | Expired | Invalid
             UserId = result.UserId,
             KeycloakSubjectId = result.KeycloakSubjectId,
             Email = result.Email,
