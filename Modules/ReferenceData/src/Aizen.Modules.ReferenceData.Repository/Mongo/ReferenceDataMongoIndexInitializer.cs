@@ -1,5 +1,6 @@
 using Aizen.Modules.ReferenceData.Domain.Documents.Location;
 using Aizen.Modules.ReferenceData.Repository.Context;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Aizen.Modules.ReferenceData.Repository.Mongo;
@@ -23,9 +24,11 @@ public sealed class ReferenceDataMongoIndexInitializer
         await CreateSlugIndexesAsync(cancellationToken);
     }
 
-    // M3 — per-collection UNIQUE slug index, PARTIAL on { Slug: { $exists: true } } so docs not yet backfilled
-    // (no Slug field) are excluded from the unique constraint. Global cross-level uniqueness is guaranteed by the
-    // deterministic backfill; these indexes protect intra-collection uniqueness and back the by-slug lookups.
+    // M3 — koleksiyon başına BENZERSİZ slug index'i, { Slug: { $type: "string" } } üzerinde PARTIAL: yalnızca
+    // GERÇEK (string) slug'lar benzersizlik kısıtına girer. Backfill öncesi slug'lar null'dır ve kısıt DIŞINDA
+    // kalır. (Eski hâli $exists:true idi; Slug alanı null olarak da yazıldığından hiçbir şeyi dışlamıyordu ve
+    // ikinci null slug { Slug: null } üzerinde E11000 veriyordu.) Küresel çapraz-seviye benzersizliği
+    // deterministik backfill garanti eder; bu index'ler koleksiyon-içi benzersizliği korur ve by-slug aramalarına destek olur.
     private async Task CreateSlugIndexesAsync(CancellationToken cancellationToken)
     {
         await CreateSlugIndexAsync<LocationCountryDocument>(ReferenceDataMongoCollectionNames.Countries, "ux_country_slug", cancellationToken);
@@ -34,17 +37,31 @@ public sealed class ReferenceDataMongoIndexInitializer
         await CreateSlugIndexAsync<LocationNeighborhoodDocument>(ReferenceDataMongoCollectionNames.Neighborhoods, "ux_neighborhood_slug", cancellationToken);
     }
 
-    private Task CreateSlugIndexAsync<TDoc>(string collectionName, string indexName, CancellationToken cancellationToken)
+    private async Task CreateSlugIndexAsync<TDoc>(string collectionName, string indexName, CancellationToken cancellationToken)
     {
         var collection = _mongoDatabase.GetCollection<TDoc>(collectionName);
         var options = new CreateIndexOptions<TDoc>
         {
             Unique = true,
             Name = indexName,
-            PartialFilterExpression = Builders<TDoc>.Filter.Exists("Slug"),
+            // Yalnızca string slug'lar benzersizlik kısıtına girsin; null (veya alan yok) DIŞARIDA kalsın.
+            PartialFilterExpression = Builders<TDoc>.Filter.Type("Slug", BsonType.String),
         };
         var model = new CreateIndexModel<TDoc>(Builders<TDoc>.IndexKeys.Ascending("Slug"), options);
-        return collection.Indexes.CreateOneAsync(model, cancellationToken: cancellationToken);
+
+        try
+        {
+            await collection.Indexes.CreateOneAsync(model, cancellationToken: cancellationToken);
+        }
+        catch (MongoCommandException ex) when (ex.Code is 85 or 86)
+        {
+            // 85 IndexOptionsConflict / 86 IndexKeySpecsConflict: aynı adlı index ESKİ ($exists) şekliyle zaten var.
+            // MongoDB, aynı ad + farklı options ile createIndex'i reddeder. Kendi adımızla oluşturduğumuz index'i
+            // (YALNIZCA onu, ada göre) düşürüp yeniden yaratırız — başkasının index'ine dokunmayız, çakışmayı da
+            // sessizce yutmayız (yalnızca bilinen çakışma kodlarında düzeltiriz, diğer hatalar yukarı fırlar).
+            await collection.Indexes.DropOneAsync(indexName, cancellationToken);
+            await collection.Indexes.CreateOneAsync(model, cancellationToken: cancellationToken);
+        }
     }
 
     private Task CreateCountryIndexesAsync(CancellationToken cancellationToken)
