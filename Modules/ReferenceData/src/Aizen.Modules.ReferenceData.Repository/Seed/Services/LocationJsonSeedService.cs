@@ -24,8 +24,12 @@ public sealed class LocationJsonSeedService
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        if (await _locationRepository.AnyCountryAsync(cancellationToken)) return;
-
+        // AnyCountryAsync kısa-devresi BİLEREK KALDIRILDI. Eskiden ülke yazıldıktan sonra herhangi bir adım
+        // patlarsa (ör. slug index'i E11000) guard her yeniden başlatmada "ülke var" deyip erken döner, kalan
+        // şehir/ilçe/mahalle/cadde bir daha ASLA denenmezdi — sistem kısmi durumda kilitlenirdi. Upsert'ler doğal
+        // anahtara göre idempotenttir (ör. UpsertCityAsync CountryCode+CityCode) ve veri kümesi küçüktür; her
+        // açılışta yeniden çalıştırmak ucuzdur ve kısmi başarısızlığı kendiliğinden onarır (guard yalnızca bir
+        // performans optimizasyonuydu, doğruluk garantisi değil).
         await SeedCountryAsync("TR", cancellationToken);
         await SeedCitiesAsync("TR", cancellationToken);
         await SeedAllDistrictsAsync("TR", cancellationToken);
