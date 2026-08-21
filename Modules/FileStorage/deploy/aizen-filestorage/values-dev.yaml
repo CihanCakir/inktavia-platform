@@ -155,6 +155,22 @@ env:
   - name: MessageBroker__QueueSettings__Password
     value: "$(RABBITMQ_PASSWORD)"
 
+  # ── Keycloak (RS256 servis token'ı doğrulama) ────────────────────────────────
+  # FileStorage'ın Keycloak__Authority'si YOKTU → Core/Auth ya/ya-da anahtarında (BuilderExtensions.cs:209)
+  # simetrik (TokenOption) dalına düşüyor ve BFF'in gönderdiği RS256 servis token'ını doğrulayamıyordu →
+  # [Authorize] uç noktalar 401 (UploadSessionController buna takılıyordu). Bu blok RS256 dalını açar.
+  # Authority = token'daki issuer; ValidIssuer DOĞRUDAN buna eşitlenir.
+  # MetadataAddress BİLEREK iç adres: JWKS cluster içinden çekilir, Cloudflare'e bağımlı olmaz.
+  - name: Keycloak__Authority
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
+  - name: Keycloak__MetadataAddress
+    value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
+  - name: Keycloak__RequireHttpsMetadata
+    value: "false"
+  # Keycloak__Audience BİLEREK YOK. Kod: ValidateAudience = !IsNullOrWhiteSpace(...) — yani boş bırakılınca
+  # audience DOĞRULANMAZ. Buraya bir aud yazmak audience doğrulamayı AÇAR ve token'ında o aud bulunmayan HER
+  # çağıranı sessizce kırar. Yazmadan önce çağıran BFF'lerin token'ında o aud'un bulunduğu ölçülmeli.
+
   # ── BFF assertion — bu olmadan modül AÇILMAZ ─────────────────────────────────
   # Core/InfoAccessor, Development dışında boş SharedSecret ile başlatmayı
   # fail-closed olarak reddediyor: modülün tek kimlik güvencesi bu sır.
