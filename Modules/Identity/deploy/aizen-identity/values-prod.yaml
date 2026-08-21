@@ -212,6 +212,10 @@ env:
   # ── Modüller arası çağrı ─────────────────────────────────────────────────────
   - name: RemoteCalls__IIdentityFileStorageRemoteCall__BaseUrl
     value: "http://aizen-filestorage"
+  # Onboarding "Faaliyet Bölgesi" adımının şehir doğrulaması bu çağrıyı kullanır. Eksikti → Refit
+  # istemcisinin BaseAddress'i yoktu → "BaseAddress must be set" → doğrulama HİÇ çalışmıyordu (her ortamda).
+  - name: RemoteCalls__IIdentityReferenceDataRemoteCall__BaseUrl
+    value: "http://aizen-referencedata"
 
   # ── E-posta doğrulama linki ──────────────────────────────────────────────────
   # NEDEN /auth/verify-callback, /onboarding/verify-email DEĞİL: onboarding rota grubu

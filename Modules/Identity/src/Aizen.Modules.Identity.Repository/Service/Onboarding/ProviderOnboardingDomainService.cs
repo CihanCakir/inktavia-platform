@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction.RemoteCall;
@@ -250,13 +251,24 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
             var result = await _referenceData.GetCity(
                 countryCode.Trim().ToUpperInvariant(),
                 cityCode.Trim().ToUpperInvariant());
+
+            // Arama BAŞARILI. Şehir yoksa (Body null — endpoint bulunamayanda 200 + null döner) veya pasifse
+            // bu GERÇEK bir iş hatasıdır (kullanıcının verisi geçersiz) → false. Bunu çağıran AizenBusinessException'a çevirir.
             return result.Body is not null && result.Body.IsActive;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "ReferenceData city lookup failed for {CountryCode}/{CityCode}. Rejecting as unknown.",
-                countryCode, cityCode);
-            return false;
+            // Aramanın KENDİSİ başarısız oldu (BaseAddress yok, 403, timeout, 5xx, ağ hatası...). Bu bir DOĞRULAMA
+            // hatası DEĞİL, altyapı/erişilebilirlik hatasıdır. Eskiden burada 'return false' vardı ve bu, "şehriniz
+            // tanınmıyor" iş hatasıyla aynı cümleye çöküp asıl defekti (eksik BaseUrl) gizliyordu. Artık yukarı-akış
+            // hatası olarak yüzeye çıkar (Core.Api middleware → 502), asla geçersiz-veri gibi görünmez.
+            var correlationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
+            _logger.LogError(ex,
+                "[{Code}] ReferenceData city lookup failed for {CountryCode}/{CityCode}. correlationId={CorrelationId}",
+                AizenUpstreamException.StableCode, countryCode, cityCode, correlationId);
+            throw new AizenUpstreamException(
+                correlationId,
+                publicMessage: "Şehir doğrulaması şu an yapılamıyor. Lütfen daha sonra tekrar deneyin.");
         }
     }
 
