@@ -257,6 +257,13 @@ services:
     volumes:
       - /srv/host-stack/keycloak/inktavia-realm-realm.json:/opt/keycloak/data/import/inktavia-realm-realm.json:ro
       - /srv/host-stack/keycloak/providers/provider-otp-login-authenticator.jar:/opt/keycloak/providers/provider-otp-login-authenticator.jar:ro
+      # FAZ22 (#87) — Inktavia login teması (branded + Türkçe). Diğer iki mount gibi salt-okunur.
+      # ⚠️ #84 DRIFT: host kopyası (/srv/host-stack/keycloak/themes/inktavia) repo'daki
+      #    infrastructure/keycloak/themes/inktavia'dan ELLE senkronlanır; kopyalanmazsa sessizce sapar
+      #    (#62/#82'yi gizleyen sınıfın aynısı). Repo'yu değiştirince host'a da kopyalanmalı.
+      # ⚠️ PROD'da temalar CACHE'lenir (KC production mode): tema değişikliği canlıya ancak container
+      #    YENİDEN OLUŞTURULUNCA yansır — `restart` YETMEZ (bkz. Task C host checklist'i).
+      - /srv/host-stack/keycloak/themes/inktavia:/opt/keycloak/themes/inktavia:ro
     networks: [aizen]
 
   # Tek seferlik: client'ları, secret'ları ve OTP akışını kurar.

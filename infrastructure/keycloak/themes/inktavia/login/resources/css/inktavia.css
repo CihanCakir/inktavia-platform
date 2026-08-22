@@ -1,0 +1,123 @@
+/* Inktavia — Keycloak login teması ek katmanı (keycloak.v2 üstüne).
+ *
+ * Renk ve tipografi provider portalından BİREBİR alındı (uydurma yok):
+ *   inktavia-marine-provider-web/src/styles/tokens.css
+ *     --color-canvas #F9F8F6 · --color-surface #F2EEE9 · --color-surface-raised #FFFFFF
+ *     --color-navy #002147 · --color-navy-muted #44474E · --color-gold #C5A059
+ *     --color-danger #8B0000 · --color-outline rgb(0 33 71 / .12)
+ *     --font-display "EB Garamond", Georgia, serif · --font-ui "Hanken Grotesk", system-ui, sans-serif
+ *     --radius-card 8px · --radius-control 4px
+ *   Kart/yerleşim: src/shared/ui/auth/AuthCard.tsx (bg-surface, border-outline, rounded-card, p-8)
+ *
+ * Fontlar provider portalıyla AYNI Google Fonts @import'undan gelir (globals.css:2). KC25 varsayılan
+ * login CSP'si yalnız frame yönergelerini kısıtlar (style/font-src'yi değil), o yüzden @import çalışır;
+ * yine de erişilemezse font-family fallback'leri (Georgia / system-ui) devreye girer — ekran bozulmaz. */
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap");
+
+:root {
+  --inktavia-canvas: #F9F8F6;
+  --inktavia-surface: #F2EEE9;
+  --inktavia-navy: #002147;
+  --inktavia-navy-muted: #44474E;
+  --inktavia-gold: #C5A059;
+  --inktavia-danger: #8B0000;
+  --inktavia-outline: rgb(0 33 71 / 0.12);
+  --inktavia-font-display: "EB Garamond", Georgia, serif;
+  --inktavia-font-ui: "Hanken Grotesk", system-ui, sans-serif;
+}
+
+/* Sayfa zemini + taban tipografi */
+.login-pf body,
+body.login-pf-page,
+.login-pf-page {
+  background: var(--inktavia-canvas);
+  font-family: var(--inktavia-font-ui);
+  color: var(--inktavia-navy);
+}
+
+/* Kart — AuthCard ile aynı: açık yüzey, ince navy kenarlık, 8px köşe */
+.login-pf-page .card-pf {
+  background: #FFFFFF;
+  border: 1px solid var(--inktavia-outline);
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 2rem;
+}
+
+/* Başlıklar — display font (EB Garamond), navy */
+#kc-header-wrapper,
+#kc-page-title,
+.login-pf-page .card-pf h1,
+.pf-c-title {
+  font-family: var(--inktavia-font-display);
+  color: var(--inktavia-navy);
+  font-weight: 500;
+}
+
+/* Logo — resources/img/logo.png (provider-web marka varlığı, 256px). Header metnini görselle değiştir. */
+.login-pf-page #kc-header-wrapper {
+  background-image: url("../img/logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  height: 64px;
+  color: transparent;      /* "INKTAVIA-REALM" ham metnini gizle; displayNameHtml de bunu düzeltir */
+  text-indent: -9999px;
+  margin-bottom: 1rem;
+}
+
+/* Etiketler + yardımcı metin */
+.login-pf-page label,
+.login-pf-page .pf-c-form__label,
+#kc-form-options,
+.login-pf-page .kc-form-group,
+.login-pf-page a {
+  font-family: var(--inktavia-font-ui);
+}
+.login-pf-page a {
+  color: var(--inktavia-gold);
+}
+.login-pf-page a:hover {
+  color: var(--inktavia-navy);
+}
+
+/* Girdi alanları — 4px köşe, navy odak halkası (tokens: radius-control + gold focus) */
+.login-pf-page input[type="text"],
+.login-pf-page input[type="email"],
+.login-pf-page input[type="password"],
+.login-pf-page .pf-c-form-control {
+  border-radius: 4px;
+  border: 1px solid var(--inktavia-outline);
+  font-family: var(--inktavia-font-ui);
+}
+.login-pf-page input:focus,
+.login-pf-page .pf-c-form-control:focus {
+  outline: 2px solid var(--inktavia-gold);
+  outline-offset: 2px;
+  border-color: var(--inktavia-gold);
+}
+
+/* Birincil buton — gold zemin, navy metin (portalın vurgu rengi) */
+.login-pf-page .pf-c-button.pf-m-primary,
+.login-pf-page input[type="submit"],
+.login-pf-page #kc-login {
+  background: var(--inktavia-gold);
+  border-color: var(--inktavia-gold);
+  color: var(--inktavia-navy);
+  border-radius: 4px;
+  font-family: var(--inktavia-font-ui);
+  font-weight: 600;
+}
+.login-pf-page .pf-c-button.pf-m-primary:hover,
+.login-pf-page #kc-login:hover {
+  background: #b18e49;         /* gold %10 koyu */
+  border-color: #b18e49;
+  color: var(--inktavia-navy);
+}
+
+/* Hata mesajları — danger */
+.login-pf-page .pf-c-alert.pf-m-danger,
+.login-pf-page .kc-feedback-text,
+.login-pf-page #input-error {
+  color: var(--inktavia-danger);
+}

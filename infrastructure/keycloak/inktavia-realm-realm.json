@@ -3958,8 +3958,14 @@
       }
     ]
   },
-  "internationalizationEnabled": false,
-  "supportedLocales": [],
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "tr",
+    "en"
+  ],
+  "defaultLocale": "tr",
+  "loginTheme": "inktavia",
+  "displayNameHtml": "Inktavia Marine OS",
   "authenticationFlows": [
     {
       "id": "e2cfb2c2-1c41-42f4-87a5-d448737292be",
