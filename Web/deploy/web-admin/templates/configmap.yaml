@@ -1,0 +1,15 @@
+# Uygulamanin ORTAM AYARI.
+#
+# Bu degerler konteyner acilisinda /config.js dosyasina yaziliyor
+# (deploy/docker-entrypoint.sh, frontend repo'sunda) ve tarayici oradan okuyor.
+# Vite degiskenleri image'a GOMULMUYOR — ayni image dev'de de prod'da da kosuyor.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "web-admin.fullname" . }}-env
+  labels:
+    {{- include "web-admin.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.runtimeEnv }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

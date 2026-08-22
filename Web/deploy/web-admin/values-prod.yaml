@@ -1,0 +1,98 @@
+# web-admin — prod degerleri (inktavia-prod)
+#
+# ⚠️ PROD SU AN KAPALI (replicaCount 0). Ortam anahtari icin: scripts/ortam-degistir.py
+#
+# ⚠️ BU DOSYA PUBLIC BIR REPODA. Buradaki hicbir deger sir degil: hepsi zaten
+#    tarayiciya iniyor (SPA'da "gizli" yapilandirma diye bir sey yoktur).
+#
+# ⚠️ Bu chart, AYRI BIR REPODAN gelen bir image'i deploy ediyor:
+#    github.com/CihanCakir/inktavia-marine-admin-web
+#    Bu yuzden platform monorepo'sunun TEK ETIKET kuralina dahil DEGIL —
+#    kendi sha'si var ve gitops/apps/web-admin-app.yaml icinde duruyor.
+
+replicaCount: 0
+
+image:
+  repository: ghcr.io/cihancakir/inktavia/web-admin
+  pullPolicy: IfNotPresent
+  # Bos: Argo CD Application'daki `image.tag` parametresi dolduruyor.
+  # Bos kalirsa helm render asamasinda YUKSEK SESLE patlar (required).
+  tag: ""
+
+imagePullSecrets:
+  - name: ghcr-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# nginx-unprivileged imaji zaten uid 101 ile kosuyor; burada dogruluyoruz.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  # ⚠️ readOnlyRootFilesystem BILEREK KAPALI. Acilista entrypoint
+  # /usr/share/nginx/html/config.js dosyasini YENIDEN YAZIYOR, nginx de
+  # /var/cache/nginx ve /tmp'ye yaziyor. Acarsan konteyner acilista oler.
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  # ⚠️ Yeni bir host eklersen Cloudflare Tunnel'da yonlendirme de guncellenmeli.
+  # admin.inktavia.com PROD origin'i zaten kayitli: Keycloak admin-panel client
+  # webOrigins/redirectUris + MinIO CORS (FAZ20'de olculdu).
+  enabled: true
+  className: "nginx"
+  annotations:
+    # SPA fallback nginx'in KENDI icinde (deploy/nginx.conf, try_files).
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  hosts:
+    - host: admin.inktavia.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # TLS Cloudflare Tunnel'da sonlaniyor; origin sertifikasi gerekmiyor.
+  tls: []
+
+probes:
+  path: /healthz
+
+resources:
+  requests:
+    cpu: 5m
+    memory: 16Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ── ORTAM AYARI ─────────────────────────────────────────────────────────────
+# ConfigMap'e gidiyor, oradan konteyner ortamina, oradan /config.js'e.
+# Iki deger ZORUNLU (entrypoint eksikse konteyneri baslatmiyor):
+#   VITE_APP_ENV, VITE_ADMIN_PANEL_BFF_BASE_URL
+runtimeEnv:
+  VITE_APP_NAME: "Inktavia Marine Admin"
+  VITE_APP_ENV: "production"
+  VITE_AUTH_MODE: "identity"
+  # Prod admin BFF public adresi (FAZ20'de olculdu):
+  # Bff/deploy/aizen-bff-adminpanel/values-prod.yaml:58 → admin-api.inktavia.com
+  VITE_ADMIN_PANEL_BFF_BASE_URL: "https://admin-api.inktavia.com/api/v1/admin-panel"
+  VITE_DEFAULT_LANGUAGE: "en"
+  VITE_SUPPORTED_LANGUAGES: "en,tr"

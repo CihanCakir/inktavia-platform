@@ -32,7 +32,12 @@ spec:
         - values-dev.yaml
       parameters:
         # ▼▼▼ TEK SURUM ISARETCISI — elle guncelleniyor ▼▼▼
-        # Frontend CI'i henuz bu satiri yazmiyor (cross-repo commit, ayri is).
+        # FAZ20 (#55): Bu satir HALA elle guncelleniyor (cross-repo auto-commit YAPILMADI — public
+        # repoya yazma yetkili token gerektirirdi; ayri bir guvenlik/provenance karari). AMA artik
+        # UNUTMAK SESSIZ DEGIL: platform CI'inda build/ci/gitops-frontend-isaretci-denetimi.sh her
+        # PR/push'ta bu image.tag'i GHCR'daki en yeni ':dev' image'inin digest'iyle kiyaslar; tutmuyorsa
+        # CI YUKSEK SESLE patlar. Yani bu satiri guncellemeyi unutursan platform CI kirmizi olur —
+        # cluster sessizce eski image'i servis etmeye devam etmez. (Denetim TUM web-*-app.yaml'lari kapsar.)
         - name: image.tag
           # 2026-08-22: sha-b349367 → sha-2dd05c4 (Faz 11/12A/13B/17 frontend işi).
           # Etiket biçimi CI'dan: .github/workflows/ci.yml:85 → `sha-$(git rev-parse --short=7 HEAD)`.
