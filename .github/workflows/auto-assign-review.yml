@@ -1,5 +1,19 @@
 name: Auto Assign & Request Review
 
+# 🔴 2026-08-22 — bu is akisi her BOT PR'inda kirmiziya dusuyordu.
+# Olculdu (kosu #65, PR #72 "chore(gitops): dev surumu sha-b929c53"):
+#     POST /repos/CihanCakir/inktavia-platform/issues/72/assignees → 403 Forbidden
+# Sebep: PR'i `github-actions[bot]` acmisti ve GitHub bir BOT'u assignee yapmaya
+# izin vermiyor. Yani hata gercek bir sorun degil, BEKLENEN bir durum — ama is
+# akisi bunu ayirt etmedigi icin panoda gercek arizalarla ayni renkte gorunuyordu.
+# Surekli kirmizi bir pano, gercek kirmiziyi gormeyi imkansiz kilar; duzeltme
+# kontrolu susturmak degil, BEKLENEN durumu beklenen gibi ele almak.
+#
+# Iki degisiklik:
+#   1) Bot PR'lerinde is hic calismaz (assign/review istegi zaten anlamsiz).
+#   2) Iki cagri AYRI AYRI korunur: biri patlarsa digeri yine denenir ve sebep
+#      `core.warning` ile GORUNUR kalir — sessizce yutulmaz.
+
 on:
   pull_request:
     types: [opened, reopened, ready_for_review]
@@ -11,6 +25,8 @@ permissions:
 jobs:
   assign_and_request_review:
     runs-on: ubuntu-latest
+    # Bot'un actisi PR'de atama/review istegi yok; GitHub bota assignee vermiyor (403).
+    if: github.event.pull_request.user.type != 'Bot'
     steps:
       - name: Assign PR to author and request mentor review
         uses: actions/github-script@v7
@@ -19,25 +35,31 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const pull_number = context.payload.pull_request.number;
-
-            // Assignee:  
             const author = context.payload.pull_request.user.login;
-
-            // Mentor:
             const mentor = "UmitAkinci";
 
-            // 1) PR'ı  assign et
-            await github.rest.issues.addAssignees({
-              owner,
-              repo,
-              issue_number: pull_number,
-              assignees: [author]
-            });
+            // 1) PR'i yazarina assign et.
+            try {
+              await github.rest.issues.addAssignees({
+                owner, repo, issue_number: pull_number, assignees: [author]
+              });
+              core.info(`Assignee eklendi: ${author}`);
+            } catch (e) {
+              // Uyari, hata degil: bu adim kirilirsa PR akisi durmaz.
+              core.warning(`Assignee eklenemedi (${author}): ${e.status} ${e.message}`);
+            }
 
-            // 2) Mentor review request 
-            await github.rest.pulls.requestReviewers({
-              owner,
-              repo,
-              pull_number,
-              reviewers: [mentor]
-            });
+            // 2) Mentor'dan review iste. AYRI try: (1) patlasa bile bu denenir.
+            //    Mentor repoya collaborator degilse GitHub 422 verir — o da uyari.
+            if (author === mentor) {
+              core.info(`PR yazari zaten mentor (${mentor}); review istegi atlandi.`);
+            } else {
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner, repo, pull_number, reviewers: [mentor]
+                });
+                core.info(`Review istendi: ${mentor}`);
+              } catch (e) {
+                core.warning(`Review istenemedi (${mentor}): ${e.status} ${e.message}`);
+              }
+            }
