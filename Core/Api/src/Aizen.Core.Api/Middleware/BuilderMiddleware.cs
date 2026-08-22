@@ -4,6 +4,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Core.Infrastructure.Exception.Middleware;
 using Aizen.Core.Common.Abstraction.Exception;
+using Aizen.Core.Common.Abstraction.Localization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -25,9 +26,16 @@ namespace Aizen.Core.Api.Middleware
                     var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
                     var activity = Activity.Current.Start();
                     activity.SetStatus(ActivityStatusCode.Error, exceptionFeature.Error.ToString());
-                    var lang = string.IsNullOrWhiteSpace(context.Request.Headers["Language"])
-                        ? "TR"
-                        : context.Request.Headers["Language"].ToString();
+                    // FAZ13A #68: hata mesajı dilini GERÇEKTEN beslenen kanaldan çöz. Eskiden yalnız "Language"
+                    // başlığına bakılıyordu; onu kimse göndermiyor → lang hep "TR" kalıyordu. Sıra:
+                    //   1) Accept-Language (frontend + Faz 12B'den beri tüm BFF'ler gönderiyor; başlık — kültür
+                    //      kodu DEĞİL, o yüzden paylaşılan AcceptLanguageParser ile en yüksek q'lu birincil etiket).
+                    //   2) Legacy "Language" başlığı (gönderen bir şey varsa çalışsın).
+                    //   3) "TR" (bugünkü varsayılan). Sözlükte olmayan bir dile çözülürse GetErrorMessage zaten
+                    //      varsayılan (ilk) girdiye düşer — boş string DEĞİL. Bozuk başlık → parser null → "TR".
+                    var lang = ErrorLanguageResolver.Resolve(
+                        context.Request.Headers.AcceptLanguage.ToString(),
+                        context.Request.Headers["Language"].ToString());
 
                     var statusCode = exceptionFeature.Error switch
                     {

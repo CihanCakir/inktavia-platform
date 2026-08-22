@@ -76,12 +76,20 @@ public sealed class NotificationEntity : AizenEntity
             MetadataJson    = metadataJson,
             ReferenceType   = referenceType,
             ReferenceId     = referenceId,
-            Status          = readAtUtc.HasValue ? NotificationStatus.Read : NotificationStatus.Sent,
+            // FAZ16 (#34): seed satırları "iletilmiş" bildirimleri temsil eder → Status daima Sent (gönderim durumu).
+            // Okunmuşluk ayrı kolon ReadAt ile taşınır; Status artık okundu diye Read'e ezilmez.
+            Status          = NotificationStatus.Sent,
             CreatedAt       = createdAtUtc,
             SentAt          = createdAtUtc,
             ReadAt          = readAtUtc,
         };
     }
+
+    // FAZ15 (#34) — DEĞİŞMEZ: Pending satırı = e-posta HİÇ gönderilmedi.
+    // Gönderim denemesi transport'a gitmeden ÖNCE satır bu metotla Pending'ten çıkarılıp KALICI yazılır; böylece
+    // SendMailAsync başarıyla dönüp sonucu (Sent/Failed) yazılamadan çökme olursa satır 'Sending' kalır (denendi,
+    // sonuç belirsiz) — asla "hiç denenmemiş" gibi görünen Pending değil.
+    public void MarkAsSending() => Status = NotificationStatus.Sending;
 
     public void MarkAsSent(string? providerRef = null)
     {
@@ -92,10 +100,14 @@ public sealed class NotificationEntity : AizenEntity
 
     public void MarkAsFailed() => Status = NotificationStatus.Failed;
 
+    // FAZ16 (#34) — okunmuşluk ile GÖNDERİM DURUMU ayrı gerçeklerdir; artık aynı kolonu paylaşmazlar.
+    // Okunmuşluk YALNIZ ReadAt ile taşınır (IsRead + liste/sayaç sorguları hep ReadAt'e bakar). Status yalnız
+    // gönderim yaşam döngüsünü (Pending/Sending/Sent/Failed) tutar. Okundu diye Status'ü Read'e EZMEK "iletildi mi?"
+    // gerçeğini yok ederdi (bu fazın tüm amacı onu korumak). Read=4 enum değeri eski satırlar için geride kalır ama
+    // artık runtime'da YAZILMAZ.
     public void MarkAsRead()
     {
-        if (Status == NotificationStatus.Read) return;
-        Status = NotificationStatus.Read;
+        if (IsRead) return;
         ReadAt = DateTimeOffset.UtcNow;
     }
 

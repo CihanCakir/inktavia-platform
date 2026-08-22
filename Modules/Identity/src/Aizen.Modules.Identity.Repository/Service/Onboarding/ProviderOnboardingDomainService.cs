@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Common.Abstraction.ViewModel; // FAZ12B #65: AizenErrorCode (kararlı onboarding hata kodları)
 using Aizen.Modules.Identity.Abstraction.RemoteCall;
 using Aizen.Modules.Identity.Domain.Entities;
 using Aizen.Modules.Identity.Domain.Entities.Onboarding;
@@ -48,14 +49,14 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
     public async Task SaveStepAsync(long profileId, string step, string stepStatus, string stepDataJson, int schemaVersion, CancellationToken ct)
     {
         if (schemaVersion != CurrentSchemaVersion)
-            throw new AizenBusinessException($"Unsupported schema version {schemaVersion}. Expected {CurrentSchemaVersion}.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingSchemaVersionUnsupported, $"Unsupported schema version {schemaVersion}. Expected {CurrentSchemaVersion}.");
 
         // Validate city code against ReferenceData when saving the OperatingRegion step.
         if (step == "OperatingRegion")
             await ValidateCityCodeInJsonAsync(stepDataJson, ct);
 
         var entity = await GetOrCreateAsync(profileId, ct)
-            ?? throw new AizenBusinessException("Provider profile not found.");
+            ?? throw new AizenBusinessException((int)AizenErrorCode.ProviderProfileNotFound, "Provider profile not found.");
 
         entity.SaveStep(step, stepStatus, stepDataJson, DateTime.UtcNow);
         _repo.Update(entity);
@@ -97,7 +98,7 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
     public async Task SubmitAsync(long profileId, CancellationToken ct)
     {
         var entity = await _repo.GetByProfileIdAsync(profileId, ct)
-            ?? throw new AizenBusinessException("Onboarding record not found.");
+            ?? throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingRecordNotFound, "Onboarding record not found.");
 
         // Double-submit is idempotent — skip validation and mirroring if already submitted.
         if (entity.Status == ProviderOnboardingStatus.Submitted)
@@ -144,7 +145,7 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
             missing.Add($"Document '{doc.Name}' (type: {doc.DocumentType}) has been rejected and must be replaced.");
 
         if (missing.Count > 0)
-            throw new AizenBusinessException("Submission incomplete: " + string.Join("; ", missing));
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingSubmissionIncomplete, "Submission incomplete: " + string.Join("; ", missing));
 
         // ── Submit (checks step statuses; idempotent when already Submitted) ──
         entity.Submit(DateTime.UtcNow);
@@ -169,7 +170,7 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
     public async Task RequestRevisionAsync(long profileId, string[] steps, string note, CancellationToken ct)
     {
         var entity = await _repo.GetByProfileIdAsync(profileId, ct)
-            ?? throw new AizenBusinessException("Onboarding record not found.");
+            ?? throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingRecordNotFound, "Onboarding record not found.");
 
         entity.RequestRevision(steps, note, DateTime.UtcNow);
         _repo.Update(entity);
@@ -284,7 +285,7 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
             var cityCode = root.TryGetProperty("cityCode", out var cc) ? cc.GetString() : null;
             var countryCode = root.TryGetProperty("country", out var co) ? co.GetString() : null;
             if (!string.IsNullOrWhiteSpace(cityCode) && !await IsCityCodeValidAsync(countryCode ?? "TR", cityCode, ct))
-                throw new AizenBusinessException($"City code '{cityCode}' is not a recognised ReferenceData city.");
+                throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingCityNotRecognised, $"City code '{cityCode}' is not a recognised ReferenceData city.");
         }
         catch (AizenBusinessException) { throw; }
         catch (JsonException) { /* Malformed JSON — let the step save handle it */ }

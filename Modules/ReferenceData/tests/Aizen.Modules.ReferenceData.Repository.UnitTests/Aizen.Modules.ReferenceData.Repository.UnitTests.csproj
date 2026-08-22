@@ -19,8 +19,15 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- FAZ13A #68: hata mesajı yerelleştirmesini modülün gömülü kaynağından bağımsız test etmek için küçük sözlük. -->
+  <ItemGroup>
+    <EmbeddedResource Include="test_error_messages.json" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Aizen.Modules.ReferenceData.Repository\Aizen.Modules.ReferenceData.Repository.csproj" />
+    <!-- FAZ 9 Sınıf B: controller auth attribute regresyon testi için controller assembly'si -->
+    <ProjectReference Include="..\..\src\Aizen.Modules.ReferenceData\Aizen.Modules.ReferenceData.csproj" />
   </ItemGroup>
 
 </Project>

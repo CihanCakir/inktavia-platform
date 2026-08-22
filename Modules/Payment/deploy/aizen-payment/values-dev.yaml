@@ -146,6 +146,26 @@ env:
   - name: MessageBroker__QueueSettings__Password
     value: "$(RABBITMQ_PASSWORD)"
 
+  # ── Keycloak (RS256 servis token'ı doğrulama) ─────────────────────
+  # 🔴 BU BİR YA/YA-DA ANAHTARIDIR, ek ayar değil.
+  # AizenOperationServiceConfiguration.cs:34 → AddAizenKeycloakAuth:
+  #   Keycloak__Authority DOLU ise → RS256 Keycloak şeması (BFF servis token'ı doğrulanır)
+  #   Keycloak__Authority BOŞ ise  → simetrik TokenOption şeması (RS256 token'ı doğrulanamaz)
+  # Bu değer BOŞKEN modül TokenOption dalındaydı → BFF'in gönderdiği RS256 servis token'ı
+  # doğrulanamıyordu → [Authorize] uçlar (ve FallbackPolicy nedeniyle attribute'suz uçlar da) 401.
+  # Authority = token'daki issuer; ValidIssuer DOĞRUDAN buna eşitlenir. Prod issuer'ı (dev ile aynı)
+  # https://auth.inktavia.com/realms/inktavia-realm.
+  # MetadataAddress BİLEREK iç adres: JWKS cluster içinden çekilir, Cloudflare'e bağımlı olmaz.
+  - name: Keycloak__Authority
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
+  - name: Keycloak__MetadataAddress
+    value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
+  - name: Keycloak__RequireHttpsMetadata
+    value: "false"
+  # Keycloak__Audience BİLEREK YOK. Kod: ValidateAudience = !IsNullOrWhiteSpace(...) — boş bırakılınca
+  # audience DOĞRULANMAZ. Buraya bir aud yazmak audience doğrulamayı AÇAR ve token'ında o aud bulunmayan
+  # HER çağıranı sessizce kırar. Yazmadan önce çağıran BFF'lerin token'ında o aud'un bulunduğu ölçülmeli.
+
   # ── BFF assertion — bu olmadan modül AÇILMAZ ─────────────────────────────────
   # Core/InfoAccessor, Development dışında boş SharedSecret ile başlatmayı
   # fail-closed olarak reddediyor: modülün tek kimlik güvencesi bu sır.
@@ -194,3 +214,13 @@ env:
     value: "https://sandbox-api.iyzipay.com"
   - name: Iyzico__Locale
     value: "tr"
+
+  # ── Modüller arası çağrı (uzak-çağrı BaseUrl'leri) ────────────────────────────
+  # AizenHttpClientFactory.cs:169 — anahtar yoksa BaseAddress boş → KeyNotFoundException / new Uri(null).
+  # IPaymentFileStorageRemoteCall → FileStorage (upload-sessions, files/{id}/access/read-url)
+  #   [Authorize, Authorization iletiliyor]. IPaymentReferenceDataRemoteCall → ReferenceData
+  #   (system-parameters/*) [AllowAnonymous]. İkisinde de yalnız BaseUrl eksikti.
+  - name: RemoteCalls__IPaymentFileStorageRemoteCall__BaseUrl
+    value: "http://aizen-filestorage"
+  - name: RemoteCalls__IPaymentReferenceDataRemoteCall__BaseUrl
+    value: "http://aizen-referencedata"

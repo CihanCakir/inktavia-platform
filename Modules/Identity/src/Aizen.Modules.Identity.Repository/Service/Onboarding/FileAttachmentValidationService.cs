@@ -1,4 +1,5 @@
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Common.Abstraction.ViewModel; // FAZ12B #65: AizenErrorCode
 using Aizen.Modules.FileStorage.Abstraction.Enum;
 using Aizen.Modules.FileStorage.Abstraction.Request.Access;
 using Aizen.Modules.Identity.Abstraction.Options;
@@ -99,7 +100,7 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
     {
         // 0. Reject invalid caller identity for non-admin paths
         if (!actorIsAdmin && callerUserId <= 0)
-            throw new AizenBusinessException("Invalid caller identity.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingCallerIdentityInvalid, "Invalid caller identity.");
 
         // 1. Profile exists + matches expected role
         var profile = await _db.UserProfiles
@@ -107,26 +108,26 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
             .FirstOrDefaultAsync(p => p.Id == profileId
                 && p.RoleContext == roleContext
                 && !p.IsDeleted, ct)
-            ?? throw new AizenBusinessException("Profile not found.");
+            ?? throw new AizenBusinessException((int)AizenErrorCode.ProviderProfileNotFound, "Profile not found.");
 
         // 2. Caller owns the profile (skip for admin path — admin doesn't own the profile)
         if (!actorIsAdmin && profile.UserId != callerUserId)
-            throw new AizenBusinessException("You do not have permission to modify this profile.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingPermissionDenied, "You do not have permission to modify this profile.");
 
         // 3. Onboarding not Submitted
         var onboarding = await _db.ProviderOnboarding
             .FirstOrDefaultAsync(o => o.ProfileId == profileId, ct);
         if (onboarding is not null && onboarding.Status == ProviderOnboardingStatus.Submitted)
-            throw new AizenBusinessException("Cannot attach documents after onboarding has been submitted.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingLockedAfterSubmit, "Cannot attach documents after onboarding has been submitted.");
 
         // 4. Duplicate on this profile
         if (profile.VerificationDocuments.Any(d => d.FilePublicId == filePublicId && !d.IsDeleted))
-            throw new AizenBusinessException("This file is already attached to the profile.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileAlreadyAttached, "This file is already attached to the profile.");
 
         // 5. Cross-profile uniqueness
         if (await _db.VerificationDocuments.AnyAsync(
             d => d.FilePublicId == filePublicId && d.ProfileId != profileId && !d.IsDeleted, ct))
-            throw new AizenBusinessException("This file is already associated with another profile.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileAssociatedWithOtherProfile, "This file is already associated with another profile.");
 
         // 6–10. FileStorage validation — FAIL CLOSED. Any error → reject.
         var token = await GetServiceTokenAsync(ct);
@@ -137,13 +138,13 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
         {
             var fileResult = await _fileStorage.GetFile(filePublicId, bearerToken);
             file = fileResult?.Body
-                ?? throw new AizenBusinessException("File not found in storage.");
+                ?? throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileNotFoundInStorage, "File not found in storage.");
         }
         catch (AizenBusinessException) { throw; }
         catch (Exception ex)
         {
             _logger.LogError(ex, "FileStorage validation failed for file {FileId}. Rejecting attach.", filePublicId);
-            throw new AizenBusinessException("Unable to verify the file. Please try again.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileVerificationFailed, "Unable to verify the file. Please try again.");
         }
 
         // 7. Ownership — the file must have been uploaded by the profile owner.
@@ -153,23 +154,23 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
         {
             _logger.LogWarning("Ownership violation: file {FileId} uploaded by {UploadedBy}, but profile {ProfileId} is owned by {ProfileOwner}.",
                 filePublicId, file.UploadedByUserId, profileId, profile.UserId);
-            throw new AizenBusinessException("The file was not uploaded by the profile owner.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileNotOwnedByProfile, "The file was not uploaded by the profile owner.");
         }
 
         // 8. Status — allow Uploaded (scan pending) and Ready (scan passed).
         //    Quarantined files (threat detected by AV scan) are explicitly rejected.
         if (file.Status == FileStatus.Quarantined)
-            throw new AizenBusinessException("File has been quarantined due to a detected threat and cannot be attached.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileQuarantined, "File has been quarantined due to a detected threat and cannot be attached.");
         if (file.Status != FileStatus.Uploaded && file.Status != FileStatus.Ready)
-            throw new AizenBusinessException($"File is not ready for attachment (status: {file.Status}).");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileNotReady, $"File is not ready for attachment (status: {file.Status}).");
 
         // 9. Content-type
         if (!AllowedContentTypes.Contains(file.ContentType))
-            throw new AizenBusinessException($"File type '{file.ContentType}' is not allowed. Accepted: PDF, JPEG, PNG.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileTypeNotAllowed, $"File type '{file.ContentType}' is not allowed. Accepted: PDF, JPEG, PNG.");
 
         // 10. Size
         if (file.SizeInBytes > MaxSizeBytes)
-            throw new AizenBusinessException($"File is too large ({file.SizeInBytes / (1024 * 1024)} MB). Maximum: 10 MB.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileTooLarge, $"File is too large ({file.SizeInBytes / (1024 * 1024)} MB). Maximum: 10 MB.");
 
         // 11. Create document entity (not yet persisted)
         var document = VerificationDocumentEntity.CreateFromBff(
@@ -223,7 +224,7 @@ public sealed class FileAttachmentValidationService : IFileAttachmentValidationS
                     documentPublicId);
             }
 
-            throw new AizenBusinessException("Unable to complete file attachment. Please try again.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingFileVerificationFailed, "Unable to complete file attachment. Please try again.");
         }
 
         return document;

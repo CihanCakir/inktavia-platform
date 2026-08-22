@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Aizen.Core.Auth;
 using Aizen.Core.Auth.Abstraction;
 using Aizen.Core.Auth.Extension;
+using Aizen.Core.Common.Abstraction.Configuration;
 using Aizen.Core.Common.Abstraction.Exception;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -31,14 +32,17 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var keycloakAuthority = configuration["Keycloak:Authority"]
-                ?? configuration["KEYCLOAK_AUTHORITY"];
+            // FAZ14 (#30): NullIfUnset — "__FROM_ENV__" gibi doldurulmamış yer-tutucu = AYARLANMAMIŞ sayılır.
+            // Aksi hâlde aşağıdaki !IsNullOrWhiteSpace(keycloakAuthority) kararı yer-tutucuyu "dolu" sanıp
+            // Keycloak dalına girer ve o.Authority="__FROM_ENV__" ile JWKS keşfi çöker (herkes için 401; borç #53).
+            var keycloakAuthority = AizenConfigPlaceholders.NullIfUnset(
+                configuration["Keycloak:Authority"] ?? configuration["KEYCLOAK_AUTHORITY"]);
 
-            var keycloakMetadataAddress = configuration["Keycloak:MetadataAddress"]
-                ?? configuration["KEYCLOAK_METADATA_ADDRESS"];
+            var keycloakMetadataAddress = AizenConfigPlaceholders.NullIfUnset(
+                configuration["Keycloak:MetadataAddress"] ?? configuration["KEYCLOAK_METADATA_ADDRESS"]);
 
-            var keycloakAudience = configuration["Keycloak:Audience"]
-                ?? configuration["KEYCLOAK_AUDIENCE"];
+            var keycloakAudience = AizenConfigPlaceholders.NullIfUnset(
+                configuration["Keycloak:Audience"] ?? configuration["KEYCLOAK_AUDIENCE"]);
 
             var requireHttpsMetadataValue = configuration["Keycloak:RequireHttpsMetadata"]
                 ?? configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
@@ -192,14 +196,15 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
             })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
             {
-                var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
-                    ?? builder.Configuration["KEYCLOAK_AUTHORITY"];
+                // FAZ14 (#30): doldurulmamış yer-tutucu = AYARLANMAMIŞ (aşağıdaki Keycloak/simetrik dal kararı için).
+                var keycloakAuthority = AizenConfigPlaceholders.NullIfUnset(
+                    builder.Configuration["Keycloak:Authority"] ?? builder.Configuration["KEYCLOAK_AUTHORITY"]);
 
-                var keycloakMetadataAddress = builder.Configuration["Keycloak:MetadataAddress"]
-                    ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"];
+                var keycloakMetadataAddress = AizenConfigPlaceholders.NullIfUnset(
+                    builder.Configuration["Keycloak:MetadataAddress"] ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"]);
 
-                var keycloakAudience = builder.Configuration["Keycloak:Audience"]
-                    ?? builder.Configuration["KEYCLOAK_AUDIENCE"];
+                var keycloakAudience = AizenConfigPlaceholders.NullIfUnset(
+                    builder.Configuration["Keycloak:Audience"] ?? builder.Configuration["KEYCLOAK_AUDIENCE"]);
 
                 var requireHttpsMetadataValue = builder.Configuration["Keycloak:RequireHttpsMetadata"]
                     ?? builder.Configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];
@@ -325,14 +330,15 @@ namespace Aizen.Core.Infrastructure.Auth.Extension
                             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                         }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                             {
-                                var keycloakAuthority = builder.Configuration["Keycloak:Authority"]
-                                    ?? builder.Configuration["KEYCLOAK_AUTHORITY"];
+                                // FAZ14 (#30): doldurulmamış yer-tutucu = AYARLANMAMIŞ (Keycloak/simetrik dal kararı için).
+                                var keycloakAuthority = AizenConfigPlaceholders.NullIfUnset(
+                                    builder.Configuration["Keycloak:Authority"] ?? builder.Configuration["KEYCLOAK_AUTHORITY"]);
 
-                                var keycloakMetadataAddress = builder.Configuration["Keycloak:MetadataAddress"]
-                                    ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"];
+                                var keycloakMetadataAddress = AizenConfigPlaceholders.NullIfUnset(
+                                    builder.Configuration["Keycloak:MetadataAddress"] ?? builder.Configuration["KEYCLOAK_METADATA_ADDRESS"]);
 
-                                var keycloakAudience = builder.Configuration["Keycloak:Audience"]
-                                    ?? builder.Configuration["KEYCLOAK_AUDIENCE"];
+                                var keycloakAudience = AizenConfigPlaceholders.NullIfUnset(
+                                    builder.Configuration["Keycloak:Audience"] ?? builder.Configuration["KEYCLOAK_AUDIENCE"]);
 
                                 var requireHttpsMetadataValue = builder.Configuration["Keycloak:RequireHttpsMetadata"]
                                     ?? builder.Configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];

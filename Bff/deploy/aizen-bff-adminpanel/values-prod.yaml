@@ -165,6 +165,15 @@ env:
     value: "false"
   - name: AdminPanelKeycloak__AdminClientSecret
     value: "$(KC_CLIENT_SECRET)"
+  # ── BFF kimlik iddiası anahtarı (FAZ10 #31) ──────────────────────────────────
+  # DelegatingHandler bu değer BOŞKEN X-Aizen-Bff-Assertion + X-Aizen-User-Id başlıklarını GÖNDERMİYORDU;
+  # modüller ise aynı mühürlü secret'ı BffAssertion__SharedSecret olarak doğruluyor (prod'da boşsa açılmıyor).
+  # HMAC (FixedTimeEquals) tutması için modülün SharedSecret'i ile AYNI secret'a bağlanır. Asserted user-id
+  # modül tarafında UserInfo.UserId'yi doldurur (audit/CreateUserId); endpoint'ler servis token'ıyla zaten
+  # çalışıyor, bu EK güvence.  (appsettings.json'da varsayılan "" idi.)
+  - name: AdminPanelKeycloak__ModuleAssertionSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
 
   # ── Keycloak servis token'ı ──────────────────────────────────────────────────
   - name: KeycloakServiceToken__Authority
@@ -192,11 +201,17 @@ env:
     value: "http://aizen-messaging"
   - name: RemoteCalls__IAdminPaymentBffRemoteCall__BaseUrl
     value: "http://aizen-payment"
+  # FAZ9: DI (DependencyInjection.cs:112) "IAdminProfilePerformanceBffRemoteCall" arıyordu ama bu anahtar
+  # hiçbir yerde tanımlı değildi → 11 performans handler'ı BaseAddress'siz kalıyordu. Hedef: Profile modülü.
+  - name: RemoteCalls__IAdminProfilePerformanceBffRemoteCall__BaseUrl
+    value: "http://aizen-profile"
   - name: RemoteCalls__IFileStorageAdminBffRemoteCall__BaseUrl
     value: "http://aizen-filestorage"
   - name: RemoteCalls__IIdentityAdminBffRemoteCall__BaseUrl
     value: "http://aizen-identity"
-  - name: RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl
+  # FAZ9: DI (DependencyInjection.cs:103) bu anahtarı "IAdminNotificationBffRemoteCall" olarak arıyor;
+  # buradaki isim sırası yanlıştı (Admin ortada) → INotificationTemplateRemoteCall BaseAddress'siz kalıyordu.
+  - name: RemoteCalls__IAdminNotificationBffRemoteCall__BaseUrl
     value: "http://aizen-notification"
   - name: RemoteCalls__INotificationBffRemoteCall__BaseUrl
     value: "http://aizen-notification"

@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Common.Abstraction.ViewModel; // FAZ12B #65: AizenErrorCode
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Options;
@@ -54,7 +55,7 @@ public sealed class RemoveProviderDocumentCommandHandler
         if (profile is null)
         {
             _logger.LogWarning("RemoveProviderDocument: profile {ProfileId} not found.", request.ProfileId);
-            throw new AizenBusinessException("Profile not found.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderProfileNotFound, "Profile not found.");
         }
 
         // 2. Guard: cannot remove after onboarding is submitted
@@ -64,7 +65,7 @@ public sealed class RemoveProviderDocumentCommandHandler
         if (onboarding is not null && onboarding.Status == ProviderOnboardingStatus.Submitted)
         {
             _logger.LogWarning("RemoveProviderDocument: onboarding already submitted for profile {ProfileId}.", request.ProfileId);
-            throw new AizenBusinessException("Cannot remove documents after onboarding has been submitted.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingLockedAfterSubmit, "Cannot remove documents after onboarding has been submitted.");
         }
 
         // 3. Remove (soft-delete the document row)
@@ -72,7 +73,7 @@ public sealed class RemoveProviderDocumentCommandHandler
         if (!removed)
         {
             _logger.LogWarning("RemoveProviderDocument: file {FileId} not found on profile {ProfileId}.", request.FileId, request.ProfileId);
-            throw new AizenBusinessException("Document not found on this profile.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingDocumentNotFound, "Document not found on this profile.");
         }
 
         await _db.SaveChangesAsync(ct);

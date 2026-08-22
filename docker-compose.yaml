@@ -99,6 +99,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       OTP_LOGIN_TICKET_SECRET: ${OTP_LOGIN_TICKET_SECRET:-}
       OTP_LOGIN_CONSUME_SECRET: ${OTP_LOGIN_CONSUME_SECRET:-}
+      # Realm SMTP parolası (Resend). Boşsa init.sh adımı atlar; çalışan parolayı ezmez.
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     volumes:
       - ./infrastructure/keycloak/init.sh:/init/init.sh:ro
     networks: [aizen]

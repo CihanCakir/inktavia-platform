@@ -119,16 +119,35 @@ internal sealed class ProviderKeycloakAdminClient : IProviderKeycloakAdminClient
     public async Task SetUserAttributeAsync(string userId, string attributeName, string attributeValue, CancellationToken cancellationToken = default)
     {
         var client = await CreateClientAsync(cancellationToken);
+        var url = $"{_options.AdminApiBaseUrl}/users/{userId}";
 
-        var current = await client.GetFromJsonAsync<UserRepresentation>(
-                          $"{_options.AdminApiBaseUrl}/users/{userId}", Json, cancellationToken)
-                      ?? throw new InvalidOperationException("Keycloak user not found for attribute update.");
+        // READ: tam temsili HAM JSON olarak al (SetEmailVerifiedAsync ile aynı desen).
+        // Eskiden minimal tipli UserRepresentation'a deserialize edilip PUT ediliyordu. Keycloak PUT temsili
+        // DEĞİŞTİRDİĞİ (replace) için, tipte MODELLENMEMİŞ her alan (requiredActions, federatedIdentities,
+        // createdTimestamp, groups, realmRoles ...) her attribute yazımında SİLİNİYORDU. 2026-08-21'de bu
+        // desen canlı bir kullanıcının email/firstName/lastName + requiredActions durumunu bozdu →
+        // VERIFY_PROFILE tetiklendi → giriş kilitlendi (#38). JsonNode ile yalnız tek attribute değişir,
+        // GET'in döndürdüğü DİĞER TÜM alanlar aynen geri yazılır.
+        var getResponse = await client.GetAsync(url, cancellationToken);
+        if (getResponse.StatusCode == HttpStatusCode.NotFound)
+            throw new InvalidOperationException("Keycloak user not found for attribute update.");
+        getResponse.EnsureSuccessStatusCode();
+        var payload = await getResponse.Content.ReadAsStringAsync(cancellationToken);
+        var user = JsonNode.Parse(payload)?.AsObject()
+                   ?? throw new InvalidOperationException("Keycloak user representation could not be parsed.");
 
-        current.Attributes ??= new Dictionary<string, List<string>>();
-        current.Attributes[attributeName] = new List<string> { attributeValue };
+        // MODIFY: yalnızca hedef attribute. Mevcut diğer attribute'lar korunur.
+        if (user["attributes"]?.AsObject() is not JsonObject attributes)
+        {
+            attributes = new JsonObject();
+            user["attributes"] = attributes;
+        }
+        attributes[attributeName] = new JsonArray(attributeValue);
 
-        var response = await client.PutAsJsonAsync($"{_options.AdminApiBaseUrl}/users/{userId}", current, Json, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        // WRITE: tam temsili geri yaz — hiçbir alan kaybedilmez.
+        var content = new StringContent(user.ToJsonString(), Encoding.UTF8, "application/json");
+        var putResponse = await client.PutAsync(url, content, cancellationToken);
+        putResponse.EnsureSuccessStatusCode();
     }
 
     public async Task AssignRealmRoleAsync(string userId, string roleName, CancellationToken cancellationToken = default)

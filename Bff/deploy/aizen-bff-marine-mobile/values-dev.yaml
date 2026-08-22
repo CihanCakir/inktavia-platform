@@ -173,6 +173,21 @@ env:
     value: "false"
   - name: MarineMobileKeycloak__AdminClientSecret
     value: "$(KC_CLIENT_SECRET)"
+  # ── Katılımcı oturum devri redirect_uri (FAZ14 #30) ──────────────────────────
+  # ParticipantSessionHandoff bu değeri KOŞULSUZ kullanır (options default'u localhost:17003).
+  # appsettings'te "__FROM_ENV__" placeholder'ı duruyor; BOŞ bırakılırsa handoff redirect_uri=__FROM_ENV__
+  # ile Keycloak'a gider → 400 (borç #53 ile aynı sınıf). Değer = bu BFF'in kendi ingress host'u + /auth/callback.
+  - name: MarineMobileKeycloak__BffRedirectUri
+    value: "https://dev-mapi.inktavia.com/auth/callback"
+  # ── BFF kimlik iddiası anahtarı (FAZ10 #31) ──────────────────────────────────
+  # DelegatingHandler bu değer BOŞKEN X-Aizen-Bff-Assertion + X-Aizen-User-Id başlıklarını GÖNDERMİYORDU;
+  # modüller ise aynı mühürlü secret'ı BffAssertion__SharedSecret olarak doğruluyor (prod'da boşsa açılmıyor).
+  # HMAC (FixedTimeEquals) tutması için modülün SharedSecret'i ile AYNI secret'a bağlanır. Asserted user-id
+  # modül tarafında UserInfo.UserId'yi doldurur (audit/CreateUserId); endpoint'ler servis token'ıyla zaten
+  # çalışıyor, bu EK güvence.
+  - name: MarineMobileKeycloak__ModuleAssertionSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
 
   # CORS yok: mobil istemci native, tarayıcı origin kontrolü uygulanmıyor.
 
@@ -180,6 +195,10 @@ env:
   # Hepsi cluster içi ClusterIP servisleri; port 80 → container 8080.
   - name: RemoteCalls__ICargoDryRemoteCall__BaseUrl
     value: "http://aizen-cargodry"
+  # FAZ9: BaseUrl eksikti (DI nameof(IFileStorageRemoteCall)) → avatar + SR/chat/vessel attachment
+  # read-url handler'ları çağrı anında BaseAddress'siz kalıyordu.
+  - name: RemoteCalls__IFileStorageRemoteCall__BaseUrl
+    value: "http://aizen-filestorage"
   - name: RemoteCalls__IIdentityRemoteCall__BaseUrl
     value: "http://aizen-identity"
   - name: RemoteCalls__IMessagingRemoteCall__BaseUrl

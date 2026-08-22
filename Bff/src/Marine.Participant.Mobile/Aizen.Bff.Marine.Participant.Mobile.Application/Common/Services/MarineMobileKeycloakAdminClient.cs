@@ -120,6 +120,13 @@ internal sealed class MarineMobileKeycloakAdminClient : IMarineMobileKeycloakAdm
         // GET then PUT a CONTROLLED body: re-include the managed identity fields (email/first/last) —
         // omitting them makes Keycloak 25's declarative user profile CLEAR them — plus only the target
         // attribute. Re-sending the *full* GET'd representation instead trips declarative validation (400).
+        //
+        // #38 NOTU (2026-08-21): Provider tarafındaki ikizi (ProviderKeycloakAdminClient) tam-temsil JsonNode
+        // geri-yazma desenine geçirildi. Buranın BİLEREK öyle YAPILMADI: yukarıdaki "full temsil → 400"
+        // KC25 declarative-profile davranışı bu istemcide ÖLÇÜLDÜ. Kontrollü gövde zaten olay-anındaki
+        // alanları (email/first/last) ve diğer attribute'ları koruyor; çağrı bağlamında (taze kayıt) drop
+        // edilen requiredActions boş, federatedIdentities/groups/roller ayrı uçlarla yönetiliyor (PUT /users
+        // bunları düşürmez). Tam-temsile geçmek istenirse CANLI KC'de doğrulanmadan yapılmamalı — bkz. rapor.
         var current = await client.GetFromJsonAsync<UserRepresentation>(
                           $"{_options.AdminApiBaseUrl}/users/{userId}", Json, cancellationToken)
                       ?? throw new InvalidOperationException("Keycloak user not found for attribute update.");

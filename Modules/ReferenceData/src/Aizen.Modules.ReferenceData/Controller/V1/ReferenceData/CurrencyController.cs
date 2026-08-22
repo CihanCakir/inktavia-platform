@@ -9,7 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Aizen.Modules.ReferenceData.Controller.V1.ReferenceData;
 
+// Salt-okunur para birimi sorguları. Tek çağıran AdminPanel BFF'tir ve servis token'ını iletir; token'sız
+// çağıran modül→modül yol YOKTUR. Bu yüzden örtük FallbackPolicy'ye güvenmek yerine niyeti AÇIK yazıyoruz:
+// kimlik doğrulanmış erişim. (ExchangeRate/Lookup'tan farkı: onları token'sız bir modül çağırıyordu, bunu
+// değil.) Bir gün token'sız bir modül çağıranı olursa bilinçli bir karar gerekir; sessizce 401 olmasın diye
+// [Authorize] burada açıkça duruyor.
 [ApiController]
+[Authorize]
 [Route("api/v1/reference-data/currencies")]
 [Tags("Currency")]
 [DocumentationInfo("Currency read endpoints", "Read-only currency queries available to all authenticated users.")]

@@ -9,6 +9,7 @@ using Aizen.Core.IOC.Extension;
 using Aizen.Core.Messagebus.Extensions;
 using Aizen.Core.RemoteCall.Extensions;
 using Aizen.Core.Starter.Abstraction;
+using Aizen.Core.Starter.Abstraction.Configuration;
 using Aizen.Core.Starter.Api.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -32,6 +33,11 @@ public class AizenBffServiceConfiguration : IAizenServiceConfiguration
 
     public void Configure(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
+        // FAZ14 (#30): doldurulmamış "__FROM_ENV__"/"__FROM_SECRET__" yer-tutucularıyla açılmayı reddet.
+        // Development dışında suçlu TÜM anahtarları listeleyip fırlatır; Development'ta loglayıp devam eder.
+        // Herhangi bir servis kablolamasından ÖNCE, hızlı-başarısızlık için ilk çağrı.
+        AizenConfigurationPlaceholderGuard.EnsureNoUnfilledPlaceholders(configuration, environment);
+
         services.AddHttpContextAccessor();
 
         services.AddControllers()

@@ -49,10 +49,12 @@ public sealed class NotificationRepository : INotificationRepository
     public async Task<int> BulkMarkAsReadAsync(long userId, CancellationToken ct)
     {
         var now = DateTimeOffset.UtcNow;
+        // FAZ16 (#34): okunmuşluk YALNIZ ReadAt ile işaretlenir. Eskiden Status da Read'e eziliyordu; InApp satırları
+        // artık gerçek gönderim durumu (Sent/Failed) taşıdığından bu ezme "iletildi mi?" gerçeğini yok ederdi.
+        // Okunmuşluk her sorguda ReadAt==null ile ölçülür (IsRead, GetUnreadCount, sıralama) — Status'e bakılmaz.
         return await _db.Notifications
             .Where(x => x.RecipientUserId == userId && x.Channel == NotificationChannel.InApp && x.ReadAt == null)
             .ExecuteUpdateAsync(s =>
-                s.SetProperty(x => x.ReadAt, now)
-                 .SetProperty(x => x.Status, NotificationStatus.Read), ct);
+                s.SetProperty(x => x.ReadAt, now), ct);
     }
 }

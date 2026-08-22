@@ -172,6 +172,15 @@ env:
   # tamamen birakildi; dogrulama artik uygulama akisiyla (Identity confirm) yapiliyor.
   - name: MarineProviderKeycloak__AdminClientSecret
     value: "$(KC_CLIENT_SECRET)"
+  # ── BFF kimlik iddiası anahtarı (FAZ10 #31) ──────────────────────────────────
+  # DelegatingHandler bu değer BOŞKEN X-Aizen-Bff-Assertion + X-Aizen-User-Id başlıklarını GÖNDERMİYORDU;
+  # modüller ise aynı mühürlü secret'ı BffAssertion__SharedSecret olarak doğruluyor (prod'da boşsa açılmıyor).
+  # HMAC (FixedTimeEquals) tutması için modülün SharedSecret'i ile AYNI secret'a bağlanır. Asserted user-id
+  # modül tarafında UserInfo.UserId'yi doldurur (audit/CreateUserId); endpoint'ler servis token'ıyla zaten
+  # çalışıyor, bu EK güvence.
+  - name: MarineProviderKeycloak__ModuleAssertionSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
 
   # ── Keycloak servis token'ı ──────────────────────────────────────────────────
   # 🔴 DÜZELTME: appsettings'te ClientId ve CacheKeyPrefix 'admin-panel-bff' yazıyor —
@@ -208,8 +217,16 @@ env:
     value: "http://aizen-filestorage"
   - name: RemoteCalls__IIdentityRemoteCall__BaseUrl
     value: "http://aizen-identity"
+  # FAZ9: BaseUrl eksikti (DI nameof(IMessagingRemoteCall) ile arıyordu) → mesaj/attachment/support
+  # handler'ları çağrı anında BaseAddress'siz kalıyordu.
+  - name: RemoteCalls__IMessagingRemoteCall__BaseUrl
+    value: "http://aizen-messaging"
   - name: RemoteCalls__INotificationRemoteCall__BaseUrl
     value: "http://aizen-notification"
+  # FAZ9: BaseUrl eksikti → provider finans (payout/invoice/subscription) 15 handler'ı BaseAddress'siz
+  # kalıyordu. "Wave B doğrulandı" notuna rağmen prod'da bu yol konfigürasyonsuzdu.
+  - name: RemoteCalls__IPaymentRemoteCall__BaseUrl
+    value: "http://aizen-payment"
   - name: RemoteCalls__IReferenceDataRemoteCall__BaseUrl
     value: "http://aizen-referencedata"
   - name: RemoteCalls__IServiceRequestRemoteCall__BaseUrl
