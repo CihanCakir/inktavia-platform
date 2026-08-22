@@ -1,0 +1,102 @@
+# web-admin — dev degerleri (inktavia-dev)
+#
+# ⚠️ BU DOSYA PUBLIC BIR REPODA. Buradaki hicbir deger sir degil: hepsi zaten
+#    tarayiciya iniyor (SPA'da "gizli" yapilandirma diye bir sey yoktur).
+#
+# ⚠️ Bu chart, AYRI BIR REPODAN gelen bir image'i deploy ediyor:
+#    github.com/CihanCakir/inktavia-marine-admin-web
+#    Bu yuzden platform monorepo'sunun TEK ETIKET kuralina dahil DEGIL —
+#    kendi sha'si var ve gitops/apps/web-admin-app.yaml icinde duruyor.
+#
+# ⛔ DEV SPA HOST'U YOK — FAZ20'de OLCULDU (2026-08-22):
+#    Admin BFF'in dev host'u VAR (dev-admin-api.inktavia.com), ama admin PANELININ
+#    (SPA) kendi dev ingress host'u HICBIR YERDE tanimli degil: ne Cloudflare tunel
+#    yonlendirmesinde, ne de baska bir yerde 'dev-admin.inktavia.com' gecmiyor.
+#    Kural geregi UYDURMUYORUM. Bu yuzden dev'de ingress KAPALI ve replicaCount 0.
+#    Etkinlestirmek icin ONCE (Faz18'deki gibi) bir dev SPA host'u kaydedilmeli:
+#      1) Cloudflare Tunnel'da yeni bir yonlendirme ( or. dev-admin.inktavia.com → ingress-nginx)
+#      2) Buraya ingress.enabled: true + o host + replicaCount: 1
+#    (Admin auth modu 'identity' oldugundan Keycloak redirect_uri gerekmiyor — sadece
+#     tunel + DNS. BFF adresi zaten dev-admin-api.inktavia.com olarak asagida hazir.)
+
+replicaCount: 0
+
+image:
+  repository: ghcr.io/cihancakir/inktavia/web-admin
+  pullPolicy: IfNotPresent
+  # Bos: Argo CD Application'daki `image.tag` parametresi dolduruyor.
+  # Bos kalirsa helm render asamasinda YUKSEK SESLE patlar (required).
+  tag: ""
+
+imagePullSecrets:
+  - name: ghcr-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# nginx-unprivileged imaji zaten uid 101 ile kosuyor; burada dogruluyoruz.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 0
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  # ⚠️ readOnlyRootFilesystem BILEREK KAPALI. Acilista entrypoint
+  # /usr/share/nginx/html/config.js dosyasini YENIDEN YAZIYOR, nginx de
+  # /var/cache/nginx ve /tmp'ye yaziyor. Acarsan konteyner acilista oler.
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  # ⛔ KAPALI: dev SPA host'u yok (yukaridaki nota bak). Host kaydedilince true yap
+  #    ve hosts[].host'u gir.
+  enabled: false
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  hosts: []
+  tls: []
+
+probes:
+  path: /healthz
+
+resources:
+  requests:
+    cpu: 5m
+    memory: 16Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ── ORTAM AYARI ─────────────────────────────────────────────────────────────
+# ConfigMap'e gidiyor, oradan konteyner ortamina, oradan /config.js'e.
+# Iki deger ZORUNLU (entrypoint eksikse konteyneri baslatmiyor):
+#   VITE_APP_ENV, VITE_ADMIN_PANEL_BFF_BASE_URL
+# (Admin varsayilan auth modu 'identity' → Keycloak degiskenleri opsiyonel.)
+runtimeEnv:
+  VITE_APP_NAME: "Inktavia Marine Admin"
+  VITE_APP_ENV: "development"
+  VITE_AUTH_MODE: "identity"
+  # Dev admin BFF'i tunel uzerinden. Tarayicidan cagrildigi icin PUBLIC adres olmali —
+  # cluster ici "http://aizen-bff-adminpanel" burada CALISMAZ. Host FAZ20'de olculdu:
+  # Bff/deploy/aizen-bff-adminpanel/values-dev.yaml:63 → dev-admin-api.inktavia.com
+  VITE_ADMIN_PANEL_BFF_BASE_URL: "https://dev-admin-api.inktavia.com/api/v1/admin-panel"
+  VITE_DEFAULT_LANGUAGE: "en"
+  VITE_SUPPORTED_LANGUAGES: "en,tr"

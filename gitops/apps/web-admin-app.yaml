@@ -1,0 +1,60 @@
+# Admin Panel (dev) — Argo CD Application.
+#
+# NEDEN ApplicationSet DEGIL:
+# gitops/apps/{prod,dev}-appset.yaml build/components.json'dan uretiliyor ve
+# TEK ETIKET kuralina dayaniyor: 15 bilesenin hepsi ayni sha'yi paylasiyor,
+# cunku hepsi ayni monorepo'dan derleniyor. web-admin AYRI BIR REPODAN
+# (github.com/CihanCakir/inktavia-marine-admin-web) geliyor; oraya konsaydi
+# platform'un sha'sini miras alirdi ve o sha ile web-admin diye bir image hic
+# uretilmemis olurdu → ImagePullBackOff. Bu yuzden components.json'a EKLENMEDI.
+#
+# ⚠️ Bu dosya Argo CD tarafindan YONETILMIYOR — gitops/apps/ altindaki her sey
+#    gibi bir kez elle uygulaniyor:
+#        kubectl apply -f gitops/apps/web-admin-app.yaml
+#
+# ⛔ FAZ20: DEV'DE HENUZ UYGULANMAMALI. Iki eksik var (bkz. Web/deploy/web-admin/values-dev.yaml):
+#    (1) dev SPA host'u (tunel yonlendirmesi) yok → values-dev'de ingress KAPALI, replicaCount 0.
+#    (2) web-admin image'i henuz uretilmedi → asagidaki image.tag PLACEHOLDER.
+#    Ikisi de hazir olunca: values-dev ingress'i ac + gercek sha'yi gir + apply.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-admin-dev
+  namespace: platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: Web/deploy/web-admin
+    helm:
+      # ⚠️ releaseName sabit: ileride appset'e tasirken ayni kalmali, yoksa
+      # Argo CD kaynaklari devralmaz, YENILERINI yaratir ve iki kopya kosar.
+      releaseName: web-admin
+      valueFiles:
+        - values-dev.yaml
+      parameters:
+        # ▼▼▼ TEK SURUM ISARETCISI — elle guncelleniyor ▼▼▼
+        # FAZ20 (#55): Bu satir HALA elle guncelleniyor (cross-repo auto-commit YAPILMADI —
+        # public repoya yazma yetkili bir token gerektirirdi; o ayri bir guvenlik/provenance
+        # kararidir, sessizce alinmaz). AMA artik UNUTMAK SESSIZ DEGIL: platform CI'inda
+        # build/ci/gitops-frontend-isaretci-denetimi.sh her PR/push'ta bu image.tag'i GHCR'daki
+        # en yeni ':dev' image'inin digest'iyle kiyaslar; tutmuyorsa CI YUKSEK SESLE patlar.
+        # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
+        - name: image.tag
+          # ⛔ PLACEHOLDER: web-admin image'i henuz hic uretilmedi (frontend CI ilk develop
+          #    push'unda sha-<7hex> uretecek). replicaCount 0 oldugundan pull denenmez, ImagePullBackOff olmaz.
+          #    Ilk gercek image ciktiginda buraya o sha yazilacak.
+          value: "sha-0000000"
+        # ▲▲▲
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: inktavia-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

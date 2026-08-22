@@ -207,9 +207,17 @@ env:
     value: "false"
 
   # ── Nesne deposu (MinIO) ─────────────────────────────────────────────────────
-  # ServiceUrl cluster içi, PublicServiceUrl tarayıcıya gidiyor: presigned URL'ler
-  # SigV4 ile Host başlığını imzalar, o yüzden istemcinin gerçekten çağıracağı adrese
-  # imzalanmalı. Faz 9'da files.inktavia.com'a çevrilecek; şimdilik LAN adresi.
+  # ServiceUrl cluster içi (http://minio:9000 — presign DIŞI iç okuma/yazma; DEĞİŞMEZ),
+  # PublicServiceUrl ise tarayıcıya giden presigned URL'in HOST'udur.
+  # ⚠️ SigV4, Host başlığını İMZALAR → imza yalnız istemcinin GERÇEKTEN çağıracağı adres için
+  #    geçerlidir. Adres tutmazsa MinIO 'SignatureDoesNotMatch' döner; bu bir KİMLİK/anahtar hatası
+  #    gibi okunur ama DEĞİLDİR — sadece host uyuşmazlığıdır. O yüzden burası tarayıcının ulaştığı
+  #    host'un TA KENDİSİ olmalı: files.inktavia.com (Cloudflare Tunnel → bu MinIO).
+  # Tek MinIO iki bucket'a hizmet ediyor (dev: inktavia-filestorage-dev / prod: inktavia-filestorage,
+  # ForcePathStyle=true → bucket PATH'te), bu yüzden dev de prod da AYNI public host'u kullanır.
+  # ⚠️ files.inktavia.com Cloudflare ACCESS ARKASINA KONMAMALI: presigned URL kendi kısa ömürlü
+  #    imzasını taşır ve yükleyen, Access oturumu OLMAYAN bir tarayıcıdır — bir Access challenge
+  #    her yüklemeyi sebebi görünmeden kırar.
   - name: S3ObjectStorage__Provider
     value: "MinIO"
   - name: S3ObjectStorage__AccessKey
@@ -223,8 +231,8 @@ env:
   - name: S3ObjectStorage__ServiceUrl
     value: "http://minio:9000"
   - name: S3ObjectStorage__PublicServiceUrl
-    value: "http://192.168.1.50:9000"
+    value: "https://files.inktavia.com"
   - name: S3ObjectStorage__ForcePathStyle
     value: "true"
   - name: S3ObjectStorage__UseHttp
-    value: "true"
+    value: "false"

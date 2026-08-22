@@ -1,0 +1,34 @@
+name: Frontend surum isaretci denetimi
+
+# FAZ20 (#55) — gitops/apps/web-*-app.yaml image.tag'lari GHCR'daki en yeni ':dev'
+# image ile guncel mi? SALT-OKUR; cross-repo yazma yetkisi YOK.
+#
+# Ne zaman kosar:
+#  • PR/push (develop) — bir isaretci bumpladiginda ya da app.yaml/values degistiginde dogrular.
+#  • schedule (gunluk) — frontend AYRI REPODAN merge edilip bu isaretci UNUTULURSA, platform'da
+#    hic degisiklik olmasa bile bayatligi en gec 1 gun icinde YUKSEK SESLE (kirmizi run) yakalar.
+#  • workflow_dispatch — elle tetik.
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read      # public GHCR image → anonim pull token; packages yetkisi GEREKMEZ.
+
+jobs:
+  denetim:
+    name: web-*-app.yaml isaretci kiyas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Isaretci denetimi
+        run: bash build/ci/gitops-frontend-isaretci-denetimi.sh

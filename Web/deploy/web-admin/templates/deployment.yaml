@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "web-admin.fullname" . }}
+  labels:
+    {{- include "web-admin.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "web-admin.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # 🔴 ConfigMap degisince pod YENIDEN BASLAMALI.
+        # /config.js konteyner acilisinda uretiliyor; ConfigMap'i degistirip pod'u
+        # ayakta birakirsan tarayici ESKI BFF adresini kullanmaya devam eder ve
+        # hicbir yerde hata gorunmez. Bu checksum, ConfigMap her degistiginde pod
+        # sablonunu degistirir ve rolling update tetikler.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "web-admin.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "web-admin.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          # image.tag ZORUNLU — Chart.AppVersion'a dusmesine izin vermiyoruz.
+          image: "{{ .Values.image.repository }}:{{ required "image.tag zorunlu — sha-<7hex> ver" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          # Tum VITE_* degerleri ConfigMap'ten geliyor. Tek tek `env:` yazmiyoruz:
+          # yeni bir degisken eklerken iki yeri guncellemeyi unutmak kolay.
+          envFrom:
+            - configMapRef:
+                name: {{ include "web-admin.fullname" . }}-env
+          ports:
+            - name: http
+              # Image nginx-unprivileged; 8080'de dinliyor ve uid 101 ile kosuyor.
+              containerPort: {{ .Values.service.targetPort | default 8080 }}
+              protocol: TCP
+          # Statik dosya sunucusu: migration yok, acilis milisaniyeler suruyor.
+          # ⚠️ Eksik zorunlu degiskende entrypoint exit 1 veriyor; o durumda pod
+          # CrashLoopBackOff'a duser — probe'a degil, ConfigMap'e bak.
+          startupProbe:
+            httpGet: { path: {{ .Values.probes.path }}, port: http }
+            periodSeconds: 2
+            failureThreshold: 15
+          livenessProbe:
+            httpGet: { path: {{ .Values.probes.path }}, port: http }
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: {{ .Values.probes.path }}, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

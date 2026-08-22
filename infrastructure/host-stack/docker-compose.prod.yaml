@@ -158,7 +158,16 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_API_CORS_ALLOW_ORIGIN: ${MINIO_CORS_ORIGINS:-https://admin.inktavia.com,https://partner.inktavia.com}
+      # FAZ21 (#78): tarayıcı presigned PUT'ları DOĞRUDAN MinIO'ya gider → yükleyen HER portalın
+      # origin'i burada olmalı; yoksa preflight (OPTIONS) reddedilir ve yükleme %0'da asılı kalır.
+      # Liste ÖLÇÜLDÜ (presign uçlarının olduğu BFF'ler): AdminPanel BFF (admin.inktavia.com),
+      # MarineProvider BFF (provider.inktavia.com + dev-provider.inktavia.com — bu fazın kırık akışı).
+      # partner.inktavia.com KORUNDU (önceden vardı). Mobil BFF de presign'liyor ama istemci NATIVE
+      # (RN) → tarayıcı CORS'u uygulamaz, origin gerekmez. dev-admin origin'i YOK: admin SPA'nın dev
+      # host'u henüz kayıtlı değil (Faz20); o host açılınca buraya eklenmeli.
+      # ⚠️ Çalışan yığın MINIO_CORS_ORIGINS'i /srv/host-stack/.env'den OKUR (varsa) → bu default'u
+      #    EZEBİLİR. Cihan CANLI değeri (.env) kontrol etmeli; sadece bu dosya yetmez.
+      MINIO_API_CORS_ALLOW_ORIGIN: ${MINIO_CORS_ORIGINS:-https://admin.inktavia.com,https://partner.inktavia.com,https://provider.inktavia.com,https://dev-provider.inktavia.com}
     ports:
       - "${BIND_IP}:9000:9000"
       - "${BIND_IP}:9001:9001"     # konsol — yalnız LAN
