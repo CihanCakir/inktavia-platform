@@ -22,7 +22,12 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read      # public GHCR image → anonim pull token; packages yetkisi GEREKMEZ.
+  contents: read
+  packages: read      # 🔴 2026-08-22: burada "public GHCR image → anonim token yeter, packages
+                      # yetkisi GEREKMEZ" yaziyordu ve YANLISTI. Image'lar OZEL — chart values'lari
+                      # `imagePullSecrets: ghcr-pull` istiyor. Anonim token paketleri goremedigi icin
+                      # denetim ilk iki kosusunda HER iki isaretciyi de atladi ve buna ragmen YESIL
+                      # oldu. Varsayimi degil, kosunun CIKTISINI okumak gerekiyordu.
 
 jobs:
   denetim:
@@ -31,4 +36,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Isaretci denetimi
+        env:
+          # Ozel GHCR paketleri icin pull token'i bununla alinir. Betik GITHUB_TOKEN yoksa
+          # anonim dener ama bunu ciktida ACIKCA soyler ve dogrulayamadigi isaretciyi
+          # "temiz" saymaz.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: bash build/ci/gitops-frontend-isaretci-denetimi.sh
