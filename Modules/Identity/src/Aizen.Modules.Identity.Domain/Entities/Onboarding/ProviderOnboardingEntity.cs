@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Aizen.Core.Domain;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Common.Abstraction.ViewModel; // FAZ12B #65: AizenErrorCode
 using Aizen.Modules.Identity.Domain.Enum;
 
 namespace Aizen.Modules.Identity.Domain.Entities.Onboarding;
@@ -58,7 +59,7 @@ public class ProviderOnboardingEntity : AizenEntityWithAudit
     public void SaveStep(string step, string stepStatus, string stepDataJson, DateTime nowUtc)
     {
         if (Status == ProviderOnboardingStatus.Submitted)
-            throw new AizenBusinessException("Cannot edit onboarding while submitted for review.");
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingLockedAfterSubmit, "Cannot edit onboarding while submitted for review.");
 
         if (Status == ProviderOnboardingStatus.NotStarted)
             Status = ProviderOnboardingStatus.InProgress;
@@ -88,7 +89,7 @@ public class ProviderOnboardingEntity : AizenEntityWithAudit
             if (!statuses.TryGetValue(required, out var s) ||
                 !string.Equals(s, nameof(OnboardingStepStatus.Completed), StringComparison.OrdinalIgnoreCase))
             {
-                throw new AizenBusinessException($"Required step '{required}' is not completed.");
+                throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingRequiredStepIncomplete, $"Required step '{required}' is not completed.");
             }
         }
 

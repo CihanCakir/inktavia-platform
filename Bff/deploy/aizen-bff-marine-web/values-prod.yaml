@@ -171,6 +171,15 @@ env:
     value: "false"
   - name: MarineWebKeycloak__AdminClientSecret
     value: "$(KC_CLIENT_SECRET)"
+  # ── BFF kimlik iddiası anahtarı (FAZ10 #31) ──────────────────────────────────
+  # DelegatingHandler bu değer BOŞKEN X-Aizen-Bff-Assertion + X-Aizen-User-Id başlıklarını GÖNDERMİYORDU;
+  # modüller ise aynı mühürlü secret'ı BffAssertion__SharedSecret olarak doğruluyor (prod'da boşsa açılmıyor).
+  # HMAC (FixedTimeEquals) tutması için modülün SharedSecret'i ile AYNI secret'a bağlanır. Asserted user-id
+  # modül tarafında UserInfo.UserId'yi doldurur (audit/CreateUserId); endpoint'ler servis token'ıyla zaten
+  # çalışıyor, bu EK güvence.  (appsettings.json'daki "__FROM_SECRET__" yer tutucusu "" ile değiştirildi.)
+  - name: MarineWebKeycloak__ModuleAssertionSecret
+    valueFrom:
+      secretKeyRef: { name: bff-assertion, key: SharedSecret }
 
   # ── CORS ─────────────────────────────────────────────────────────────────────
   # CORS ingress'te DEĞİL uygulamada: dört BFF de kodda CORS kuruyor, ingress'te de

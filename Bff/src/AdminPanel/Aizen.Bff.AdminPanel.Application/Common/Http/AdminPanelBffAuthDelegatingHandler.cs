@@ -57,6 +57,17 @@ public sealed class AdminPanelBffAuthDelegatingHandler(IHttpContextAccessor http
             }
         }
 
+        // FAZ12B #65/#49 — 2026-08-21'de ölçülen EKSİK HALKA: gelen Accept-Language'i modüllere İLET.
+        // Modül tarafı (AizenClientInfoMiddleware) bunu ClientInfo.Language'e alır ve konum adı + hata mesajı
+        // yerelleştirmesinde kullanır. YALNIZCA istek başlığı taşıyorsa ilet (varsayılan UYDURMA); zaten
+        // varsa ÜZERİNE YAZMA. "Kullanılmıyor" diye SİLMEYİN — bu olmadan Türk kullanıcı "Mugla" görür.
+        if (context is not null && !request.Headers.Contains("Accept-Language"))
+        {
+            var acceptLanguage = context.Request.Headers.AcceptLanguage.ToString();
+            if (!string.IsNullOrWhiteSpace(acceptLanguage))
+                request.Headers.TryAddWithoutValidation("Accept-Language", acceptLanguage);
+        }
+
         return await base.SendAsync(request, cancellationToken);
     }
 }

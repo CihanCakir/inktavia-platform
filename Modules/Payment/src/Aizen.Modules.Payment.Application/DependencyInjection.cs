@@ -4,6 +4,7 @@ using Aizen.Modules.Payment.Application.Gateway.Google;
 using Aizen.Modules.Payment.Application.Gateway.Iyzico;
 using Aizen.Modules.Payment.Application.Services;
 using Aizen.Modules.ReferenceData.Domain.Interface.Service;
+using Aizen.Core.Common.Abstraction.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -28,10 +29,10 @@ public static class DependencyInjection
         services.AddHttpClient<IyzicoHttpClient>((sp, client) =>
         {
             var cfg = sp.GetRequiredService<IOptions<IyzicoConfiguration>>().Value;
-            client.BaseAddress = new Uri(
-                string.IsNullOrWhiteSpace(cfg.BaseUrl)
-                    ? "https://sandbox-api.iyzipay.com"
-                    : cfg.BaseUrl);
+            // FAZ14 (#30): NullIfUnset — "__FROM_ENV__" gibi doldurulmamış yer-tutucu BaseAddress'e geçmesin
+            // (aksi hâlde ödeme çağrıları "__FROM_ENV__" host'una gider); yer-tutucu/boş = sandbox'a düş.
+            var baseUrl = AizenConfigPlaceholders.NullIfUnset(cfg.BaseUrl) ?? "https://sandbox-api.iyzipay.com";
+            client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(30);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
         });

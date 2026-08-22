@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using Aizen.Core.Common.Abstraction.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,14 +17,16 @@ public static class KeycloakAuthenticationExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var authority = configuration["Keycloak:Authority"]
-            ?? configuration["KEYCLOAK_AUTHORITY"];
+        // FAZ14 (#30): doldurulmamış "__FROM_ENV__" yer-tutucusu = AYARLANMAMIŞ. Aksi hâlde options.Authority /
+        // MetadataAddress yer-tutucuyla dolar ve JWKS keşfi çöker (herkes için 401; borç #53 ile aynı sınıf).
+        var authority = AizenConfigPlaceholders.NullIfUnset(
+            configuration["Keycloak:Authority"] ?? configuration["KEYCLOAK_AUTHORITY"]);
 
-        var metadataAddress = configuration["Keycloak:MetadataAddress"]
-            ?? configuration["KEYCLOAK_METADATA_ADDRESS"];
+        var metadataAddress = AizenConfigPlaceholders.NullIfUnset(
+            configuration["Keycloak:MetadataAddress"] ?? configuration["KEYCLOAK_METADATA_ADDRESS"]);
 
-        var audience = configuration["Keycloak:Audience"]
-            ?? configuration["KEYCLOAK_AUDIENCE"];
+        var audience = AizenConfigPlaceholders.NullIfUnset(
+            configuration["Keycloak:Audience"] ?? configuration["KEYCLOAK_AUDIENCE"]);
 
         var requireHttpsMetadataValue = configuration["Keycloak:RequireHttpsMetadata"]
             ?? configuration["KEYCLOAK_REQUIRE_HTTPS_METADATA"];

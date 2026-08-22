@@ -1,6 +1,7 @@
 using Aizen.Core.Configuration;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Starter.Abstraction;
+using Aizen.Core.Starter.Abstraction.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,11 @@ public class AizenOperationServiceConfiguration : IAizenServiceConfiguration
 
     public void Configure(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
+        // FAZ14 (#30): doldurulmamış "__FROM_ENV__"/"__FROM_SECRET__" yer-tutucularıyla açılmayı reddet.
+        // Development dışında suçlu TÜM anahtarları listeleyip fırlatır; Development'ta loglayıp devam eder.
+        // Herhangi bir servis kablolamasından ÖNCE, hızlı-başarısızlık için ilk çağrı.
+        AizenConfigurationPlaceholderGuard.EnsureNoUnfilledPlaceholders(configuration, environment);
+
         AizenConfiguration.Configuration = configuration;
 
         services.AddHttpContextAccessor();

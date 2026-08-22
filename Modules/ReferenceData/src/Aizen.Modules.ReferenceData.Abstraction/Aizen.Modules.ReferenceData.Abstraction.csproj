@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- FAZ13A #68: paylaşılan Accept-Language ayrıştırıcısı Core.Common'a taşındı; LocationNameResolver ona delege eder. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Core\Common\src\Aizen.Core.Common.Abstraction\Aizen.Core.Common.Abstraction.csproj" />
+  </ItemGroup>
+
 </Project>

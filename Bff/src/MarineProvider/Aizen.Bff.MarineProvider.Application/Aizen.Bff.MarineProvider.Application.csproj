@@ -30,4 +30,9 @@
     <Using Include="Aizen.Core.Common.Abstraction" />
   </ItemGroup>
 
+  <!-- FAZ10 #38: ProviderKeycloakAdminClient internal olduğu için birim testi assembly'sine görünürlük. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Aizen.Bff.MarineProvider.UnitTests" />
+  </ItemGroup>
+
 </Project>

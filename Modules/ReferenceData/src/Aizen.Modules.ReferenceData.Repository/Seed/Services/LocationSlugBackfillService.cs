@@ -1,5 +1,6 @@
 using Aizen.Core.Data.Mongo;
 using Aizen.Core.Data.Mongo.Repository;
+using Aizen.Modules.ReferenceData.Abstraction.Localization;
 using Aizen.Modules.ReferenceData.Domain.Documents.Location;
 using Aizen.Modules.ReferenceData.Repository.Context;
 using Aizen.Modules.ReferenceData.Repository.Mongo;
@@ -119,8 +120,10 @@ public sealed class LocationSlugBackfillService
         return 1;
     }
 
+    // FAZ12B #49: slug kaynağı için tr-öncelikli (Türkçe slug üretimi). Sabit "en" literali kaldırıldı;
+    // LocationNameResolver "tr" tercihiyle tr→en→herhangi→kod sırasını uygular (seed'de HTTP bağlamı yok).
     private static string Name(IReadOnlyDictionary<string, string> name, string fallbackCode)
-        => name.GetValueOrDefault("tr") ?? name.GetValueOrDefault("en") ?? name.Values.FirstOrDefault() ?? fallbackCode;
+        => LocationNameResolver.Resolve(name, fallbackCode, "tr");
 
     private static string Base(string source)
     {

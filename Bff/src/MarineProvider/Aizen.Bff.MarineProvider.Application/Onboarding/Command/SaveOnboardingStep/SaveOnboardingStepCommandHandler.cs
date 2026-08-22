@@ -1,7 +1,10 @@
+using Aizen.Bff.MarineProvider.Application.Common;
 using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Bff.MarineProvider.Application.Contracts.Onboarding;
+using Aizen.Core.Common.Abstraction.ViewModel;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Microsoft.Extensions.Logging;
 
@@ -24,13 +27,17 @@ public sealed class SaveOnboardingStepCommandHandler
         _logger = logger;
     }
 
+    // FAZ13A #67: başarısızlık artık 200 gövdesinde { Success=false } olarak GİZLENMİYOR — AizenBusinessException
+    // olarak fırlatılıyor → BFF middleware düzgün bir 400 failure envelope üretir (kod + yerelleştirilmiş mesaj),
+    // frontend'in resolveApiErrorMessage'ı kodu eşleyebilir. (CargoDryInterest de bu handler'dan geçer — saveStep.)
     public override async Task<SaveOnboardingStepResponse?> Handle(SaveOnboardingStepCommand request, CancellationToken ct)
     {
         var resolution = await _resolver.ResolveAsync(ct);
         var profileId = resolution.ProfileId ?? 0;
         if (profileId <= 0)
-            return new SaveOnboardingStepResponse { Success = false, Message = "Provider profile not found." };
+            throw new AizenBusinessException((int)AizenErrorCode.ProviderProfileNotFound, "Provider profile not found.");
 
+        SaveProviderOnboardingStepResponse? data;
         try
         {
             var result = await _identity.SaveProviderOnboardingStep(profileId, request.Step,
@@ -40,43 +47,19 @@ public sealed class SaveOnboardingStepCommandHandler
                     StepDataJson = request.StepDataJson,
                     SchemaVersion = request.SchemaVersion,
                 });
-            var data = result.Body;
-            if (data is null)
-                return new SaveOnboardingStepResponse { Success = false, Message = "Save failed." };
-
-            return data.Success
-                ? new SaveOnboardingStepResponse { Success = true, Message = data.Message }
-                : new SaveOnboardingStepResponse { Success = false, Message = data.Message };
+            data = result.Body;
         }
         catch (Refit.ApiException ex)
         {
-            var message = ExtractBusinessMessage(ex.Content) ?? "An error occurred while saving the step.";
-            _logger.LogWarning(ex, "Save step rejected for step {Step}, profile {ProfileId}: {Message}",
-                request.Step, profileId, message);
-            return new SaveOnboardingStepResponse { Success = false, Message = message };
+            // Modülün kararlı hata zarfını (code + Task A ile yerelleştirilmiş mesaj) aynen yukarı taşı.
+            _logger.LogWarning(ex, "Save step rejected for step {Step}, profile {ProfileId}.", request.Step, profileId);
+            throw ModuleFailurePropagation.FromApiException(ex, "An error occurred while saving the step.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to save onboarding step {Step}.", request.Step);
-            return new SaveOnboardingStepResponse { Success = false, Message = "An error occurred while saving the step." };
-        }
-    }
 
-    private static string? ExtractBusinessMessage(string? content)
-    {
-        if (string.IsNullOrWhiteSpace(content)) return null;
-        try
-        {
-            using var doc = System.Text.Json.JsonDocument.Parse(content);
-            if (doc.RootElement.TryGetProperty("header", out var header)
-                && header.TryGetProperty("errorMessage", out var msg)
-                && msg.ValueKind == System.Text.Json.JsonValueKind.String)
-            {
-                var value = msg.GetString();
-                return string.IsNullOrWhiteSpace(value) ? null : value;
-            }
-        }
-        catch (System.Text.Json.JsonException) { }
-        return null;
+        // Modül 200 + { Success:false } dönerse (Faz 12B sonrası artık fırlattığı için nadir) yine de yüzeye çıkar.
+        if (data is null || !data.Success)
+            throw new AizenBusinessException(data?.Message ?? "Save failed.");
+
+        return new SaveOnboardingStepResponse { Success = true, Message = data.Message };
     }
 }

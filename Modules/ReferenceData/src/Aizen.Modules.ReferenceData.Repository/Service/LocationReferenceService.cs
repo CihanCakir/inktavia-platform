@@ -1,6 +1,8 @@
 using Aizen.Modules.ReferenceData.Repository.Mappings;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Location;
+using Aizen.Modules.ReferenceData.Abstraction.Localization;
 using Aizen.Modules.ReferenceData.Abstraction.Request.Location;
 using Aizen.Modules.ReferenceData.Domain.Documents.Location;
 using Aizen.Modules.ReferenceData.Domain.Interface;
@@ -11,11 +13,18 @@ namespace Aizen.Modules.ReferenceData.Repository.Service;
 public sealed class LocationReferenceService : ILocationReferenceService
 {
     private readonly ILocationRepository _repo;
+    private readonly IAizenInfoAccessor _info;
 
-    public LocationReferenceService(ILocationRepository repo)
+    public LocationReferenceService(ILocationRepository repo, IAizenInfoAccessor info)
     {
         _repo = repo;
+        _info = info;
     }
+
+    // FAZ12B #49: çağıranın dili (Accept-Language başlığı, IAizenClientInfoAccessor.ClientInfo.Language).
+    // ToDto/Display bunu LocationNameResolver'a verir. Arka plan/seed/consumer'da HTTP bağlamı yok →
+    // ClientInfo null → Lang null → resolver "en" yedeğine düşer (eski davranış korunur).
+    private string? Lang => _info.ClientInfoAccessor.ClientInfo?.Language;
 
     public async Task<CountryDto> CreateCountryAsync(CreateCountryRequest request, CancellationToken cancellationToken = default)
     {
@@ -32,7 +41,7 @@ public sealed class LocationReferenceService : ILocationReferenceService
             IsActive = true
         };
         await _repo.UpsertCountryAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<CountryDto> UpdateCountryAsync(string countryCode, string defaultCurrencyCode, string phoneCode, bool isActive, CancellationToken cancellationToken = default)
@@ -43,19 +52,19 @@ public sealed class LocationReferenceService : ILocationReferenceService
         doc.PhoneCode = phoneCode.Trim();
         doc.IsActive = isActive;
         await _repo.UpsertCountryAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<IReadOnlyList<CountryDto>> GetCountriesAsync(bool onlyActive, CancellationToken cancellationToken = default)
     {
         var list = await _repo.GetCountriesAsync(onlyActive, cancellationToken);
-        return list.Select(x => x.ToDto()).ToList();
+        return list.Select(x => x.ToDto(Lang)).ToList();
     }
 
     public async Task<CountryDto?> GetCountryAsync(string countryCode, CancellationToken cancellationToken = default)
     {
         var doc = await _repo.GetCountryAsync(countryCode, cancellationToken);
-        return doc?.ToDto();
+        return doc?.ToDto(Lang);
     }
 
     public async Task<CityDto> CreateCityAsync(CreateCityRequest request, CancellationToken cancellationToken = default)
@@ -74,7 +83,7 @@ public sealed class LocationReferenceService : ILocationReferenceService
             IsActive = true
         };
         await _repo.UpsertCityAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<CityDto> UpdateCityAsync(string countryCode, string cityCode, decimal? latitude, decimal? longitude, bool isCoastalCity, bool isActive, CancellationToken cancellationToken = default)
@@ -86,19 +95,19 @@ public sealed class LocationReferenceService : ILocationReferenceService
         doc.IsCoastalCity = isCoastalCity;
         doc.IsActive = isActive;
         await _repo.UpsertCityAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<IReadOnlyList<CityDto>> GetCitiesByCountryAsync(string countryCode, bool onlyActive, CancellationToken cancellationToken = default)
     {
         var list = await _repo.GetCitiesByCountryAsync(countryCode, onlyActive, cancellationToken);
-        return list.Select(x => x.ToDto()).ToList();
+        return list.Select(x => x.ToDto(Lang)).ToList();
     }
 
     public async Task<CityDto?> GetCityAsync(string countryCode, string cityCode, CancellationToken cancellationToken = default)
     {
         var doc = await _repo.GetCityAsync(countryCode, cityCode, cancellationToken);
-        return doc?.ToDto();
+        return doc?.ToDto(Lang);
     }
 
     public async Task<DistrictDto> CreateDistrictAsync(string countryCode, string cityCode, string districtCode, Dictionary<string, string> name, decimal? latitude, decimal? longitude, bool isCoastalDistrict, CancellationToken cancellationToken = default)
@@ -118,7 +127,7 @@ public sealed class LocationReferenceService : ILocationReferenceService
             IsActive = true
         };
         await _repo.UpsertDistrictAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<DistrictDto> UpdateDistrictAsync(string countryCode, string cityCode, string districtCode, decimal? latitude, decimal? longitude, bool isCoastalDistrict, bool isActive, CancellationToken cancellationToken = default)
@@ -130,13 +139,13 @@ public sealed class LocationReferenceService : ILocationReferenceService
         doc.IsCoastalDistrict = isCoastalDistrict;
         doc.IsActive = isActive;
         await _repo.UpsertDistrictAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<IReadOnlyList<DistrictDto>> GetDistrictsByCityAsync(string countryCode, string cityCode, bool onlyActive, CancellationToken cancellationToken = default)
     {
         var list = await _repo.GetDistrictsByCityAsync(countryCode, cityCode, onlyActive, cancellationToken);
-        return list.Select(x => x.ToDto()).ToList();
+        return list.Select(x => x.ToDto(Lang)).ToList();
     }
 
     public async Task<NeighborhoodDto> CreateNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string neighborhoodCode, Dictionary<string, string> name, string? postalCode, CancellationToken cancellationToken = default)
@@ -156,7 +165,7 @@ public sealed class LocationReferenceService : ILocationReferenceService
             IsActive = true
         };
         await _repo.UpsertNeighborhoodAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<NeighborhoodDto> UpdateNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string neighborhoodCode, string? postalCode, bool isActive, CancellationToken cancellationToken = default)
@@ -168,13 +177,13 @@ public sealed class LocationReferenceService : ILocationReferenceService
         doc.PostalCode = postalCode;
         doc.IsActive = isActive;
         await _repo.UpsertNeighborhoodAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<IReadOnlyList<NeighborhoodDto>> GetNeighborhoodsByDistrictAsync(string countryCode, string cityCode, string districtCode, bool onlyActive, CancellationToken cancellationToken = default)
     {
         var list = await _repo.GetNeighborhoodsByDistrictAsync(countryCode, cityCode, districtCode, onlyActive, cancellationToken);
-        return list.Select(x => x.ToDto()).ToList();
+        return list.Select(x => x.ToDto(Lang)).ToList();
     }
 
     public async Task<StreetDto> CreateStreetAsync(string countryCode, string cityCode, string districtCode, string? neighborhoodCode, string streetCode, Dictionary<string, string> name, string? postalCode, CancellationToken cancellationToken = default)
@@ -191,22 +200,22 @@ public sealed class LocationReferenceService : ILocationReferenceService
             IsActive = true
         };
         await _repo.UpsertStreetAsync(doc, cancellationToken);
-        return doc.ToDto();
+        return doc.ToDto(Lang);
     }
 
     public async Task<IReadOnlyList<StreetDto>> GetStreetsByNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string? neighborhoodCode, bool onlyActive, CancellationToken cancellationToken = default)
     {
         var list = await _repo.GetStreetsByNeighborhoodAsync(countryCode, cityCode, districtCode, neighborhoodCode, onlyActive, cancellationToken);
-        return list.Select(x => x.ToDto()).ToList();
+        return list.Select(x => x.ToDto(Lang)).ToList();
     }
 
     // ── M3 single reads + by-slug resolver ─────────────────────────────────────
 
     public async Task<DistrictDto?> GetDistrictAsync(string countryCode, string cityCode, string districtCode, CancellationToken cancellationToken = default)
-        => (await _repo.GetDistrictAsync(countryCode, cityCode, districtCode, cancellationToken))?.ToDto();
+        => (await _repo.GetDistrictAsync(countryCode, cityCode, districtCode, cancellationToken))?.ToDto(Lang);
 
     public async Task<NeighborhoodDto?> GetNeighborhoodAsync(string countryCode, string cityCode, string districtCode, string neighborhoodCode, CancellationToken cancellationToken = default)
-        => (await _repo.GetNeighborhoodAsync(countryCode, cityCode, districtCode, neighborhoodCode, cancellationToken))?.ToDto();
+        => (await _repo.GetNeighborhoodAsync(countryCode, cityCode, districtCode, neighborhoodCode, cancellationToken))?.ToDto(Lang);
 
     public async Task<LocationBySlugDto?> ResolveBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
@@ -272,9 +281,10 @@ public sealed class LocationReferenceService : ILocationReferenceService
         return null;
     }
 
-    private static LocationRefDto Ref(string type, string code, IReadOnlyDictionary<string, string>? name)
+    private LocationRefDto Ref(string type, string code, IReadOnlyDictionary<string, string>? name)
         => new() { LocationType = type, Code = code, Name = name is null ? code : Display(name, code) };
 
-    private static string Display(IReadOnlyDictionary<string, string> name, string fallbackCode)
-        => name.GetValueOrDefault("en") ?? name.Values.FirstOrDefault() ?? fallbackCode;
+    // FAZ12B #49: sabit "en" yerine çağıranın diliyle çöz.
+    private string Display(IReadOnlyDictionary<string, string> name, string fallbackCode)
+        => LocationNameResolver.Resolve(name, fallbackCode, Lang);
 }

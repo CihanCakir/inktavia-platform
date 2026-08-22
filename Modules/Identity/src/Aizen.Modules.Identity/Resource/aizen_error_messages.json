@@ -2897,5 +2897,252 @@
         "Description": "Ungültiger Zustand. Diese Aktion kann im aktuellen Zustand nicht ausgeführt werden."
       }
     ]
+  },
+  {
+    "ErrorCode": 4300,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Sağlayıcı profili bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Provider profile not found."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4301,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Onboarding kaydı bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Onboarding record not found."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4302,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Onboarding şema sürümü desteklenmiyor. Lütfen sayfayı yenileyin."
+      },
+      {
+        "Language": "EN",
+        "Description": "Unsupported onboarding schema version. Please refresh the page."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4303,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Başvuru eksik. Göndermeden önce tüm gerekli adımları tamamlayın."
+      },
+      {
+        "Language": "EN",
+        "Description": "Submission incomplete. Please complete all required steps before submitting."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4304,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Seçilen şehir referans verisinde tanınmıyor. Lütfen listeden bir şehir seçin."
+      },
+      {
+        "Language": "EN",
+        "Description": "The selected city is not recognised in reference data. Please pick a city from the list."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4305,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Başvuru incelemeye gönderildikten sonra düzenlenemez."
+      },
+      {
+        "Language": "EN",
+        "Description": "Onboarding cannot be modified after it has been submitted for review."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4306,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Gerekli bir adım tamamlanmadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "A required step is not completed."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4307,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Geçersiz kimlik. Lütfen tekrar giriş yapın."
+      },
+      {
+        "Language": "EN",
+        "Description": "Invalid caller identity. Please sign in again."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4308,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu profili değiştirme yetkiniz yok."
+      },
+      {
+        "Language": "EN",
+        "Description": "You do not have permission to modify this profile."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4309,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu dosya profile zaten eklenmiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "This file is already attached to the profile."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4310,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Belge bu profilde bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "Document not found on this profile."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4311,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Bu dosya başka bir profile bağlı."
+      },
+      {
+        "Language": "EN",
+        "Description": "This file is already associated with another profile."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4312,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dosya depoda bulunamadı."
+      },
+      {
+        "Language": "EN",
+        "Description": "File not found in storage."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4313,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dosya doğrulanamadı. Lütfen tekrar deneyin."
+      },
+      {
+        "Language": "EN",
+        "Description": "Unable to verify the file. Please try again."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4314,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dosya, profil sahibi tarafından yüklenmemiş."
+      },
+      {
+        "Language": "EN",
+        "Description": "The file was not uploaded by the profile owner."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4315,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dosya, tespit edilen bir tehdit nedeniyle karantinaya alındı ve eklenemez."
+      },
+      {
+        "Language": "EN",
+        "Description": "File has been quarantined due to a detected threat and cannot be attached."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4316,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dosya ekleme için hazır değil."
+      },
+      {
+        "Language": "EN",
+        "Description": "File is not ready for attachment."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4317,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dosya türü kabul edilmiyor. Kabul edilenler: PDF, JPEG, PNG."
+      },
+      {
+        "Language": "EN",
+        "Description": "File type is not allowed. Accepted: PDF, JPEG, PNG."
+      }
+    ]
+  },
+  {
+    "ErrorCode": 4318,
+    "Errors": [
+      {
+        "Language": "TR",
+        "Description": "Dosya çok büyük. En fazla 10 MB."
+      },
+      {
+        "Language": "EN",
+        "Description": "File is too large. Maximum: 10 MB."
+      }
+    ]
   }
 ]

@@ -68,11 +68,20 @@ public sealed class EmailNotificationDispatcher : INotificationDispatcher
             return;
         }
 
+        // FAZ15 (#34) — DEĞİŞMEZ: Pending satırı = e-posta HİÇ gönderilmedi.
+        // Transport'a gitmeden ÖNCE satırı Sending'e taşıyıp KALICI yazıyoruz. Böylece SendMailAsync başarıyla dönüp
+        // aşağıdaki Sent yazımı gerçekleşemeden çökme olursa satır 'Sending' kalır (denendi, sonuç belirsiz) — asla
+        // gönderilmiş bir e-postayı "hiç denenmemiş" gibi gösteren Pending değil. (Eskiden yalnız failure yazılıyordu.)
+        notification.MarkAsSending();
+        await _notificationRepository.UpdateAsync(notification, ct);
+
         try
         {
             var providerRef = await _emailSender.SendAsync(
                 recipientEmail, notification.Title, notification.Body, ct);
             notification.MarkAsSent(providerRef);
+            // FAZ15 (#34) — başarı ARTIK kalıcı: eskiden success dalı UpdateAsync çağırmıyordu, satır Pending kalıyordu.
+            await _notificationRepository.UpdateAsync(notification, ct);
             _logger.LogInformation(
                 "Email notification dispatched: Id={Id} To={To}",
                 notification.Id, recipientEmail);

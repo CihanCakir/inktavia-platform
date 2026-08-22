@@ -142,6 +142,26 @@ env:
   - name: MessageBroker__QueueSettings__Password
     value: "$(RABBITMQ_PASSWORD)"
 
+  # ── Keycloak (RS256 servis token'ı doğrulama) ─────────────────────
+  # 🔴 BU BİR YA/YA-DA ANAHTARIDIR, ek ayar değil.
+  # AizenOperationServiceConfiguration.cs:34 → AddAizenKeycloakAuth:
+  #   Keycloak__Authority DOLU ise → RS256 Keycloak şeması (BFF servis token'ı doğrulanır)
+  #   Keycloak__Authority BOŞ ise  → simetrik TokenOption şeması (RS256 token'ı doğrulanamaz)
+  # Bu değer BOŞKEN modül TokenOption dalındaydı → BFF'in gönderdiği RS256 servis token'ı
+  # doğrulanamıyordu → [Authorize] uçlar (ve FallbackPolicy nedeniyle attribute'suz uçlar da) 401.
+  # Authority = token'daki issuer; ValidIssuer DOĞRUDAN buna eşitlenir. Prod issuer'ı (dev ile aynı)
+  # https://auth.inktavia.com/realms/inktavia-realm.
+  # MetadataAddress BİLEREK iç adres: JWKS cluster içinden çekilir, Cloudflare'e bağımlı olmaz.
+  - name: Keycloak__Authority
+    value: "https://auth.inktavia.com/realms/inktavia-realm"
+  - name: Keycloak__MetadataAddress
+    value: "http://keycloak:8080/realms/inktavia-realm/.well-known/openid-configuration"
+  - name: Keycloak__RequireHttpsMetadata
+    value: "false"
+  # Keycloak__Audience BİLEREK YOK. Kod: ValidateAudience = !IsNullOrWhiteSpace(...) — boş bırakılınca
+  # audience DOĞRULANMAZ. Buraya bir aud yazmak audience doğrulamayı AÇAR ve token'ında o aud bulunmayan
+  # HER çağıranı sessizce kırar. Yazmadan önce çağıran BFF'lerin token'ında o aud'un bulunduğu ölçülmeli.
+
   # ── BFF assertion — bu olmadan modül AÇILMAZ ─────────────────────────────────
   # Core/InfoAccessor, Development dışında boş SharedSecret ile başlatmayı
   # fail-closed olarak reddediyor: modülün tek kimlik güvencesi bu sır.
@@ -210,7 +230,36 @@ env:
   # From no-reply@... olduğundan yanıtlar izlenen bir kutuya gitsin (aksi halde bounce).
   - name: Email__ReplyTo
     value: "info@inktavia.com"
-  # ContactIntake.IpHashSalt appsettings'te "__FROM_SECRET__" placeholder'ı ile duruyor:
-  # IP adreslerini hash'lemek için kullanılıyor, yani gerçek bir sır olmalı.
-  # TOKEN_SECURITY_KEY'i tekrar kullanmıyoruz — ayrı amaç, ayrı anahtar olmalı.
-  # TODO: platform-credentials'a CONTACT_IP_HASH_SALT ekle ve buradan bağla.
+  # ── Web Push (VAPID) + ContactIntake tuzu ────────────────────────────────────
+  # 2026-08-22'de dolduruldu. Faz 14 (#30) yer-tutucu guard'i bunlar bos kalirsa
+  # Notification'i Development DISINDA ACMIYOR — appsettings'te ucu de "__FROM_ENV__".
+  #
+  # SIR OLAN ve OLMAYAN ayrimi:
+  #   PublicKey  — SIR DEGIL. Tasarimi geregi tarayiciya gonderilir (push aboneligi
+  #                bu anahtarla kurulur). Duz yazilir.
+  #   Subject    — SIR DEGIL. VAPID spesifikasyonu geregi bir iletisim adresi.
+  #   PrivateKey — SIR. platform-credentials/VAPID_PRIVATE_KEY.
+  #
+  # ⚠️ Cift DEGISTIRILIRSE tarayicilardaki MEVCUT push abonelikleri sessizce
+  #    gecersizlesir (abonelik public key'e baglidir). Degistirmeden once dusun.
+  - name: Vapid__Subject
+    value: "mailto:info@inktavia.com"
+  - name: Vapid__PublicKey
+    value: "BOa1fkDwYHBKp5xe3CmZZUNLImTYzHIfE1td5jU49Qs8DLtuug6cCqpe9wX9qFSMroqwosk54qu32XEI7ADvxoE"
+  - name: Vapid__PrivateKey
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: VAPID_PRIVATE_KEY }
+
+  # ContactIntake.IpHashSalt: IP adreslerini hash'lemek icin. TOKEN_SECURITY_KEY
+  # TEKRAR KULLANILMADI — ayri amac, ayri anahtar.
+  - name: ContactIntake__IpHashSalt
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: CONTACT_IP_HASH_SALT }
+
+  # ── Modüller arası çağrı (uzak-çağrı BaseUrl'leri) ────────────────────────────
+  # AizenHttpClientFactory.cs:169 — bu anahtar yoksa Refit istemcisinin BaseAddress'i boş kalır
+  # ve çağrı anında KeyNotFoundException / new Uri(null) fırlar.
+  # INotificationIdentityRemoteCall → Identity (for-area, admin/user-ids, profile-id, contact-email).
+  # Hedef uçlar [AllowAnonymous]; yalnız BaseUrl eksikti.
+  - name: RemoteCalls__INotificationIdentityRemoteCall__BaseUrl
+    value: "http://aizen-identity"

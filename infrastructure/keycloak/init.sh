@@ -32,6 +32,28 @@ echo "Master realm sslRequired set to none."
 
 $KCADM update realms/${REALM} -s sslRequired=none 2>/dev/null || true
 
+# ── Realm SMTP parolası (option b: env'den, idempotent) ───────────────────────
+# Sır OLMAYAN SMTP alanları realm.json'da duruyor (host/port/user/from/fromDisplayName/replyTo/ssl/starttls/
+# auth) ve --import-realm ile geliyor. Parola PUBLIC repoda DURAMAZ; mühürlü secret'tan SMTP_PASSWORD env'i
+# olarak gelir ve yalnız burada set edilir. kcadm nested `-s smtpServer.password=...` mevcut smtpServer'ı
+# MERGE eder (GET→set→PUT), diğer 9 alan korunur.
+# ${...} realm-import ikamesi bu KC sürümünde DOĞRULANMADIĞI için realm.json'a placeholder YAZILMADI — aksi
+# halde literal '${...}' parola olarak import edilir ve gönderimde yanıltıcı bir auth hatası verir.
+if [ -n "${SMTP_PASSWORD:-}" ]; then
+  $KCADM update realms/${REALM} -s "smtpServer.password=${SMTP_PASSWORD}" 2>/dev/null \
+    && echo "realm SMTP: password set from SMTP_PASSWORD env." \
+    || echo "WARN: realm SMTP password update failed (kcadm)."
+  # Geri okuma — parola REDACTED; run log son durumu göstersin (Task B ile aynı fikir).
+  echo "  realm SMTP config (password redacted):"
+  $KCADM get realms/${REALM} --fields smtpServer 2>/dev/null \
+    | tr -d '\n' | sed -E 's/"password"[^,}]*/"password":"<REDACTED>"/' \
+    || echo "     (smtpServer okunamadi)"
+  echo ""
+else
+  # ÇALIŞAN bir parolayı boşla EZMEMEK için adımı atlıyoruz — ve GÜRÜLTÜLÜ söylüyoruz.
+  echo "WARN: SMTP_PASSWORD unset — realm SMTP password NOT changed (skipping; will not overwrite a working password)."
+fi
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Shared helpers for the OTP → Keycloak login-ticket handoff wiring.
 #
@@ -52,6 +74,20 @@ _id_where() { tr -d '\n' | sed 's/}, *{/}\n{/g' | grep -F "$1" | head -1 | grep 
 # UUID of the top-level auth flow whose alias contains $1. Matches on the alias VALUE (not "alias":"…")
 # so it is agnostic to kcadm's pretty-print spacing (`"alias" : "…"`). Flow aliases here are unique substrings.
 _flow_id() { $KCADM get authentication/flows -r ${REALM} --fields id,alias 2>/dev/null | tr -d '\n' | sed 's/}, *{/}\n{/g' | grep -F "$1" | head -1 | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1; }
+
+# NEDEN VAR: add-roles'un `|| echo "... skipped"` deseni BAŞARI, ZATEN-VAR ve BAŞARISIZLIK için aynı cümleyi
+# basıyor → exit kodu yutuluyordu. marine-mobile-bff bloğu yazıldığından beri identity_read/write + dört
+# realm-management rolünü "veriyordu" ama 2026-08-21'de canlı realm'e bakınca servis hesabında HİÇBİRİ yoktu;
+# log "skipped (already present or roles absent)" diyordu, kimse ayırt edemedi. Bu yardımcı, her bloktan sonra
+# eşlemeyi GERİ OKUYUP servis hesabının SON durumunu log'a basar → eksik rol run log'unda GÖRÜNÜR olur.
+# (Amaç run'ı DÜŞÜRMEK değil; eksikliği görünür kılmak — init.sh asla abort etmez.)
+_sa_roles() {   # $1 = service-account user id, $2 = etiket
+  echo "  $2 — servis hesabinin SON durumu:"
+  $KCADM get "users/$1/role-mappings" -r ${REALM} 2>/dev/null \
+    | tr -d '\n' | sed 's/}, *{/}\n{/g' \
+    | grep -o '"name" *: *"[^"]*"' | sed 's/.*: *"\(.*\)"/     \1/' | sort -u \
+    || echo "     (rol eslemesi okunamadi)"
+}
 
 # A bearer token for the Keycloak Admin REST API (master realm, admin-cli password grant), via /dev/tcp.
 _kc_admin_token() {
@@ -326,6 +362,8 @@ if [ -n "$MM_BFF_SA_UID" ]; then
     --rolename manage-users --rolename view-users --rolename query-users --rolename view-realm 2>/dev/null \
     && echo "marine-mobile-bff: service account granted realm-management manage-users/view-users/query-users/view-realm." \
     || echo "marine-mobile-bff: realm-management grant skipped (already present)."
+
+  _sa_roles "$MM_BFF_SA_UID" "marine-mobile-bff"
 else
   echo "WARN: could not resolve marine-mobile-bff service-account user id — role grants skipped."
 fi
@@ -383,6 +421,52 @@ else
   echo "OTP_LOGIN_TICKET_SECRET or OTP_LOGIN_CONSUME_SECRET not set, skipping Participant OTP login flow setup."
 fi
 
+# ── FAZ18 (#73 / #74 / #25) — dev host redirect'lerini ÇALIŞAN realm'e idempotent uygula ──────────────
+# ⚠️ DEV/PROD TEK REALM, TEK İSTEMCİ (#25): Ortamda TEK Keycloak ve TEK realm var; 22 modül/BFF values dosyası
+# AYNI Keycloak__Authority'yi taşır. Bu yüzden bir istemciye 'dev-*' redirect_uri eklemek, PROD'un da kullandığı
+# AYNI istemciye ekler. SOMUT SONUÇ: bu dev host'unu KİM KONTROL EDİYORSA, o istemci için authorization code
+# ALABİLİR. Host'lar BİZİM olduğundan bugün kabul edilebilir; yarın (host el değiştirir / başka ekibe geçer) DEĞİL.
+# Bunlar tam olarak #25 (dev/prod realm ayrımı) geldiğinde AYRILMASI gereken girişlerdir; ayrımı BURADA yapmıyoruz.
+# --import-realm mevcut bir realm'i YENİDEN import ETMEZ → realm.json'daki bu redirect'ler yalnız SIFIRDAN import'ta
+# gelir; çalışan realm'e ancak bu idempotent adım ulaşır (init.sh'in varlık nedeni, audience mapper create-if-absent
+# ile aynı desen). NOT: inktavia-mobile B2 bloğu redirectUris'i MARINE_MOBILE_BFF_REDIRECT_URI ile yönetir; bu blok
+# B2'DEN SONRA çalışıp dev-mapi'yi (üzerine yazmadan) EKLER — o yüzden çakışmaz.
+
+# provider-portal — dev host (#73: canlıya elle eklenmişti, repo'da yoktu; artık realm.json'da + burada)
+PP_UUID=$($KCADM get clients -r ${REALM} -q clientId=provider-portal --fields id 2>/dev/null | _first_id)
+if [ -n "$PP_UUID" ]; then
+  HAS_PP_DEV=$($KCADM get "clients/${PP_UUID}" -r ${REALM} 2>/dev/null | tr -d '\n' | grep -c "dev-provider.inktavia.com" || true)
+  if [ "$HAS_PP_DEV" -eq 0 ]; then
+    $KCADM update "clients/${PP_UUID}" -r ${REALM} \
+      -s 'redirectUris+=https://dev-provider.inktavia.com/*' \
+      -s 'webOrigins+=https://dev-provider.inktavia.com' 2>/dev/null \
+      && echo "provider-portal: dev host redirect/webOrigin eklendi (dev-provider.inktavia.com)." \
+      || echo "  WARN: provider-portal dev host eklenemedi."
+  else
+    echo "provider-portal: dev host zaten kayıtlı."
+  fi
+else
+  echo "WARN: provider-portal istemcisi bulunamadı — dev host atlandı."
+fi
+
+# inktavia-mobile — dev BFF handoff redirect (#74: repo & canlıda eksikti; dev mobil OTP login bunsuz Keycloak
+# authorize adımında reddediliyordu). App dev'de MarineMobileKeycloak__BffRedirectUri=dev-mapi (values-dev) ile
+# gidiyor; bu URI istemcide kayıtlı OLMALI.
+MOBILE_UUID=$($KCADM get clients -r ${REALM} -q clientId=inktavia-mobile --fields id 2>/dev/null | _first_id)
+if [ -n "$MOBILE_UUID" ]; then
+  HAS_M_DEV=$($KCADM get "clients/${MOBILE_UUID}" -r ${REALM} 2>/dev/null | tr -d '\n' | grep -c "dev-mapi.inktavia.com/auth/callback" || true)
+  if [ "$HAS_M_DEV" -eq 0 ]; then
+    $KCADM update "clients/${MOBILE_UUID}" -r ${REALM} \
+      -s 'redirectUris+=https://dev-mapi.inktavia.com/auth/callback' 2>/dev/null \
+      && echo "inktavia-mobile: dev redirect_uri eklendi (dev-mapi.inktavia.com/auth/callback)." \
+      || echo "  WARN: inktavia-mobile dev redirect_uri eklenemedi."
+  else
+    echo "inktavia-mobile: dev redirect_uri zaten kayıtlı."
+  fi
+else
+  echo "WARN: inktavia-mobile istemcisi bulunamadı — dev redirect atlandı."
+fi
+
 # ── Marine.Web BFF (public website) + inktavia-web SPA (mirrors the marine-mobile-bff block) ──────────
 #   A) durable marine-web-bff confidential service-account client (create-if-absent). Boot-critical: the BFF's
 #      delegating handler ALWAYS obtains a service token, so this client must exist or the BFF fails on boot.
@@ -427,6 +511,8 @@ if [ -n "$WEB_BFF_SA_UID" ]; then
     --rolename reference_data_read --rolename identity_read 2>/dev/null \
     && echo "marine-web-bff: service account granted reference_data_read + identity_read." \
     || echo "marine-web-bff: reference_data_read/identity_read grant skipped (already present or roles absent)."
+
+  _sa_roles "$WEB_BFF_SA_UID" "marine-web-bff"
 else
   echo "WARN: could not resolve marine-web-bff service-account user id — role grants skipped."
 fi
@@ -464,6 +550,121 @@ if [ -z "$WEB_CLIENT_UUID" ]; then
   fi
 else
   echo "inktavia-web client already exists, skipping creation."
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Servis hesabı rol EŞLEMELERİ — realm.json'a KONULAMAZ, init.sh'e AİT.
+#
+# NEDEN burada, realm export'unda değil: inktavia-realm-realm.json `users: []` taşıyor.
+# Servis hesabı rol eşlemeleri `service-account-<clientId>` KULLANICISININ üzerinde durur; export hiç
+# kullanıcı taşımadığı için bu eşlemelerin realm JSON'da yeri yoktur. --import-realm rol TANIMLARINI kurar
+# ama hiçbir servis hesabına bir şey EŞLEMEZ. Aşağısı bu boşluğu idempotent kapatır.
+#
+# provider-portal-bff ve admin-panel-bff init.sh tarafından OLUŞTURULMAZ (zaten realm'de var); yalnız
+# servis-hesabı uid'i çözülüp roller eklenir. add-roles idempotenttir (var olan rolü yeniden eklemek
+# no-op'tur) ve her çalıştırmada koşar ki elle/eksik kurulmuş bir hesap ONARILSIN.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# provider-portal-bff: Identity bunu IdentityKeycloak__AdminClientId olarak kullanıp Keycloak KULLANICISI
+# oluşturur/okur (realm-management) VE provider BFF bununla Identity modülüne okuma+yazma çağrısı yapar
+# (identity_read/identity_write). identity_read 2026-08-21'de ELLE verilmişti; hiçbir yerde kayıtlı değildi.
+PP_BFF_CLIENT_ID="provider-portal-bff"
+PP_BFF_UUID_FOR_SA=$($KCADM get clients -r ${REALM} -q clientId=${PP_BFF_CLIENT_ID} --fields id 2>/dev/null | _first_id)
+PP_BFF_SA_UID=$($KCADM get "clients/${PP_BFF_UUID_FOR_SA}/service-account-user" -r ${REALM} --fields id 2>/dev/null | _first_id)
+if [ -n "$PP_BFF_SA_UID" ]; then
+  $KCADM add-roles -r ${REALM} --uid "$PP_BFF_SA_UID" \
+    --rolename identity_read --rolename identity_write 2>/dev/null \
+    && echo "provider-portal-bff: service account granted identity_read + identity_write." \
+    || echo "provider-portal-bff: identity_read/identity_write grant skipped (already present or roles absent)."
+
+  # realm-management: Keycloak Admin API ile kullanıcı oluşturma/okuma/attribute yazma. view-realm, bir realm
+  # rolünü isimle GET edip eşlemeden önce gereklidir. marine-mobile-bff ile aynı küme (provider zaten admin client).
+  $KCADM add-roles -r ${REALM} --uid "$PP_BFF_SA_UID" \
+    --cclientid realm-management \
+    --rolename manage-users --rolename view-users --rolename query-users --rolename view-realm 2>/dev/null \
+    && echo "provider-portal-bff: service account granted realm-management manage-users/view-users/query-users/view-realm." \
+    || echo "provider-portal-bff: realm-management grant skipped (already present)."
+
+  _sa_roles "$PP_BFF_SA_UID" "provider-portal-bff"
+else
+  echo "WARN: could not resolve provider-portal-bff service-account user id — role grants skipped."
+fi
+
+# admin-panel-bff: CANLI hesap HİÇBİR realm rolü taşımıyor; her modül için o modülün *dotted* client rollerini
+# taşıyor. Identity policy'leri identity.read/identity.write/identity.admin gibi DOTTED client rolünü de kabul
+# ediyor (BFF servis-hesabı token'larında realm rolü yok — AuthorizationPolicyExtensions.cs:17). Bu blok CANLI
+# durumu KODLAR: modül başına client rolleri, realm rolü DEĞİL. `Admin` realm rolü BİLEREK verilmiyor — canlı
+# hesapta yok ve vermek [Authorize(Roles="Admin,SuperAdmin")] uçlarını (CargoDry admin/finans/ticari/konsinye...)
+# prod'da bir sonraki init.sh'te açardı; "var olanı kodla" fazı var olandan fazlasını sessizce veremez (bkz.
+# rapor). realm-management GEREKMEZ: admin-panel Keycloak Admin API'sine DOKUNMAZ (kullanıcı/OTP/parola →
+# Identity modülüne proxy), yalnız kendi token'ını yeniler. Roller M3 ölçümünden birebir; her biri realm.json
+# roles.client altında zaten TANIMLI.
+AP_BFF_CLIENT_ID="admin-panel-bff"
+AP_BFF_UUID_FOR_SA=$($KCADM get clients -r ${REALM} -q clientId=${AP_BFF_CLIENT_ID} --fields id 2>/dev/null | _first_id)
+AP_BFF_SA_UID=$($KCADM get "clients/${AP_BFF_UUID_FOR_SA}/service-account-user" -r ${REALM} --fields id 2>/dev/null | _first_id)
+if [ -n "$AP_BFF_SA_UID" ]; then
+  # Her --cclientid bloğu o API client'ının dotted rollerini verir. Idempotent (var olan no-op).
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid cargodry-api \
+    --rolename cargodry.admin --rolename cargodry.read --rolename cargodry.write 2>/dev/null \
+    && echo "admin-panel-bff: cargodry-api client roles granted." \
+    || echo "admin-panel-bff: cargodry-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid file-storage-api \
+    --rolename file.delete --rolename file.read --rolename file.read-url.create \
+    --rolename file.upload-url.create --rolename file.visibility.manage --rolename file.write 2>/dev/null \
+    && echo "admin-panel-bff: file-storage-api client roles granted." \
+    || echo "admin-panel-bff: file-storage-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid identity-api \
+    --rolename identity.admin --rolename identity.auth --rolename identity.profile.approve \
+    --rolename identity.profile.read --rolename identity.profile.reject \
+    --rolename identity.read --rolename identity.write 2>/dev/null \
+    && echo "admin-panel-bff: identity-api client roles granted." \
+    || echo "admin-panel-bff: identity-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid messaging-api \
+    --rolename messaging.admin --rolename messaging.read --rolename messaging.write 2>/dev/null \
+    && echo "admin-panel-bff: messaging-api client roles granted." \
+    || echo "admin-panel-bff: messaging-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid notification-api \
+    --rolename notification.admin --rolename notification.read --rolename notification.write 2>/dev/null \
+    && echo "admin-panel-bff: notification-api client roles granted." \
+    || echo "admin-panel-bff: notification-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid payment-api \
+    --rolename payment.admin --rolename payment.read --rolename payment.write 2>/dev/null \
+    && echo "admin-panel-bff: payment-api client roles granted." \
+    || echo "admin-panel-bff: payment-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid profile-api \
+    --rolename profile.admin --rolename profile.read --rolename profile.write 2>/dev/null \
+    && echo "admin-panel-bff: profile-api client roles granted." \
+    || echo "admin-panel-bff: profile-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid reference-data-api \
+    --rolename reference-data.currency.manage --rolename reference-data.location.read \
+    --rolename reference-data.lookup.manage --rolename reference-data.read \
+    --rolename reference-data.write 2>/dev/null \
+    && echo "admin-panel-bff: reference-data-api client roles granted." \
+    || echo "admin-panel-bff: reference-data-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid service-request-api \
+    --rolename service-request.admin --rolename service-request.assignment.manage \
+    --rolename service-request.completion.manage --rolename service-request.dispute.manage \
+    --rolename service-request.read --rolename service-request.write 2>/dev/null \
+    && echo "admin-panel-bff: service-request-api client roles granted." \
+    || echo "admin-panel-bff: service-request-api client role grant skipped (already present or roles absent)."
+
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid vessel-api \
+    --rolename vessel.admin --rolename vessel.document.manage --rolename vessel.ownership.manage \
+    --rolename vessel.read --rolename vessel.write 2>/dev/null \
+    && echo "admin-panel-bff: vessel-api client roles granted." \
+    || echo "admin-panel-bff: vessel-api client role grant skipped (already present or roles absent)."
+
+  _sa_roles "$AP_BFF_SA_UID" "admin-panel-bff"
+else
+  echo "WARN: could not resolve admin-panel-bff service-account user id — role grants skipped."
 fi
 
 # ── Dev login-user self-heal (companion) ───────────────────────────────────────

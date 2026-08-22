@@ -1,0 +1,9 @@
+[
+  {
+    "ErrorCode": 99001,
+    "Errors": [
+      { "Language": "TR", "Description": "Türkçe mesaj" },
+      { "Language": "EN", "Description": "English message" }
+    ]
+  }
+]

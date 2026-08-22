@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
@@ -31,6 +32,8 @@ public sealed class UnitCodeValidator
     /// <summary>
     /// Validates all non-empty UnitCodes in the given items. Throws AizenBusinessException on first unknown code.
     /// Null/empty UnitCode is accepted — only a non-empty unrecognised code is rejected.
+    /// If the ReferenceData lookup itself cannot be performed (infra failure), throws AizenUpstreamException
+    /// (→ 502) — the check is NOT silently skipped, so an unknown code can never slip through as "valid".
     /// </summary>
     public async Task ValidateUnitCodesAsync(IEnumerable<Abstraction.Request.Offer.CreateServiceRequestOfferItemRequest> items, CancellationToken ct)
     {
@@ -43,7 +46,6 @@ public sealed class UnitCodeValidator
         if (codesToValidate.Count == 0) return;
 
         var validCodes = await GetActiveUnitCodesAsync(ct);
-        if (validCodes is null) return; // Service unavailable — skip validation
 
         foreach (var code in codesToValidate)
         {
@@ -52,7 +54,7 @@ public sealed class UnitCodeValidator
         }
     }
 
-    private async Task<HashSet<string>?> GetActiveUnitCodesAsync(CancellationToken ct)
+    private async Task<HashSet<string>> GetActiveUnitCodesAsync(CancellationToken ct)
     {
         // Try cache first
         try
@@ -86,8 +88,18 @@ public sealed class UnitCodeValidator
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch measurement units from ReferenceData. Unit validation skipped.");
-            return null; // Service unavailable — skip validation
+            // Aramanın KENDİSİ başarısız oldu (BaseUrl yok, 401, timeout, 5xx, ağ hatası...). Bu bir DOĞRULAMA
+            // hatası DEĞİL, altyapı hatasıdır. Eskiden burada 'return null' vardı ve çağıran doğrulamayı SESSİZCE
+            // atlıyordu → geçersiz birim kodu "geçerli" gibi kabul edilebiliyordu (şehir defektinin kardeşi).
+            // Artık yukarı-akış hatası olarak yüzeye çıkar (Core.Api middleware → 502), asla geçerli-veri gibi
+            // görünmez.
+            var correlationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
+            _logger.LogError(ex,
+                "[{Code}] ReferenceData measurement-units fetch failed. correlationId={CorrelationId}",
+                AizenUpstreamException.StableCode, correlationId);
+            throw new AizenUpstreamException(
+                correlationId,
+                publicMessage: "Birim kodu doğrulaması şu an yapılamıyor. Lütfen daha sonra tekrar deneyin.");
         }
     }
 }

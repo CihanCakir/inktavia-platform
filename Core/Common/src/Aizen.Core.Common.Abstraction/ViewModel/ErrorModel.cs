@@ -216,6 +216,30 @@ public enum AizenErrorCode
     ActivityQrAlreadyScanned = 3602,
     ActivityQrRevoked = 3603,
     ActivityQrThrottle = 3604,
+
+    // 📌 Provider Onboarding (sağlayıcı web onboarding akışı — FAZ12B #65)
+    // Kararlı kod + Identity aizen_error_messages.json'da TR/EN metin → hem frontend eşleyebiliyor hem de
+    // exception middleware çağıranın diline göre yerelleştiriyor (Accept-Language artık iletiliyor).
+    ProviderProfileNotFound = 4300,
+    ProviderOnboardingRecordNotFound = 4301,
+    ProviderOnboardingSchemaVersionUnsupported = 4302,
+    ProviderOnboardingSubmissionIncomplete = 4303,
+    ProviderOnboardingCityNotRecognised = 4304,
+    ProviderOnboardingLockedAfterSubmit = 4305,
+    ProviderOnboardingRequiredStepIncomplete = 4306,
+    ProviderOnboardingCallerIdentityInvalid = 4307,
+    ProviderOnboardingPermissionDenied = 4308,
+    ProviderOnboardingFileAlreadyAttached = 4309,
+    ProviderOnboardingDocumentNotFound = 4310,
+    // Onboarding belge ekleme (file-storage doğrulaması) — provider web'in ulaştığı yol.
+    ProviderOnboardingFileAssociatedWithOtherProfile = 4311,
+    ProviderOnboardingFileNotFoundInStorage = 4312,
+    ProviderOnboardingFileVerificationFailed = 4313,
+    ProviderOnboardingFileNotOwnedByProfile = 4314,
+    ProviderOnboardingFileQuarantined = 4315,
+    ProviderOnboardingFileNotReady = 4316,
+    ProviderOnboardingFileTypeNotAllowed = 4317,
+    ProviderOnboardingFileTooLarge = 4318,
 }
 
 public class ErrorDescriptionModel

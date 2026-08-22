@@ -73,9 +73,11 @@ jobs:
         run: bash scripts/ci/assert-no-module-ingress.sh
 
       # Doldurulmamış "__FROM_ENV__" / "__FROM_SECRET__" yer-tutucularını yakalar (appsettings ↔ chart values).
-      # ŞİMDİLİK RAPORLA-YALNIZCA (continue-on-error): bugün var olan borç temizlenmeden bloklayıcı yaparsak
-      # herkesin görmezden geldiği kırmızı bir CI oluşur — o, denetimsizlikten kötüdür. Borç kapanınca
-      # 'continue-on-error' satırını KALDIRIN → bloklayıcı olur.
-      - name: Yapılandırma yer-tutucu denetimi (report-only)
-        continue-on-error: true
+      # 2026-08-22: BLOKLAYICI oldu. Kapanma koşulu buydu ve karşılandı — son dört boşluk
+      # (Vapid__Subject/PublicKey/PrivateKey + ContactIntake__IpHashSalt) dolduruldu, betik
+      # "Tüm yer-tutucuların chart values'ta karşılığı var" diyor.
+      # Bu denetimin ikizi ÇALIŞMA ANINDA da var: AizenConfigurationPlaceholderGuard
+      # (Faz 14/#30) Development dışında yer-tutucu taşıyan bir modülü hiç açmıyor.
+      # CI burada yakalayamazsa pod açılışta yakalar; ikisi birlikte kalsın.
+      - name: Yapılandırma yer-tutucu denetimi
         run: python3 build/ci/yer-tutucu-denetimi.py

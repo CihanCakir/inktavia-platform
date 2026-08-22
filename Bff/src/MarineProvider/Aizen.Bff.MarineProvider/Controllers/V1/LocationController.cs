@@ -25,4 +25,12 @@ public sealed class LocationController : AizenWebApiController
     public async Task<AizenApiResponse<List<CityDto>?>> GetCities(
         [FromQuery] string country = "TR", CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetCitiesBffQuery { Country = country }, ct));
+
+    // FAZ17 (#72) — ReferenceData "countries" ucu baştan beri vardı; eksik olan bu passthrough'tu (ölçüldü 2026-08-22).
+    // Şehirlerle aynı desen. Pilot (yalnız Türkiye) filtresi BURADA DEĞİL — BFF, ReferenceData'da ne varsa sunar;
+    // pilot kısıtı tek yerde (frontend config) durur ki bir admin aracı ya da başka istemci onu miras almasın.
+    [HttpGet("countries")]
+    [ProducesResponseType(typeof(List<CountryDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CountryDto>?>> GetCountries(CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCountriesBffQuery(), ct));
 }
