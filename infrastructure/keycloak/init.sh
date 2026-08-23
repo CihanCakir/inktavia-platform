@@ -5,6 +5,15 @@ KEYCLOAK_URL="${KEYCLOAK_URL:-http://keycloak:8080}"
 ADMIN_USER="${KEYCLOAK_ADMIN:-admin}"
 ADMIN_PASS="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
 REALM="inktavia-realm"
+
+# ── #92 DERSI (2026-08-23): identityBaseUrl ──────────────────────────────────────────────────────
+# Identity modulu docker-compose'tan k3s'e tasindi; eski "http://identity-api:8080" adresi Keycloak
+# konteynerinden artik COZULMUYOR (UnknownHostException) ve SPI'daki consume cagrisi FATAL oldugu
+# icin OTP girisi INVALID_CREDENTIALS ile biter. Yeni adres: aizen-identity servisinin ClusterIP'si
+# (ns=inktavia-dev, port 80 → 8080). Bu IP values-dev.yaml'da spec.clusterIP olarak SABITLENMISTIR;
+# servis silinip yeniden yaratilsa da ayni kalir. Ingress bilerek kapali (moduller cluster disina
+# ACILMAZ — values-dev.yaml guvenlik notu); erisim host route'u uzerinden, consumeSecret ile korunur.
+IDENTITY_CONSUME_BASE_URL="${IDENTITY_CONSUME_BASE_URL:-http://10.43.242.79:80}"
 KCADM="/opt/keycloak/bin/kcadm.sh"
 FLOW_NAME="Provider OTP Login browser"
 FLOW_NAME_ENC="Provider%20OTP%20Login%20browser"
@@ -194,13 +203,13 @@ _ensure_otp_authenticator() {
   local masked="${OTP_LOGIN_TICKET_SECRET:0:6}…(len=${#OTP_LOGIN_TICKET_SECRET})"
   if [ -n "$cfgid" ]; then
     $KCADM update "authentication/config/${cfgid}" -r ${REALM} \
-      -b "{\"id\":\"${cfgid}\",\"alias\":\"${alias}\",\"config\":{\"identityBaseUrl\":\"http://identity-api:8080\",\"consumePath\":\"${cpath}\",\"ticketSecret\":\"${OTP_LOGIN_TICKET_SECRET}\",\"consumeSecret\":\"${OTP_LOGIN_CONSUME_SECRET}\",\"allowedClientId\":\"${cid}\",\"maxSkewSeconds\":\"30\"}}" 2>/dev/null \
+      -b "{\"id\":\"${cfgid}\",\"alias\":\"${alias}\",\"config\":{\"identityBaseUrl\":\"${IDENTITY_CONSUME_BASE_URL}\",\"consumePath\":\"${cpath}\",\"ticketSecret\":\"${OTP_LOGIN_TICKET_SECRET}\",\"consumeSecret\":\"${OTP_LOGIN_CONSUME_SECRET}\",\"allowedClientId\":\"${cid}\",\"maxSkewSeconds\":\"30\"}}" 2>/dev/null \
       && echo "  [${fn}] authenticator config UPDATED (id=${cfgid}): ticketSecret=${masked} consumePath=${cpath} allowedClientId=${cid}." \
       || echo "  WARN: [${fn}] authenticator config update FAILED (id=${cfgid})."
   else
     $KCADM create "authentication/executions/${execid}/config" -r ${REALM} \
       -s "alias=${alias}" \
-      -s "config.identityBaseUrl=http://identity-api:8080" \
+      -s "config.identityBaseUrl=${IDENTITY_CONSUME_BASE_URL}" \
       -s "config.consumePath=${cpath}" \
       -s "config.ticketSecret=${OTP_LOGIN_TICKET_SECRET}" \
       -s "config.consumeSecret=${OTP_LOGIN_CONSUME_SECRET}" \
@@ -274,14 +283,18 @@ if [ -n "${OTP_LOGIN_TICKET_SECRET:-}" ] && [ -n "${OTP_LOGIN_CONSUME_SECRET:-}"
   if [ -n "$ADMIN_USER_UUID" ]; then
     PROV_BODY="{\"keycloakSubjectId\":\"${ADMIN_USER_UUID}\",\"email\":\"${ADMIN_EMAIL}\",\"firstName\":\"Admin\",\"lastName\":\"User\",\"emailVerified\":true}"
     PROV_LEN=${#PROV_BODY}
-    if exec 3<>/dev/tcp/identity-api/8080 2>/dev/null; then
-      printf 'POST /api/v1/identity/auth/admin-otp-login/admin-provision HTTP/1.1\r\nHost: identity-api:8080\r\nContent-Type: application/json\r\nX-Otp-Login-Consume-Secret: %s\r\nContent-Length: %s\r\nConnection: close\r\n\r\n%s' \
-        "${OTP_LOGIN_CONSUME_SECRET}" "${PROV_LEN}" "${PROV_BODY}" >&3
+  # #92: admin-provision da ayni olu adresi kullaniyordu — IDENTITY_CONSUME_BASE_URL'den host/port turet.
+  IDENTITY_HOSTPORT="${IDENTITY_CONSUME_BASE_URL#http://}"
+  IDENTITY_HOST="${IDENTITY_HOSTPORT%%:*}"
+  IDENTITY_PORT="${IDENTITY_HOSTPORT##*:}"
+    if exec 3<>"/dev/tcp/${IDENTITY_HOST}/${IDENTITY_PORT}" 2>/dev/null; then
+      printf 'POST /api/v1/identity/auth/admin-otp-login/admin-provision HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json\r\nX-Otp-Login-Consume-Secret: %s\r\nContent-Length: %s\r\nConnection: close\r\n\r\n%s' \
+        "${IDENTITY_HOSTPORT}" "${OTP_LOGIN_CONSUME_SECRET}" "${PROV_LEN}" "${PROV_BODY}" >&3
       PROV_STATUS=$(head -1 <&3 | tr -d '\r')
       exec 3>&- 3<&-
       echo "Admin real-subject linkage (KC subject -> Identity): ${PROV_STATUS}"
     else
-      echo "WARN: could not connect to identity-api:8080 for admin-provision (is identity-api up?)."
+      echo "WARN: could not connect to ${IDENTITY_HOSTPORT} for admin-provision (Identity ayakta mi?)."
     fi
   else
     echo "WARN: admin user ${ADMIN_EMAIL} not found — skipping real-subject linkage."

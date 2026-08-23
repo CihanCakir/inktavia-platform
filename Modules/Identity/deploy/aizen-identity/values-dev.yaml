@@ -48,6 +48,13 @@ service:
   type: ClusterIP
   port: 80          # cluster içi çağrılar http://aizen-identity ile gelsin
   targetPort: 8080  # .NET 9 varsayılanı
+  # ── #92 (2026-08-23): ClusterIP SABIT ─────────────────────────────────────────
+  # Keycloak host-stack'te (docker, cluster DISI) çalışır; SPI'ın consume-ticket çağrısı
+  # kube-dns'e erişemediği için bu IP'ye doğrudan gider (init.sh: IDENTITY_CONSUME_BASE_URL).
+  # Servis silinip yeniden yaratılırsa IP değişmesin diye buraya sabitlendi — bu satırı
+  # kaldırırsan/değiştirirsen init.sh'teki adresi de güncelle, yoksa OTP girişi
+  # UnknownHost/timeout ile SESSİZCE İPTAL olur (bkz. ACIK_BORCLAR.md #92).
+  clusterIP: 10.43.242.79
 
 ingress:
   # SECURITY: modules must NEVER be reachable from outside the cluster.

@@ -285,3 +285,37 @@ html.login-pf body {
   color: var(--inktavia-navy-muted);
   text-align: center;
 }
+
+
+/* ── FAZ23-C (#91 devam) — 2026-08-24, iki kalinti UI farki, DOM'dan OLCULDU ──
+ *
+ * 1) KART 140px SOLDAYDI: PF5 `__container` IKI SUTUNLU grid ("main header"/"main footer";
+ *    olculen: 544px + 120px hayalet sutun + 64px gap). Container sag bolgenin tam
+ *    ortasindaydi (1218=1218 ✓) ama kart SOL sutunda oturdugu icin merkezi 1078'e
+ *    kayiyordu. Uygulamada hayalet sutun yok → grid'i tek eksenli flex'e ceviriyoruz;
+ *    kart merkezi = container merkezi = sag bolge merkezi (uygulamayla birebir).
+ *
+ * 2) ALT BILGI: uygulamanin kart altindaki kucuk logo + telif satiri (AuthFooter)
+ *    Keycloak'ta yoktu. ::after flex ogesi olarak eklendi — metin uygulamadaki ile
+ *    BIREBIR AYNI (© 2024 dahil; kaynak app'in kendi footer'i, uydurma degil). */
+.pf-v5-c-login__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: auto;
+  column-gap: 0;
+}
+
+.pf-v5-c-login__container::after {
+  /* escape DEGIL duz karakter: "\00A9 2024" yazinca CSS escape sonrasi BOSLUGU sonlandirici
+     olarak yutar ve ekranda "©2024" cikar — geri olcumde yakalandi (2026-08-24). */
+  content: "© 2024 Inktavia Marine OS. Nautical Heritage Precision.";
+  margin-top: 1.75rem;
+  padding-top: 32px;
+  background: url("../img/logo.png") top center / 24px 24px no-repeat;
+  font-family: var(--inktavia-font-ui);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--inktavia-navy-muted);
+  text-align: center;
+}

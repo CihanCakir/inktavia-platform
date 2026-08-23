@@ -8,18 +8,14 @@
 #    Bu yuzden platform monorepo'sunun TEK ETIKET kuralina dahil DEGIL —
 #    kendi sha'si var ve gitops/apps/web-admin-app.yaml icinde duruyor.
 #
-# ⛔ DEV SPA HOST'U YOK — FAZ20'de OLCULDU (2026-08-22):
-#    Admin BFF'in dev host'u VAR (dev-admin-api.inktavia.com), ama admin PANELININ
-#    (SPA) kendi dev ingress host'u HICBIR YERDE tanimli degil: ne Cloudflare tunel
-#    yonlendirmesinde, ne de baska bir yerde 'dev-admin.inktavia.com' gecmiyor.
-#    Kural geregi UYDURMUYORUM. Bu yuzden dev'de ingress KAPALI ve replicaCount 0.
-#    Etkinlestirmek icin ONCE (Faz18'deki gibi) bir dev SPA host'u kaydedilmeli:
-#      1) Cloudflare Tunnel'da yeni bir yonlendirme ( or. dev-admin.inktavia.com → ingress-nginx)
-#      2) Buraya ingress.enabled: true + o host + replicaCount: 1
-#    (Admin auth modu 'identity' oldugundan Keycloak redirect_uri gerekmiyor — sadece
-#     tunel + DNS. BFF adresi zaten dev-admin-api.inktavia.com olarak asagida hazir.)
+# ✅ FAZ24 (2026-08-24): DEV SPA HOST'U KAYDEDILDI — FAZ20'nin "uydurmuyorum" blogu cozuldu.
+#    Cloudflare Tunnel'a 14. yonlendirme eklendi ve listeden geri-okundu:
+#      dev-admin.inktavia.com → http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
+#    (dev-provider.inktavia.com ile ayni kalip; DNS kaydini tunel kendisi olusturur.)
+#    Bu yuzden asagida ingress ACIK ve replicaCount 1. Admin auth modu 'identity'
+#    oldugundan Keycloak redirect_uri GEREKMIYOR — tunel + ingress yeterli.
 
-replicaCount: 0
+replicaCount: 1
 
 image:
   repository: ghcr.io/cihancakir/inktavia/web-admin
@@ -61,13 +57,16 @@ service:
   targetPort: 8080
 
 ingress:
-  # ⛔ KAPALI: dev SPA host'u yok (yukaridaki nota bak). Host kaydedilince true yap
-  #    ve hosts[].host'u gir.
-  enabled: false
+  # FAZ24: host kaydedildi (yukaridaki not) — acik.
+  enabled: true
   className: "nginx"
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "8m"
-  hosts: []
+  hosts:
+    - host: dev-admin.inktavia.com
+      paths:
+        - path: /
+          pathType: Prefix
   tls: []
 
 probes:

@@ -6,6 +6,10 @@ metadata:
     {{- include "aizen-identity.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
+  {{- with .Values.service.clusterIP }}
+  # #92: Keycloak (docker, cluster DISI) SPI consume cagrisi bu IP'ye gider — sabit kalmali.
+  clusterIP: {{ . }}
+  {{- end }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http

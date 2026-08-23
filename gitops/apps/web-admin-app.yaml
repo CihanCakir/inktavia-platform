@@ -12,10 +12,11 @@
 #    gibi bir kez elle uygulaniyor:
 #        kubectl apply -f gitops/apps/web-admin-app.yaml
 #
-# ⛔ FAZ20: DEV'DE HENUZ UYGULANMAMALI. Iki eksik var (bkz. Web/deploy/web-admin/values-dev.yaml):
-#    (1) dev SPA host'u (tunel yonlendirmesi) yok → values-dev'de ingress KAPALI, replicaCount 0.
-#    (2) web-admin image'i henuz uretilmedi → asagidaki image.tag PLACEHOLDER.
-#    Ikisi de hazir olunca: values-dev ingress'i ac + gercek sha'yi gir + apply.
+# ✅ FAZ24 (2026-08-24): FAZ20'nin iki eksigi de kapandi — artik uygulanabilir:
+#    (1) dev SPA host'u kaydedildi (tunel rotasi 14: dev-admin.inktavia.com → ingress-nginx),
+#        values-dev'de ingress ACIK, replicaCount 1.
+#    (2) ilk web-admin image'i uretildi: CI #4 (develop push f54bcea) → sha-f54bcea + :dev.
+#    Ilk kurulum ELLE: kubectl apply -f gitops/apps/web-admin-app.yaml (#33: app-of-apps yok).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -44,10 +45,8 @@ spec:
         # en yeni ':dev' image'inin digest'iyle kiyaslar; tutmuyorsa CI YUKSEK SESLE patlar.
         # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
         - name: image.tag
-          # ⛔ PLACEHOLDER: web-admin image'i henuz hic uretilmedi (frontend CI ilk develop
-          #    push'unda sha-<7hex> uretecek). replicaCount 0 oldugundan pull denenmez, ImagePullBackOff olmaz.
-          #    Ilk gercek image ciktiginda buraya o sha yazilacak.
-          value: "sha-0000000"
+          # FAZ24: ilk gercek image (admin-web CI #4, develop merge f54bcea — faz24/ci-ve-tip-duzeltmeleri).
+          value: "sha-f54bcea"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
