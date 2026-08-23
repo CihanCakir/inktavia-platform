@@ -230,16 +230,26 @@ services:
     depends_on:
       keycloak-db:
         condition: service_healthy
-    # start-dev DEĞİL: üretim modu. hostname-strict=false + proxy-headers=xforwarded
-    # kombinasyonu hem LAN'dan (http://192.168.1.50:8080) hem ileride Cloudflare Tunnel
-    # arkasından (https://auth.inktavia.com) çalışır — Keycloak URL'leri istek
-    # başlıklarından türetir. Faz 9'da tünel kurulunca KC_HOSTNAME sabitlenecek.
+    # start-dev DEĞİL: üretim modu.
+    # 🔴 2026-08-23 OLAYI (#92) — BU BLOK BİR KEZ VERİ KAYBIYLA EZİLDİ, DİKKAT:
+    #   Sunucudaki compose'a Faz 9/10'da ELLE hostname sabitlemesi yapılmıştı
+    #   (--hostname=https://auth.inktavia.com + --hostname-admin + --hostname-backchannel-dynamic)
+    #   ama depoya GERİ İŞLENMEMİŞTİ; burada hâlâ "Faz 9'da sabitlenecek" yazıyordu.
+    #   #84 senkronunda depo sürümü sunucuya kopyalanınca çalışan yapılandırma bayat
+    #   --hostname-strict=false ile ezildi ve OTP login_ticket akışı KIRILDI (parola
+    #   girişi çalışmaya devam etti — fark ancak OTP denenince görüldü). Yedekle diff
+    #   alınarak bulundu ve üç bayrak buraya GERİ İŞLENDİ. Ders: sunucu-depo farkı
+    #   elle yapılmış bir düzeltme olabilir; diff'lemeden üzerine YAZMA.
+    #   hostname-backchannel-dynamic=true: küme içi BFF http://keycloak:8080'den konuşur
+    #   (OTP bilet akışı buna bağlı), tarayıcı https://auth.inktavia.com görür.
     command:
       - start
       - --import-realm
       - --http-port=8080
       - --http-enabled=true
-      - --hostname-strict=false
+      - --hostname=https://auth.inktavia.com
+      - --hostname-admin=http://192.168.1.50:8080
+      - --hostname-backchannel-dynamic=true
       - --proxy-headers=xforwarded
       - --spi-connections-http-client-default-disable-trust-manager=true
     environment:
