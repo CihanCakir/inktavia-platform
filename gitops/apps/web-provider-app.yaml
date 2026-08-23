@@ -51,7 +51,7 @@ spec:
           # ⚠️ Image YALNIZ develop'a PUSH'ta üretiliyor (ci.yml:57 `if: push && ref == develop`),
           #    PR'da değil. Uygulamadan önce etiketin GHCR'da var olduğu doğrulanmalı — yoksa
           #    ImagePullBackOff (bu dosyanın başındaki uyarının aynısı).
-          value: "sha-85eaeb1"
+          value: "sha-a605e1f"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
