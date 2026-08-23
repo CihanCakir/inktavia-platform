@@ -39,12 +39,19 @@ spec:
         # CI YUKSEK SESLE patlar. Yani bu satiri guncellemeyi unutursan platform CI kirmizi olur —
         # cluster sessizce eski image'i servis etmeye devam etmez. (Denetim TUM web-*-app.yaml'lari kapsar.)
         - name: image.tag
+          # 2026-08-23: sha-2dd05c4 → sha-85eaeb1 (Faz 22 — giriş sayfasındaki sahte parola
+          #   alanı kaldırıldı, #87). GHCR'de doğrulandı: sha-85eaeb1 ':dev' etiketini taşıyor,
+          #   ve commit 85eaeb1'de LoginPage.tsx'te PasswordInput/CheckboxField YOK, login.continue VAR.
+          # 🔴 Bu satır 2026-08-22'de sha-2dd05c4'te SIKIŞTI ve kimse fark etmedi: frontend'e iki kez
+          #   merge edildi, platform'a dokunulmadı, hiçbir sinyal çıkmadı. Yakalaması gereken denetim
+          #   (#55) YALNIZ cron ile tetiklenirdi ve cron HİÇ ateşlenmiyor — GitHub zamanlanmış işleri
+          #   yalnız VARSAYILAN DALDAN koşturur, bu workflow ise sadece develop'ta (main'de 404).
           # 2026-08-22: sha-b349367 → sha-2dd05c4 (Faz 11/12A/13B/17 frontend işi).
           # Etiket biçimi CI'dan: .github/workflows/ci.yml:85 → `sha-$(git rev-parse --short=7 HEAD)`.
           # ⚠️ Image YALNIZ develop'a PUSH'ta üretiliyor (ci.yml:57 `if: push && ref == develop`),
           #    PR'da değil. Uygulamadan önce etiketin GHCR'da var olduğu doğrulanmalı — yoksa
           #    ImagePullBackOff (bu dosyanın başındaki uyarının aynısı).
-          value: "sha-2dd05c4"
+          value: "sha-85eaeb1"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
