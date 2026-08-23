@@ -26,81 +26,79 @@
   --inktavia-font-ui: "Hanken Grotesk", system-ui, sans-serif;
 }
 
-/* Sayfa zemini + taban tipografi */
-.login-pf body,
-body.login-pf-page,
-.login-pf-page {
+/* ──────────────────────────────────────────────────────────────────────────
+ * 🔴 2026-08-23 DERSI — bu dosyanin ILK surumu YUKLENIYORDU ama HICBIR SEY
+ *    yapmiyordu. Olculdu (canli DOM, tarayici konsolu):
+ *      yuklenen stylesheet : .../login/inktavia/css/inktavia.css  ✅ (sira da dogru)
+ *      buton sinifi        : pf-v5-c-button pf-m-primary          ← PatternFly 5
+ *      dosyadaki secici    : .login-pf-page .card-pf, .pf-c-*     ← PatternFly 3/4
+ *      dosyada 'pf-v5'     : 0 kez
+ *    Yani 26 kuralin 25'i sayfada VAR OLMAYAN secicilere yaziliydi. Eslesmeyen CSS
+ *    SESSIZCE basarisiz olur — hata yok, uyari yok, sadece hicbir sey degismez.
+ *    Tek tutan kural zemindi (.login-pf body), cunku sinif BODY'de degil HTML'de.
+ *
+ *    Keycloak 25 + keycloak.v2 = PatternFly 5. Dogru secici ailesi: pf-v5-c-*.
+ *    Yapi (olculdu): html.login-pf > ... > .pf-v5-c-login__container
+ *                                          > .pf-v5-c-login__main
+ *                                            > .pf-v5-c-login__main-header
+ *                                            > .pf-v5-c-login__main-body
+ *    Degistirmeden once DOM'u OLC; PatternFly surum atlayinca butun aile adi degisir.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/* Sayfa zemini + taban tipografi. Sinif HTML uzerinde (html.login-pf), body'de degil. */
+html.login-pf,
+html.login-pf body {
   background: var(--inktavia-canvas);
   font-family: var(--inktavia-font-ui);
   color: var(--inktavia-navy);
 }
 
-/* Kart — AuthCard ile aynı: açık yüzey, ince navy kenarlık, 8px köşe */
-.login-pf-page .card-pf {
-  background: #FFFFFF;
+/* Ust baslik (displayNameHtml) — uygulamadaki display fontuyla ayni. */
+#kc-header,
+#kc-header-wrapper {
+  font-family: var(--inktavia-font-display);
+  color: var(--inktavia-navy);
+  letter-spacing: 0.02em;
+}
+
+/* Kart — AuthCard ile ayni: acik yuzey, ince navy kenarlik, 8px kose. */
+.pf-v5-c-login__main {
+  background: var(--inktavia-surface);
   border: 1px solid var(--inktavia-outline);
   border-radius: 8px;
   box-shadow: none;
-  padding: 2rem;
 }
 
-/* Başlıklar — display font (EB Garamond), navy */
-#kc-header-wrapper,
-#kc-page-title,
-.login-pf-page .card-pf h1,
-.pf-c-title {
+/* Kart basligi ("Hesabiniza giris yapin") */
+.pf-v5-c-login__main-header .pf-v5-c-title,
+#kc-page-title {
   font-family: var(--inktavia-font-display);
+  font-weight: 500;
   color: var(--inktavia-navy);
+}
+
+/* Alan etiketleri */
+.pf-v5-c-form__label-text {
+  color: var(--inktavia-navy);
+  font-family: var(--inktavia-font-ui);
   font-weight: 500;
 }
 
-/* Logo — resources/img/logo.png (provider-web marka varlığı, 256px). Header metnini görselle değiştir. */
-.login-pf-page #kc-header-wrapper {
-  background-image: url("../img/logo.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  height: 64px;
-  color: transparent;      /* "INKTAVIA-REALM" ham metnini gizle; displayNameHtml de bunu düzeltir */
-  text-indent: -9999px;
-  margin-bottom: 1rem;
-}
-
-/* Etiketler + yardımcı metin */
-.login-pf-page label,
-.login-pf-page .pf-c-form__label,
-#kc-form-options,
-.login-pf-page .kc-form-group,
-.login-pf-page a {
-  font-family: var(--inktavia-font-ui);
-}
-.login-pf-page a {
-  color: var(--inktavia-gold);
-}
-.login-pf-page a:hover {
-  color: var(--inktavia-navy);
-}
-
-/* Girdi alanları — 4px köşe, navy odak halkası (tokens: radius-control + gold focus) */
-.login-pf-page input[type="text"],
-.login-pf-page input[type="email"],
-.login-pf-page input[type="password"],
-.login-pf-page .pf-c-form-control {
-  border-radius: 4px;
+/* Girdi alanlari — PF5'te input bir .pf-v5-c-form-control sarmalayicisi icinde. */
+.pf-v5-c-form-control {
+  background: #FFFFFF;
   border: 1px solid var(--inktavia-outline);
-  font-family: var(--inktavia-font-ui);
+  border-radius: 4px;
 }
-.login-pf-page input:focus,
-.login-pf-page .pf-c-form-control:focus {
-  outline: 2px solid var(--inktavia-gold);
-  outline-offset: 2px;
+.pf-v5-c-form-control::after { border-bottom: none; }
+.pf-v5-c-form-control:focus-within {
   border-color: var(--inktavia-gold);
+  box-shadow: 0 0 0 2px rgb(197 160 89 / 0.25);
 }
 
-/* Birincil buton — gold zemin, navy metin (portalın vurgu rengi) */
-.login-pf-page .pf-c-button.pf-m-primary,
-.login-pf-page input[type="submit"],
-.login-pf-page #kc-login {
+/* Birincil buton — id + PF5 sinifi birlikte, cunku PF5'in kendi kurali guclu. */
+#kc-login,
+.pf-v5-c-login .pf-v5-c-button.pf-m-primary {
   background: var(--inktavia-gold);
   border-color: var(--inktavia-gold);
   color: var(--inktavia-navy);
@@ -108,16 +106,102 @@ body.login-pf-page,
   font-family: var(--inktavia-font-ui);
   font-weight: 600;
 }
-.login-pf-page .pf-c-button.pf-m-primary:hover,
-.login-pf-page #kc-login:hover {
-  background: #b18e49;         /* gold %10 koyu */
-  border-color: #b18e49;
+#kc-login:hover,
+.pf-v5-c-login .pf-v5-c-button.pf-m-primary:hover {
+  background: #B8934E;
+  border-color: #B8934E;
   color: var(--inktavia-navy);
 }
 
-/* Hata mesajları — danger */
-.login-pf-page .pf-c-alert.pf-m-danger,
-.login-pf-page .kc-feedback-text,
-.login-pf-page #input-error {
+/* Baglantilar */
+.pf-v5-c-login a,
+.pf-v5-c-login .pf-v5-c-button.pf-m-link {
+  color: var(--inktavia-navy-muted);
+  text-decoration: underline;
+}
+.pf-v5-c-login a:hover { color: var(--inktavia-navy); }
+
+/* Hata metni */
+#input-error,
+.pf-v5-c-form__helper-text.pf-m-error,
+.pf-v5-c-helper-text__item.pf-m-error {
   color: var(--inktavia-danger);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * FAZ23 (#90) — AuthSplitLayout marka panelini Keycloak'ta CSS ile yeniden üret.
+ * SADECE CSS — hicbir .ftl override YOK (OTP SPI ayni sablonlari render ediyor; sablon
+ * override ayri/riskli bir faz). Degerler AuthBrandPanel.tsx + AuthSplitLayout.tsx'ten BIREBIR.
+ *
+ * YAKLASIM = FIXED pseudo-element (.pf-v5-c-login::before/::after). NEDEN fixed (secim gerekcesi):
+ *   PF5 login TEK SUTUNLU bir flex konteyner (.pf-v5-c-login karti ortalar). Akisin ICINE ikinci
+ *   bir sutun sokmak PF5 grid'ini bozar ve PF5 surum atlayinca (pf-v4→v5 gibi) tumden kirilir.
+ *   FIXED pseudo akistan BAGIMSIZDIR → PF5 iskelesi ne olursa olsun sol %45'i kaplar; karti saga
+ *   itmek icin .pf-v5-c-login'e sol padding veriyoruz (akisi degil, ic boslugu). Panel app'te
+ *   aria-hidden DEKORATIF oldugundan CSS `content` ile uretilen metin kabul edilebilir (app paneli de
+ *   aria-hidden). <1024px'te app paneli gizliyor (hidden lg:flex) → biz de gizleriz.
+ *
+ * ⚠️ CANLI RENDER OLMADAN DOGRULANAMADI (bu hafta PF5 CSS'i DOM yerine convention'dan yazildigi icin
+ *    bir kez tamamen yanlisti — o yuzden acikca isaretliyorum). Yuksek guvenli: sol panelin varligi,
+ *    #002147 zemin, birebir pinstripe gradyan, logo, kartin saga kaymasi, mobilde panelin gizlenmesi.
+ *    Canli ekranda dogrulanmali: (a) .pf-v5-c-login gercekten viewport'u kaplayan flex-center mi
+ *    (padding-left kartin saga kaymasini saglar mi), (b) baslik/slogan/altin-cizginin dikey hizasi,
+ *    (c) app'te slogan italic + white/70 ve ayri font-size — tek `content` blogunda AYRISTIRILAMADIGI
+ *    icin burada baslik+slogan tek blok/tek stil (EB Garamond, beyaz); ust "INKTAVIA" wordmark'i
+ *    atlandi (logo ust markalamayi tasiyor). Bunlar dekoratif; gerekirse Cihan canlida ince ayar yapar.
+ * ────────────────────────────────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  /* Sol panel: navy + pinstripe + logo (ust-sol) + baslik & slogan (alta yasli). */
+  html.login-pf .pf-v5-c-login::before {
+    content: "Inktavia Marine OS\A\A Professional marine operations, unified";
+    white-space: pre-line;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 45vw;
+    height: 100vh;
+    box-sizing: border-box;
+    padding: 4rem 3rem 6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;          /* app'teki 'between' hizasi: metin panelin altinda */
+    background-color: var(--inktavia-navy);   /* #002147 */
+    background-image:
+      url("../img/logo.png"),
+      repeating-linear-gradient(135deg, transparent, transparent 40px, rgb(255 255 255 / 0.03) 40px, rgb(255 255 255 / 0.03) 41px);
+    background-repeat: no-repeat, repeat;
+    background-position: left 3rem top 3rem, 0 0;
+    background-size: 2rem 2rem, auto;
+    color: #FFFFFF;
+    font-family: var(--inktavia-font-display);   /* EB Garamond — app baslik fontu */
+    font-size: 2.6rem;                  /* ~text-5xl; slogan da ayni blokta (ayristirilamiyor) */
+    line-height: 1.15;
+    z-index: 10;
+    pointer-events: none;               /* dekoratif — tiklamayi karta birak */
+  }
+
+  /* Altin cizgi (#C5A059) — app'teki 12×2px gold rule. Sol panelin alt bandinda ayri fixed bar. */
+  html.login-pf .pf-v5-c-login::after {
+    content: "";
+    position: fixed;
+    left: 3rem;
+    bottom: 4.5rem;
+    width: 3rem;
+    height: 2px;
+    background: var(--inktavia-gold);   /* #C5A059 */
+    z-index: 11;
+    pointer-events: none;
+  }
+
+  /* Karti sag %55'e it: PF5 login ic bosluguna sol pay (akis degismez). */
+  html.login-pf .pf-v5-c-login {
+    padding-left: 45vw;
+  }
+}
+
+/* <1024px: app paneli 'hidden lg:flex' → mobilde tek ortali kart, panel YOK (bugunku hal). */
+@media (max-width: 1023.98px) {
+  html.login-pf .pf-v5-c-login::before,
+  html.login-pf .pf-v5-c-login::after { content: none; }
+  html.login-pf .pf-v5-c-login { padding-left: 0; }
 }
