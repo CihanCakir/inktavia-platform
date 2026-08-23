@@ -205,3 +205,83 @@ html.login-pf body {
   html.login-pf .pf-v5-c-login::after { content: none; }
   html.login-pf .pf-v5-c-login { padding-left: 0; }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * FAZ23-B (#91) — 2026-08-23 gece: Cihan'in canli sikayeti uzerine, DOM'dan OLCULDU.
+ *
+ * 1) SCROLL BUG'I — matematiksel, her ekranda: ustteki `.login-pf-page-header`
+ *    (displayNameHtml basligi, olculen 117px) normal akista + `.pf-v5-c-login`
+ *    min-height:100vh → toplam DAIMA 100vh+117 → sayfa her zaman kayar.
+ *    Cozum: baslik GIZLENIR (marka paneli ayni yaziyi zaten tasiyor; uygulamanin
+ *    mobil girisinde de buyuk marka basligi yok → tutarli).
+ *
+ * 2) KART PARITESI — dev-provider /auth/login'den HESAPLANMIS stiller (tahmin degil):
+ *    kart  : bg #F2EEE9 · border 1px rgb(0 33 71/.12) · radius 8 · padding 32 · w 448
+ *    etiket: 12px · UPPERCASE · letter-spacing 1.2px · fw 500 · navy
+ *    girdi : h 44 · bg #F2EEE9 (kartla AYNI ton — beyaz DEGIL) · radius 4 · fs 14 · pad 0 12
+ *    buton : h 44 · fs 14 · fw 500 (600 degil) · radius 4
+ *    satir : "Beni hatirla" solda, "Sifremi unuttum" sagda — TEK satir (app ile ayni)
+ *
+ * 3) GUVEN MIKRO-METNI — kartin altinda kucuk, DURUST satir. "SHA-256" uydurma degil:
+ *    bu akisin PKCE'si code_challenge_method=S256, yani gercekten SHA-256. Metin TR
+ *    (varsayilan yerel ayar TR; EN kullanicisi da TR gorur — bilinen kucuk odun,
+ *    CSS content tek dillidir).
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+/* 1) scroll: ust baslik gizli → login blogu tam 100vh, tasma yok */
+.login-pf-page-header,
+#kc-header { display: none; }
+
+/* 2) kart — olculen receteyle birebir */
+.pf-v5-c-login__main {
+  width: 448px;
+  max-width: calc(100vw - 3rem);
+}
+.pf-v5-c-login__main-header { padding: 32px 32px 0; }
+.pf-v5-c-login__main-body   { padding: 24px 32px; }
+.pf-v5-c-login__main-footer { padding: 0 32px 12px; }
+
+.pf-v5-c-form__label-text {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 500;
+}
+
+.pf-v5-c-form-control {
+  background: var(--inktavia-surface);   /* girdi zemini kartla AYNI — app boyle */
+}
+.pf-v5-c-form-control > input,
+.pf-v5-c-form-control > select {
+  height: 44px;
+  font-size: 14px;
+  padding: 0 12px;
+}
+
+#kc-login,
+.pf-v5-c-login .pf-v5-c-button.pf-m-primary {
+  height: 44px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* "Beni hatirla" + "Sifremi unuttum" ayni satirda, iki uca yasli (app ile ayni) */
+.login-pf-settings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 3) guven satiri — kartin en altinda, kucuk ve sessiz */
+.pf-v5-c-login__main::after {
+  content: "TLS şifreli bağlantı \00B7  SHA-256 (PKCE) korumalı oturum";
+  display: block;
+  padding: 0 32px 20px;
+  font-family: var(--inktavia-font-ui);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--inktavia-navy-muted);
+  text-align: center;
+}
