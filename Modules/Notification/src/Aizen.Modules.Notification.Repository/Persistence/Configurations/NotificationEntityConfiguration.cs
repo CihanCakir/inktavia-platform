@@ -21,6 +21,8 @@ public sealed class NotificationEntityConfiguration : IEntityTypeConfiguration<N
         builder.Property(x => x.MetadataJson).HasColumnType("jsonb");
         builder.Property(x => x.ReferenceType).HasMaxLength(40);
         builder.Property(x => x.ReferenceId);
+        builder.Property(x => x.Locale).HasMaxLength(8).IsRequired();
+        builder.Property(x => x.DeepLink).HasMaxLength(1000);
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.HasIndex(x => new { x.RecipientUserId, x.Status });
         builder.HasIndex(x => new { x.RecipientUserId, x.CreatedAt });

@@ -34,6 +34,15 @@ public sealed class NotificationTemplateSeed
 
     public async Task SeedAsync(CancellationToken ct = default)
     {
+        // 1) DEFAULT e-posta layout'u (idempotent — koda göre guard).
+        if (!await _db.EmailLayouts.AnyAsync(x => x.Code == DefaultEmailLayoutSeed.Code, ct))
+        {
+            await _db.EmailLayouts.AddAsync(
+                EmailLayoutEntity.Create(DefaultEmailLayoutSeed.Code, DefaultEmailLayoutSeed.Name, DefaultEmailLayoutSeed.HtmlShell), ct);
+            _logger.LogInformation("Seeding email layout: {Code}", DefaultEmailLayoutSeed.Code);
+        }
+
+        // 2) Mantıksal template'ler (insert-only, koda göre).
         foreach (var tpl in BuildTemplates())
         {
             var exists = await _db.NotificationTemplates.AnyAsync(x => x.TemplateCode == tpl.TemplateCode, ct);
@@ -41,6 +50,23 @@ public sealed class NotificationTemplateSeed
             {
                 await _db.NotificationTemplates.AddAsync(tpl, ct);
                 _logger.LogInformation("Seeding notification template: {Code}", tpl.TemplateCode);
+            }
+        }
+        await _db.SaveChangesAsync(ct);
+
+        // 3) İçerik satırları (channel×locale×version). Taze DB'de migration'ın veri taşıması boştur (henüz template
+        //    yoktu) → içeriği burada üretiriz. Mevcut DB'de migration zaten taşımıştır → aşağıdaki EXISTS guard atlar.
+        //    Eşleme migration SQL'i ile AYNIdır (DefaultTemplateContent.FromTemplate).
+        var templates = await _db.NotificationTemplates.ToListAsync(ct);
+        foreach (var t in templates)
+        {
+            var hasContent = await _db.NotificationTemplateContents
+                .AnyAsync(c => c.TemplateId == t.Id && c.Channel == t.Channel, ct);
+            if (!hasContent)
+            {
+                await _db.NotificationTemplateContents.AddAsync(
+                    DefaultTemplateContent.FromTemplate(t.Id, t.Channel, t.TitleTemplate, t.BodyTemplate), ct);
+                _logger.LogInformation("Seeding template content for: {Code}", t.TemplateCode);
             }
         }
         await _db.SaveChangesAsync(ct);

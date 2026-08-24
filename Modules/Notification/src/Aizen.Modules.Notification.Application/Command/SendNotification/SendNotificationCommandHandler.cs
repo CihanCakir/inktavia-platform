@@ -6,6 +6,7 @@ using Aizen.Modules.Notification.Abstraction;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Abstraction.Message;
 using Aizen.Modules.Notification.Abstraction.Response;
+using Aizen.Modules.Notification.Application.Services;
 using Aizen.Modules.Notification.Domain.Entities;
 using Aizen.Modules.Notification.Domain.Interface.Repository;
 using Aizen.Modules.Notification.Domain.Interface.Service;
@@ -20,7 +21,8 @@ public sealed class SendNotificationCommandHandler
     private readonly INotificationTemplateRepository   _templateRepository;
     private readonly INotificationPreferenceRepository _preferenceRepository;
     private readonly INotificationDispatcher           _dispatcher;
-    private readonly ITemplateInterpolator             _interpolator;
+    private readonly ITemplateRenderer                 _renderer;
+    private readonly ILocaleResolver                   _localeResolver;
     private readonly IAizenDistributedCache            _cache;
     private readonly IAizenMessagePublisher            _publisher;
     private readonly ILogger<SendNotificationCommandHandler> _logger;
@@ -30,7 +32,8 @@ public sealed class SendNotificationCommandHandler
         INotificationTemplateRepository templateRepository,
         INotificationPreferenceRepository preferenceRepository,
         INotificationDispatcher dispatcher,
-        ITemplateInterpolator interpolator,
+        ITemplateRenderer renderer,
+        ILocaleResolver localeResolver,
         IAizenDistributedCache cache,
         IAizenMessagePublisher publisher,
         ILogger<SendNotificationCommandHandler> logger)
@@ -39,7 +42,8 @@ public sealed class SendNotificationCommandHandler
         _templateRepository     = templateRepository;
         _preferenceRepository   = preferenceRepository;
         _dispatcher             = dispatcher;
-        _interpolator           = interpolator;
+        _renderer               = renderer;
+        _localeResolver         = localeResolver;
         _cache                  = cache;
         _publisher              = publisher;
         _logger                 = logger;
@@ -78,13 +82,21 @@ public sealed class SendNotificationCommandHandler
             }
         }
 
-        var title = _interpolator.Interpolate(template.TitleTemplate, request.Variables);
-        var body  = _interpolator.Interpolate(template.BodyTemplate,  request.Variables);
+        // Phase-1 ILocaleResolver ile alıcı locale'ini çöz, sonra TEK strict renderer'ı çağır. Renderer (channel, locale)
+        // için Published içeriği fallback zinciriyle seçer; içerik yoksa TemplateContentMissingException, eksik değişken
+        // varsa TemplatePlaceholderMissingException atar (bilerek gürültülü — eski sessiz interpolation yerine).
+        var locale   = await _localeResolver.ResolveAsync(request.RecipientUserId, cancellationToken);
+        var rendered = await _renderer.RenderAsync(
+            template.TemplateCode, request.Channel, locale, request.Variables, cancellationToken);
+
+        var title = rendered.Title;
+        var body  = rendered.Body;
 
         var entity = NotificationEntity.Create(
             request.RecipientUserId, request.Type, request.Channel,
             template.TemplateCode, title, body, request.MetadataJson,
-            request.ReferenceType, request.ReferenceId);
+            request.ReferenceType, request.ReferenceId,
+            locale, rendered.DeepLink);
 
         await _notificationRepository.AddAsync(entity, cancellationToken);
 

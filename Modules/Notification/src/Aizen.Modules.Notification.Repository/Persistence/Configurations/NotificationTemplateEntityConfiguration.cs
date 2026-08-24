@@ -13,6 +13,7 @@ public sealed class NotificationTemplateEntityConfiguration : IEntityTypeConfigu
         builder.Property(x => x.TemplateCode).HasMaxLength(100).IsRequired();
         builder.HasIndex(x => x.TemplateCode).IsUnique();
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Description).HasMaxLength(1000);
         builder.Property(x => x.Type).IsRequired();
         builder.Property(x => x.Channel).IsRequired();
         builder.Property(x => x.TitleTemplate).HasMaxLength(500).IsRequired();
