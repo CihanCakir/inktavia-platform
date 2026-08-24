@@ -234,7 +234,11 @@ fi
 ADMIN_FLOW_NAME="Admin OTP Login browser"
 ADMIN_FLOW_NAME_ENC="Admin%20OTP%20Login%20browser"
 ADMIN_CLIENT_ID="admin-panel"
-ADMIN_EMAIL="admin.user@inktavia.com"
+# FAZ25 (2026-08-24): Seed admin kimligi degistirildi — admin.user@inktavia.com yerine gercek
+# operator hesabi. Dev tam-sifirlamasindan sonra bu e-posta ile KC kullanicisi
+# admin-yeniden-kur.sh tarafindan yaratilir; asagidaki blok rolu atar ve admin-provision ile
+# Identity tarafini olusturtur. Eski adres HICBIR yerde kalmamali (dev-seed de guncellendi).
+ADMIN_EMAIL="cihan.cakir@inktavia.com"
 
 if [ -n "${OTP_LOGIN_TICKET_SECRET:-}" ] && [ -n "${OTP_LOGIN_CONSUME_SECRET:-}" ]; then
   echo "Setting up Admin OTP Login browser flow (idempotent)..."
