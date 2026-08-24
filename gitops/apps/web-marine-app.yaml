@@ -52,15 +52,12 @@ spec:
         #      sha-<7hex>-prod   → SITE_ENV=production, inktavia.com          (indexlenir)
         #    Buraya `-prod` ekli etiket koyma; dev ortamini Google'a acar.
         - name: image.tag
-          # 2026-08-24: ilk gercek image — marine-web main HEAD'i 417e85a
-          #   ("fix(ci): run next typegen before tsc ...") → CI #2'nin `image` isi
-          #   `sha-417e85a` + `:dev` etiketlerini uretti.
-          # ⚠️ CI #1 (e2233df) DOGRULAMA asamasinda patladi ve image URETMEDI;
-          #   o sha'yi buraya yazmak ImagePullBackOff olurdu. Kural: buraya yalniz
-          #   `image` isi YESIL biten bir commit'in sha'si yazilir.
-          # Etiket bicimi frontend CI'dan:
-          #   .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD)
-          value: "sha-417e85a"
+          # Bu satir ELLE guncelleniyor. Buraya yalniz frontend CI'in `image` isi
+          # YESIL biten bir commit'in sha'si yazilir (CI #1 patlamisti, image uretmedi).
+          # Etiket bicimi: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD)
+          # Dev image'i develop push'undan uretilir; `-prod` ekli etiket PROD icindir,
+          # buraya konursa dev ortami Google'a acilir.
+          value: "sha-31c1e10"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
