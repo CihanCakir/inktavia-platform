@@ -4,6 +4,7 @@ using Aizen.Bff.AdminPanel.Application.Files.Query;
 using Aizen.Bff.AdminPanel.Application.Common.Dto;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,21 @@ public sealed class FilesController : AizenWebApiController
 
     public FilesController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
         : base(httpContextAccessor) => _cqrs = cqrs;
+
+    // Admin dosya listesi. Önceden InactiveModulesController 501 dönüyordu; artık FileStorage'a proxy'lenir.
+    [HttpGet]
+    [ProducesResponseType(typeof(AdminFileListResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<AdminFileListResult>> GetFiles(
+        [FromQuery] string? search,
+        [FromQuery] string? contentType,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new GetAdminFileListBffQuery(search, contentType, page, pageSize), ct);
+        return SetResponse(result);
+    }
 
     [HttpGet("{fileId:guid}")]
     [ProducesResponseType(typeof(AdminFileReviewOverviewResponse), StatusCodes.Status200OK)]

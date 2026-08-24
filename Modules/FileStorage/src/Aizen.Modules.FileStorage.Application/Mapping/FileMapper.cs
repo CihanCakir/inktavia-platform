@@ -31,6 +31,25 @@ public static class FileMapper
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow
     };
 
+    public static AdminFileListItemDto ToAdminFileListItemDto(this FileEntity entity)
+    {
+        // Dosyanın birden çok sahibi olabilir; admin listede ilk AKTİF sahip referansı gösterilir (yoksa null).
+        var owner = entity.OwnerReferences.FirstOrDefault(r => r.IsActive)
+                    ?? entity.OwnerReferences.FirstOrDefault();
+
+        return new AdminFileListItemDto
+        {
+            Id = entity.PublicId ?? throw new InvalidOperationException($"File {entity.Id} has no PublicId — this is a data integrity bug."),
+            FileName = entity.OriginalFileName,
+            ContentType = entity.ContentType,
+            SizeBytes = entity.SizeInBytes,
+            Visibility = entity.Visibility.ToString(),
+            OwnerType = owner?.OwnerEntityType,
+            OwnerId = owner?.OwnerEntityId,
+            CreatedAtUtc = entity.CreateDate ?? DateTime.UtcNow
+        };
+    }
+
     public static FileMetadataDto ToFileMetadataDto(this FileEntity entity) => new()
     {
         FileId = entity.PublicId ?? throw new InvalidOperationException($"File {entity.Id} has no PublicId — this is a data integrity bug."),
