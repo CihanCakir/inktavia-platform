@@ -195,7 +195,18 @@ env:
   # ── CORS ─────────────────────────────────────────────────────────────────────
   # CORS ingress'te DEĞİL uygulamada: dört BFF de kodda CORS kuruyor, ingress'te de
   # yapsaydık çift Access-Control-Allow-Origin başlığı çıkar ve tarayıcı reddederdi.
+  # 🔴 FAZ25 (2026-08-24): Cors__AllowedOrigins burada HİÇ YOKTU — Faz 20'de admin SPA'nın
+  # dev host'u olmadığı için eklenmemişti. Faz 24'te dev-admin.inktavia.com doğunca SPA,
+  # BFF'ine tarayıcıdan tek istek atamadı ("İstek işlenemedi" — preflight reddi). Provider
+  # BFF'indeki kalıbın aynısı: __0 = gerçek dev host, __1 = geliştirici makinesi.
+  - name: Cors__AllowedOrigins__0
+    value: "https://dev-admin.inktavia.com"
+  - name: Cors__AllowedOrigins__1
+    value: "http://localhost:3000"
+  # SignalR origin listesi de aynı sebeple dev host'u içermeli (canlı bildirimler websocket'le).
   - name: Realtime__SignalR__AllowedOrigins__0
+    value: "https://dev-admin.inktavia.com"
+  - name: Realtime__SignalR__AllowedOrigins__1
     value: "http://localhost:3000"
 
   # ── Modül çağrıları ──────────────────────────────────────────────────────────

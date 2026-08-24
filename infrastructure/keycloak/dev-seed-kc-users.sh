@@ -260,7 +260,8 @@ heal_service_account "provider-portal-bff" "$PROVIDER_BFF_SECRET" \
   "bff-marineprovider" identity_read identity_write
 
 # ADMIN — Admin + admin_user + the module read/write set the admin BFF token carries.
-heal_account "admin.user@inktavia.com" "Admin" "User" 4 "-" \
+# FAZ25: seed admin artik gercek operator hesabi (admin.user@inktavia.com emekli edildi).
+heal_account "cihan.cakir@inktavia.com" "Cihan" "Cakir" 4 "-" \
   Admin admin_user identity_read identity_write profile_read profile_write \
   payment_read payment_write vessel_read vessel_write file_storage_read file_storage_write \
   service_request_read service_request_write reference_data_read reference_data_write
