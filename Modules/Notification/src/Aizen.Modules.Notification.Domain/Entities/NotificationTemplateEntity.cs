@@ -7,8 +7,12 @@ public sealed class NotificationTemplateEntity : AizenEntity
 {
     public string              TemplateCode  { get; private set; } = default!;
     public string              Name          { get; private set; } = default!;
+    /// <summary>Yöneticiye yönelik serbest açıklama (opsiyonel). İçerik render'ını etkilemez.</summary>
+    public string?             Description   { get; private set; }
     public NotificationType    Type          { get; private set; }
     public NotificationChannel Channel       { get; private set; }
+    // TitleTemplate/BodyTemplate mantıksal template üzerinde KALIR (geriye dönük uyumluluk + eski render yolu). Yeni
+    // channel×locale×version içerik NotificationTemplateContentEntity'de tutulur; IsActive hâlâ etkinleştirme anahtarı.
     public string              TitleTemplate { get; private set; } = default!;
     public string              BodyTemplate  { get; private set; } = default!;
     public bool                IsActive      { get; private set; }
@@ -44,6 +48,12 @@ public sealed class NotificationTemplateEntity : AizenEntity
         TitleTemplate = titleTemplate;
         BodyTemplate  = bodyTemplate;
         UpdatedAt     = DateTimeOffset.UtcNow;
+    }
+
+    public void SetDescription(string? description)
+    {
+        Description = description;
+        UpdatedAt   = DateTimeOffset.UtcNow;
     }
 
     public void SetActive(bool isActive)

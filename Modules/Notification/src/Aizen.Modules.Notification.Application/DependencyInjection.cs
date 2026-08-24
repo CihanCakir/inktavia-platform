@@ -13,6 +13,8 @@ public static class DependencyInjection
         this IServiceCollection services, IConfiguration? configuration = null)
     {
         services.AddScoped<ITemplateInterpolator, TemplateInterpolator>();
+        // Üretim + (ileride) preview'in paylaştığı tek strict renderer.
+        services.AddScoped<ITemplateRenderer, TemplateRenderer>();
         services.AddScoped<IPushSender, WebPushSender>();
 
         // M4 — contact-intake spam thresholds (config-driven; IpHashSalt from secret).

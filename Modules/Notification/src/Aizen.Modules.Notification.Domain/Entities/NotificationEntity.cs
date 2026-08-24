@@ -18,6 +18,10 @@ public sealed class NotificationEntity : AizenEntity
     public string?             ReferenceType       { get; private set; }
     /// <summary>Id of the referenced entity for deep-link. Nullable.</summary>
     public long?               ReferenceId         { get; private set; }
+    /// <summary>Bu bildirimin render edildiği locale (bölge-siz "tr"/"en"). Eski satırlar için 'en' geriye doldurulur.</summary>
+    public string              Locale              { get; private set; } = "en";
+    /// <summary>Render edilmiş derin bağlantı (DeepLinkTemplate çıktısı). Nullable.</summary>
+    public string?             DeepLink            { get; private set; }
     public DateTimeOffset      CreatedAt           { get; private set; }
     public DateTimeOffset?     SentAt              { get; private set; }
     public DateTimeOffset?     ReadAt              { get; private set; }
@@ -33,7 +37,9 @@ public sealed class NotificationEntity : AizenEntity
         string body,
         string? metadataJson = null,
         string? referenceType = null,
-        long? referenceId = null)
+        long? referenceId = null,
+        string? locale = null,
+        string? deepLink = null)
     {
         return new NotificationEntity
         {
@@ -47,6 +53,9 @@ public sealed class NotificationEntity : AizenEntity
             MetadataJson    = metadataJson,
             ReferenceType   = referenceType,
             ReferenceId     = referenceId,
+            // locale verilmezse 'en' (eski davranışla uyumlu); DeepLink render sonucu, yoksa null.
+            Locale          = string.IsNullOrWhiteSpace(locale) ? "en" : locale.ToLowerInvariant(),
+            DeepLink        = deepLink,
             CreatedAt       = DateTimeOffset.UtcNow,
         };
     }
@@ -63,7 +72,9 @@ public sealed class NotificationEntity : AizenEntity
         DateTimeOffset createdAtUtc,
         DateTimeOffset? readAtUtc,
         string? referenceType = null,
-        long? referenceId = null)
+        long? referenceId = null,
+        string? locale = null,
+        string? deepLink = null)
     {
         return new NotificationEntity
         {
@@ -76,6 +87,8 @@ public sealed class NotificationEntity : AizenEntity
             MetadataJson    = metadataJson,
             ReferenceType   = referenceType,
             ReferenceId     = referenceId,
+            Locale          = string.IsNullOrWhiteSpace(locale) ? "en" : locale.ToLowerInvariant(),
+            DeepLink        = deepLink,
             // FAZ16 (#34): seed satırları "iletilmiş" bildirimleri temsil eder → Status daima Sent (gönderim durumu).
             // Okunmuşluk ayrı kolon ReadAt ile taşınır; Status artık okundu diye Read'e ezilmez.
             Status          = NotificationStatus.Sent,

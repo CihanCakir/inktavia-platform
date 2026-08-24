@@ -14,6 +14,8 @@ public static class DependencyInjection
     {
         services.AddScoped<INotificationRepository,         NotificationRepository>();
         services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
+        services.AddScoped<INotificationTemplateContentRepository, NotificationTemplateContentRepository>();
+        services.AddScoped<IEmailLayoutRepository,          EmailLayoutRepository>();
         services.AddScoped<IUserDeviceTokenRepository,      UserDeviceTokenRepository>();
         services.AddScoped<INotificationPreferenceRepository, NotificationPreferenceRepository>();
         services.AddScoped<IContactMessageRepository,        ContactMessageRepository>();
