@@ -63,6 +63,9 @@ namespace Aizen.Modules.Identity.Repository.Identity.Service
                     passwordHash: string.Empty,
                     loginType: LoginType.Email);
 
+                // Kalıcı dil tercihini ilk insert'e dahil et (yalnızca yeni kullanıcıda). Entity normalize/doğrular.
+                user.SetPreferredLanguage(m.PreferredLanguage);
+
                 var createRes = await _userManager.CreateAsync(user, m.Password);
                 if (!createRes.Succeeded)
                     throw new AizenBusinessException(((int)AizenErrorCode.UserCreationFailed).ToString());

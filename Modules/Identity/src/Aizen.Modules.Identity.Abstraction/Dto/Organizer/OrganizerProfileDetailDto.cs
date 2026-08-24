@@ -24,6 +24,8 @@ public class OrganizerProfileDetailDto
     public string? OrganizationName { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    // Kullanıcının kalıcı dil tercihi (UserEntity). Provider/Mobile BFF profil yanıtlarına taşınır.
+    public string? PreferredLanguage { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
     public string? ReviewedBy { get; set; }

@@ -91,6 +91,7 @@ public sealed class GetParticipantProfileQueryHandler
             FullName = string.IsNullOrWhiteSpace(fullName) ? null : fullName,
             Email = dto.Email,
             Phone = dto.Phone,
+            PreferredLanguage = dto.PreferredLanguage,
             AvatarUrl = dto.ProfilePhotoUrl,
             Bio = dto.Bio,
             Gender = dto.Gender,

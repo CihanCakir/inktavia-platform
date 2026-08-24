@@ -44,6 +44,15 @@ public static class DependencyInjection
             services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         }
 
+        // Locale — alıcı dili çözümleme ayarları (DefaultLocale + allowlist) EmailOptions ile aynı şekilde bağlanır.
+        if (configuration is not null)
+        {
+            services.Configure<NotificationOptions>(configuration.GetSection(NotificationOptions.SectionName));
+        }
+
+        // Locale çözümleyici: kalıcı tercih → istek bağlamı → varsayılan. Diğer servislerle aynı Scoped ömür.
+        services.AddScoped<ILocaleResolver, RecipientLocaleResolver>();
+
         var smtpHost = configuration?.GetValue<string>("Email:Host");
         if (!string.IsNullOrWhiteSpace(smtpHost))
             services.AddScoped<IEmailSender, SmtpEmailSender>();

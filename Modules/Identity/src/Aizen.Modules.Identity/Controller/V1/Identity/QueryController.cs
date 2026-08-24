@@ -6,6 +6,7 @@ using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
 using Aizen.Modules.Identity.Application.AdminUsers.GetAdminUserIds;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetParticipantProfileIdByUserId;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfileContactEmail;
+using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfilePreferredLanguage;
 using Aizen.Modules.Identity.Application.ProviderEligibility.GetProviderAreaAvailability;
 using Aizen.Modules.Identity.Application.ProviderEligibility.GetProvidersForArea;
 using Aizen.Modules.Identity.Abstraction.Dto.Participant;
@@ -360,6 +361,19 @@ public sealed class QueryController : AizenWebApiController
         [FromQuery] long profileId, CancellationToken ct = default)
     {
         var result = await _sender.ProcessAsync(new GetProfileContactEmailByProfileIdQuery { ProfileId = profileId }, ct);
+        return SetResponse(result);
+    }
+
+    // Locale — internal read: a profile's persisted preferred language by UserProfiles.Id, so the Notification module
+    // can pick the recipient's language. [AllowAnonymous] like the other internal reads (notification-api's S2S calls
+    // carry no token); returns only a region-less language code (no PII), behind the cluster NetworkPolicy.
+    [HttpGet("profiles/preferred-language")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProfilePreferredLanguageDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfilePreferredLanguageDto>> GetProfilePreferredLanguage(
+        [FromQuery] long profileId, CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(new GetProfilePreferredLanguageByProfileIdQuery { ProfileId = profileId }, ct);
         return SetResponse(result);
     }
 }

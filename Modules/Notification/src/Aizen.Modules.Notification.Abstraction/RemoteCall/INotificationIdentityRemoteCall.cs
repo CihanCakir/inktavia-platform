@@ -30,6 +30,11 @@ public interface INotificationIdentityRemoteCall : IAizenRemoteCall
     // Email-channel delivery to the same recipient the InApp notification is filed under. Email is null when none.
     [AizenRemoteCallGet("/api/v1/identity/profiles/contact-email")]
     Task<AizenApiResponse<ProfileContactEmailResult>> GetProfileContactEmail([Refit.Query] long profileId);
+
+    // Locale — resolve a profile's persisted preferred language by UserProfiles.Id, using the SAME UserProfiles→Users
+    // lookup as the contact-email read. PreferredLanguage is null when the profile/user has none set.
+    [AizenRemoteCallGet("/api/v1/identity/profiles/preferred-language")]
+    Task<AizenApiResponse<ProfilePreferredLanguageResult>> GetProfilePreferredLanguage([Refit.Query] long profileId);
 }
 
 /// <summary>BE_NF2 — module-local mirror of Identity's ProfileContactEmailDto (deserialized by JSON property name).</summary>
@@ -37,6 +42,13 @@ public sealed class ProfileContactEmailResult
 {
     public long ProfileId { get; set; }
     public string? Email { get; set; }
+}
+
+/// <summary>Locale — module-local mirror of Identity's ProfilePreferredLanguageDto (deserialized by JSON property name).</summary>
+public sealed class ProfilePreferredLanguageResult
+{
+    public long ProfileId { get; set; }
+    public string? PreferredLanguage { get; set; }
 }
 
 /// <summary>BE_NF1b — module-local mirror of Identity's ParticipantProfileIdDto (deserialized by JSON property name).</summary>

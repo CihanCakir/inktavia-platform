@@ -52,6 +52,42 @@ namespace Aizen.Modules.Identity.Domain.Entities
             KeycloakSubjectId = subjectId;
         }
 
+        /// <summary>
+        /// Kullanıcının kalıcı tercih ettiği arayüz dili (bölge-siz kod: "tr"/"en"). Kayıt sırasında Accept-Language'den
+        /// doldurulur veya kullanıcı sonradan günceller. Geçerli değilse null (alan bir ipucudur; tüketici tarafta —
+        /// örn. Notification locale çözümleyici — ayrıca allowlist ile doğrulanır).
+        /// </summary>
+        public string? PreferredLanguage { get; private set; }
+
+        /// <summary>
+        /// Ham bir dil kodunu ("en-US,en;q=0.9", "TR", "tr-TR" vb.) bölge-siz, küçük harfli çıplak alt-etikete indirger
+        /// ve makul değilse (boş / 2-8 harf-dışı) null saklar. Böylece tüm yazım yolları (kayıt + güncelleme) tutarlıdır.
+        /// </summary>
+        public void SetPreferredLanguage(string? language)
+        {
+            PreferredLanguage = NormalizeLanguageCode(language);
+            SetModified();
+        }
+
+        private static string? NormalizeLanguageCode(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return null;
+
+            // Accept-Language listesi/q-değerini ve bölge ekini at → çıplak dil kodu.
+            var first = raw.Split(',', ';')[0];
+            var code = first.Split('-')[0].Trim().ToLowerInvariant();
+
+            if (code.Length is < 2 or > 8)
+                return null;
+
+            foreach (var ch in code)
+                if (ch is < 'a' or > 'z')
+                    return null;
+
+            return code;
+        }
+
         public static UserEntity CreateLocal(string email, string? phone, string passwordHash, LoginType loginType)
         {
             var u = new UserEntity

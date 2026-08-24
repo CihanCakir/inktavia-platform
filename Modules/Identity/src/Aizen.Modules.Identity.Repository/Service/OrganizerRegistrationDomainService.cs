@@ -62,6 +62,8 @@ public sealed class OrganizerRegistrationDomainService : IOrganizerRegistrationD
         if (user is null)
         {
             user = UserEntity.CreateLocal(email ?? string.Empty, phone, string.Empty, LoginType.Email);
+            // Kalıcı dil tercihini yeni kullanıcıda ayarla; entity normalize/doğrular.
+            user.SetPreferredLanguage(m.PreferredLanguage);
             var create = await _userManager.CreateAsync(user, m.Password);
             if (!create.Succeeded)
                 throw new AizenBusinessException(((int)AizenErrorCode.UserCreationFailed).ToString());

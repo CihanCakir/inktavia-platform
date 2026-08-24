@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Enum;
 using Aizen.Modules.Identity.Domain.Interface.Service;
@@ -13,15 +14,18 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.RegisterOrgan
         private readonly IOrganizerRegistrationDomainService _domain;
         private readonly IdentityDbContext _db;
         private readonly IProviderOnboardingDomainService _onboarding;
+        private readonly IAizenInfoAccessor _info;
 
         public RegisterOrganizerCommandHandler(
             IOrganizerRegistrationDomainService domain,
             IdentityDbContext db,
-            IProviderOnboardingDomainService onboarding)
+            IProviderOnboardingDomainService onboarding,
+            IAizenInfoAccessor info)
         {
             _domain = domain;
             _db = db;
             _onboarding = onboarding;
+            _info = info;
         }
 
         public override async Task<RegisterResult?> Handle(RegisterOrganizerCommand request, CancellationToken ct)
@@ -36,7 +40,8 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.RegisterOrgan
                 KvkkAccepted = request.KvkkAccepted,
                 DeviceId = request.DeviceId,
                 DeviceType = request.DeviceType,
-                NotificationToken = request.NotificationToken
+                NotificationToken = request.NotificationToken,
+                PreferredLanguage = _info.ClientInfoAccessor.ClientInfo.Language // Accept-Language → kalıcı tercih (entity doğrular)
             }, ct);
 
             // Generate risk signals for the new pending profile

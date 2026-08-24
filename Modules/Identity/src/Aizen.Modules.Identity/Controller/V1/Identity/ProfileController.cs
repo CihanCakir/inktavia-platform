@@ -1,5 +1,6 @@
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Modules.Identity.Abstraction.Model;
 using Aizen.Modules.Identity.Abstraction.Request;
 using Aizen.Modules.InktaviaStore.Application.Identity;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.UpdateOrganizerProfile;
@@ -21,6 +22,20 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
             IAizenCQRSProcessor cqrsProcessor) : base(httpContextAccessor)
         {
             _sender = cqrsProcessor;
+        }
+
+        // PUT /api/v1/identity/profile/preferred-language
+        // Oturum açmış herhangi bir kullanıcı (participant/organizer/venue) kalıcı dil tercihini günceller.
+        [HttpPut("profile/preferred-language")]
+        [ProducesResponseType(typeof(UpdatePreferredLanguageResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<AizenApiResponse<UpdatePreferredLanguageResult>> UpdatePreferredLanguage(
+            [FromBody] UpdatePreferredLanguageRequest req,
+            CancellationToken ct)
+        {
+            var result = await _sender.ProcessAsync(
+                new UpdatePreferredLanguageCommand(req.PreferredLanguage), ct);
+            return SetResponse(result);
         }
 
         // PUT /api/v1/identity/participant/profile

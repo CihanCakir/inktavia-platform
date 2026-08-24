@@ -18,6 +18,9 @@ namespace Aizen.Modules.Identity.Abstraction.Model
         public ConsumerDeviceType? DeviceType { get; init; }
         public string? NotificationToken { get; init; }
 
+        /// <summary>Kayıt anında ClientInfo.Language'den (Accept-Language) gelen tercih; UserEntity normalize/doğrular.</summary>
+        public string? PreferredLanguage { get; init; }
+
         public string[] RequiredAgreementTypes { get; init; } = new[] { "KVKK", "TERMS_OF_USE", "VENUE_SPECIFIC_TERMS" };
     }
 

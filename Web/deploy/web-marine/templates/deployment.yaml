@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "web-marine.fullname" . }}
+  labels:
+    {{- include "web-marine.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "web-marine.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # 🔴 ConfigMap degisince pod YENIDEN BASLAMALI.
+        # Next sunucusu ortami SURECIN ACILISINDA bir kez okuyor (env.ts modul
+        # yuklenirken dogruluyor). ConfigMap'i degistirip pod'u ayakta birakirsan
+        # eski BFF adresi kullanilmaya devam eder ve hicbir yerde hata gorunmez.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "web-marine.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "web-marine.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          # image.tag ZORUNLU — Chart.AppVersion'a dusmesine izin vermiyoruz.
+          image: "{{ .Values.image.repository }}:{{ required "image.tag zorunlu — sha-<7hex> ver" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          # Sirsiz degerler ConfigMap'ten toplu geliyor.
+          envFrom:
+            - configMapRef:
+                name: {{ include "web-marine.fullname" . }}-env
+          env:
+            # ── SIRLAR ─────────────────────────────────────────────────────────
+            # 🔴 YENI BIR SEALED SECRET URETILMEDI — BILEREK.
+            # Bu iki deger, BFF'in kendi env'inde okudugu ANAHTARLARIN AYNISI
+            # (bkz. Bff/deploy/aizen-bff-marine-web/values-*.yaml):
+            #   MarineWebPublic__TrustedCallerSecret  ← MARINE_WEB_TRUSTED_CALLER_SECRET
+            #   MarineWebPublic__Revalidate__Secret   ← MARINE_WEB_REVALIDATE_SECRET
+            # Ikinci bir kopya uretseydik, biri donduruldugunde digeri sessizce
+            # eskir; site 401 alip her sayfada UnavailableState gosterirdi ve
+            # sebebi hicbir logda gorunmezdi. Ayni Secret'i okumak, eslesmeyi
+            # YAPISAL olarak garanti eder.
+            - name: MARINE_WEB_BFF_CALLER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.platformCredentials }}
+                  key: MARINE_WEB_TRUSTED_CALLER_SECRET
+            - name: MARINE_WEB_REVALIDATE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.platformCredentials }}
+                  key: MARINE_WEB_REVALIDATE_SECRET
+                  # optional: revalidate sirri bos birakilabilir bir tasarim
+                  # (/api/revalidate fail-closed 503 doner, site calisir).
+                  # Anahtarin YOKLUGU pod'u baslatmamali.
+                  optional: true
+            # ── Node heap tavani ───────────────────────────────────────────────
+            # 🔴 Konteyner limiti V8'in varsayilan heap hesabini BAGLAMIYOR:
+            # Node, cgroup limitini degil makinenin toplam RAM'ini gorup heap'i
+            # ona gore buyutur, sonra kernel OOM-killer pod'u oldurur ve k8s'te
+            # yalnizca "OOMKilled" yazar — uygulama logunda hicbir sey olmaz.
+            # Deger, memory limitinin ~%70'i olacak sekilde values'ta duruyor.
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size={{ .Values.nodeHeapMb }}"
+          ports:
+            - name: http
+              # Dockerfile PORT=8080 + HOSTNAME=0.0.0.0 ile aciliyor.
+              containerPort: {{ .Values.service.targetPort | default 8080 }}
+              protocol: TCP
+          # ⚠️ Probe yolu /api/healthz — /healthz DEGIL.
+          # next-intl proxy'si (src/proxy.ts) `api` disindaki uzantisiz yollari
+          # /tr/... adresine 307 ile yonlendirir; kubelet 307'yi basari saymaz ve
+          # pod sonsuza kadar NotReady kalirdi.
+          #
+          # Next.js acilisi nginx'ten YAVAS (Node + sunucu bootstrap): startup
+          # icin 2sn x 30 = 60sn tanindi; nginx chart'larindaki 30sn yetmez.
+          startupProbe:
+            httpGet: { path: {{ .Values.probes.path }}, port: http }
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: { path: {{ .Values.probes.path }}, port: http }
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: {{ .Values.probes.path }}, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            # Next SSR calisma aninda .next/cache altina ISR ciktisi yaziyor.
+            # readOnlyRootFilesystem: true ile calisabilmesi icin yazilabilir
+            # bir emptyDir sart; aksi halde ilk revalidate'te EROFS ile patlar.
+            - name: next-cache
+              mountPath: /app/.next/cache
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: next-cache
+          emptyDir:
+            sizeLimit: {{ .Values.cacheSizeLimit }}
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
