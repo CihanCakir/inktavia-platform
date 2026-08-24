@@ -206,14 +206,17 @@ env:
   # DİKKAT: Buradaki ReferenceDataSeed__Enabled=true bir MOCK/DEMO anahtarı DEĞİLDİR;
   # yukarıdaki "seed/mock kapatma" bloğuna GERİ ALMAYIN. Enabled yalnızca ReferenceData
   # seed sistemini açar; NE tohumlanacağını iki ayrı eksen belirler:
-  #   - SeedEfEntities=false  → EF mock varlıkları (para birimi, ölçü, lookup) KAPALI kalır.
-  #   - SeedLocationDocuments=true → SADECE konum master verisi (ülke/şehir) tohumlanır.
+  #   - SeedEfEntities=true  → FAZ27 (2026-08-24) KARARI: lookup/para birimi/ölçü artık "mock"
+  #     değil, admin panelinin YÖNETTİĞİ referans verisi (lookup-groups sayfası canlıda ve boş
+  #     tablo gerçek bir eksiklik olarak göründü). Seed idempotent; marine lookup ağacı
+  #     Seed/Json/Lookup/*.json'dan gelir.
+  #   - SeedLocationDocuments=true → konum master verisi (ülke/şehir) tohumlanır.
   # Neden zorunlu: sağlayıcı onboarding "Faaliyet Bölgesi" adımı bu veri olmadan
   # tamamlanamaz — dev'de de prod'da da. Tekrar çalıştırmak güvenli: LocationJsonSeedService
   # ülke varsa erken döner (AnyCountryAsync), belge çoğaltmaz.
   - name: ReferenceDataSeed__Enabled
     value: "true"
   - name: ReferenceDataSeed__SeedEfEntities
-    value: "false"
+    value: "true"
   - name: ReferenceDataSeed__SeedLocationDocuments
     value: "true"
