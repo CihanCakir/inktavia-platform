@@ -16,6 +16,18 @@ public sealed class GetProviderStatusResponse
     public bool CanEnterWorkspace { get; set; }
     public string? OnboardingStatus { get; set; }
     public string RequiredNextStep { get; set; } = default!;
+
+    /// <summary>
+    /// What this provider is entitled to use — a closed vocabulary, currently { "CargoDry" }.
+    ///
+    /// PROV-MVP-002/003: the provider state model had no capability dimension at all, which is why CargoDry was
+    /// served to a provider who declined it, why three Keycloak `provider_*` roles authorize nothing, and why two
+    /// policies in this assembly are used by no endpoint. This list tells the SPA what to render; it is never the
+    /// enforcement point — every gated endpoint checks independently, so a tampered client list grants nothing.
+    ///
+    /// Empty on a failed lookup (with a Warning attached): gating fails CLOSED without breaking the workspace.
+    /// </summary>
+    public List<string> Capabilities { get; set; } = new();
     public string Message { get; set; } = string.Empty;
     public List<ProviderBffWarning> Warnings { get; set; } = new();
 }

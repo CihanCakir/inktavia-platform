@@ -29,6 +29,56 @@ public sealed class NotificationTemplateContentRepository : INotificationTemplat
         return await query.ToListAsync(ct);
     }
 
+    public Task<List<NotificationTemplateContentEntity>> GetAllByTemplateIdAsync(long templateId, CancellationToken ct)
+        => _db.NotificationTemplateContents
+            .Where(c => c.TemplateId == templateId)
+            .OrderBy(c => c.Channel).ThenBy(c => c.Locale).ThenByDescending(c => c.Version)
+            .ToListAsync(ct);
+
+    public Task<NotificationTemplateContentEntity?> GetCurrentDraftAsync(
+        long templateId, NotificationChannel channel, string locale, CancellationToken ct)
+    {
+        var loc = locale.ToLowerInvariant();
+        return _db.NotificationTemplateContents
+            .Where(c => c.TemplateId == templateId && c.Channel == channel && c.Locale == loc
+                        && c.Status == TemplateContentStatus.Draft)
+            .OrderByDescending(c => c.Version)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public Task<NotificationTemplateContentEntity?> GetCurrentPublishedAsync(
+        long templateId, NotificationChannel channel, string locale, CancellationToken ct)
+    {
+        var loc = locale.ToLowerInvariant();
+        return _db.NotificationTemplateContents
+            .Where(c => c.TemplateId == templateId && c.Channel == channel && c.Locale == loc
+                        && c.Status == TemplateContentStatus.Published)
+            .OrderByDescending(c => c.Version)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public Task<List<NotificationTemplateContentEntity>> GetVersionsAsync(
+        long templateId, NotificationChannel channel, string locale, CancellationToken ct)
+    {
+        var loc = locale.ToLowerInvariant();
+        return _db.NotificationTemplateContents
+            .Where(c => c.TemplateId == templateId && c.Channel == channel && c.Locale == loc)
+            .OrderByDescending(c => c.Version)
+            .ToListAsync(ct);
+    }
+
+    public async Task<int> GetMaxVersionAsync(
+        long templateId, NotificationChannel channel, string locale, CancellationToken ct)
+    {
+        var loc = locale.ToLowerInvariant();
+        // Boş küme durumunda MaxAsync patlamasın diye önce filtreli sorgu, sonra nullable max.
+        var max = await _db.NotificationTemplateContents
+            .Where(c => c.TemplateId == templateId && c.Channel == channel && c.Locale == loc)
+            .Select(c => (int?)c.Version)
+            .MaxAsync(ct);
+        return max ?? 0;
+    }
+
     public async Task AddAsync(NotificationTemplateContentEntity entity, CancellationToken ct)
     {
         await _db.NotificationTemplateContents.AddAsync(entity, ct);

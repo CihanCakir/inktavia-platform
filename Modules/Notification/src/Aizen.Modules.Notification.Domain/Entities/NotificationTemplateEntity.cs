@@ -61,4 +61,13 @@ public sealed class NotificationTemplateEntity : AizenEntity
         IsActive  = isActive;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    /// <summary>Yönetsel meta güncellemesi: ad + açıklama + etkinleştirme anahtarı. İçerik/şablon metnine dokunmaz.</summary>
+    public void UpdateMeta(string name, string? description, bool isActive)
+    {
+        Name        = name;
+        Description  = description;
+        IsActive    = isActive;
+        UpdatedAt   = DateTimeOffset.UtcNow;
+    }
 }

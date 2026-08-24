@@ -46,6 +46,18 @@ public interface ICargoDryConsignmentAgreementRepository
     Task<IReadOnlyList<long>> GetDistinctActiveProviderProfileIdsAsync(
         CancellationToken ct = default);
 
+    /// <summary>
+    /// True when the provider has at least one Active agreement valid at <paramref name="nowUtc"/> — i.e. they
+    /// are IN the CargoDry programme, for ANY product.
+    ///
+    /// PROV-MVP-002: this is the participation predicate the provider-facing write commands and the BFF's
+    /// capability lookup both use. It is deliberately product-agnostic; the per-product variants above answer a
+    /// different question (may this provider be allocated THIS product), which allocation logic needs and
+    /// authorization does not.
+    /// </summary>
+    Task<int> CountActiveForProviderAsync(
+        long providerProfileId, DateTime nowUtc, CancellationToken ct = default);
+
     Task AddAsync(CargoDryConsignmentAgreementEntity entity, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

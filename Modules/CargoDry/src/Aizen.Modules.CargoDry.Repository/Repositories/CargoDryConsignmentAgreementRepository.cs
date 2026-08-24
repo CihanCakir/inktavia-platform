@@ -96,6 +96,16 @@ public sealed class CargoDryConsignmentAgreementRepository : ICargoDryConsignmen
         return ids;
     }
 
+    public Task<int> CountActiveForProviderAsync(
+        long providerProfileId, DateTime nowUtc, CancellationToken ct)
+        => _db.ConsignmentAgreements
+            .CountAsync(x =>
+                x.ProviderProfileId == providerProfileId
+                && x.Status         == ConsignmentAgreementStatus.Active
+                && x.StartDateUtc   <= nowUtc
+                && (x.EndDateUtc == null || x.EndDateUtc >= nowUtc),
+            ct);
+
     public async Task AddAsync(CargoDryConsignmentAgreementEntity entity, CancellationToken ct)
     {
         await _db.ConsignmentAgreements.AddAsync(entity, ct);
