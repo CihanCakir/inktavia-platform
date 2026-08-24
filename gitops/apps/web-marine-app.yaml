@@ -60,7 +60,7 @@ spec:
           #   `image` isi YESIL biten bir commit'in sha'si yazilir.
           # Etiket bicimi frontend CI'dan:
           #   .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD)
-          value: "sha-417e85a"
+          value: "sha-31c1e10"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
