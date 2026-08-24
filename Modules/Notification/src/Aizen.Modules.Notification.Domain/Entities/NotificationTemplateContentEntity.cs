@@ -87,4 +87,33 @@ public sealed class NotificationTemplateContentEntity : AizenEntity
         Status    = TemplateContentStatus.Archived;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    /// <summary>
+    /// Bir Draft satırının kanal içeriğini günceller. DEĞİŞMEZ: yalnızca Draft üzerinde çağrılabilir — Published/Archived
+    /// içerik ASLA mutasyona uğramaz (yeni sürüm gerekir). Handler bunu Draft satırına yönlendirir; burada da guard var.
+    /// </summary>
+    public void UpdateContent(
+        string? titleTemplate,
+        string? bodyTemplate,
+        string? subjectTemplate,
+        string? htmlTemplate,
+        string? textTemplate,
+        string? deepLinkTemplate,
+        string? smsTextTemplate,
+        string? layoutCode)
+    {
+        if (Status != TemplateContentStatus.Draft)
+            throw new InvalidOperationException(
+                $"Only Draft content can be edited; content {Id} is {Status}. Create a new draft version instead.");
+
+        TitleTemplate    = titleTemplate;
+        BodyTemplate     = bodyTemplate;
+        SubjectTemplate  = subjectTemplate;
+        HtmlTemplate     = htmlTemplate;
+        TextTemplate     = textTemplate;
+        DeepLinkTemplate = deepLinkTemplate;
+        SmsTextTemplate  = smsTextTemplate;
+        LayoutCode       = layoutCode;
+        UpdatedAt        = DateTimeOffset.UtcNow;
+    }
 }

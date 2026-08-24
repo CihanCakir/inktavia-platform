@@ -1,3 +1,4 @@
+using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Bff.MarineProvider.Application.Common.Warnings;
@@ -13,17 +14,20 @@ public sealed class GetProviderStatusQueryHandler
     private readonly IProviderContext _context;
     private readonly IProviderProfileResolver _resolver;
     private readonly IIdentityRemoteCall _identity;
+    private readonly ICargoDryRemoteCall _cargoDry;
     private readonly ILogger<GetProviderStatusQueryHandler> _logger;
 
     public GetProviderStatusQueryHandler(
         IProviderContext context,
         IProviderProfileResolver resolver,
         IIdentityRemoteCall identity,
+        ICargoDryRemoteCall cargoDry,
         ILogger<GetProviderStatusQueryHandler> logger)
     {
         _context = context;
         _resolver = resolver;
         _identity = identity;
+        _cargoDry = cargoDry;
         _logger = logger;
     }
 
@@ -92,6 +96,10 @@ public sealed class GetProviderStatusQueryHandler
             {
                 response.RequiredNextStep = "EnterWorkspace";
                 response.Message = "Your provider account is active.";
+
+                // Capabilities only mean anything for a provider who can actually enter the workspace, and this
+                // call sits on the workspace-entry path — so it is scoped to exactly that case and no other.
+                await ResolveCapabilitiesAsync(response);
             }
             else if (isApproved)
             {
@@ -147,5 +155,31 @@ public sealed class GetProviderStatusQueryHandler
         }
 
         return response;
+    }
+
+    /// <summary>
+    /// PROV-MVP-002/003 — publish what this provider is entitled to.
+    ///
+    /// FAIL CLOSED, DO NOT BREAK. Four route guards run on this response; a CargoDry outage must never keep a
+    /// provider out of their workspace. So a failure attaches a Warning and leaves the capability ABSENT: the
+    /// SPA hides the gated surfaces (correct — it cannot prove entitlement) while everything else carries on.
+    /// The reverse mistake, defaulting to "granted" on error, is how an entitlement check becomes decorative.
+    ///
+    /// This is NOT the enforcement point. `CargoDryParticipant` re-checks on every CargoDry request here, and
+    /// the CargoDry module re-checks again on every provider write.
+    /// </summary>
+    private async Task ResolveCapabilitiesAsync(GetProviderStatusResponse response)
+    {
+        try
+        {
+            var participation = await _cargoDry.GetProviderParticipation();
+            if (participation?.Body?.IsParticipant == true)
+                response.Capabilities.Add(ProviderCapabilityNames.CargoDry);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CargoDry participation lookup failed; the capability is withheld.");
+            response.Warnings.Add(ProviderBffWarning.CallFailed("CargoDry.GetParticipation", ex.GetType().Name));
+        }
     }
 }

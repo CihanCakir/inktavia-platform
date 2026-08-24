@@ -7,6 +7,14 @@ namespace Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 
 public interface ICargoDryRemoteCall : IAizenRemoteCall
 {
+    /// <summary>
+    /// PROV-MVP-002/003 — is this provider actually in the CargoDry programme (an Active consignment agreement)?
+    /// Read once on the workspace-entry path to publish the `CargoDry` capability; never used as the enforcement
+    /// point itself (the policy and the module both check independently).
+    /// </summary>
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/participation")]
+    Task<AizenApiResponse<CargoDryProviderParticipationDto>> GetProviderParticipation();
+
     [AizenRemoteCallGet("/api/v1/cargodry/provider/overview")]
     Task<AizenApiResponse<CargoDryOperationalOverviewDto>> GetOverview();
 

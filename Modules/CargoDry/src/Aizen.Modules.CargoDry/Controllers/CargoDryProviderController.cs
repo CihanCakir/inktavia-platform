@@ -16,6 +16,7 @@ using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProductList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderEarnings;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderCommissionTrend;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderProductPerformance;
+using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderParticipation;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderTier;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderMomentum;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderSettlements;
@@ -49,6 +50,20 @@ public sealed class CargoDryProviderController : AizenWebApiController
         var pid = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
         if (pid <= 0) throw new AizenBusinessException("Provider identity could not be resolved.");
         return pid;
+    }
+
+    /// <summary>
+    /// Is this provider in the CargoDry programme? Read by the MarineProvider BFF to publish a `CargoDry`
+    /// capability on GET /me/status (PROV-MVP-002/003). Deliberately the cheapest call on this controller — it
+    /// sits on the workspace-entry path.
+    /// </summary>
+    [HttpGet("participation")]
+    public async Task<AizenApiResponse<CargoDryProviderParticipationDto?>> GetParticipation(
+        CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        return SetResponse(await _cqrs.ProcessAsync(
+            new GetCargoDryProviderParticipationQuery { ProviderProfileId = pid }, ct));
     }
 
     [HttpGet("overview")]

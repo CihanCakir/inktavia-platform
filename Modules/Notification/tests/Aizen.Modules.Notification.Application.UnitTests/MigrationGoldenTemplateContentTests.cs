@@ -26,6 +26,13 @@ public sealed class MigrationGoldenTemplateContentTests
 
         public Task AddAsync(NotificationTemplateContentEntity e, CancellationToken ct = default) => Task.CompletedTask;
         public Task UpdateAsync(NotificationTemplateContentEntity e, CancellationToken ct = default) => Task.CompletedTask;
+
+        // Bu testte kullanılmayan admin yolları.
+        public Task<List<NotificationTemplateContentEntity>> GetAllByTemplateIdAsync(long templateId, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<NotificationTemplateContentEntity?> GetCurrentDraftAsync(long templateId, NotificationChannel channel, string locale, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<NotificationTemplateContentEntity?> GetCurrentPublishedAsync(long templateId, NotificationChannel channel, string locale, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<List<NotificationTemplateContentEntity>> GetVersionsAsync(long templateId, NotificationChannel channel, string locale, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<int> GetMaxVersionAsync(long templateId, NotificationChannel channel, string locale, CancellationToken ct = default) => throw new NotImplementedException();
     }
 
     private sealed class EmptyLayoutRepo : IEmailLayoutRepository

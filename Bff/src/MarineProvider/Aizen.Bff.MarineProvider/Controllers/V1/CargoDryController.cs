@@ -13,7 +13,9 @@ namespace Aizen.Bff.MarineProvider.Controllers.V1;
 [ApiController]
 [Route("api/v1/provider/cargodry")]
 [Tags("Provider - CargoDry")]
-[Authorize(Policy = ProviderAuthorizationPolicies.ProviderActive)]
+// PROV-MVP-002 — every action on this controller now requires ENROLMENT, not merely an active account.
+// Nine reads and two writes previously answered any approved provider on the platform.
+[Authorize(Policy = ProviderAuthorizationPolicies.CargoDryParticipant)]
 public sealed class CargoDryController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;

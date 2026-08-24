@@ -3,6 +3,7 @@ using Aizen.Bff.MarineProvider.Application.Files;
 using Aizen.Bff.MarineProvider.Application.Files;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
+using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,11 @@ namespace Aizen.Bff.MarineProvider.Controllers.V1.Files;
 [ApiController]
 [Route("api/v1/provider/files")]
 [Tags("Provider - Files")]
-[Authorize]
+// PROV-MVP-045 — a bare [Authorize] resolves to the framework default (authenticated only), so ANY subject in
+// the realm — including one with no provider profile at all — could mint upload sessions; the only limit was a
+// per-provider rate limit. Onboarding legitimately needs a not-yet-active provider to upload, so this is
+// PendingOrActive rather than ProviderActive: a linked, non-suspended profile.
+[Authorize(Policy = ProviderAuthorizationPolicies.ProviderPendingOrActive)]
 public sealed class FileController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
