@@ -66,6 +66,16 @@ public static class BuilderExtensions
         services.AddScoped<IAizenUserInfoAccessor>(sp =>
             sp.GetRequiredService<IAizenInfoAccessor>().UserInfoAccessor);
 
+        // Faz 28.1: IAizenClientInfoAccessor'ı doğrudan enjekte eden İLK tüketici RecipientLocaleResolver.
+        // Bu forward olmadan RecipientLocaleResolver -> SendNotificationCommandHandler aktive edilemiyordu
+        // (Autofac activation hatası → tüm bildirim gönderimleri, OTP e-postaları dahil bloke).
+        // NOT: message-consumer kapsamlarında AizenInfoContainer.Get default döner → ClientInfo null olabilir;
+        // bu yüzden çağıranlar null-toleranslı olmalı (RecipientLocaleResolver zaten öyle).
+        // İLERİDE TEMİZLİK: diğer alt-erişimci arayüzleri (Device/Network/Request/Server/Channel/Execution/Keycloak
+        // token) da benzer forward'larla eklenebilir; şu an yalnız fiilen ihtiyaç duyulan ClientInfo forward ediliyor.
+        services.AddScoped<IAizenClientInfoAccessor>(sp =>
+            sp.GetRequiredService<IAizenInfoAccessor>().ClientInfoAccessor);
+
         // Injects Identity token roles (from X-Aizen-User-Token / AizenUserInfo) into the
         // ClaimsPrincipal after Keycloak service token authentication completes so that
         // [Authorize(Roles = ...)] can see application-level roles on internal module APIs.
