@@ -46,7 +46,7 @@ spec:
         # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
         - name: image.tag
           # FAZ24: ilk gercek image (admin-web CI #4, develop merge f54bcea — faz24/ci-ve-tip-duzeltmeleri).
-          value: "sha-07b11f6"
+          value: "sha-2a7d73f"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc

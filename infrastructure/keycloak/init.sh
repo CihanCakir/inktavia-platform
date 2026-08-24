@@ -623,6 +623,15 @@ AP_BFF_CLIENT_ID="admin-panel-bff"
 AP_BFF_UUID_FOR_SA=$($KCADM get clients -r ${REALM} -q clientId=${AP_BFF_CLIENT_ID} --fields id 2>/dev/null | _first_id)
 AP_BFF_SA_UID=$($KCADM get "clients/${AP_BFF_UUID_FOR_SA}/service-account-user" -r ${REALM} --fields id 2>/dev/null | _first_id)
 if [ -n "$AP_BFF_SA_UID" ]; then
+  # ── FAZ27 (2026-08-24): REALM 'Admin' rolu SA'ya SART ────────────────────────────────────────
+  # Moduldeki admin denetleyicileri [Authorize(Roles = "Admin")] ile korunuyor ve BFF modullere
+  # SERVIS token'iyla gidiyor (AdminPanelBffAuthDelegatingHandler dokumani: "admin module endpoints
+  # authorize on the service token's Admin role"). Asagidaki client rolleri tek basina YETMEZ —
+  # bu satir olmadan admin panelinin 22 ucu 403→500 dondu (FAZ26 duman turu; ilk kez egzersiz edildi).
+  $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --rolename Admin 2>/dev/null \
+    && echo "admin-panel-bff: REALM 'Admin' rolu verildi (modul [Authorize(Roles=Admin)] icin sart)." \
+    || echo "admin-panel-bff: REALM 'Admin' grant atlandi (zaten var veya rol yok)."
+
   # Her --cclientid bloğu o API client'ının dotted rollerini verir. Idempotent (var olan no-op).
   $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid cargodry-api \
     --rolename cargodry.admin --rolename cargodry.read --rolename cargodry.write 2>/dev/null \

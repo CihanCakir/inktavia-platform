@@ -3,6 +3,7 @@ using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.FileStorage.Abstraction.Dto.Access;
 using Aizen.Modules.FileStorage.Abstraction.Dto.File;
 using Aizen.Modules.FileStorage.Abstraction.RemoteCall.File.Requests;
+using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -16,6 +17,17 @@ public interface IFileStorageRemoteCall : IAizenRemoteCall
     // wrapper Result types made .Body.File / .Body.AccessUrl always null → every presigned URL came back empty.
     [AizenRemoteCallGet("/api/v1/files/{fileId}")]
     Task<AizenApiResponse<FileMetadataDto>> GetFileMetadata(Guid fileId);
+
+    /// <summary>
+    /// Admin dosya listeleme: en yeni önce, ada göre aranabilir, içerik-tipi filtreli, sayfalanmış.
+    /// FileStorage modülünün api/v1/file/admin/files ([Authorize Admin]) uç noktasına gider.
+    /// </summary>
+    [AizenRemoteCallGet("/api/v1/file/admin/files")]
+    Task<AizenApiResponse<AdminFileListResult>> GetAdminFiles(
+        [Query] string? search = null,
+        [Query] string? contentType = null,
+        [Query] int page = 1,
+        [Query] int pageSize = 20);
 
     [AizenRemoteCallPost("/api/v1/files/{fileId}/access/read-url")]
     Task<AizenApiResponse<FileAccessUrlDto>> CreateReadUrl(

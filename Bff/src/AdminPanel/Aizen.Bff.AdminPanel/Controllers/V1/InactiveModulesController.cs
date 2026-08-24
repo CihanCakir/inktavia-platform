@@ -48,11 +48,8 @@ public sealed class InactiveModulesController : AizenWebApiController
     [ProducesResponseType(StatusCodes.Status501NotImplemented)]
     public IActionResult GetAnalyticsDashboard() => NotImplementedEnvelope("Analytics");
 
-    // ─── Files list (not yet exposed as admin listing endpoint) ──────────────
-
-    [HttpGet("files")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult GetFilesList() => NotImplementedEnvelope("FileStorage list");
+    // NOT: "files" listesi artık FilesController tarafından karşılanıyor (FileStorage'a proxy).
+    // Eski 501 stub'ı kaldırıldı.
 
     // ─── Helper ──────────────────────────────────────────────────────────────
 

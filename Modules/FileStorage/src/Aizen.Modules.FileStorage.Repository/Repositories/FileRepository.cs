@@ -36,6 +36,33 @@ public sealed class FileRepository : IFileRepository
         return result;
     }
 
+    public async Task<(IReadOnlyList<FileEntity> Items, int Total)> GetAdminPagedAsync(
+        string? search, string? contentType, int skip, int take, CancellationToken ct = default)
+    {
+        // Silinmemiş dosyalar üzerinde koşullu filtreler; sahiplik projeksiyonu için OwnerReferences yüklenir.
+        var q = _db.Files
+            .Include(f => f.OwnerReferences)
+            .Where(f => !f.IsDeleted)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+            q = q.Where(f => f.OriginalFileName.Contains(search));
+
+        if (!string.IsNullOrWhiteSpace(contentType))
+            q = q.Where(f => f.ContentType == contentType);
+
+        // Toplam sayı sayfalamadan ÖNCE alınır; boş tabloda 0 döner (hata değil).
+        var total = await q.CountAsync(ct);
+
+        var items = await q
+            .OrderByDescending(f => f.CreateDate) // en yeni önce
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     public Task<bool> ExistsByFileCodeAsync(string fileCode, CancellationToken ct = default)
         => _db.Files.AnyAsync(x => x.FileCode == fileCode, ct);
 
