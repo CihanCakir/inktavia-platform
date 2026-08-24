@@ -250,12 +250,15 @@ if [ -n "${OTP_LOGIN_TICKET_SECRET:-}" ] && [ -n "${OTP_LOGIN_CONSUME_SECRET:-}"
   $KCADM add-roles -r ${REALM} --uusername "${ADMIN_EMAIL}" --rolename Admin 2>/dev/null || true
   echo "Ensured 'Admin' realm role and assigned it to ${ADMIN_EMAIL}."
 
+  # FAZ25: dev-admin.inktavia.com redirect/origin listeye eklendi — dev SPA'nin OTP handoff'u
+  # bu olmadan Keycloak'ta invalid_redirect_uri yerdi. (Bu update kcadm ile TUM body'yi ezer;
+  # binding guvenli cunku _kc_bind_browser_flow bu bloktan SONRA kosuyor — sira degistirilirse #92 tekrarlanir.)
   # 2) Fix the admin-panel client for the code handoff: enable it, turn on the standard (code) flow,
   #    and add the localhost:3000 dev redirect/origin (keeping the existing 3001/prod entries).
   ADMIN_CLIENT_UUID=$($KCADM get clients -r ${REALM} -q clientId=${ADMIN_CLIENT_ID} --fields id 2>/dev/null | _first_id)
 
   if [ -n "$ADMIN_CLIENT_UUID" ]; then
-    $KCADM update "clients/${ADMIN_CLIENT_UUID}" -r ${REALM} -b '{"enabled":true,"standardFlowEnabled":true,"publicClient":true,"redirectUris":["http://localhost:3000/*","http://localhost:3001/*","https://admin.inktavia.com/*"],"webOrigins":["http://localhost:3000","http://localhost:3001","https://admin.inktavia.com"]}' 2>/dev/null || true
+    $KCADM update "clients/${ADMIN_CLIENT_UUID}" -r ${REALM} -b '{"enabled":true,"standardFlowEnabled":true,"publicClient":true,"redirectUris":["http://localhost:3000/*","http://localhost:3001/*","https://admin.inktavia.com/*","https://dev-admin.inktavia.com/*"],"webOrigins":["http://localhost:3000","http://localhost:3001","https://admin.inktavia.com","https://dev-admin.inktavia.com"]}' 2>/dev/null || true
     echo "admin-panel client enabled + standardFlow + localhost:3000 redirect/origin applied."
 
     # 2b) Ensure the admin-panel access token carries aud: admin-panel-bff. bff-adminpanel validates

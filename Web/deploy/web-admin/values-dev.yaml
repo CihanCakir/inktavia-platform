@@ -97,5 +97,14 @@ runtimeEnv:
   # cluster ici "http://aizen-bff-adminpanel" burada CALISMAZ. Host FAZ20'de olculdu:
   # Bff/deploy/aizen-bff-adminpanel/values-dev.yaml:63 → dev-admin-api.inktavia.com
   VITE_ADMIN_PANEL_BFF_BASE_URL: "https://dev-admin-api.inktavia.com/api/v1/admin-panel"
+  # ── FAZ25 (2026-08-24): Keycloak uclusu ZORUNLUYMUS ─────────────────────────
+  # "identity modu → Keycloak degiskenleri opsiyonel" varsayimi YANLIS cikti: OTP girisi
+  # dogrulama sonrasi login_ticket ile Keycloak handoff'una gidiyor (BFF NextAction=
+  # redirect_to_keycloak_handoff) ve keycloakClient.loginWithTicket bu uc deger olmadan
+  # `await init`te SESSIZCE asili kaliyor — kullanici "bekledik, hicbir sey olmadi" gorur.
+  # Provider values-dev'indeki uclunun birebir karsiligi:
+  VITE_KEYCLOAK_URL: "https://auth.inktavia.com"
+  VITE_KEYCLOAK_REALM: "inktavia-realm"
+  VITE_KEYCLOAK_CLIENT_ID: "admin-panel"
   VITE_DEFAULT_LANGUAGE: "en"
   VITE_SUPPORTED_LANGUAGES: "en,tr"
