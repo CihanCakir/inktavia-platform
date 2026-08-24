@@ -57,7 +57,7 @@ spec:
           #      .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD)
           #    Image YALNIZ push'ta uretiliyor (PR'da degil). Uygulamadan once
           #    GHCR'da var oldugunu dogrula.
-          value: "sha-0000000"
+          value: "sha-417e85a"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
