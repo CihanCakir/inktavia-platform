@@ -202,9 +202,12 @@ env:
     value: "$(WEB_TRUSTED_CALLER_SECRET)"
   - name: MarineWebPublic__Revalidate__Secret
     value: "$(WEB_REVALIDATE_SECRET)"
-  # Revalidate URL Next.js sitesine gidiyor; Faz 10'da frontend yayına alınınca dolacak.
-  # - name: MarineWebPublic__Revalidate__Url
-  #   value: "https://inktavia.com/api/revalidate"
+  # FAZ28-DAGITIM: web-marine yayına alındı (web-marine-dev Application, dev-www).
+  # Revalidate URL cluster içi web-marine servisine gider (Next.js /api/revalidate, service port 80 → 8080).
+  # NOT: FAZ14 #30 placeholder korumasi bu anahtar '__FROM_ENV__' kaldığı için bff-marine-web'i
+  # baslatmiyordu (CrashLoopBackOff); deger dolunca guard gecer.
+  - name: MarineWebPublic__Revalidate__Url
+    value: "http://web-marine.inktavia-dev.svc.cluster.local/api/revalidate"
 
   # ── Modül çağrıları ──────────────────────────────────────────────────────────
   # Hepsi cluster içi ClusterIP servisleri; port 80 → container 8080.
