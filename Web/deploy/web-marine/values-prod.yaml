@@ -1,0 +1,109 @@
+# web-marine — uretim degerleri (inktavia-prod)
+#
+# ⚠️ PROD SU AN KAPALI (replicaCount 0). Ortam anahtari icin: scripts/ortam-degistir.py
+#
+# ⚠️ BU DOSYA PUBLIC BIR REPODA. Buradaki hicbir deger sir degil; iki sir
+#    (trusted-caller + revalidate) cluster'daki `platform-credentials` Secret'indan
+#    secretKeyRef ile geliyor — bkz. templates/deployment.yaml.
+#
+# ⚠️ Bu chart, AYRI BIR REPODAN gelen bir image'i deploy ediyor:
+#    github.com/CihanCakir/inktavia-marine-web
+#    Bu yuzden platform monorepo'sunun TEK ETIKET kuralina dahil DEGIL —
+#    kendi sha'si var ve gitops/apps/web-marine-app.yaml icinde duruyor.
+#
+# 🔴 PROD ICIN `-prod` EKLI ETIKET ZORUNLU.
+#    Next.js statik HTML'i BUILD ANINDA uretiyor ve SITE_ENV/SITE_URL o anda
+#    gomuluyor. Dev image'i (`sha-xxxxxxx`, eksiz) `SITE_ENV=staging` ile
+#    pisirildigi icin prod'da robots.txt "Disallow: /" der, canonical'lar
+#    dev-www'yi gosterir — site yayinda ama Google'a KAPALI olur ve HICBIR YERDE
+#    hata gorunmez. Prod image'i frontend repodaki CI'in `workflow_dispatch` ile
+#    elle tetiklenen `image-prod` isinden cikar: `sha-<7hex>-prod`.
+
+replicaCount: 0
+
+image:
+  repository: ghcr.io/cihancakir/inktavia/web-marine
+  # Bos: Argo CD Application'daki `image.tag` parametresi dolduruyor.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: ghcr-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  # 🔴 fsGroup SART: emptyDir'ler (next-cache, tmp) kubelet tarafindan bu gid'e
+  # chown edilir. Olmazsa mount noktasi root'a ait olur, uid 1001 yazamaz ve ilk
+  # ISR yeniden uretiminde EACCES alinir — pod ayakta kalir, sadece onbellek
+  # sessizce calismaz.
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  # ⚠️ Apex host. Cloudflare'de iki is birlikte yapilmali:
+  #    1. inktavia.com'un mevcut A kayitlari silinip tunel CNAME'i eklenmeli
+  #    2. www.inktavia.com -> apex 301 (D-05) — bu Cloudflare Redirect Rule'u,
+  #       ingress DEGIL. Nginx'e www host'u EKLEME; iki host da 200 donerse
+  #       icerik cift URL'de yayinlanir ve canonical ile celisir.
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  hosts:
+    - host: inktavia.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+probes:
+  path: /api/healthz
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 192Mi
+  limits:
+    cpu: 500m
+    memory: 448Mi
+
+nodeHeapMb: 320
+cacheSizeLimit: 512Mi
+
+secrets:
+  platformCredentials: platform-credentials
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+runtimeEnv:
+  # 🔴 Image'a gomulen degerlerle BIREBIR AYNI olmali
+  #    (CI image-prod isi: SITE_ENV=production, SITE_URL=https://inktavia.com).
+  SITE_ENV: "production"
+  SITE_URL: "https://inktavia.com"
+  MARINE_WEB_BFF_BASE_URL: "http://aizen-bff-marine-web"
+  NEXT_TELEMETRY_DISABLED: "1"
+  TZ: "Europe/Istanbul"

@@ -39,6 +39,8 @@ public sealed class SubmitContactMessageHandlerTests
             => throw new NotImplementedException();
         public Task<AizenApiResponse<ProfileContactEmailResult>> GetProfileContactEmail(long profileId)
             => throw new NotImplementedException();
+        public Task<AizenApiResponse<ProfilePreferredLanguageResult>> GetProfilePreferredLanguage(long profileId)
+            => throw new NotImplementedException();
     }
 
     private sealed class FakeSender : ISender

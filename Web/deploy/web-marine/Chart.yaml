@@ -1,0 +1,7 @@
+apiVersion: v2
+name: web-marine
+description: Inktavia Marine Web — halka acik site (Next.js 16 SSR, Node sunucusu)
+type: application
+version: 0.1.0
+# appVersion BILEREK YOK. Surum bilgisi image.tag'de duruyor ve o zorunlu;
+# ikinci bir surum kaynagi olsaydi hangisinin gecerli oldugu belirsizlesirdi.

@@ -50,6 +50,7 @@ public sealed class GetOrganizerProfileByKeycloakSubjectQueryHandler
             OrganizationName = profile.CompanyName,
             Email = profile.User?.Email,
             Phone = profile.User?.PhoneNumber,
+            PreferredLanguage = profile.User?.PreferredLanguage,
             City = profile.City,
             Country = profile.Country,
             ReviewedBy = profile.ReviewedBy,

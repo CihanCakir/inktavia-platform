@@ -14,6 +14,8 @@ public sealed class ParticipantProfileDto
     public string? FullName { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    // Kullanıcının kalıcı dil tercihi (Identity UserEntity'den taşınır).
+    public string? PreferredLanguage { get; set; }
     public string? AvatarUrl { get; set; }
     public string? Bio { get; set; }
     public string? Gender { get; set; }

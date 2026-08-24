@@ -1,0 +1,131 @@
+# web-marine — dev degerleri (inktavia-dev)
+#
+# ⚠️ BU DOSYA PUBLIC BIR REPODA. Buradaki hicbir deger sir degil; iki sir
+#    (trusted-caller + revalidate) cluster'daki `platform-credentials` Secret'indan
+#    secretKeyRef ile geliyor — bkz. templates/deployment.yaml.
+#
+# ⚠️ Bu chart, AYRI BIR REPODAN gelen bir image'i deploy ediyor:
+#    github.com/CihanCakir/inktavia-marine-web
+#    Bu yuzden platform monorepo'sunun TEK ETIKET kuralina dahil DEGIL —
+#    kendi sha'si var ve gitops/apps/web-marine-app.yaml icinde duruyor.
+#
+# 🔴 IMAGE ETIKETI ORTAMA OZGU. Dev image'i `SITE_ENV=staging` +
+#    `SITE_URL=https://dev-www.inktavia.com` ile PISIRILIYOR (statik HTML'e
+#    gomuluyor). Buraya `-prod` ekli bir etiket koyarsan site prod canonical'lari
+#    yayinlar; `sha-xxxxxxx` (eksiz) etiketi prod'a koyarsan robots.txt
+#    "Disallow: /" der ve site Google'a KAPALI acilir. Etiket = ortam sozlesmesi.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cihancakir/inktavia/web-marine
+  # Bos: Argo CD Application'daki `image.tag` parametresi dolduruyor.
+  # Bos kalirsa helm render asamasinda YUKSEK SESLE patlar (required).
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: ghcr-pull
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Dockerfile uid/gid 1001 ile kosuyor; burada dogruluyoruz.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  # 🔴 fsGroup SART: emptyDir'ler (next-cache, tmp) kubelet tarafindan bu gid'e
+  # chown edilir. Olmazsa mount noktasi root'a ait olur, uid 1001 yazamaz ve ilk
+  # ISR yeniden uretiminde EACCES alinir — pod ayakta kalir, sadece onbellek
+  # sessizce calismaz.
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  # ⚠️ ACIK — ama ancak deployment.yaml'daki iki emptyDir sayesinde.
+  # Next SSR calisma aninda /app/.next/cache (ISR ciktisi) ve /tmp'ye yaziyor.
+  # Pod EROFS ile CrashLoop'a duserse ONCE hangi yola yazmaya calistigina bak
+  # (kubectl logs), o yolu emptyDir olarak ekle; bu bayragi kapatmak son care.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  # dev-www.inktavia.com Cloudflare Tunnel'a public hostname olarak eklenmeli
+  # (dev-admin / dev-provider ile ayni kalip; DNS kaydini tunel kendisi olusturur).
+  # Rota eklenmeden bu ingress calisir ama disaridan erisilemez.
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  hosts:
+    - host: dev-www.inktavia.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # TLS Cloudflare Tunnel'da sonlaniyor; origin sertifikasi gerekmiyor.
+  tls: []
+
+probes:
+  # ⚠️ /healthz DEGIL — gerekcesi templates/deployment.yaml'da.
+  path: /api/healthz
+
+# Next.js SSR nginx'ten agir: her istek React render ediyor.
+# NODE_OPTIONS heap tavani limitin ~%70'i (asagida nodeHeapMb).
+resources:
+  requests:
+    cpu: 50m
+    memory: 192Mi
+  limits:
+    cpu: 500m
+    memory: 448Mi
+
+# V8 heap tavani (MB). memory limitinin ~%70'i olmali — kalan pay Node'un
+# heap disi bellegi (buffer, kod, yigin) icin.
+nodeHeapMb: 320
+
+# ISR onbellegi icin emptyDir tavani. Dolu diskte Next sessizce onbelleklemeyi
+# birakir, patlamaz — bu yuzden cikaran bir sinyal yok; olcu tut.
+cacheSizeLimit: 512Mi
+
+secrets:
+  # Iki sirrin da okundugu Secret. BFF ayni Secret'i okuyor — eslesme
+  # yapisal olarak garanti (bkz. templates/deployment.yaml).
+  platformCredentials: platform-credentials
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ── ORTAM AYARI (SIRSIZ) ────────────────────────────────────────────────────
+# ConfigMap'e gidiyor, oradan konteyner ortamina. TARAYICIYA INMIYOR:
+# src/shared/config/env.ts `server-only` ile muhurlu.
+runtimeEnv:
+  # 🔴 Image'a gomulen degerlerle BIREBIR AYNI olmali (CI: SITE_ENV=staging,
+  #    SITE_URL=https://dev-www.inktavia.com). Ayrisirlarsa statik HTML ile ISR
+  #    yeniden uretimi farkli canonical/robots yayinlar ve hicbir yerde hata olmaz.
+  SITE_ENV: "staging"
+  SITE_URL: "https://dev-www.inktavia.com"
+  # BFF'e CLUSTER ICINDEN gidiyoruz: tunel + ingress turu bosuna, ve trusted-caller
+  # kotasi (6000/60sn) tek IP'den geldigimiz icin zaten dogru partisyonda.
+  # env.ts yalnizca loopback'i reddediyor; ic adres tamamen mesru.
+  MARINE_WEB_BFF_BASE_URL: "http://aizen-bff-marine-web"
+  NEXT_TELEMETRY_DISABLED: "1"
+  TZ: "Europe/Istanbul"
+  # ⚠️ NEXT_PUBLIC_* BURADA YOK — bilerek. Onlar tarayici bundle'ina BUILD
+  #    ANINDA gomuluyor; buraya yazmak hicbir sey yapmaz. Musteri/saglayici
+  #    uygulama URL'leri tanimsiz oldugu icin CTA'lar D-08 geri donusuyle
+  #    /iletisim?intent=<id> adresine gidiyor ve etiketleri degisiyor.

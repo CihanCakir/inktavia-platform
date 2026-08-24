@@ -42,6 +42,7 @@ public sealed class GetProviderProfileQueryHandler
                 ProviderProfileId = dto.Id,
                 Email = dto.Email,
                 Phone = dto.Phone,
+                PreferredLanguage = dto.PreferredLanguage,
                 CompanyName = dto.OrganizationName,
                 OwnerFirstName = dto.FirstName,
                 OwnerLastName = dto.LastName,

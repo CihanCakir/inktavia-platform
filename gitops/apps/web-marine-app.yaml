@@ -1,0 +1,70 @@
+# Marine Web — halka acik site (dev) — Argo CD Application.
+#
+# NEDEN ApplicationSet DEGIL:
+# gitops/apps/{prod,dev}-appset.yaml build/components.json'dan uretiliyor ve
+# TEK ETIKET kuralina dayaniyor: 15 bilesenin hepsi ayni sha'yi paylasiyor,
+# cunku hepsi ayni monorepo'dan derleniyor. web-marine AYRI BIR REPODAN
+# (github.com/CihanCakir/inktavia-marine-web) geliyor; oraya konsaydi
+# platform'un sha'sini miras alirdi ve o sha ile web-marine diye bir image hic
+# uretilmemis olurdu → ImagePullBackOff. Bu yuzden components.json'a EKLENMEDI.
+# (web-admin / web-provider ile birebir ayni gerekce.)
+#
+# ⚠️ Bu dosya Argo CD tarafindan YONETILMIYOR — gitops/apps/ altindaki her sey
+#    gibi bir kez elle uygulaniyor:
+#        kubectl apply -f gitops/apps/web-marine-app.yaml
+#
+# 🔴 ON KOSUL — UYGULAMADAN ONCE IKISI DE OLMALI:
+#    (1) Cloudflare Tunnel'a dev host'u eklenmis olmali:
+#          dev-www.inktavia.com → http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
+#        (dev-admin / dev-provider ile ayni kalip; DNS kaydini tunel kendisi olusturur.)
+#    (2) Frontend CI en az bir kez kosmus ve asagidaki image.tag GHCR'da VAR olmali.
+#        Yoksa ImagePullBackOff — sessiz degil ama gereksiz.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-marine-dev
+  namespace: platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: Web/deploy/web-marine
+    helm:
+      # ⚠️ releaseName sabit: ileride appset'e tasirken ayni kalmali, yoksa
+      # Argo CD kaynaklari devralmaz, YENILERINI yaratir ve iki kopya kosar.
+      releaseName: web-marine
+      valueFiles:
+        - values-dev.yaml
+      parameters:
+        # ▼▼▼ TEK SURUM ISARETCISI — elle guncelleniyor ▼▼▼
+        # #55 bekcisi (build/ci/gitops-frontend-isaretci-denetimi.sh) bu dosyayi
+        # OTOMATIK kapsiyor: glob'u gitops/apps/web-*-app.yaml. Yani bu satiri
+        # guncellemeyi unutursan platform CI kirmizi olur.
+        #
+        # 🔴 ETIKET BICIMI ORTAM SOZLESMESIDIR — web-admin/web-provider'dan FARKI:
+        #    Next.js statik HTML'i BUILD ANINDA uretiyor ve SITE_ENV/SITE_URL o an
+        #    gomuluyor (bkz. frontend repodaki Dockerfile'in bas blogu). Bu yuzden
+        #    ayni commit'ten IKI image cikiyor:
+        #      sha-<7hex>        → SITE_ENV=staging,    dev-www.inktavia.com  (noindex)
+        #      sha-<7hex>-prod   → SITE_ENV=production, inktavia.com          (indexlenir)
+        #    Buraya `-prod` ekli etiket koyma; dev ortamini Google'a acar.
+        - name: image.tag
+          # ⛔ YER TUTUCU — frontend CI'in ilk kosusundan sonra gercek sha ile
+          #    DEGISTIRILECEK. Etiket bicimi frontend CI'dan:
+          #      .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD)
+          #    Image YALNIZ push'ta uretiliyor (PR'da degil). Uygulamadan once
+          #    GHCR'da var oldugunu dogrula.
+          value: "sha-0000000"
+        # ▲▲▲
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: inktavia-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

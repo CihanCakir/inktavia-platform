@@ -33,6 +33,10 @@ namespace Aizen.Modules.Identity.Domain.Entities
                    .HasMaxLength(128)
                    .IsRequired(false);
 
+            builder.Property(x => x.PreferredLanguage)
+                   .HasMaxLength(8)
+                   .IsRequired(false);
+
             builder.HasIndex(x => x.KeycloakSubjectId)
                    .IsUnique()
                    .HasFilter("\"KeycloakSubjectId\" IS NOT NULL");

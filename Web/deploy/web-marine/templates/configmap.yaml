@@ -1,0 +1,23 @@
+# Uygulamanin SIRSIZ ortam ayari.
+#
+# ⚠️ web-admin/web-provider'dan FARKI: orada bu degerler konteyner acilisinda
+# /config.js'e yazilip TARAYICIYA iniyordu. Burada inmiyor — Next.js SSR'da bu
+# degerleri yalnizca SUNUCU SURECI okuyor (src/shared/config/env.ts `server-only`
+# ile mühürlü). Yani BFF adresi tarayiciya hic ulasmiyor.
+#
+# 🔴 SITE_ENV ve SITE_URL BURADA DA VAR ama IMAGE'A DA GOMULU (Dockerfile'daki
+#    build-arg blogu). Ikisi AYNI DEGERI tasimak ZORUNDA:
+#      - image'a gomulen deger, build aninda uretilen STATIK HTML'i belirler
+#      - buradaki deger, ISR yeniden uretimini ve dinamik rotalari belirler
+#    Ayrisirlarsa site kendi kendiyle celisen canonical/robots yayinlar ve bu
+#    HICBIR YERDE hata vermez. Degistirirken image etiketini de degistir.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "web-marine.fullname" . }}-env
+  labels:
+    {{- include "web-marine.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.runtimeEnv }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

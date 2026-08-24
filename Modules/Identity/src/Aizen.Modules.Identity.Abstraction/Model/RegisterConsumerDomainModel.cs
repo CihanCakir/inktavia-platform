@@ -20,6 +20,9 @@ namespace Aizen.Modules.Identity.Abstraction.Model
 
         public WorkshopRoleContext RoleContext { get; init; } = WorkshopRoleContext.Participant;
 
+        /// <summary>Kayıt anında ClientInfo.Language'den (Accept-Language) gelen tercih; UserEntity normalize/doğrular.</summary>
+        public string? PreferredLanguage { get; init; }
+
         // İsteğe bağlı: hangi sözleşme tiplerini zorunlu sayıyoruz?
         public string[] RequiredAgreementTypes { get; init; } = new[] { "KVKK", "TERMS_OF_USE", "WORKSHOP_PARTICIPANT_TERMS" };
     }

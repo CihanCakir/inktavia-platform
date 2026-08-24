@@ -5,6 +5,8 @@ public sealed class ProviderProfileDto
     public long ProviderProfileId { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    // Kullanıcının kalıcı dil tercihi (Identity UserEntity'den taşınır).
+    public string? PreferredLanguage { get; set; }
     public string? CompanyName { get; set; }
     public string? OwnerFirstName { get; set; }
     public string? OwnerLastName { get; set; }

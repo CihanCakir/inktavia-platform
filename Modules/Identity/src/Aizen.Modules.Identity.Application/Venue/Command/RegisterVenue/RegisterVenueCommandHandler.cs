@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Modules.Identity.Abstraction.Dto;
 using Aizen.Modules.Identity.Abstraction.Enum;
 using Aizen.Modules.Identity.Domain.Interface.Service;
@@ -13,11 +14,13 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Registration
     {
         private readonly IVenueRegistrationDomainService _domain;
         private readonly IdentityDbContext _db;
+        private readonly IAizenInfoAccessor _info;
 
-        public RegisterVenueCommandHandler(IVenueRegistrationDomainService domain, IdentityDbContext db)
+        public RegisterVenueCommandHandler(IVenueRegistrationDomainService domain, IdentityDbContext db, IAizenInfoAccessor info)
         {
             _domain = domain;
             _db = db;
+            _info = info;
         }
 
         public override async Task<RegisterResult?> Handle(RegisterVenueCommand request, CancellationToken ct)
@@ -32,7 +35,8 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Registration
                 KvkkAccepted = request.KvkkAccepted,
                 DeviceId = request.DeviceId,
                 DeviceType = request.DeviceType,
-                NotificationToken = request.NotificationToken
+                NotificationToken = request.NotificationToken,
+                PreferredLanguage = _info.ClientInfoAccessor.ClientInfo.Language // Accept-Language → kalıcı tercih (entity doğrular)
             }, ct);
 
             // Generate risk signals for the new pending profile

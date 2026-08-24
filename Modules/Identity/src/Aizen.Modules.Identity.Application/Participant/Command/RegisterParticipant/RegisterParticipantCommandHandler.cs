@@ -48,6 +48,7 @@ namespace Aizen.Modules.InktaviaStore.Application.Command.RegisterParticipant
                 DeviceType = request.DeviceType,
                 NotificationToken = request.NotificationToken,
                 RoleContext = roleCtx,
+                PreferredLanguage = _info.ClientInfoAccessor.ClientInfo.Language, // Accept-Language → kalıcı tercih (entity doğrular)
                 RequiredAgreementTypes = new[] { "KVKK", "TERMS_OF_USE" } // gerektiği gibi değiştir
             }, ct);
 
