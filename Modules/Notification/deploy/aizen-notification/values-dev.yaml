@@ -265,18 +265,23 @@ env:
     value: "http://aizen-identity"
 
   # ── SMS kanali (FAZ 28.7) ─────────────────────────────────────────────────────
-  # Sms__Provider=stub: dev'de gercek SMS gitmez, LoggingSmsSenderStub loglar.
-  # Vendor alanlari BILEREK bos: stub'dayken okunmazlar; Infobip/Netgsm hesaplari
-  # acilip anahtarlar platform-credentials secret'ina girince bu satirlar
-  # secretKeyRef'e cevrilecek ve Provider degistirilecek. Bos string, FAZ14
-  # yer-tutucu bekcisinde "doldurulmus" sayilir (yer tutucu METNI kalmamali) —
+  # 2026-08-25: Infobip trial hesabi acildi → dev'de gercek adapter devrede.
+  # ONKOSUL (bu degisiklik merge/sync olmadan ONCE): platform-credentials secret'ina
+  # INFOBIP_API_KEY girilmis olmali, yoksa pod secretKeyRef yuzunden ACILMAZ.
+  # Trial kisitlari: 15 ucretsiz SMS, yalnizca kayitta dogrulanan numaraya gider;
+  # baska numaralar vendor tarafindan reddedilir → satir sebepli Failed olur (dogru davranis).
+  # BaseUrl hesaba ozel subdomain'dir, sir degildir; ApiKey SIRDIR ve yalniz secret'ta yasar.
+  # From bos: trial'da varsayilan gonderen kullanilir. Netgsm alanlari bos: kurumsal
+  # basvuru sonuclaninca ayni kalipla secretKeyRef'e cevrilecek.
+  # Bos string, FAZ14 yer-tutucu bekcisinde "doldurulmus" sayilir —
   # appsettings.Production.json'daki __FROM_ENV__ degerlerini bunlar ezer.
   - name: Sms__Provider
-    value: "stub"
+    value: "infobip"
   - name: Sms__Infobip__BaseUrl
-    value: ""
+    value: "https://6z8pzr.api.infobip.com"
   - name: Sms__Infobip__ApiKey
-    value: ""
+    valueFrom:
+      secretKeyRef: { name: platform-credentials, key: INFOBIP_API_KEY }
   - name: Sms__Infobip__From
     value: ""
   - name: Sms__Netgsm__UserCode
