@@ -39,6 +39,8 @@ spec:
         # CI YUKSEK SESLE patlar. Yani bu satiri guncellemeyi unutursan platform CI kirmizi olur —
         # cluster sessizce eski image'i servis etmeye devam etmez. (Denetim TUM web-*-app.yaml'lari kapsar.)
         - name: image.tag
+          # 2026-08-25: sha-de8d1b4 → sha-46116de (provider-web PR #9 faz5/complete; CI #20 yesil).
+          # 2026-08-24: sha-85eaeb1 → sha-de8d1b4 (PR #7 fix/keycloack + PR #8 fix/mvp-phase1; CI #18 yesil).
           # 2026-08-23: sha-2dd05c4 → sha-85eaeb1 (Faz 22 — giriş sayfasındaki sahte parola
           #   alanı kaldırıldı, #87). GHCR'de doğrulandı: sha-85eaeb1 ':dev' etiketini taşıyor,
           #   ve commit 85eaeb1'de LoginPage.tsx'te PasswordInput/CheckboxField YOK, login.continue VAR.
@@ -51,7 +53,7 @@ spec:
           # ⚠️ Image YALNIZ develop'a PUSH'ta üretiliyor (ci.yml:57 `if: push && ref == develop`),
           #    PR'da değil. Uygulamadan önce etiketin GHCR'da var olduğu doğrulanmalı — yoksa
           #    ImagePullBackOff (bu dosyanın başındaki uyarının aynısı).
-          value: "sha-de8d1b4"
+          value: "sha-46116de"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc

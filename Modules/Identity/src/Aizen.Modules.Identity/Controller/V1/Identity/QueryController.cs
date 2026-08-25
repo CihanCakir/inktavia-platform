@@ -4,6 +4,8 @@ using Aizen.Modules.Identity.Abstraction.Dto.Common;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.ProviderEligibility;
 using Aizen.Modules.Identity.Application.AdminUsers.GetAdminUserIds;
+using Aizen.Modules.Identity.Application.AdminUsers.GetAllParticipantProfileIds;
+using Aizen.Modules.Identity.Application.AdminUsers.GetAllProviderProfileIds;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetParticipantProfileIdByUserId;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfileContactEmail;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfilePreferredLanguage;
@@ -331,6 +333,29 @@ public sealed class QueryController : AizenWebApiController
     public async Task<AizenApiResponse<IList<long>>> GetAdminUserIds(CancellationToken ct)
     {
         var result = await _sender.ProcessAsync(new GetAdminUserIdsQuery(), ct);
+        return SetResponse(result);
+    }
+
+    // Faz 28.6 — internal read: ALL active provider (Organizer+VenueOwner) profile ids, for the admin notification
+    // campaign "All" audience expansion. Same internal-read pattern as admin/user-ids (anonymous behind the cluster
+    // NetworkPolicy; notification-api S2S calls carry no bearer token). Ids only, no PII.
+    [HttpGet("providers/all-ids")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IList<long>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IList<long>>> GetAllProviderProfileIds(CancellationToken ct)
+    {
+        var result = await _sender.ProcessAsync(new GetAllProviderProfileIdsQuery(), ct);
+        return SetResponse(result);
+    }
+
+    // Faz 28.6 — internal read: ALL active participant profile ids, for the admin notification campaign "All" audience
+    // expansion. Same internal-read pattern as admin/user-ids. Ids only, no PII.
+    [HttpGet("participants/all-ids")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IList<long>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<IList<long>>> GetAllParticipantProfileIds(CancellationToken ct)
+    {
+        var result = await _sender.ProcessAsync(new GetAllParticipantProfileIdsQuery(), ct);
         return SetResponse(result);
     }
 

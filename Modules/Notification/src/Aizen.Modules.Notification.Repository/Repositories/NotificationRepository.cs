@@ -15,6 +15,50 @@ public sealed class NotificationRepository : INotificationRepository
     public Task<NotificationEntity?> GetByIdAsync(long id, CancellationToken ct)
         => _db.Notifications.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    // Faz 28.5 — Admin gönderim geçmişi (NotificationTemplateRepository.GetPagedAsync Faz 28.3 desenini birebir izler):
+    // AsQueryable üstüne koşullu .Where zinciri, hepsi SQL'e itilir; Skip/Take'ten ÖNCE CountAsync; sıralama yalnız
+    // öğe çekiminde. Inbox'un aksine Channel==InApp KIRPMASI YOKTUR — admin tüm kanallardaki gönderimi görür.
+    public async Task<(List<NotificationEntity> Items, int TotalCount)> GetHistoryPagedAsync(
+        DateTimeOffset? from, DateTimeOffset? to, NotificationChannel? channel, NotificationStatus? status,
+        string? templateCode, long? recipientUserId, long? campaignId, int skip, int take, CancellationToken ct)
+    {
+        var q = _db.Notifications.AsQueryable();
+
+        // Tarih aralığı CreatedAt üzerinde (timestamptz range filtresi güvenli — GroupBy değil).
+        if (from.HasValue)
+            q = q.Where(x => x.CreatedAt >= from.Value);
+        if (to.HasValue)
+            q = q.Where(x => x.CreatedAt <= to.Value);
+
+        if (channel.HasValue)
+            q = q.Where(x => x.Channel == channel.Value);
+
+        if (status.HasValue)
+            q = q.Where(x => x.Status == status.Value);
+
+        if (!string.IsNullOrWhiteSpace(templateCode))
+        {
+            // TemplateCode büyük harf saklanır (entity Create'te ToUpperInvariant); filtre de eşleşmesi için büyütülür.
+            var tc = templateCode.Trim().ToUpperInvariant();
+            q = q.Where(x => x.TemplateCode == tc);
+        }
+
+        if (recipientUserId.HasValue)
+            q = q.Where(x => x.RecipientUserId == recipientUserId.Value);
+
+        if (campaignId.HasValue)
+            q = q.Where(x => x.CampaignId == campaignId.Value);
+
+        var total = await q.CountAsync(ct);
+        var items = await q
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.Id)            // deterministic tiebreaker (en yeni önce)
+            .Skip(skip).Take(take)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     // BE_NF1 (D4) — the inbox is the list of canonical LOGICAL notifications = the InApp channel row. Email + web/FCM
     // push are delivery mechanisms, not list rows. Without the Channel filter, once N-F2 emits Email/Push rows the same
     // logical event would appear as a duplicate second row (count + list). Filter every recipient read to InApp so list,

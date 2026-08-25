@@ -23,8 +23,11 @@ public sealed class NotificationEntityConfiguration : IEntityTypeConfiguration<N
         builder.Property(x => x.ReferenceId);
         builder.Property(x => x.Locale).HasMaxLength(8).IsRequired();
         builder.Property(x => x.DeepLink).HasMaxLength(1000);
+        builder.Property(x => x.CampaignId);
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.HasIndex(x => new { x.RecipientUserId, x.Status });
         builder.HasIndex(x => new { x.RecipientUserId, x.CreatedAt });
+        // Faz 28.6 — kampanya geçmişi filtresi (history?campaignId) için.
+        builder.HasIndex(x => x.CampaignId);
     }
 }

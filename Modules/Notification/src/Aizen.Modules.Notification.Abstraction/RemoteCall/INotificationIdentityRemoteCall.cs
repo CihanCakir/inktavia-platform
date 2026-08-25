@@ -21,6 +21,13 @@ public interface INotificationIdentityRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/identity/admin/user-ids")]
     Task<AizenApiResponse<List<long>>> GetAdminUserIds();
 
+    // Faz 28.6 — admin kampanya "All" genişletmesi: tüm sağlayıcı / katılımcı PROFİL id'leri (ids only, no PII).
+    [AizenRemoteCallGet("/api/v1/identity/providers/all-ids")]
+    Task<AizenApiResponse<List<long>>> GetAllProviderProfileIds();
+
+    [AizenRemoteCallGet("/api/v1/identity/participants/all-ids")]
+    Task<AizenApiResponse<List<long>>> GetAllParticipantProfileIds();
+
     // BE_NF1b — resolve a participant USER id to its participant PROFILE id, so owner-facing notifications are filed
     // under the profile id (where the owner mobile inbox + device tokens resolve). ProfileId=0 when none.
     [AizenRemoteCallGet("/api/v1/identity/participant/profile-id")]

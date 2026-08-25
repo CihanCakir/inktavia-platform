@@ -65,6 +65,10 @@ public static class DependencyInjection
         services.AddKeyedScoped<INotificationDispatcher, PushNotificationDispatcher>(NotificationChannel.Push);
         services.AddKeyedScoped<INotificationDispatcher, EmailNotificationDispatcher>(NotificationChannel.Email);
         services.AddScoped<INotificationDispatcher, CompositeNotificationDispatcher>();
+
+        // Faz 28.6 — admin kampanya dağıtımı: alıcı genişletme (Identity iç uçları) + dağıtım servisi.
+        services.AddScoped<ICampaignRecipientExpander, IdentityCampaignRecipientExpander>();
+        services.AddScoped<ICampaignDispatchService, CampaignDispatchService>();
         return services;
     }
 }

@@ -88,6 +88,29 @@ public sealed class NotificationTemplateBffHandlerTests
         result.Contents[0].DraftVersion.Should().Be(2);
     }
 
+    // ── Content-for-edit (passthrough) ────────────────────────────────────────
+    [Fact]
+    public async Task ContentForEdit_returns_module_body_with_editing_source()
+    {
+        var remote = Remote();
+        remote.GetTemplateContentForEdit("SR_CREATED_INAPP", NotificationChannel.InApp, "en")
+            .Returns(Ok(new NotificationTemplateContentEditResult
+            {
+                Found = true, EditingSource = TemplateEditingSource.Draft,
+                Content = new NotificationTemplateContentDto { Id = 7, Channel = NotificationChannel.InApp, Locale = "en", Version = 4, Status = TemplateContentStatus.Draft },
+            }));
+
+        var handler = new GetNotificationTemplateContentForEditBffQueryHandler(remote);
+        var result = await handler.Handle(new GetNotificationTemplateContentForEditBffQuery
+        {
+            Code = "SR_CREATED_INAPP", Channel = NotificationChannel.InApp, Locale = "en",
+        }, CancellationToken.None);
+
+        result!.Found.Should().BeTrue();
+        result.EditingSource.Should().Be(TemplateEditingSource.Draft);
+        result.Content!.Version.Should().Be(4);
+    }
+
     // ── Save draft (passthrough) ──────────────────────────────────────────────
     [Fact]
     public async Task SaveDraft_passes_body_through_and_returns_content()

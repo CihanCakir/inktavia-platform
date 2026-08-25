@@ -27,6 +27,10 @@ public interface INotificationTemplateRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/notification/admin/notification-templates/{code}/detail")]
     Task<AizenApiResponse<NotificationTemplateDetailDto>> GetTemplateDetail(string code);
 
+    [AizenRemoteCallGet("/api/v1/notification/admin/notification-templates/{code}/contents/{channel}/{locale}")]
+    Task<AizenApiResponse<NotificationTemplateContentEditResult>> GetTemplateContentForEdit(
+        string code, NotificationChannel channel, string locale);
+
     // ─── Logical template mutations ──────────────────────────────────────────────
     [AizenRemoteCallPost("/api/v1/notification/admin/notification-templates")]
     Task<AizenApiResponse<NotificationTemplateMutationResponse>> CreateNotificationTemplate(

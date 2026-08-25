@@ -33,6 +33,7 @@ public sealed class EmailDispatcherPersistenceFaz15Tests
 
         public Task AddAsync(NotificationEntity entity, CancellationToken ct = default) => Task.CompletedTask;
         public Task<NotificationEntity?> GetByIdAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<(List<NotificationEntity> Items, int TotalCount)> GetHistoryPagedAsync(DateTimeOffset? from, DateTimeOffset? to, NotificationChannel? channel, NotificationStatus? status, string? templateCode, long? recipientUserId, long? campaignId, int skip, int take, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<List<NotificationEntity>> GetByRecipientAsync(long userId, int skip, int take, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<int> CountByRecipientAsync(long userId, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<int> GetUnreadCountAsync(long userId, CancellationToken ct = default) => throw new NotImplementedException();
@@ -61,6 +62,8 @@ public sealed class EmailDispatcherPersistenceFaz15Tests
     {
         public Task<AizenApiResponse<List<ProviderForAreaResult>>> GetProvidersForArea(string cityCode, string? categoryCode = null, int take = 500) => throw new NotImplementedException();
         public Task<AizenApiResponse<List<long>>> GetAdminUserIds() => throw new NotImplementedException();
+        public Task<AizenApiResponse<List<long>>> GetAllProviderProfileIds() => throw new NotImplementedException();
+        public Task<AizenApiResponse<List<long>>> GetAllParticipantProfileIds() => throw new NotImplementedException();
         public Task<AizenApiResponse<ParticipantProfileIdResult>> GetParticipantProfileIdByUserId(long userId) => throw new NotImplementedException();
         public Task<AizenApiResponse<ProfileContactEmailResult>> GetProfileContactEmail(long profileId) => throw new NotImplementedException();
         public Task<AizenApiResponse<ProfilePreferredLanguageResult>> GetProfilePreferredLanguage(long profileId) => throw new NotImplementedException();

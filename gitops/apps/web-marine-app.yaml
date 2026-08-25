@@ -60,7 +60,10 @@ spec:
           #   `image` isi YESIL biten bir commit'in sha'si yazilir.
           # Etiket bicimi frontend CI'dan:
           #   .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD)
-          value: "sha-31c1e10"
+          value: "sha-e44931c"
+          # 2026-08-25: sha-31c1e10 → sha-e44931c (marine-web PR #1 SEO/hreflang + PR #2 tools/audit
+          #   tsc-kapsam duzeltmesi; CI #8 yesil — ilk denemede CI #6 kirmiziydi cunku audit harness'i
+          #   playwright bagimliligi olmadan kok tsc taramasina girmisti).
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
