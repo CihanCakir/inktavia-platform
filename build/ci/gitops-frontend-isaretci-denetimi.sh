@@ -115,18 +115,26 @@ for app in "${APPS[@]}"; do
     FAIL=1; continue
   fi
 
-  read -r dev_durum dev_digest <<<"$(manifest_of "$repo" "dev")"
+  # FAZ29 (2026-08-25, inktavia.com yayini): '-prod' ekli etiketler AYRI bir build'dir
+  # (SITE_ENV=production image'a gomulu) ve digest'i HICBIR ZAMAN ':dev' ile tutmaz.
+  # Bu isaretciler ':prod' hareketli etiketiyle kiyaslanir (CI image-prod isi her prod
+  # build'inde ':prod'u da basar). Aksi, web-marine-prod-app.yaml'i sonsuza dek kirmizi
+  # yapardi — denetim #32/#33'te tam bu yasandi.
+  kanal="dev"
+  case "$pinned" in *-prod) kanal="prod" ;; esac
+
+  read -r dev_durum dev_digest <<<"$(manifest_of "$repo" "$kanal")"
 
   case "$dev_durum" in
     YETKISIZ|TOKENYOK|HATA:*)
       # Denetim isini YAPAMADI. Bu bir "temiz" sonuc DEGIL — sessizce gecilmez.
-      echo "🔴 ${name}: ${repo}:dev okunamadi (${dev_durum}). Denetim bu isaretciyi DOGRULAYAMADI."
+      echo "🔴 ${name}: ${repo}:${kanal} okunamadi (${dev_durum}). Denetim bu isaretciyi DOGRULAYAMADI."
       echo "     → Ozel paket ise workflow'da 'permissions: packages: read' ve GITHUB_TOKEN gerekir."
       FAIL=1; continue ;;
     YOK)
       # Image gercekten hic uretilmemis (or. web-admin, #79 nedeniyle derlenmiyor).
       # Mesru bir atlama — ama SESSIZ degil ve "guncel" SAYILMAZ.
-      echo "⚠️  ${name}: ${repo}:dev GHCR'da YOK (henuz image uretilmemis) — kiyas ATLANDI, dogrulanmadi."
+      echo "⚠️  ${name}: ${repo}:${kanal} GHCR'da YOK (henuz image uretilmemis) — kiyas ATLANDI, dogrulanmadi."
       ATLANAN=$((ATLANAN+1)); continue ;;
   esac
 
@@ -138,11 +146,11 @@ for app in "${APPS[@]}"; do
 
   KIYASLANAN=$((KIYASLANAN+1))
   if [ "$pin_digest" = "$dev_digest" ]; then
-    echo "✅ ${name}: ${repo}:${pinned} guncel (':dev' ile ayni digest)."
+    echo "✅ ${name}: ${repo}:${pinned} guncel (':${kanal}' ile ayni digest)."
   else
-    echo "🔴 ${name}: ISARETCI BAYAT — ${repo}:${pinned}, GHCR'daki en yeni ':dev'den FARKLI."
+    echo "🔴 ${name}: ISARETCI BAYAT — ${repo}:${pinned}, GHCR'daki en yeni ':${kanal}'dan FARKLI."
     echo "     pinned=${pin_digest}"
-    echo "     dev   =${dev_digest}"
+    echo "     ${kanal}   =${dev_digest}"
     echo "     → ${app} icindeki image.tag'i en yeni sha ile guncelle."
     FAIL=1
   fi
