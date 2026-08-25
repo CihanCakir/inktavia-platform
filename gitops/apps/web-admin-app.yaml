@@ -46,7 +46,10 @@ spec:
         # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
         - name: image.tag
           # FAZ24: ilk gercek image (admin-web CI #4, develop merge f54bcea — faz24/ci-ve-tip-duzeltmeleri).
-          value: "sha-25d9471"
+          value: "sha-33ea135"
+          # 2026-08-25: sha-25d9471 → sha-33ea135 (admin-web PR #9 faz/2323123 — Faz 28.8 FE:
+          #   SMS '<' anlik hata + kaydet kilidi, deep-link bicim uyarisi, i18n parite testi,
+          #   preview sandbox regresyon korumasi; develop merge 33ea135, CI #16 yesil).
           # 2026-08-25: sha-e9b178d → sha-25d9471 (admin-web PR #8 feature/2887: kampanya
           #   olusturma yanitindaki campaignId okuma duzeltmesi + Sent sayfasi NaN guard'i;
           #   CI #14 yesil). DIKKAT: 25d9471 admin-web sha'sidir — provider yaml'ina YAZILMAZ
