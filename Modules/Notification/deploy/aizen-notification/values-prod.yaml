@@ -260,3 +260,25 @@ env:
   # Hedef uçlar [AllowAnonymous]; yalnız BaseUrl eksikti.
   - name: RemoteCalls__INotificationIdentityRemoteCall__BaseUrl
     value: "http://aizen-identity"
+
+  # ── SMS kanali (FAZ 28.7) ─────────────────────────────────────────────────────
+  # Sms__Provider=stub: dev'de gercek SMS gitmez, LoggingSmsSenderStub loglar.
+  # Vendor alanlari BILEREK bos: stub'dayken okunmazlar; Infobip/Netgsm hesaplari
+  # acilip anahtarlar platform-credentials secret'ina girince bu satirlar
+  # secretKeyRef'e cevrilecek ve Provider degistirilecek. Bos string, FAZ14
+  # yer-tutucu bekcisinde "doldurulmus" sayilir (yer tutucu METNI kalmamali) —
+  # appsettings.Production.json'daki __FROM_ENV__ degerlerini bunlar ezer.
+  - name: Sms__Provider
+    value: "stub"
+  - name: Sms__Infobip__BaseUrl
+    value: ""
+  - name: Sms__Infobip__ApiKey
+    value: ""
+  - name: Sms__Infobip__From
+    value: ""
+  - name: Sms__Netgsm__UserCode
+    value: ""
+  - name: Sms__Netgsm__Password
+    value: ""
+  - name: Sms__Netgsm__MsgHeader
+    value: ""
