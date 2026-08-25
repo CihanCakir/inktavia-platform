@@ -70,7 +70,7 @@ public sealed class NetgsmSmsSender : ISmsSender
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Netgsm SMS request failed for {To}", e164Phone);
+            _logger.LogError(ex, "Netgsm SMS request failed for {To}", PhoneMasker.Mask(e164Phone));
             return SmsSendResult.Fail($"Netgsm isteği başarısız: {ex.Message}");
         }
     }

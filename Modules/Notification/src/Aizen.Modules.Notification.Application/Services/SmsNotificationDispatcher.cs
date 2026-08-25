@@ -88,7 +88,7 @@ public sealed class SmsNotificationDispatcher : INotificationDispatcher
             {
                 notification.MarkAsSent(result.ProviderRef);
                 await _notificationRepository.UpdateAsync(notification, ct);
-                _logger.LogInformation("SMS notification dispatched: Id={Id} To={To}", notification.Id, e164);
+                _logger.LogInformation("SMS notification dispatched: Id={Id} To={To}", notification.Id, PhoneMasker.Mask(e164));
             }
             else
             {
