@@ -46,7 +46,10 @@ spec:
         # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
         - name: image.tag
           # FAZ24: ilk gercek image (admin-web CI #4, develop merge f54bcea — faz24/ci-ve-tip-duzeltmeleri).
-          value: "sha-ee6bd1a"
+          value: "sha-e9b178d"
+          # 2026-08-25: sha-ee6bd1a → sha-e9b178d (admin-web PR #7: Faz 28.4b editor on-doldurma +
+          #   28.5 Gonderilenler + 28.6 kampanya olusturma; CI #12 yesil). DIKKAT: bu surum backend'in
+          #   Faz 28.5/28.6 uclarini bekler — appset apply'i ile AYNI turda uygulanmali.
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
