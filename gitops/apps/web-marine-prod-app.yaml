@@ -1,0 +1,70 @@
+# Marine Web — halka acik site (PROD: inktavia.com) — Argo CD Application.
+#
+# NEDEN VAR (2026-08-25): SMS/odeme gibi saglayici onboarding'leri calisan bir
+# kurumsal site istiyor; inktavia.com bos oldugu icin basvurular blokeydi.
+# values-prod + CI'nin elle tetiklenen `image-prod` isi zaten tasarliydi;
+# eksik olan tek parca bu Application'di.
+#
+# ⚠️ Bu dosya Argo CD tarafindan YONETILMIYOR — bir kez elle uygulanir:
+#        kubectl apply -f gitops/apps/web-marine-prod-app.yaml
+#
+# 🔴 GECICI YERLESIM — namespace inktavia-dev, iki nedenle:
+#    (1) chart'in bagimli oldugu `ghcr-pull` ve `platform-credentials`
+#        secret'lari yalniz inktavia-dev'de var; yeni namespace acmak iki
+#        secret'in elle kopyalanmasini gerektirirdi.
+#    (2) runtimeEnv.MARINE_WEB_BFF_BASE_URL ayni-namespace servisi bekliyor
+#        (http://aizen-bff-marine-web) — dev BFF'i kullanir. Site SSG oldugu
+#        icin runtime BFF bagimliligi incedir (revalidate + az sayida dinamik yol).
+#    GERCEK PROD YIGINI (prod-appset guncel sha ile inktavia-prod'a) kurulunca bu
+#    Application oraya tasinmali ve bu blok silinmelidir.
+#
+# 🔴 ON KOSUL — UYGULAMADAN ONCE UCU DE OLMALI:
+#    (1) Cloudflare Tunnel public hostname: inktavia.com →
+#          http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
+#        (apex'in eski A kayitlari silinip tunel CNAME'i konulmali.)
+#    (2) Cloudflare Redirect Rule: www.inktavia.com/* → https://inktavia.com/$1 (301).
+#        Nginx'e www host'u EKLENMEZ (values-prod D-05 uyarisi: cift 200 SEO bozar).
+#    (3) marine-web CI'da `image-prod` isi kosulmus ve asagidaki `-prod` etiketi
+#        GHCR'da VAR olmali (main HEAD'inden elle tetiklenir).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-marine-prod
+  namespace: platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: Web/deploy/web-marine
+    helm:
+      # releaseName dev'deki `web-marine`dan FARKLI olmak zorunda: ayni namespace'te
+      # iki release yasiyor (staging + prod). Kaynak adlari bu isimden turer.
+      releaseName: web-marine-prod
+      valueFiles:
+        - values-prod.yaml
+      parameters:
+        # ▼▼▼ TEK SURUM ISARETCISI — elle guncelleniyor ▼▼▼
+        # #55 bekcisi glob'u (gitops/apps/web-*-app.yaml) bu dosyayi da kapsar.
+        # ETIKET SOZLESMESI: buraya YALNIZ `-prod` ekli etiket yazilir
+        # (SITE_ENV=production, SITE_URL=https://inktavia.com image'a gomulu).
+        # Eksiz `sha-<7hex>` etiketi staging build'idir; buraya yazmak
+        # dev icerigini inktavia.com'da indexletir — ASLA.
+        - name: image.tag
+          # 2026-08-25: ilk prod imaji — marine-web main HEAD 1ea04eb (PR #6 "Prod": PR #4 uzeri
+          #   + env.ts faz-farkindalikli dogrulama duzeltmesi — 9f80364'un prod build'i
+          #   "Invalid server environment" ile dusmustu, CI #13). `image-prod`
+          #   workflow_dispatch ile uretildi (build_prod_image=true, CI #17).
+          value: "sha-1ea04eb-prod"
+        # ▲▲▲
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: inktavia-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

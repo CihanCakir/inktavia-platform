@@ -42,6 +42,11 @@ public interface INotificationIdentityRemoteCall : IAizenRemoteCall
     // lookup as the contact-email read. PreferredLanguage is null when the profile/user has none set.
     [AizenRemoteCallGet("/api/v1/identity/profiles/preferred-language")]
     Task<AizenApiResponse<ProfilePreferredLanguageResult>> GetProfilePreferredLanguage([Refit.Query] long profileId);
+
+    // Faz 28.7 — resolve a profile's phone by UserProfiles.Id (SAME UserProfiles→Users lookup as contact-email), to
+    // address an Sms-channel delivery to the same recipient. PhoneNumber is null when the profile/user has none.
+    [AizenRemoteCallGet("/api/v1/identity/profiles/phone")]
+    Task<AizenApiResponse<ProfilePhoneNumberResult>> GetProfilePhoneNumber([Refit.Query] long profileId);
 }
 
 /// <summary>BE_NF2 — module-local mirror of Identity's ProfileContactEmailDto (deserialized by JSON property name).</summary>
@@ -56,6 +61,13 @@ public sealed class ProfilePreferredLanguageResult
 {
     public long ProfileId { get; set; }
     public string? PreferredLanguage { get; set; }
+}
+
+/// <summary>Faz 28.7 — module-local mirror of Identity's ProfilePhoneNumberDto (deserialized by JSON property name).</summary>
+public sealed class ProfilePhoneNumberResult
+{
+    public long ProfileId { get; set; }
+    public string? PhoneNumber { get; set; }
 }
 
 /// <summary>BE_NF1b — module-local mirror of Identity's ParticipantProfileIdDto (deserialized by JSON property name).</summary>

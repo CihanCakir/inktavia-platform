@@ -8,6 +8,7 @@ using Aizen.Modules.Identity.Application.AdminUsers.GetAllParticipantProfileIds;
 using Aizen.Modules.Identity.Application.AdminUsers.GetAllProviderProfileIds;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetParticipantProfileIdByUserId;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfileContactEmail;
+using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfilePhoneNumber;
 using Aizen.Modules.Identity.Application.ParticipantLookup.GetProfilePreferredLanguage;
 using Aizen.Modules.Identity.Application.ProviderEligibility.GetProviderAreaAvailability;
 using Aizen.Modules.Identity.Application.ProviderEligibility.GetProvidersForArea;
@@ -399,6 +400,19 @@ public sealed class QueryController : AizenWebApiController
         [FromQuery] long profileId, CancellationToken ct = default)
     {
         var result = await _sender.ProcessAsync(new GetProfilePreferredLanguageByProfileIdQuery { ProfileId = profileId }, ct);
+        return SetResponse(result);
+    }
+
+    // Faz 28.7 — internal read: a profile's phone (UserProfiles→Users.PhoneNumber), so the Notification module can
+    // address an SMS to the same recipient the InApp/Email rows are filed under. [AllowAnonymous] like the other
+    // internal reads (notification-api S2S carries no token); returns only { profileId, phoneNumber }, no other PII.
+    [HttpGet("profiles/phone")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProfilePhoneNumberDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProfilePhoneNumberDto>> GetProfilePhoneNumber(
+        [FromQuery] long profileId, CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(new GetProfilePhoneNumberByProfileIdQuery { ProfileId = profileId }, ct);
         return SetResponse(result);
     }
 }

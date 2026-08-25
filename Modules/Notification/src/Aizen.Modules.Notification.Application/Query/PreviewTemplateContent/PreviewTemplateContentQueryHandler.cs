@@ -1,5 +1,7 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Modules.Notification.Abstraction.Dto;
+using Aizen.Modules.Notification.Abstraction.Enum;
+using Aizen.Modules.Notification.Application.Services;
 using Aizen.Modules.Notification.Domain.Exceptions;
 using Aizen.Modules.Notification.Domain.Interface.Service;
 
@@ -24,12 +26,18 @@ public sealed class PreviewTemplateContentQueryHandler
             var rendered = await _renderer.RenderAsync(
                 request.Code, request.Channel, request.Locale, request.Variables, cancellationToken);
 
+            // Sms kanalında segment bilgisini (render edilmiş gövde üzerinden) ekle; diğer kanallarda null kalır.
+            var smsSegments = request.Channel == NotificationChannel.Sms
+                ? SmsSegmentCalculator.Calculate(rendered.Body)
+                : null;
+
             return new NotificationTemplatePreviewResultDto
             {
-                Rendered = true,
-                Title    = rendered.Title,
-                Body     = rendered.Body,
-                DeepLink = rendered.DeepLink,
+                Rendered    = true,
+                Title       = rendered.Title,
+                Body        = rendered.Body,
+                DeepLink    = rendered.DeepLink,
+                SmsSegments = smsSegments,
             };
         }
         catch (TemplatePlaceholderMissingException ex)

@@ -117,6 +117,16 @@ public sealed class NotificationEntity : AizenEntity
 
     public void MarkAsFailed() => Status = NotificationStatus.Failed;
 
+    /// <summary>
+    /// Faz 28.7 — teslim edilemez satırı (ör. SMS için telefon yok) Failed işaretler VE sebebi taşıyan MetadataJson'ı
+    /// yazar (missing-locale dürüstlük kuralı: neden başarısız olduğu satırda görünür). Çağıran birleşmiş JSON'u üretir.
+    /// </summary>
+    public void MarkAsFailed(string failureMetadataJson)
+    {
+        Status       = NotificationStatus.Failed;
+        MetadataJson = failureMetadataJson;
+    }
+
     // FAZ16 (#34) — okunmuşluk ile GÖNDERİM DURUMU ayrı gerçeklerdir; artık aynı kolonu paylaşmazlar.
     // Okunmuşluk YALNIZ ReadAt ile taşınır (IsRead + liste/sayaç sorguları hep ReadAt'e bakar). Status yalnız
     // gönderim yaşam döngüsünü (Pending/Sending/Sent/Failed) tutar. Okundu diye Status'ü Read'e EZMEK "iletildi mi?"

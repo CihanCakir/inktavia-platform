@@ -13,4 +13,7 @@ public sealed class NotificationTemplatePreviewResultDto
     public string?              DeepLink       { get; init; }
     public IReadOnlyList<string> MissingKeys   { get; init; } = new List<string>();
     public bool                 ContentMissing { get; init; }
+
+    /// <summary>Faz 28.7 — yalnız Sms kanalı preview'inde dolar (kodlama/uzunluk/segment). Diğer kanallarda null.</summary>
+    public NotificationTemplateSmsSegmentsDto? SmsSegments { get; init; }
 }

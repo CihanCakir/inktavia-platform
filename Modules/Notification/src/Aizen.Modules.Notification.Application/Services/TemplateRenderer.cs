@@ -81,6 +81,8 @@ public sealed class TemplateRenderer : ITemplateRenderer
         }
         else if (channel == NotificationChannel.Sms)
         {
+            // Render-time savunma: SMS metni HTML içeremez ('<'). Taslak-kaydetme bunu zaten engeller; bu ek kat.
+            SmsContentValidator.EnsureNoHtml(content.SmsTextTemplate ?? content.BodyTemplate, templateCode);
             title = string.Empty;
             body  = RenderStrict(content.SmsTextTemplate ?? content.BodyTemplate);
         }

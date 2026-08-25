@@ -67,6 +67,7 @@ public sealed class EmailDispatcherPersistenceFaz15Tests
         public Task<AizenApiResponse<ParticipantProfileIdResult>> GetParticipantProfileIdByUserId(long userId) => throw new NotImplementedException();
         public Task<AizenApiResponse<ProfileContactEmailResult>> GetProfileContactEmail(long profileId) => throw new NotImplementedException();
         public Task<AizenApiResponse<ProfilePreferredLanguageResult>> GetProfilePreferredLanguage(long profileId) => throw new NotImplementedException();
+        public Task<AizenApiResponse<ProfilePhoneNumberResult>> GetProfilePhoneNumber(long profileId) => throw new NotImplementedException();
     }
 
     // recipientEmail'i metadata'dan çözdürürüz → identity remote-call'a hiç gidilmez.
