@@ -1,6 +1,9 @@
 # web-marine — uretim degerleri (inktavia-prod)
 #
-# ⚠️ PROD SU AN KAPALI (replicaCount 0). Ortam anahtari icin: scripts/ortam-degistir.py
+# 2026-08-25: PROD ACIK (replicaCount 1) — inktavia.com yayina alindi (image sha-1ea04eb-prod,
+#   Application: gitops/apps/web-marine-prod-app.yaml, gecici hedef ns: inktavia-dev).
+#   NOT: scripts/ortam-degistir.py TUM prod backend stack'ini acar/kapar — bu dosyayla ilgisi yok;
+#   web-marine-prod tek pod'dur ve dev kotasina siginir.
 #
 # ⚠️ BU DOSYA PUBLIC BIR REPODA. Buradaki hicbir deger sir degil; iki sir
 #    (trusted-caller + revalidate) cluster'daki `platform-credentials` Secret'indan
@@ -19,7 +22,7 @@
 #    hata gorunmez. Prod image'i frontend repodaki CI'in `workflow_dispatch` ile
 #    elle tetiklenen `image-prod` isinden cikar: `sha-<7hex>-prod`.
 
-replicaCount: 0
+replicaCount: 1
 
 image:
   repository: ghcr.io/cihancakir/inktavia/web-marine
