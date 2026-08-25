@@ -46,7 +46,11 @@ spec:
         # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
         - name: image.tag
           # FAZ24: ilk gercek image (admin-web CI #4, develop merge f54bcea — faz24/ci-ve-tip-duzeltmeleri).
-          value: "sha-e9b178d"
+          value: "sha-25d9471"
+          # 2026-08-25: sha-e9b178d → sha-25d9471 (admin-web PR #8 feature/2887: kampanya
+          #   olusturma yanitindaki campaignId okuma duzeltmesi + Sent sayfasi NaN guard'i;
+          #   CI #14 yesil). DIKKAT: 25d9471 admin-web sha'sidir — provider yaml'ina YAZILMAZ
+          #   (bugun tam bu karisiklik yasandi ve isaretci denetimi yakalamadan duzeltildi).
           # 2026-08-25: sha-ee6bd1a → sha-e9b178d (admin-web PR #7: Faz 28.4b editor on-doldurma +
           #   28.5 Gonderilenler + 28.6 kampanya olusturma; CI #12 yesil). DIKKAT: bu surum backend'in
           #   Faz 28.5/28.6 uclarini bekler — appset apply'i ile AYNI turda uygulanmali.

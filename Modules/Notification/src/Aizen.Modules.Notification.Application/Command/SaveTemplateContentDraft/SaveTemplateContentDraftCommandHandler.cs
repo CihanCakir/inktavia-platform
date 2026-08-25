@@ -3,6 +3,7 @@ using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Notification.Abstraction.Dto;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Application.Mapping;
+using Aizen.Modules.Notification.Application.Services;
 using Aizen.Modules.Notification.Domain.Entities;
 using Aizen.Modules.Notification.Domain.Interface.Repository;
 
@@ -31,6 +32,9 @@ public sealed class SaveTemplateContentDraftCommandHandler
     {
         var template = await _templateRepository.GetByCodeAsync(request.Code, cancellationToken)
                        ?? throw new AizenBusinessException($"Template '{request.Code}' not found.");
+
+        // SMS metni HTML içeremez ('<') — hem yeni draft hem mevcut draft güncellemesi bu tek noktada korunur.
+        SmsContentValidator.EnsureNoHtml(request.SmsTextTemplate, request.Code);
 
         var locale = request.Locale.ToLowerInvariant();
 

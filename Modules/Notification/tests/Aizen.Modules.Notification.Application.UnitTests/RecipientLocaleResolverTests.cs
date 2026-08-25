@@ -49,6 +49,7 @@ public sealed class RecipientLocaleResolverTests
         public Task<AizenApiResponse<List<long>>> GetAllParticipantProfileIds() => throw new NotImplementedException();
         public Task<AizenApiResponse<ParticipantProfileIdResult>> GetParticipantProfileIdByUserId(long userId) => throw new NotImplementedException();
         public Task<AizenApiResponse<ProfileContactEmailResult>> GetProfileContactEmail(long profileId) => throw new NotImplementedException();
+        public Task<AizenApiResponse<ProfilePhoneNumberResult>> GetProfilePhoneNumber(long profileId) => throw new NotImplementedException();
     }
 
     private sealed class FakeClientInfo : IAizenClientInfoAccessor
