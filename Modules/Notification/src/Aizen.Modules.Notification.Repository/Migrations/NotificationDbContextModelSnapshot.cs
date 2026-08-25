@@ -139,6 +139,75 @@ namespace Aizen.Modules.Notification.Repository.Migrations
                     b.ToTable("email_layouts", "notification");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.Notification.Domain.Entities.NotificationCampaignEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Audience")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ChannelsCsv")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("CreatedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CustomContentJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("FailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SelectedRecipientIdsJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("SentCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetMode")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TemplateCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("TotalRecipients")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("notification_campaigns", "notification");
+                });
+
             modelBuilder.Entity("Aizen.Modules.Notification.Domain.Entities.NotificationEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -151,6 +220,9 @@ namespace Aizen.Modules.Notification.Repository.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
+
+                    b.Property<long?>("CampaignId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Channel")
                         .HasColumnType("integer");
@@ -214,6 +286,8 @@ namespace Aizen.Modules.Notification.Repository.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
 
                     b.HasIndex("RecipientUserId", "CreatedAt");
 

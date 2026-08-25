@@ -14,4 +14,10 @@ public interface ITemplateInterpolator
         string template,
         IReadOnlyDictionary<string, string> variables,
         out IReadOnlyList<string> missingKeys);
+
+    /// <summary>
+    /// Bir şablon metnindeki {{placeholder}} adlarını çıkarır (distinct, ilk-görülme sırasını korur). Aynı regex'i
+    /// kullanır; null/boş metin için boş liste döner. Katalog eksikse değişkenleri içerikten türetmek için kullanılır.
+    /// </summary>
+    IReadOnlyList<string> ExtractPlaceholders(string? template);
 }

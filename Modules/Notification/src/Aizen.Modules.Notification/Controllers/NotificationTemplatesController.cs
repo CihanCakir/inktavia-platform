@@ -14,6 +14,7 @@ using Aizen.Modules.Notification.Application.Query.GetNotificationTemplateByCode
 using Aizen.Modules.Notification.Application.Query.GetNotificationTemplateDetail;
 using Aizen.Modules.Notification.Application.Query.GetNotificationTemplates;
 using Aizen.Modules.Notification.Application.Query.GetNotificationTemplatesPaged;
+using Aizen.Modules.Notification.Application.Query.GetTemplateContentForEdit;
 using Aizen.Modules.Notification.Application.Query.GetTemplateContentVersions;
 using Aizen.Modules.Notification.Application.Query.GetTemplateVariables;
 using Aizen.Modules.Notification.Application.Query.PreviewTemplateContent;
@@ -116,6 +117,14 @@ public sealed class NotificationTemplatesController : AizenWebApiController
                {
                    Code = code, Name = body.Name, Description = body.Description, IsActive = body.IsActive,
                }, ct));
+
+    /// <summary>(channel, locale) hücresinin DÜZENLENEBİLİR mevcut içeriği: Draft öncelikli, yoksa Published, yoksa boş.</summary>
+    [HttpGet("{code}/contents/{channel}/{locale}")]
+    [ProducesResponseType(typeof(AizenApiResponse<NotificationTemplateContentEditResult>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationTemplateContentEditResult?>> GetContentForEdit(
+        string code, NotificationChannel channel, string locale, CancellationToken ct)
+        => SetResponse(await _cqrs.ProcessAsync<NotificationTemplateContentEditResult>(
+               new GetTemplateContentForEditQuery { Code = code, Channel = channel, Locale = locale }, ct));
 
     /// <summary>Taslak kaydet: mevcut Draft'ı günceller ya da yeni Draft sürüm oluşturur. Published'a dokunmaz.</summary>
     [HttpPut("{code}/contents/{channel}/{locale}")]

@@ -1,6 +1,8 @@
 using Aizen.Bff.AdminPanel.Application.Notifications.Dto;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
+using Aizen.Modules.Notification.Abstraction.Dto;
+using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Abstraction.Request;
 using Aizen.Modules.Notification.Abstraction.Response;
 
@@ -14,6 +16,36 @@ public interface INotificationRemoteCall : IAizenRemoteCall
         [Refit.Query] int skip     = 0,
         [Refit.Query] int take     = 20,
         CancellationToken ct = default);
+
+    // ─── Faz 28.5 admin gönderim geçmişi (tüm kanallar) ─────────────────────────
+    [AizenRemoteCallGet("/api/v1/notification/admin/notifications/history")]
+    Task<AizenApiResponse<NotificationHistoryListResult>> GetNotificationHistoryAsync(
+        [Refit.Query] DateTimeOffset? from             = null,
+        [Refit.Query] DateTimeOffset? to               = null,
+        [Refit.Query] NotificationChannel? channel     = null,
+        [Refit.Query] NotificationStatus? status       = null,
+        [Refit.Query] string? templateCode             = null,
+        [Refit.Query] long? recipientUserId            = null,
+        [Refit.Query] long? campaignId                 = null,
+        [Refit.Query] int page                         = 1,
+        [Refit.Query] int pageSize                     = 20,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/notification/admin/notifications/history/{id}")]
+    Task<AizenApiResponse<NotificationHistoryDetailDto>> GetNotificationHistoryByIdAsync(
+        long id, CancellationToken ct = default);
+
+    // Faz 28.6 admin kampanyalar (doğrudan/toplu bildirim)
+    [AizenRemoteCallPost("/api/v1/notification/admin/notifications/campaigns")]
+    Task<AizenApiResponse<NotificationCampaignMutationResponse>> CreateNotificationCampaignAsync(
+        [AizenRemoteCallBody] CreateNotificationCampaignRequest body);
+
+    [AizenRemoteCallGet("/api/v1/notification/admin/notifications/campaigns/{id}")]
+    Task<AizenApiResponse<NotificationCampaignDto>> GetNotificationCampaignByIdAsync(long id);
+
+    [AizenRemoteCallGet("/api/v1/notification/admin/notifications/campaigns")]
+    Task<AizenApiResponse<NotificationCampaignListResult>> GetNotificationCampaignsPagedAsync(
+        [Refit.Query] int page = 1, [Refit.Query] int pageSize = 20);
 
     [AizenRemoteCallPatch("/api/v1/notification/notifications/{id}/read")]
     Task<AizenApiResponse<object>> MarkReadAsync(long id, CancellationToken ct = default);

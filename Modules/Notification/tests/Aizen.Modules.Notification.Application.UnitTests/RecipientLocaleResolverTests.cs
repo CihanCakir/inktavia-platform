@@ -45,6 +45,8 @@ public sealed class RecipientLocaleResolverTests
         // Bu testlerde kullanılmayan yollar.
         public Task<AizenApiResponse<List<ProviderForAreaResult>>> GetProvidersForArea(string cityCode, string? categoryCode = null, int take = 500) => throw new NotImplementedException();
         public Task<AizenApiResponse<List<long>>> GetAdminUserIds() => throw new NotImplementedException();
+        public Task<AizenApiResponse<List<long>>> GetAllProviderProfileIds() => throw new NotImplementedException();
+        public Task<AizenApiResponse<List<long>>> GetAllParticipantProfileIds() => throw new NotImplementedException();
         public Task<AizenApiResponse<ParticipantProfileIdResult>> GetParticipantProfileIdByUserId(long userId) => throw new NotImplementedException();
         public Task<AizenApiResponse<ProfileContactEmailResult>> GetProfileContactEmail(long profileId) => throw new NotImplementedException();
     }

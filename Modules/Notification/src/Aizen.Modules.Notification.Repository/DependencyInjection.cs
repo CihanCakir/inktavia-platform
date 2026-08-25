@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IUserDeviceTokenRepository,      UserDeviceTokenRepository>();
         services.AddScoped<INotificationPreferenceRepository, NotificationPreferenceRepository>();
         services.AddScoped<IContactMessageRepository,        ContactMessageRepository>();
+        services.AddScoped<INotificationCampaignRepository,  NotificationCampaignRepository>();
         services.AddScoped<NotificationTemplateSeed>();
         services.AddScoped<CargoDryProviderMilestoneMockSeed>();
         services.AddScoped<NotificationDisplayMockSeed>();

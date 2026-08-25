@@ -54,6 +54,18 @@ public sealed class NotificationTemplatesController : AizenWebApiController
         return SetResponse(result);
     }
 
+    /// <summary>GET api/v1/admin-panel/notification-templates/{code}/contents/{channel}/{locale} — hücrenin
+    /// düzenlenebilir mevcut içeriği (Draft öncelikli, yoksa Published, yoksa boş). Editör körlemesine yazmasın diye.</summary>
+    [HttpGet("{code}/contents/{channel}/{locale}")]
+    [ProducesResponseType(typeof(NotificationTemplateContentEditResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<NotificationTemplateContentEditResult>> GetContentForEdit(
+        string code, NotificationChannel channel, string locale, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync<NotificationTemplateContentEditResult>(
+            new GetNotificationTemplateContentForEditBffQuery { Code = code, Channel = channel, Locale = locale }, ct);
+        return SetResponse(result);
+    }
+
     /// <summary>POST api/v1/admin-panel/notification-templates — mantıksal template oluştur.</summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]

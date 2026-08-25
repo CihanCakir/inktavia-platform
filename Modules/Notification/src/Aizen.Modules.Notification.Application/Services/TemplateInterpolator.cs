@@ -43,4 +43,21 @@ public sealed class TemplateInterpolator : ITemplateInterpolator
         missingKeys = Array.Empty<string>();
         return _placeholder.Replace(template, match => variables[match.Groups[1].Value]);
     }
+
+    public IReadOnlyList<string> ExtractPlaceholders(string? template)
+    {
+        if (string.IsNullOrEmpty(template))
+            return Array.Empty<string>();
+
+        List<string>? found = null;
+        foreach (Match m in _placeholder.Matches(template))
+        {
+            var key = m.Groups[1].Value;
+            found ??= new List<string>();
+            if (!found.Contains(key))
+                found.Add(key);
+        }
+
+        return found ?? (IReadOnlyList<string>)Array.Empty<string>();
+    }
 }

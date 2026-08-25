@@ -22,6 +22,8 @@ public sealed class NotificationEntity : AizenEntity
     public string              Locale              { get; private set; } = "en";
     /// <summary>Render edilmiş derin bağlantı (DeepLinkTemplate çıktısı). Nullable.</summary>
     public string?             DeepLink            { get; private set; }
+    /// <summary>Faz 28.6 — bu satır bir admin kampanyasından üretildiyse kampanya id'si (FK, nullable). Aksi halde null.</summary>
+    public long?               CampaignId          { get; private set; }
     public DateTimeOffset      CreatedAt           { get; private set; }
     public DateTimeOffset?     SentAt              { get; private set; }
     public DateTimeOffset?     ReadAt              { get; private set; }
@@ -39,7 +41,8 @@ public sealed class NotificationEntity : AizenEntity
         string? referenceType = null,
         long? referenceId = null,
         string? locale = null,
-        string? deepLink = null)
+        string? deepLink = null,
+        long? campaignId = null)
     {
         return new NotificationEntity
         {
@@ -56,6 +59,7 @@ public sealed class NotificationEntity : AizenEntity
             // locale verilmezse 'en' (eski davranışla uyumlu); DeepLink render sonucu, yoksa null.
             Locale          = string.IsNullOrWhiteSpace(locale) ? "en" : locale.ToLowerInvariant(),
             DeepLink        = deepLink,
+            CampaignId      = campaignId,
             CreatedAt       = DateTimeOffset.UtcNow,
         };
     }

@@ -25,6 +25,7 @@ public sealed class InAppAndPushPersistenceFaz16Tests
         }
         public Task AddAsync(NotificationEntity entity, CancellationToken ct = default) => Task.CompletedTask;
         public Task<NotificationEntity?> GetByIdAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<(List<NotificationEntity> Items, int TotalCount)> GetHistoryPagedAsync(DateTimeOffset? from, DateTimeOffset? to, NotificationChannel? channel, NotificationStatus? status, string? templateCode, long? recipientUserId, long? campaignId, int skip, int take, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<List<NotificationEntity>> GetByRecipientAsync(long userId, int skip, int take, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<int> CountByRecipientAsync(long userId, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<int> GetUnreadCountAsync(long userId, CancellationToken ct = default) => throw new NotImplementedException();
