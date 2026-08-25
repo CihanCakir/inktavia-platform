@@ -175,10 +175,11 @@ public sealed class TemplateRendererTests
     [Fact]
     public async Task DeepLink_template_is_rendered_when_present()
     {
-        var sut = Sut(new FakeContentRepo(InApp("en", 1, "T", "B", deepLink: "app://sr/{{id}}")));
+        // Faz 28.8: derin bağlantı güvenlik doğrulaması aktif → göreli yol kullanılıyor (özel şema "app://" reddedilir).
+        var sut = Sut(new FakeContentRepo(InApp("en", 1, "T", "B", deepLink: "/sr/{{id}}")));
 
         var r = await sut.RenderAsync(Code, NotificationChannel.InApp, "en", Vars(("id", "9")));
 
-        r.DeepLink.Should().Be("app://sr/9");
+        r.DeepLink.Should().Be("/sr/9");
     }
 }

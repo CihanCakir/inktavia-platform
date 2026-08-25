@@ -75,7 +75,7 @@ public sealed class InfobipSmsSender : ISmsSender
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Infobip SMS request failed for {To}", e164Phone);
+            _logger.LogError(ex, "Infobip SMS request failed for {To}", PhoneMasker.Mask(e164Phone));
             return SmsSendResult.Fail($"Infobip isteği başarısız: {ex.Message}");
         }
     }

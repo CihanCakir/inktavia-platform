@@ -6,6 +6,7 @@ using Aizen.Modules.Notification.Application.Mapping;
 using Aizen.Modules.Notification.Application.Services;
 using Aizen.Modules.Notification.Domain.Entities;
 using Aizen.Modules.Notification.Domain.Interface.Repository;
+using Microsoft.Extensions.Options;
 
 namespace Aizen.Modules.Notification.Application.Command.SaveTemplateContentDraft;
 
@@ -18,13 +19,17 @@ public sealed class SaveTemplateContentDraftCommandHandler
 {
     private readonly INotificationTemplateRepository        _templateRepository;
     private readonly INotificationTemplateContentRepository _contentRepository;
+    private readonly IReadOnlyCollection<string>            _allowedDeepLinkHosts;
 
+    // deepLinkOptions opsiyonel: verilmezse allowlist boş (yalnız göreli yollar). DI IOptions'ı enjekte eder.
     public SaveTemplateContentDraftCommandHandler(
         INotificationTemplateRepository templateRepository,
-        INotificationTemplateContentRepository contentRepository)
+        INotificationTemplateContentRepository contentRepository,
+        IOptions<DeepLinkOptions>? deepLinkOptions = null)
     {
         _templateRepository = templateRepository;
         _contentRepository  = contentRepository;
+        _allowedDeepLinkHosts = deepLinkOptions?.Value?.AllowedHosts ?? new List<string>();
     }
 
     public override async Task<NotificationTemplateContentDto?> Handle(
@@ -35,6 +40,11 @@ public sealed class SaveTemplateContentDraftCommandHandler
 
         // SMS metni HTML içeremez ('<') — hem yeni draft hem mevcut draft güncellemesi bu tek noktada korunur.
         SmsContentValidator.EnsureNoHtml(request.SmsTextTemplate, request.Code);
+
+        // Derin bağlantı STATİK ise (placeholder yok) şimdi doğrula; {{…}} içeriyorsa yalnız render-time kontrolü uygulanır.
+        var deepLinkTemplate = request.DeepLinkTemplate;
+        if (!string.IsNullOrWhiteSpace(deepLinkTemplate) && !deepLinkTemplate.Contains("{{", StringComparison.Ordinal))
+            DeepLinkValidator.Validate(deepLinkTemplate, _allowedDeepLinkHosts, request.Code);
 
         var locale = request.Locale.ToLowerInvariant();
 

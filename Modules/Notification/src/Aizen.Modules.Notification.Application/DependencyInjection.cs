@@ -1,3 +1,4 @@
+using System;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Application.Services;
 using Aizen.Modules.Notification.Application.Services.Firebase;
@@ -60,6 +61,12 @@ public static class DependencyInjection
             services.Configure<SmsOptions>(configuration.GetSection(SmsOptions.SectionName));
         }
 
+        // Faz 28.8 — derin bağlantı host allowlist'i ("Notifications:DeepLink"). Bölüm yoksa allowlist boş (göreli-yalnız).
+        if (configuration is not null)
+        {
+            services.Configure<DeepLinkOptions>(configuration.GetSection(DeepLinkOptions.SectionName));
+        }
+
         // Locale çözümleyici: kalıcı tercih → istek bağlamı → varsayılan. Diğer servislerle aynı Scoped ömür.
         services.AddScoped<ILocaleResolver, RecipientLocaleResolver>();
 
@@ -71,7 +78,9 @@ public static class DependencyInjection
 
         // SMS gönderici: Sms:Provider'a göre startup'ta seçilir (stub | infobip | netgsm). Sırlar boş/placeholder ise
         // (Development) sağlayıcı stub'a düşer ve uyarı loglanır. HTTP adaptörleri IHttpClientFactory kullanır.
-        services.AddHttpClient();
+        // Faz 28.8 — adaptörler CreateClient(nameof(...)) ile isimli client çeker; timeout 15 sn (varsayılan 100 sn değil).
+        services.AddHttpClient(nameof(InfobipSmsSender), c => c.Timeout = TimeSpan.FromSeconds(15));
+        services.AddHttpClient(nameof(NetgsmSmsSender),  c => c.Timeout = TimeSpan.FromSeconds(15));
         services.AddScoped<ISmsSender>(sp =>
         {
             var opts = sp.GetRequiredService<IOptions<SmsOptions>>().Value;

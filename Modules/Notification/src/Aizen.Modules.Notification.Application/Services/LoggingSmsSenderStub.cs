@@ -14,7 +14,7 @@ public sealed class LoggingSmsSenderStub : ISmsSender
 
     public Task<SmsSendResult> SendAsync(string e164Phone, string text, CancellationToken ct)
     {
-        _logger.LogInformation("[SMS STUB] SMS to {To}: {Length} chars", e164Phone, text?.Length ?? 0);
+        _logger.LogInformation("[SMS STUB] SMS to {To}: {Length} chars", PhoneMasker.Mask(e164Phone), text?.Length ?? 0);
         return Task.FromResult(SmsSendResult.Ok($"stub-{Guid.NewGuid()}"));
     }
 }
