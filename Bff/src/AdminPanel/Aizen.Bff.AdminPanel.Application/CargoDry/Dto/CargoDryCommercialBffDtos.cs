@@ -1,3 +1,6 @@
+using Aizen.Modules.CargoDry.Abstraction.Enum;
+using PayoutStatus = Aizen.Modules.Payment.Abstraction.Enum.PayoutStatus;
+
 namespace Aizen.Bff.AdminPanel.Application.CargoDry.Dto;
 
 // ── Sales Attribution BFF DTOs ────────────────────────────────────────────────
@@ -12,13 +15,13 @@ public sealed class CargoDrySalesAttributionBffDto
     public string   ProductCode             { get; init; } = default!;
     public string?  BatchCode               { get; init; }
     public long?    ProviderProfileId       { get; init; }
-    public int      SalesChannel            { get; init; }
+    public SalesChannel            SalesChannel     { get; init; }
     public string   SalesChannelName        { get; init; } = default!;
-    public int      CommercialModel         { get; init; }
+    public CargoDryCommercialModel CommercialModel  { get; init; }
     public string   CommercialModelName     { get; init; } = default!;
     public long?    ConsignmentAgreementId  { get; init; }
     public long?    InventoryId             { get; init; }
-    public int      Status                  { get; init; }
+    public CargoDrySalesAttributionStatus Status    { get; init; }
     public string   StatusName              { get; init; } = default!;
     public decimal? SalePrice                 { get; init; }
     public decimal? CommissionRate            { get; init; }
@@ -57,11 +60,11 @@ public sealed class CargoDrySalesAttributionListItemBffDto
     public string   ProductCode             { get; init; } = default!;
     public string?  BatchCode               { get; init; }
     public long?    ProviderProfileId       { get; init; }
-    public int      SalesChannel            { get; init; }
+    public SalesChannel            SalesChannel     { get; init; }
     public string   SalesChannelName        { get; init; } = default!;
-    public int      CommercialModel         { get; init; }
+    public CargoDryCommercialModel CommercialModel  { get; init; }
     public string   CommercialModelName     { get; init; } = default!;
-    public int      Status                  { get; init; }
+    public CargoDrySalesAttributionStatus Status    { get; init; }
     public string   StatusName              { get; init; } = default!;
     public decimal? SalePrice               { get; init; }
     public decimal? CommissionAmount        { get; init; }
@@ -97,7 +100,7 @@ public sealed class CargoDrySellThroughSettlementBffDto
     public string   CurrencyCode            { get; init; } = default!;
     public DateTime PeriodStartUtc          { get; init; }
     public DateTime PeriodEndUtc            { get; init; }
-    public int      Status                  { get; init; }
+    public CargoDrySellThroughSettlementStatus Status { get; init; }
     public string   StatusName              { get; init; } = default!;
     public DateTime? ScheduledSettlementDate { get; init; }
     public DateTime? SettledAtUtc            { get; init; }
@@ -139,7 +142,7 @@ public sealed class CargoDrySellThroughSettlementListItemBffDto
     public string   CurrencyCode            { get; init; } = default!;
     public DateTime PeriodStartUtc          { get; init; }
     public DateTime PeriodEndUtc            { get; init; }
-    public int      Status                  { get; init; }
+    public CargoDrySellThroughSettlementStatus Status { get; init; }
     public string   StatusName              { get; init; } = default!;
     public DateTime? ScheduledSettlementDate { get; init; }
     public DateTime? ReadyForSettlementAtUtc { get; init; }
@@ -176,7 +179,7 @@ public sealed class CargoDrySettlementPaymentPreparationPreviewBffDto
     // ── Settlement identity ────────────────────────────────────────────────────
     public long   SettlementId    { get; init; }
     public string SettlementCode  { get; init; } = default!;
-    public int    Status          { get; init; }
+    public CargoDrySellThroughSettlementStatus Status { get; init; }
     public string StatusName      { get; init; } = default!;
 
     // ── Eligibility ────────────────────────────────────────────────────────────
@@ -224,7 +227,7 @@ public sealed class CargoDrySettlementInvoicePreparationPreviewBffDto
     // ── Settlement identity ────────────────────────────────────────────────────
     public long   SettlementId   { get; init; }
     public string SettlementCode { get; init; } = default!;
-    public int    Status         { get; init; }
+    public CargoDrySellThroughSettlementStatus Status { get; init; }
     public string StatusName     { get; init; } = default!;
 
     // ── Eligibility ────────────────────────────────────────────────────────────
@@ -279,7 +282,7 @@ public sealed class CargoDrySettlementPayoutExecutionPreviewBffDto
     // ── Settlement identity ──────────────────────────────────────────────────
     public long   SettlementId          { get; init; }
     public string SettlementCode        { get; init; } = default!;
-    public int    Status                { get; init; }
+    public CargoDrySellThroughSettlementStatus Status { get; init; }
     public string StatusName            { get; init; } = default!;
 
     // ── Financials ───────────────────────────────────────────────────────────
@@ -298,7 +301,7 @@ public sealed class CargoDrySettlementPayoutExecutionPreviewBffDto
     public DateTime? InvoicePreparedAtUtc  { get; init; }
 
     // ── Live payout state from Payment module ────────────────────────────────
-    public int?      PayoutStatus          { get; init; }
+    public PayoutStatus? PayoutStatus      { get; init; }
     public string?   PayoutStatusName      { get; init; }
     public string?   ExternalReference     { get; init; }
     public DateTime? PayoutApprovedAtUtc   { get; init; }
@@ -328,7 +331,7 @@ public sealed class CargoDrySettlementPayoutExecutionPreviewBffDto
 public sealed class CargoDryPayoutLifecycleResultBffDto
 {
     public long      PayoutRecordId    { get; init; }
-    public int       PayoutStatus      { get; init; }
+    public PayoutStatus PayoutStatus   { get; init; }
     public long      ProviderProfileId { get; init; }
     public decimal   Amount            { get; init; }
     public string    CurrencyCode      { get; init; } = default!;
@@ -427,9 +430,9 @@ public sealed class CargoDrySettlementAutomationRunBffDto
     public long     Id                        { get; init; }
     public string   RunCode                   { get; init; } = default!;
     public int      TargetYearMonth           { get; init; }
-    public int      Mode                      { get; init; }
+    public CargoDrySettlementAutomationMode      Mode   { get; init; }
     public string   ModeName                  { get; init; } = default!;
-    public int      Status                    { get; init; }
+    public CargoDrySettlementAutomationRunStatus Status { get; init; }
     public string   StatusName                { get; init; } = default!;
     public bool     AutoCompletePayout        { get; init; }
     public bool     AutoPreparePayment        { get; init; }
@@ -459,7 +462,7 @@ public sealed class CargoDrySettlementAutomationRunItemBffDto
     public string   ProductCode          { get; init; } = default!;
     public string   CurrencyCode         { get; init; } = default!;
     public int      PeriodYearMonth      { get; init; }
-    public int      StatusBefore         { get; init; }
+    public CargoDrySellThroughSettlementStatus StatusBefore { get; init; }
     public string   StatusBeforeName     { get; init; } = default!;
     public string   Action               { get; init; } = default!;
     public bool     Success              { get; init; }
@@ -486,7 +489,7 @@ public sealed class CargoDrySettlementAutomationPreviewItemBffDto
     public string   ProductCode                { get; init; } = default!;
     public string   CurrencyCode               { get; init; } = default!;
     public int      PeriodYearMonth            { get; init; }
-    public int      CurrentStatus              { get; init; }
+    public CargoDrySellThroughSettlementStatus CurrentStatus { get; init; }
     public string   CurrentStatusName          { get; init; } = default!;
     public int      UnresolvedAttributionCount { get; init; }
     public int      TotalAttributionCount      { get; init; }
