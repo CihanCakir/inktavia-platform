@@ -85,17 +85,28 @@ probes:
 
 # Next.js SSR nginx'ten agir: her istek React render ediyor.
 # NODE_OPTIONS heap tavani limitin ~%70'i (asagida nodeHeapMb).
+#
+# ── 2026-09-04: Next image-optimizer tavani yukseltildi ──────────────────────
+# Fotograflar geri geldi (PR #10, 20 gorsel yuvasi); sharp artik 2000–2731px
+# JPEG'leri istek aninda yeniden kodluyor. Eski tavan (500m CPU / 448Mi / 320MB
+# heap) es zamanli yukte cokuyordu: dev'de olculen 30 paralel SOGUK istek →
+# 30/30 HTTP 502; gercek sayfa yuklemelerinde LCP hero dahil 503. /api/healthz
+# 200 kaliyor ve pod kendini toparliyor ama ilk ziyaretci cezayi oduyor.
+# Limit-tek basina hatayi cozuyor; request artisi yalnizca pod'u tahliye (evict)
+# sirasinda one atmamak icin. nodeHeapMb, memory limitinin ~%70'i kurali geregi
+# 320→700 (1Gi = 1024Mi; 700/1024 ≈ %68).
 resources:
   requests:
-    cpu: 50m
-    memory: 192Mi
+    cpu: 100m          # was 50m
+    memory: 256Mi      # was 192Mi
   limits:
-    cpu: 500m
-    memory: 448Mi
+    cpu: 1000m         # was 500m
+    memory: 1Gi        # was 448Mi
 
 # V8 heap tavani (MB). memory limitinin ~%70'i olmali — kalan pay Node'un
-# heap disi bellegi (buffer, kod, yigin) icin.
-nodeHeapMb: 320
+# heap disi bellegi (buffer, kod, yigin) icin. sharp'in heap-disi buffer'lari
+# da bu paydan besleniyor.
+nodeHeapMb: 700        # was 320
 
 # ISR onbellegi icin emptyDir tavani. Dolu diskte Next sessizce onbelleklemeyi
 # birakir, patlamaz — bu yuzden cikaran bir sinyal yok; olcu tut.
