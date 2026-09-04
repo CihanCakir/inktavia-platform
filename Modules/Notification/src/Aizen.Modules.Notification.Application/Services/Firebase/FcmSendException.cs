@@ -1,7 +1,7 @@
 namespace Aizen.Modules.Notification.Application.Services.Firebase;
 
 /// <summary>
-/// BE-MO9a — a classified FCM send failure (adapts Metropol's PushException). Carries the <see cref="ErrorType"/> and
+/// BE-MO9a — a classified FCM send failure (adapts the legacy PushException). Carries the <see cref="ErrorType"/> and
 /// whether the offending token was deactivated. Never contains the token value or the service-account.
 /// </summary>
 public sealed class FcmSendException : Exception

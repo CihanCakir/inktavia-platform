@@ -99,6 +99,10 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       OTP_LOGIN_TICKET_SECRET: ${OTP_LOGIN_TICKET_SECRET:-}
       OTP_LOGIN_CONSUME_SECRET: ${OTP_LOGIN_CONSUME_SECRET:-}
+      # LOKAL ZORUNLU: init.sh'in varsayilani cluster ClusterIP'sidir (10.43.x.x) —
+      # lokal Keycloak oraya ulasamaz, ticket tuketimi patlar ve giris sifre formuna
+      # duser (2026-08-26'da yasandi). Lokalde identity compose servisine isaret eder.
+      IDENTITY_CONSUME_BASE_URL: ${IDENTITY_CONSUME_BASE_URL:-http://identity-api:8080}
       # Realm SMTP parolası (Resend). Boşsa init.sh adımı atlar; çalışan parolayı ezmez.
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     volumes:
@@ -110,6 +114,9 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
+    # rabbitmq_prometheus plugin'i (15692) yuk testinde kuyruk derinligi olcumu icin (LT-0).
+    volumes:
+      - ./observability/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-aizen}
@@ -1028,23 +1035,53 @@ services:
       - "${PAYMENT_API_PORT:-7102}:8080"
     networks: [aizen]
 
-  # Load testing - k6
+  # Load testing - k6 (LT-0): yalniz `--profile loadtest` ile calisir; normal `up` baslatmaz.
+  # Kosu kalibi (JSON dosyasi + canli Prometheus remote-write birlikte):
+  #   docker compose --profile loadtest run --rm k6 run \
+  #     -o json=/results/LT1-smoke.json -o experimental-prometheus-rw /scripts/s0-smoke.js
   k6:
     image: grafana/k6:0.49.0
     container_name: k6
-    command: ["run", "/scripts/example.js"]
+    profiles: ["loadtest"]
+    command: ["run", "/scripts/s0-smoke.js"]
     environment:
-      K6_OUT: "json"
+      K6_PROMETHEUS_RW_SERVER_URL: http://prometheus:9090/api/v1/write
+      K6_PROMETHEUS_RW_TREND_STATS: "p(95),p(99),avg"
+      BASE_ADMIN: http://bff-adminpanel:8080
+      BASE_PROVIDER: http://bff-marineprovider:8080
+      KEYCLOAK_BASE: http://keycloak:8080
+      KC_REALM: inktavia-realm
+      LOADTEST_CLIENT_ID: loadtest-runner
+      LOADTEST_USER_PASSWORD: ${LOADTEST_USER_PASSWORD:-}
     volumes:
       - ./load-test/scripts:/scripts:ro
+      - ./load-test/results:/results
     depends_on:
       - bff-adminpanel
+    networks: [aizen]
+
+  # Konteyner CPU/RAM olcumu (LT-0): .NET servislerinde /metrics yok (prometheus-net/OTel eklenmedi),
+  # sunucu tarafi kaynak olcumu cAdvisor uzerinden alinir. Yalniz yuk kosusu sirasinda ayaga kalkar.
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    profiles: ["loadtest"]
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
     networks: [aizen]
 
   # Observability: Prometheus & Grafana
   prometheus:
     image: prom/prometheus:v2.52.0
     container_name: prometheus
+    # --web.enable-remote-write-receiver: k6 kosu metriklerini canli almak icin (LT-0).
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
