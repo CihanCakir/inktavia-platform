@@ -392,3 +392,11 @@ scripts/dev-seed/assets/
 # kopyalanmasin: 2026-08-21'de bir arac tam olarak bunu yapti ve dosyalar
 # yalniz elle fark edildigi icin disari sizmedi.
 /inktavia-docs/
+
+# macOS ve editor cache dosyalari repoya girmesin
+.DS_Store
+*.lscache
+
+# Yuk testi kosu ciktilari repoya girmez (LT-0)
+load-test/results/
+!load-test/results/.gitkeep

@@ -2,7 +2,7 @@ using FirebaseAdmin.Messaging;
 
 namespace Aizen.Modules.Notification.Application.Services.Firebase;
 
-/// <summary>Adapts Metropol's PushErrorType — the outcome class of an FCM send failure.</summary>
+/// <summary>Adapts the legacy push provider's PushErrorType — the outcome class of an FCM send failure.</summary>
 public enum FcmErrorType
 {
     Unknown,
@@ -19,7 +19,7 @@ public enum FcmErrorType
 /// <summary>
 /// BE-MO9a — pure classification of a <see cref="MessagingErrorCode"/> into an <see cref="FcmErrorType"/> and the
 /// derived "should this token be deactivated?" decision. Kept static + FirebaseAdmin-free of any app state so it is
-/// unit-testable without Firebase credentials. Mirrors Metropol's <c>CreateException</c> mapping.
+/// unit-testable without Firebase credentials. Mirrors the legacy <c>CreateException</c> mapping.
 /// </summary>
 public static class FcmErrorClassifier
 {

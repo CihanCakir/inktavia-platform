@@ -25,6 +25,5 @@ observability/
 infrastructure/
 tools/
 scripts/
-test_paginate.csx
 docker-compose*.yaml
 *.md

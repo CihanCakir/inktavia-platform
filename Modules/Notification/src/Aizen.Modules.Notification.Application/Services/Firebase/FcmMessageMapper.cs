@@ -5,7 +5,7 @@ namespace Aizen.Modules.Notification.Application.Services.Firebase;
 
 /// <summary>
 /// BE-MO9a — maps our push payload (title / body / data-json) → a FirebaseAdmin cross-platform message. Adapts
-/// Metropol's <c>CreateFirebaseMessage</c> to our shape: our senders carry only final title/body strings + a
+/// the legacy <c>CreateFirebaseMessage</c> to our shape: our senders carry only final title/body strings + a
 /// <c>Data</c> JSON blob (the deep-link ref) — localization/interpolation already happened upstream. A single
 /// <see cref="Message"/> carries the top-level notification + an APNs <c>Aps</c> (alert, sound, mutable-content,
 /// thread-id) + an Android notification + the <c>Data</c> dict; FCM applies the override for the token's platform.

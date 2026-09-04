@@ -52,7 +52,7 @@ public sealed class PushFirebaseSettings
             ClientX509CertUrl       = ClientX509CertUrl,
         });
 
-    /// <summary>The snake_case DTO bridging the flat settings → the Google credential JSON (mirrors Metropol's
+    /// <summary>The snake_case DTO bridging the flat settings → the Google credential JSON (mirrors the legacy
     /// ServiceAccountModel).</summary>
     private sealed class ServiceAccountModel
     {

@@ -10,7 +10,7 @@ namespace Aizen.Modules.Notification.Application.Services.Firebase;
 
 /// <summary>
 /// BE-MO9a — the real FirebaseAdmin FCM sender that replaces <c>FcmSenderStub</c> (registered only when the Firebase
-/// service account is configured; otherwise the stub stays). Adapts Metropol's proven
+/// service account is configured; otherwise the stub stays). Adapts the proven legacy
 /// <c>FirebasePushNotificationRemoteCall</c> to our <see cref="IFcmSender"/>: it keeps the exact single-token contract
 /// the untouched <c>PushNotificationDispatcher</c> already calls, and adds an optional multicast path for batch/region
 /// sends. The FirebaseAdmin dependency + message mapping stay inside this adapter — the dispatcher and consumers see
