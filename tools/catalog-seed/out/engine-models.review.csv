@@ -1,0 +1,402 @@
+brandCode,code,name,horsePower,fuelTypeCode,engineTypeCode,yearFrom,yearTo,isActive,source,needsReview
+YAMAHA,F2_5,F2.5,2,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,True
+YAMAHA,F4,F4,4,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F6,F6,6,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F8,F8,8,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F9_9,F9.9,10,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,True
+YAMAHA,F15,F15,15,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F20,F20,20,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F25,F25,25,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F30,F30,30,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F40,F40,40,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F50,F50,50,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F60,F60,60,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F70,F70,70,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F90,F90,90,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F115,F115,115,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F130,F130,130,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F150,F150,150,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F175,F175,175,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F200,F200,200,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F225,F225,225,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F250,F250,250,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,F300,F300,300,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,XTO_425,XTO 425,425,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+YAMAHA,XTO_450,XTO 450,450,GASOLINE,OUTBOARD,,,True,https://www.yamahaoutboards.com/,False
+MERCURY_MARINE,FOURSTROKE_2_5,FourStroke 2.5,2,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,True
+MERCURY_MARINE,FOURSTROKE_3_5,FourStroke 3.5,4,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,True
+MERCURY_MARINE,FOURSTROKE_4,FourStroke 4,4,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_5,FourStroke 5,5,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_6,FourStroke 6,6,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_8,FourStroke 8,8,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_9_9,FourStroke 9.9,10,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,True
+MERCURY_MARINE,FOURSTROKE_15,FourStroke 15,15,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_20,FourStroke 20,20,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_25,FourStroke 25,25,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_30,FourStroke 30,30,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_40,FourStroke 40,40,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_50,FourStroke 50,50,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_60,FourStroke 60,60,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_75,FourStroke 75,75,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_90,FourStroke 90,90,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_100,FourStroke 100,100,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_115,FourStroke 115,115,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_150,FourStroke 150,150,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_175,FourStroke 175,175,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_200,FourStroke 200,200,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_225,FourStroke 225,225,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_250,FourStroke 250,250,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,FOURSTROKE_300,FourStroke 300,300,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,VERADO_250,Verado 250,250,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,VERADO_300,Verado 300,300,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,VERADO_350,Verado 350,350,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,VERADO_400,Verado 400,400,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,PRO_XS_115,Pro XS 115,115,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,PRO_XS_150,Pro XS 150,150,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,PRO_XS_175,Pro XS 175,175,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,PRO_XS_200,Pro XS 200,200,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,PRO_XS_225,Pro XS 225,225,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,PRO_XS_250,Pro XS 250,250,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,PRO_XS_300,Pro XS 300,300,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,450,450,450,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,500,500,500,GASOLINE,OUTBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCRUISER_4_5L_250,MerCruiser 4.5L 250,250,GASOLINE,STERNDRIVE,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCRUISER_6_2L_300,MerCruiser 6.2L 300,300,GASOLINE,STERNDRIVE,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCRUISER_6_2L_350,MerCruiser 6.2L 350,350,GASOLINE,STERNDRIVE,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCRUISER_8_2L_380,MerCruiser 8.2L 380,380,GASOLINE,STERNDRIVE,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCRUISER_8_2L_430,MerCruiser 8.2L 430,430,GASOLINE,STERNDRIVE,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCRUISER_BRAVO_4_5_250,MerCruiser Bravo 4.5 250,250,GASOLINE,STERNDRIVE,,,True,https://www.mercurymarine.com/,False
+SUZUKI_MARINE,DF2_5,DF2.5,2,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,True
+SUZUKI_MARINE,DF4,DF4,4,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF6,DF6,6,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF9_9,DF9.9,10,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,True
+SUZUKI_MARINE,DF15,DF15,15,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF20,DF20,20,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF25,DF25,25,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF30,DF30,30,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF40,DF40,40,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF50,DF50,50,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF60,DF60,60,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF70,DF70,70,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF90,DF90,90,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF100,DF100,100,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF115,DF115,115,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF140,DF140,140,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF150,DF150,150,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF175,DF175,175,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF200,DF200,200,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF250,DF250,250,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF300,DF300,300,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+SUZUKI_MARINE,DF350,DF350,350,GASOLINE,OUTBOARD,,,True,https://www.suzukimarine.com/,False
+HONDA_MARINE,BF2_3,BF2.3,2,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,True
+HONDA_MARINE,BF4,BF4,4,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF5,BF5,5,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF6,BF6,6,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF8,BF8,8,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF9_9,BF9.9,10,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,True
+HONDA_MARINE,BF15,BF15,15,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF20,BF20,20,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF25,BF25,25,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF30,BF30,30,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF40,BF40,40,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF50,BF50,50,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF60,BF60,60,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF75,BF75,75,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF90,BF90,90,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF100,BF100,100,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF115,BF115,115,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF135,BF135,135,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF150,BF150,150,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF175,BF175,175,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF200,BF200,200,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF225,BF225,225,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+HONDA_MARINE,BF250,BF250,250,GASOLINE,OUTBOARD,,,True,https://marine.honda.com/,False
+TOHATSU,MFS2_5,MFS2.5,2,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,True
+TOHATSU,MFS3_5,MFS3.5,4,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,True
+TOHATSU,MFS4,MFS4,4,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS5,MFS5,5,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS6,MFS6,6,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS8,MFS8,8,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS9_8,MFS9.8,10,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,True
+TOHATSU,MFS9_9,MFS9.9,10,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,True
+TOHATSU,MFS15,MFS15,15,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS20,MFS20,20,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS25,MFS25,25,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS30,MFS30,30,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS40,MFS40,40,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS50,MFS50,50,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS60,MFS60,60,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS75,MFS75,75,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS90,MFS90,90,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS100,MFS100,100,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS115,MFS115,115,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+TOHATSU,MFS140,MFS140,140,GASOLINE,OUTBOARD,,,True,https://www.tohatsu.com/,False
+PARSUN,F2_6,F2.6,3,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,True
+PARSUN,F4,F4,4,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F5,F5,5,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F6,F6,6,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F8,F8,8,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F9_8,F9.8,10,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,True
+PARSUN,F15,F15,15,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F20,F20,20,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F25,F25,25,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F40,F40,40,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F50,F50,50,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+PARSUN,F60,F60,60,GASOLINE,OUTBOARD,,,True,https://www.parsun.com/,False
+SELVA_MARINE,SELVA_2_5,Selva 2.5,2,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,True
+SELVA_MARINE,SELVA_5,Selva 5,5,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_6,Selva 6,6,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_9_9,Selva 9.9,10,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,True
+SELVA_MARINE,SELVA_15,Selva 15,15,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_25,Selva 25,25,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_30,Selva 30,30,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_40,Selva 40,40,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_60,Selva 60,60,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_90,Selva 90,90,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_115,Selva 115,115,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_150,Selva 150,150,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_200,Selva 200,200,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_250,Selva 250,250,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+SELVA_MARINE,SELVA_300,Selva 300,300,GASOLINE,OUTBOARD,,,True,https://www.selvamarine.com/,False
+EVINRUDE,E_TEC_G2_115,E-TEC G2 115,115,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_G2_140,E-TEC G2 140,140,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_G2_150,E-TEC G2 150,150,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_G2_175,E-TEC G2 175,175,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_G2_200,E-TEC G2 200,200,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_G2_225,E-TEC G2 225,225,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_G2_250,E-TEC G2 250,250,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_G2_300,E-TEC G2 300,300,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_90,E-TEC 90,90,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_115,E-TEC 115,115,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_150,E-TEC 150,150,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+EVINRUDE,E_TEC_200,E-TEC 200,200,GASOLINE,OUTBOARD,,,True,https://www.evinrude.com/,False
+TORQEEDO,TRAVEL_1103,Travel 1103,3,ELECTRIC,OUTBOARD,,,True,https://www.torqeedo.com/,False
+TORQEEDO,TRAVEL_1103_C,Travel 1103 C,3,ELECTRIC,OUTBOARD,,,True,https://www.torqeedo.com/,False
+TORQEEDO,CRUISE_3_0,Cruise 3.0,8,ELECTRIC,OUTBOARD,,,True,https://www.torqeedo.com/,False
+TORQEEDO,CRUISE_6_0,Cruise 6.0,15,ELECTRIC,OUTBOARD,,,True,https://www.torqeedo.com/,False
+TORQEEDO,CRUISE_12_0,Cruise 12.0,25,ELECTRIC,OUTBOARD,,,True,https://www.torqeedo.com/,False
+TORQEEDO,DEEP_BLUE_50,Deep Blue 50,50,ELECTRIC,OUTBOARD,,,True,https://www.torqeedo.com/,False
+TORQEEDO,DEEP_BLUE_100,Deep Blue 100,100,ELECTRIC,OUTBOARD,,,True,https://www.torqeedo.com/,False
+EPROPULSION,SPIRIT_1_0_PLUS,Spirit 1.0 Plus,3,ELECTRIC,OUTBOARD,,,True,https://www.epropulsion.com/,False
+EPROPULSION,NAVY_3_0,Navy 3.0,8,ELECTRIC,OUTBOARD,,,True,https://www.epropulsion.com/,False
+EPROPULSION,NAVY_6_0,Navy 6.0,15,ELECTRIC,OUTBOARD,,,True,https://www.epropulsion.com/,False
+EPROPULSION,X12,X12,25,ELECTRIC,OUTBOARD,,,True,https://www.epropulsion.com/,False
+EPROPULSION,X20,X20,40,ELECTRIC,OUTBOARD,,,True,https://www.epropulsion.com/,False
+VOLVO_PENTA,D1_13,D1-13,13,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D1_20,D1-20,20,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D1_30,D1-30,30,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D2_40,D2-40,40,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D2_50,D2-50,50,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D2_60,D2-60,60,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D2_75,D2-75,75,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D3_110,D3-110,110,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D3_140,D3-140,140,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D3_170,D3-170,170,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D3_200,D3-200,200,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D3_220,D3-220,220,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D4_175,D4-175,175,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D4_230,D4-230,230,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D4_270,D4-270,270,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D4_300,D4-300,300,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D4_320,D4-320,320,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D6_280,D6-280,280,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D6_330,D6-330,330,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D6_380,D6-380,380,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D6_440,D6-440,440,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D6_480,D6-480,480,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D8_510,D8-510,510,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D8_550,D8-550,550,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D8_600,D8-600,600,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D11_510,D11-510,510,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D11_625,D11-625,625,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D11_670,D11-670,670,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D11_725,D11-725,725,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D13_800,D13-800,800,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D13_900,D13-900,900,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D13_1000,D13-1000,1000,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,V6_200,V6-200,200,GASOLINE,STERNDRIVE,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,V6_240,V6-240,240,GASOLINE,STERNDRIVE,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,V6_280,V6-280,280,GASOLINE,STERNDRIVE,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,V8_350,V8-350,350,GASOLINE,STERNDRIVE,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,V8_380,V8-380,380,GASOLINE,STERNDRIVE,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,V8_430,V8-430,430,GASOLINE,STERNDRIVE,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,IPS_600,IPS 600,435,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+VOLVO_PENTA,IPS_650,IPS 650,480,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+VOLVO_PENTA,IPS_700,IPS 700,520,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+VOLVO_PENTA,IPS_800,IPS 800,600,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+VOLVO_PENTA,IPS_900,IPS 900,700,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+VOLVO_PENTA,IPS_950,IPS 950,725,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+VOLVO_PENTA,IPS_1050,IPS 1050,800,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+VOLVO_PENTA,IPS_1350,IPS 1350,1000,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,True
+YANMAR,1GM10,1GM10,9,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,2YM15,2YM15,14,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,3YM20,3YM20,21,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,3YM30,3YM30,29,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,3JH40,3JH40,40,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4JH45,4JH45,45,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4JH57,4JH57,57,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4JH80,4JH80,80,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4JH110,4JH110,110,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4LV150,4LV150,150,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4LV170,4LV170,170,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4LV195,4LV195,195,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4LV230,4LV230,230,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,4LV250,4LV250,250,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,6LY400,6LY400,400,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,6LY440,6LY440,440,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,6LF530,6LF530,530,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,6LF550,6LF550,550,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,8LV320,8LV320,320,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,8LV350,8LV350,350,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,8LV370,8LV370,370,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+CUMMINS,QSB6_7_230,QSB6.7 230,230,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSB6_7_305,QSB6.7 305,305,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSB6_7_355,QSB6.7 355,355,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSB6_7_380,QSB6.7 380,380,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSB6_7_425,QSB6.7 425,425,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSB6_7_480,QSB6.7 480,480,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSB6_7_500,QSB6.7 500,500,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSB6_7_550,QSB6.7 550,550,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSC8_3_500,QSC8.3 500,500,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSC8_3_550,QSC8.3 550,550,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSC8_3_600,QSC8.3 600,600,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSL9_405,QSL9 405,405,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSL9_503,QSL9 503,503,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSL9_600,QSL9 600,600,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSL9_715,QSL9 715,715,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSM11_610,QSM11 610,610,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSM11_670,QSM11 670,670,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,QSM11_715,QSM11 715,715,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CATERPILLAR,C7_1_460,C7.1 460,460,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C7_1_510,C7.1 510,510,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C7_1_650,C7.1 650,650,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C8_7_600,C8.7 600,600,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C8_7_650,C8.7 650,650,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C8_7_700,C8.7 700,700,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C8_7_800,C8.7 800,800,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C12_9_800,C12.9 800,800,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C12_9_850,C12.9 850,850,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C12_9_1000,C12.9 1000,1000,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C18_1001,C18 1001,1001,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C18_1136,C18 1136,1136,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C18_1150,C18 1150,1150,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C32_1600,C32 1600,1600,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C32_1800,C32 1800,1800,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+CATERPILLAR,C32_1900,C32 1900,1900,DIESEL,INBOARD,,,True,https://www.cat.com/,False
+MAN_ENGINES,I6_730,i6-730,730,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,I6_800,i6-800,800,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V8_1000,V8-1000,1000,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V8_1200,V8-1200,1200,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V12_1400,V12-1400,1400,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V12_1550,V12-1550,1550,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V12_1650,V12-1650,1650,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V12_1800,V12-1800,1800,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V12_1900,V12-1900,1900,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MAN_ENGINES,V12_2000,V12-2000,2000,DIESEL,INBOARD,,,True,https://www.man-engines.com/,False
+MTU,8V_2000_M86,8V 2000 M86,1200,DIESEL,INBOARD,,,True,https://www.mtu-solutions.com/,False
+MTU,10V_2000_M86,10V 2000 M86,1500,DIESEL,INBOARD,,,True,https://www.mtu-solutions.com/,False
+MTU,12V_2000_M96,12V 2000 M96,1630,DIESEL,INBOARD,,,True,https://www.mtu-solutions.com/,False
+MTU,16V_2000_M96,16V 2000 M96,2000,DIESEL,INBOARD,,,True,https://www.mtu-solutions.com/,False
+MTU,10V_2000_M72,10V 2000 M72,1440,DIESEL,INBOARD,,,True,https://www.mtu-solutions.com/,False
+MTU,8V_2000_M72,8V 2000 M72,1152,DIESEL,INBOARD,,,True,https://www.mtu-solutions.com/,False
+SCANIA,DI13_070M,DI13 070M,550,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI13_080M,DI13 080M,650,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI13_087M,DI13 087M,700,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI16_070M,DI16 070M,700,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI16_083M,DI16 083M,900,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI16_090M,DI16 090M,1000,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI16_095M,DI16 095M,1150,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+JOHN_DEERE,POWERTECH_4045_99,PowerTech 4045 99,99,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False
+JOHN_DEERE,POWERTECH_4045_150,PowerTech 4045 150,150,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False
+JOHN_DEERE,POWERTECH_6068_250,PowerTech 6068 250,250,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False
+JOHN_DEERE,POWERTECH_6068_300,PowerTech 6068 300,300,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False
+JOHN_DEERE,POWERTECH_6090_375,PowerTech 6090 375,375,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False
+JOHN_DEERE,POWERTECH_6090_425,PowerTech 6090 425,425,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False
+FPT_INDUSTRIAL,N40_250,N40 250,250,DIESEL,INBOARD,,,True,https://www.fptindustrial.com/,False
+FPT_INDUSTRIAL,N60_370,N60 370,370,DIESEL,INBOARD,,,True,https://www.fptindustrial.com/,False
+FPT_INDUSTRIAL,N67_570,N67 570,570,DIESEL,INBOARD,,,True,https://www.fptindustrial.com/,False
+FPT_INDUSTRIAL,C90_650,C90 650,650,DIESEL,INBOARD,,,True,https://www.fptindustrial.com/,False
+FPT_INDUSTRIAL,CURSOR_9_570,Cursor 9 570,570,DIESEL,INBOARD,,,True,https://www.fptindustrial.com/,False
+FPT_INDUSTRIAL,CURSOR_13_800,Cursor 13 800,800,DIESEL,INBOARD,,,True,https://www.fptindustrial.com/,False
+FPT_INDUSTRIAL,CURSOR_16_1000,Cursor 16 1000,1000,DIESEL,INBOARD,,,True,https://www.fptindustrial.com/,False
+NANNI_DIESEL,N2_10,N2.10,10,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N3_21,N3.21,21,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N3_30,N3.30,29,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N4_38,N4.38,37,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N4_50,N4.50,50,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N4_60,N4.60,60,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N4_65,N4.65,65,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N4_80,N4.80,80,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N4_100,N4.100,100,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N4_115,N4.115,115,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N5_250,N5.250,250,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N6_280,N6.280,280,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+NANNI_DIESEL,N6_380,N6.380,380,DIESEL,INBOARD,,,True,https://www.nannienergy.com/,False
+VETUS,M2_06,M2.06,11,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,M2_18,M2.18,16,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,M3_29,M3.29,29,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,M4_45,M4.45,42,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,M4_56,M4.56,53,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,M4_65,M4.65,60,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,VF4_140,VF4.140,140,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,VF5_220,VF5.220,220,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,DEUTZ_DT44,DEUTZ DT44,140,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+VETUS,DEUTZ_DT66,DEUTZ DT66,170,DIESEL,INBOARD,,,True,https://www.vetus.com/,False
+STEYR_MOTORS,SE126,SE126,126,DIESEL,INBOARD,,,True,https://www.steyr-motors.com/,False
+STEYR_MOTORS,SE156,SE156,156,DIESEL,INBOARD,,,True,https://www.steyr-motors.com/,False
+STEYR_MOTORS,SE196,SE196,196,DIESEL,INBOARD,,,True,https://www.steyr-motors.com/,False
+STEYR_MOTORS,SE236,SE236,236,DIESEL,INBOARD,,,True,https://www.steyr-motors.com/,False
+STEYR_MOTORS,SE266,SE266,266,DIESEL,INBOARD,,,True,https://www.steyr-motors.com/,False
+STEYR_MOTORS,SE286,SE286,286,DIESEL,INBOARD,,,True,https://www.steyr-motors.com/,False
+STEYR_MOTORS,SE306,SE306,306,DIESEL,INBOARD,,,True,https://www.steyr-motors.com/,False
+BETA_MARINE,BETA_14,Beta 14,14,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_16,Beta 16,16,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_20,Beta 20,20,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_25,Beta 25,25,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_30,Beta 30,30,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_35,Beta 35,35,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_38,Beta 38,38,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_43,Beta 43,43,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_50,Beta 50,50,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_60,Beta 60,60,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_75,Beta 75,75,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_85,Beta 85,85,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_90,Beta 90,90,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_105,Beta 105,105,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_115,Beta 115,115,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+BETA_MARINE,BETA_150,Beta 150,150,DIESEL,INBOARD,,,True,https://www.betamarine.co.uk/,False
+DOOSAN,L086_300,L086 300,300,DIESEL,INBOARD,,,True,https://www.doosanengine.com/,False
+DOOSAN,V158_700,V158 700,700,DIESEL,INBOARD,,,True,https://www.doosanengine.com/,False
+DOOSAN,V180_820,V180 820,820,DIESEL,INBOARD,,,True,https://www.doosanengine.com/,False
+DOOSAN,V222_1000,V222 1000,1000,DIESEL,INBOARD,,,True,https://www.doosanengine.com/,False
+DOOSAN,V260_1200,V260 1200,1200,DIESEL,INBOARD,,,True,https://www.doosanengine.com/,False
+DOOSAN,4V222_1440,4V222 1440,1440,DIESEL,INBOARD,,,True,https://www.doosanengine.com/,False
+BAUDOUIN,4W105_150,4W105 150,150,DIESEL,INBOARD,,,True,https://www.baudouin.com/,False
+BAUDOUIN,6W105_250,6W105 250,250,DIESEL,INBOARD,,,True,https://www.baudouin.com/,False
+BAUDOUIN,6M21_400,6M21 400,400,DIESEL,INBOARD,,,True,https://www.baudouin.com/,False
+BAUDOUIN,6M26_600,6M26 600,600,DIESEL,INBOARD,,,True,https://www.baudouin.com/,False
+BAUDOUIN,8M26_800,8M26 800,800,DIESEL,INBOARD,,,True,https://www.baudouin.com/,False
+BAUDOUIN,12M26_1200,12M26 1200,1200,DIESEL,INBOARD,,,True,https://www.baudouin.com/,False
+MERCURY_MARINE,MERCURY_DIESEL_3_0L_230,Mercury Diesel 3.0L 230,230,DIESEL,INBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCURY_DIESEL_4_2L_335,Mercury Diesel 4.2L 335,335,DIESEL,INBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCURY_DIESEL_4_2L_370,Mercury Diesel 4.2L 370,370,DIESEL,INBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCURY_DIESEL_6_7L_480,Mercury Diesel 6.7L 480,480,DIESEL,INBOARD,,,True,https://www.mercurymarine.com/,False
+MERCURY_MARINE,MERCURY_DIESEL_6_7L_550,Mercury Diesel 6.7L 550,550,DIESEL,INBOARD,,,True,https://www.mercurymarine.com/,False
+VOLVO_PENTA,D16_550,D16-550,550,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D16_650,D16-650,650,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D16_750,D16-750,750,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D16_900,D16-900,900,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+VOLVO_PENTA,D16_1000,D16-1000,1000,DIESEL,INBOARD,,,True,https://www.volvopenta.com/,False
+YANMAR,6AYM_WGT_900,6AYM-WGT 900,900,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,6AYM_WET_1080,6AYM-WET 1080,1080,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,6AYM_WST_1200,6AYM-WST 1200,1200,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+YANMAR,6HYM_WET_480,6HYM-WET 480,480,DIESEL,INBOARD,,,True,https://www.yanmar.com/marine/,False
+CUMMINS,X12_600,X12 600,600,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,X15_650,X15 650,650,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,X15_750,X15 750,750,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+CUMMINS,X15_800,X15 800,800,DIESEL,INBOARD,,,True,https://www.cummins.com/engines/marine,False
+SCANIA,DI09_350M,DI09 350M,350,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI09_425M,DI09 425M,425,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+SCANIA,DI13_065M,DI13 065M,500,DIESEL,INBOARD,,,True,https://www.scania.com/products-and-services/engines/marine/,False
+JOHN_DEERE,POWERTECH_4045_200,PowerTech 4045 200,200,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False
+JOHN_DEERE,POWERTECH_6068_350,PowerTech 6068 350,350,DIESEL,INBOARD,,,True,https://www.deere.com/en/marine-engines/,False

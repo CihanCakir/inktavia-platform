@@ -8,6 +8,10 @@ public sealed class VesselSpecificationEntity : AizenEntityWithAudit
     public long VesselId { get; private set; }
     public string? Brand { get; private set; }
     public string? Model { get; private set; }
+    /// <summary>Optional link to the ReferenceData vessel brand/model catalog. Brand/Model above stay as the
+    /// denormalized display fallback (free-text) so nothing downstream depends on the catalog.</summary>
+    public long? VesselBrandId { get; private set; }
+    public long? VesselModelId { get; private set; }
     public int? ProductionYear { get; private set; }
     public decimal? LengthValue { get; private set; }
     public string? LengthUnitCode { get; private set; }
@@ -84,5 +88,13 @@ public sealed class VesselSpecificationEntity : AizenEntityWithAudit
         HullMaterialCode = hullMaterialCode?.ToUpperInvariant();
         FuelCapacityValue = fuelCapacityValue; FuelCapacityUnitCode = fuelCapacityUnitCode?.ToUpperInvariant();
         WaterCapacityValue = waterCapacityValue; WaterCapacityUnitCode = waterCapacityUnitCode?.ToUpperInvariant();
+    }
+
+    /// <summary>Set/clear the catalog brand+model link (nullable = free-text only). Kept separate from the long
+    /// Create/Update signatures so existing callers are untouched.</summary>
+    public void SetBrandModel(long? vesselBrandId, long? vesselModelId)
+    {
+        VesselBrandId = vesselBrandId;
+        VesselModelId = vesselModelId;
     }
 }

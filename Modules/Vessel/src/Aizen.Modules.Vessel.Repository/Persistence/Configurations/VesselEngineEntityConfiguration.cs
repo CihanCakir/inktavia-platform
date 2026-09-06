@@ -16,6 +16,8 @@ public sealed class VesselEngineEntityConfiguration : IEntityTypeConfiguration<V
         builder.Property(x => x.FuelTypeCode).HasMaxLength(100).IsRequired();
         builder.Property(x => x.Brand).HasMaxLength(200);
         builder.Property(x => x.Model).HasMaxLength(200);
+        builder.Property(x => x.EngineBrandId);
+        builder.Property(x => x.EngineModelId);
         builder.Property(x => x.SerialNumber).HasMaxLength(100);
         builder.Property(x => x.HorsePower);
         builder.Property(x => x.ProductionYear);

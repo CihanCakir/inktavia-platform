@@ -30,13 +30,16 @@ public sealed class CreateMobileVesselCommandHandler
 
     private readonly IParticipantProfileResolver _resolver;
     private readonly IVesselRemoteCall _vessel;
+    private readonly IReferenceDataRemoteCall _referenceData;
     private readonly ILogger<CreateMobileVesselCommandHandler> _logger;
 
     public CreateMobileVesselCommandHandler(
         IParticipantProfileResolver resolver,
         IVesselRemoteCall vessel,
+        IReferenceDataRemoteCall referenceData,
         ILogger<CreateMobileVesselCommandHandler> logger)
     {
+        _referenceData = referenceData;
         _resolver = resolver;
         _vessel = vessel;
         _logger = logger;
@@ -93,12 +96,16 @@ public sealed class CreateMobileVesselCommandHandler
         if (HasSpec(payload.Spec))
         {
             var s = payload.Spec!;
+            var (vBrand, vModel, vBrandId, vModelId) = await MobileCatalogDenormalizer.ResolveVesselAsync(
+                _referenceData, s.VesselModelId, s.VesselBrandId, s.Brand, s.Model);
             try
             {
                 await _vessel.UpsertSpecification(vesselId, new UpsertVesselSpecificationRequest
                 {
-                    Brand = NullIfBlank(s.Brand),
-                    Model = NullIfBlank(s.Model),
+                    Brand = vBrand,
+                    Model = vModel,
+                    VesselBrandId = vBrandId,
+                    VesselModelId = vModelId,
                     ProductionYear = s.ProductionYear,
                     LengthValue = s.LengthMeters,
                     LengthUnitCode = s.LengthMeters.HasValue ? DefaultLengthUnitCode : null,
@@ -120,14 +127,20 @@ public sealed class CreateMobileVesselCommandHandler
         if (HasEngine(payload.Engine))
         {
             var e = payload.Engine!;
+            var (eBrand, eModel, eHp, eFuel, eBrandId, eModelId) = await MobileCatalogDenormalizer.ResolveEngineAsync(
+                _referenceData, e.EngineModelId, e.EngineBrandId, e.HorsePower, e.FuelTypeCode);
             try
             {
                 await _vessel.AddEngine(vesselId, new AddVesselEngineRequest
                 {
                     EngineName = string.IsNullOrWhiteSpace(e.EngineName) ? DefaultEngineName : e.EngineName!.Trim(),
                     EngineTypeCode = e.EngineTypeCode,
-                    FuelTypeCode = e.FuelTypeCode,
-                    HorsePower = e.HorsePower,
+                    FuelTypeCode = eFuel ?? e.FuelTypeCode,
+                    HorsePower = eHp,
+                    Brand = eBrand,
+                    Model = eModel,
+                    EngineBrandId = eBrandId,
+                    EngineModelId = eModelId,
                     IsPrimary = true,
                 });
             }

@@ -23,6 +23,16 @@ public sealed class GetAttachmentAccessCheckQueryHandler
         ServiceRequestStatus.OfferReceived,
     };
 
+    // Kept in lock-step with the detail read: a published-then-terminal request stays readable (read-only), so its
+    // attachment thumbnails on the terminal detail page resolve instead of 400-ing.
+    private static readonly HashSet<ServiceRequestStatus> TerminalStatuses = new()
+    {
+        ServiceRequestStatus.Completed,
+        ServiceRequestStatus.Cancelled,
+        ServiceRequestStatus.Expired,
+        ServiceRequestStatus.Closed,
+    };
+
     private readonly IServiceRequestRepository _srRepository;
     private readonly IServiceRequestOfferRepository _offerRepository;
     private readonly IServiceRequestAssignmentRepository _assignmentRepository;
@@ -58,7 +68,8 @@ public sealed class GetAttachmentAccessCheckQueryHandler
             .Any(o => o.ProviderProfileId == providerProfileId);
         var assignment = await _assignmentRepository.GetByServiceRequestIdAsync(sr.Id, ct);
         var isAssignedToMe = assignment is not null && assignment.ProviderProfileId == providerProfileId;
-        var maySee = BiddableStatuses.Contains(sr.Status) || hasOffer || isAssignedToMe;
+        var isPublishedTerminal = TerminalStatuses.Contains(sr.Status) && sr.PublishedAt is not null;
+        var maySee = BiddableStatuses.Contains(sr.Status) || isPublishedTerminal || hasOffer || isAssignedToMe;
 
         if (!maySee)
         {

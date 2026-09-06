@@ -57,6 +57,8 @@ internal static class MobileVesselMapper
             HullMaterialCode = spec?.HullMaterialCode,
             Brand = spec?.Brand,
             Model = spec?.Model,
+            VesselBrandId = spec?.VesselBrandId,
+            VesselModelId = spec?.VesselModelId,
             ProductionYear = spec?.ProductionYear,
             CabinCount = spec?.CabinCount,
             MarinaName = loc?.MarinaName,
@@ -71,6 +73,8 @@ internal static class MobileVesselMapper
                 TypeCode = e.EngineTypeCode,
                 FuelTypeCode = e.FuelTypeCode,
                 HorsePower = e.HorsePower,
+                EngineBrandId = e.EngineBrandId,
+                EngineModelId = e.EngineModelId,
                 IsPrimary = e.IsPrimary,
             }).ToList() ?? new List<MobileVesselEngineDto>(),
         };

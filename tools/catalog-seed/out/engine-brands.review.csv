@@ -1,0 +1,26 @@
+code,name,isActive,source,needsReview
+YAMAHA,Yamaha,True,https://www.yamahaoutboards.com/,False
+MERCURY_MARINE,Mercury Marine,True,https://www.mercurymarine.com/,False
+SUZUKI_MARINE,Suzuki Marine,True,https://www.suzukimarine.com/,False
+HONDA_MARINE,Honda Marine,True,https://marine.honda.com/,False
+TOHATSU,Tohatsu,True,https://www.tohatsu.com/,False
+PARSUN,Parsun,True,https://www.parsun.com/,True
+SELVA_MARINE,Selva Marine,True,https://www.selvamarine.com/,True
+EVINRUDE,Evinrude,True,https://www.evinrude.com/,True
+TORQEEDO,Torqeedo,True,https://www.torqeedo.com/,True
+EPROPULSION,ePropulsion,True,https://www.epropulsion.com/,True
+VOLVO_PENTA,Volvo Penta,True,https://www.volvopenta.com/,False
+YANMAR,Yanmar,True,https://www.yanmar.com/marine/,False
+CUMMINS,Cummins,True,https://www.cummins.com/engines/marine,False
+CATERPILLAR,Caterpillar,True,https://www.cat.com/en_US/products/new/power-systems/marine-power-systems.html,False
+MAN_ENGINES,MAN Engines,True,https://www.man-engines.com/,False
+MTU,MTU,True,https://www.mtu-solutions.com/,True
+SCANIA,Scania,True,https://www.scania.com/products-and-services/engines/marine/,True
+JOHN_DEERE,John Deere,True,https://www.deere.com/en/marine-engines/,True
+FPT_INDUSTRIAL,FPT Industrial,True,https://www.fptindustrial.com/,True
+NANNI_DIESEL,Nanni Diesel,True,https://www.nannienergy.com/,True
+VETUS,Vetus,True,https://www.vetus.com/,True
+STEYR_MOTORS,Steyr Motors,True,https://www.steyr-motors.com/,True
+BETA_MARINE,Beta Marine,True,https://www.betamarine.co.uk/,True
+DOOSAN,Doosan,True,https://www.doosanengine.com/,True
+BAUDOUIN,Baudouin,True,https://www.baudouin.com/,True

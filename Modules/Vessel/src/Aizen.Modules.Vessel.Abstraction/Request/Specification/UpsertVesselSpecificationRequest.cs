@@ -6,6 +6,9 @@ public sealed class UpsertVesselSpecificationRequest
 {
     public string? Brand { get; set; }
     public string? Model { get; set; }
+    /// <summary>Optional ReferenceData catalog link. Brand/Model above are the denormalized display fallback.</summary>
+    public long? VesselBrandId { get; set; }
+    public long? VesselModelId { get; set; }
     public int? ProductionYear { get; set; }
     public decimal? LengthValue { get; set; }
     public string? LengthUnitCode { get; set; }

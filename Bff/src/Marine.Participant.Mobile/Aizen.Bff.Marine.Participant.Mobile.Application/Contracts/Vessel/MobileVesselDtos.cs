@@ -27,6 +27,8 @@ public sealed class MobileVesselEngineDto
     public string? TypeCode { get; set; }
     public string? FuelTypeCode { get; set; }
     public int? HorsePower { get; set; }
+    public long? EngineBrandId { get; set; }
+    public long? EngineModelId { get; set; }
     public bool IsPrimary { get; set; }
 }
 
@@ -93,6 +95,8 @@ public sealed class MobileVesselDetailDto
     public string? HullMaterialCode { get; set; }
     public string? Brand { get; set; }
     public string? Model { get; set; }
+    public long? VesselBrandId { get; set; }
+    public long? VesselModelId { get; set; }
     public int? ProductionYear { get; set; }
     public int? CabinCount { get; set; }
 
@@ -150,6 +154,10 @@ public sealed class MobileVesselSpecInput
     public string? HullMaterialCode { get; set; }
     public string? Brand { get; set; }
     public string? Model { get; set; }
+    /// <summary>Optional ReferenceData catalog ids. When VesselModelId is set the BFF denormalizes Brand/Model from
+    /// the catalog; the Brand/Model free-text above are the fallback.</summary>
+    public long? VesselBrandId { get; set; }
+    public long? VesselModelId { get; set; }
     public int? CabinCount { get; set; }
 }
 
@@ -160,6 +168,9 @@ public sealed class MobileVesselEngineInput
     public string EngineTypeCode { get; set; } = default!;
     public string FuelTypeCode { get; set; } = default!;
     public int? HorsePower { get; set; }
+    /// <summary>Optional catalog ids. When EngineModelId is set the BFF denormalizes name/hp/fuel from the catalog.</summary>
+    public long? EngineBrandId { get; set; }
+    public long? EngineModelId { get; set; }
     public int? EnginesCount { get; set; }
 }
 
@@ -194,6 +205,8 @@ public sealed class UpdateMobileVesselEngineInput
     public string? EngineTypeCode { get; set; }
     public string? FuelTypeCode { get; set; }
     public int? HorsePower { get; set; }
+    public long? EngineBrandId { get; set; }
+    public long? EngineModelId { get; set; }
 }
 
 // ── M4d archive / status payloads ──────────────────────────────────────────────────────────────

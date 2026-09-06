@@ -68,6 +68,9 @@ public sealed class UpsertVesselSpecificationCommandHandler : AizenCommandHandle
             spec = existing;
         }
 
+        // Optional catalog link (free-text Brand/Model remain the denormalized display fallback).
+        spec.SetBrandModel(r.VesselBrandId, r.VesselModelId);
+
         await _invalidation.InvalidateSpecificationAsync(request.VesselId, cancellationToken);
         await _invalidation.InvalidateVesselAsync(request.VesselId, cancellationToken);
 

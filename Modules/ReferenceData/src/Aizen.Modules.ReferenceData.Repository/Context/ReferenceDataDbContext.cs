@@ -28,6 +28,11 @@ public sealed class ReferenceDataDbContext : AizenDbContext
     public DbSet<TimeZoneEntity> TimeZones => Set<TimeZoneEntity>();
     public DbSet<CountryPhoneCodeEntity> CountryPhoneCodes => Set<CountryPhoneCodeEntity>();
     public DbSet<MarinaEntity> Marinas => Set<MarinaEntity>();
+    // Brand/model catalog (vessel wizard) — flat, convention-mapped like the other ReferenceData entities.
+    public DbSet<Domain.Entities.Catalog.VesselBrandEntity> VesselBrands => Set<Domain.Entities.Catalog.VesselBrandEntity>();
+    public DbSet<Domain.Entities.Catalog.VesselModelEntity> VesselModels => Set<Domain.Entities.Catalog.VesselModelEntity>();
+    public DbSet<Domain.Entities.Catalog.EngineBrandEntity> EngineBrands => Set<Domain.Entities.Catalog.EngineBrandEntity>();
+    public DbSet<Domain.Entities.Catalog.EngineModelEntity> EngineModels => Set<Domain.Entities.Catalog.EngineModelEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
