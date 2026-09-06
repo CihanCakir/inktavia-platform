@@ -37,6 +37,7 @@ public sealed class UpdateVesselEngineCommandHandler : AizenCommandHandler<Updat
 
         var r = request.Request;
         engine.Update(r.EngineName, r.EngineTypeCode, r.FuelTypeCode, r.Brand, r.Model, r.SerialNumber, r.HorsePower, r.ProductionYear);
+        engine.SetBrandModel(r.EngineBrandId, r.EngineModelId);
         _engineRepository.Update(engine);
 
         await _invalidation.InvalidateEnginesAsync(request.VesselId, cancellationToken);

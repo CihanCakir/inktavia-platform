@@ -1,0 +1,498 @@
+[
+  {
+    "code": "SIRENA_YACHTS",
+    "name": "Sirena Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.sirenayachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "NUMARINE",
+    "name": "Numarine",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.numarine.com/",
+    "needsReview": false
+  },
+  {
+    "code": "VICEM_YACHTS",
+    "name": "Vicem Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.vicemyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "MENGI_YAY",
+    "name": "Mengi Yay",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.mengiyay.com/",
+    "needsReview": false
+  },
+  {
+    "code": "BERING_YACHTS",
+    "name": "Bering Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://beringyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "MAZU_YACHTS",
+    "name": "Mazu Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.mazuyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SARP_YACHTS",
+    "name": "Sarp Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.sarpyachts.com/",
+    "needsReview": true
+  },
+  {
+    "code": "BILGIN_YACHTS",
+    "name": "Bilgin Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.bilginyacht.com/",
+    "needsReview": true
+  },
+  {
+    "code": "TURQUOISE_YACHTS",
+    "name": "Turquoise Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.turquoiseyachts.com/",
+    "needsReview": true
+  },
+  {
+    "code": "TANSU_YACHTS",
+    "name": "Tansu Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.tansuyachts.com/",
+    "needsReview": true
+  },
+  {
+    "code": "SU_MARINE_YACHTS",
+    "name": "Su Marine Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.sumarineyachts.com/",
+    "needsReview": true
+  },
+  {
+    "code": "ALESTA_YACHTS",
+    "name": "Alesta Yachts",
+    "countryCode": "TR",
+    "isActive": true,
+    "source": "https://www.alestayacht.com/",
+    "needsReview": true
+  },
+  {
+    "code": "BENETEAU",
+    "name": "Beneteau",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.beneteau.com/",
+    "needsReview": false
+  },
+  {
+    "code": "JEANNEAU",
+    "name": "Jeanneau",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.jeanneau.com/",
+    "needsReview": false
+  },
+  {
+    "code": "BAVARIA_YACHTS",
+    "name": "Bavaria Yachts",
+    "countryCode": "DE",
+    "isActive": true,
+    "source": "https://www.bavariayachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "HANSE",
+    "name": "Hanse",
+    "countryCode": "DE",
+    "isActive": true,
+    "source": "https://www.hanseyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "DUFOUR",
+    "name": "Dufour",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.dufour-yachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "ELAN",
+    "name": "Elan",
+    "countryCode": "SI",
+    "isActive": true,
+    "source": "https://elan-yachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "X_YACHTS",
+    "name": "X-Yachts",
+    "countryCode": "DK",
+    "isActive": true,
+    "source": "https://www.x-yachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "GRAND_SOLEIL",
+    "name": "Grand Soleil",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.grandsoleil.net/",
+    "needsReview": false
+  },
+  {
+    "code": "HALLBERG_RASSY",
+    "name": "Hallberg-Rassy",
+    "countryCode": "SE",
+    "isActive": true,
+    "source": "https://www.hallberg-rassy.com/",
+    "needsReview": true
+  },
+  {
+    "code": "AMEL",
+    "name": "Amel",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.amel.fr/",
+    "needsReview": true
+  },
+  {
+    "code": "LAGOON",
+    "name": "Lagoon",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.cata-lagoon.com/",
+    "needsReview": false
+  },
+  {
+    "code": "FOUNTAINE_PAJOT",
+    "name": "Fountaine Pajot",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.catamarans-fountaine-pajot.com/",
+    "needsReview": false
+  },
+  {
+    "code": "BALI_CATAMARANS",
+    "name": "Bali Catamarans",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.bali-catamarans.com/",
+    "needsReview": false
+  },
+  {
+    "code": "EXCESS_CATAMARANS",
+    "name": "Excess Catamarans",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.excess-catamarans.com/",
+    "needsReview": false
+  },
+  {
+    "code": "NAUTITECH",
+    "name": "Nautitech",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.nautitechcatamarans.com/",
+    "needsReview": false
+  },
+  {
+    "code": "LEOPARD_CATAMARANS",
+    "name": "Leopard Catamarans",
+    "countryCode": "ZA",
+    "isActive": true,
+    "source": "https://www.leopardcatamarans.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SUNREEF_YACHTS",
+    "name": "Sunreef Yachts",
+    "countryCode": "PL",
+    "isActive": true,
+    "source": "https://www.sunreef-yachts.com/",
+    "needsReview": true
+  },
+  {
+    "code": "AZIMUT_YACHTS",
+    "name": "Azimut Yachts",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.azimutyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "FERRETTI_YACHTS",
+    "name": "Ferretti Yachts",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.ferretti-yachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "PRINCESS_YACHTS",
+    "name": "Princess Yachts",
+    "countryCode": "GB",
+    "isActive": true,
+    "source": "https://www.princessyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SUNSEEKER",
+    "name": "Sunseeker",
+    "countryCode": "GB",
+    "isActive": true,
+    "source": "https://www.sunseeker.com/",
+    "needsReview": false
+  },
+  {
+    "code": "FAIRLINE",
+    "name": "Fairline",
+    "countryCode": "GB",
+    "isActive": true,
+    "source": "https://www.fairline.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SEALINE",
+    "name": "Sealine",
+    "countryCode": "DE",
+    "isActive": true,
+    "source": "https://www.sealine.com/",
+    "needsReview": false
+  },
+  {
+    "code": "GALEON",
+    "name": "Galeon",
+    "countryCode": "PL",
+    "isActive": true,
+    "source": "https://www.galeonyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "PRESTIGE_YACHTS",
+    "name": "Prestige Yachts",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.prestige-yachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "ABSOLUTE_YACHTS",
+    "name": "Absolute Yachts",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.absoluteyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "CRANCHI",
+    "name": "Cranchi",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.cranchi.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SESSA_MARINE",
+    "name": "Sessa Marine",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.sessamarine.com/",
+    "needsReview": true
+  },
+  {
+    "code": "FJORD",
+    "name": "Fjord",
+    "countryCode": "NO",
+    "isActive": true,
+    "source": "https://www.fjordboats.com/",
+    "needsReview": false
+  },
+  {
+    "code": "NIMBUS",
+    "name": "Nimbus",
+    "countryCode": "SE",
+    "isActive": true,
+    "source": "https://www.nimbus.se/",
+    "needsReview": false
+  },
+  {
+    "code": "RIVA",
+    "name": "Riva",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.riva-yacht.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SANLORENZO",
+    "name": "Sanlorenzo",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.sanlorenzoyacht.com/",
+    "needsReview": true
+  },
+  {
+    "code": "SEA_RAY",
+    "name": "Sea Ray",
+    "countryCode": "US",
+    "isActive": true,
+    "source": "https://www.searay.com/",
+    "needsReview": false
+  },
+  {
+    "code": "BAYLINER",
+    "name": "Bayliner",
+    "countryCode": "US",
+    "isActive": true,
+    "source": "https://www.bayliner.com/",
+    "needsReview": false
+  },
+  {
+    "code": "QUICKSILVER",
+    "name": "Quicksilver",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.quicksilver-boats.com/",
+    "needsReview": false
+  },
+  {
+    "code": "BOSTON_WHALER",
+    "name": "Boston Whaler",
+    "countryCode": "US",
+    "isActive": true,
+    "source": "https://www.bostonwhaler.com/",
+    "needsReview": false
+  },
+  {
+    "code": "AXOPAR",
+    "name": "Axopar",
+    "countryCode": "FI",
+    "isActive": true,
+    "source": "https://www.axopar.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SAXDOR_YACHTS",
+    "name": "Saxdor Yachts",
+    "countryCode": "FI",
+    "isActive": true,
+    "source": "https://www.saxdoryachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "DE_ANTONIO_YACHTS",
+    "name": "De Antonio Yachts",
+    "countryCode": "ES",
+    "isActive": true,
+    "source": "https://www.deantonioyachts.com/",
+    "needsReview": false
+  },
+  {
+    "code": "INVICTUS_YACHT",
+    "name": "Invictus Yacht",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.invictusyacht.com/",
+    "needsReview": false
+  },
+  {
+    "code": "KARNIC",
+    "name": "Karnic",
+    "countryCode": "CY",
+    "isActive": true,
+    "source": "https://www.karnic.eu/",
+    "needsReview": true
+  },
+  {
+    "code": "PARKER_POLAND",
+    "name": "Parker Poland",
+    "countryCode": "PL",
+    "isActive": true,
+    "source": "https://www.parkerpoland.com/",
+    "needsReview": true
+  },
+  {
+    "code": "ZODIAC",
+    "name": "Zodiac",
+    "countryCode": "FR",
+    "isActive": true,
+    "source": "https://www.zodiac-nautic.com/",
+    "needsReview": false
+  },
+  {
+    "code": "GRAND_MARINE",
+    "name": "Grand Marine",
+    "countryCode": "US",
+    "isActive": true,
+    "source": "https://www.grandmarine.com/",
+    "needsReview": true
+  },
+  {
+    "code": "BRIG",
+    "name": "BRIG",
+    "countryCode": "UA",
+    "isActive": true,
+    "source": "https://www.brig-boats.com/",
+    "needsReview": true
+  },
+  {
+    "code": "HIGHFIELD_BOATS",
+    "name": "Highfield Boats",
+    "countryCode": "HK",
+    "isActive": true,
+    "source": "https://www.highfieldboats.com/",
+    "needsReview": true
+  },
+  {
+    "code": "NUOVA_JOLLY",
+    "name": "Nuova Jolly",
+    "countryCode": "IT",
+    "isActive": true,
+    "source": "https://www.nuovajollymarine.com/",
+    "needsReview": true
+  },
+  {
+    "code": "SEA_DOO",
+    "name": "Sea-Doo",
+    "countryCode": "CA",
+    "isActive": true,
+    "source": "https://www.sea-doo.com/",
+    "needsReview": false
+  },
+  {
+    "code": "YAMAHA_WAVERUNNER",
+    "name": "Yamaha WaveRunner",
+    "countryCode": "JP",
+    "isActive": true,
+    "source": "https://www.yamahawaverunners.com/",
+    "needsReview": false
+  },
+  {
+    "code": "KAWASAKI_JET_SKI",
+    "name": "Kawasaki Jet Ski",
+    "countryCode": "JP",
+    "isActive": true,
+    "source": "https://www.kawasaki.com/en-us/personal-watercraft",
+    "needsReview": true
+  }
+]

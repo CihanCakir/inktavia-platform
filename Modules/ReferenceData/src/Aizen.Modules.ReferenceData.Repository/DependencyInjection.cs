@@ -34,6 +34,10 @@ public static class DependencyInjection
         services.AddScoped<IMeasurementUnitRepository, MeasurementUnitRepository>();
         services.AddScoped<ISystemParameterRepository, SystemParameterRepository>();
         services.AddScoped<IMarinaRepository, MarinaRepository>();
+        services.AddScoped<IVesselBrandRepository, Repositories.Catalog.VesselBrandRepository>();
+        services.AddScoped<IVesselModelRepository, Repositories.Catalog.VesselModelRepository>();
+        services.AddScoped<IEngineBrandRepository, Repositories.Catalog.EngineBrandRepository>();
+        services.AddScoped<IEngineModelRepository, Repositories.Catalog.EngineModelRepository>();
         services.AddScoped<ILocationRepository, LocationRepository>();
         services.AddScoped<ReferenceDataMongoIndexInitializer>(sp =>
         {
@@ -58,6 +62,8 @@ public static class DependencyInjection
         services.AddScoped<ILocationReferenceService, LocationReferenceService>();
         services.AddScoped<ILocationValidationService, LocationValidationService>();
         services.AddScoped<IMarinaReferenceService, MarinaReferenceService>();
+        services.AddScoped<IVesselCatalogReferenceService, VesselCatalogReferenceService>();
+        services.AddScoped<IEngineCatalogReferenceService, EngineCatalogReferenceService>();
         services.AddScoped<ISystemParameterReferenceService, SystemParameterReferenceService>();
         services.AddSingleton<IReferenceDataCacheKeyService, ReferenceDataCacheKeyService>();
         services.AddScoped<IReferenceDataCacheInvalidationService, ReferenceDataCacheInvalidationService>();
@@ -71,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<LookupJsonSeedService>();
         services.AddScoped<SystemJsonSeedService>();
         services.AddScoped<MarinaJsonSeedService>();
+        services.AddScoped<CatalogJsonSeedService>();
         services.AddScoped<LocationJsonSeedService>();
         services.AddScoped<LocationSlugBackfillService>();
         services.AddScoped<IReferenceDataJsonSeedService, ReferenceDataJsonSeedService>();

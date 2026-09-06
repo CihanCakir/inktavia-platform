@@ -9,6 +9,8 @@ public sealed class UpdateVesselEngineRequest
     public string FuelTypeCode { get; set; } = default!;
     public string? Brand { get; set; }
     public string? Model { get; set; }
+    public long? EngineBrandId { get; set; }
+    public long? EngineModelId { get; set; }
     public string? SerialNumber { get; set; }
     public int? HorsePower { get; set; }
     public int? ProductionYear { get; set; }

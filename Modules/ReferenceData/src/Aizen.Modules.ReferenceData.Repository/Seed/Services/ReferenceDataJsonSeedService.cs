@@ -17,6 +17,7 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
     private readonly LookupJsonSeedService _lookupService;
     private readonly SystemJsonSeedService _systemService;
     private readonly MarinaJsonSeedService _marinaService;
+    private readonly CatalogJsonSeedService _catalogService;
     private readonly LocationJsonSeedService _locationService;
     private readonly LocationSlugBackfillService _locationSlugBackfill;
 
@@ -28,6 +29,7 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
         LookupJsonSeedService lookupService,
         SystemJsonSeedService systemService,
         MarinaJsonSeedService marinaService,
+        CatalogJsonSeedService catalogService,
         LocationJsonSeedService locationService,
         LocationSlugBackfillService locationSlugBackfill)
     {
@@ -38,6 +40,7 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
         _lookupService = lookupService;
         _systemService = systemService;
         _marinaService = marinaService;
+        _catalogService = catalogService;
         _locationService = locationService;
         _locationSlugBackfill = locationSlugBackfill;
     }
@@ -61,6 +64,7 @@ public sealed class ReferenceDataJsonSeedService : IReferenceDataJsonSeedService
         await SeedLookupTreeAsync(cancellationToken);
         await _exchangeRateService.SeedAsync(cancellationToken);
         await _marinaService.SeedAsync(cancellationToken);
+        await _catalogService.SeedAsync(cancellationToken);
     }
 
     public async Task SeedLocationDocumentsAsync(CancellationToken cancellationToken = default)

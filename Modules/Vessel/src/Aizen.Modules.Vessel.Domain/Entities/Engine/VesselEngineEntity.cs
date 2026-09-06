@@ -11,6 +11,10 @@ public sealed class VesselEngineEntity : AizenEntityWithAudit
     public string FuelTypeCode { get; private set; } = default!;
     public string? Brand { get; private set; }
     public string? Model { get; private set; }
+    /// <summary>Optional link to the ReferenceData engine brand/model catalog. Brand/Model stay as the denormalized
+    /// display fallback so nothing downstream depends on the catalog.</summary>
+    public long? EngineBrandId { get; private set; }
+    public long? EngineModelId { get; private set; }
     public string? SerialNumber { get; private set; }
     public int? HorsePower { get; private set; }
     public int? ProductionYear { get; private set; }
@@ -57,6 +61,13 @@ public sealed class VesselEngineEntity : AizenEntityWithAudit
         SerialNumber = serialNumber;
         HorsePower = horsePower;
         ProductionYear = productionYear;
+    }
+
+    /// <summary>Set/clear the catalog brand+model link (nullable = free-text only).</summary>
+    public void SetBrandModel(long? engineBrandId, long? engineModelId)
+    {
+        EngineBrandId = engineBrandId;
+        EngineModelId = engineModelId;
     }
 
     public void SetPrimary() => IsPrimary = true;

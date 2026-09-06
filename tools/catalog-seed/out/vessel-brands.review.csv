@@ -1,0 +1,63 @@
+code,name,countryCode,isActive,source,needsReview
+SIRENA_YACHTS,Sirena Yachts,TR,True,https://www.sirenayachts.com/,False
+NUMARINE,Numarine,TR,True,https://www.numarine.com/,False
+VICEM_YACHTS,Vicem Yachts,TR,True,https://www.vicemyachts.com/,False
+MENGI_YAY,Mengi Yay,TR,True,https://www.mengiyay.com/,False
+BERING_YACHTS,Bering Yachts,TR,True,https://beringyachts.com/,False
+MAZU_YACHTS,Mazu Yachts,TR,True,https://www.mazuyachts.com/,False
+SARP_YACHTS,Sarp Yachts,TR,True,https://www.sarpyachts.com/,True
+BILGIN_YACHTS,Bilgin Yachts,TR,True,https://www.bilginyacht.com/,True
+TURQUOISE_YACHTS,Turquoise Yachts,TR,True,https://www.turquoiseyachts.com/,True
+TANSU_YACHTS,Tansu Yachts,TR,True,https://www.tansuyachts.com/,True
+SU_MARINE_YACHTS,Su Marine Yachts,TR,True,https://www.sumarineyachts.com/,True
+ALESTA_YACHTS,Alesta Yachts,TR,True,https://www.alestayacht.com/,True
+BENETEAU,Beneteau,FR,True,https://www.beneteau.com/,False
+JEANNEAU,Jeanneau,FR,True,https://www.jeanneau.com/,False
+BAVARIA_YACHTS,Bavaria Yachts,DE,True,https://www.bavariayachts.com/,False
+HANSE,Hanse,DE,True,https://www.hanseyachts.com/,False
+DUFOUR,Dufour,FR,True,https://www.dufour-yachts.com/,False
+ELAN,Elan,SI,True,https://elan-yachts.com/,False
+X_YACHTS,X-Yachts,DK,True,https://www.x-yachts.com/,False
+GRAND_SOLEIL,Grand Soleil,IT,True,https://www.grandsoleil.net/,False
+HALLBERG_RASSY,Hallberg-Rassy,SE,True,https://www.hallberg-rassy.com/,True
+AMEL,Amel,FR,True,https://www.amel.fr/,True
+LAGOON,Lagoon,FR,True,https://www.cata-lagoon.com/,False
+FOUNTAINE_PAJOT,Fountaine Pajot,FR,True,https://www.catamarans-fountaine-pajot.com/,False
+BALI_CATAMARANS,Bali Catamarans,FR,True,https://www.bali-catamarans.com/,False
+EXCESS_CATAMARANS,Excess Catamarans,FR,True,https://www.excess-catamarans.com/,False
+NAUTITECH,Nautitech,FR,True,https://www.nautitechcatamarans.com/,False
+LEOPARD_CATAMARANS,Leopard Catamarans,ZA,True,https://www.leopardcatamarans.com/,False
+SUNREEF_YACHTS,Sunreef Yachts,PL,True,https://www.sunreef-yachts.com/,True
+AZIMUT_YACHTS,Azimut Yachts,IT,True,https://www.azimutyachts.com/,False
+FERRETTI_YACHTS,Ferretti Yachts,IT,True,https://www.ferretti-yachts.com/,False
+PRINCESS_YACHTS,Princess Yachts,GB,True,https://www.princessyachts.com/,False
+SUNSEEKER,Sunseeker,GB,True,https://www.sunseeker.com/,False
+FAIRLINE,Fairline,GB,True,https://www.fairline.com/,False
+SEALINE,Sealine,DE,True,https://www.sealine.com/,False
+GALEON,Galeon,PL,True,https://www.galeonyachts.com/,False
+PRESTIGE_YACHTS,Prestige Yachts,FR,True,https://www.prestige-yachts.com/,False
+ABSOLUTE_YACHTS,Absolute Yachts,IT,True,https://www.absoluteyachts.com/,False
+CRANCHI,Cranchi,IT,True,https://www.cranchi.com/,False
+SESSA_MARINE,Sessa Marine,IT,True,https://www.sessamarine.com/,True
+FJORD,Fjord,NO,True,https://www.fjordboats.com/,False
+NIMBUS,Nimbus,SE,True,https://www.nimbus.se/,False
+RIVA,Riva,IT,True,https://www.riva-yacht.com/,False
+SANLORENZO,Sanlorenzo,IT,True,https://www.sanlorenzoyacht.com/,True
+SEA_RAY,Sea Ray,US,True,https://www.searay.com/,False
+BAYLINER,Bayliner,US,True,https://www.bayliner.com/,False
+QUICKSILVER,Quicksilver,FR,True,https://www.quicksilver-boats.com/,False
+BOSTON_WHALER,Boston Whaler,US,True,https://www.bostonwhaler.com/,False
+AXOPAR,Axopar,FI,True,https://www.axopar.com/,False
+SAXDOR_YACHTS,Saxdor Yachts,FI,True,https://www.saxdoryachts.com/,False
+DE_ANTONIO_YACHTS,De Antonio Yachts,ES,True,https://www.deantonioyachts.com/,False
+INVICTUS_YACHT,Invictus Yacht,IT,True,https://www.invictusyacht.com/,False
+KARNIC,Karnic,CY,True,https://www.karnic.eu/,True
+PARKER_POLAND,Parker Poland,PL,True,https://www.parkerpoland.com/,True
+ZODIAC,Zodiac,FR,True,https://www.zodiac-nautic.com/,False
+GRAND_MARINE,Grand Marine,US,True,https://www.grandmarine.com/,True
+BRIG,BRIG,UA,True,https://www.brig-boats.com/,True
+HIGHFIELD_BOATS,Highfield Boats,HK,True,https://www.highfieldboats.com/,True
+NUOVA_JOLLY,Nuova Jolly,IT,True,https://www.nuovajollymarine.com/,True
+SEA_DOO,Sea-Doo,CA,True,https://www.sea-doo.com/,False
+YAMAHA_WAVERUNNER,Yamaha WaveRunner,JP,True,https://www.yamahawaverunners.com/,False
+KAWASAKI_JET_SKI,Kawasaki Jet Ski,JP,True,https://www.kawasaki.com/en-us/personal-watercraft,True

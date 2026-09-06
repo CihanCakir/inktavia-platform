@@ -13,6 +13,8 @@ public sealed class VesselSpecificationEntityConfiguration : IEntityTypeConfigur
         builder.Property(x => x.VesselId).IsRequired();
         builder.Property(x => x.Brand).HasMaxLength(200);
         builder.Property(x => x.Model).HasMaxLength(200);
+        builder.Property(x => x.VesselBrandId);
+        builder.Property(x => x.VesselModelId);
         builder.Property(x => x.ProductionYear);
         builder.Property(x => x.LengthValue).HasPrecision(10, 3);
         builder.Property(x => x.LengthUnitCode).HasMaxLength(50);

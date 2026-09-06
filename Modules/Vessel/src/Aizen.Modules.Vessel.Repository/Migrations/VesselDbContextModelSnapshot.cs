@@ -156,6 +156,12 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                     b.Property<long?>("DeletedBy")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("EngineBrandId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("EngineModelId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("EngineName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -796,7 +802,13 @@ namespace Aizen.Modules.Vessel.Repository.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<long?>("VesselBrandId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("VesselId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("VesselModelId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("WaterCapacityUnitCode")

@@ -37,13 +37,16 @@ public sealed class UpdateMobileVesselCommandHandler
 
     private readonly IParticipantProfileResolver _resolver;
     private readonly IVesselRemoteCall _vessel;
+    private readonly IReferenceDataRemoteCall _referenceData;
     private readonly ILogger<UpdateMobileVesselCommandHandler> _logger;
 
     public UpdateMobileVesselCommandHandler(
         IParticipantProfileResolver resolver,
         IVesselRemoteCall vessel,
+        IReferenceDataRemoteCall referenceData,
         ILogger<UpdateMobileVesselCommandHandler> logger)
     {
+        _referenceData = referenceData;
         _resolver = resolver;
         _vessel = vessel;
         _logger = logger;
@@ -102,12 +105,16 @@ public sealed class UpdateMobileVesselCommandHandler
             var length = s.LengthMeters ?? cs?.LengthValue;
             var beam = s.BeamMeters ?? cs?.BeamValue;
             var draft = s.DraftMeters ?? cs?.DraftValue;
+            var (uvBrand, uvModel, uvBrandId, uvModelId) = await MobileCatalogDenormalizer.ResolveVesselAsync(
+                _referenceData, s.VesselModelId, s.VesselBrandId, s.Brand, s.Model);
             try
             {
                 await _vessel.UpsertSpecification(request.VesselId, new UpsertVesselSpecificationRequest
                 {
-                    Brand = NullIfBlank(s.Brand) ?? cs?.Brand,
-                    Model = NullIfBlank(s.Model) ?? cs?.Model,
+                    Brand = uvBrand ?? cs?.Brand,
+                    Model = uvModel ?? cs?.Model,
+                    VesselBrandId = uvBrandId ?? cs?.VesselBrandId,
+                    VesselModelId = uvModelId ?? cs?.VesselModelId,
                     ProductionYear = s.ProductionYear ?? cs?.ProductionYear,
                     LengthValue = length,
                     LengthUnitCode = length.HasValue ? (cs?.LengthUnitCode ?? DefaultLengthUnitCode) : null,
@@ -144,6 +151,8 @@ public sealed class UpdateMobileVesselCommandHandler
         long vesselId, UpdateMobileVesselEngineInput e, IReadOnlyList<VesselEngineDto> currentEngines, CancellationToken ct)
     {
         var existing = currentEngines?.FirstOrDefault(x => x.IsPrimary) ?? currentEngines?.FirstOrDefault();
+        var (ceBrand, ceModel, ceHp, ceFuel, ceBrandId, ceModelId) = await MobileCatalogDenormalizer.ResolveEngineAsync(
+            _referenceData, e.EngineModelId, e.EngineBrandId, e.HorsePower, e.FuelTypeCode);
         try
         {
             if (existing is not null)
@@ -152,10 +161,12 @@ public sealed class UpdateMobileVesselCommandHandler
                 {
                     EngineName = FirstNonBlank(e.EngineName, existing.EngineName, DefaultEngineName),
                     EngineTypeCode = FirstNonBlank(e.EngineTypeCode, existing.EngineTypeCode),
-                    FuelTypeCode = FirstNonBlank(e.FuelTypeCode, existing.FuelTypeCode),
-                    HorsePower = e.HorsePower ?? existing.HorsePower,
-                    Brand = existing.Brand,
-                    Model = existing.Model,
+                    FuelTypeCode = FirstNonBlank(ceFuel, e.FuelTypeCode, existing.FuelTypeCode),
+                    HorsePower = ceHp ?? existing.HorsePower,
+                    Brand = ceBrand ?? existing.Brand,
+                    Model = ceModel ?? existing.Model,
+                    EngineBrandId = ceBrandId ?? existing.EngineBrandId,
+                    EngineModelId = ceModelId ?? existing.EngineModelId,
                     SerialNumber = existing.SerialNumber,
                     ProductionYear = existing.ProductionYear,
                 });
@@ -166,8 +177,12 @@ public sealed class UpdateMobileVesselCommandHandler
                 {
                     EngineName = string.IsNullOrWhiteSpace(e.EngineName) ? DefaultEngineName : e.EngineName!.Trim(),
                     EngineTypeCode = e.EngineTypeCode,
-                    FuelTypeCode = e.FuelTypeCode,
-                    HorsePower = e.HorsePower,
+                    FuelTypeCode = ceFuel ?? e.FuelTypeCode,
+                    HorsePower = ceHp,
+                    Brand = ceBrand,
+                    Model = ceModel,
+                    EngineBrandId = ceBrandId,
+                    EngineModelId = ceModelId,
                     IsPrimary = true,
                 });
             }

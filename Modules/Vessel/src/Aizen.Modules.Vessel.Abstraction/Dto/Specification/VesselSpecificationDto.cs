@@ -8,6 +8,8 @@ public sealed class VesselSpecificationDto
     public long VesselId { get; set; }
     public string? Brand { get; set; }
     public string? Model { get; set; }
+    public long? VesselBrandId { get; set; }
+    public long? VesselModelId { get; set; }
     public int? ProductionYear { get; set; }
     public decimal? LengthValue { get; set; }
     public string? LengthUnitCode { get; set; }

@@ -1,0 +1,177 @@
+[
+  {
+    "code": "YAMAHA",
+    "name": "Yamaha",
+    "isActive": true,
+    "source": "https://www.yamahaoutboards.com/",
+    "needsReview": false
+  },
+  {
+    "code": "MERCURY_MARINE",
+    "name": "Mercury Marine",
+    "isActive": true,
+    "source": "https://www.mercurymarine.com/",
+    "needsReview": false
+  },
+  {
+    "code": "SUZUKI_MARINE",
+    "name": "Suzuki Marine",
+    "isActive": true,
+    "source": "https://www.suzukimarine.com/",
+    "needsReview": false
+  },
+  {
+    "code": "HONDA_MARINE",
+    "name": "Honda Marine",
+    "isActive": true,
+    "source": "https://marine.honda.com/",
+    "needsReview": false
+  },
+  {
+    "code": "TOHATSU",
+    "name": "Tohatsu",
+    "isActive": true,
+    "source": "https://www.tohatsu.com/",
+    "needsReview": false
+  },
+  {
+    "code": "PARSUN",
+    "name": "Parsun",
+    "isActive": true,
+    "source": "https://www.parsun.com/",
+    "needsReview": true
+  },
+  {
+    "code": "SELVA_MARINE",
+    "name": "Selva Marine",
+    "isActive": true,
+    "source": "https://www.selvamarine.com/",
+    "needsReview": true
+  },
+  {
+    "code": "EVINRUDE",
+    "name": "Evinrude",
+    "isActive": true,
+    "source": "https://www.evinrude.com/",
+    "needsReview": true
+  },
+  {
+    "code": "TORQEEDO",
+    "name": "Torqeedo",
+    "isActive": true,
+    "source": "https://www.torqeedo.com/",
+    "needsReview": true
+  },
+  {
+    "code": "EPROPULSION",
+    "name": "ePropulsion",
+    "isActive": true,
+    "source": "https://www.epropulsion.com/",
+    "needsReview": true
+  },
+  {
+    "code": "VOLVO_PENTA",
+    "name": "Volvo Penta",
+    "isActive": true,
+    "source": "https://www.volvopenta.com/",
+    "needsReview": false
+  },
+  {
+    "code": "YANMAR",
+    "name": "Yanmar",
+    "isActive": true,
+    "source": "https://www.yanmar.com/marine/",
+    "needsReview": false
+  },
+  {
+    "code": "CUMMINS",
+    "name": "Cummins",
+    "isActive": true,
+    "source": "https://www.cummins.com/engines/marine",
+    "needsReview": false
+  },
+  {
+    "code": "CATERPILLAR",
+    "name": "Caterpillar",
+    "isActive": true,
+    "source": "https://www.cat.com/en_US/products/new/power-systems/marine-power-systems.html",
+    "needsReview": false
+  },
+  {
+    "code": "MAN_ENGINES",
+    "name": "MAN Engines",
+    "isActive": true,
+    "source": "https://www.man-engines.com/",
+    "needsReview": false
+  },
+  {
+    "code": "MTU",
+    "name": "MTU",
+    "isActive": true,
+    "source": "https://www.mtu-solutions.com/",
+    "needsReview": true
+  },
+  {
+    "code": "SCANIA",
+    "name": "Scania",
+    "isActive": true,
+    "source": "https://www.scania.com/products-and-services/engines/marine/",
+    "needsReview": true
+  },
+  {
+    "code": "JOHN_DEERE",
+    "name": "John Deere",
+    "isActive": true,
+    "source": "https://www.deere.com/en/marine-engines/",
+    "needsReview": true
+  },
+  {
+    "code": "FPT_INDUSTRIAL",
+    "name": "FPT Industrial",
+    "isActive": true,
+    "source": "https://www.fptindustrial.com/",
+    "needsReview": true
+  },
+  {
+    "code": "NANNI_DIESEL",
+    "name": "Nanni Diesel",
+    "isActive": true,
+    "source": "https://www.nannienergy.com/",
+    "needsReview": true
+  },
+  {
+    "code": "VETUS",
+    "name": "Vetus",
+    "isActive": true,
+    "source": "https://www.vetus.com/",
+    "needsReview": true
+  },
+  {
+    "code": "STEYR_MOTORS",
+    "name": "Steyr Motors",
+    "isActive": true,
+    "source": "https://www.steyr-motors.com/",
+    "needsReview": true
+  },
+  {
+    "code": "BETA_MARINE",
+    "name": "Beta Marine",
+    "isActive": true,
+    "source": "https://www.betamarine.co.uk/",
+    "needsReview": true
+  },
+  {
+    "code": "DOOSAN",
+    "name": "Doosan",
+    "isActive": true,
+    "source": "https://www.doosanengine.com/",
+    "needsReview": true
+  },
+  {
+    "code": "BAUDOUIN",
+    "name": "Baudouin",
+    "isActive": true,
+    "source": "https://www.baudouin.com/",
+    "needsReview": true
+  }
+]

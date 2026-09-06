@@ -53,6 +53,7 @@ public sealed class AddVesselEngineCommandHandler : AizenCommandHandler<AddVesse
             r.HorsePower,
             r.ProductionYear,
             r.IsPrimary);
+        engine.SetBrandModel(r.EngineBrandId, r.EngineModelId);
 
         await _engineRepository.AddAsync(engine, cancellationToken);
 
