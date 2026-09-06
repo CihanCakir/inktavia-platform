@@ -1,0 +1,296 @@
+# Grafana — port-forward-only erisim (Faz A'da ingress/tunnel YOK):
+#    kubectl -n monitoring port-forward svc/grafana 13000:3000   ->  http://localhost:13000
+# Admin SIRRI out-of-band (public repo). Sunucuda, basinda BOSLUKLA:
+#    kubectl -n monitoring create secret generic grafana-admin \
+#      --from-literal=user=admin --from-literal=password='<GUCLU_SIFRE>'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  namespace: monitoring
+data:
+  datasources.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus.monitoring.svc.cluster.local:9090
+        isDefault: true
+  dashboards.yml: |
+    apiVersion: 1
+    providers:
+      - name: yuk-testi
+        orgId: 1
+        folder: "Yük Testi"
+        type: file
+        options: { path: /var/lib/grafana/dashboards }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  # KAYNAK: observability/grafana/dashboards/yuk-testi.json (lokal compose ile ayni pano).
+  # Kaynak degisirse bu kopya da guncellenmeli (bilincli kopya — tek dosyayi iki ortam mount ediyor).
+  yuk-testi.json: |
+    {
+      "uid": "yuk-testi",
+      "title": "Yük Testi — k6 + Kaynaklar",
+      "timezone": "browser",
+      "refresh": "10s",
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "k6 — istek süresi p95 / p99",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": null
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "k6_http_req_duration_p95",
+              "legendFormat": "p95",
+              "refId": "A"
+            },
+            {
+              "expr": "k6_http_req_duration_p99",
+              "legendFormat": "p99",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "k6 — istek/sn ve sanal kullanıcı",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": null
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "rate(k6_http_reqs_total[1m])",
+              "legendFormat": "rps",
+              "refId": "A"
+            },
+            {
+              "expr": "k6_vus",
+              "legendFormat": "VU",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "k6 — hata oranı",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": null
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "k6_http_req_failed_rate",
+              "legendFormat": "hata",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "RabbitMQ — hazır bekleyen mesaj",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": null
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "rabbitmq_queue_messages_ready",
+              "legendFormat": "ready",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Konteyner CPU (cAdvisor)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 16
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": null
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "topk(8, rate(container_cpu_usage_seconds_total{name!=\"\"}[1m]))",
+              "legendFormat": "__auto",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Konteyner RAM working set (cAdvisor)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 16
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": null
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "custom": {
+                "lineWidth": 2,
+                "fillOpacity": 10
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "topk(8, container_memory_working_set_bytes{name!=\"\"})",
+              "legendFormat": "__auto",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 39
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: grafana } }
+  template:
+    metadata: { labels: { app: grafana } }
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:10.4.2
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom: { secretKeyRef: { name: grafana-admin, key: user } }
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom: { secretKeyRef: { name: grafana-admin, key: password } }
+          ports: [{ containerPort: 3000 }]
+          resources:
+            requests: { memory: 64Mi, cpu: 20m }
+            limits: { memory: 256Mi }
+          volumeMounts:
+            - { name: prov-datasources, mountPath: /etc/grafana/provisioning/datasources }
+            - { name: prov-dashboards, mountPath: /etc/grafana/provisioning/dashboards }
+            - { name: dashboards, mountPath: /var/lib/grafana/dashboards }
+      volumes:
+        - name: prov-datasources
+          configMap: { name: grafana-provisioning, items: [{ key: datasources.yml, path: datasources.yml }] }
+        - name: prov-dashboards
+          configMap: { name: grafana-provisioning, items: [{ key: dashboards.yml, path: dashboards.yml }] }
+        - name: dashboards
+          configMap: { name: grafana-dashboards }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  selector: { app: grafana }
+  ports: [{ port: 3000, targetPort: 3000 }]

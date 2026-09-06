@@ -1,0 +1,19 @@
+# Faz A observability (2026-09-06) — monitoring ns + SIKI kota.
+# Kota matematigi (limits): prometheus 700Mi + grafana 256Mi + kube-state 128Mi + pg_exporter 64Mi
+# = 1148Mi ≤ 1280Mi. Kota 1.25Gi'ye BILEREK genis birakildi (Prometheus'a nefes payi —
+# diger konusmanin rotusu). Node olcumu karar ani: 9.0Gi available / %43 mem (2026-09-06).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: monitoring-quota
+  namespace: monitoring
+spec:
+  hard:
+    requests.memory: 640Mi
+    limits.memory: 1280Mi
+    pods: "8"

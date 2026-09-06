@@ -1,0 +1,40 @@
+# Faz A observability — monitoring yigini (Prometheus 7d + Grafana + kube-state + postgres_exporter).
+#
+# ⚠️ BU DOSYA KENDILIGINDEN UYGULANMAZ (app-of-apps yok — bilinen bosluk). Merge SONRASI sunucuda:
+#    curl -fsSL "https://raw.githubusercontent.com/CihanCakir/inktavia-platform/develop/gitops/apps/monitoring-app.yaml?cb=$(date +%s)" \
+#      | tee /tmp/mon.yaml | grep -E 'path|targetRevision' && kubectl apply -f /tmp/mon.yaml
+#    (?cb= son eki sart: raw.githubusercontent CDN'i taze merge'i dakikalarca eski gosterebiliyor —
+#     2026-09-04'te apply turunu bir kez yaniltti.)
+#
+# ⚠️ IKI SIR OUT-OF-BAND olusturulmali (public repo — degerler asla repoya/sohbete girmez;
+#    komutlar basinda BOSLUKLA kosulur, history'ye dusmez):
+#    kubectl create namespace monitoring   # ilk kurulumda, sync'ten once
+#     kubectl -n monitoring create secret generic monitoring-credentials \
+#       --from-literal=PG_EXPORTER_DSN='postgresql://aizen:<POSTGRES_PASSWORD>@postgres.inktavia-dev.svc.cluster.local:5432/inktavia_store_dev?sslmode=disable'
+#     kubectl -n monitoring create secret generic grafana-admin \
+#       --from-literal=user=admin --from-literal=password='<GUCLU_SIFRE>'
+#
+# Erisim (Faz A'da ingress/tunnel yok):
+#    kubectl -n monitoring port-forward svc/grafana 13000:3000   →  http://localhost:13000
+# Dogrulama: "Yük Testi" panosu in-cluster Prometheus'tan veri cekiyor; kubectl top nodes +
+# free -h once/sonra sayilari PR aciklamasina (sart: available > 6Gi kalmali).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: infrastructure/monitoring
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
