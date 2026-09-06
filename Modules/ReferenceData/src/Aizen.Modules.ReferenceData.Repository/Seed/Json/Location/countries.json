@@ -1,0 +1,2268 @@
+[
+  {
+    "countryCode": "AF",
+    "numericCode": "004",
+    "name": {
+      "tr": "Afganistan",
+      "en": "Afghanistan"
+    },
+    "defaultCurrencyCode": "AFN",
+    "phoneCode": "+93",
+    "isActive": true
+  },
+  {
+    "countryCode": "AL",
+    "numericCode": "008",
+    "name": {
+      "tr": "Arnavutluk",
+      "en": "Albania"
+    },
+    "defaultCurrencyCode": "ALL",
+    "phoneCode": "+355",
+    "isActive": true
+  },
+  {
+    "countryCode": "DZ",
+    "numericCode": "012",
+    "name": {
+      "tr": "Cezayir",
+      "en": "Algeria"
+    },
+    "defaultCurrencyCode": "DZD",
+    "phoneCode": "+213",
+    "isActive": true
+  },
+  {
+    "countryCode": "AD",
+    "numericCode": "020",
+    "name": {
+      "tr": "Andorra",
+      "en": "Andorra"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+376",
+    "isActive": true
+  },
+  {
+    "countryCode": "AO",
+    "numericCode": "024",
+    "name": {
+      "tr": "Angola",
+      "en": "Angola"
+    },
+    "defaultCurrencyCode": "AOA",
+    "phoneCode": "+244",
+    "isActive": true
+  },
+  {
+    "countryCode": "AG",
+    "numericCode": "028",
+    "name": {
+      "tr": "Antigua ve Barbuda",
+      "en": "Antigua and Barbuda"
+    },
+    "defaultCurrencyCode": "XCD",
+    "phoneCode": "+1268",
+    "isActive": true
+  },
+  {
+    "countryCode": "AR",
+    "numericCode": "032",
+    "name": {
+      "tr": "Arjantin",
+      "en": "Argentina"
+    },
+    "defaultCurrencyCode": "ARS",
+    "phoneCode": "+54",
+    "isActive": true
+  },
+  {
+    "countryCode": "AM",
+    "numericCode": "051",
+    "name": {
+      "tr": "Ermenistan",
+      "en": "Armenia"
+    },
+    "defaultCurrencyCode": "AMD",
+    "phoneCode": "+374",
+    "isActive": true
+  },
+  {
+    "countryCode": "AW",
+    "numericCode": "533",
+    "name": {
+      "tr": "Aruba",
+      "en": "Aruba"
+    },
+    "defaultCurrencyCode": "AWG",
+    "phoneCode": "+297",
+    "isActive": true
+  },
+  {
+    "countryCode": "AU",
+    "numericCode": "036",
+    "name": {
+      "tr": "Avustralya",
+      "en": "Australia"
+    },
+    "defaultCurrencyCode": "AUD",
+    "phoneCode": "+61",
+    "isActive": true
+  },
+  {
+    "countryCode": "AT",
+    "numericCode": "040",
+    "name": {
+      "tr": "Avusturya",
+      "en": "Austria"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+43",
+    "isActive": true
+  },
+  {
+    "countryCode": "AZ",
+    "numericCode": "031",
+    "name": {
+      "tr": "Azerbaycan",
+      "en": "Azerbaijan"
+    },
+    "defaultCurrencyCode": "AZN",
+    "phoneCode": "+994",
+    "isActive": true
+  },
+  {
+    "countryCode": "BS",
+    "numericCode": "044",
+    "name": {
+      "tr": "Bahamalar",
+      "en": "Bahamas"
+    },
+    "defaultCurrencyCode": "BSD",
+    "phoneCode": "+1242",
+    "isActive": true
+  },
+  {
+    "countryCode": "BH",
+    "numericCode": "048",
+    "name": {
+      "tr": "Bahreyn",
+      "en": "Bahrain"
+    },
+    "defaultCurrencyCode": "BHD",
+    "phoneCode": "+973",
+    "isActive": true
+  },
+  {
+    "countryCode": "BD",
+    "numericCode": "050",
+    "name": {
+      "tr": "Bangladeş",
+      "en": "Bangladesh"
+    },
+    "defaultCurrencyCode": "BDT",
+    "phoneCode": "+880",
+    "isActive": true
+  },
+  {
+    "countryCode": "BB",
+    "numericCode": "052",
+    "name": {
+      "tr": "Barbados",
+      "en": "Barbados"
+    },
+    "defaultCurrencyCode": "BBD",
+    "phoneCode": "+1246",
+    "isActive": true
+  },
+  {
+    "countryCode": "BY",
+    "numericCode": "112",
+    "name": {
+      "tr": "Belarus",
+      "en": "Belarus"
+    },
+    "defaultCurrencyCode": "BYN",
+    "phoneCode": "+375",
+    "isActive": true
+  },
+  {
+    "countryCode": "BE",
+    "numericCode": "056",
+    "name": {
+      "tr": "Belçika",
+      "en": "Belgium"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+32",
+    "isActive": true
+  },
+  {
+    "countryCode": "BZ",
+    "numericCode": "084",
+    "name": {
+      "tr": "Belize",
+      "en": "Belize"
+    },
+    "defaultCurrencyCode": "BZD",
+    "phoneCode": "+501",
+    "isActive": true
+  },
+  {
+    "countryCode": "BJ",
+    "numericCode": "204",
+    "name": {
+      "tr": "Benin",
+      "en": "Benin"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+229",
+    "isActive": true
+  },
+  {
+    "countryCode": "BM",
+    "numericCode": "060",
+    "name": {
+      "tr": "Bermuda",
+      "en": "Bermuda"
+    },
+    "defaultCurrencyCode": "BMD",
+    "phoneCode": "+1441",
+    "isActive": true
+  },
+  {
+    "countryCode": "BT",
+    "numericCode": "064",
+    "name": {
+      "tr": "Butan",
+      "en": "Bhutan"
+    },
+    "defaultCurrencyCode": "BTN",
+    "phoneCode": "+975",
+    "isActive": true
+  },
+  {
+    "countryCode": "BO",
+    "numericCode": "068",
+    "name": {
+      "tr": "Bolivya",
+      "en": "Bolivia"
+    },
+    "defaultCurrencyCode": "BOB",
+    "phoneCode": "+591",
+    "isActive": true
+  },
+  {
+    "countryCode": "BA",
+    "numericCode": "070",
+    "name": {
+      "tr": "Bosna-Hersek",
+      "en": "Bosnia and Herzegovina"
+    },
+    "defaultCurrencyCode": "BAM",
+    "phoneCode": "+387",
+    "isActive": true
+  },
+  {
+    "countryCode": "BW",
+    "numericCode": "072",
+    "name": {
+      "tr": "Botsvana",
+      "en": "Botswana"
+    },
+    "defaultCurrencyCode": "BWP",
+    "phoneCode": "+267",
+    "isActive": true
+  },
+  {
+    "countryCode": "BR",
+    "numericCode": "076",
+    "name": {
+      "tr": "Brezilya",
+      "en": "Brazil"
+    },
+    "defaultCurrencyCode": "BRL",
+    "phoneCode": "+55",
+    "isActive": true
+  },
+  {
+    "countryCode": "BN",
+    "numericCode": "096",
+    "name": {
+      "tr": "Brunei",
+      "en": "Brunei"
+    },
+    "defaultCurrencyCode": "BND",
+    "phoneCode": "+673",
+    "isActive": true
+  },
+  {
+    "countryCode": "BG",
+    "numericCode": "100",
+    "name": {
+      "tr": "Bulgaristan",
+      "en": "Bulgaria"
+    },
+    "defaultCurrencyCode": "BGN",
+    "phoneCode": "+359",
+    "isActive": true
+  },
+  {
+    "countryCode": "BF",
+    "numericCode": "854",
+    "name": {
+      "tr": "Burkina Faso",
+      "en": "Burkina Faso"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+226",
+    "isActive": true
+  },
+  {
+    "countryCode": "BI",
+    "numericCode": "108",
+    "name": {
+      "tr": "Burundi",
+      "en": "Burundi"
+    },
+    "defaultCurrencyCode": "BIF",
+    "phoneCode": "+257",
+    "isActive": true
+  },
+  {
+    "countryCode": "CV",
+    "numericCode": "132",
+    "name": {
+      "tr": "Cabo Verde",
+      "en": "Cabo Verde"
+    },
+    "defaultCurrencyCode": "CVE",
+    "phoneCode": "+238",
+    "isActive": true
+  },
+  {
+    "countryCode": "KH",
+    "numericCode": "116",
+    "name": {
+      "tr": "Kamboçya",
+      "en": "Cambodia"
+    },
+    "defaultCurrencyCode": "KHR",
+    "phoneCode": "+855",
+    "isActive": true
+  },
+  {
+    "countryCode": "CM",
+    "numericCode": "120",
+    "name": {
+      "tr": "Kamerun",
+      "en": "Cameroon"
+    },
+    "defaultCurrencyCode": "XAF",
+    "phoneCode": "+237",
+    "isActive": true
+  },
+  {
+    "countryCode": "CA",
+    "numericCode": "124",
+    "name": {
+      "tr": "Kanada",
+      "en": "Canada"
+    },
+    "defaultCurrencyCode": "CAD",
+    "phoneCode": "+1",
+    "isActive": true
+  },
+  {
+    "countryCode": "KY",
+    "numericCode": "136",
+    "name": {
+      "tr": "Cayman Adaları",
+      "en": "Cayman Islands"
+    },
+    "defaultCurrencyCode": "KYD",
+    "phoneCode": "+1345",
+    "isActive": true
+  },
+  {
+    "countryCode": "CF",
+    "numericCode": "140",
+    "name": {
+      "tr": "Orta Afrika Cumhuriyeti",
+      "en": "Central African Republic"
+    },
+    "defaultCurrencyCode": "XAF",
+    "phoneCode": "+236",
+    "isActive": true
+  },
+  {
+    "countryCode": "TD",
+    "numericCode": "148",
+    "name": {
+      "tr": "Çad",
+      "en": "Chad"
+    },
+    "defaultCurrencyCode": "XAF",
+    "phoneCode": "+235",
+    "isActive": true
+  },
+  {
+    "countryCode": "CL",
+    "numericCode": "152",
+    "name": {
+      "tr": "Şili",
+      "en": "Chile"
+    },
+    "defaultCurrencyCode": "CLP",
+    "phoneCode": "+56",
+    "isActive": true
+  },
+  {
+    "countryCode": "CN",
+    "numericCode": "156",
+    "name": {
+      "tr": "Çin",
+      "en": "China"
+    },
+    "defaultCurrencyCode": "CNY",
+    "phoneCode": "+86",
+    "isActive": true
+  },
+  {
+    "countryCode": "CO",
+    "numericCode": "170",
+    "name": {
+      "tr": "Kolombiya",
+      "en": "Colombia"
+    },
+    "defaultCurrencyCode": "COP",
+    "phoneCode": "+57",
+    "isActive": true
+  },
+  {
+    "countryCode": "KM",
+    "numericCode": "174",
+    "name": {
+      "tr": "Komorlar",
+      "en": "Comoros"
+    },
+    "defaultCurrencyCode": "KMF",
+    "phoneCode": "+269",
+    "isActive": true
+  },
+  {
+    "countryCode": "CG",
+    "numericCode": "178",
+    "name": {
+      "tr": "Kongo",
+      "en": "Congo"
+    },
+    "defaultCurrencyCode": "XAF",
+    "phoneCode": "+242",
+    "isActive": true
+  },
+  {
+    "countryCode": "CD",
+    "numericCode": "180",
+    "name": {
+      "tr": "Demokratik Kongo Cumhuriyeti",
+      "en": "Congo (DRC)"
+    },
+    "defaultCurrencyCode": "CDF",
+    "phoneCode": "+243",
+    "isActive": true
+  },
+  {
+    "countryCode": "CR",
+    "numericCode": "188",
+    "name": {
+      "tr": "Kosta Rika",
+      "en": "Costa Rica"
+    },
+    "defaultCurrencyCode": "CRC",
+    "phoneCode": "+506",
+    "isActive": true
+  },
+  {
+    "countryCode": "HR",
+    "numericCode": "191",
+    "name": {
+      "tr": "Hırvatistan",
+      "en": "Croatia"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+385",
+    "isActive": true
+  },
+  {
+    "countryCode": "CU",
+    "numericCode": "192",
+    "name": {
+      "tr": "Küba",
+      "en": "Cuba"
+    },
+    "defaultCurrencyCode": "CUP",
+    "phoneCode": "+53",
+    "isActive": true
+  },
+  {
+    "countryCode": "CY",
+    "numericCode": "196",
+    "name": {
+      "tr": "Kıbrıs",
+      "en": "Cyprus"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+357",
+    "isActive": true
+  },
+  {
+    "countryCode": "CZ",
+    "numericCode": "203",
+    "name": {
+      "tr": "Çekya",
+      "en": "Czechia"
+    },
+    "defaultCurrencyCode": "CZK",
+    "phoneCode": "+420",
+    "isActive": true
+  },
+  {
+    "countryCode": "CI",
+    "numericCode": "384",
+    "name": {
+      "tr": "Fildişi Sahili",
+      "en": "Côte d'Ivoire"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+225",
+    "isActive": true
+  },
+  {
+    "countryCode": "DK",
+    "numericCode": "208",
+    "name": {
+      "tr": "Danimarka",
+      "en": "Denmark"
+    },
+    "defaultCurrencyCode": "DKK",
+    "phoneCode": "+45",
+    "isActive": true
+  },
+  {
+    "countryCode": "DJ",
+    "numericCode": "262",
+    "name": {
+      "tr": "Cibuti",
+      "en": "Djibouti"
+    },
+    "defaultCurrencyCode": "DJF",
+    "phoneCode": "+253",
+    "isActive": true
+  },
+  {
+    "countryCode": "DM",
+    "numericCode": "212",
+    "name": {
+      "tr": "Dominika",
+      "en": "Dominica"
+    },
+    "defaultCurrencyCode": "XCD",
+    "phoneCode": "+1767",
+    "isActive": true
+  },
+  {
+    "countryCode": "DO",
+    "numericCode": "214",
+    "name": {
+      "tr": "Dominik Cumhuriyeti",
+      "en": "Dominican Republic"
+    },
+    "defaultCurrencyCode": "DOP",
+    "phoneCode": "+1809",
+    "isActive": true
+  },
+  {
+    "countryCode": "EC",
+    "numericCode": "218",
+    "name": {
+      "tr": "Ekvador",
+      "en": "Ecuador"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+593",
+    "isActive": true
+  },
+  {
+    "countryCode": "EG",
+    "numericCode": "818",
+    "name": {
+      "tr": "Mısır",
+      "en": "Egypt"
+    },
+    "defaultCurrencyCode": "EGP",
+    "phoneCode": "+20",
+    "isActive": true
+  },
+  {
+    "countryCode": "SV",
+    "numericCode": "222",
+    "name": {
+      "tr": "El Salvador",
+      "en": "El Salvador"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+503",
+    "isActive": true
+  },
+  {
+    "countryCode": "GQ",
+    "numericCode": "226",
+    "name": {
+      "tr": "Ekvator Ginesi",
+      "en": "Equatorial Guinea"
+    },
+    "defaultCurrencyCode": "XAF",
+    "phoneCode": "+240",
+    "isActive": true
+  },
+  {
+    "countryCode": "ER",
+    "numericCode": "232",
+    "name": {
+      "tr": "Eritre",
+      "en": "Eritrea"
+    },
+    "defaultCurrencyCode": "ERN",
+    "phoneCode": "+291",
+    "isActive": true
+  },
+  {
+    "countryCode": "EE",
+    "numericCode": "233",
+    "name": {
+      "tr": "Estonya",
+      "en": "Estonia"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+372",
+    "isActive": true
+  },
+  {
+    "countryCode": "SZ",
+    "numericCode": "748",
+    "name": {
+      "tr": "Esvatini",
+      "en": "Eswatini"
+    },
+    "defaultCurrencyCode": "SZL",
+    "phoneCode": "+268",
+    "isActive": true
+  },
+  {
+    "countryCode": "ET",
+    "numericCode": "231",
+    "name": {
+      "tr": "Etiyopya",
+      "en": "Ethiopia"
+    },
+    "defaultCurrencyCode": "ETB",
+    "phoneCode": "+251",
+    "isActive": true
+  },
+  {
+    "countryCode": "FJ",
+    "numericCode": "242",
+    "name": {
+      "tr": "Fiji",
+      "en": "Fiji"
+    },
+    "defaultCurrencyCode": "FJD",
+    "phoneCode": "+679",
+    "isActive": true
+  },
+  {
+    "countryCode": "FI",
+    "numericCode": "246",
+    "name": {
+      "tr": "Finlandiya",
+      "en": "Finland"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+358",
+    "isActive": true
+  },
+  {
+    "countryCode": "FR",
+    "numericCode": "250",
+    "name": {
+      "tr": "Fransa",
+      "en": "France"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+33",
+    "isActive": true
+  },
+  {
+    "countryCode": "PF",
+    "numericCode": "258",
+    "name": {
+      "tr": "Fransız Polinezyası",
+      "en": "French Polynesia"
+    },
+    "defaultCurrencyCode": "XPF",
+    "phoneCode": "+689",
+    "isActive": true
+  },
+  {
+    "countryCode": "GA",
+    "numericCode": "266",
+    "name": {
+      "tr": "Gabon",
+      "en": "Gabon"
+    },
+    "defaultCurrencyCode": "XAF",
+    "phoneCode": "+241",
+    "isActive": true
+  },
+  {
+    "countryCode": "GM",
+    "numericCode": "270",
+    "name": {
+      "tr": "Gambiya",
+      "en": "Gambia"
+    },
+    "defaultCurrencyCode": "GMD",
+    "phoneCode": "+220",
+    "isActive": true
+  },
+  {
+    "countryCode": "GE",
+    "numericCode": "268",
+    "name": {
+      "tr": "Gürcistan",
+      "en": "Georgia"
+    },
+    "defaultCurrencyCode": "GEL",
+    "phoneCode": "+995",
+    "isActive": true
+  },
+  {
+    "countryCode": "DE",
+    "numericCode": "276",
+    "name": {
+      "tr": "Almanya",
+      "en": "Germany"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+49",
+    "isActive": true
+  },
+  {
+    "countryCode": "GH",
+    "numericCode": "288",
+    "name": {
+      "tr": "Gana",
+      "en": "Ghana"
+    },
+    "defaultCurrencyCode": "GHS",
+    "phoneCode": "+233",
+    "isActive": true
+  },
+  {
+    "countryCode": "GI",
+    "numericCode": "292",
+    "name": {
+      "tr": "Cebelitarık",
+      "en": "Gibraltar"
+    },
+    "defaultCurrencyCode": "GIP",
+    "phoneCode": "+350",
+    "isActive": true
+  },
+  {
+    "countryCode": "GR",
+    "numericCode": "300",
+    "name": {
+      "tr": "Yunanistan",
+      "en": "Greece"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+30",
+    "isActive": true
+  },
+  {
+    "countryCode": "GL",
+    "numericCode": "304",
+    "name": {
+      "tr": "Grönland",
+      "en": "Greenland"
+    },
+    "defaultCurrencyCode": "DKK",
+    "phoneCode": "+299",
+    "isActive": true
+  },
+  {
+    "countryCode": "GD",
+    "numericCode": "308",
+    "name": {
+      "tr": "Grenada",
+      "en": "Grenada"
+    },
+    "defaultCurrencyCode": "XCD",
+    "phoneCode": "+1473",
+    "isActive": true
+  },
+  {
+    "countryCode": "GT",
+    "numericCode": "320",
+    "name": {
+      "tr": "Guatemala",
+      "en": "Guatemala"
+    },
+    "defaultCurrencyCode": "GTQ",
+    "phoneCode": "+502",
+    "isActive": true
+  },
+  {
+    "countryCode": "GN",
+    "numericCode": "324",
+    "name": {
+      "tr": "Gine",
+      "en": "Guinea"
+    },
+    "defaultCurrencyCode": "GNF",
+    "phoneCode": "+224",
+    "isActive": true
+  },
+  {
+    "countryCode": "GW",
+    "numericCode": "624",
+    "name": {
+      "tr": "Gine-Bissau",
+      "en": "Guinea-Bissau"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+245",
+    "isActive": true
+  },
+  {
+    "countryCode": "GY",
+    "numericCode": "328",
+    "name": {
+      "tr": "Guyana",
+      "en": "Guyana"
+    },
+    "defaultCurrencyCode": "GYD",
+    "phoneCode": "+592",
+    "isActive": true
+  },
+  {
+    "countryCode": "HT",
+    "numericCode": "332",
+    "name": {
+      "tr": "Haiti",
+      "en": "Haiti"
+    },
+    "defaultCurrencyCode": "HTG",
+    "phoneCode": "+509",
+    "isActive": true
+  },
+  {
+    "countryCode": "HN",
+    "numericCode": "340",
+    "name": {
+      "tr": "Honduras",
+      "en": "Honduras"
+    },
+    "defaultCurrencyCode": "HNL",
+    "phoneCode": "+504",
+    "isActive": true
+  },
+  {
+    "countryCode": "HK",
+    "numericCode": "344",
+    "name": {
+      "tr": "Hong Kong",
+      "en": "Hong Kong"
+    },
+    "defaultCurrencyCode": "HKD",
+    "phoneCode": "+852",
+    "isActive": true
+  },
+  {
+    "countryCode": "HU",
+    "numericCode": "348",
+    "name": {
+      "tr": "Macaristan",
+      "en": "Hungary"
+    },
+    "defaultCurrencyCode": "HUF",
+    "phoneCode": "+36",
+    "isActive": true
+  },
+  {
+    "countryCode": "IS",
+    "numericCode": "352",
+    "name": {
+      "tr": "İzlanda",
+      "en": "Iceland"
+    },
+    "defaultCurrencyCode": "ISK",
+    "phoneCode": "+354",
+    "isActive": true
+  },
+  {
+    "countryCode": "IN",
+    "numericCode": "356",
+    "name": {
+      "tr": "Hindistan",
+      "en": "India"
+    },
+    "defaultCurrencyCode": "INR",
+    "phoneCode": "+91",
+    "isActive": true
+  },
+  {
+    "countryCode": "ID",
+    "numericCode": "360",
+    "name": {
+      "tr": "Endonezya",
+      "en": "Indonesia"
+    },
+    "defaultCurrencyCode": "IDR",
+    "phoneCode": "+62",
+    "isActive": true
+  },
+  {
+    "countryCode": "IR",
+    "numericCode": "364",
+    "name": {
+      "tr": "İran",
+      "en": "Iran"
+    },
+    "defaultCurrencyCode": "IRR",
+    "phoneCode": "+98",
+    "isActive": true
+  },
+  {
+    "countryCode": "IQ",
+    "numericCode": "368",
+    "name": {
+      "tr": "Irak",
+      "en": "Iraq"
+    },
+    "defaultCurrencyCode": "IQD",
+    "phoneCode": "+964",
+    "isActive": true
+  },
+  {
+    "countryCode": "IE",
+    "numericCode": "372",
+    "name": {
+      "tr": "İrlanda",
+      "en": "Ireland"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+353",
+    "isActive": true
+  },
+  {
+    "countryCode": "IL",
+    "numericCode": "376",
+    "name": {
+      "tr": "İsrail",
+      "en": "Israel"
+    },
+    "defaultCurrencyCode": "ILS",
+    "phoneCode": "+972",
+    "isActive": true
+  },
+  {
+    "countryCode": "IT",
+    "numericCode": "380",
+    "name": {
+      "tr": "İtalya",
+      "en": "Italy"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+39",
+    "isActive": true
+  },
+  {
+    "countryCode": "JM",
+    "numericCode": "388",
+    "name": {
+      "tr": "Jamaika",
+      "en": "Jamaica"
+    },
+    "defaultCurrencyCode": "JMD",
+    "phoneCode": "+1876",
+    "isActive": true
+  },
+  {
+    "countryCode": "JP",
+    "numericCode": "392",
+    "name": {
+      "tr": "Japonya",
+      "en": "Japan"
+    },
+    "defaultCurrencyCode": "JPY",
+    "phoneCode": "+81",
+    "isActive": true
+  },
+  {
+    "countryCode": "JO",
+    "numericCode": "400",
+    "name": {
+      "tr": "Ürdün",
+      "en": "Jordan"
+    },
+    "defaultCurrencyCode": "JOD",
+    "phoneCode": "+962",
+    "isActive": true
+  },
+  {
+    "countryCode": "KZ",
+    "numericCode": "398",
+    "name": {
+      "tr": "Kazakistan",
+      "en": "Kazakhstan"
+    },
+    "defaultCurrencyCode": "KZT",
+    "phoneCode": "+7",
+    "isActive": true
+  },
+  {
+    "countryCode": "KE",
+    "numericCode": "404",
+    "name": {
+      "tr": "Kenya",
+      "en": "Kenya"
+    },
+    "defaultCurrencyCode": "KES",
+    "phoneCode": "+254",
+    "isActive": true
+  },
+  {
+    "countryCode": "KI",
+    "numericCode": "296",
+    "name": {
+      "tr": "Kiribati",
+      "en": "Kiribati"
+    },
+    "defaultCurrencyCode": "AUD",
+    "phoneCode": "+686",
+    "isActive": true
+  },
+  {
+    "countryCode": "KW",
+    "numericCode": "414",
+    "name": {
+      "tr": "Kuveyt",
+      "en": "Kuwait"
+    },
+    "defaultCurrencyCode": "KWD",
+    "phoneCode": "+965",
+    "isActive": true
+  },
+  {
+    "countryCode": "KG",
+    "numericCode": "417",
+    "name": {
+      "tr": "Kırgizistan",
+      "en": "Kyrgyzstan"
+    },
+    "defaultCurrencyCode": "KGS",
+    "phoneCode": "+996",
+    "isActive": true
+  },
+  {
+    "countryCode": "LA",
+    "numericCode": "418",
+    "name": {
+      "tr": "Laos",
+      "en": "Laos"
+    },
+    "defaultCurrencyCode": "LAK",
+    "phoneCode": "+856",
+    "isActive": true
+  },
+  {
+    "countryCode": "LV",
+    "numericCode": "428",
+    "name": {
+      "tr": "Letonya",
+      "en": "Latvia"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+371",
+    "isActive": true
+  },
+  {
+    "countryCode": "LB",
+    "numericCode": "422",
+    "name": {
+      "tr": "Lübnan",
+      "en": "Lebanon"
+    },
+    "defaultCurrencyCode": "LBP",
+    "phoneCode": "+961",
+    "isActive": true
+  },
+  {
+    "countryCode": "LS",
+    "numericCode": "426",
+    "name": {
+      "tr": "Lesotho",
+      "en": "Lesotho"
+    },
+    "defaultCurrencyCode": "LSL",
+    "phoneCode": "+266",
+    "isActive": true
+  },
+  {
+    "countryCode": "LR",
+    "numericCode": "430",
+    "name": {
+      "tr": "Liberya",
+      "en": "Liberia"
+    },
+    "defaultCurrencyCode": "LRD",
+    "phoneCode": "+231",
+    "isActive": true
+  },
+  {
+    "countryCode": "LY",
+    "numericCode": "434",
+    "name": {
+      "tr": "Libya",
+      "en": "Libya"
+    },
+    "defaultCurrencyCode": "LYD",
+    "phoneCode": "+218",
+    "isActive": true
+  },
+  {
+    "countryCode": "LI",
+    "numericCode": "438",
+    "name": {
+      "tr": "Lihtenştayn",
+      "en": "Liechtenstein"
+    },
+    "defaultCurrencyCode": "CHF",
+    "phoneCode": "+423",
+    "isActive": true
+  },
+  {
+    "countryCode": "LT",
+    "numericCode": "440",
+    "name": {
+      "tr": "Litvanya",
+      "en": "Lithuania"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+370",
+    "isActive": true
+  },
+  {
+    "countryCode": "LU",
+    "numericCode": "442",
+    "name": {
+      "tr": "Lüksemburg",
+      "en": "Luxembourg"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+352",
+    "isActive": true
+  },
+  {
+    "countryCode": "MO",
+    "numericCode": "446",
+    "name": {
+      "tr": "Makao",
+      "en": "Macao"
+    },
+    "defaultCurrencyCode": "MOP",
+    "phoneCode": "+853",
+    "isActive": true
+  },
+  {
+    "countryCode": "MG",
+    "numericCode": "450",
+    "name": {
+      "tr": "Madagaskar",
+      "en": "Madagascar"
+    },
+    "defaultCurrencyCode": "MGA",
+    "phoneCode": "+261",
+    "isActive": true
+  },
+  {
+    "countryCode": "MW",
+    "numericCode": "454",
+    "name": {
+      "tr": "Malavi",
+      "en": "Malawi"
+    },
+    "defaultCurrencyCode": "MWK",
+    "phoneCode": "+265",
+    "isActive": true
+  },
+  {
+    "countryCode": "MY",
+    "numericCode": "458",
+    "name": {
+      "tr": "Malezya",
+      "en": "Malaysia"
+    },
+    "defaultCurrencyCode": "MYR",
+    "phoneCode": "+60",
+    "isActive": true
+  },
+  {
+    "countryCode": "MV",
+    "numericCode": "462",
+    "name": {
+      "tr": "Maldivler",
+      "en": "Maldives"
+    },
+    "defaultCurrencyCode": "MVR",
+    "phoneCode": "+960",
+    "isActive": true
+  },
+  {
+    "countryCode": "ML",
+    "numericCode": "466",
+    "name": {
+      "tr": "Mali",
+      "en": "Mali"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+223",
+    "isActive": true
+  },
+  {
+    "countryCode": "MT",
+    "numericCode": "470",
+    "name": {
+      "tr": "Malta",
+      "en": "Malta"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+356",
+    "isActive": true
+  },
+  {
+    "countryCode": "MH",
+    "numericCode": "584",
+    "name": {
+      "tr": "Marshall Adaları",
+      "en": "Marshall Islands"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+692",
+    "isActive": true
+  },
+  {
+    "countryCode": "MR",
+    "numericCode": "478",
+    "name": {
+      "tr": "Moritanya",
+      "en": "Mauritania"
+    },
+    "defaultCurrencyCode": "MRU",
+    "phoneCode": "+222",
+    "isActive": true
+  },
+  {
+    "countryCode": "MU",
+    "numericCode": "480",
+    "name": {
+      "tr": "Mauritius",
+      "en": "Mauritius"
+    },
+    "defaultCurrencyCode": "MUR",
+    "phoneCode": "+230",
+    "isActive": true
+  },
+  {
+    "countryCode": "MX",
+    "numericCode": "484",
+    "name": {
+      "tr": "Meksika",
+      "en": "Mexico"
+    },
+    "defaultCurrencyCode": "MXN",
+    "phoneCode": "+52",
+    "isActive": true
+  },
+  {
+    "countryCode": "FM",
+    "numericCode": "583",
+    "name": {
+      "tr": "Mikronezya",
+      "en": "Micronesia"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+691",
+    "isActive": true
+  },
+  {
+    "countryCode": "MD",
+    "numericCode": "498",
+    "name": {
+      "tr": "Moldova",
+      "en": "Moldova"
+    },
+    "defaultCurrencyCode": "MDL",
+    "phoneCode": "+373",
+    "isActive": true
+  },
+  {
+    "countryCode": "MC",
+    "numericCode": "492",
+    "name": {
+      "tr": "Monako",
+      "en": "Monaco"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+377",
+    "isActive": true
+  },
+  {
+    "countryCode": "MN",
+    "numericCode": "496",
+    "name": {
+      "tr": "Moğolistan",
+      "en": "Mongolia"
+    },
+    "defaultCurrencyCode": "MNT",
+    "phoneCode": "+976",
+    "isActive": true
+  },
+  {
+    "countryCode": "ME",
+    "numericCode": "499",
+    "name": {
+      "tr": "Karadağ",
+      "en": "Montenegro"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+382",
+    "isActive": true
+  },
+  {
+    "countryCode": "MA",
+    "numericCode": "504",
+    "name": {
+      "tr": "Fas",
+      "en": "Morocco"
+    },
+    "defaultCurrencyCode": "MAD",
+    "phoneCode": "+212",
+    "isActive": true
+  },
+  {
+    "countryCode": "MZ",
+    "numericCode": "508",
+    "name": {
+      "tr": "Mozambik",
+      "en": "Mozambique"
+    },
+    "defaultCurrencyCode": "MZN",
+    "phoneCode": "+258",
+    "isActive": true
+  },
+  {
+    "countryCode": "MM",
+    "numericCode": "104",
+    "name": {
+      "tr": "Myanmar",
+      "en": "Myanmar"
+    },
+    "defaultCurrencyCode": "MMK",
+    "phoneCode": "+95",
+    "isActive": true
+  },
+  {
+    "countryCode": "NA",
+    "numericCode": "516",
+    "name": {
+      "tr": "Namibya",
+      "en": "Namibia"
+    },
+    "defaultCurrencyCode": "NAD",
+    "phoneCode": "+264",
+    "isActive": true
+  },
+  {
+    "countryCode": "NR",
+    "numericCode": "520",
+    "name": {
+      "tr": "Nauru",
+      "en": "Nauru"
+    },
+    "defaultCurrencyCode": "AUD",
+    "phoneCode": "+674",
+    "isActive": true
+  },
+  {
+    "countryCode": "NP",
+    "numericCode": "524",
+    "name": {
+      "tr": "Nepal",
+      "en": "Nepal"
+    },
+    "defaultCurrencyCode": "NPR",
+    "phoneCode": "+977",
+    "isActive": true
+  },
+  {
+    "countryCode": "NL",
+    "numericCode": "528",
+    "name": {
+      "tr": "Hollanda",
+      "en": "Netherlands"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+31",
+    "isActive": true
+  },
+  {
+    "countryCode": "NC",
+    "numericCode": "540",
+    "name": {
+      "tr": "Yeni Kaledonya",
+      "en": "New Caledonia"
+    },
+    "defaultCurrencyCode": "XPF",
+    "phoneCode": "+687",
+    "isActive": true
+  },
+  {
+    "countryCode": "NZ",
+    "numericCode": "554",
+    "name": {
+      "tr": "Yeni Zelanda",
+      "en": "New Zealand"
+    },
+    "defaultCurrencyCode": "NZD",
+    "phoneCode": "+64",
+    "isActive": true
+  },
+  {
+    "countryCode": "NI",
+    "numericCode": "558",
+    "name": {
+      "tr": "Nikaragua",
+      "en": "Nicaragua"
+    },
+    "defaultCurrencyCode": "NIO",
+    "phoneCode": "+505",
+    "isActive": true
+  },
+  {
+    "countryCode": "NE",
+    "numericCode": "562",
+    "name": {
+      "tr": "Nijer",
+      "en": "Niger"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+227",
+    "isActive": true
+  },
+  {
+    "countryCode": "NG",
+    "numericCode": "566",
+    "name": {
+      "tr": "Nijerya",
+      "en": "Nigeria"
+    },
+    "defaultCurrencyCode": "NGN",
+    "phoneCode": "+234",
+    "isActive": true
+  },
+  {
+    "countryCode": "MK",
+    "numericCode": "807",
+    "name": {
+      "tr": "Kuzey Makedonya",
+      "en": "North Macedonia"
+    },
+    "defaultCurrencyCode": "MKD",
+    "phoneCode": "+389",
+    "isActive": true
+  },
+  {
+    "countryCode": "NO",
+    "numericCode": "578",
+    "name": {
+      "tr": "Norveç",
+      "en": "Norway"
+    },
+    "defaultCurrencyCode": "NOK",
+    "phoneCode": "+47",
+    "isActive": true
+  },
+  {
+    "countryCode": "OM",
+    "numericCode": "512",
+    "name": {
+      "tr": "Umman",
+      "en": "Oman"
+    },
+    "defaultCurrencyCode": "OMR",
+    "phoneCode": "+968",
+    "isActive": true
+  },
+  {
+    "countryCode": "PK",
+    "numericCode": "586",
+    "name": {
+      "tr": "Pakistan",
+      "en": "Pakistan"
+    },
+    "defaultCurrencyCode": "PKR",
+    "phoneCode": "+92",
+    "isActive": true
+  },
+  {
+    "countryCode": "PW",
+    "numericCode": "585",
+    "name": {
+      "tr": "Palau",
+      "en": "Palau"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+680",
+    "isActive": true
+  },
+  {
+    "countryCode": "PS",
+    "numericCode": "275",
+    "name": {
+      "tr": "Filistin",
+      "en": "Palestine"
+    },
+    "defaultCurrencyCode": "ILS",
+    "phoneCode": "+970",
+    "isActive": true
+  },
+  {
+    "countryCode": "PA",
+    "numericCode": "591",
+    "name": {
+      "tr": "Panama",
+      "en": "Panama"
+    },
+    "defaultCurrencyCode": "PAB",
+    "phoneCode": "+507",
+    "isActive": true
+  },
+  {
+    "countryCode": "PG",
+    "numericCode": "598",
+    "name": {
+      "tr": "Papua Yeni Gine",
+      "en": "Papua New Guinea"
+    },
+    "defaultCurrencyCode": "PGK",
+    "phoneCode": "+675",
+    "isActive": true
+  },
+  {
+    "countryCode": "PY",
+    "numericCode": "600",
+    "name": {
+      "tr": "Paraguay",
+      "en": "Paraguay"
+    },
+    "defaultCurrencyCode": "PYG",
+    "phoneCode": "+595",
+    "isActive": true
+  },
+  {
+    "countryCode": "PE",
+    "numericCode": "604",
+    "name": {
+      "tr": "Peru",
+      "en": "Peru"
+    },
+    "defaultCurrencyCode": "PEN",
+    "phoneCode": "+51",
+    "isActive": true
+  },
+  {
+    "countryCode": "PH",
+    "numericCode": "608",
+    "name": {
+      "tr": "Filipinler",
+      "en": "Philippines"
+    },
+    "defaultCurrencyCode": "PHP",
+    "phoneCode": "+63",
+    "isActive": true
+  },
+  {
+    "countryCode": "PL",
+    "numericCode": "616",
+    "name": {
+      "tr": "Polonya",
+      "en": "Poland"
+    },
+    "defaultCurrencyCode": "PLN",
+    "phoneCode": "+48",
+    "isActive": true
+  },
+  {
+    "countryCode": "PT",
+    "numericCode": "620",
+    "name": {
+      "tr": "Portekiz",
+      "en": "Portugal"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+351",
+    "isActive": true
+  },
+  {
+    "countryCode": "QA",
+    "numericCode": "634",
+    "name": {
+      "tr": "Katar",
+      "en": "Qatar"
+    },
+    "defaultCurrencyCode": "QAR",
+    "phoneCode": "+974",
+    "isActive": true
+  },
+  {
+    "countryCode": "RO",
+    "numericCode": "642",
+    "name": {
+      "tr": "Romanya",
+      "en": "Romania"
+    },
+    "defaultCurrencyCode": "RON",
+    "phoneCode": "+40",
+    "isActive": true
+  },
+  {
+    "countryCode": "RU",
+    "numericCode": "643",
+    "name": {
+      "tr": "Rusya",
+      "en": "Russia"
+    },
+    "defaultCurrencyCode": "RUB",
+    "phoneCode": "+7",
+    "isActive": true
+  },
+  {
+    "countryCode": "RW",
+    "numericCode": "646",
+    "name": {
+      "tr": "Ruanda",
+      "en": "Rwanda"
+    },
+    "defaultCurrencyCode": "RWF",
+    "phoneCode": "+250",
+    "isActive": true
+  },
+  {
+    "countryCode": "KN",
+    "numericCode": "659",
+    "name": {
+      "tr": "Saint Kitts ve Nevis",
+      "en": "Saint Kitts and Nevis"
+    },
+    "defaultCurrencyCode": "XCD",
+    "phoneCode": "+1869",
+    "isActive": true
+  },
+  {
+    "countryCode": "LC",
+    "numericCode": "662",
+    "name": {
+      "tr": "Saint Lucia",
+      "en": "Saint Lucia"
+    },
+    "defaultCurrencyCode": "XCD",
+    "phoneCode": "+1758",
+    "isActive": true
+  },
+  {
+    "countryCode": "VC",
+    "numericCode": "670",
+    "name": {
+      "tr": "Saint Vincent ve Grenadinler",
+      "en": "Saint Vincent and the Grenadines"
+    },
+    "defaultCurrencyCode": "XCD",
+    "phoneCode": "+1784",
+    "isActive": true
+  },
+  {
+    "countryCode": "WS",
+    "numericCode": "882",
+    "name": {
+      "tr": "Samoa",
+      "en": "Samoa"
+    },
+    "defaultCurrencyCode": "WST",
+    "phoneCode": "+685",
+    "isActive": true
+  },
+  {
+    "countryCode": "SM",
+    "numericCode": "674",
+    "name": {
+      "tr": "San Marino",
+      "en": "San Marino"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+378",
+    "isActive": true
+  },
+  {
+    "countryCode": "ST",
+    "numericCode": "678",
+    "name": {
+      "tr": "Sao Tome ve Principe",
+      "en": "Sao Tome and Principe"
+    },
+    "defaultCurrencyCode": "STN",
+    "phoneCode": "+239",
+    "isActive": true
+  },
+  {
+    "countryCode": "SA",
+    "numericCode": "682",
+    "name": {
+      "tr": "Suudi Arabistan",
+      "en": "Saudi Arabia"
+    },
+    "defaultCurrencyCode": "SAR",
+    "phoneCode": "+966",
+    "isActive": true
+  },
+  {
+    "countryCode": "SN",
+    "numericCode": "686",
+    "name": {
+      "tr": "Senegal",
+      "en": "Senegal"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+221",
+    "isActive": true
+  },
+  {
+    "countryCode": "RS",
+    "numericCode": "688",
+    "name": {
+      "tr": "Sırbistan",
+      "en": "Serbia"
+    },
+    "defaultCurrencyCode": "RSD",
+    "phoneCode": "+381",
+    "isActive": true
+  },
+  {
+    "countryCode": "SC",
+    "numericCode": "690",
+    "name": {
+      "tr": "Seyşeller",
+      "en": "Seychelles"
+    },
+    "defaultCurrencyCode": "SCR",
+    "phoneCode": "+248",
+    "isActive": true
+  },
+  {
+    "countryCode": "SL",
+    "numericCode": "694",
+    "name": {
+      "tr": "Sierra Leone",
+      "en": "Sierra Leone"
+    },
+    "defaultCurrencyCode": "SLE",
+    "phoneCode": "+232",
+    "isActive": true
+  },
+  {
+    "countryCode": "SG",
+    "numericCode": "702",
+    "name": {
+      "tr": "Singapur",
+      "en": "Singapore"
+    },
+    "defaultCurrencyCode": "SGD",
+    "phoneCode": "+65",
+    "isActive": true
+  },
+  {
+    "countryCode": "SK",
+    "numericCode": "703",
+    "name": {
+      "tr": "Slovakya",
+      "en": "Slovakia"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+421",
+    "isActive": true
+  },
+  {
+    "countryCode": "SI",
+    "numericCode": "705",
+    "name": {
+      "tr": "Slovenya",
+      "en": "Slovenia"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+386",
+    "isActive": true
+  },
+  {
+    "countryCode": "SB",
+    "numericCode": "090",
+    "name": {
+      "tr": "Solomon Adaları",
+      "en": "Solomon Islands"
+    },
+    "defaultCurrencyCode": "SBD",
+    "phoneCode": "+677",
+    "isActive": true
+  },
+  {
+    "countryCode": "SO",
+    "numericCode": "706",
+    "name": {
+      "tr": "Somali",
+      "en": "Somalia"
+    },
+    "defaultCurrencyCode": "SOS",
+    "phoneCode": "+252",
+    "isActive": true
+  },
+  {
+    "countryCode": "ZA",
+    "numericCode": "710",
+    "name": {
+      "tr": "Güney Afrika",
+      "en": "South Africa"
+    },
+    "defaultCurrencyCode": "ZAR",
+    "phoneCode": "+27",
+    "isActive": true
+  },
+  {
+    "countryCode": "KR",
+    "numericCode": "410",
+    "name": {
+      "tr": "Güney Kore",
+      "en": "South Korea"
+    },
+    "defaultCurrencyCode": "KRW",
+    "phoneCode": "+82",
+    "isActive": true
+  },
+  {
+    "countryCode": "SS",
+    "numericCode": "728",
+    "name": {
+      "tr": "Güney Sudan",
+      "en": "South Sudan"
+    },
+    "defaultCurrencyCode": "SSP",
+    "phoneCode": "+211",
+    "isActive": true
+  },
+  {
+    "countryCode": "ES",
+    "numericCode": "724",
+    "name": {
+      "tr": "İspanya",
+      "en": "Spain"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+34",
+    "isActive": true
+  },
+  {
+    "countryCode": "LK",
+    "numericCode": "144",
+    "name": {
+      "tr": "Sri Lanka",
+      "en": "Sri Lanka"
+    },
+    "defaultCurrencyCode": "LKR",
+    "phoneCode": "+94",
+    "isActive": true
+  },
+  {
+    "countryCode": "SD",
+    "numericCode": "729",
+    "name": {
+      "tr": "Sudan",
+      "en": "Sudan"
+    },
+    "defaultCurrencyCode": "SDG",
+    "phoneCode": "+249",
+    "isActive": true
+  },
+  {
+    "countryCode": "SR",
+    "numericCode": "740",
+    "name": {
+      "tr": "Surinam",
+      "en": "Suriname"
+    },
+    "defaultCurrencyCode": "SRD",
+    "phoneCode": "+597",
+    "isActive": true
+  },
+  {
+    "countryCode": "SE",
+    "numericCode": "752",
+    "name": {
+      "tr": "İsveç",
+      "en": "Sweden"
+    },
+    "defaultCurrencyCode": "SEK",
+    "phoneCode": "+46",
+    "isActive": true
+  },
+  {
+    "countryCode": "CH",
+    "numericCode": "756",
+    "name": {
+      "tr": "İsviçre",
+      "en": "Switzerland"
+    },
+    "defaultCurrencyCode": "CHF",
+    "phoneCode": "+41",
+    "isActive": true
+  },
+  {
+    "countryCode": "SY",
+    "numericCode": "760",
+    "name": {
+      "tr": "Suriye",
+      "en": "Syria"
+    },
+    "defaultCurrencyCode": "SYP",
+    "phoneCode": "+963",
+    "isActive": true
+  },
+  {
+    "countryCode": "TW",
+    "numericCode": "158",
+    "name": {
+      "tr": "Tayvan",
+      "en": "Taiwan"
+    },
+    "defaultCurrencyCode": "TWD",
+    "phoneCode": "+886",
+    "isActive": true
+  },
+  {
+    "countryCode": "TJ",
+    "numericCode": "762",
+    "name": {
+      "tr": "Tacikistan",
+      "en": "Tajikistan"
+    },
+    "defaultCurrencyCode": "TJS",
+    "phoneCode": "+992",
+    "isActive": true
+  },
+  {
+    "countryCode": "TZ",
+    "numericCode": "834",
+    "name": {
+      "tr": "Tanzanya",
+      "en": "Tanzania"
+    },
+    "defaultCurrencyCode": "TZS",
+    "phoneCode": "+255",
+    "isActive": true
+  },
+  {
+    "countryCode": "TH",
+    "numericCode": "764",
+    "name": {
+      "tr": "Tayland",
+      "en": "Thailand"
+    },
+    "defaultCurrencyCode": "THB",
+    "phoneCode": "+66",
+    "isActive": true
+  },
+  {
+    "countryCode": "TL",
+    "numericCode": "626",
+    "name": {
+      "tr": "Doğu Timor",
+      "en": "Timor-Leste"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+670",
+    "isActive": true
+  },
+  {
+    "countryCode": "TG",
+    "numericCode": "768",
+    "name": {
+      "tr": "Togo",
+      "en": "Togo"
+    },
+    "defaultCurrencyCode": "XOF",
+    "phoneCode": "+228",
+    "isActive": true
+  },
+  {
+    "countryCode": "TO",
+    "numericCode": "776",
+    "name": {
+      "tr": "Tonga",
+      "en": "Tonga"
+    },
+    "defaultCurrencyCode": "TOP",
+    "phoneCode": "+676",
+    "isActive": true
+  },
+  {
+    "countryCode": "TT",
+    "numericCode": "780",
+    "name": {
+      "tr": "Trinidad ve Tobago",
+      "en": "Trinidad and Tobago"
+    },
+    "defaultCurrencyCode": "TTD",
+    "phoneCode": "+1868",
+    "isActive": true
+  },
+  {
+    "countryCode": "TN",
+    "numericCode": "788",
+    "name": {
+      "tr": "Tunus",
+      "en": "Tunisia"
+    },
+    "defaultCurrencyCode": "TND",
+    "phoneCode": "+216",
+    "isActive": true
+  },
+  {
+    "countryCode": "TM",
+    "numericCode": "795",
+    "name": {
+      "tr": "Türkmenistan",
+      "en": "Turkmenistan"
+    },
+    "defaultCurrencyCode": "TMT",
+    "phoneCode": "+993",
+    "isActive": true
+  },
+  {
+    "countryCode": "TC",
+    "numericCode": "796",
+    "name": {
+      "tr": "Turks ve Caicos Adaları",
+      "en": "Turks and Caicos Islands"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+1649",
+    "isActive": true
+  },
+  {
+    "countryCode": "TV",
+    "numericCode": "798",
+    "name": {
+      "tr": "Tuvalu",
+      "en": "Tuvalu"
+    },
+    "defaultCurrencyCode": "AUD",
+    "phoneCode": "+688",
+    "isActive": true
+  },
+  {
+    "countryCode": "TR",
+    "numericCode": "792",
+    "name": {
+      "tr": "Türkiye",
+      "en": "Türkiye"
+    },
+    "defaultCurrencyCode": "TRY",
+    "phoneCode": "+90",
+    "isActive": true
+  },
+  {
+    "countryCode": "UG",
+    "numericCode": "800",
+    "name": {
+      "tr": "Uganda",
+      "en": "Uganda"
+    },
+    "defaultCurrencyCode": "UGX",
+    "phoneCode": "+256",
+    "isActive": true
+  },
+  {
+    "countryCode": "UA",
+    "numericCode": "804",
+    "name": {
+      "tr": "Ukrayna",
+      "en": "Ukraine"
+    },
+    "defaultCurrencyCode": "UAH",
+    "phoneCode": "+380",
+    "isActive": true
+  },
+  {
+    "countryCode": "AE",
+    "numericCode": "784",
+    "name": {
+      "tr": "Birleşik Arap Emirlikleri",
+      "en": "United Arab Emirates"
+    },
+    "defaultCurrencyCode": "AED",
+    "phoneCode": "+971",
+    "isActive": true
+  },
+  {
+    "countryCode": "GB",
+    "numericCode": "826",
+    "name": {
+      "tr": "Birleşik Krallık",
+      "en": "United Kingdom"
+    },
+    "defaultCurrencyCode": "GBP",
+    "phoneCode": "+44",
+    "isActive": true
+  },
+  {
+    "countryCode": "US",
+    "numericCode": "840",
+    "name": {
+      "tr": "Amerika Birleşik Devletleri",
+      "en": "United States"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+1",
+    "isActive": true
+  },
+  {
+    "countryCode": "UY",
+    "numericCode": "858",
+    "name": {
+      "tr": "Uruguay",
+      "en": "Uruguay"
+    },
+    "defaultCurrencyCode": "UYU",
+    "phoneCode": "+598",
+    "isActive": true
+  },
+  {
+    "countryCode": "UZ",
+    "numericCode": "860",
+    "name": {
+      "tr": "Özbekistan",
+      "en": "Uzbekistan"
+    },
+    "defaultCurrencyCode": "UZS",
+    "phoneCode": "+998",
+    "isActive": true
+  },
+  {
+    "countryCode": "VU",
+    "numericCode": "548",
+    "name": {
+      "tr": "Vanuatu",
+      "en": "Vanuatu"
+    },
+    "defaultCurrencyCode": "VUV",
+    "phoneCode": "+678",
+    "isActive": true
+  },
+  {
+    "countryCode": "VA",
+    "numericCode": "336",
+    "name": {
+      "tr": "Vatikan",
+      "en": "Vatican City"
+    },
+    "defaultCurrencyCode": "EUR",
+    "phoneCode": "+379",
+    "isActive": true
+  },
+  {
+    "countryCode": "VE",
+    "numericCode": "862",
+    "name": {
+      "tr": "Venezuela",
+      "en": "Venezuela"
+    },
+    "defaultCurrencyCode": "VES",
+    "phoneCode": "+58",
+    "isActive": true
+  },
+  {
+    "countryCode": "VN",
+    "numericCode": "704",
+    "name": {
+      "tr": "Vietnam",
+      "en": "Vietnam"
+    },
+    "defaultCurrencyCode": "VND",
+    "phoneCode": "+84",
+    "isActive": true
+  },
+  {
+    "countryCode": "VG",
+    "numericCode": "092",
+    "name": {
+      "tr": "Britanya Virjin Adaları",
+      "en": "Virgin Islands (British)"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+1284",
+    "isActive": true
+  },
+  {
+    "countryCode": "YE",
+    "numericCode": "887",
+    "name": {
+      "tr": "Yemen",
+      "en": "Yemen"
+    },
+    "defaultCurrencyCode": "YER",
+    "phoneCode": "+967",
+    "isActive": true
+  },
+  {
+    "countryCode": "ZM",
+    "numericCode": "894",
+    "name": {
+      "tr": "Zambiya",
+      "en": "Zambia"
+    },
+    "defaultCurrencyCode": "ZMW",
+    "phoneCode": "+260",
+    "isActive": true
+  },
+  {
+    "countryCode": "ZW",
+    "numericCode": "716",
+    "name": {
+      "tr": "Zimbabve",
+      "en": "Zimbabwe"
+    },
+    "defaultCurrencyCode": "USD",
+    "phoneCode": "+263",
+    "isActive": true
+  }
+]

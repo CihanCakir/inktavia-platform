@@ -10,7 +10,7 @@ namespace Aizen.Modules.ReferenceData.Repository.Service;
 
 public sealed class VesselCatalogReferenceService : IVesselCatalogReferenceService
 {
-    private const int MaxTake = 50;
+    private const int MaxTake = 200;
     private readonly IVesselBrandRepository _brands;
     private readonly IVesselModelRepository _models;
     private readonly ReferenceDataDbContext _db;

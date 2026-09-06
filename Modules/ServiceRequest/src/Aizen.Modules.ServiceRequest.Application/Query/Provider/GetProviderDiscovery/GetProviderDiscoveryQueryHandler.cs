@@ -38,15 +38,23 @@ public sealed class GetProviderDiscoveryQueryHandler
         if (filter.PageSize > 50)
             throw new AizenBusinessException("PageSize must not exceed 50.");
 
-        // Geo validation
-        if (filter.CenterLatitude.HasValue || filter.CenterLongitude.HasValue || filter.RadiusKm.HasValue)
+        // Geo validation. Center lat+lng go TOGETHER (both or neither). RadiusKm is OPTIONAL — it only enables the
+        // bounding-box prefilter; a centre WITHOUT a radius is a valid request (compute per-row distances and sort by
+        // distance, city-wide, with no radius cap). Requiring all three previously turned the app's
+        // "centre + sort, no radius" call into a module 400, which the BFF then surfaced as a 500.
+        if (filter.CenterLatitude.HasValue != filter.CenterLongitude.HasValue)
+            throw new AizenBusinessException("CenterLatitude and CenterLongitude must be provided together.");
+        if (filter.CenterLatitude.HasValue)
         {
-            if (!filter.CenterLatitude.HasValue || !filter.CenterLongitude.HasValue || !filter.RadiusKm.HasValue)
-                throw new AizenBusinessException("CenterLatitude, CenterLongitude, and RadiusKm must all be provided together.");
             if (filter.CenterLatitude.Value < -90 || filter.CenterLatitude.Value > 90)
                 throw new AizenBusinessException("CenterLatitude must be between -90 and 90.");
-            if (filter.CenterLongitude.Value < -180 || filter.CenterLongitude.Value > 180)
+            if (filter.CenterLongitude!.Value < -180 || filter.CenterLongitude.Value > 180)
                 throw new AizenBusinessException("CenterLongitude must be between -180 and 180.");
+        }
+        if (filter.RadiusKm.HasValue)
+        {
+            if (!filter.CenterLatitude.HasValue)
+                throw new AizenBusinessException("RadiusKm requires CenterLatitude and CenterLongitude.");
             if (filter.RadiusKm.Value <= 0 || filter.RadiusKm.Value > 200)
                 throw new AizenBusinessException("RadiusKm must be between 0 (exclusive) and 200.");
         }

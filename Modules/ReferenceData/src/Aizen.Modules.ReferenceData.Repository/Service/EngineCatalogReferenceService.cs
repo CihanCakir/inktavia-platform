@@ -10,7 +10,7 @@ namespace Aizen.Modules.ReferenceData.Repository.Service;
 
 public sealed class EngineCatalogReferenceService : IEngineCatalogReferenceService
 {
-    private const int MaxTake = 50;
+    private const int MaxTake = 200;
     private readonly IEngineBrandRepository _brands;
     private readonly IEngineModelRepository _models;
     private readonly ReferenceDataDbContext _db;

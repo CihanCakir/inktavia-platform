@@ -79,6 +79,15 @@ public sealed class CatalogSeedLoadTests
         // Engine HP carried through for a documented outboard family.
         var f150 = db.EngineModels.Single(m => m.Code == "F150");
         f150.HorsePower.Should().Be(150);
+
+        // VesselTypeCode is the REAL MARINE VESSEL_TYPE lookup vocabulary (so the picker's ?typeCode= equality filter
+        // matches) — not the coarse guess codes. No legacy label survives the generator mapping.
+        var realTypeCodes = new[] { "MOTOR_YACHT", "SAILING_BOAT", "CATAMARAN", "RIB", "JET_SKI" };
+        db.VesselModels.Select(m => m.VesselTypeCode).Distinct().ToList()
+            .Should().OnlyContain(c => c == null || realTypeCodes.Contains(c));
+        db.VesselModels.Any(m => m.VesselTypeCode == "MOTOR_YACHT").Should().BeTrue();
+        db.VesselModels.Any(m => m.VesselTypeCode == "MOTORYACHT" || m.VesselTypeCode == "SAILBOAT"
+            || m.VesselTypeCode == "PWC" || m.VesselTypeCode == "SUPERYACHT").Should().BeFalse();
     }
 
     [Fact]

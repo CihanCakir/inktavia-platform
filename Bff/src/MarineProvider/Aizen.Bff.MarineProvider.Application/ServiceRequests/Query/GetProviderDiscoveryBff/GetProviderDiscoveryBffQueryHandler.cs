@@ -2,6 +2,7 @@ using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Microsoft.Extensions.Logging;
 
@@ -55,17 +56,29 @@ public sealed class GetProviderDiscoveryBffQueryHandler
             _ => null,
         };
 
-        // Call module discovery endpoint
-        var moduleResult = await _serviceRequest.GetProviderDiscovery(
-            request.PageSize, request.Cursor, request.SortBy,
-            request.LocationCityCode, request.LocationCountryCode,
-            request.ServiceCategoryCode, request.MinPriority,
-            request.SearchTerm, offerStateCode, request.PublishedAfterUtc,
-            request.CenterLatitude, request.CenterLongitude, request.RadiusKm,
-            request.BoundsMinLat, request.BoundsMaxLat,
-            request.BoundsMinLng, request.BoundsMaxLng);
-
-        var page = moduleResult.Body;
+        // Call module discovery endpoint. A module business error (e.g. a bad filter) comes back as a non-2xx envelope,
+        // on which Refit throws ApiException — surface it as a clean business error (400) instead of letting it bubble
+        // up as an unhandled 500. (This is what turned the app's "centre without radius" call into a 500.)
+        Modules.ServiceRequest.Abstraction.Response.Provider.ProviderDiscoveryResponse? page;
+        try
+        {
+            var moduleResult = await _serviceRequest.GetProviderDiscovery(
+                request.PageSize, request.Cursor, request.SortBy,
+                request.LocationCityCode, request.LocationCountryCode,
+                request.ServiceCategoryCode, request.MinPriority,
+                request.SearchTerm, offerStateCode, request.PublishedAfterUtc,
+                request.CenterLatitude, request.CenterLongitude, request.RadiusKm,
+                request.BoundsMinLat, request.BoundsMaxLat,
+                request.BoundsMinLng, request.BoundsMaxLng);
+            page = moduleResult.Body;
+        }
+        catch (Refit.ApiException ex)
+        {
+            var message = ExtractBusinessMessage(ex.Content) ?? "Failed to load discovery.";
+            _logger.LogWarning(ex, "Discovery module call failed for provider {ProfileId}: {Message}",
+                _identityHolder.ProfileId, message);
+            throw new AizenBusinessException(message);
+        }
         if (page is null || page.Items.Count == 0)
         {
             return new GetProviderDiscoveryBffResponse
@@ -127,6 +140,27 @@ public sealed class GetProviderDiscoveryBffQueryHandler
             PageSize = page.PageSize,
             LocationMode = page.LocationMode
         };
+    }
+
+    private static string? ExtractBusinessMessage(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return null;
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(content);
+            if (doc.RootElement.TryGetProperty("header", out var header)
+                && header.TryGetProperty("errorMessage", out var msg)
+                && msg.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                var value = msg.GetString();
+                return string.IsNullOrWhiteSpace(value) ? null : value;
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // Not an Aizen envelope
+        }
+        return null;
     }
 
     private async Task<Dictionary<long, VesselSummaryDto>> ResolveVesselSummariesAsync(
