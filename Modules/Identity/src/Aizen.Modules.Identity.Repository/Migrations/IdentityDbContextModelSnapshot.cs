@@ -908,7 +908,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RoleTypeEntity", (string)null);
+                    b.ToTable("RoleTypeEntity");
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserAgreement.AgreementEntity", b =>
@@ -969,7 +969,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agreements", (string)null);
+                    b.ToTable("Agreements");
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserAgreement.UserAgreementEntity", b =>
@@ -1032,7 +1032,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserAgreements", (string)null);
+                    b.ToTable("UserAgreements");
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserDeviceBlockEntity", b =>
@@ -1094,7 +1094,7 @@ namespace Aizen.Modules.Identity.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserDeviceBlocks", (string)null);
+                    b.ToTable("UserDeviceBlocks");
                 });
 
             modelBuilder.Entity("Aizen.Modules.Identity.Domain.Entities.UserDeviceEntity", b =>
@@ -1659,6 +1659,18 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.Property<DateTime?>("BirthDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("BusinessAddressLabel")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<decimal?>("BusinessLatitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("numeric(10,7)");
+
+                    b.Property<decimal?>("BusinessLongitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("numeric(10,7)");
+
                     b.Property<string>("City")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -1734,6 +1746,10 @@ namespace Aizen.Modules.Identity.Repository.Migrations
                     b.Property<Guid?>("PublicId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
+
+                    b.Property<decimal?>("RatePerKm")
+                        .HasPrecision(12, 4)
+                        .HasColumnType("numeric(12,4)");
 
                     b.Property<string>("RejectReason")
                         .HasColumnType("text");

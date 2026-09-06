@@ -14,6 +14,10 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.Upd
         public bool? AllowPush { get; }
         public bool? AllowSms { get; }
         public bool? AllowEmail { get; }
+        public decimal? BusinessLatitude { get; }
+        public decimal? BusinessLongitude { get; }
+        public string? BusinessAddressLabel { get; }
+        public decimal? RatePerKm { get; }
 
         public UpdateOrganizerProfileCommand(
             string? ownerFirstName,
@@ -24,7 +28,11 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.Upd
             TaxpayerType? taxpayerType,
             bool? allowPush,
             bool? allowSms,
-            bool? allowEmail)
+            bool? allowEmail,
+            decimal? businessLatitude = null,
+            decimal? businessLongitude = null,
+            string? businessAddressLabel = null,
+            decimal? ratePerKm = null)
         {
             OwnerFirstName = ownerFirstName;
             OwnerLastName = ownerLastName;
@@ -35,6 +43,10 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.Upd
             AllowPush = allowPush;
             AllowSms = allowSms;
             AllowEmail = allowEmail;
+            BusinessLatitude = businessLatitude;
+            BusinessLongitude = businessLongitude;
+            BusinessAddressLabel = businessAddressLabel;
+            RatePerKm = ratePerKm;
         }
     }
 }

@@ -74,6 +74,9 @@ builder.Services.AddAizenRealtime(builder.Configuration, o => o.RegisterModuleMa
 // The hub broadcasts to one group prefix ("mobile-notification:{id}") → one domain-key registration. (The socket
 // manager routes a group broadcast to a hub by parsing the group-name prefix up to the first ':'.)
 builder.Services.AddDomainHub<MobileRealtimeHub>("mobile-notification");
+// Phase-2 — the same hub also serves per-SR live-trip groups (trip:{serviceRequestId}). The framework routes a
+// group broadcast to a hub by its group PREFIX, so the hub must be registered under the "trip" domain key too.
+builder.Services.AddDomainHub<MobileRealtimeHub>("trip");
 
 // The single per-surface routing declaration: NotificationSentMessage → thin cost-free frame + the recipient group.
 builder.Services.AddSingleton<IEventSocketMapper, MobileNotificationEventSocketMapper>();

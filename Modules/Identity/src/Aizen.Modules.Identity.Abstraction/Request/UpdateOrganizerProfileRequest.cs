@@ -18,5 +18,11 @@ namespace Aizen.Modules.Identity.Abstraction.Request
         public bool? AllowPush { get; set; }
         public bool? AllowSms { get; set; }
         public bool? AllowEmail { get; set; }
+
+        // Provider FIXED business location + default per-km travel rate (distance-based pricing, Phase 1).
+        public decimal? BusinessLatitude { get; set; }
+        public decimal? BusinessLongitude { get; set; }
+        public string? BusinessAddressLabel { get; set; }
+        public decimal? RatePerKm { get; set; }
     }
 }

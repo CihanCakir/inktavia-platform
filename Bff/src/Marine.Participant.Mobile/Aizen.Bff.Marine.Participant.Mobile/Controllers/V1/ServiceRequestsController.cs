@@ -48,6 +48,17 @@ public sealed class ServiceRequestsController : AizenWebApiController
         return SetResponse(result);
     }
 
+    /// <summary>The caller's live provider trip for this SR (initial render before the socket attaches); null when
+    /// there is no trip. A foreign/unknown id yields a clean not-found.</summary>
+    [HttpGet("{serviceRequestId:long}/trip")]
+    [ProducesResponseType(typeof(MobileServiceRequestTripDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileServiceRequestTripDto>> GetTrip(
+        [FromRoute] long serviceRequestId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileServiceRequestTripQuery(serviceRequestId), ct);
+        return SetResponse(result);
+    }
+
     /// <summary>Create a service request for the caller (optionally publishing + attaching uploaded files);
     /// returns the assembled detail reflecting exactly what persisted.</summary>
     [HttpPost]

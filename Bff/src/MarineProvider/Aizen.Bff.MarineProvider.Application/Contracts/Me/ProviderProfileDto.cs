@@ -12,6 +12,10 @@ public sealed class ProviderProfileDto
     public string? OwnerLastName { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
+    public decimal? BusinessLatitude { get; set; }
+    public decimal? BusinessLongitude { get; set; }
+    public string? BusinessAddressLabel { get; set; }
+    public decimal? RatePerKm { get; set; }
     public string? TaxpayerType { get; set; }
     public string? Bio { get; set; }
     public string? ProfilePhotoUrl { get; set; }

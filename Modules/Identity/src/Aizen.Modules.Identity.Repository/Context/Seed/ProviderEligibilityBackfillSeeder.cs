@@ -3,6 +3,7 @@ using Aizen.Core.Domain;
 using Aizen.Modules.Identity.Abstraction;
 using Aizen.Modules.Identity.Domain.Entities.ProviderServiceCategory;
 using Aizen.Modules.Identity.Repository.Context;
+using Aizen.Modules.Identity.Repository.Identity.Service.Onboarding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -35,7 +36,7 @@ public sealed class ProviderEligibilityBackfillSeeder
                      && !p.IsDeleted)
             .ToListAsync(ct);
 
-        int citiesPopulated = 0, categoryProviders = 0, skippedNoCity = 0, alreadyOk = 0;
+        int citiesPopulated = 0, categoryProviders = 0, skippedNoCity = 0, alreadyOk = 0, coordsPopulated = 0;
 
         foreach (var profile in providers)
         {
@@ -69,6 +70,18 @@ public sealed class ProviderEligibilityBackfillSeeder
                 alreadyOk++;
             }
 
+            // ── Business coordinates (distance pricing) — only when not already set ─
+            // Re-materialize coords for already-approved providers whose draft gained them later (or was
+            // submitted before Phase-3). Idempotent: a manual profile location wins.
+            if (profile.BusinessLatitude is null && profile.BusinessLongitude is null
+                && draft.TryGetValue("OperatingRegion", out var orCoords)
+                && OnboardingCoordinateRules.TryReadBusinessCoords(orCoords, out var blat, out var blng, out var blabel))
+            {
+                profile.SetBusinessLocation(blat, blng, blabel);
+                _db.UserProfiles.Update(profile);
+                coordsPopulated++;
+            }
+
             // ── Categories (only if the provider has none yet) ─────────────────────
             var hasCategories = await _db.ProviderServiceCategories.AnyAsync(c => c.ProfileId == profile.Id, ct);
             if (!hasCategories)
@@ -91,8 +104,9 @@ public sealed class ProviderEligibilityBackfillSeeder
 
         _logger.LogInformation(
             "I2 provider-eligibility backfill: {Total} approved providers scanned — city populated for {Cities}, " +
-            "categories populated for {Cats} providers, {AlreadyOk} already had a city, {Skipped} skipped (no city in draft).",
-            providers.Count, citiesPopulated, categoryProviders, alreadyOk, skippedNoCity);
+            "categories populated for {Cats} providers, business coordinates populated for {Coords}, {AlreadyOk} already " +
+            "had a city, {Skipped} skipped (no city in draft).",
+            providers.Count, citiesPopulated, categoryProviders, coordsPopulated, alreadyOk, skippedNoCity);
     }
 
     private static string? TryGetCity(Dictionary<string, JsonElement> draft)

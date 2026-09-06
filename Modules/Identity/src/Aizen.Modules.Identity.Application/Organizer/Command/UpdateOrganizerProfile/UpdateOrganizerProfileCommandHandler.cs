@@ -46,6 +46,11 @@ namespace Aizen.Modules.InktaviaStore.Application.Identity.Command.Organizer.Upd
             if (!string.IsNullOrWhiteSpace(req.ProfilePhotoUrl)) active.UpdateProfilePhoto(req.ProfilePhotoUrl);
             if (!string.IsNullOrWhiteSpace(req.NationalityId)) active.NationalityId = req.NationalityId;
 
+            // Provider fixed business location + default per-km rate (partial update: set when supplied).
+            if (req.BusinessLatitude.HasValue || req.BusinessLongitude.HasValue || !string.IsNullOrWhiteSpace(req.BusinessAddressLabel))
+                active.SetBusinessLocation(req.BusinessLatitude, req.BusinessLongitude, req.BusinessAddressLabel);
+            if (req.RatePerKm.HasValue) active.SetRatePerKm(req.RatePerKm);
+
             _profileRepo.UpdateProfileAsync(active);
 
             if (req.AllowPush is not null)

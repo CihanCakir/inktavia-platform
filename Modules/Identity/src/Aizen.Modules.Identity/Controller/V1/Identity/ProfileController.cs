@@ -83,7 +83,11 @@ namespace Aizen.Modules.InktaviaStore.Controller.V1.Identity
                     taxpayerType: req.TaxpayerType,
                     allowPush: req.AllowPush,
                     allowSms: req.AllowSms,
-                    allowEmail: req.AllowEmail
+                    allowEmail: req.AllowEmail,
+                    businessLatitude: req.BusinessLatitude,
+                    businessLongitude: req.BusinessLongitude,
+                    businessAddressLabel: req.BusinessAddressLabel,
+                    ratePerKm: req.RatePerKm
                 ), ct);
 
             return SetResponse(result);

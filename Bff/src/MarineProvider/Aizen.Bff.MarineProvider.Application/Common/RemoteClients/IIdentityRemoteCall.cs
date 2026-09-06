@@ -6,6 +6,8 @@ using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Aizen.Modules.Identity.Abstraction.Dto.Organizer;
 using Aizen.Modules.Identity.Abstraction.Dto.OtpLogin;
 using Aizen.Modules.Identity.Abstraction.Dto.PasswordRecovery;
+using Aizen.Modules.Identity.Abstraction.Model;
+using Aizen.Modules.Identity.Abstraction.Request;
 
 namespace Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 
@@ -24,6 +26,11 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
     // Resolve the organizer profile linked to a Keycloak subject (404/null when unlinked).
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles/by-subject/{keycloakSubject}")]
     Task<AizenApiResponse<OrganizerProfileDetailDto>> GetOrganizerProfileByKeycloakSubject(string keycloakSubject);
+
+    // Update the caller's organizer (provider) profile — the module resolves the profile from the asserted
+    // UserInfo.UserId (never the body), so the BFF must resolve the provider first so the assertion is stamped.
+    [AizenRemoteCallPut("/api/v1/identity/organizers/profile")]
+    Task<AizenApiResponse<ProfileUpdateResult>> UpdateOrganizerProfile([AizenRemoteCallBody] UpdateOrganizerProfileRequest request);
 
     // Idempotently provision/link an organizer profile for a Keycloak-authenticated user.
     [AizenRemoteCallPost("/api/v1/identity/organizers/provision-from-keycloak")]

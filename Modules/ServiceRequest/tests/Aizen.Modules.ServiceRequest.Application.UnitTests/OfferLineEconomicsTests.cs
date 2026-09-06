@@ -44,6 +44,27 @@ public sealed class OfferLineEconomicsTests
         offer.ProductTotal.Should().Be(0m);                // existing per-type totals unaffected
     }
 
+    // ── Phase-1 distance pricing: the suggested "Yol bedeli / Travel fee" line ──
+    // The create flow injects a regular Travel line with qty = distanceKm, unitPrice = ratePerKm, taxed at the
+    // prevailing rate. It flows through the unchanged engine: counted in Subtotal/TaxTotal/GrandTotal, exempt only
+    // from the commission base.
+    [Fact]
+    public void TravelFee_Line_Prices_As_Distance_Times_Rate_With_Normal_Tax()
+    {
+        var offer = Build(
+            Item(ServiceRequestOfferItemType.Service, 1, 5000m, taxRate: 0.20m),
+            Item(ServiceRequestOfferItemType.Travel, 459.8m, 15m, taxRate: 0.20m)); // distanceKm × ratePerKm
+
+        var travel = offer.Items.First(i => i.ItemType == ServiceRequestOfferItemType.Travel);
+        travel.LineSubtotal.Should().Be(6897.00m);        // 459.8 × 15
+        travel.TaxAmount.Should().Be(1379.40m);           // × 20%
+
+        offer.Subtotal.Should().Be(11897.00m);            // 5000 + 6897
+        offer.TaxTotal.Should().Be(2379.40m);             // 1000 + 1379.40
+        offer.GrandTotal.Should().Be(14276.40m);
+        offer.CommissionBaseTotal.Should().Be(5000m);     // Travel exempt from commission base; Service eligible
+    }
+
     // ── PricingMethod is descriptive: money math identical to Fixed ─────────────
 
     [Fact]

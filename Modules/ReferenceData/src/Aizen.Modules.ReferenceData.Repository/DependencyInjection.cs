@@ -6,6 +6,7 @@ using Aizen.Modules.ReferenceData.Repository.Options;
 using Aizen.Modules.ReferenceData.Repository.Repositories.Currency;
 using Aizen.Modules.ReferenceData.Repository.Repositories.ExchangeRate;
 using Aizen.Modules.ReferenceData.Repository.Repositories.LookupGroup;
+using Aizen.Modules.ReferenceData.Repository.Repositories.Marina;
 using Aizen.Modules.ReferenceData.Repository.Repositories.Measurement;
 using Aizen.Modules.ReferenceData.Repository.Repositories.SystemParameter;
 using Aizen.Modules.ReferenceData.Repository.Seed.Readers;
@@ -32,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<ILookupItemRepository, LookupItemRepository>();
         services.AddScoped<IMeasurementUnitRepository, MeasurementUnitRepository>();
         services.AddScoped<ISystemParameterRepository, SystemParameterRepository>();
+        services.AddScoped<IMarinaRepository, MarinaRepository>();
         services.AddScoped<ILocationRepository, LocationRepository>();
         services.AddScoped<ReferenceDataMongoIndexInitializer>(sp =>
         {
@@ -55,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IMeasurementReferenceService, MeasurementReferenceService>();
         services.AddScoped<ILocationReferenceService, LocationReferenceService>();
         services.AddScoped<ILocationValidationService, LocationValidationService>();
+        services.AddScoped<IMarinaReferenceService, MarinaReferenceService>();
         services.AddScoped<ISystemParameterReferenceService, SystemParameterReferenceService>();
         services.AddSingleton<IReferenceDataCacheKeyService, ReferenceDataCacheKeyService>();
         services.AddScoped<IReferenceDataCacheInvalidationService, ReferenceDataCacheInvalidationService>();
@@ -67,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<MeasurementJsonSeedService>();
         services.AddScoped<LookupJsonSeedService>();
         services.AddScoped<SystemJsonSeedService>();
+        services.AddScoped<MarinaJsonSeedService>();
         services.AddScoped<LocationJsonSeedService>();
         services.AddScoped<LocationSlugBackfillService>();
         services.AddScoped<IReferenceDataJsonSeedService, ReferenceDataJsonSeedService>();

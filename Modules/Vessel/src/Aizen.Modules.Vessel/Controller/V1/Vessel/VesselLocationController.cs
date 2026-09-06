@@ -40,4 +40,12 @@ public sealed class VesselLocationController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<UpdateVesselLocationSnapshotResponse>(new UpdateVesselLocationSnapshotCommand(vesselId, req), ct);
         return SetResponse(result);
     }
+
+    [HttpPut("selected")]
+    [ProducesResponseType(typeof(SetVesselSelectedLocationResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<SetVesselSelectedLocationResponse?>> SetSelected([FromRoute] long vesselId, [FromBody] SetVesselSelectedLocationRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<SetVesselSelectedLocationResponse>(new SetVesselSelectedLocationCommand(vesselId, req), ct);
+        return SetResponse(result);
+    }
 }

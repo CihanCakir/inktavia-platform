@@ -32,6 +32,8 @@ public sealed class ServiceRequestDbContext : AizenDbContext
     public DbSet<ServiceChangeOrderEntity> ServiceChangeOrders => Set<ServiceChangeOrderEntity>();   // BE-S11b
     public DbSet<ServiceChangeOrderItemEntity> ServiceChangeOrderItems => Set<ServiceChangeOrderItemEntity>();   // BE-S11b
     public DbSet<ServiceRequestAssignmentEntity> ServiceRequestAssignments => Set<ServiceRequestAssignmentEntity>();
+    public DbSet<Domain.Entities.Trip.ServiceRequestTripEntity> ServiceRequestTrips => Set<Domain.Entities.Trip.ServiceRequestTripEntity>();   // Phase-2 live trip tracking
+    public DbSet<Domain.Entities.Trip.ServiceRequestTripPositionEntity> TripPositions => Set<Domain.Entities.Trip.ServiceRequestTripPositionEntity>();
     public DbSet<ServiceRequestWorkLogEntity> ServiceRequestWorkLogs => Set<ServiceRequestWorkLogEntity>();
     public DbSet<ServiceRequestCompletionEntity> ServiceRequestCompletions => Set<ServiceRequestCompletionEntity>();
     public DbSet<ServiceRequestDisputeEntity> ServiceRequestDisputes => Set<ServiceRequestDisputeEntity>();

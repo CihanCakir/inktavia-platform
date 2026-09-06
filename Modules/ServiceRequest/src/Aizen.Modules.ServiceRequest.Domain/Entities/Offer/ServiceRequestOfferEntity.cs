@@ -36,6 +36,11 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     public decimal DiscountTotal { get; private set; }
     public decimal GrandTotal { get; private set; }
 
+    /// <summary>Phase-1 distance pricing — Haversine km between the provider's FIXED business location and the
+    /// vessel/job location, SNAPSHOT at offer creation so later location edits never change an existing quote.
+    /// Null when either location is unknown. Display-only; not part of the totals/tax math.</summary>
+    public decimal? DistanceKm { get; private set; }
+
     // Per-category totals (computed by calculation service)
     public decimal ServiceTotal { get; private set; }
     public decimal ProductTotal { get; private set; }
@@ -248,6 +253,9 @@ public sealed class ServiceRequestOfferEntity : AizenEntityWithAudit
     }
 
     public void AddItem(ServiceRequestOfferItemEntity item) => _items.Add(item);
+
+    /// <summary>Snapshot the quote-time distance (km). Set once by the create handler; not a math input.</summary>
+    public void SetDistanceKm(decimal? distanceKm) => DistanceKm = distanceKm;
     public void RecalculateTotal() => TotalAmount = _items.Sum(i => i.Quantity * i.UnitPrice);
 
     /// <summary>

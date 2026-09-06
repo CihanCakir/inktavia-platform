@@ -24,6 +24,7 @@ public static class NotificationVariablesCatalog
             [NotificationType.OfferAccepted]                     = new[] { "serviceRequestId", "offerId" },
             [NotificationType.AssignmentCreated]                 = new[] { "serviceRequestId", "assignmentId", "scheduledStartDate" },
             [NotificationType.JobStarted]                        = new[] { "serviceRequestId", "requestCode" },
+            [NotificationType.TripStarted]                       = new[] { "serviceRequestId", "requestCode" },
             [NotificationType.CompletionSubmitted]               = new[] { "serviceRequestId", "completionId" },
             [NotificationType.CompletionApproved]                = new[] { "serviceRequestId", "completionId" },
             [NotificationType.CompletionAutoApproveApproaching]  = new[] { "serviceRequestId", "completionId", "daysRemaining" },

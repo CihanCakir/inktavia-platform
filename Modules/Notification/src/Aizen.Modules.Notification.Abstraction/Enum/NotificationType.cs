@@ -25,6 +25,7 @@ public enum NotificationType
     /// <summary>BE_NF3 — "Sağlayıcı işinize başladı": the provider started the assigned job. Owner-facing.
     /// ServiceRequests category (100–139).</summary>
     JobStarted                   = 123,
+    TripStarted                  = 124,   // Phase-2 — provider en route ("Sağlayıcı yola çıktı")
     CompletionSubmitted          = 130,
     CompletionApproved           = 131,
     CompletionRejected           = 132,

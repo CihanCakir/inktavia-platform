@@ -25,6 +25,9 @@ public sealed class ServiceRequestOfferDto
     public decimal DiscountTotal { get; set; }
     public decimal GrandTotal { get; set; }
 
+    /// <summary>Phase-1 distance snapshot (km) — provider business location ↔ vessel/job location at create. Null-safe.</summary>
+    public decimal? DistanceKm { get; set; }
+
     // Commercial terms
     public OfferDepositType DepositType { get; set; }
     public decimal? DepositValue { get; set; }

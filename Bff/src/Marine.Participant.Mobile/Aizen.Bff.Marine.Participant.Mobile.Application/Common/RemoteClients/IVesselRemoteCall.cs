@@ -2,11 +2,13 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.Vessel.Abstraction.Request.Document;
 using Aizen.Modules.Vessel.Abstraction.Request.Engine;
+using Aizen.Modules.Vessel.Abstraction.Request.Location;
 using Aizen.Modules.Vessel.Abstraction.Request.Media;
 using Aizen.Modules.Vessel.Abstraction.Request.Specification;
 using Aizen.Modules.Vessel.Abstraction.Request.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Response.Document;
 using Aizen.Modules.Vessel.Abstraction.Response.Engine;
+using Aizen.Modules.Vessel.Abstraction.Response.Location;
 using Aizen.Modules.Vessel.Abstraction.Response.Media;
 using Aizen.Modules.Vessel.Abstraction.Response.Specification;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
@@ -55,6 +57,21 @@ public interface IVesselRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPut("/api/v1/vessels/{vesselId}")]
     Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(
         long vesselId, [AizenRemoteCallBody] UpdateVesselRequest request);
+
+    // ── Location (owner-gated by the module's EnsureCanEditAsync via the asserted caller) ──────────
+    // Record the auto-detected CURRENT position as a new location snapshot (append-only; module marks the prior
+    // snapshot historical). The mobile PUT passes lat/lng with Source="device"; the snapshot backs detail's
+    // CurrentLocation and the list card's last-location fields.
+    [AizenRemoteCallPut("/api/v1/vessels/{vesselId}/location")]
+    Task<AizenApiResponse<UpdateVesselLocationSnapshotResponse>> UpdateVesselLocation(
+        long vesselId, [AizenRemoteCallBody] UpdateVesselLocationSnapshotRequest request);
+
+    // Set the owner's EXPLICIT location choice on the vessel aggregate. For a marina pick the BFF resolves the
+    // marina name/coords from ReferenceData first and passes them denormalized, so the Vessel module never has to
+    // call ReferenceData. An all-null body clears the selection.
+    [AizenRemoteCallPut("/api/v1/vessels/{vesselId}/location/selected")]
+    Task<AizenApiResponse<SetVesselSelectedLocationResponse>> SetVesselSelectedLocation(
+        long vesselId, [AizenRemoteCallBody] SetVesselSelectedLocationRequest request);
 
     // Update an existing engine row (the wizard edits the single/primary engine).
     [AizenRemoteCallPut("/api/v1/vessels/{vesselId}/engines/{engineId}")]

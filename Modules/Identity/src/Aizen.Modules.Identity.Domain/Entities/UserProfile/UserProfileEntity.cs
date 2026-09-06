@@ -36,6 +36,14 @@ namespace Aizen.Modules.Identity.Domain.Entities
         public string? CompanyName { get; private set; }
         public string? City { get; private set; }
         public string? Country { get; private set; }
+
+        // Provider (Organizer) FIXED business location — used for distance-based pricing (Haversine to the
+        // vessel/job location at quote time). Never the live position. RatePerKm is the provider's default
+        // travel rate that seeds the optional per-offer "travel fee" line. All nullable = not configured.
+        public decimal? BusinessLatitude { get; private set; }
+        public decimal? BusinessLongitude { get; private set; }
+        public string? BusinessAddressLabel { get; private set; }
+        public decimal? RatePerKm { get; private set; }
         public string? RejectionCategory { get; private set; }
         public string? InternalNote { get; private set; }
         public string? ReviewedBy { get; private set; }
@@ -155,6 +163,28 @@ namespace Aizen.Modules.Identity.Domain.Entities
         {
             City = city;
             Country = country;
+            SetModified();
+        }
+
+        /// <summary>Set the provider's fixed business location (nullable clears it). Validates coordinate ranges.</summary>
+        public void SetBusinessLocation(decimal? latitude, decimal? longitude, string? addressLabel)
+        {
+            if (latitude is < -90m or > 90m)
+                throw new AizenBusinessException("BusinessLatitude must be between -90 and 90.");
+            if (longitude is < -180m or > 180m)
+                throw new AizenBusinessException("BusinessLongitude must be between -180 and 180.");
+            BusinessLatitude = latitude;
+            BusinessLongitude = longitude;
+            BusinessAddressLabel = string.IsNullOrWhiteSpace(addressLabel) ? null : addressLabel.Trim();
+            SetModified();
+        }
+
+        /// <summary>Set the provider's default per-km travel rate (nullable clears it). Must be non-negative.</summary>
+        public void SetRatePerKm(decimal? ratePerKm)
+        {
+            if (ratePerKm is < 0m)
+                throw new AizenBusinessException("RatePerKm cannot be negative.");
+            RatePerKm = ratePerKm;
             SetModified();
         }
 

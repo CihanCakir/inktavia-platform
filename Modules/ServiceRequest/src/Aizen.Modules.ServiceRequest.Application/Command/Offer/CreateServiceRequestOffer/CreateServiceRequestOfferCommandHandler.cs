@@ -88,6 +88,34 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
             offer.AddItem(offerItem);
         }
 
+        // ── Phase-1 distance pricing ─────────────────────────────────────────────────────────────────────
+        // Snapshot the quote-time distance (provider FIXED business location ↔ this job's vessel location),
+        // computed server-side because the raw SR coordinates never leave this module. Null-safe: a missing
+        // provider or job location yields a null distance and the quote proceeds unchanged.
+        var distanceKm = ComputeDistanceKm(req.CenterLatitude, req.CenterLongitude, sr.LocationLatitude, sr.LocationLongitude);
+        offer.SetDistanceKm(distanceKm);
+
+        // Auto-suggest a regular "Yol bedeli / Travel fee" line (distanceKm × ratePerKm) when the provider has a
+        // rate configured, a distance is known, they didn't already include a Travel line (edit), and they didn't
+        // opt out (remove). It is a normal priced line — the calculation engine taxes/totals it untouched (Travel
+        // is exempt only from commission/customer-discount, taxed normally at the prevailing line rate).
+        var alreadyHasTravel = offer.Items.Any(i => i.ItemType == ServiceRequestOfferItemType.Travel && !i.IsDeleted);
+        if (!alreadyHasTravel && (req.IncludeSuggestedTravelFee ?? true) && req.RatePerKm is > 0m && distanceKm is > 0m)
+        {
+            // Inherit the provider's prevailing VAT so the fee gets "normal tax treatment"; 0 when no other line has tax.
+            var prevailingTax = offer.Items
+                .Where(i => i.ItemType != ServiceRequestOfferItemType.Discount && !i.IsDeleted)
+                .Select(i => i.TaxRate).DefaultIfEmpty(0m).Max();
+
+            var travelLine = ServiceRequestOfferItemEntity.Create(
+                0, ServiceRequestOfferItemType.Travel,
+                "Yol bedeli / Travel fee",
+                $"{distanceKm.Value:0.#} km × {req.RatePerKm.Value} {req.CurrencyCode}/km",
+                distanceKm.Value, req.RatePerKm.Value, req.CurrencyCode, sortOrder++,
+                unitCode: null, taxRate: prevailingTax);
+            offer.AddItem(travelLine);
+        }
+
         // FIX_OFFER_LINE_PRICING_ON_CREATE — this one-shot create+submit path previously persisted the offer with
         // UNPRICED lines (LineSubtotal/TaxAmount/CommissionBaseAmount = 0), so the accept-time §19.2 economics saw a ₺0
         // service and rejected every accept with "provider −2.14". Run the SAME server-authoritative pricing sequence
@@ -150,5 +178,15 @@ public sealed class CreateServiceRequestOfferCommandHandler : AizenCommandHandle
         }, cancellationToken);
 
         return new CreateServiceRequestOfferResponse(offer.ToDto());
+    }
+
+    /// <summary>Null-safe Haversine (km, 1dp) between the provider business location and the job location. Mirrors
+    /// the SR-detail quote view so the snapshot equals the distance the provider saw.</summary>
+    private static decimal? ComputeDistanceKm(decimal? centerLat, decimal? centerLng, decimal? jobLat, decimal? jobLng)
+    {
+        if (centerLat is null || centerLng is null || jobLat is null || jobLng is null)
+            return null;
+        return Math.Round(
+            Query.Provider.GetProviderDiscovery.GeoHelper.HaversineKm(centerLat.Value, centerLng.Value, jobLat.Value, jobLng.Value), 1);
     }
 }

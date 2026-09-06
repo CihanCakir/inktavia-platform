@@ -116,6 +116,7 @@ public static class ServiceRequestMappingExtensions
         TaxTotal = entity.TaxTotal,
         DiscountTotal = entity.DiscountTotal,
         GrandTotal = entity.GrandTotal,
+        DistanceKm = entity.DistanceKm,
         DepositType = entity.DepositType,
         DepositValue = entity.DepositValue,
         PaymentTermsNote = entity.PaymentTermsNote,

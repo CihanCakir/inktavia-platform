@@ -47,15 +47,22 @@ public sealed class GetServiceRequestDetailBffQueryHandler
     public override async Task<GetProviderServiceRequestDetailResponse?> Handle(
         GetServiceRequestDetailBffQuery request, CancellationToken ct)
     {
-        await _resolver.ResolveAsync(ct);
+        var resolution = await _resolver.ResolveAsync(ct);
         if (_identityHolder.ProfileId is null or 0)
             throw new AizenBusinessException("Provider identity could not be resolved.");
+
+        // LOCKED DECISION: distance uses the provider's FIXED business location (profile), never the live/browser
+        // position. Ignore any client-passed center and feed the module the profile's business coordinates, so the
+        // distance the provider sees here equals the snapshot taken at offer create.
+        var businessLat = resolution.Profile?.BusinessLatitude;
+        var businessLng = resolution.Profile?.BusinessLongitude;
+        var ratePerKm = resolution.Profile?.RatePerKm;
 
         GetProviderServiceRequestDetailResponse result;
         try
         {
             var response = await _serviceRequest.GetServiceRequestDetail(
-                request.ServiceRequestId, request.CenterLatitude, request.CenterLongitude);
+                request.ServiceRequestId, businessLat, businessLng);
             result = response.Body ?? throw new AizenBusinessException("Service request not found.");
         }
         catch (Refit.ApiException ex)
@@ -64,6 +71,16 @@ public sealed class GetServiceRequestDetailBffQueryHandler
             _logger.LogWarning(ex, "Service request {ServiceRequestId} not readable by provider {ProfileId}: {Message}",
                 request.ServiceRequestId, _identityHolder.ProfileId, message);
             throw new AizenBusinessException(message);
+        }
+
+        // Phase-1 quote helpers: echo the provider's rate and pre-compute the suggested travel fee
+        // (distanceKm × ratePerKm) so the portal can pre-fill an editable "Yol bedeli / Travel fee" line.
+        if (result.Detail?.Request is not null)
+        {
+            result.Detail.Request.RatePerKm = ratePerKm;
+            var dist = result.Detail.Request.DistanceKm;
+            if (dist.HasValue && ratePerKm is > 0m)
+                result.Detail.Request.SuggestedTravelFee = Math.Round(dist.Value * ratePerKm.Value, 2);
         }
 
         // Enrich with vessel data — one call

@@ -1,3 +1,4 @@
+using Aizen.Modules.Vessel.Abstraction.Dto.Location;
 using Aizen.Modules.Vessel.Abstraction.Enum;
 
 namespace Aizen.Modules.Vessel.Abstraction.Dto.Vessel;
@@ -29,4 +30,5 @@ public sealed class VesselDto
     public VesselArchiveReason? ArchiveReason { get; set; }
     public DateTime? CreateDate { get; set; }
     public DateTime? ModifyDate { get; set; }
+    public VesselSelectedLocationDto? SelectedLocation { get; set; }
 }

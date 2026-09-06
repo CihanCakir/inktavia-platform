@@ -178,6 +178,18 @@ public sealed class NotificationTemplateSeed
             "Merhaba,\n\nSağlayıcı, {{requestCode}} numaralı talebiniz için işe başladı. İlerlemeyi uygulamadan " +
             "takip edebilirsiniz.\n\nInktavia Marine"),
 
+        // Phase-2 — TRIP_STARTED (provider en route). Owner learns even when not on the map screen.
+        NotificationTemplateEntity.Create("SR_TRIP_STARTED_INAPP", "Trip Started (In-App)",
+            NotificationType.TripStarted, NotificationChannel.InApp,
+            "Sağlayıcı yola çıktı — Talep #{{serviceRequestId}}",
+            "Sağlayıcı, {{requestCode}} numaralı talebiniz için yola çıktı. Konumu haritadan canlı takip edebilirsiniz."),
+
+        NotificationTemplateEntity.Create("SR_TRIP_STARTED_EMAIL", "Trip Started (Email)",
+            NotificationType.TripStarted, NotificationChannel.Email,
+            "Sağlayıcı yola çıktı — Talep #{{serviceRequestId}}",
+            "Merhaba,\n\nSağlayıcı, {{requestCode}} numaralı talebiniz için yola çıktı. Konumu uygulamadaki " +
+            "haritadan canlı takip edebilirsiniz.\n\nInktavia Marine"),
+
         NotificationTemplateEntity.Create("SR_OFFER_ACCEPTED_EMAIL", "Offer Accepted (Email)",
             NotificationType.OfferAccepted, NotificationChannel.Email,
             "Teklifiniz kabul edildi — Talep #{{serviceRequestId}}",

@@ -28,6 +28,10 @@ public class OrganizerProfileDetailDto
     public string? PreferredLanguage { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
+    public decimal? BusinessLatitude { get; set; }
+    public decimal? BusinessLongitude { get; set; }
+    public string? BusinessAddressLabel { get; set; }
+    public decimal? RatePerKm { get; set; }
     public string? ReviewedBy { get; set; }
     public string? ReviewedAt { get; set; }
     public string? RejectionCategory { get; set; }
