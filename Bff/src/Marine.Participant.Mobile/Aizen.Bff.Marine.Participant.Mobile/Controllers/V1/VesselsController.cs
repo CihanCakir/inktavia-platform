@@ -100,4 +100,27 @@ public sealed class VesselsController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new UpdateMobileVesselStatusCommand(vesselId, request), ct);
         return SetResponse(result);
     }
+
+    /// <summary>Record the auto-detected CURRENT position for one of the caller's vessels. Owner-gated; a
+    /// foreign/unknown id yields a clean not-found. Returns the stored current-location snapshot.</summary>
+    [HttpPut("{vesselId:long}/location/current")]
+    [ProducesResponseType(typeof(MobileVesselLocationDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileVesselLocationDto>> UpdateCurrentLocation(
+        [FromRoute] long vesselId, [FromBody] UpdateMobileVesselCurrentLocationRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new UpdateMobileVesselCurrentLocationCommand(vesselId, request), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>Set the owner's EXPLICIT location choice (marina reference and/or free label) for one of the caller's
+    /// vessels; an all-null body clears it. A marina pick is resolved to name/coords server-side. Owner-gated; a
+    /// foreign/unknown id yields a clean not-found. Returns the stored selection (null when cleared).</summary>
+    [HttpPut("{vesselId:long}/location/selected")]
+    [ProducesResponseType(typeof(MobileSelectedLocationDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileSelectedLocationDto>> SetSelectedLocation(
+        [FromRoute] long vesselId, [FromBody] SetMobileVesselSelectedLocationRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new SetMobileVesselSelectedLocationCommand(vesselId, request), ct);
+        return SetResponse(result);
+    }
 }

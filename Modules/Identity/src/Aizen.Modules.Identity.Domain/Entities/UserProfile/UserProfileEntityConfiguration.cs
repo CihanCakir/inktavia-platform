@@ -41,6 +41,22 @@ namespace Aizen.Modules.Identity.Domain.Entities
                    .HasMaxLength(100)
                    .IsRequired(false);
 
+            builder.Property(x => x.BusinessLatitude)
+                   .HasPrecision(10, 7)
+                   .IsRequired(false);
+
+            builder.Property(x => x.BusinessLongitude)
+                   .HasPrecision(10, 7)
+                   .IsRequired(false);
+
+            builder.Property(x => x.BusinessAddressLabel)
+                   .HasMaxLength(300)
+                   .IsRequired(false);
+
+            builder.Property(x => x.RatePerKm)
+                   .HasPrecision(12, 4)
+                   .IsRequired(false);
+
             builder.Property(x => x.RejectionCategory)
                    .HasMaxLength(100)
                    .IsRequired(false);

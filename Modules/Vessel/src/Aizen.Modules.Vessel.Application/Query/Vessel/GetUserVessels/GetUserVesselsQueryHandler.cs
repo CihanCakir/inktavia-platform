@@ -55,7 +55,18 @@ public sealed class GetUserVesselsQueryHandler : AizenQueryHandler<GetUserVessel
                 Status = o.Vessel.Status,
                 Visibility = o.Vessel.Visibility,
                 IsArchived = o.Vessel.IsArchived,
-                CreateDate = o.Vessel.CreateDate
+                CreateDate = o.Vessel.CreateDate,
+                // Owner-chosen location for the list card. Projected unconditionally (EF-safe); consumers treat
+                // an all-null selection as "not set" (mirrors ToSelectedLocationDto's presence rule).
+                SelectedLocation = new Aizen.Modules.Vessel.Abstraction.Dto.Location.VesselSelectedLocationDto
+                {
+                    MarinaId = o.Vessel.SelectedLocationMarinaId,
+                    MarinaName = o.Vessel.SelectedLocationMarinaName,
+                    CustomLabel = o.Vessel.SelectedLocationCustomLabel,
+                    Latitude = o.Vessel.SelectedLocationLatitude,
+                    Longitude = o.Vessel.SelectedLocationLongitude,
+                    SetAt = o.Vessel.SelectedLocationSetAt
+                }
             },
             predicate: o => o.UserId == request.UserId && o.OwnershipStatus == VesselOwnershipStatus.Active,
             orderBy: q => q.OrderByDescending(o => o.Vessel!.CreateDate),

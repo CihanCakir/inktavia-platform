@@ -1,8 +1,10 @@
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.Authorization;
+using Aizen.Bff.Marine.Participant.Mobile.Application.Common.RemoteClients;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.Services;
 using Aizen.Core.Realtime.Abstraction.Interfaces;
 using Aizen.Core.Realtime.Hubs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Bff.Marine.Participant.Mobile.Realtime;
@@ -30,21 +32,67 @@ public sealed class MobileRealtimeHub : DomainHubBase
     /// </summary>
     public static string UserGroup(long recipientUserId) => $"mobile-notification:{recipientUserId}";
 
+    /// <summary>Phase-2 — per-SR live-trip group. Registered under the "trip" domain key
+    /// (<c>AddDomainHub&lt;MobileRealtimeHub&gt;("trip")</c>). Unlike the per-user notification group, this group is
+    /// client-named, so <see cref="JoinTrip"/> gates membership with an ownership check — the client can NOT join a
+    /// trip it doesn't own.</summary>
+    public static string TripGroup(long serviceRequestId) => $"trip:{serviceRequestId}";
+
     private readonly IParticipantProfileResolver _resolver;
     private readonly IParticipantIdentityHolder _identity;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
     private readonly ILogger<MobileRealtimeHub> _logger;
 
     public MobileRealtimeHub(
         IRealtimePublisher publisher,
         IParticipantProfileResolver resolver,
         IParticipantIdentityHolder identity,
+        IServiceRequestRemoteCall serviceRequest,
         ILogger<MobileRealtimeHub> logger)
         : base(publisher)
     {
         _resolver = resolver;
         _identity = identity;
+        _serviceRequest = serviceRequest;
         _logger = logger;
     }
+
+    /// <summary>Subscribe this connection to a specific SR's live trip — ONLY after verifying the caller owns the SR.
+    /// The client supplies the id, so ownership is checked server-side (resolve identity → EnsureOwnedAsync); a
+    /// foreign/unknown id throws and the connection joins nothing. This is the deliberate, checked exception to the
+    /// hub's "server decides the group" rule — required because a map screen watches one SR at a time.</summary>
+    public async Task JoinTrip(long serviceRequestId)
+    {
+        await _resolver.ResolveAsync(Context.ConnectionAborted);
+        var userId = _identity.UserId ?? 0;
+        if (userId <= 0)
+            throw new HubException("unauthorized");
+
+        // Ownership check (same rule as the REST EnsureOwnedAsync gate): the module detail's OwnerUserId must equal the
+        // resolved caller. A foreign/unknown id → not subscribed; existence is never leaked.
+        long ownerUserId;
+        try
+        {
+            var detail = (await _serviceRequest.GetDetail(serviceRequestId))?.Body?.Detail;
+            ownerUserId = detail?.Request?.OwnerUserId ?? 0;
+        }
+        catch
+        {
+            ownerUserId = 0;
+        }
+
+        if (ownerUserId != userId)
+        {
+            _logger.LogWarning("mobile trip hub: user {UserId} denied join for SR {SrId}.", userId, serviceRequestId);
+            throw new HubException("forbidden");
+        }
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, TripGroup(serviceRequestId));
+    }
+
+    /// <summary>Unsubscribe from a trip group (e.g. leaving the map screen). No auth needed — removing yourself.</summary>
+    public Task LeaveTrip(long serviceRequestId)
+        => Groups.RemoveFromGroupAsync(Context.ConnectionId, TripGroup(serviceRequestId));
 
     public override string DomainName => "mobile-notification";
 

@@ -29,6 +29,17 @@ public sealed class VesselEntity : AizenEntityWithAudit
     public int? OperationalStatus { get; private set; }
     public int? AssetType { get; private set; }
 
+    // Selected location — the owner's explicit choice for the vessel's displayed region.
+    // Either a marina reference (MarinaId, with a denormalized name/coords snapshot so this module never
+    // has to call ReferenceData) OR a free-text custom label, optionally with coordinates. Nullable = never set.
+    // Display prefers this over the current-location snapshot (see VesselLocationSnapshotEntity).
+    public long? SelectedLocationMarinaId { get; private set; }
+    public string? SelectedLocationMarinaName { get; private set; }
+    public string? SelectedLocationCustomLabel { get; private set; }
+    public decimal? SelectedLocationLatitude { get; private set; }
+    public decimal? SelectedLocationLongitude { get; private set; }
+    public DateTime? SelectedLocationSetAt { get; private set; }
+
     private readonly List<VesselOwnerEntity> _owners = new();
     public IReadOnlyCollection<VesselOwnerEntity> Owners => _owners.AsReadOnly();
 
@@ -131,6 +142,34 @@ public sealed class VesselEntity : AizenEntityWithAudit
         HomeCityCode = homeCityCode?.ToUpperInvariant();
         HomeDistrictCode = homeDistrictCode?.ToUpperInvariant();
         HomeMarinaName = homeMarinaName;
+    }
+
+    /// <summary>Set the owner-chosen location. Pass a marina reference (id + denormalized name/coords, resolved by
+    /// the caller) and/or a free-text label and/or coordinates. Stamps SelectedLocationSetAt.</summary>
+    public void SetSelectedLocation(
+        long? marinaId,
+        string? marinaName,
+        string? customLabel,
+        decimal? latitude,
+        decimal? longitude)
+    {
+        SelectedLocationMarinaId = marinaId;
+        SelectedLocationMarinaName = string.IsNullOrWhiteSpace(marinaName) ? null : marinaName.Trim();
+        SelectedLocationCustomLabel = string.IsNullOrWhiteSpace(customLabel) ? null : customLabel.Trim();
+        SelectedLocationLatitude = latitude;
+        SelectedLocationLongitude = longitude;
+        SelectedLocationSetAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Clear the owner-chosen location (falls display back to the current-location snapshot).</summary>
+    public void ClearSelectedLocation()
+    {
+        SelectedLocationMarinaId = null;
+        SelectedLocationMarinaName = null;
+        SelectedLocationCustomLabel = null;
+        SelectedLocationLatitude = null;
+        SelectedLocationLongitude = null;
+        SelectedLocationSetAt = null;
     }
 
     public void ChangeStatus(VesselStatus newStatus) => Status = newStatus;

@@ -37,8 +37,31 @@ public static class VesselMappingExtensions
         ArchivedAt = entity.ArchivedAt,
         ArchiveReason = entity.ArchiveReason,
         CreateDate = entity.CreateDate,
-        ModifyDate = entity.ModifyDate
+        ModifyDate = entity.ModifyDate,
+        SelectedLocation = entity.ToSelectedLocationDto()
     };
+
+    // Returns null when the owner has never chosen a location; otherwise the grouped selection.
+    public static VesselSelectedLocationDto? ToSelectedLocationDto(this VesselEntity entity)
+    {
+        var hasSelection = entity.SelectedLocationMarinaId.HasValue
+            || !string.IsNullOrWhiteSpace(entity.SelectedLocationMarinaName)
+            || !string.IsNullOrWhiteSpace(entity.SelectedLocationCustomLabel)
+            || entity.SelectedLocationLatitude.HasValue
+            || entity.SelectedLocationLongitude.HasValue;
+
+        if (!hasSelection) return null;
+
+        return new VesselSelectedLocationDto
+        {
+            MarinaId = entity.SelectedLocationMarinaId,
+            MarinaName = entity.SelectedLocationMarinaName,
+            CustomLabel = entity.SelectedLocationCustomLabel,
+            Latitude = entity.SelectedLocationLatitude,
+            Longitude = entity.SelectedLocationLongitude,
+            SetAt = entity.SelectedLocationSetAt
+        };
+    }
 
     public static VesselDetailDto ToDetailDto(this VesselEntity entity) => new()
     {
@@ -74,7 +97,8 @@ public static class VesselMappingExtensions
         GrossTonnage = entity.Specification?.GrossTonnage,
         Latitude = entity.LocationSnapshots?.FirstOrDefault(l => l.IsCurrent)?.Latitude != null ? (double?)decimal.ToDouble(entity.LocationSnapshots!.First(l => l.IsCurrent).Latitude!.Value) : null,
         Longitude = entity.LocationSnapshots?.FirstOrDefault(l => l.IsCurrent)?.Longitude != null ? (double?)decimal.ToDouble(entity.LocationSnapshots!.First(l => l.IsCurrent).Longitude!.Value) : null,
-        LastPositionDate = entity.LocationSnapshots?.FirstOrDefault(l => l.IsCurrent)?.CapturedAt
+        LastPositionDate = entity.LocationSnapshots?.FirstOrDefault(l => l.IsCurrent)?.CapturedAt,
+        SelectedLocation = entity.ToSelectedLocationDto()
     };
 
     public static VesselOwnerDto ToDto(this VesselOwnerEntity entity) => new()

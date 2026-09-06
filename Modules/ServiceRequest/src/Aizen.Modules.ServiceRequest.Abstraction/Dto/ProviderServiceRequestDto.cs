@@ -24,6 +24,11 @@ public sealed class ProviderServiceRequestDto
     public decimal? ApproxLatitude { get; set; }
     public decimal? ApproxLongitude { get; set; }
     public decimal? DistanceKm { get; set; }
+    // Phase-1 quote helpers (populated by the provider BFF from the provider profile, not the SR module):
+    // the provider's default per-km rate and the suggested travel fee (distanceKm × ratePerKm) the portal
+    // pre-fills as an editable "Yol bedeli / Travel fee" line.
+    public decimal? RatePerKm { get; set; }
+    public decimal? SuggestedTravelFee { get; set; }
     public long VesselId { get; set; }
     public string? VesselName { get; set; }
     public string? VesselTypeCode { get; set; }

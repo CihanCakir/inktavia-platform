@@ -43,6 +43,9 @@ public sealed class ServiceRequestOfferEntityConfiguration : IEntityTypeConfigur
         builder.Property(x => x.TotalPlatformFundedDiscount).HasPrecision(18, 2).IsRequired().HasDefaultValue(0m);
         builder.Property(x => x.TotalProviderFundedDiscount).HasPrecision(18, 2).IsRequired().HasDefaultValue(0m);
 
+        // Phase-1 distance snapshot (nullable; matches the per-line travel distance precision).
+        builder.Property(x => x.DistanceKm).HasPrecision(12, 3);
+
         // Commercial terms
         builder.Property(x => x.DepositValue).HasPrecision(18, 2);
         builder.Property(x => x.PaymentTermsNote).HasMaxLength(2000);

@@ -1,0 +1,4 @@
+Data (c) OpenStreetMap contributors, ODbL (https://www.openstreetmap.org/copyright)
+
+marinas.json is derived from OpenStreetMap via tools/osm-marina-seed (Overpass).
+Keep this attribution wherever the dataset ships (ODbL share-alike).

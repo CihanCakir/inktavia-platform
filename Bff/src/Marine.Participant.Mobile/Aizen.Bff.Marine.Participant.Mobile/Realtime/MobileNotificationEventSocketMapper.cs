@@ -2,6 +2,7 @@ using Aizen.Core.Realtime.Abstraction.Interfaces;
 using Aizen.Core.Realtime.Abstraction.Models;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Abstraction.Message;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 
 namespace Aizen.Bff.Marine.Participant.Mobile.Realtime;
 
@@ -24,32 +25,62 @@ public sealed class MobileNotificationEventSocketMapper : IEventSocketMapper
 {
     public RealtimeMessage? Map(object domainEvent)
     {
-        var n = Resolve(domainEvent);
-        if (n is null) return null;
+        // One mapper per BFF (the ingress resolves a single IEventSocketMapper) — branch by message type.
+        if (Resolve(domainEvent) is { } n)
+            return new RealtimeMessage
+            {
+                Type        = MobileRealtimeNotificationTypes.FrameType,
+                Stream      = MobileRealtimeHub.UserGroup(n.RecipientUserId),
+                AggregateId = n.NotificationId.ToString(),
+                Payload     = new MobileRealtimeNotification(
+                    NotificationId: n.NotificationId,
+                    Type:           n.Type.ToString(),
+                    Title:          n.Title,
+                    ReferenceType:  n.ReferenceType,
+                    ReferenceId:    n.ReferenceId,
+                    SentAt:         n.SentAt),
+            };
 
-        return new RealtimeMessage
-        {
-            Type        = MobileRealtimeNotificationTypes.FrameType,
-            Stream      = MobileRealtimeHub.UserGroup(n.RecipientUserId),
-            AggregateId = n.NotificationId.ToString(),
-            Payload     = new MobileRealtimeNotification(
-                NotificationId: n.NotificationId,
-                Type:           n.Type.ToString(),
-                Title:          n.Title,
-                ReferenceType:  n.ReferenceType,
-                ReferenceId:    n.ReferenceId,
-                SentAt:         n.SentAt),
-        };
+        if (ResolveTrip(domainEvent) is { } t)
+            return new RealtimeMessage
+            {
+                Type        = MobileTripEventTypes.FrameType,
+                Stream      = MobileRealtimeHub.TripGroup(t.ServiceRequestId), // group broadcast key
+                AggregateId = t.ServiceRequestId.ToString(),
+                Payload     = new MobileTripFrame(
+                    ServiceRequestId: t.ServiceRequestId,
+                    Event:            t.EventType.ToString(),
+                    Status:           t.Status.ToString(),
+                    Latitude:         (double?)t.Latitude,
+                    Longitude:        (double?)t.Longitude,
+                    Heading:          (double?)t.Heading,
+                    PingAt:           t.PingAt,
+                    EtaMinutes:       t.EtaMinutes,
+                    StartedAt:        t.StartedAt),
+            };
+
+        return null; // drop — an empty GetTargets would BROADCAST, so unknown events must be dropped here
     }
 
     public (IEnumerable<string> UserIds, IEnumerable<string> GroupNames) GetTargets(object domainEvent)
     {
-        var n = Resolve(domainEvent);
-        return n is null
-            ? (Array.Empty<string>(), Array.Empty<string>())
+        if (Resolve(domainEvent) is { } n)
             // Per-recipient only: the target user's connections. Never a shared group, never client-supplied targets.
-            : (Array.Empty<string>(), new[] { MobileRealtimeHub.UserGroup(n.RecipientUserId) });
+            return (Array.Empty<string>(), new[] { MobileRealtimeHub.UserGroup(n.RecipientUserId) });
+
+        if (ResolveTrip(domainEvent) is { } t)
+            // The per-SR trip group. Only owners who passed JoinTrip's ownership check are members.
+            return (Array.Empty<string>(), new[] { MobileRealtimeHub.TripGroup(t.ServiceRequestId) });
+
+        return (Array.Empty<string>(), Array.Empty<string>());
     }
+
+    private static TripRealtimeMessage? ResolveTrip(object domainEvent) => domainEvent switch
+    {
+        TripRealtimeMessage t                    => t,
+        EventDto { Data: TripRealtimeMessage d }  => d,
+        _                                         => null,
+    };
 
     /// <summary>Unwrap + filter in ONE place so <see cref="Map"/> and <see cref="GetTargets"/> agree: the bell fires
     /// only for an in-app notification addressed to a real recipient; anything else returns null → dropped.</summary>
@@ -86,4 +117,24 @@ public static class MobileRealtimeNotificationTypes
 {
     /// <summary>The SignalR frame <c>Type</c> the client listens for.</summary>
     public const string FrameType = "mobileNotification";
+}
+
+/// <summary>Phase-2 — the cost-free live-trip frame for the owner map: coarse position + a straight-line ETA. No
+/// economics, no user/provider ids. <c>Event</c> is Started|Location|Arrived|Cancelled; <c>Status</c> is the trip
+/// status name.</summary>
+public sealed record MobileTripFrame(
+    long ServiceRequestId,
+    string Event,
+    string Status,
+    double? Latitude,
+    double? Longitude,
+    double? Heading,
+    DateTime? PingAt,
+    double? EtaMinutes,
+    DateTime? StartedAt);
+
+public static class MobileTripEventTypes
+{
+    /// <summary>The SignalR frame <c>Type</c> the map screen listens for (delivered over "ReceiveEvent").</summary>
+    public const string FrameType = "tripEvent";
 }

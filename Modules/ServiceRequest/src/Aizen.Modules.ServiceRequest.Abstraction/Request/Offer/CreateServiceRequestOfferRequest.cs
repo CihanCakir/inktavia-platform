@@ -14,4 +14,15 @@ public sealed class CreateServiceRequestOfferRequest
     public int? EstimatedDurationMinutes { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public List<CreateServiceRequestOfferItemRequest> Items { get; set; } = new();
+
+    // ── Phase-1 distance pricing — BFF-INJECTED (resolved from the provider profile, not the client) ──────────
+    /// <summary>Provider FIXED business location; the SR module computes distanceKm = Haversine(center ↔ SR job
+    /// location) server-side and snapshots it. Null → distanceKm null (null-safe).</summary>
+    public decimal? CenterLatitude { get; set; }
+    public decimal? CenterLongitude { get; set; }
+    /// <summary>Provider default per-km rate; seeds the optional suggested "Yol bedeli / Travel fee" line.</summary>
+    public decimal? RatePerKm { get; set; }
+    /// <summary>Opt-out for the suggested travel line. Null/true = add it when a rate + distance exist and the
+    /// provider didn't already submit a Travel line; false = never add (provider removed it).</summary>
+    public bool? IncludeSuggestedTravelFee { get; set; }
 }

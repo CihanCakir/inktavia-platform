@@ -38,6 +38,7 @@ builder.Services.AddServiceRequestServices();
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.OfferCalculationService>();
 // FIX_ASSIGNMENT_ON_ACCEPT — shared create-assignment path (owner auto-accept + manual endpoint; idempotent).
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.ServiceRequestAssignmentCreator>();
+builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.Trip.TripFinalizeService>();   // Phase-2 live trip tracking
 builder.Services.AddScoped<Aizen.Modules.ServiceRequest.Application.Services.UnitCodeValidator>();
 
 // ── Pricing attributes (BE-S2) ──

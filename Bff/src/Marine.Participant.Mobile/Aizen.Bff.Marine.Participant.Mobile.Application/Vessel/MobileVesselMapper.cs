@@ -12,6 +12,28 @@ internal static class MobileVesselMapper
         var v = d.Vessel;
         var spec = d.Specification;
         var loc = d.CurrentLocation;
+        var sel = v.SelectedLocation;
+
+        var current = loc is null ? null : new MobileVesselLocationDto
+        {
+            MarinaName = loc.MarinaName,
+            Latitude = (double?)loc.Latitude,
+            Longitude = (double?)loc.Longitude,
+            CapturedAt = loc.CapturedAt,
+        };
+
+        var selected = sel is null ? null : new MobileSelectedLocationDto
+        {
+            MarinaId = sel.MarinaId,
+            MarinaName = sel.MarinaName,
+            CustomLabel = sel.CustomLabel,
+            Latitude = (double?)sel.Latitude,
+            Longitude = (double?)sel.Longitude,
+            SetAt = sel.SetAt,
+        };
+
+        // Display preference: explicit selection (marina name → custom label) first, else the current snapshot's marina.
+        var displayName = selected?.MarinaName ?? selected?.CustomLabel ?? current?.MarinaName;
 
         return new MobileVesselDetailDto
         {
@@ -40,6 +62,9 @@ internal static class MobileVesselMapper
             MarinaName = loc?.MarinaName,
             Latitude = (double?)loc?.Latitude,
             Longitude = (double?)loc?.Longitude,
+            CurrentLocation = current,
+            SelectedLocation = selected,
+            DisplayLocationName = displayName,
             Engines = d.Engines?.Select(e => new MobileVesselEngineDto
             {
                 Name = e.EngineName,

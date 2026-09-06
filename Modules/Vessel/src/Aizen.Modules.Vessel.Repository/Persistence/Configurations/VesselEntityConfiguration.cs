@@ -32,6 +32,12 @@ public sealed class VesselEntityConfiguration : IEntityTypeConfiguration<VesselE
         builder.Property(x => x.ArchivedAt);
         builder.Property(x => x.OperationalStatus);
         builder.Property(x => x.AssetType);
+        builder.Property(x => x.SelectedLocationMarinaId);
+        builder.Property(x => x.SelectedLocationMarinaName).HasMaxLength(200);
+        builder.Property(x => x.SelectedLocationCustomLabel).HasMaxLength(200);
+        builder.Property(x => x.SelectedLocationLatitude).HasPrecision(10, 7);
+        builder.Property(x => x.SelectedLocationLongitude).HasPrecision(10, 7);
+        builder.Property(x => x.SelectedLocationSetAt);
 
         builder.HasIndex(x => x.VesselCode).IsUnique();
         builder.HasIndex(x => x.Slug).IsUnique();

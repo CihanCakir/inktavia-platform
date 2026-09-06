@@ -215,6 +215,14 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
             var countryCode = or.TryGetProperty("country", out var co) ? co.GetString() : null;
             if (!string.IsNullOrWhiteSpace(cityCode))
                 profile.SetLocation(cityCode.Trim().ToUpperInvariant(), countryCode?.Trim().ToUpperInvariant() ?? profile.Country);
+
+            // Phase-3 — materialize the optional business coordinates for distance pricing. IDEMPOTENT: only when the
+            // provider hasn't already set a business location (a manual profile edit wins; a re-submit won't clobber it).
+            if (profile.BusinessLatitude is null && profile.BusinessLongitude is null
+                && OnboardingCoordinateRules.TryReadBusinessCoords(or, out var blat, out var blng, out var blabel))
+            {
+                profile.SetBusinessLocation(blat, blng, blabel);
+            }
         }
     }
 
@@ -286,6 +294,11 @@ public sealed class ProviderOnboardingDomainService : IProviderOnboardingDomainS
             var countryCode = root.TryGetProperty("country", out var co) ? co.GetString() : null;
             if (!string.IsNullOrWhiteSpace(cityCode) && !await IsCityCodeValidAsync(countryCode ?? "TR", cityCode, ct))
                 throw new AizenBusinessException((int)AizenErrorCode.ProviderOnboardingCityNotRecognised, $"City code '{cityCode}' is not a recognised ReferenceData city.");
+
+            // Phase-3 — optional business coordinates. Same enforcement shape as cityCode: validated WHEN PRESENT
+            // at save (not blocking step-Completed), never required (materialized on submit; distance pricing is
+            // null-safe without them). Both-or-neither lat/lng + a plausible Turkey bbox.
+            OnboardingCoordinateRules.Validate(root);
         }
         catch (AizenBusinessException) { throw; }
         catch (JsonException) { /* Malformed JSON — let the step save handle it */ }

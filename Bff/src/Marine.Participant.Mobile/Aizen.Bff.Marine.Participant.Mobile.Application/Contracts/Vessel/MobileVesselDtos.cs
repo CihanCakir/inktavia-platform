@@ -12,6 +12,13 @@ public sealed class MobileVesselListItemDto
     public decimal? LengthMeters { get; set; }
     public decimal? GrossTonnage { get; set; }
     public string? MarinaName { get; set; }
+
+    // Owner's explicit choice (null when never set). Present on the card so it can render the chosen region.
+    public MobileSelectedLocationDto? SelectedLocation { get; set; }
+
+    // Ready-to-render region label: selected marina/label first, else the last known current-location marina.
+    // Lets the card show a region with no extra call and no client-side preference logic.
+    public string? DisplayLocationName { get; set; }
 }
 
 public sealed class MobileVesselEngineDto
@@ -21,6 +28,46 @@ public sealed class MobileVesselEngineDto
     public string? FuelTypeCode { get; set; }
     public int? HorsePower { get; set; }
     public bool IsPrimary { get; set; }
+}
+
+// ── Location contracts ───────────────────────────────────────────────────────────────────────
+
+/// <summary>Auto-detected current position (the vessel's latest location snapshot).</summary>
+public sealed class MobileVesselLocationDto
+{
+    public string? MarinaName { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public DateTime? CapturedAt { get; set; }
+}
+
+/// <summary>The owner's explicit location choice: a marina reference and/or a free-text label.</summary>
+public sealed class MobileSelectedLocationDto
+{
+    public long? MarinaId { get; set; }
+    public string? MarinaName { get; set; }
+    public string? CustomLabel { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public DateTime? SetAt { get; set; }
+}
+
+/// <summary>PUT /api/v1/mobile/vessels/{id}/location/current — record the auto-detected position.</summary>
+public sealed class UpdateMobileVesselCurrentLocationRequest
+{
+    public double? Lat { get; set; }
+    public double? Lng { get; set; }
+}
+
+/// <summary>PUT /api/v1/mobile/vessels/{id}/location/selected — set (or, when all-null, clear) the owner's choice.
+/// Provide MarinaId to pick a catalog marina (the BFF resolves its name/coords), and/or a CustomLabel, and/or
+/// explicit coordinates.</summary>
+public sealed class SetMobileVesselSelectedLocationRequest
+{
+    public long? MarinaId { get; set; }
+    public string? CustomLabel { get; set; }
+    public double? Lat { get; set; }
+    public double? Lng { get; set; }
 }
 
 /// <summary>Full vessel detail for the mobile detail screen.</summary>
@@ -49,10 +96,18 @@ public sealed class MobileVesselDetailDto
     public int? ProductionYear { get; set; }
     public int? CabinCount { get; set; }
 
-    // Location snapshot
+    // Location snapshot (auto-detected CURRENT position). Flat fields kept for back-compat; also exposed
+    // structured as CurrentLocation below.
     public string? MarinaName { get; set; }
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
+
+    // Structured locations. CurrentLocation = auto-detected device position (append-only snapshot). SelectedLocation
+    // = the owner's explicit choice (marina reference or free label). DisplayLocationName is the resolved region
+    // label the card should show: SelectedLocation first, else CurrentLocation's marina.
+    public MobileVesselLocationDto? CurrentLocation { get; set; }
+    public MobileSelectedLocationDto? SelectedLocation { get; set; }
+    public string? DisplayLocationName { get; set; }
 
     public string? CoverMediaUrl { get; set; }
     public List<MobileVesselEngineDto> Engines { get; set; } = new();

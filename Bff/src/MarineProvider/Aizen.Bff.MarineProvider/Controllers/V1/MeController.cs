@@ -46,6 +46,17 @@ public sealed class MeController : AizenWebApiController
         return SetResponse(result);
     }
 
+    /// <summary>Edit the caller's own provider profile — business location + per-km travel rate (and the other
+    /// self-service fields). Owner-scoped: the module resolves the profile from the asserted token.</summary>
+    [HttpPut("profile")]
+    [ProducesResponseType(typeof(UpdateProviderProfileResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<UpdateProviderProfileResponse>> UpdateProfile(
+        [FromBody] Aizen.Modules.Identity.Abstraction.Request.UpdateOrganizerProfileRequest request, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new UpdateProviderProfileCommand(request), ct);
+        return SetResponse(result);
+    }
+
     /// <summary>Account status gate. Works for pending/non-active providers; runtime Identity status.</summary>
     [HttpGet("status")]
     [ProducesResponseType(typeof(GetProviderStatusResponse), StatusCodes.Status200OK)]

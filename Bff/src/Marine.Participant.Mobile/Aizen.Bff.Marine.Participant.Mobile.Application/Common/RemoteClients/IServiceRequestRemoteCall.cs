@@ -166,4 +166,8 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     // the BFF then mints the signed read-url via FileStorage. The provider access-check handler is untouched.
     [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/attachments/{fileId}/access-check")]
     Task<AizenApiResponse<GetAttachmentAccessCheckResponse>> CheckAttachmentAccess(long serviceRequestId, Guid fileId);
+
+    // Phase-2 — owner-scoped current live trip (module gates by UserInfo.UserId == SR.OwnerUserId). Null trip when none.
+    [AizenRemoteCallGet("/api/v1/service-requests/{serviceRequestId}/trip")]
+    Task<AizenApiResponse<GetServiceRequestTripForOwnerResponse>> GetOwnerTrip(long serviceRequestId);
 }

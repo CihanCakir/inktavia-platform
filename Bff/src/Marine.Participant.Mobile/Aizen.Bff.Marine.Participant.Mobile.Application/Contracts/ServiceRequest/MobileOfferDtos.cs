@@ -22,6 +22,10 @@ public sealed class MobileServiceRequestOfferDto
     /// <summary>The customer total the owner would pay if they accept (settlement currency).</summary>
     public decimal GrandTotal { get; set; }
 
+    /// <summary>Phase-1 read-only display: distance (km) between the provider and the vessel, snapshot when the
+    /// offer was created. Null when either location was unknown. Cost-free — a plain number, no coordinates.</summary>
+    public decimal? DistanceKm { get; set; }
+
     public DateTime? EstimatedStartDate { get; set; }
     public DateTime? EstimatedEndDate { get; set; }
     public int? EstimatedDurationMinutes { get; set; }

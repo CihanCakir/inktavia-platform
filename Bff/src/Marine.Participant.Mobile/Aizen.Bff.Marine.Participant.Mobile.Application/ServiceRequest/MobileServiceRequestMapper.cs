@@ -447,6 +447,7 @@ internal static class MobileServiceRequestMapper
         TaxTotal = o.TaxTotal,
         DiscountTotal = o.DiscountTotal,
         GrandTotal = o.GrandTotal,
+        DistanceKm = o.DistanceKm,
         EstimatedStartDate = o.EstimatedStartDate,
         EstimatedEndDate = o.EstimatedEndDate,
         EstimatedDurationMinutes = o.EstimatedDurationMinutes,
@@ -564,4 +565,21 @@ internal static class MobileServiceRequestMapper
 
         return detail;
     }
+
+    /// <summary>Phase-2 — module TripDto → the cost-free owner map snapshot. Enum status → name; decimals → double.</summary>
+    public static Contracts.ServiceRequest.MobileServiceRequestTripDto MapTrip(TripDto t) => new()
+    {
+        ServiceRequestId = t.ServiceRequestId,
+        Status = t.Status.ToString(),
+        StartedAt = t.StartedAt,
+        ArrivedAt = t.ArrivedAt,
+        CancelledAt = t.CancelledAt,
+        LastLatitude = (double?)t.LastLatitude,
+        LastLongitude = (double?)t.LastLongitude,
+        LastHeading = (double?)t.LastHeading,
+        LastPingAt = t.LastPingAt,
+        EtaMinutes = t.EtaMinutes,
+        TotalDistanceKm = (double?)t.TotalDistanceKm,
+        DurationSeconds = t.DurationSeconds,
+    };
 }

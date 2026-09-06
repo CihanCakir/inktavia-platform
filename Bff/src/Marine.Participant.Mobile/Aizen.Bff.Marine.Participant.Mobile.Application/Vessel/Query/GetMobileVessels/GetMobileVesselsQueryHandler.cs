@@ -50,16 +50,41 @@ public sealed class GetMobileVesselsQueryHandler
         }
     }
 
-    internal static MobileVesselListItemDto MapListItem(VesselListItemDto v) => new()
+    internal static MobileVesselListItemDto MapListItem(VesselListItemDto v)
     {
-        Id = v.Id,
-        Name = v.Name,
-        TypeCode = v.VesselTypeCode,
-        Flag = v.FlagCountryCode,
-        Status = v.Status.ToString(),
-        CoverMediaUrl = v.CoverMediaUrl,
-        LengthMeters = v.LengthMeters,
-        GrossTonnage = v.GrossTonnage,
-        MarinaName = v.LastLocationMarinaName,
-    };
+        // A selection is "set" only when it carries a value (the module projects the object unconditionally).
+        var sel = v.SelectedLocation;
+        var hasSelection = sel is not null && (sel.MarinaId.HasValue
+            || !string.IsNullOrWhiteSpace(sel.MarinaName)
+            || !string.IsNullOrWhiteSpace(sel.CustomLabel)
+            || sel.Latitude.HasValue
+            || sel.Longitude.HasValue);
+
+        var selected = hasSelection ? new MobileSelectedLocationDto
+        {
+            MarinaId = sel!.MarinaId,
+            MarinaName = sel.MarinaName,
+            CustomLabel = sel.CustomLabel,
+            Latitude = (double?)sel.Latitude,
+            Longitude = (double?)sel.Longitude,
+            SetAt = sel.SetAt,
+        } : null;
+
+        var displayName = selected?.MarinaName ?? selected?.CustomLabel ?? v.LastLocationMarinaName;
+
+        return new MobileVesselListItemDto
+        {
+            Id = v.Id,
+            Name = v.Name,
+            TypeCode = v.VesselTypeCode,
+            Flag = v.FlagCountryCode,
+            Status = v.Status.ToString(),
+            CoverMediaUrl = v.CoverMediaUrl,
+            LengthMeters = v.LengthMeters,
+            GrossTonnage = v.GrossTonnage,
+            MarinaName = v.LastLocationMarinaName,
+            SelectedLocation = selected,
+            DisplayLocationName = displayName,
+        };
+    }
 }

@@ -2,6 +2,7 @@ using Aizen.Core.EFCore;
 using Aizen.Modules.ReferenceData.Domain.Entities.Currency;
 using Aizen.Modules.ReferenceData.Domain.Entities.ExchangeRate;
 using Aizen.Modules.ReferenceData.Domain.Entities.LookupGroup;
+using Aizen.Modules.ReferenceData.Domain.Entities.Marina;
 using Aizen.Modules.ReferenceData.Domain.Entities.Measurement;
 using Aizen.Modules.ReferenceData.Domain.Entities.System;
 using Aizen.Modules.ReferenceData.Domain.Entities.SystemParameter;
@@ -26,6 +27,7 @@ public sealed class ReferenceDataDbContext : AizenDbContext
     public DbSet<LanguageEntity> Languages => Set<LanguageEntity>();
     public DbSet<TimeZoneEntity> TimeZones => Set<TimeZoneEntity>();
     public DbSet<CountryPhoneCodeEntity> CountryPhoneCodes => Set<CountryPhoneCodeEntity>();
+    public DbSet<MarinaEntity> Marinas => Set<MarinaEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -3,7 +3,9 @@ using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
+using Aizen.Modules.ServiceRequest.Abstraction.Request.Trip;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Jobs;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.Trip;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Provider;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
@@ -218,4 +220,17 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         [Refit.Query] decimal? boundsMaxLat = null,
         [Refit.Query] decimal? boundsMinLng = null,
         [Refit.Query] decimal? boundsMaxLng = null);
+
+    // ── Phase-2 live trip tracking. All guarded module-side to the ASSIGNED provider on an accepted job. ──
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/trip/start")]
+    Task<AizenApiResponse<TripActionResponse>> StartTrip(long serviceRequestId);
+
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/trip/location")]
+    Task<AizenApiResponse<TripActionResponse>> PingTrip(long serviceRequestId, [AizenRemoteCallBody] TripLocationRequest request);
+
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/trip/arrive")]
+    Task<AizenApiResponse<TripActionResponse>> ArriveTrip(long serviceRequestId);
+
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/trip/cancel")]
+    Task<AizenApiResponse<TripActionResponse>> CancelTrip(long serviceRequestId);
 }

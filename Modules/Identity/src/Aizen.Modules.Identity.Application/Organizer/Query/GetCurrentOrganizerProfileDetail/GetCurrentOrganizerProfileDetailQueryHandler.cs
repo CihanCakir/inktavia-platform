@@ -45,6 +45,12 @@ public sealed class GetCurrentOrganizerProfileDetailQueryHandler
                 ApprovedAt = p.ApprovedAt,
                 RejectedAt = p.RejectedAt,
                 RejectReason = p.RejectReason,
+                City = p.City,
+                Country = p.Country,
+                BusinessLatitude = p.BusinessLatitude,
+                BusinessLongitude = p.BusinessLongitude,
+                BusinessAddressLabel = p.BusinessAddressLabel,
+                RatePerKm = p.RatePerKm,
                 CreateDate = p.CreateDate,
                 ModifyDate = p.ModifyDate
             })

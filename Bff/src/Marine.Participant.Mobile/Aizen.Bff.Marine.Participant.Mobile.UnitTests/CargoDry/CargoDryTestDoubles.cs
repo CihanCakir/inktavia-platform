@@ -85,6 +85,8 @@ internal sealed class FakeVesselRemoteCall : IVesselRemoteCall
     public Task<AizenApiResponse<UpsertVesselSpecificationResponse>> UpsertSpecification(long vesselId, UpsertVesselSpecificationRequest request) => throw new NotImplementedException();
     public Task<AizenApiResponse<AddVesselEngineResponse>> AddEngine(long vesselId, AddVesselEngineRequest request) => throw new NotImplementedException();
     public Task<AizenApiResponse<UpdateVesselResponse>> UpdateVessel(long vesselId, UpdateVesselRequest request) => throw new NotImplementedException();
+    public Task<AizenApiResponse<Aizen.Modules.Vessel.Abstraction.Response.Location.UpdateVesselLocationSnapshotResponse>> UpdateVesselLocation(long vesselId, Aizen.Modules.Vessel.Abstraction.Request.Location.UpdateVesselLocationSnapshotRequest request) => throw new NotImplementedException();
+    public Task<AizenApiResponse<Aizen.Modules.Vessel.Abstraction.Response.Location.SetVesselSelectedLocationResponse>> SetVesselSelectedLocation(long vesselId, Aizen.Modules.Vessel.Abstraction.Request.Location.SetVesselSelectedLocationRequest request) => throw new NotImplementedException();
     public Task<AizenApiResponse<UpdateVesselEngineResponse>> UpdateEngine(long vesselId, long engineId, UpdateVesselEngineRequest request) => throw new NotImplementedException();
     public Task<AizenApiResponse<ArchiveVesselResponse>> ArchiveVessel(long vesselId, ArchiveVesselRequest request) => throw new NotImplementedException();
     public Task<AizenApiResponse<RestoreVesselResponse>> RestoreVessel(long vesselId) => throw new NotImplementedException();

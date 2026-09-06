@@ -29,17 +29,23 @@ public sealed class CreateMobileServiceRequestCommandHandler
     private readonly IParticipantProfileResolver _resolver;
     private readonly IServiceRequestRemoteCall _sr;
     private readonly IFileStorageRemoteCall _fileStorage;
+    private readonly IVesselRemoteCall _vessel;
+    private readonly IReferenceDataRemoteCall _referenceData;
     private readonly ILogger<CreateMobileServiceRequestCommandHandler> _logger;
 
     public CreateMobileServiceRequestCommandHandler(
         IParticipantProfileResolver resolver,
         IServiceRequestRemoteCall sr,
         IFileStorageRemoteCall fileStorage,
+        IVesselRemoteCall vessel,
+        IReferenceDataRemoteCall referenceData,
         ILogger<CreateMobileServiceRequestCommandHandler> logger)
     {
         _resolver = resolver;
         _sr = sr;
         _fileStorage = fileStorage;
+        _vessel = vessel;
+        _referenceData = referenceData;
         _logger = logger;
     }
 
@@ -60,6 +66,15 @@ public sealed class CreateMobileServiceRequestCommandHandler
         if (resolution.ProfileId is not > 0)
             throw new AizenBusinessException("No participant profile is linked to this account yet.");
 
+        // Job location = the vessel's location. When the client omits it, default from the vessel's selectedLocation
+        // (owner's explicit choice), falling back to currentLocation (auto-detected) — realizing the Phase-1
+        // "selectedLocation preferred, fallback currentLocation" source. When the client omits the city AND the
+        // vessel's selected location references a marina, default LocationCityCode from that marina's cityCode
+        // (Task 7) so the city:{code} SignalR fan-out + provider city matching work from vessel location with zero
+        // extra input. Owner's own vessel, so no leak. Best-effort: any failure leaves fields null (null-safe).
+        var (locLat, locLng, locCity) = await ResolveJobLocationAsync(
+            r.VesselId, r.LocationLatitude, r.LocationLongitude, r.LocationCityCode, cancellationToken);
+
         // 1) Create the Draft (required).
         var createResp = await _sr.Create(new CreateServiceRequestRequest
         {
@@ -72,10 +87,10 @@ public sealed class CreateMobileServiceRequestCommandHandler
             RequestedStartDate = r.RequestedStartDate,
             RequestedEndDate = r.RequestedEndDate,
             LocationCountryCode = NullIfBlank(r.LocationCountryCode),
-            LocationCityCode = NullIfBlank(r.LocationCityCode),
+            LocationCityCode = NullIfBlank(locCity),
             LocationMarinaName = NullIfBlank(r.LocationMarinaName),
-            LocationLatitude = r.LocationLatitude,
-            LocationLongitude = r.LocationLongitude,
+            LocationLatitude = locLat,
+            LocationLongitude = locLng,
             OwnerNotes = NullIfBlank(r.OwnerNotes),
         });
 
@@ -157,4 +172,76 @@ public sealed class CreateMobileServiceRequestCommandHandler
     }
 
     private static string? NullIfBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    /// <summary>Job location + city from the vessel. Coords: client-supplied when present, else the vessel's
+    /// selectedLocation (preferred) → currentLocation (whole-source preference, never mixing). City: client-supplied
+    /// when present, else the cityCode of the marina referenced by the vessel's selectedLocation (Task 7). One vessel
+    /// fetch; the marina is fetched only when the city is needed and a marina is referenced. Best-effort — returns
+    /// whatever was supplied on any failure so create still succeeds.</summary>
+    private async Task<(decimal? Lat, decimal? Lng, string? CityCode)> ResolveJobLocationAsync(
+        long vesselId, decimal? suppliedLat, decimal? suppliedLng, string? suppliedCityCode, CancellationToken ct)
+    {
+        var lat = suppliedLat;
+        var lng = suppliedLng;
+        var cityCode = NullIfBlank(suppliedCityCode);
+
+        var needCoords = !(lat.HasValue && lng.HasValue);
+        var needCity = string.IsNullOrWhiteSpace(cityCode);
+        if (!needCoords && !needCity)
+            return (lat, lng, cityCode);
+
+        try
+        {
+            var detail = (await _vessel.GetVesselDetail(vesselId))?.Body?.Vessel;
+            var sel = detail?.Vessel?.SelectedLocation;
+
+            if (needCoords)
+            {
+                if (sel?.Latitude is not null && sel.Longitude is not null)
+                {
+                    lat = sel.Latitude;
+                    lng = sel.Longitude;
+                }
+                else
+                {
+                    var cur = detail?.CurrentLocation;
+                    if (cur?.Latitude is not null && cur.Longitude is not null)
+                    {
+                        lat = cur.Latitude;
+                        lng = cur.Longitude;
+                    }
+                }
+            }
+
+            // Default the city from the selected marina's cityCode (owner can still override by supplying one).
+            if (needCity && sel?.MarinaId is > 0)
+            {
+                var marina = (await _referenceData.GetMarinaById(sel.MarinaId.Value))?.Body;
+                if (!string.IsNullOrWhiteSpace(marina?.CityCode))
+                    cityCode = marina!.CityCode;
+            }
+
+            // STILL no city but we have coordinates (custom map pin / bare coords) → derive from the NEAREST marina's
+            // cityCode within a sanity cap. Closes the fan-out gap (city:{code} SignalR + provider city web-push).
+            // Never overrides — only fills when cityCode is null (guarded by SrCityDerivation).
+            if (string.IsNullOrWhiteSpace(cityCode) && lat.HasValue && lng.HasValue)
+            {
+                var nearby = (await _referenceData.GetNearbyMarinas((double)lat.Value, (double)lng.Value, 1))?.Body;
+                var nearest = nearby is { Count: > 0 } ? nearby[0] : null;
+                var derived = SrCityDerivation.ResolveCityCode(cityCode, nearest?.CityCode, nearest?.DistanceMeters);
+                if (!string.IsNullOrWhiteSpace(derived))
+                    cityCode = derived;
+                else if (nearest is not null)
+                    _logger.LogDebug(
+                        "SR create: nearest marina '{Name}' is {Dist:0}m from the pin (> {Cap:0}m cap) — city not derived.",
+                        nearest.Name, nearest.DistanceMeters, SrCityDerivation.MaxDeriveDistanceMeters);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Vessel {VesselId} location/city lookup failed for SR create; proceeding with supplied values.", vesselId);
+        }
+
+        return (lat, lng, cityCode);
+    }
 }
