@@ -26,6 +26,8 @@ spec:
           env:
             - name: PROFILE
               value: dev-baseline
+            - name: SKIP_NOTIFICATIONS   # participant fixture yok — s5 basligindaki nota bak
+              value: "1"
             - name: BASE_MOBILE
               value: http://aizen-bff-marine-mobile.inktavia-dev.svc.cluster.local
             - name: KEYCLOAK_BASE

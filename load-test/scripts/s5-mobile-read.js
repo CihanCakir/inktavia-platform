@@ -41,7 +41,11 @@ const READS = [
   ['sr-list',       '/api/v1/mobile/service-requests?pageIndex=0&pageSize=20'],
   ['notifications', '/api/v1/mobile/notifications?skip=0&take=20'],
   ['cargodry-kits', '/api/v1/mobile/cargodry/kits'],
-];
+].filter(([name]) =>
+  // notifications, cagiran hesabin Identity participant kaydini ister; loadtest kullanicilari yalniz
+  // Keycloak'ta var -> 400 "No participant profile is linked" (2026-09-07'de canlida dogrulandi, zarif
+  // hata). Participant fixture kurulana dek SKIP_NOTIFICATIONS=1 ile atlanir (borc defteri: fixture).
+  !(name === 'notifications' && __ENV.SKIP_NOTIFICATIONS === '1'));
 
 export default function () {
   const user = vuUser();
