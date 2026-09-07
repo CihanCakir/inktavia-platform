@@ -19,9 +19,15 @@ import { randomCoastal } from './lib/geo.js';
 const PROFILE = __ENV.PROFILE || 'smoke';
 const PROVIDER_USER = __ENV.PROVIDER_USER; // onboarded provider loadtest kullanıcısı; yoksa discovery leg atlanır.
 
+// DEV kapisi (dev-baseline): 2026-09-07 ilk kosu p95 x 1,5 — 5 VU, 281 istek, %0 hata,
+// marinas-nearby p95 2,50 sn (rastgele kiyi koordinatlariyla; discovery leg PROVIDER_USER yok diye atlandi).
 export const options = PROFILE === 'dev-baseline' ? {
   vus: 5, duration: '2m',
-  thresholds: { http_req_failed: ['rate<0.01'] },
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    'http_req_duration{name:kc-token}':       ['p(95)<300'],
+    'http_req_duration{name:marinas-nearby}': ['p(95)<3800'],
+  },
 } : PROFILE === 'baseline' ? {
   vus: 20, duration: '3m',
   thresholds: {

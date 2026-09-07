@@ -12,7 +12,7 @@
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
 import { BASE_MOBILE, LOADTEST_PREFIX, jsonHeaders } from './lib/config.js';
-import { getToken, authed, vuUser } from './lib/auth.js';
+import { getToken, authed, vuMobileUser } from './lib/auth.js';
 import { randomCoastal } from './lib/geo.js';
 
 const PROFILE = __ENV.PROFILE || 'smoke';
@@ -47,7 +47,7 @@ function pickMarinaId(user) {
 }
 
 export default function () {
-  const user = vuUser();
+  const user = vuMobileUser();
   if (!getToken(user)) { sleep(1); return; }
 
   group('mobile-vessel-write', () => {

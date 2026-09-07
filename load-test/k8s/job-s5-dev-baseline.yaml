@@ -26,8 +26,8 @@ spec:
           env:
             - name: PROFILE
               value: dev-baseline
-            - name: SKIP_NOTIFICATIONS   # participant fixture yok — s5 basligindaki nota bak
-              value: "1"
+            # SKIP_NOTIFICATIONS kaldirildi (2026-09-07): #109 fixture'i kuruldu — mobil havuz
+            # (loadtest-mobile-XX, setup-mobile-loadtest.sh) participant kaydi tasiyor.
             - name: BASE_MOBILE
               value: http://aizen-bff-marine-mobile.inktavia-dev.svc.cluster.local
             - name: KEYCLOAK_BASE

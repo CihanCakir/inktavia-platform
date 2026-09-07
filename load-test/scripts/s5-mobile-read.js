@@ -11,13 +11,23 @@
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
 import { BASE_MOBILE, jsonHeaders } from './lib/config.js';
-import { getToken, authed, vuUser } from './lib/auth.js';
+import { getToken, authed, vuMobileUser } from './lib/auth.js';
 
 const PROFILE = __ENV.PROFILE || 'smoke';
 
+// DEV kapilari (dev-baseline): 2026-09-07 ilk temiz kosu p95 x 1,5 — 5 VU, 365 istek, %0 hata
+// (vessels 2,11s / kits 1,88s / sr-list 1,81s; Prometheus flush-serisinden, yukari yanli olabilir).
+// notifications kapisiz: SKIP_NOTIFICATIONS=1 ile atlaniyor (borc #109 participant fixture).
 export const options = PROFILE === 'dev-baseline' ? {
   vus: 5, duration: '2m',
-  thresholds: { http_req_failed: ['rate<0.01'] },
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    'http_req_duration{name:kc-token}':       ['p(95)<300'],
+    'http_req_duration{name:vessels-list}':   ['p(95)<3200'],
+    'http_req_duration{name:sr-list}':        ['p(95)<2800'],
+    'http_req_duration{name:cargodry-kits}':  ['p(95)<2900'],
+    'http_req_duration{name:notifications}':  ['p(95)<3000'], // TODO-CALIBRATE: fixture sonrasi ilk kosudan
+  },
 } : PROFILE === 'baseline' ? {
   stages: [
     { duration: '3m', target: 20 },
@@ -25,7 +35,7 @@ export const options = PROFILE === 'dev-baseline' ? {
   ],
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    // TODO-CALIBRATE: değerler placeholder; ilk baseline koşusundan p95 × ~1.5 ile sıkılacak (BASELINE.md).
+    // TODO-CALIBRATE: 20 VU degerleri limits-fix sonrasi 20 VU kosusundan kalibre edilecek (BASELINE.md).
     'http_req_duration{name:vessels-list}':   ['p(95)<3000'], // TODO-CALIBRATE
     'http_req_duration{name:sr-list}':        ['p(95)<3000'], // TODO-CALIBRATE
     'http_req_duration{name:notifications}':  ['p(95)<3000'], // TODO-CALIBRATE
@@ -48,7 +58,7 @@ const READS = [
   !(name === 'notifications' && __ENV.SKIP_NOTIFICATIONS === '1'));
 
 export default function () {
-  const user = vuUser();
+  const user = vuMobileUser();
   if (!getToken(user)) { sleep(1); return; }
   group('mobile-home-read', () => {
     for (const [name, path] of READS) {

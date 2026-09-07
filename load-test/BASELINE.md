@@ -8,18 +8,18 @@ Koşum: `README.md → Baseline prosedürü`. Tarih damgalı özetler: `results/
 
 | senaryo | endpoint tag | p95 (ms) | p99 (ms) | http_req_failed | önerilen eşik p95<(×1.5) |
 |---|---|---:|---:|---:|---:|
-| s5 | vessels-list        | TODO | TODO | TODO | TODO |
-| s5 | sr-list             | TODO | TODO | TODO | TODO |
-| s5 | notifications       | TODO | TODO | TODO | TODO |
-| s5 | cargodry-kits       | TODO | TODO | TODO | TODO |
-| s6 | vessel-create       | TODO | TODO | TODO | TODO |
-| s6 | vessel-set-location | TODO | TODO | TODO | TODO |
-| s6 | vessel-archive      | TODO | TODO | TODO | TODO |
-| s7 | sr-create           | TODO | TODO | TODO | TODO |
-| s7 | sr-detail           | TODO | TODO | TODO | TODO |
-| s7 | sr-cancel           | TODO | TODO | TODO | TODO |
-| s8 | marinas-nearby      | TODO | TODO | TODO | TODO |
-| s8 | discovery-list      | TODO¹ | TODO¹ | TODO¹ | TODO¹ |
+| s5 | vessels-list        | 2105 | — | 0% | 3200 |
+| s5 | sr-list             | 1812 | — | 0% | 2800 |
+| s5 | notifications       | SKIP (#109 fixture) | — | — | — |
+| s5 | cargodry-kits       | 1875 | — | 0% | 2900 |
+| s6 | vessel-create       | BLOKE (#109 participant fixture) | — | — | — |
+| s6 | vessel-set-location | BLOKE (#109 participant fixture) | — | — | — |
+| s6 | vessel-archive      | BLOKE (#109 participant fixture) | — | — | — |
+| s7 | sr-create           | BLOKE (#109 participant fixture) | — | — | — |
+| s7 | sr-detail           | BLOKE (#109 participant fixture) | — | — | — |
+| s7 | sr-cancel           | BLOKE (#109 participant fixture) | — | — | — |
+| s8 | marinas-nearby      | 2500 | — | 0% | 3800 |
+| s8 | discovery-list      | SKIP¹ (2026-09-07 koşusunda atlandı) | — | — | — |
 | s9 | trip-start          | TODO² | TODO² | TODO² | TODO² |
 | s9 | trip-ping           | TODO² | TODO² | TODO² | TODO² |
 | s9 | trip-arrive         | TODO² | TODO² | TODO² | TODO² |

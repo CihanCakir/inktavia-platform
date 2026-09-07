@@ -48,3 +48,11 @@ export function vuUser() {
   const n = ((__VU - 1) % 25) + 1;
   return `loadtest-user-${String(n).padStart(2, '0')}@example.test`;
 }
+
+// Mobil senaryolar (s5-s7) icin AYRI havuz: loadtest-mobile-01..25 — bunlar gercek register
+// ucundan yaratildigi icin Identity participant kaydi + participant_profile_id claim'i TASIR
+// (borc #109'un cozumu; setup-mobile-loadtest.sh kurar). loadtest-user-XX'te bu kayit YOK.
+export function vuMobileUser() {
+  const n = ((__VU - 1) % 25) + 1;
+  return `loadtest-mobile-${String(n).padStart(2, '0')}@example.test`;
+}
