@@ -1,260 +1,260 @@
 brandCode,code,name,vesselTypeCode,yearFrom,yearTo,lengthMeters,isActive,source,needsReview
-SIRENA_YACHTS,SIRENA_48,Sirena 48,MOTORYACHT,2019,,14.7,True,https://www.sirenayachts.com/,False
-SIRENA_YACHTS,SIRENA_58,Sirena 58,MOTORYACHT,2016,,18.0,True,https://www.sirenayachts.com/,False
-SIRENA_YACHTS,SIRENA_68,Sirena 68,MOTORYACHT,2018,,21.0,True,https://www.sirenayachts.com/,False
-SIRENA_YACHTS,SIRENA_78,Sirena 78,MOTORYACHT,2022,,24.0,True,https://www.sirenayachts.com/,False
-SIRENA_YACHTS,SIRENA_88,Sirena 88,MOTORYACHT,2021,,27.0,True,https://www.sirenayachts.com/,False
-NUMARINE,22XP,22XP,MOTORYACHT,2018,,22.0,True,https://www.numarine.com/,False
-NUMARINE,26XP,26XP,MOTORYACHT,2016,,26.0,True,https://www.numarine.com/,False
-NUMARINE,32XP,32XP,MOTORYACHT,2019,,32.0,True,https://www.numarine.com/,False
-NUMARINE,37XP,37XP,MOTORYACHT,2021,,37.0,True,https://www.numarine.com/,False
-NUMARINE,62_FLYBRIDGE,62 Flybridge,MOTORYACHT,,,,True,https://www.numarine.com/,True
-NUMARINE,70_FLYBRIDGE,70 Flybridge,MOTORYACHT,,,,True,https://www.numarine.com/,True
-NUMARINE,78_FLYBRIDGE,78 Flybridge,MOTORYACHT,,,,True,https://www.numarine.com/,True
-NUMARINE,105_HARDTOP,105 Hardtop,MOTORYACHT,,,,True,https://www.numarine.com/,True
-NUMARINE,26XP_HYBRID,26XP Hybrid,MOTORYACHT,,,,True,https://www.numarine.com/,True
-VICEM_YACHTS,VICEM_CLASSIC_46,Vicem Classic 46,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-VICEM_YACHTS,VICEM_CLASSIC_58,Vicem Classic 58,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-VICEM_YACHTS,VICEM_CLASSIC_78,Vicem Classic 78,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-VICEM_YACHTS,VICEM_CRUISER_92,Vicem Cruiser 92,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-VICEM_YACHTS,VICEM_BAHAMA_BAY_34,Vicem Bahama Bay 34,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-VICEM_YACHTS,VICEM_VULCAN_32M,Vicem Vulcan 32M,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-VICEM_YACHTS,VICEM_107_CRUISER,Vicem 107 Cruiser,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-VICEM_YACHTS,VICEM_46_IPS,Vicem 46 IPS,MOTORYACHT,,,,True,https://www.vicemyachts.com/,True
-MENGI_YAY,BANDIDO_66,Bandido 66,MOTORYACHT,,,,True,https://www.mengiyay.com/,True
-MENGI_YAY,BANDIDO_75,Bandido 75,MOTORYACHT,,,,True,https://www.mengiyay.com/,True
-MENGI_YAY,BANDIDO_90,Bandido 90,MOTORYACHT,,,,True,https://www.mengiyay.com/,True
-MENGI_YAY,BANDIDO_148,Bandido 148,MOTORYACHT,,,45.0,True,https://www.mengiyay.com/,True
-MENGI_YAY,TRAWLER_78,Trawler 78,MOTORYACHT,,,,True,https://www.mengiyay.com/,True
-MENGI_YAY,TRAWLER_90,Trawler 90,MOTORYACHT,,,,True,https://www.mengiyay.com/,True
-BERING_YACHTS,BERING_55,Bering 55,MOTORYACHT,,,,True,https://beringyachts.com/,True
-BERING_YACHTS,BERING_60,Bering 60,MOTORYACHT,,,,True,https://beringyachts.com/,True
-BERING_YACHTS,BERING_65,Bering 65,MOTORYACHT,,,,True,https://beringyachts.com/,True
-BERING_YACHTS,BERING_70,Bering 70,MOTORYACHT,,,,True,https://beringyachts.com/,True
-BERING_YACHTS,BERING_77,Bering 77,MOTORYACHT,,,,True,https://beringyachts.com/,True
-BERING_YACHTS,BERING_92,Bering 92,MOTORYACHT,,,28.0,True,https://beringyachts.com/,True
-BERING_YACHTS,BERING_80,Bering 80,MOTORYACHT,,,,True,https://beringyachts.com/,True
-BERING_YACHTS,BERING_145,Bering 145,MOTORYACHT,,,,True,https://beringyachts.com/,True
-MAZU_YACHTS,MAZU_38,Mazu 38,MOTORYACHT,,,11.7,True,https://www.mazuyachts.com/,True
-MAZU_YACHTS,MAZU_42,Mazu 42,MOTORYACHT,,,13.0,True,https://www.mazuyachts.com/,True
-MAZU_YACHTS,MAZU_52,Mazu 52,MOTORYACHT,,,16.0,True,https://www.mazuyachts.com/,True
-MAZU_YACHTS,MAZU_82,Mazu 82,MOTORYACHT,,,25.0,True,https://www.mazuyachts.com/,True
-SARP_YACHTS,SARP_XSR_85,Sarp XSR 85,MOTORYACHT,,,,True,https://www.sarpyachts.com/,True
-SARP_YACHTS,SARP_XSR_105,Sarp XSR 105,MOTORYACHT,,,,True,https://www.sarpyachts.com/,True
-SARP_YACHTS,SARP_46,Sarp 46,MOTORYACHT,,,,True,https://www.sarpyachts.com/,True
-SARP_YACHTS,SARP_58,Sarp 58,MOTORYACHT,,,,True,https://www.sarpyachts.com/,True
-BILGIN_YACHTS,BILGIN_156,Bilgin 156,SUPERYACHT,,,,True,https://www.bilginyacht.com/,True
-BILGIN_YACHTS,BILGIN_163,Bilgin 163,SUPERYACHT,,,,True,https://www.bilginyacht.com/,True
-BILGIN_YACHTS,BILGIN_197,Bilgin 197,SUPERYACHT,,,,True,https://www.bilginyacht.com/,True
-BILGIN_YACHTS,BILGIN_263,Bilgin 263,SUPERYACHT,,,,True,https://www.bilginyacht.com/,True
-BILGIN_YACHTS,BILGIN_CLASSIC_160,Bilgin Classic 160,SUPERYACHT,,,,True,https://www.bilginyacht.com/,True
-TURQUOISE_YACHTS,TURQUOISE_55M,Turquoise 55m,SUPERYACHT,,,,True,https://www.turquoiseyachts.com/,True
-TURQUOISE_YACHTS,TURQUOISE_66M,Turquoise 66m,SUPERYACHT,,,,True,https://www.turquoiseyachts.com/,True
-TURQUOISE_YACHTS,TURQUOISE_77M,Turquoise 77m,SUPERYACHT,,,,True,https://www.turquoiseyachts.com/,True
-TANSU_YACHTS,TANSU_42M,Tansu 42m,MOTORYACHT,,,,True,https://www.tansuyachts.com/,True
-TANSU_YACHTS,TANSU_NOVIA,Tansu Novia,MOTORYACHT,,,,True,https://www.tansuyachts.com/,True
-TANSU_YACHTS,TANSU_SO_MAR,Tansu So'Mar,MOTORYACHT,,,,True,https://www.tansuyachts.com/,True
-SU_MARINE_YACHTS,SU_11,Su 11,MOTORYACHT,,,,True,https://www.sumarineyachts.com/,True
-SU_MARINE_YACHTS,SU_12,Su 12,MOTORYACHT,,,,True,https://www.sumarineyachts.com/,True
-SU_MARINE_YACHTS,SU_15,Su 15,MOTORYACHT,,,,True,https://www.sumarineyachts.com/,True
-SU_MARINE_YACHTS,SU_BARCA_45,Su Barca 45,MOTORYACHT,,,,True,https://www.sumarineyachts.com/,True
-ALESTA_YACHTS,ALESTA_34,Alesta 34,MOTORYACHT,,,,True,https://www.alestayacht.com/,True
-ALESTA_YACHTS,ALESTA_40,Alesta 40,MOTORYACHT,,,,True,https://www.alestayacht.com/,True
-ALESTA_YACHTS,ALESTA_EXPLORER_48,Alesta Explorer 48,MOTORYACHT,,,,True,https://www.alestayacht.com/,True
-BENETEAU,OCEANIS_30_1,Oceanis 30.1,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_34_1,Oceanis 34.1,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_37_1,Oceanis 37.1,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_40_1,Oceanis 40.1,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_46_1,Oceanis 46.1,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_51_1,Oceanis 51.1,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_YACHT_54,Oceanis Yacht 54,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_YACHT_60,Oceanis Yacht 60,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_YACHT_62,Oceanis Yacht 62,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_31,Oceanis 31,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_35,Oceanis 35,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_37,Oceanis 37,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_38,Oceanis 38,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_41,Oceanis 41,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_43,Oceanis 43,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_45,Oceanis 45,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_48,Oceanis 48,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_50,Oceanis 50,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_55,Oceanis 55,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_58,Oceanis 58,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_14,First 14,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_18,First 18,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_24,First 24,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_27,First 27,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_36,First 36,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_44,First 44,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_53,First 53,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_210,First 210,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_235,First 235,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_260,First 260,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_285,First 285,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_310,First 310,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_375,First 375,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_405,First 405,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_456,First 456,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_7,Antares 7,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_8,Antares 8,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_9,Antares 9,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_11,Antares 11,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_12,Antares 12,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,GRAN_TURISMO_32,Gran Turismo 32,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,GRAN_TURISMO_36,Gran Turismo 36,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,GRAN_TURISMO_41,Gran Turismo 41,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,GRAN_TURISMO_45,Gran Turismo 45,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SWIFT_TRAWLER_35,Swift Trawler 35,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SWIFT_TRAWLER_41,Swift Trawler 41,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SWIFT_TRAWLER_44,Swift Trawler 44,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SWIFT_TRAWLER_48,Swift Trawler 48,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SWIFT_TRAWLER_54,Swift Trawler 54,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FLYER_6,Flyer 6,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FLYER_7,Flyer 7,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FLYER_8,Flyer 8,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FLYER_9,Flyer 9,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,BARRACUDA_7,Barracuda 7,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,BARRACUDA_8,Barracuda 8,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,BARRACUDA_9,Barracuda 9,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-JEANNEAU,SUN_ODYSSEY_350,Sun Odyssey 350,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_380,Sun Odyssey 380,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_410,Sun Odyssey 410,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_440,Sun Odyssey 440,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_490,Sun Odyssey 490,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_319,Sun Odyssey 319,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_349,Sun Odyssey 349,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_389,Sun Odyssey 389,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_419,Sun Odyssey 419,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_449,Sun Odyssey 449,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_479,Sun Odyssey 479,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_509,Sun Odyssey 509,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_519,Sun Odyssey 519,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_539,Sun Odyssey 539,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_FAST_30_OD,Sun Fast 30 OD,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_FAST_3300,Sun Fast 3300,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_FAST_3600,Sun Fast 3600,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_FAST_3200,Sun Fast 3200,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,JEANNEAU_YACHTS_55,Jeanneau Yachts 55,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,JEANNEAU_YACHTS_60,Jeanneau Yachts 60,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,JEANNEAU_YACHTS_65,Jeanneau Yachts 65,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_605,Merry Fisher 605,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_695,Merry Fisher 695,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_795,Merry Fisher 795,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_895,Merry Fisher 895,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_1095,Merry Fisher 1095,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_1295,Merry Fisher 1295,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_5_5,Cap Camarat 5.5,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_6_5,Cap Camarat 6.5,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_7_5,Cap Camarat 7.5,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_9_0,Cap Camarat 9.0,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_10_5,Cap Camarat 10.5,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,LEADER_30,Leader 30,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,LEADER_33,Leader 33,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,LEADER_36,Leader 36,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,LEADER_40,Leader 40,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,LEADER_46,Leader 46,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,NC_895,NC 895,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,NC_1095,NC 1095,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,NC_37,NC 37,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,DB_37,DB 37,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,DB_43,DB 43,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-BAVARIA_YACHTS,CRUISER_34,Cruiser 34,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_37,Cruiser 37,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_41,Cruiser 41,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_46,Cruiser 46,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_51,Cruiser 51,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,C38,C38,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,C42,C42,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,C45,C45,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,C50,C50,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,C57,C57,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_32,Bavaria 32,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_36,Bavaria 36,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_40,Bavaria 40,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_44,Bavaria 44,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_49,Bavaria 49,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,SR33,SR33,MOTORYACHT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,SR36,SR36,MOTORYACHT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,SR41,SR41,MOTORYACHT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,VIDA_33,Vida 33,MOTORYACHT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_VIRTESS_420,Bavaria Virtess 420,MOTORYACHT,,,,True,https://www.bavariayachts.com/,True
-HANSE,HANSE_348,Hanse 348,SAILBOAT,,,10.4,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_388,Hanse 388,SAILBOAT,,,11.5,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_418,Hanse 418,SAILBOAT,,,12.4,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_460,Hanse 460,SAILBOAT,,,14.0,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_510,Hanse 510,SAILBOAT,,,15.0,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_548,Hanse 548,SAILBOAT,,,16.4,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_315,Hanse 315,SAILBOAT,,,,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_385,Hanse 385,SAILBOAT,,,,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_415,Hanse 415,SAILBOAT,,,,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_455,Hanse 455,SAILBOAT,,,,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_505,Hanse 505,SAILBOAT,,,,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_588,Hanse 588,SAILBOAT,,,,True,https://www.hanseyachts.com/,True
-HANSE,HANSE_675,Hanse 675,SAILBOAT,,,,True,https://www.hanseyachts.com/,True
-DUFOUR,DUFOUR_37,Dufour 37,SAILBOAT,2022,,11.2,True,https://www.dufour-yachts.com/,False
-DUFOUR,DUFOUR_390,Dufour 390,SAILBOAT,,,11.9,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_430,Dufour 430,SAILBOAT,2019,,12.8,True,https://www.dufour-yachts.com/,False
-DUFOUR,DUFOUR_470,Dufour 470,SAILBOAT,2021,,14.1,True,https://www.dufour-yachts.com/,False
-DUFOUR,DUFOUR_530,Dufour 530,SAILBOAT,2020,,15.8,True,https://www.dufour-yachts.com/,False
-DUFOUR,DUFOUR_61,Dufour 61,SAILBOAT,,,18.6,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_310,Dufour 310,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_350,Dufour 350,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_360,Dufour 360,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_382,Dufour 382,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_412,Dufour 412,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_460,Dufour 460,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_512,Dufour 512,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_520,Dufour 520,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-DUFOUR,DUFOUR_560,Dufour 560,SAILBOAT,,,,True,https://www.dufour-yachts.com/,True
-ELAN,IMPRESSION_40_1,Impression 40.1,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,IMPRESSION_43,Impression 43,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,IMPRESSION_45_1,Impression 45.1,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,IMPRESSION_50_1,Impression 50.1,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,E4,E4,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,E5,E5,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,E6,E6,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,GT5,GT5,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,GT6,GT6,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,GT6_EXPLORER,GT6 Explorer,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,S4,S4,SAILBOAT,,,,True,https://elan-yachts.com/,True
-ELAN,S5,S5,SAILBOAT,,,,True,https://elan-yachts.com/,True
-X_YACHTS,XC_38,Xc 38,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,XC_42,Xc 42,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,XP_44,Xp 44,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X4_0,X4^0,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X4_3,X4^3,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X4_6,X4^6,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X4_9,X4^9,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X5_6,X5^6,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X6_5,X6^5,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,XR_41,Xr 41,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X_YACHTS_X_43,X-Yachts X-43,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-X_YACHTS,X_YACHTS_X_46,X-Yachts X-46,SAILBOAT,,,,True,https://www.x-yachts.com/,True
-GRAND_SOLEIL,GRAND_SOLEIL_34,Grand Soleil 34,SAILBOAT,,,,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_40,Grand Soleil 40,SAILBOAT,,,12.0,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_44,Grand Soleil 44,SAILBOAT,,,,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_52,Grand Soleil 52,SAILBOAT,,,15.8,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_42_LC,Grand Soleil 42 LC,SAILBOAT,,,,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_46_LC,Grand Soleil 46 LC,SAILBOAT,,,,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_58,Grand Soleil 58,SAILBOAT,,,,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_65_LC,Grand Soleil 65 LC,SAILBOAT,,,,True,https://www.grandsoleil.net/,True
-GRAND_SOLEIL,GRAND_SOLEIL_72,Grand Soleil 72,SAILBOAT,,,,True,https://www.grandsoleil.net/,True
-HALLBERG_RASSY,HR_340,HR 340,SAILBOAT,,,10.4,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_40C,HR 40C,SAILBOAT,,,,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_40,HR 40,SAILBOAT,,,12.4,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_44,HR 44,SAILBOAT,,,13.7,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_50,HR 50,SAILBOAT,,,15.4,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_57,HR 57,SAILBOAT,,,17.5,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_310,HR 310,SAILBOAT,,,,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_372,HR 372,SAILBOAT,,,,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_412,HR 412,SAILBOAT,,,,True,https://www.hallberg-rassy.com/,True
-HALLBERG_RASSY,HR_400,HR 400,SAILBOAT,,,,True,https://www.hallberg-rassy.com/,True
-AMEL,AMEL_50,Amel 50,SAILBOAT,2017,,15.4,True,https://www.amel.fr/,False
-AMEL,AMEL_60,Amel 60,SAILBOAT,2019,,18.7,True,https://www.amel.fr/,False
-AMEL,AMEL_54,Amel 54,SAILBOAT,,,,True,https://www.amel.fr/,True
-AMEL,AMEL_55,Amel 55,SAILBOAT,,,,True,https://www.amel.fr/,True
-AMEL,AMEL_64,Amel 64,SAILBOAT,,,,True,https://www.amel.fr/,True
+SIRENA_YACHTS,SIRENA_48,Sirena 48,MOTOR_YACHT,2019,,14.7,True,https://www.sirenayachts.com/,False
+SIRENA_YACHTS,SIRENA_58,Sirena 58,MOTOR_YACHT,2016,,18.0,True,https://www.sirenayachts.com/,False
+SIRENA_YACHTS,SIRENA_68,Sirena 68,MOTOR_YACHT,2018,,21.0,True,https://www.sirenayachts.com/,False
+SIRENA_YACHTS,SIRENA_78,Sirena 78,MOTOR_YACHT,2022,,24.0,True,https://www.sirenayachts.com/,False
+SIRENA_YACHTS,SIRENA_88,Sirena 88,MOTOR_YACHT,2021,,27.0,True,https://www.sirenayachts.com/,False
+NUMARINE,22XP,22XP,MOTOR_YACHT,2018,,22.0,True,https://www.numarine.com/,False
+NUMARINE,26XP,26XP,MOTOR_YACHT,2016,,26.0,True,https://www.numarine.com/,False
+NUMARINE,32XP,32XP,MOTOR_YACHT,2019,,32.0,True,https://www.numarine.com/,False
+NUMARINE,37XP,37XP,MOTOR_YACHT,2021,,37.0,True,https://www.numarine.com/,False
+NUMARINE,62_FLYBRIDGE,62 Flybridge,MOTOR_YACHT,,,,True,https://www.numarine.com/,True
+NUMARINE,70_FLYBRIDGE,70 Flybridge,MOTOR_YACHT,,,,True,https://www.numarine.com/,True
+NUMARINE,78_FLYBRIDGE,78 Flybridge,MOTOR_YACHT,,,,True,https://www.numarine.com/,True
+NUMARINE,105_HARDTOP,105 Hardtop,MOTOR_YACHT,,,,True,https://www.numarine.com/,True
+NUMARINE,26XP_HYBRID,26XP Hybrid,MOTOR_YACHT,,,,True,https://www.numarine.com/,True
+VICEM_YACHTS,VICEM_CLASSIC_46,Vicem Classic 46,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+VICEM_YACHTS,VICEM_CLASSIC_58,Vicem Classic 58,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+VICEM_YACHTS,VICEM_CLASSIC_78,Vicem Classic 78,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+VICEM_YACHTS,VICEM_CRUISER_92,Vicem Cruiser 92,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+VICEM_YACHTS,VICEM_BAHAMA_BAY_34,Vicem Bahama Bay 34,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+VICEM_YACHTS,VICEM_VULCAN_32M,Vicem Vulcan 32M,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+VICEM_YACHTS,VICEM_107_CRUISER,Vicem 107 Cruiser,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+VICEM_YACHTS,VICEM_46_IPS,Vicem 46 IPS,MOTOR_YACHT,,,,True,https://www.vicemyachts.com/,True
+MENGI_YAY,BANDIDO_66,Bandido 66,MOTOR_YACHT,,,,True,https://www.mengiyay.com/,True
+MENGI_YAY,BANDIDO_75,Bandido 75,MOTOR_YACHT,,,,True,https://www.mengiyay.com/,True
+MENGI_YAY,BANDIDO_90,Bandido 90,MOTOR_YACHT,,,,True,https://www.mengiyay.com/,True
+MENGI_YAY,BANDIDO_148,Bandido 148,MOTOR_YACHT,,,45.0,True,https://www.mengiyay.com/,True
+MENGI_YAY,TRAWLER_78,Trawler 78,MOTOR_YACHT,,,,True,https://www.mengiyay.com/,True
+MENGI_YAY,TRAWLER_90,Trawler 90,MOTOR_YACHT,,,,True,https://www.mengiyay.com/,True
+BERING_YACHTS,BERING_55,Bering 55,MOTOR_YACHT,,,,True,https://beringyachts.com/,True
+BERING_YACHTS,BERING_60,Bering 60,MOTOR_YACHT,,,,True,https://beringyachts.com/,True
+BERING_YACHTS,BERING_65,Bering 65,MOTOR_YACHT,,,,True,https://beringyachts.com/,True
+BERING_YACHTS,BERING_70,Bering 70,MOTOR_YACHT,,,,True,https://beringyachts.com/,True
+BERING_YACHTS,BERING_77,Bering 77,MOTOR_YACHT,,,,True,https://beringyachts.com/,True
+BERING_YACHTS,BERING_92,Bering 92,MOTOR_YACHT,,,28.0,True,https://beringyachts.com/,True
+BERING_YACHTS,BERING_80,Bering 80,MOTOR_YACHT,,,,True,https://beringyachts.com/,True
+BERING_YACHTS,BERING_145,Bering 145,MOTOR_YACHT,,,,True,https://beringyachts.com/,True
+MAZU_YACHTS,MAZU_38,Mazu 38,MOTOR_YACHT,,,11.7,True,https://www.mazuyachts.com/,True
+MAZU_YACHTS,MAZU_42,Mazu 42,MOTOR_YACHT,,,13.0,True,https://www.mazuyachts.com/,True
+MAZU_YACHTS,MAZU_52,Mazu 52,MOTOR_YACHT,,,16.0,True,https://www.mazuyachts.com/,True
+MAZU_YACHTS,MAZU_82,Mazu 82,MOTOR_YACHT,,,25.0,True,https://www.mazuyachts.com/,True
+SARP_YACHTS,SARP_XSR_85,Sarp XSR 85,MOTOR_YACHT,,,,True,https://www.sarpyachts.com/,True
+SARP_YACHTS,SARP_XSR_105,Sarp XSR 105,MOTOR_YACHT,,,,True,https://www.sarpyachts.com/,True
+SARP_YACHTS,SARP_46,Sarp 46,MOTOR_YACHT,,,,True,https://www.sarpyachts.com/,True
+SARP_YACHTS,SARP_58,Sarp 58,MOTOR_YACHT,,,,True,https://www.sarpyachts.com/,True
+BILGIN_YACHTS,BILGIN_156,Bilgin 156,MOTOR_YACHT,,,,True,https://www.bilginyacht.com/,True
+BILGIN_YACHTS,BILGIN_163,Bilgin 163,MOTOR_YACHT,,,,True,https://www.bilginyacht.com/,True
+BILGIN_YACHTS,BILGIN_197,Bilgin 197,MOTOR_YACHT,,,,True,https://www.bilginyacht.com/,True
+BILGIN_YACHTS,BILGIN_263,Bilgin 263,MOTOR_YACHT,,,,True,https://www.bilginyacht.com/,True
+BILGIN_YACHTS,BILGIN_CLASSIC_160,Bilgin Classic 160,MOTOR_YACHT,,,,True,https://www.bilginyacht.com/,True
+TURQUOISE_YACHTS,TURQUOISE_55M,Turquoise 55m,MOTOR_YACHT,,,,True,https://www.turquoiseyachts.com/,True
+TURQUOISE_YACHTS,TURQUOISE_66M,Turquoise 66m,MOTOR_YACHT,,,,True,https://www.turquoiseyachts.com/,True
+TURQUOISE_YACHTS,TURQUOISE_77M,Turquoise 77m,MOTOR_YACHT,,,,True,https://www.turquoiseyachts.com/,True
+TANSU_YACHTS,TANSU_42M,Tansu 42m,MOTOR_YACHT,,,,True,https://www.tansuyachts.com/,True
+TANSU_YACHTS,TANSU_NOVIA,Tansu Novia,MOTOR_YACHT,,,,True,https://www.tansuyachts.com/,True
+TANSU_YACHTS,TANSU_SO_MAR,Tansu So'Mar,MOTOR_YACHT,,,,True,https://www.tansuyachts.com/,True
+SU_MARINE_YACHTS,SU_11,Su 11,MOTOR_YACHT,,,,True,https://www.sumarineyachts.com/,True
+SU_MARINE_YACHTS,SU_12,Su 12,MOTOR_YACHT,,,,True,https://www.sumarineyachts.com/,True
+SU_MARINE_YACHTS,SU_15,Su 15,MOTOR_YACHT,,,,True,https://www.sumarineyachts.com/,True
+SU_MARINE_YACHTS,SU_BARCA_45,Su Barca 45,MOTOR_YACHT,,,,True,https://www.sumarineyachts.com/,True
+ALESTA_YACHTS,ALESTA_34,Alesta 34,MOTOR_YACHT,,,,True,https://www.alestayacht.com/,True
+ALESTA_YACHTS,ALESTA_40,Alesta 40,MOTOR_YACHT,,,,True,https://www.alestayacht.com/,True
+ALESTA_YACHTS,ALESTA_EXPLORER_48,Alesta Explorer 48,MOTOR_YACHT,,,,True,https://www.alestayacht.com/,True
+BENETEAU,OCEANIS_30_1,Oceanis 30.1,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_34_1,Oceanis 34.1,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_37_1,Oceanis 37.1,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_40_1,Oceanis 40.1,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_46_1,Oceanis 46.1,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_51_1,Oceanis 51.1,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_YACHT_54,Oceanis Yacht 54,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_YACHT_60,Oceanis Yacht 60,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_YACHT_62,Oceanis Yacht 62,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_31,Oceanis 31,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_35,Oceanis 35,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_37,Oceanis 37,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_38,Oceanis 38,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_41,Oceanis 41,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_43,Oceanis 43,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_45,Oceanis 45,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_48,Oceanis 48,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_50,Oceanis 50,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_55,Oceanis 55,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_58,Oceanis 58,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_14,First 14,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_18,First 18,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_24,First 24,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_27,First 27,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_36,First 36,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_44,First 44,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_53,First 53,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_210,First 210,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_235,First 235,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_260,First 260,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_285,First 285,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_310,First 310,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_375,First 375,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_405,First 405,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_456,First 456,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_7,Antares 7,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_8,Antares 8,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_9,Antares 9,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_11,Antares 11,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_12,Antares 12,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,GRAN_TURISMO_32,Gran Turismo 32,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,GRAN_TURISMO_36,Gran Turismo 36,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,GRAN_TURISMO_41,Gran Turismo 41,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,GRAN_TURISMO_45,Gran Turismo 45,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SWIFT_TRAWLER_35,Swift Trawler 35,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SWIFT_TRAWLER_41,Swift Trawler 41,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SWIFT_TRAWLER_44,Swift Trawler 44,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SWIFT_TRAWLER_48,Swift Trawler 48,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SWIFT_TRAWLER_54,Swift Trawler 54,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FLYER_6,Flyer 6,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FLYER_7,Flyer 7,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FLYER_8,Flyer 8,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FLYER_9,Flyer 9,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,BARRACUDA_7,Barracuda 7,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,BARRACUDA_8,Barracuda 8,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,BARRACUDA_9,Barracuda 9,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+JEANNEAU,SUN_ODYSSEY_350,Sun Odyssey 350,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_380,Sun Odyssey 380,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_410,Sun Odyssey 410,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_440,Sun Odyssey 440,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_490,Sun Odyssey 490,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_319,Sun Odyssey 319,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_349,Sun Odyssey 349,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_389,Sun Odyssey 389,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_419,Sun Odyssey 419,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_449,Sun Odyssey 449,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_479,Sun Odyssey 479,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_509,Sun Odyssey 509,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_519,Sun Odyssey 519,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_539,Sun Odyssey 539,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_FAST_30_OD,Sun Fast 30 OD,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_FAST_3300,Sun Fast 3300,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_FAST_3600,Sun Fast 3600,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_FAST_3200,Sun Fast 3200,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,JEANNEAU_YACHTS_55,Jeanneau Yachts 55,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,JEANNEAU_YACHTS_60,Jeanneau Yachts 60,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,JEANNEAU_YACHTS_65,Jeanneau Yachts 65,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_605,Merry Fisher 605,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_695,Merry Fisher 695,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_795,Merry Fisher 795,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_895,Merry Fisher 895,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_1095,Merry Fisher 1095,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_1295,Merry Fisher 1295,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_5_5,Cap Camarat 5.5,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_6_5,Cap Camarat 6.5,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_7_5,Cap Camarat 7.5,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_9_0,Cap Camarat 9.0,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_10_5,Cap Camarat 10.5,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,LEADER_30,Leader 30,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,LEADER_33,Leader 33,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,LEADER_36,Leader 36,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,LEADER_40,Leader 40,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,LEADER_46,Leader 46,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,NC_895,NC 895,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,NC_1095,NC 1095,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,NC_37,NC 37,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,DB_37,DB 37,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,DB_43,DB 43,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+BAVARIA_YACHTS,CRUISER_34,Cruiser 34,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_37,Cruiser 37,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_41,Cruiser 41,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_46,Cruiser 46,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_51,Cruiser 51,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,C38,C38,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,C42,C42,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,C45,C45,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,C50,C50,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,C57,C57,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_32,Bavaria 32,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_36,Bavaria 36,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_40,Bavaria 40,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_44,Bavaria 44,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_49,Bavaria 49,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,SR33,SR33,MOTOR_YACHT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,SR36,SR36,MOTOR_YACHT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,SR41,SR41,MOTOR_YACHT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,VIDA_33,Vida 33,MOTOR_YACHT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_VIRTESS_420,Bavaria Virtess 420,MOTOR_YACHT,,,,True,https://www.bavariayachts.com/,True
+HANSE,HANSE_348,Hanse 348,SAILING_BOAT,,,10.4,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_388,Hanse 388,SAILING_BOAT,,,11.5,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_418,Hanse 418,SAILING_BOAT,,,12.4,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_460,Hanse 460,SAILING_BOAT,,,14.0,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_510,Hanse 510,SAILING_BOAT,,,15.0,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_548,Hanse 548,SAILING_BOAT,,,16.4,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_315,Hanse 315,SAILING_BOAT,,,,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_385,Hanse 385,SAILING_BOAT,,,,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_415,Hanse 415,SAILING_BOAT,,,,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_455,Hanse 455,SAILING_BOAT,,,,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_505,Hanse 505,SAILING_BOAT,,,,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_588,Hanse 588,SAILING_BOAT,,,,True,https://www.hanseyachts.com/,True
+HANSE,HANSE_675,Hanse 675,SAILING_BOAT,,,,True,https://www.hanseyachts.com/,True
+DUFOUR,DUFOUR_37,Dufour 37,SAILING_BOAT,2022,,11.2,True,https://www.dufour-yachts.com/,False
+DUFOUR,DUFOUR_390,Dufour 390,SAILING_BOAT,,,11.9,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_430,Dufour 430,SAILING_BOAT,2019,,12.8,True,https://www.dufour-yachts.com/,False
+DUFOUR,DUFOUR_470,Dufour 470,SAILING_BOAT,2021,,14.1,True,https://www.dufour-yachts.com/,False
+DUFOUR,DUFOUR_530,Dufour 530,SAILING_BOAT,2020,,15.8,True,https://www.dufour-yachts.com/,False
+DUFOUR,DUFOUR_61,Dufour 61,SAILING_BOAT,,,18.6,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_310,Dufour 310,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_350,Dufour 350,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_360,Dufour 360,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_382,Dufour 382,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_412,Dufour 412,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_460,Dufour 460,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_512,Dufour 512,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_520,Dufour 520,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+DUFOUR,DUFOUR_560,Dufour 560,SAILING_BOAT,,,,True,https://www.dufour-yachts.com/,True
+ELAN,IMPRESSION_40_1,Impression 40.1,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,IMPRESSION_43,Impression 43,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,IMPRESSION_45_1,Impression 45.1,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,IMPRESSION_50_1,Impression 50.1,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,E4,E4,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,E5,E5,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,E6,E6,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,GT5,GT5,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,GT6,GT6,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,GT6_EXPLORER,GT6 Explorer,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,S4,S4,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+ELAN,S5,S5,SAILING_BOAT,,,,True,https://elan-yachts.com/,True
+X_YACHTS,XC_38,Xc 38,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,XC_42,Xc 42,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,XP_44,Xp 44,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X4_0,X4^0,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X4_3,X4^3,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X4_6,X4^6,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X4_9,X4^9,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X5_6,X5^6,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X6_5,X6^5,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,XR_41,Xr 41,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X_YACHTS_X_43,X-Yachts X-43,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+X_YACHTS,X_YACHTS_X_46,X-Yachts X-46,SAILING_BOAT,,,,True,https://www.x-yachts.com/,True
+GRAND_SOLEIL,GRAND_SOLEIL_34,Grand Soleil 34,SAILING_BOAT,,,,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_40,Grand Soleil 40,SAILING_BOAT,,,12.0,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_44,Grand Soleil 44,SAILING_BOAT,,,,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_52,Grand Soleil 52,SAILING_BOAT,,,15.8,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_42_LC,Grand Soleil 42 LC,SAILING_BOAT,,,,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_46_LC,Grand Soleil 46 LC,SAILING_BOAT,,,,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_58,Grand Soleil 58,SAILING_BOAT,,,,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_65_LC,Grand Soleil 65 LC,SAILING_BOAT,,,,True,https://www.grandsoleil.net/,True
+GRAND_SOLEIL,GRAND_SOLEIL_72,Grand Soleil 72,SAILING_BOAT,,,,True,https://www.grandsoleil.net/,True
+HALLBERG_RASSY,HR_340,HR 340,SAILING_BOAT,,,10.4,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_40C,HR 40C,SAILING_BOAT,,,,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_40,HR 40,SAILING_BOAT,,,12.4,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_44,HR 44,SAILING_BOAT,,,13.7,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_50,HR 50,SAILING_BOAT,,,15.4,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_57,HR 57,SAILING_BOAT,,,17.5,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_310,HR 310,SAILING_BOAT,,,,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_372,HR 372,SAILING_BOAT,,,,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_412,HR 412,SAILING_BOAT,,,,True,https://www.hallberg-rassy.com/,True
+HALLBERG_RASSY,HR_400,HR 400,SAILING_BOAT,,,,True,https://www.hallberg-rassy.com/,True
+AMEL,AMEL_50,Amel 50,SAILING_BOAT,2017,,15.4,True,https://www.amel.fr/,False
+AMEL,AMEL_60,Amel 60,SAILING_BOAT,2019,,18.7,True,https://www.amel.fr/,False
+AMEL,AMEL_54,Amel 54,SAILING_BOAT,,,,True,https://www.amel.fr/,True
+AMEL,AMEL_55,Amel 55,SAILING_BOAT,,,,True,https://www.amel.fr/,True
+AMEL,AMEL_64,Amel 64,SAILING_BOAT,,,,True,https://www.amel.fr/,True
 LAGOON,LAGOON_40,Lagoon 40,CATAMARAN,2018,,11.7,True,https://www.cata-lagoon.com/,False
 LAGOON,LAGOON_42,Lagoon 42,CATAMARAN,2016,,12.8,True,https://www.cata-lagoon.com/,False
 LAGOON,LAGOON_46,Lagoon 46,CATAMARAN,2019,,13.9,True,https://www.cata-lagoon.com/,False
@@ -333,356 +333,356 @@ SUNREEF_YACHTS,SUNREEF_60_POWER,Sunreef 60 Power,CATAMARAN,,,,True,https://www.s
 SUNREEF_YACHTS,SUNREEF_70_POWER,Sunreef 70 Power,CATAMARAN,,,,True,https://www.sunreef-yachts.com/,True
 SUNREEF_YACHTS,SUNREEF_80_POWER,Sunreef 80 Power,CATAMARAN,,,,True,https://www.sunreef-yachts.com/,True
 SUNREEF_YACHTS,SUNREEF_40_ULTIMA,Sunreef 40 Ultima,CATAMARAN,,,,True,https://www.sunreef-yachts.com/,True
-AZIMUT_YACHTS,ATLANTIS_45,Atlantis 45,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,ATLANTIS_51,Atlantis 51,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,MAGELLANO_25,Magellano 25,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,MAGELLANO_30,Magellano 30,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,MAGELLANO_43,Magellano 43,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,MAGELLANO_60,Magellano 60,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,MAGELLANO_66,Magellano 66,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_53,Flybridge 53,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_60,Flybridge 60,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_68,Flybridge 68,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_72,Flybridge 72,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_78,Flybridge 78,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,S6,S6,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,S7,S7,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,S8,S8,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,S10,S10,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,SEADECK_6,Seadeck 6,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,SEADECK_7,Seadeck 7,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,GRANDE_26M,Grande 26M,SUPERYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,GRANDE_30M,Grande 30M,SUPERYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,GRANDE_32M,Grande 32M,SUPERYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,GRANDE_35M,Grande 35M,SUPERYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,GRANDE_44M,Grande 44M,SUPERYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,GRANDE_TRIDECK,Grande Trideck,SUPERYACHT,,,,True,https://www.azimutyachts.com/,True
-FERRETTI_YACHTS,FERRETTI_500,Ferretti 500,MOTORYACHT,,,15.5,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_580,Ferretti 580,MOTORYACHT,,,18.0,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_670,Ferretti 670,MOTORYACHT,,,20.7,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_720,Ferretti 720,MOTORYACHT,,,22.0,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_860,Ferretti 860,MOTORYACHT,,,26.4,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_1000,Ferretti 1000,MOTORYACHT,,,30.0,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_450,Ferretti 450,MOTORYACHT,,,,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_550,Ferretti 550,MOTORYACHT,,,,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_780,Ferretti 780,MOTORYACHT,,,,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_INFYNITO_90,Ferretti INFYNITO 90,MOTORYACHT,,,,True,https://www.ferretti-yachts.com/,True
-FERRETTI_YACHTS,FERRETTI_INFYNITO_80,Ferretti INFYNITO 80,MOTORYACHT,,,,True,https://www.ferretti-yachts.com/,True
-PRINCESS_YACHTS,V40,V40,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V50,V50,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V55,V55,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V60,V60,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V65,V65,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V78,V78,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V80,V80,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,F45,F45,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,F50,F50,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,F55,F55,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,F58,F58,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,F62,F62,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,F70,F70,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,S62,S62,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,S65,S65,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,S72,S72,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,S78,S78,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,S80,S80,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,Y72,Y72,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,Y78,Y78,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,Y80,Y80,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,Y85,Y85,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,Y95,Y95,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,X80,X80,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,X95,X95,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,R35,R35,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_M30,Princess M30,SUPERYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_M32,Princess M32,SUPERYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_M35,Princess M35,SUPERYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_M40,Princess M40,SUPERYACHT,,,,True,https://www.princessyachts.com/,True
-SUNSEEKER,MANHATTAN_55,Manhattan 55,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,MANHATTAN_66,Manhattan 66,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,MANHATTAN_68,Manhattan 68,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_50,Predator 50,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_55,Predator 55,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_60,Predator 60,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_65,Predator 65,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_74,Predator 74,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PORTOFINO_40,Portofino 40,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PORTOFINO_47,Portofino 47,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PORTOFINO_53,Portofino 53,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,CAMARGUE_50,Camargue 50,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,CAMARGUE_55,Camargue 55,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,OCEAN_156,Ocean 156,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,OCEAN_182,Ocean 182,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,SUPERHAWK_55,Superhawk 55,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,HAWK_38,Hawk 38,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,65_SPORT_YACHT,65 Sport Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,76_YACHT,76 Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,88_YACHT,88 Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,90_OCEAN,90 Ocean,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,100_YACHT,100 Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-FAIRLINE,TARGA_38,Targa 38,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_40,Targa 40,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_43,Targa 43,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_45,Targa 45,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_50,Targa 50,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_58,Targa 58,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_63,Targa 63,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_65,Targa 65,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_50,Squadron 50,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_58,Squadron 58,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_68,Squadron 68,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,PHANTOM_65,Phantom 65,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,F_LINE_33,F//LINE 33,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,F_LINE_65,F//LINE 65,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_33,Targa 33,MOTORYACHT,,,,True,https://www.fairline.com/,True
-SEALINE,S330,S330,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,S335,S335,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,S430,S430,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,S450,S450,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,C330,C330,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,C335,C335,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,C390,C390,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,C430,C430,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,C450,C450,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,F430,F430,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,F530,F530,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,SEALINE_SC35,Sealine SC35,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,SEALINE_SC42,Sealine SC42,MOTORYACHT,,,,True,https://www.sealine.com/,True
-GALEON,GALEON_325,Galeon 325,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_335,Galeon 335,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_375,Galeon 375,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_405,Galeon 405,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_440,Galeon 440,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_460,Galeon 460,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_500,Galeon 500,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_510,Galeon 510,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_560,Galeon 560,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_640,Galeon 640,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_680,Galeon 680,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_800,Galeon 800,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_300,Galeon 300,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_360,Galeon 360,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_425,Galeon 425,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_485,Galeon 485,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_700,Galeon 700,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_420,Prestige 420,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_460,Prestige 460,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_520,Prestige 520,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_590,Prestige 590,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_690,Prestige 690,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_M48,Prestige M48,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_M8,Prestige M8,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_X60,Prestige X60,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_X70,Prestige X70,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_400,Prestige 400,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_450,Prestige 450,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_500,Prestige 500,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_630,Prestige 630,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_750,Prestige 750,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-ABSOLUTE_YACHTS,NAVETTA_48,Navetta 48,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,NAVETTA_52,Navetta 52,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,NAVETTA_58,Navetta 58,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,NAVETTA_64,Navetta 64,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,NAVETTA_68,Navetta 68,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,NAVETTA_73,Navetta 73,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,52_FLY,52 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,56_FLY,56 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,60_FLY,60 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,62_FLY,62 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,ABSOLUTE_47_COUP,Absolute 47 Coupé,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,ABSOLUTE_52_COUP,Absolute 52 Coupé,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,ABSOLUTE_58_FLY,Absolute 58 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-CRANCHI,CRANCHI_E26,Cranchi E26,MOTORYACHT,,,8.4,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_A46,Cranchi A46,MOTORYACHT,,,14.5,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_E30,Cranchi E30,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_E52,Cranchi E52,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_Z35,Cranchi Z35,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_T36,Cranchi T36,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_T43,Cranchi T43,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_SETTANTOTTO,Cranchi Settantotto,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_SESSANTASETTE,Cranchi Sessantasette,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_M44,Cranchi M44,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-SESSA_MARINE,KEY_LARGO_24,Key Largo 24,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,KEY_LARGO_27,Key Largo 27,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,KEY_LARGO_34,Key Largo 34,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,C38,C38,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,C42,C42,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,C47,C47,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,FLY_42,Fly 42,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,FLY_47,Fly 47,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-SESSA_MARINE,FLY_54,Fly 54,MOTORYACHT,,,,True,https://www.sessamarine.com/,True
-FJORD,FJORD_41,Fjord 41,MOTORYACHT,,,12.6,True,https://www.fjordboats.com/,True
-FJORD,FJORD_44,Fjord 44,MOTORYACHT,,,13.7,True,https://www.fjordboats.com/,True
-FJORD,FJORD_48,Fjord 48,MOTORYACHT,,,14.9,True,https://www.fjordboats.com/,True
-FJORD,FJORD_53,Fjord 53,MOTORYACHT,,,16.4,True,https://www.fjordboats.com/,True
-FJORD,FJORD_38,Fjord 38,MOTORYACHT,,,,True,https://www.fjordboats.com/,True
-FJORD,FJORD_40,Fjord 40,MOTORYACHT,,,,True,https://www.fjordboats.com/,True
-FJORD,FJORD_52,Fjord 52,MOTORYACHT,,,,True,https://www.fjordboats.com/,True
-FJORD,FJORD_64,Fjord 64,MOTORYACHT,,,,True,https://www.fjordboats.com/,True
-NIMBUS,NIMBUS_T8,Nimbus T8,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_T9,Nimbus T9,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_T11,Nimbus T11,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_C8,Nimbus C8,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_C9,Nimbus C9,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_C11,Nimbus C11,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_W9,Nimbus W9,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_W11,Nimbus W11,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_305_COUP,Nimbus 305 Coupé,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_405_COUP,Nimbus 405 Coupé,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_465_COUP,Nimbus 465 Coupé,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-RIVA,AQUARIVA,Aquariva,MOTORYACHT,,,10.1,True,https://www.riva-yacht.com/,True
-RIVA,RIVAMARE,Rivamare,MOTORYACHT,,,11.9,True,https://www.riva-yacht.com/,True
-RIVA,ISEO,Iseo,MOTORYACHT,,,8.2,True,https://www.riva-yacht.com/,True
-RIVA,DOLCERIVA,Dolceriva,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_68_DIABLE,Riva 68 Diable,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_76_PERSEO,Riva 76 Perseo,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_88_FOLGORE,Riva 88 Folgore,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_90_ARGO,Riva 90 Argo,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_100_CORSARO,Riva 100 Corsaro,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_130_BELLISSIMA,Riva 130 Bellissima,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-SANLORENZO,SL78,SL78,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SL86,SL86,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SL90A,SL90A,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SL96A,SL96A,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SL102A,SL102A,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SL106,SL106,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SL120,SL120,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SX76,SX76,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SX88,SX88,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SX100,SX100,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SD90,SD90,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SD96,SD96,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SD118,SD118,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SP110,SP110,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SEA_RAY,SPX_190,SPX 190,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SPX_210,SPX 210,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SPX_230,SPX 230,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_230,SLX 230,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_260,SLX 260,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_280,SLX 280,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_310,SLX 310,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_350,SLX 350,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_400,SLX 400,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SDX_250,SDX 250,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SDX_270,SDX 270,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SDX_290,SDX 290,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_265,Sundancer 265,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_290,Sundancer 290,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_320,Sundancer 320,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_370,Sundancer 370,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_400,Sundancer 400,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_350_COUPE,Sundancer 350 Coupe,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_R_400E,SLX-R 400e,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_350,Sundancer 350,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SL3,SL3,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,230_SPX_OB,230 SPX OB,MOTORYACHT,,,,True,https://www.searay.com/,True
-BAYLINER,VR4,VR4,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,VR5,VR5,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,VR6,VR6,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,DX2000,DX2000,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,DX2050,DX2050,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,ELEMENT_E16,Element E16,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,ELEMENT_E18,Element E18,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,ELEMENT_M15,Element M15,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,ELEMENT_M17,Element M17,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_8,Ciera 8,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,TROPHY_T20,Trophy T20,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,TROPHY_T22,Trophy T22,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,TROPHY_T24,Trophy T24,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,M15,M15,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,M19,M19,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-QUICKSILVER,ACTIV_455,Activ 455,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,ACTIV_505,Activ 505,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,ACTIV_555,Activ 555,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,ACTIV_605,Activ 605,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,ACTIV_675,Activ 675,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,ACTIV_755,Activ 755,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,ACTIV_805,Activ 805,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,ACTIV_875,Activ 875,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,CAPTUR_500,Captur 500,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,CAPTUR_555,Captur 555,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,CAPTUR_605,Captur 605,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,CAPTUR_625,Captur 625,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,CAPTUR_675,Captur 675,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,CAPTUR_755,Captur 755,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,CAPTUR_875,Captur 875,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,PILOTHOUSE_555,Pilothouse 555,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,PILOTHOUSE_605,Pilothouse 605,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,PILOTHOUSE_705,Pilothouse 705,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-QUICKSILVER,PILOTHOUSE_805,Pilothouse 805,MOTORYACHT,,,,True,https://www.quicksilver-boats.com/,True
-BOSTON_WHALER,MONTAUK_150,Montauk 150,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,MONTAUK_170,Montauk 170,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,MONTAUK_190,Montauk 190,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,MONTAUK_210,Montauk 210,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_220,Outrage 220,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_250,Outrage 250,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_280,Outrage 280,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_320,Outrage 320,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_330,Outrage 330,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_350,Outrage 350,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_380,Outrage 380,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,OUTRAGE_420,Outrage 420,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,DAUNTLESS_170,Dauntless 170,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,DAUNTLESS_210,Dauntless 210,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,DAUNTLESS_230,Dauntless 230,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,DAUNTLESS_270,Dauntless 270,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,VANTAGE_230,Vantage 230,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,VANTAGE_270,Vantage 270,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,VANTAGE_320,Vantage 320,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,CONQUEST_285,Conquest 285,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,CONQUEST_325,Conquest 325,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,CONQUEST_355,Conquest 355,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-AXOPAR,AXOPAR_22,Axopar 22,MOTORYACHT,2020,,6.9,True,https://www.axopar.com/,False
-AXOPAR,AXOPAR_25,Axopar 25,MOTORYACHT,2022,,7.9,True,https://www.axopar.com/,False
-AXOPAR,AXOPAR_28,Axopar 28,MOTORYACHT,2014,,9.0,True,https://www.axopar.com/,False
-AXOPAR,AXOPAR_37,Axopar 37,MOTORYACHT,2020,,11.8,True,https://www.axopar.com/,False
-AXOPAR,AXOPAR_45,Axopar 45,MOTORYACHT,2022,,13.7,True,https://www.axopar.com/,False
-AXOPAR,AXOPAR_29,Axopar 29,MOTORYACHT,,,,True,https://www.axopar.com/,True
-AXOPAR,AXOPAR_24,Axopar 24,MOTORYACHT,,,,True,https://www.axopar.com/,True
-SAXDOR_YACHTS,SAXDOR_200,Saxdor 200,MOTORYACHT,2020,,6.4,True,https://www.saxdoryachts.com/,False
-SAXDOR_YACHTS,SAXDOR_270,Saxdor 270,MOTORYACHT,2021,,8.3,True,https://www.saxdoryachts.com/,False
-SAXDOR_YACHTS,SAXDOR_320,Saxdor 320,MOTORYACHT,2022,,9.8,True,https://www.saxdoryachts.com/,False
-SAXDOR_YACHTS,SAXDOR_400,Saxdor 400,MOTORYACHT,2023,,11.9,True,https://www.saxdoryachts.com/,False
-SAXDOR_YACHTS,SAXDOR_205,Saxdor 205,MOTORYACHT,,,,True,https://www.saxdoryachts.com/,True
-SAXDOR_YACHTS,SAXDOR_340,Saxdor 340,MOTORYACHT,,,,True,https://www.saxdoryachts.com/,True
-SAXDOR_YACHTS,SAXDOR_470,Saxdor 470,MOTORYACHT,,,,True,https://www.saxdoryachts.com/,True
-DE_ANTONIO_YACHTS,D28,D28,MOTORYACHT,,,8.5,True,https://www.deantonioyachts.com/,True
-DE_ANTONIO_YACHTS,D32,D32,MOTORYACHT,,,9.9,True,https://www.deantonioyachts.com/,True
-DE_ANTONIO_YACHTS,D36,D36,MOTORYACHT,,,11.0,True,https://www.deantonioyachts.com/,True
-DE_ANTONIO_YACHTS,D42,D42,MOTORYACHT,,,12.6,True,https://www.deantonioyachts.com/,True
-DE_ANTONIO_YACHTS,D50,D50,MOTORYACHT,,,15.0,True,https://www.deantonioyachts.com/,True
-DE_ANTONIO_YACHTS,D29,D29,MOTORYACHT,,,,True,https://www.deantonioyachts.com/,True
-DE_ANTONIO_YACHTS,D23,D23,MOTORYACHT,,,,True,https://www.deantonioyachts.com/,True
-DE_ANTONIO_YACHTS,D60,D60,MOTORYACHT,,,,True,https://www.deantonioyachts.com/,True
-INVICTUS_YACHT,GT320,GT320,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,GT370,GT370,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,GT420,GT420,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,GT460,GT460,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,TT280,TT280,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,TT420,TT420,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,TT460,TT460,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,CAPOFORTE_CX240,Capoforte CX240,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,CAPOFORTE_SX200,Capoforte SX200,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,CAPOFORTE_FX240,Capoforte FX240,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-INVICTUS_YACHT,CAPOFORTE_SX240,Capoforte SX240,MOTORYACHT,,,,True,https://www.invictusyacht.com/,True
-KARNIC,SL600,SL600,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,SL602,SL602,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,SL652,SL652,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,SL702,SL702,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,SL800,SL800,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,SL852,SL852,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,BLUEWATER_2251,Bluewater 2251,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,BLUEWATER_2452,Bluewater 2452,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,SL702_FLEXI,SL702 Flexi,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-KARNIC,SL903,SL903,MOTORYACHT,,,,True,https://www.karnic.eu/,True
-PARKER_POLAND,PARKER_660,Parker 660,MOTORYACHT,,,6.6,True,https://www.parkerpoland.com/,True
-PARKER_POLAND,PARKER_750,Parker 750,MOTORYACHT,,,7.5,True,https://www.parkerpoland.com/,True
-PARKER_POLAND,PARKER_850,Parker 850,MOTORYACHT,,,8.5,True,https://www.parkerpoland.com/,True
-PARKER_POLAND,PARKER_630,Parker 630,MOTORYACHT,,,,True,https://www.parkerpoland.com/,True
-PARKER_POLAND,PARKER_760,Parker 760,MOTORYACHT,,,,True,https://www.parkerpoland.com/,True
-PARKER_POLAND,PARKER_800,Parker 800,MOTORYACHT,,,,True,https://www.parkerpoland.com/,True
-PARKER_POLAND,PARKER_920,Parker 920,MOTORYACHT,,,,True,https://www.parkerpoland.com/,True
-PARKER_POLAND,PARKER_110,Parker 110,MOTORYACHT,,,,True,https://www.parkerpoland.com/,True
+AZIMUT_YACHTS,ATLANTIS_45,Atlantis 45,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,ATLANTIS_51,Atlantis 51,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,MAGELLANO_25,Magellano 25,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,MAGELLANO_30,Magellano 30,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,MAGELLANO_43,Magellano 43,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,MAGELLANO_60,Magellano 60,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,MAGELLANO_66,Magellano 66,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_53,Flybridge 53,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_60,Flybridge 60,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_68,Flybridge 68,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_72,Flybridge 72,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_78,Flybridge 78,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,S6,S6,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,S7,S7,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,S8,S8,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,S10,S10,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,SEADECK_6,Seadeck 6,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,SEADECK_7,Seadeck 7,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,GRANDE_26M,Grande 26M,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,GRANDE_30M,Grande 30M,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,GRANDE_32M,Grande 32M,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,GRANDE_35M,Grande 35M,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,GRANDE_44M,Grande 44M,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,GRANDE_TRIDECK,Grande Trideck,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+FERRETTI_YACHTS,FERRETTI_500,Ferretti 500,MOTOR_YACHT,,,15.5,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_580,Ferretti 580,MOTOR_YACHT,,,18.0,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_670,Ferretti 670,MOTOR_YACHT,,,20.7,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_720,Ferretti 720,MOTOR_YACHT,,,22.0,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_860,Ferretti 860,MOTOR_YACHT,,,26.4,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_1000,Ferretti 1000,MOTOR_YACHT,,,30.0,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_450,Ferretti 450,MOTOR_YACHT,,,,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_550,Ferretti 550,MOTOR_YACHT,,,,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_780,Ferretti 780,MOTOR_YACHT,,,,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_INFYNITO_90,Ferretti INFYNITO 90,MOTOR_YACHT,,,,True,https://www.ferretti-yachts.com/,True
+FERRETTI_YACHTS,FERRETTI_INFYNITO_80,Ferretti INFYNITO 80,MOTOR_YACHT,,,,True,https://www.ferretti-yachts.com/,True
+PRINCESS_YACHTS,V40,V40,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V50,V50,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V55,V55,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V60,V60,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V65,V65,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V78,V78,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V80,V80,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,F45,F45,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,F50,F50,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,F55,F55,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,F58,F58,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,F62,F62,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,F70,F70,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,S62,S62,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,S65,S65,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,S72,S72,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,S78,S78,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,S80,S80,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,Y72,Y72,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,Y78,Y78,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,Y80,Y80,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,Y85,Y85,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,Y95,Y95,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,X80,X80,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,X95,X95,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,R35,R35,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_M30,Princess M30,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_M32,Princess M32,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_M35,Princess M35,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_M40,Princess M40,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+SUNSEEKER,MANHATTAN_55,Manhattan 55,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,MANHATTAN_66,Manhattan 66,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,MANHATTAN_68,Manhattan 68,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_50,Predator 50,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_55,Predator 55,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_60,Predator 60,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_65,Predator 65,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_74,Predator 74,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PORTOFINO_40,Portofino 40,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PORTOFINO_47,Portofino 47,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PORTOFINO_53,Portofino 53,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,CAMARGUE_50,Camargue 50,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,CAMARGUE_55,Camargue 55,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,OCEAN_156,Ocean 156,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,OCEAN_182,Ocean 182,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,SUPERHAWK_55,Superhawk 55,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,HAWK_38,Hawk 38,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,65_SPORT_YACHT,65 Sport Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,76_YACHT,76 Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,88_YACHT,88 Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,90_OCEAN,90 Ocean,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,100_YACHT,100 Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+FAIRLINE,TARGA_38,Targa 38,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_40,Targa 40,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_43,Targa 43,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_45,Targa 45,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_50,Targa 50,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_58,Targa 58,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_63,Targa 63,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_65,Targa 65,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_50,Squadron 50,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_58,Squadron 58,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_68,Squadron 68,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,PHANTOM_65,Phantom 65,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,F_LINE_33,F//LINE 33,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,F_LINE_65,F//LINE 65,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_33,Targa 33,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+SEALINE,S330,S330,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,S335,S335,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,S430,S430,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,S450,S450,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,C330,C330,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,C335,C335,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,C390,C390,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,C430,C430,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,C450,C450,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,F430,F430,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,F530,F530,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,SEALINE_SC35,Sealine SC35,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,SEALINE_SC42,Sealine SC42,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+GALEON,GALEON_325,Galeon 325,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_335,Galeon 335,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_375,Galeon 375,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_405,Galeon 405,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_440,Galeon 440,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_460,Galeon 460,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_500,Galeon 500,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_510,Galeon 510,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_560,Galeon 560,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_640,Galeon 640,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_680,Galeon 680,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_800,Galeon 800,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_300,Galeon 300,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_360,Galeon 360,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_425,Galeon 425,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_485,Galeon 485,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_700,Galeon 700,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_420,Prestige 420,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_460,Prestige 460,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_520,Prestige 520,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_590,Prestige 590,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_690,Prestige 690,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_M48,Prestige M48,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_M8,Prestige M8,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_X60,Prestige X60,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_X70,Prestige X70,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_400,Prestige 400,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_450,Prestige 450,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_500,Prestige 500,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_630,Prestige 630,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_750,Prestige 750,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+ABSOLUTE_YACHTS,NAVETTA_48,Navetta 48,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,NAVETTA_52,Navetta 52,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,NAVETTA_58,Navetta 58,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,NAVETTA_64,Navetta 64,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,NAVETTA_68,Navetta 68,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,NAVETTA_73,Navetta 73,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,52_FLY,52 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,56_FLY,56 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,60_FLY,60 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,62_FLY,62 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,ABSOLUTE_47_COUP,Absolute 47 Coupé,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,ABSOLUTE_52_COUP,Absolute 52 Coupé,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,ABSOLUTE_58_FLY,Absolute 58 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+CRANCHI,CRANCHI_E26,Cranchi E26,MOTOR_YACHT,,,8.4,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_A46,Cranchi A46,MOTOR_YACHT,,,14.5,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_E30,Cranchi E30,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_E52,Cranchi E52,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_Z35,Cranchi Z35,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_T36,Cranchi T36,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_T43,Cranchi T43,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_SETTANTOTTO,Cranchi Settantotto,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_SESSANTASETTE,Cranchi Sessantasette,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_M44,Cranchi M44,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+SESSA_MARINE,KEY_LARGO_24,Key Largo 24,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,KEY_LARGO_27,Key Largo 27,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,KEY_LARGO_34,Key Largo 34,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,C38,C38,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,C42,C42,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,C47,C47,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,FLY_42,Fly 42,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,FLY_47,Fly 47,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+SESSA_MARINE,FLY_54,Fly 54,MOTOR_YACHT,,,,True,https://www.sessamarine.com/,True
+FJORD,FJORD_41,Fjord 41,MOTOR_YACHT,,,12.6,True,https://www.fjordboats.com/,True
+FJORD,FJORD_44,Fjord 44,MOTOR_YACHT,,,13.7,True,https://www.fjordboats.com/,True
+FJORD,FJORD_48,Fjord 48,MOTOR_YACHT,,,14.9,True,https://www.fjordboats.com/,True
+FJORD,FJORD_53,Fjord 53,MOTOR_YACHT,,,16.4,True,https://www.fjordboats.com/,True
+FJORD,FJORD_38,Fjord 38,MOTOR_YACHT,,,,True,https://www.fjordboats.com/,True
+FJORD,FJORD_40,Fjord 40,MOTOR_YACHT,,,,True,https://www.fjordboats.com/,True
+FJORD,FJORD_52,Fjord 52,MOTOR_YACHT,,,,True,https://www.fjordboats.com/,True
+FJORD,FJORD_64,Fjord 64,MOTOR_YACHT,,,,True,https://www.fjordboats.com/,True
+NIMBUS,NIMBUS_T8,Nimbus T8,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_T9,Nimbus T9,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_T11,Nimbus T11,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_C8,Nimbus C8,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_C9,Nimbus C9,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_C11,Nimbus C11,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_W9,Nimbus W9,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_W11,Nimbus W11,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_305_COUP,Nimbus 305 Coupé,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_405_COUP,Nimbus 405 Coupé,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_465_COUP,Nimbus 465 Coupé,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+RIVA,AQUARIVA,Aquariva,MOTOR_YACHT,,,10.1,True,https://www.riva-yacht.com/,True
+RIVA,RIVAMARE,Rivamare,MOTOR_YACHT,,,11.9,True,https://www.riva-yacht.com/,True
+RIVA,ISEO,Iseo,MOTOR_YACHT,,,8.2,True,https://www.riva-yacht.com/,True
+RIVA,DOLCERIVA,Dolceriva,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_68_DIABLE,Riva 68 Diable,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_76_PERSEO,Riva 76 Perseo,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_88_FOLGORE,Riva 88 Folgore,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_90_ARGO,Riva 90 Argo,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_100_CORSARO,Riva 100 Corsaro,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_130_BELLISSIMA,Riva 130 Bellissima,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+SANLORENZO,SL78,SL78,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SL86,SL86,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SL90A,SL90A,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SL96A,SL96A,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SL102A,SL102A,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SL106,SL106,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SL120,SL120,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SX76,SX76,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SX88,SX88,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SX100,SX100,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SD90,SD90,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SD96,SD96,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SD118,SD118,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SP110,SP110,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SEA_RAY,SPX_190,SPX 190,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SPX_210,SPX 210,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SPX_230,SPX 230,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_230,SLX 230,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_260,SLX 260,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_280,SLX 280,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_310,SLX 310,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_350,SLX 350,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_400,SLX 400,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SDX_250,SDX 250,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SDX_270,SDX 270,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SDX_290,SDX 290,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_265,Sundancer 265,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_290,Sundancer 290,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_320,Sundancer 320,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_370,Sundancer 370,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_400,Sundancer 400,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_350_COUPE,Sundancer 350 Coupe,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_R_400E,SLX-R 400e,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_350,Sundancer 350,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SL3,SL3,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,230_SPX_OB,230 SPX OB,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+BAYLINER,VR4,VR4,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,VR5,VR5,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,VR6,VR6,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,DX2000,DX2000,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,DX2050,DX2050,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,ELEMENT_E16,Element E16,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,ELEMENT_E18,Element E18,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,ELEMENT_M15,Element M15,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,ELEMENT_M17,Element M17,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_8,Ciera 8,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,TROPHY_T20,Trophy T20,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,TROPHY_T22,Trophy T22,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,TROPHY_T24,Trophy T24,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,M15,M15,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,M19,M19,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+QUICKSILVER,ACTIV_455,Activ 455,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,ACTIV_505,Activ 505,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,ACTIV_555,Activ 555,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,ACTIV_605,Activ 605,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,ACTIV_675,Activ 675,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,ACTIV_755,Activ 755,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,ACTIV_805,Activ 805,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,ACTIV_875,Activ 875,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,CAPTUR_500,Captur 500,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,CAPTUR_555,Captur 555,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,CAPTUR_605,Captur 605,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,CAPTUR_625,Captur 625,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,CAPTUR_675,Captur 675,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,CAPTUR_755,Captur 755,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,CAPTUR_875,Captur 875,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,PILOTHOUSE_555,Pilothouse 555,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,PILOTHOUSE_605,Pilothouse 605,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,PILOTHOUSE_705,Pilothouse 705,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+QUICKSILVER,PILOTHOUSE_805,Pilothouse 805,MOTOR_YACHT,,,,True,https://www.quicksilver-boats.com/,True
+BOSTON_WHALER,MONTAUK_150,Montauk 150,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,MONTAUK_170,Montauk 170,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,MONTAUK_190,Montauk 190,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,MONTAUK_210,Montauk 210,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_220,Outrage 220,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_250,Outrage 250,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_280,Outrage 280,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_320,Outrage 320,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_330,Outrage 330,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_350,Outrage 350,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_380,Outrage 380,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,OUTRAGE_420,Outrage 420,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,DAUNTLESS_170,Dauntless 170,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,DAUNTLESS_210,Dauntless 210,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,DAUNTLESS_230,Dauntless 230,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,DAUNTLESS_270,Dauntless 270,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,VANTAGE_230,Vantage 230,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,VANTAGE_270,Vantage 270,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,VANTAGE_320,Vantage 320,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,CONQUEST_285,Conquest 285,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,CONQUEST_325,Conquest 325,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,CONQUEST_355,Conquest 355,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+AXOPAR,AXOPAR_22,Axopar 22,MOTOR_YACHT,2020,,6.9,True,https://www.axopar.com/,False
+AXOPAR,AXOPAR_25,Axopar 25,MOTOR_YACHT,2022,,7.9,True,https://www.axopar.com/,False
+AXOPAR,AXOPAR_28,Axopar 28,MOTOR_YACHT,2014,,9.0,True,https://www.axopar.com/,False
+AXOPAR,AXOPAR_37,Axopar 37,MOTOR_YACHT,2020,,11.8,True,https://www.axopar.com/,False
+AXOPAR,AXOPAR_45,Axopar 45,MOTOR_YACHT,2022,,13.7,True,https://www.axopar.com/,False
+AXOPAR,AXOPAR_29,Axopar 29,MOTOR_YACHT,,,,True,https://www.axopar.com/,True
+AXOPAR,AXOPAR_24,Axopar 24,MOTOR_YACHT,,,,True,https://www.axopar.com/,True
+SAXDOR_YACHTS,SAXDOR_200,Saxdor 200,MOTOR_YACHT,2020,,6.4,True,https://www.saxdoryachts.com/,False
+SAXDOR_YACHTS,SAXDOR_270,Saxdor 270,MOTOR_YACHT,2021,,8.3,True,https://www.saxdoryachts.com/,False
+SAXDOR_YACHTS,SAXDOR_320,Saxdor 320,MOTOR_YACHT,2022,,9.8,True,https://www.saxdoryachts.com/,False
+SAXDOR_YACHTS,SAXDOR_400,Saxdor 400,MOTOR_YACHT,2023,,11.9,True,https://www.saxdoryachts.com/,False
+SAXDOR_YACHTS,SAXDOR_205,Saxdor 205,MOTOR_YACHT,,,,True,https://www.saxdoryachts.com/,True
+SAXDOR_YACHTS,SAXDOR_340,Saxdor 340,MOTOR_YACHT,,,,True,https://www.saxdoryachts.com/,True
+SAXDOR_YACHTS,SAXDOR_470,Saxdor 470,MOTOR_YACHT,,,,True,https://www.saxdoryachts.com/,True
+DE_ANTONIO_YACHTS,D28,D28,MOTOR_YACHT,,,8.5,True,https://www.deantonioyachts.com/,True
+DE_ANTONIO_YACHTS,D32,D32,MOTOR_YACHT,,,9.9,True,https://www.deantonioyachts.com/,True
+DE_ANTONIO_YACHTS,D36,D36,MOTOR_YACHT,,,11.0,True,https://www.deantonioyachts.com/,True
+DE_ANTONIO_YACHTS,D42,D42,MOTOR_YACHT,,,12.6,True,https://www.deantonioyachts.com/,True
+DE_ANTONIO_YACHTS,D50,D50,MOTOR_YACHT,,,15.0,True,https://www.deantonioyachts.com/,True
+DE_ANTONIO_YACHTS,D29,D29,MOTOR_YACHT,,,,True,https://www.deantonioyachts.com/,True
+DE_ANTONIO_YACHTS,D23,D23,MOTOR_YACHT,,,,True,https://www.deantonioyachts.com/,True
+DE_ANTONIO_YACHTS,D60,D60,MOTOR_YACHT,,,,True,https://www.deantonioyachts.com/,True
+INVICTUS_YACHT,GT320,GT320,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,GT370,GT370,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,GT420,GT420,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,GT460,GT460,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,TT280,TT280,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,TT420,TT420,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,TT460,TT460,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,CAPOFORTE_CX240,Capoforte CX240,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,CAPOFORTE_SX200,Capoforte SX200,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,CAPOFORTE_FX240,Capoforte FX240,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+INVICTUS_YACHT,CAPOFORTE_SX240,Capoforte SX240,MOTOR_YACHT,,,,True,https://www.invictusyacht.com/,True
+KARNIC,SL600,SL600,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,SL602,SL602,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,SL652,SL652,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,SL702,SL702,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,SL800,SL800,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,SL852,SL852,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,BLUEWATER_2251,Bluewater 2251,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,BLUEWATER_2452,Bluewater 2452,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,SL702_FLEXI,SL702 Flexi,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+KARNIC,SL903,SL903,MOTOR_YACHT,,,,True,https://www.karnic.eu/,True
+PARKER_POLAND,PARKER_660,Parker 660,MOTOR_YACHT,,,6.6,True,https://www.parkerpoland.com/,True
+PARKER_POLAND,PARKER_750,Parker 750,MOTOR_YACHT,,,7.5,True,https://www.parkerpoland.com/,True
+PARKER_POLAND,PARKER_850,Parker 850,MOTOR_YACHT,,,8.5,True,https://www.parkerpoland.com/,True
+PARKER_POLAND,PARKER_630,Parker 630,MOTOR_YACHT,,,,True,https://www.parkerpoland.com/,True
+PARKER_POLAND,PARKER_760,Parker 760,MOTOR_YACHT,,,,True,https://www.parkerpoland.com/,True
+PARKER_POLAND,PARKER_800,Parker 800,MOTOR_YACHT,,,,True,https://www.parkerpoland.com/,True
+PARKER_POLAND,PARKER_920,Parker 920,MOTOR_YACHT,,,,True,https://www.parkerpoland.com/,True
+PARKER_POLAND,PARKER_110,Parker 110,MOTOR_YACHT,,,,True,https://www.parkerpoland.com/,True
 ZODIAC,MEDLINE_5_5,Medline 5.5,RIB,,,,True,https://www.zodiac-nautic.com/,True
 ZODIAC,MEDLINE_6_8,Medline 6.8,RIB,,,,True,https://www.zodiac-nautic.com/,True
 ZODIAC,MEDLINE_7_5,Medline 7.5,RIB,,,,True,https://www.zodiac-nautic.com/,True
@@ -754,291 +754,291 @@ NUOVA_JOLLY,NJ_700_XL,NJ 700 XL,RIB,,,,True,https://www.nuovajollymarine.com/,Tr
 NUOVA_JOLLY,NJ_800_XL,NJ 800 XL,RIB,,,,True,https://www.nuovajollymarine.com/,True
 NUOVA_JOLLY,NJ_900_XL,NJ 900 XL,RIB,,,,True,https://www.nuovajollymarine.com/,True
 NUOVA_JOLLY,NJ_1000_XL,NJ 1000 XL,RIB,,,,True,https://www.nuovajollymarine.com/,True
-SEA_DOO,SPARK,Spark,PWC,2014,,,True,https://www.sea-doo.com/,False
-SEA_DOO,SPARK_TRIXX,Spark Trixx,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,GTI_90,GTI 90,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,GTI_130,GTI 130,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,GTI_SE_170,GTI SE 170,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,GTR_230,GTR 230,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,GTX_170,GTX 170,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,GTX_230,GTX 230,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,GTX_LIMITED_300,GTX Limited 300,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,RXP_X_300,RXP-X 300,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,RXT_X_300,RXT-X 300,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,WAKE_170,Wake 170,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,WAKE_PRO_230,Wake Pro 230,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,FISH_PRO_TROPHY,Fish Pro Trophy,PWC,2019,,,True,https://www.sea-doo.com/,False
-SEA_DOO,FISH_PRO_SPORT,Fish Pro Sport,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,EXPLORER_PRO_170,Explorer Pro 170,PWC,,,,True,https://www.sea-doo.com/,True
-SEA_DOO,SWITCHCRUISE,SwitchCruise,PWC,,,,True,https://www.sea-doo.com/,True
-YAMAHA_WAVERUNNER,EX,EX,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,EX_SPORT,EX Sport,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,EX_DELUXE,EX Deluxe,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,EX_LIMITED,EX Limited,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,VX,VX,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,VX_CRUISER,VX Cruiser,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,VX_DELUXE,VX Deluxe,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,VX_LIMITED,VX Limited,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,FX_HO,FX HO,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,FX_CRUISER_HO,FX Cruiser HO,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,FX_SVHO,FX SVHO,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,FX_CRUISER_SVHO,FX Cruiser SVHO,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,GP1800R_HO,GP1800R HO,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,GP1800R_SVHO,GP1800R SVHO,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,SUPERJET,SuperJet,PWC,,,,True,https://www.yamahawaverunners.com/,True
-YAMAHA_WAVERUNNER,JETBLASTER,JetBlaster,PWC,,,,True,https://www.yamahawaverunners.com/,True
-KAWASAKI_JET_SKI,STX_160,STX 160,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,STX_160X,STX 160X,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,STX_160LX,STX 160LX,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,ULTRA_160LX,Ultra 160LX,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,ULTRA_310X,Ultra 310X,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,ULTRA_310LX,Ultra 310LX,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,ULTRA_310R,Ultra 310R,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,SX_R_160,SX-R 160,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,ULTRA_160LX_S,Ultra 160LX-S,PWC,,,,True,https://www.kawasaki.com/,True
-KAWASAKI_JET_SKI,ULTRA_310LX_S,Ultra 310LX-S,PWC,,,,True,https://www.kawasaki.com/,True
-BENETEAU,SENSE_43,Sense 43,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SENSE_46,Sense 46,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SENSE_50,Sense 50,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SENSE_51,Sense 51,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SENSE_55,Sense 55,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,SENSE_57,Sense 57,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_331,Oceanis 331,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_343,Oceanis 343,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_352,Oceanis 352,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_361,Oceanis 361,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_373,Oceanis 373,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_381,Oceanis 381,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_393,Oceanis 393,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_411,Oceanis 411,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_423,Oceanis 423,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_461,Oceanis 461,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,OCEANIS_473,Oceanis 473,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_20,First 20,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_25S,First 25S,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_30,First 30,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_35,First 35,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_40,First 40,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_45,First 45,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_47_7,First 47.7,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIRST_50,First 50,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FIGARO_3,Figaro 3,SAILBOAT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_6,Antares 6,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_30S,Antares 30S,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,ANTARES_36,Antares 36,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,GRAN_TURISMO_38,Gran Turismo 38,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,GRAN_TURISMO_44,Gran Turismo 44,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,GRAN_TURISMO_49,Gran Turismo 49,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,MONTE_CARLO_5,Monte Carlo 5,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,MONTE_CARLO_6,Monte Carlo 6,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FLYER_5_5,Flyer 5.5,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-BENETEAU,FLYER_6_6,Flyer 6.6,MOTORYACHT,,,,True,https://www.beneteau.com/,True
-JEANNEAU,SUN_ODYSSEY_30,Sun Odyssey 30,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_32,Sun Odyssey 32,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_33,Sun Odyssey 33,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_36,Sun Odyssey 36,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_37,Sun Odyssey 37,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_40,Sun Odyssey 40,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_42,Sun Odyssey 42,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_43,Sun Odyssey 43,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_45,Sun Odyssey 45,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_49,Sun Odyssey 49,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_50,Sun Odyssey 50,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_36I,Sun Odyssey 36i,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_42I,Sun Odyssey 42i,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_45_DS,Sun Odyssey 45 DS,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,SUN_ODYSSEY_50_DS,Sun Odyssey 50 DS,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,FANTASIA_27,Fantasia 27,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,ESPACE_990,Espace 990,SAILBOAT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_585,Merry Fisher 585,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_625,Merry Fisher 625,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_755,Merry Fisher 755,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_855,Merry Fisher 855,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,MERRY_FISHER_1025,Merry Fisher 1025,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_4_5,Cap Camarat 4.5,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_5_1,Cap Camarat 5.1,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_6_0,Cap Camarat 6.0,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_8_0,Cap Camarat 8.0,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,CAP_CAMARAT_10_5_WA,Cap Camarat 10.5 WA,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,PRESTIGE_34,Prestige 34,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,NC_33,NC 33,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-JEANNEAU,NC_14,NC 14,MOTORYACHT,,,,True,https://www.jeanneau.com/,True
-BAVARIA_YACHTS,BAVARIA_30,Bavaria 30,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_31,Bavaria 31,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_33,Bavaria 33,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_34,Bavaria 34,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_35,Bavaria 35,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_37,Bavaria 37,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_38,Bavaria 38,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_39,Bavaria 39,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_42,Bavaria 42,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_46,Bavaria 46,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_47,Bavaria 47,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,BAVARIA_50,Bavaria 50,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,VISION_42,Vision 42,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,VISION_46,Vision 46,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_33,Cruiser 33,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_36,Cruiser 36,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_45,Cruiser 45,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_50,Cruiser 50,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-BAVARIA_YACHTS,CRUISER_56,Cruiser 56,SAILBOAT,,,,True,https://www.bavariayachts.com/,True
-SEA_RAY,SUNDANCER_245,Sundancer 245,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_260,Sundancer 260,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_280,Sundancer 280,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_300,Sundancer 300,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_340,Sundancer 340,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_380,Sundancer 380,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_450,Sundancer 450,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_510,Sundancer 510,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_540,Sundancer 540,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_580,Sundancer 580,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SUNDANCER_610,Sundancer 610,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_210,SLX 210,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,SLX_250,SLX 250,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,L550,L550,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,L590,L590,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,L650,L650,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,FLY_400,Fly 400,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,FLY_460,Fly 460,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,310_SUNDANCER,310 Sundancer,MOTORYACHT,,,,True,https://www.searay.com/,True
-SEA_RAY,350_SUNDANCER,350 Sundancer,MOTORYACHT,,,,True,https://www.searay.com/,True
-BAYLINER,CIERA_1850,Ciera 1850,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_1950,Ciera 1950,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_2050,Ciera 2050,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_2150,Ciera 2150,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_2450,Ciera 2450,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_2655,Ciera 2655,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_2855,Ciera 2855,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CIERA_3055,Ciera 3055,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,CAPRI_1750,Capri 1750,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,RENDEZVOUS_2109,Rendezvous 2109,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,DISCOVERY_246,Discovery 246,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BAYLINER,DISCOVERY_266,Discovery 266,MOTORYACHT,,,,True,https://www.bayliner.com/,True
-BOSTON_WHALER,130_SUPER_SPORT,130 Super Sport,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,150_SUPER_SPORT,150 Super Sport,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,170_MONTAUK,170 Montauk,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,240_DAUNTLESS,240 Dauntless,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,270_DAUNTLESS,270 Dauntless,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,285_CONQUEST,285 Conquest,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,315_CONQUEST,315 Conquest,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,345_CONQUEST,345 Conquest,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,350_REALM,350 Realm,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,405_CONQUEST,405 Conquest,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,420_OUTRAGE,420 Outrage,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,160_SUPER_SPORT,160 Super Sport,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-BOSTON_WHALER,230_VANTAGE,230 Vantage,MOTORYACHT,,,,True,https://www.bostonwhaler.com/,True
-PRINCESS_YACHTS,PRINCESS_42,Princess 42,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_45,Princess 45,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_49,Princess 49,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_50,Princess 50,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_54,Princess 54,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_56,Princess 56,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_58,Princess 58,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_60,Princess 60,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_62,Princess 62,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_64,Princess 64,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_67,Princess 67,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_72,Princess 72,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_75,Princess 75,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_82,Princess 82,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_88,Princess 88,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_95,Princess 95,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,PRINCESS_98,Princess 98,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V39,V39,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V42,V42,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V48,V48,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V52,V52,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V58,V58,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-PRINCESS_YACHTS,V72,V72,MOTORYACHT,,,,True,https://www.princessyachts.com/,True
-SUNSEEKER,PREDATOR_68,Predator 68,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_72,Predator 72,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_80,Predator 80,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PREDATOR_108,Predator 108,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,MANHATTAN_52,Manhattan 52,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,MANHATTAN_62,Manhattan 62,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,MANHATTAN_70,Manhattan 70,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,MANHATTAN_73,Manhattan 73,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PORTOFINO_35,Portofino 35,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,PORTOFINO_48,Portofino 48,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,SPORT_YACHT_74,Sport Yacht 74,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,80_SPORT_YACHT,80 Sport Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,131_YACHT,131 Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,155_YACHT,155 Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-SUNSEEKER,116_YACHT,116 Yacht,MOTORYACHT,,,,True,https://www.sunseeker.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_40,Flybridge 40,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_43,Flybridge 43,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_45,Flybridge 45,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_50,Flybridge 50,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_55,Flybridge 55,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_64,Flybridge 64,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_66,Flybridge 66,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_84,Flybridge 84,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,FLYBRIDGE_88,Flybridge 88,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,ATLANTIS_34,Atlantis 34,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,ATLANTIS_38,Atlantis 38,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,ATLANTIS_43,Atlantis 43,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,ATLANTIS_50,Atlantis 50,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,MAGELLANO_53,Magellano 53,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,MAGELLANO_76,Magellano 76,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,S5,S5,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,VERVE_42,Verve 42,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-AZIMUT_YACHTS,VERVE_47,Verve 47,MOTORYACHT,,,,True,https://www.azimutyachts.com/,True
-FAIRLINE,TARGA_34,Targa 34,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_37,Targa 37,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_47,Targa 47,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_48,Targa 48,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_52,Targa 52,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,TARGA_62,Targa 62,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_42,Squadron 42,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_48,Squadron 48,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_55,Squadron 55,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_65,Squadron 65,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,SQUADRON_78,Squadron 78,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,PHANTOM_40,Phantom 40,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,PHANTOM_43,Phantom 43,MOTORYACHT,,,,True,https://www.fairline.com/,True
-FAIRLINE,PHANTOM_48,Phantom 48,MOTORYACHT,,,,True,https://www.fairline.com/,True
-GALEON,GALEON_265,Galeon 265,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_305,Galeon 305,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_385,Galeon 385,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_470,Galeon 470,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_550_FLY,Galeon 550 Fly,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_640_FLY,Galeon 640 Fly,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_430_SKYDECK,Galeon 430 Skydeck,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-GALEON,GALEON_470_SKYDECK,Galeon 470 Skydeck,MOTORYACHT,,,,True,https://www.galeonyachts.com/,True
-CRANCHI,CRANCHI_50_MEDITERRANEE,Cranchi 50 Mediterranee,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_60_HT,Cranchi 60 HT,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,ENDURANCE_30,Endurance 30,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,ENDURANCE_33,Endurance 33,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,ENDURANCE_39,Endurance 39,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,ENDURANCE_45,Endurance 45,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_56_HT,Cranchi 56 HT,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-CRANCHI,CRANCHI_E40,Cranchi E40,MOTORYACHT,,,,True,https://www.cranchi.com/,True
-RIVA,RIVA_63_VERTIGO,Riva 63 Vertigo,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_66_RIBELLE,Riva 66 Ribelle,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_88_MIAMI,Riva 88 Miami,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVALE_56,Rivale 56,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,SPORTRIVA_56,Sportriva 56,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-RIVA,RIVA_82_DIVA,Riva 82 Diva,MOTORYACHT,,,,True,https://www.riva-yacht.com/,True
-NIMBUS,NIMBUS_21,Nimbus 21,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_305_DROPHEAD,Nimbus 305 Drophead,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_335_COUP,Nimbus 335 Coupé,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_335_SPORT,Nimbus 335 Sport,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-NIMBUS,NIMBUS_250_COUP,Nimbus 250 Coupé,MOTORYACHT,,,,True,https://www.nimbus.se/,True
-SEALINE,SEALINE_S24,Sealine S24,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,SEALINE_C48,Sealine C48,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,SEALINE_F42,Sealine F42,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,SEALINE_T50,Sealine T50,MOTORYACHT,,,,True,https://www.sealine.com/,True
-SEALINE,SEALINE_SC29,Sealine SC29,MOTORYACHT,,,,True,https://www.sealine.com/,True
-PRESTIGE_YACHTS,PRESTIGE_550,Prestige 550,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_620,Prestige 620,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_680,Prestige 680,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_M6,Prestige M6,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-PRESTIGE_YACHTS,PRESTIGE_M7,Prestige M7,MOTORYACHT,,,,True,https://www.prestige-yachts.com/,True
-ABSOLUTE_YACHTS,ABSOLUTE_50_FLY,Absolute 50 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,ABSOLUTE_62_FLY,Absolute 62 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,ABSOLUTE_47_FLY,Absolute 47 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-ABSOLUTE_YACHTS,ABSOLUTE_72_FLY,Absolute 72 Fly,MOTORYACHT,,,,True,https://www.absoluteyachts.com/,True
-SANLORENZO,SL78_ASYMMETRIC,SL78 Asymmetric,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SX112,SX112,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SD126,SD126,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
-SANLORENZO,SP92,SP92,SUPERYACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SEA_DOO,SPARK,Spark,JET_SKI,2014,,,True,https://www.sea-doo.com/,False
+SEA_DOO,SPARK_TRIXX,Spark Trixx,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,GTI_90,GTI 90,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,GTI_130,GTI 130,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,GTI_SE_170,GTI SE 170,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,GTR_230,GTR 230,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,GTX_170,GTX 170,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,GTX_230,GTX 230,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,GTX_LIMITED_300,GTX Limited 300,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,RXP_X_300,RXP-X 300,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,RXT_X_300,RXT-X 300,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,WAKE_170,Wake 170,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,WAKE_PRO_230,Wake Pro 230,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,FISH_PRO_TROPHY,Fish Pro Trophy,JET_SKI,2019,,,True,https://www.sea-doo.com/,False
+SEA_DOO,FISH_PRO_SPORT,Fish Pro Sport,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,EXPLORER_PRO_170,Explorer Pro 170,JET_SKI,,,,True,https://www.sea-doo.com/,True
+SEA_DOO,SWITCHCRUISE,SwitchCruise,JET_SKI,,,,True,https://www.sea-doo.com/,True
+YAMAHA_WAVERUNNER,EX,EX,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,EX_SPORT,EX Sport,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,EX_DELUXE,EX Deluxe,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,EX_LIMITED,EX Limited,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,VX,VX,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,VX_CRUISER,VX Cruiser,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,VX_DELUXE,VX Deluxe,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,VX_LIMITED,VX Limited,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,FX_HO,FX HO,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,FX_CRUISER_HO,FX Cruiser HO,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,FX_SVHO,FX SVHO,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,FX_CRUISER_SVHO,FX Cruiser SVHO,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,GP1800R_HO,GP1800R HO,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,GP1800R_SVHO,GP1800R SVHO,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,SUPERJET,SuperJet,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+YAMAHA_WAVERUNNER,JETBLASTER,JetBlaster,JET_SKI,,,,True,https://www.yamahawaverunners.com/,True
+KAWASAKI_JET_SKI,STX_160,STX 160,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,STX_160X,STX 160X,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,STX_160LX,STX 160LX,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,ULTRA_160LX,Ultra 160LX,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,ULTRA_310X,Ultra 310X,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,ULTRA_310LX,Ultra 310LX,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,ULTRA_310R,Ultra 310R,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,SX_R_160,SX-R 160,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,ULTRA_160LX_S,Ultra 160LX-S,JET_SKI,,,,True,https://www.kawasaki.com/,True
+KAWASAKI_JET_SKI,ULTRA_310LX_S,Ultra 310LX-S,JET_SKI,,,,True,https://www.kawasaki.com/,True
+BENETEAU,SENSE_43,Sense 43,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SENSE_46,Sense 46,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SENSE_50,Sense 50,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SENSE_51,Sense 51,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SENSE_55,Sense 55,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,SENSE_57,Sense 57,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_331,Oceanis 331,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_343,Oceanis 343,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_352,Oceanis 352,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_361,Oceanis 361,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_373,Oceanis 373,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_381,Oceanis 381,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_393,Oceanis 393,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_411,Oceanis 411,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_423,Oceanis 423,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_461,Oceanis 461,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,OCEANIS_473,Oceanis 473,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_20,First 20,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_25S,First 25S,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_30,First 30,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_35,First 35,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_40,First 40,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_45,First 45,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_47_7,First 47.7,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIRST_50,First 50,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FIGARO_3,Figaro 3,SAILING_BOAT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_6,Antares 6,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_30S,Antares 30S,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,ANTARES_36,Antares 36,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,GRAN_TURISMO_38,Gran Turismo 38,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,GRAN_TURISMO_44,Gran Turismo 44,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,GRAN_TURISMO_49,Gran Turismo 49,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,MONTE_CARLO_5,Monte Carlo 5,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,MONTE_CARLO_6,Monte Carlo 6,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FLYER_5_5,Flyer 5.5,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+BENETEAU,FLYER_6_6,Flyer 6.6,MOTOR_YACHT,,,,True,https://www.beneteau.com/,True
+JEANNEAU,SUN_ODYSSEY_30,Sun Odyssey 30,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_32,Sun Odyssey 32,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_33,Sun Odyssey 33,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_36,Sun Odyssey 36,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_37,Sun Odyssey 37,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_40,Sun Odyssey 40,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_42,Sun Odyssey 42,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_43,Sun Odyssey 43,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_45,Sun Odyssey 45,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_49,Sun Odyssey 49,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_50,Sun Odyssey 50,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_36I,Sun Odyssey 36i,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_42I,Sun Odyssey 42i,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_45_DS,Sun Odyssey 45 DS,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,SUN_ODYSSEY_50_DS,Sun Odyssey 50 DS,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,FANTASIA_27,Fantasia 27,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,ESPACE_990,Espace 990,SAILING_BOAT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_585,Merry Fisher 585,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_625,Merry Fisher 625,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_755,Merry Fisher 755,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_855,Merry Fisher 855,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,MERRY_FISHER_1025,Merry Fisher 1025,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_4_5,Cap Camarat 4.5,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_5_1,Cap Camarat 5.1,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_6_0,Cap Camarat 6.0,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_8_0,Cap Camarat 8.0,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,CAP_CAMARAT_10_5_WA,Cap Camarat 10.5 WA,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,PRESTIGE_34,Prestige 34,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,NC_33,NC 33,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+JEANNEAU,NC_14,NC 14,MOTOR_YACHT,,,,True,https://www.jeanneau.com/,True
+BAVARIA_YACHTS,BAVARIA_30,Bavaria 30,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_31,Bavaria 31,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_33,Bavaria 33,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_34,Bavaria 34,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_35,Bavaria 35,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_37,Bavaria 37,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_38,Bavaria 38,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_39,Bavaria 39,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_42,Bavaria 42,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_46,Bavaria 46,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_47,Bavaria 47,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,BAVARIA_50,Bavaria 50,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,VISION_42,Vision 42,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,VISION_46,Vision 46,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_33,Cruiser 33,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_36,Cruiser 36,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_45,Cruiser 45,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_50,Cruiser 50,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+BAVARIA_YACHTS,CRUISER_56,Cruiser 56,SAILING_BOAT,,,,True,https://www.bavariayachts.com/,True
+SEA_RAY,SUNDANCER_245,Sundancer 245,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_260,Sundancer 260,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_280,Sundancer 280,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_300,Sundancer 300,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_340,Sundancer 340,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_380,Sundancer 380,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_450,Sundancer 450,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_510,Sundancer 510,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_540,Sundancer 540,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_580,Sundancer 580,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SUNDANCER_610,Sundancer 610,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_210,SLX 210,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,SLX_250,SLX 250,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,L550,L550,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,L590,L590,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,L650,L650,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,FLY_400,Fly 400,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,FLY_460,Fly 460,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,310_SUNDANCER,310 Sundancer,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+SEA_RAY,350_SUNDANCER,350 Sundancer,MOTOR_YACHT,,,,True,https://www.searay.com/,True
+BAYLINER,CIERA_1850,Ciera 1850,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_1950,Ciera 1950,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_2050,Ciera 2050,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_2150,Ciera 2150,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_2450,Ciera 2450,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_2655,Ciera 2655,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_2855,Ciera 2855,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CIERA_3055,Ciera 3055,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,CAPRI_1750,Capri 1750,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,RENDEZVOUS_2109,Rendezvous 2109,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,DISCOVERY_246,Discovery 246,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BAYLINER,DISCOVERY_266,Discovery 266,MOTOR_YACHT,,,,True,https://www.bayliner.com/,True
+BOSTON_WHALER,130_SUPER_SPORT,130 Super Sport,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,150_SUPER_SPORT,150 Super Sport,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,170_MONTAUK,170 Montauk,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,240_DAUNTLESS,240 Dauntless,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,270_DAUNTLESS,270 Dauntless,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,285_CONQUEST,285 Conquest,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,315_CONQUEST,315 Conquest,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,345_CONQUEST,345 Conquest,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,350_REALM,350 Realm,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,405_CONQUEST,405 Conquest,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,420_OUTRAGE,420 Outrage,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,160_SUPER_SPORT,160 Super Sport,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+BOSTON_WHALER,230_VANTAGE,230 Vantage,MOTOR_YACHT,,,,True,https://www.bostonwhaler.com/,True
+PRINCESS_YACHTS,PRINCESS_42,Princess 42,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_45,Princess 45,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_49,Princess 49,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_50,Princess 50,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_54,Princess 54,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_56,Princess 56,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_58,Princess 58,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_60,Princess 60,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_62,Princess 62,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_64,Princess 64,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_67,Princess 67,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_72,Princess 72,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_75,Princess 75,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_82,Princess 82,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_88,Princess 88,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_95,Princess 95,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,PRINCESS_98,Princess 98,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V39,V39,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V42,V42,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V48,V48,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V52,V52,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V58,V58,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+PRINCESS_YACHTS,V72,V72,MOTOR_YACHT,,,,True,https://www.princessyachts.com/,True
+SUNSEEKER,PREDATOR_68,Predator 68,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_72,Predator 72,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_80,Predator 80,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PREDATOR_108,Predator 108,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,MANHATTAN_52,Manhattan 52,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,MANHATTAN_62,Manhattan 62,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,MANHATTAN_70,Manhattan 70,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,MANHATTAN_73,Manhattan 73,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PORTOFINO_35,Portofino 35,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,PORTOFINO_48,Portofino 48,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,SPORT_YACHT_74,Sport Yacht 74,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,80_SPORT_YACHT,80 Sport Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,131_YACHT,131 Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,155_YACHT,155 Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+SUNSEEKER,116_YACHT,116 Yacht,MOTOR_YACHT,,,,True,https://www.sunseeker.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_40,Flybridge 40,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_43,Flybridge 43,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_45,Flybridge 45,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_50,Flybridge 50,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_55,Flybridge 55,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_64,Flybridge 64,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_66,Flybridge 66,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_84,Flybridge 84,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,FLYBRIDGE_88,Flybridge 88,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,ATLANTIS_34,Atlantis 34,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,ATLANTIS_38,Atlantis 38,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,ATLANTIS_43,Atlantis 43,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,ATLANTIS_50,Atlantis 50,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,MAGELLANO_53,Magellano 53,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,MAGELLANO_76,Magellano 76,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,S5,S5,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,VERVE_42,Verve 42,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+AZIMUT_YACHTS,VERVE_47,Verve 47,MOTOR_YACHT,,,,True,https://www.azimutyachts.com/,True
+FAIRLINE,TARGA_34,Targa 34,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_37,Targa 37,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_47,Targa 47,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_48,Targa 48,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_52,Targa 52,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,TARGA_62,Targa 62,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_42,Squadron 42,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_48,Squadron 48,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_55,Squadron 55,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_65,Squadron 65,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,SQUADRON_78,Squadron 78,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,PHANTOM_40,Phantom 40,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,PHANTOM_43,Phantom 43,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+FAIRLINE,PHANTOM_48,Phantom 48,MOTOR_YACHT,,,,True,https://www.fairline.com/,True
+GALEON,GALEON_265,Galeon 265,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_305,Galeon 305,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_385,Galeon 385,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_470,Galeon 470,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_550_FLY,Galeon 550 Fly,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_640_FLY,Galeon 640 Fly,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_430_SKYDECK,Galeon 430 Skydeck,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+GALEON,GALEON_470_SKYDECK,Galeon 470 Skydeck,MOTOR_YACHT,,,,True,https://www.galeonyachts.com/,True
+CRANCHI,CRANCHI_50_MEDITERRANEE,Cranchi 50 Mediterranee,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_60_HT,Cranchi 60 HT,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,ENDURANCE_30,Endurance 30,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,ENDURANCE_33,Endurance 33,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,ENDURANCE_39,Endurance 39,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,ENDURANCE_45,Endurance 45,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_56_HT,Cranchi 56 HT,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+CRANCHI,CRANCHI_E40,Cranchi E40,MOTOR_YACHT,,,,True,https://www.cranchi.com/,True
+RIVA,RIVA_63_VERTIGO,Riva 63 Vertigo,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_66_RIBELLE,Riva 66 Ribelle,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_88_MIAMI,Riva 88 Miami,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVALE_56,Rivale 56,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,SPORTRIVA_56,Sportriva 56,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+RIVA,RIVA_82_DIVA,Riva 82 Diva,MOTOR_YACHT,,,,True,https://www.riva-yacht.com/,True
+NIMBUS,NIMBUS_21,Nimbus 21,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_305_DROPHEAD,Nimbus 305 Drophead,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_335_COUP,Nimbus 335 Coupé,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_335_SPORT,Nimbus 335 Sport,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+NIMBUS,NIMBUS_250_COUP,Nimbus 250 Coupé,MOTOR_YACHT,,,,True,https://www.nimbus.se/,True
+SEALINE,SEALINE_S24,Sealine S24,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,SEALINE_C48,Sealine C48,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,SEALINE_F42,Sealine F42,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,SEALINE_T50,Sealine T50,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+SEALINE,SEALINE_SC29,Sealine SC29,MOTOR_YACHT,,,,True,https://www.sealine.com/,True
+PRESTIGE_YACHTS,PRESTIGE_550,Prestige 550,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_620,Prestige 620,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_680,Prestige 680,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_M6,Prestige M6,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+PRESTIGE_YACHTS,PRESTIGE_M7,Prestige M7,MOTOR_YACHT,,,,True,https://www.prestige-yachts.com/,True
+ABSOLUTE_YACHTS,ABSOLUTE_50_FLY,Absolute 50 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,ABSOLUTE_62_FLY,Absolute 62 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,ABSOLUTE_47_FLY,Absolute 47 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+ABSOLUTE_YACHTS,ABSOLUTE_72_FLY,Absolute 72 Fly,MOTOR_YACHT,,,,True,https://www.absoluteyachts.com/,True
+SANLORENZO,SL78_ASYMMETRIC,SL78 Asymmetric,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SX112,SX112,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SD126,SD126,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True
+SANLORENZO,SP92,SP92,MOTOR_YACHT,,,,True,https://www.sanlorenzoyacht.com/,True

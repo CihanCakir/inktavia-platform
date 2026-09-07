@@ -67,6 +67,26 @@ def dedupe_key(*parts) -> str:
     return "|".join(key(p) for p in parts)
 
 
+# Coarse curated vessel-type labels → the REAL ReferenceData VESSEL_TYPE lookup codes the mobile picker sends as
+# ?typeCode= (Seed/Json/Lookup/lookup-items.json). The models query filters VesselTypeCode by exact equality, so the
+# stored code MUST be a real lookup code or the model list comes back empty. No SAILBOAT/MOTORYACHT/PWC/SUPERYACHT
+# lookup exists; map onto the closest real code (superyachts are motor yachts for filtering).
+VTYPE_MAP = {
+    "MOTORYACHT": "MOTOR_YACHT",
+    "SUPERYACHT": "MOTOR_YACHT",
+    "SAILBOAT": "SAILING_BOAT",
+    "CATAMARAN": "CATAMARAN",
+    "RIB": "RIB",
+    "PWC": "JET_SKI",
+}
+
+
+def map_vtype(vtype):
+    if not vtype:
+        return None
+    return VTYPE_MAP.get(vtype.strip().upper(), vtype.strip().upper())
+
+
 # ── build brands ──
 def build_brands(rows, has_country):
     alloc = CodeAllocator()
@@ -113,7 +133,7 @@ def build_vessel_models(rows, brand_codes):
             "brandCode": bcode,
             "code": alloc.take(model),
             "name": clean(model),
-            "vesselTypeCode": vtype,
+            "vesselTypeCode": map_vtype(vtype),
             "yearFrom": yf,
             "yearTo": yt,
             "lengthMeters": length,

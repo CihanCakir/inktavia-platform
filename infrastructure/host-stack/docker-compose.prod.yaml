@@ -136,8 +136,11 @@ services:
     ports:
       - "${BIND_IP}:5672:5672"     # AMQP
       - "${BIND_IP}:15672:15672"   # Management UI — yalnız LAN
+      - "${BIND_IP}:15692:15692"   # prometheus metrikleri — yalnız LAN (monitoring Faz A)
     volumes:
       - /srv/data/rabbitmq:/var/lib/rabbitmq
+      # rabbitmq_prometheus plugin'i (monitoring Faz A) — recreate'te de acik kalsin
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 20s

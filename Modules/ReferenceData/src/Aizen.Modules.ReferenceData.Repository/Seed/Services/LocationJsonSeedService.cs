@@ -30,11 +30,41 @@ public sealed class LocationJsonSeedService
         // anahtara göre idempotenttir (ör. UpsertCityAsync CountryCode+CityCode) ve veri kümesi küçüktür; her
         // açılışta yeniden çalıştırmak ucuzdur ve kısmi başarısızlığı kendiliğinden onarır (guard yalnızca bir
         // performans optimizasyonuydu, doğruluk garantisi değil).
+        // Full ISO country list (flat array) — powers the mobile flag picker's searchable list + pinned yacht-flag
+        // states. Idempotent by CountryCode; runs before the TR per-folder seed (which then overlays TR's richer doc
+        // and its city/district tree). Optional file: absent → no-op, TR still seeds from its folder below.
+        await SeedAllCountriesAsync(cancellationToken);
+
         await SeedCountryAsync("TR", cancellationToken);
         await SeedCitiesAsync("TR", cancellationToken);
         await SeedAllDistrictsAsync("TR", cancellationToken);
         await SeedAllNeighborhoodsAsync("TR", cancellationToken);
         await SeedAllStreetsAsync("TR", cancellationToken);
+    }
+
+    private async Task SeedAllCountriesAsync(CancellationToken cancellationToken)
+    {
+        var models = await _reader.ReadListAsync<LocationCountrySeedModel>(
+            "Location/countries.json",
+            optional: true,
+            cancellationToken: cancellationToken);
+
+        foreach (var model in models)
+        {
+            if (string.IsNullOrWhiteSpace(model.CountryCode)) continue;
+
+            var document = new LocationCountryDocument
+            {
+                CountryCode = model.CountryCode,
+                NumericCode = model.NumericCode,
+                Name = model.Name,
+                DefaultCurrencyCode = model.DefaultCurrencyCode,
+                PhoneCode = model.PhoneCode,
+                IsActive = model.IsActive
+            };
+
+            await _locationRepository.UpsertCountryAsync(document, cancellationToken);
+        }
     }
 
     private async Task SeedCountryAsync(string countryIso, CancellationToken cancellationToken)

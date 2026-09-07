@@ -1,8 +1,7 @@
 # Prometheus — retention 7d, remote-write receiver ACIK (LT-5 k6 kosulari cluster icinden
 # metrik basabilsin diye; lokal compose'daki kalipla ayni).
-# RabbitMQ scrape'i BILEREK kapali-yorumda: host-stack rabbitmq'da prometheus plugin'i
-# (15692) henuz acik degil — lokal compose'ta actik, sunucuda ayri is (enabled_plugins mount'u
-# + konteyner recreate). Acilinca yorumu kaldir.
+# RabbitMQ scrape'i AKTIF (2026-09-07): host'ta once runtime `rabbitmq-plugins enable
+# rabbitmq_prometheus` ile acildi; kalicilik host-stack compose'daki enabled_plugins mount'unda.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -58,9 +57,9 @@ data:
       - job_name: postgres
         static_configs:
           - targets: ['postgres-exporter.monitoring.svc.cluster.local:9187']
-      # - job_name: rabbitmq            # host rabbitmq'da prometheus plugin'i acilinca
-      #   static_configs:
-      #     - targets: ['192.168.1.50:15692']
+      - job_name: rabbitmq              # host rabbitmq_prometheus plugin'i 2026-09-07'de acildi
+        static_configs:
+          - targets: ['192.168.1.50:15692']
 ---
 apiVersion: apps/v1
 kind: Deployment

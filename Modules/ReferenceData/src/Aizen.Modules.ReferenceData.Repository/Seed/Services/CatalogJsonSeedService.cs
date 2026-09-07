@@ -3,6 +3,7 @@ using Aizen.Modules.ReferenceData.Domain.Interface;
 using Aizen.Modules.ReferenceData.Repository.Context;
 using Aizen.Modules.ReferenceData.Repository.Seed.Models.Catalog;
 using Aizen.Modules.ReferenceData.Repository.Seed.Readers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aizen.Modules.ReferenceData.Repository.Seed.Services;
 
@@ -29,12 +30,44 @@ public sealed class CatalogJsonSeedService
         _vBrands = vBrands; _vModels = vModels; _eBrands = eBrands; _eModels = eModels; _db = db; _reader = reader;
     }
 
+    // Legacy coarse VesselTypeCode → real ReferenceData VESSEL_TYPE lookup code. Early seed rows stored the coarse
+    // guess codes (SAILBOAT/MOTORYACHT/PWC/SUPERYACHT), which the models query — filtering VesselTypeCode by exact
+    // equality against the lookup code the picker sends — never matched, so the mobile model list came back empty.
+    // The generator now emits the real codes; this reconciles rows already seeded with the legacy values.
+    private static readonly (string Legacy, string Real)[] VesselTypeCodeReconcile =
+    {
+        ("MOTORYACHT", "MOTOR_YACHT"),
+        ("SUPERYACHT", "MOTOR_YACHT"),
+        ("SAILBOAT", "SAILING_BOAT"),
+        ("PWC", "JET_SKI"),
+    };
+
     public async Task SeedAsync(CancellationToken ct = default)
     {
         await SeedVesselBrandsAsync(ct);
         await SeedVesselModelsAsync(ct);
         await SeedEngineBrandsAsync(ct);
         await SeedEngineModelsAsync(ct);
+        await ReconcileVesselTypeCodesAsync(ct);
+    }
+
+    /// <summary>
+    /// Idempotent: rewrites any VesselModel still holding a legacy coarse VesselTypeCode to the real VESSEL_TYPE
+    /// lookup code. A no-op once every row is reconciled (and on fresh DBs, where the seeder already wrote real codes).
+    /// Only touches rows carrying a known legacy literal, so admin-corrected codes are never clobbered.
+    /// </summary>
+    private async Task ReconcileVesselTypeCodesAsync(CancellationToken ct)
+    {
+        // ExecuteUpdate is a relational-only operation (the in-memory provider used by tests doesn't support it).
+        // Fresh/test DBs seed the real codes directly, so skipping the reconcile there changes nothing.
+        if (!_db.Database.IsRelational()) return;
+
+        foreach (var (legacy, real) in VesselTypeCodeReconcile)
+        {
+            await _db.VesselModels
+                .Where(m => m.VesselTypeCode == legacy)
+                .ExecuteUpdateAsync(s => s.SetProperty(m => m.VesselTypeCode, real), ct);
+        }
     }
 
     private async Task SeedVesselBrandsAsync(CancellationToken ct)

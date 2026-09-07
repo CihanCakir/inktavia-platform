@@ -22,11 +22,11 @@ public sealed class CatalogController : AizenWebApiController
     public CatalogController(IHttpContextAccessor http, IAizenCQRSProcessor cqrs) : base(http) => _cqrs = cqrs;
 
     [HttpGet("vessel/brands")]
-    public async Task<AizenApiResponse<List<VesselBrandDto>>> VesselBrands([FromQuery] string? search, [FromQuery] int take = 20, CancellationToken ct = default)
+    public async Task<AizenApiResponse<List<VesselBrandDto>>> VesselBrands([FromQuery] string? search, [FromQuery] int take = 100, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetMobileVesselBrandsQuery(search, take), ct));
 
     [HttpGet("vessel/brands/{brandId:long}/models")]
-    public async Task<AizenApiResponse<List<VesselModelDto>>> VesselModels([FromRoute] long brandId, [FromQuery] string? search, [FromQuery] string? typeCode, [FromQuery] int take = 20, CancellationToken ct = default)
+    public async Task<AizenApiResponse<List<VesselModelDto>>> VesselModels([FromRoute] long brandId, [FromQuery] string? search, [FromQuery] string? typeCode, [FromQuery] int take = 100, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetMobileVesselModelsQuery(brandId, search, typeCode, take), ct));
 
     [HttpPost("vessel/brands")]
@@ -38,11 +38,11 @@ public sealed class CatalogController : AizenWebApiController
         => SetResponse(await _cqrs.ProcessAsync(new SubmitMobileVesselModelCommand(brandId, req), ct));
 
     [HttpGet("engine/brands")]
-    public async Task<AizenApiResponse<List<EngineBrandDto>>> EngineBrands([FromQuery] string? search, [FromQuery] int take = 20, CancellationToken ct = default)
+    public async Task<AizenApiResponse<List<EngineBrandDto>>> EngineBrands([FromQuery] string? search, [FromQuery] int take = 100, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetMobileEngineBrandsQuery(search, take), ct));
 
     [HttpGet("engine/brands/{brandId:long}/models")]
-    public async Task<AizenApiResponse<List<EngineModelDto>>> EngineModels([FromRoute] long brandId, [FromQuery] string? search, [FromQuery] string? typeCode, [FromQuery] int take = 20, CancellationToken ct = default)
+    public async Task<AizenApiResponse<List<EngineModelDto>>> EngineModels([FromRoute] long brandId, [FromQuery] string? search, [FromQuery] string? typeCode, [FromQuery] int take = 100, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetMobileEngineModelsQuery(brandId, search, typeCode, take), ct));
 
     [HttpPost("engine/brands")]
