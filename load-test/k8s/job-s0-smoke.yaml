@@ -1,0 +1,74 @@
+# LT-5 — k6 CLUSTER ICI kosum (ilk gercek dev baseline'i). NEDEN Job: tek atimlik kosum,
+# tamamlaninca kaynak birakir; CI'dan otomatik kosum BILEREK yok (NEREDE-KALDIK karari).
+#
+# ON KOSULLAR (sirayla, hepsi bir kez):
+#   1) Dev Keycloak'ta loadtest-runner client + loadtest-user-01..25 (LOKALDEN FARKLI sifreyle):
+#      setup-keycloak-loadtest.sh sunucuda kosulur (gitignore'da; elden tasinir).
+#   2) Sifre secret'i (sunucuda, bası bosluklu + read -s ile, TEK TEK):
+#        read -s LT_PW
+#        kubectl -n inktavia-dev create secret generic loadtest-credentials \
+#          --from-literal=LOADTEST_USER_PASSWORD="$LT_PW"
+#        unset LT_PW
+#   3) Script ConfigMap'leri (repo guncel klonundan, /srv/deploy/inktavia-platform):
+#        cd /srv/deploy/inktavia-platform
+#        kubectl -n inktavia-dev create configmap k6-scripts \
+#          --from-file=load-test/scripts/s0-smoke.js --from-file=load-test/scripts/s1-token-read.js \
+#          --from-file=load-test/scripts/s2-write-flow.js --from-file=load-test/scripts/s3-otp-request.js \
+#          --from-file=load-test/scripts/s4-kc-token.js --dry-run=client -o yaml | kubectl apply -f -
+#        kubectl -n inktavia-dev create configmap k6-lib \
+#          --from-file=load-test/scripts/lib/config.js --from-file=load-test/scripts/lib/auth.js \
+#          --dry-run=client -o yaml | kubectl apply -f -
+#      (script degisince ayni komutlar guncellemek icin de kullanilir.)
+#
+# KOSUM:  kubectl apply -f load-test/k8s/job-s0-smoke.yaml
+# IZLEME: kubectl -n inktavia-dev logs -f job/k6-s0-smoke
+# TEKRAR: kubectl -n inktavia-dev delete job k6-s0-smoke  (Job'lar degistirilemez; once sil)
+#
+# Metrikler Prometheus'a remote-write ile gider; Grafana "Yuk Testi" panosu ilk kosuyla dolar.
+# K6_PROMETHEUS_RW_TREND_STATS sart: panolar k6_http_req_duration_p95/_p99 bekler,
+# varsayilan yalniz p(99) uretir.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-s0-smoke
+  namespace: inktavia-dev
+  labels: { app: k6-loadtest, scenario: s0-smoke }
+spec:
+  backoffLimit: 0                 # basarisiz kosumu tekrarlamak anlamsiz — loga bakilir
+  ttlSecondsAfterFinished: 86400  # loglar 1 gun kalsin, sonra kendini temizlesin
+  template:
+    metadata:
+      labels: { app: k6-loadtest, scenario: s0-smoke }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.52.0
+          args: ["run", "-o", "experimental-prometheus-rw", "/scripts/s0-smoke.js"]
+          env:
+            - name: BASE_ADMIN
+              value: http://aizen-bff-adminpanel.inktavia-dev.svc.cluster.local
+            - name: BASE_PROVIDER
+              value: http://aizen-bff-marineprovider.inktavia-dev.svc.cluster.local
+            - name: KEYCLOAK_BASE
+              value: http://keycloak.inktavia-dev.svc.cluster.local:8080
+            - name: KC_REALM
+              value: inktavia-realm
+            - name: LOADTEST_USER_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: loadtest-credentials, key: LOADTEST_USER_PASSWORD }
+            - name: K6_PROMETHEUS_RW_SERVER_URL
+              value: http://prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+            - name: K6_PROMETHEUS_RW_TREND_STATS
+              value: "p(95),p(99)"
+          resources:
+            requests: { cpu: 200m, memory: 128Mi }
+            limits:   { cpu: "1",  memory: 256Mi }   # dusuk VU'da bol; RAM korumasi
+          volumeMounts:
+            - { name: scripts, mountPath: /scripts, readOnly: true }
+            - { name: lib, mountPath: /scripts/lib, readOnly: true }
+      volumes:
+        - name: scripts
+          configMap: { name: k6-scripts }
+        - name: lib
+          configMap: { name: k6-lib }
