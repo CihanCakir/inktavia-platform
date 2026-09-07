@@ -13,5 +13,18 @@ public sealed class MarinaDto
     public string? District { get; set; }
     public decimal Latitude { get; set; }
     public decimal Longitude { get; set; }
+    /// <summary>OSM element id (provenance) — surfaced to the admin curation screen. Additive.</summary>
+    public string? OsmId { get; set; }
+    /// <summary>Uncertain source data flag — drives the admin review queue. Additive.</summary>
+    public bool NeedsReview { get; set; }
     public bool IsActive { get; set; }
+}
+
+/// <summary>Paged admin marina list (curation screen). `{ items, total, page, pageSize }`.</summary>
+public sealed class MarinaAdminListResult
+{
+    public IReadOnlyList<MarinaDto> Items { get; set; } = new List<MarinaDto>();
+    public int Total { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
 }

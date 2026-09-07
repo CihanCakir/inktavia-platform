@@ -12,6 +12,7 @@ public sealed class LookupItemEntityConfiguration : IEntityTypeConfiguration<Loo
         builder.Property(x => x.LookupGroupId).IsRequired();
         builder.Property(x => x.Code).HasMaxLength(100).IsRequired();
         builder.Property(x => x.Name).HasMaxLength(250).IsRequired();
+        builder.Property(x => x.DisplayNameTr).HasMaxLength(250);
         builder.Property(x => x.Description).HasMaxLength(1000);
         builder.Property(x => x.IconKey).HasMaxLength(150);
         builder.Property(x => x.ColorCode).HasMaxLength(25);

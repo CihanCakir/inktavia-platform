@@ -1,0 +1,46 @@
+# Tolgee ceviri platformu — kendi `tolgee` namespace'i + kaynak kotasi (2026-09-07).
+#
+# Neden ayri namespace: Tolgee ucuncu-parti bir uygulama (monorepo modulu degil), inktavia-dev
+# kotasini ve NetworkPolicy'sini paylasmasin. monitoring yigininin desenini birebir izler
+# (raw YAML + gitops/apps altinda tek bir Argo Application).
+#
+# ⚠️ ResourceQuota TEK BASINA TUZAK: kotasi olan ns'te limit belirtmeyen HER pod reddedilir
+# (port-forward icin actigin gecici psql/debug pod'lari dahil). LimitRange varsayilanlari
+# sagladigi icin ikisi birlikte durur.
+#
+# Kota matematigi (limits.memory): tolgee 1Gi (tavan) + ~256Mi gecici debug/psql pod'una pay
+# = 1280Mi. requests.memory 640Mi = tolgee 512Mi request + 128Mi pay. Node 2026-09-06 olcumu
+# 9,0Gi available idi; 1,25Gi'lik bu ns monitoring (1280Mi) ile birlikte rahat sigar.
+# JVM 512Mi request / 1Gi limit ile baslatiliyor (gorev sarti); Tolgee bosta ~400-600Mi
+# kullanir, agir import/MT sirasinda tavana yaklasir — gerekirse 20-tolgee.yaml + bu kota
+# birlikte artirilir.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tolgee
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tolgee-quota
+  namespace: tolgee
+spec:
+  hard:
+    requests.memory: 640Mi
+    limits.memory: 1280Mi
+    pods: "4"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: defaults
+  namespace: tolgee
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 500m
+        memory: 320Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 200Mi

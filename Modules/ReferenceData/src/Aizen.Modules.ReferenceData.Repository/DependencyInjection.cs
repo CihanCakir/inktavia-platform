@@ -64,6 +64,7 @@ public static class DependencyInjection
         services.AddScoped<IMarinaReferenceService, MarinaReferenceService>();
         services.AddScoped<IVesselCatalogReferenceService, VesselCatalogReferenceService>();
         services.AddScoped<IEngineCatalogReferenceService, EngineCatalogReferenceService>();
+        services.AddScoped<ICatalogMergeService, CatalogMergeService>();
         services.AddScoped<ISystemParameterReferenceService, SystemParameterReferenceService>();
         services.AddSingleton<IReferenceDataCacheKeyService, ReferenceDataCacheKeyService>();
         services.AddScoped<IReferenceDataCacheInvalidationService, ReferenceDataCacheInvalidationService>();

@@ -15,7 +15,7 @@ public interface ILookupReferenceService
     Task<LookupGroupDto?> GetGroupDetailAsync(long id, CancellationToken cancellationToken = default);
 
     Task<LookupItemDto> CreateItemAsync(CreateLookupItemRequest request, CancellationToken cancellationToken = default);
-    Task<LookupItemDto> UpdateItemAsync(long id, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive, CancellationToken cancellationToken = default);
+    Task<LookupItemDto> UpdateItemAsync(long id, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive, string? displayNameTr = null, CancellationToken cancellationToken = default);
     Task ActivateItemAsync(long id, CancellationToken cancellationToken = default);
     Task DeactivateItemAsync(long id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<LookupItemDto>> GetItemsByGroupCodeAsync(string groupCode, bool onlyActive, CancellationToken cancellationToken = default);

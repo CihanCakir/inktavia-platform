@@ -9,6 +9,8 @@ using Aizen.Modules.Vessel.Abstraction.Response.Ownership;
 using Aizen.Modules.Vessel.Abstraction.Response.Status;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Aizen.Modules.Vessel.Abstraction.Dto.Status;
+using Aizen.Modules.Vessel.Abstraction.Dto.CatalogReference;
+using Aizen.Modules.Vessel.Abstraction.Request.CatalogReference;
 using Aizen.Bff.AdminPanel.Application.Dashboard.Dto;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
@@ -18,6 +20,12 @@ namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
     "Auth headers are injected automatically by AdminPanelBffAuthDelegatingHandler.")]
 public interface IVesselRemoteCall : IAizenRemoteCall
 {
+    // ── Catalog references (owned by the Vessel module): review counts + merge repoint ──
+    [AizenRemoteCallGet("/api/v1/admin/vessels/catalog-references/counts")]
+    Task<AizenApiResponse<CatalogReferenceCountsDto>> GetCatalogReferenceCounts();
+    [AizenRemoteCallPost("/api/v1/admin/vessels/catalog-references/repoint")]
+    Task<AizenApiResponse<CatalogRepointResultDto>> RepointCatalogReference([AizenRemoteCallBody] RepointCatalogReferenceRequest request);
+
     [AizenRemoteCallGet("/api/v1/admin/vessels")]
     Task<AizenApiResponse<GetAllVesselsAdminResponse>> GetAdminVesselList(
         [Refit.Query] int      pageIndex           = 0,

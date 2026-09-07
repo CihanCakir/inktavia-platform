@@ -56,5 +56,15 @@ public sealed class EngineModelEntity : AizenEntityWithAudit
 
     public void Approve() => NeedsReview = false;
     public void Activate() => IsActive = true;
+    /// <summary>Set when this row was merged into another (audit). Non-null ⇒ deactivated duplicate.</summary>
+    public long? MergedIntoId { get; private set; }
+
     public void Deactivate() => IsActive = false;
+
+    /// <summary>Merge audit: record the surviving target id and deactivate this duplicate.</summary>
+    public void MarkMergedInto(long targetId)
+    {
+        MergedIntoId = targetId;
+        IsActive = false;
+    }
 }

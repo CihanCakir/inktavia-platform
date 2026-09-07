@@ -8,4 +8,10 @@ public interface IMarinaReferenceService
     Task<IReadOnlyList<MarinaNearbyDto>> GetNearbyAsync(double latitude, double longitude, int limit, CancellationToken cancellationToken = default);
 
     Task<MarinaDto?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+
+    // ── Admin curation ──
+    Task<MarinaAdminListResult> ListForAdminAsync(bool needsReviewOnly, string? search, int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<bool> UpdateAsync(long id, string name, string? cityCode, CancellationToken cancellationToken = default);
+    Task<bool> MarkReviewedAsync(long id, CancellationToken cancellationToken = default);
+    Task<bool> DeactivateAsync(long id, CancellationToken cancellationToken = default);
 }

@@ -12,6 +12,11 @@ public sealed class VesselBrandDto
     public bool IsActive { get; set; }
     public bool NeedsReview { get; set; }
     public string? Source { get; set; }
+    /// <summary>Row creation timestamp (audit) — surfaced on the admin review queue. Additive.</summary>
+    public System.DateTime? CreatedAt { get; set; }
+    /// <summary>How many vessels reference this catalog id. Populated by the BFF (Vessel module) on the REVIEW list
+    /// only; null elsewhere (the ReferenceData module does not own the vessel FK columns). Additive.</summary>
+    public int? ReferenceCount { get; set; }
 }
 
 public sealed class VesselModelDto
@@ -29,6 +34,11 @@ public sealed class VesselModelDto
     public bool IsActive { get; set; }
     public bool NeedsReview { get; set; }
     public string? Source { get; set; }
+    /// <summary>Row creation timestamp (audit) — surfaced on the admin review queue. Additive.</summary>
+    public System.DateTime? CreatedAt { get; set; }
+    /// <summary>How many vessels reference this catalog id. Populated by the BFF (Vessel module) on the REVIEW list
+    /// only; null elsewhere (the ReferenceData module does not own the vessel FK columns). Additive.</summary>
+    public int? ReferenceCount { get; set; }
 }
 
 public sealed class EngineBrandDto
@@ -39,6 +49,11 @@ public sealed class EngineBrandDto
     public bool IsActive { get; set; }
     public bool NeedsReview { get; set; }
     public string? Source { get; set; }
+    /// <summary>Row creation timestamp (audit) — surfaced on the admin review queue. Additive.</summary>
+    public System.DateTime? CreatedAt { get; set; }
+    /// <summary>How many vessels reference this catalog id. Populated by the BFF (Vessel module) on the REVIEW list
+    /// only; null elsewhere (the ReferenceData module does not own the vessel FK columns). Additive.</summary>
+    public int? ReferenceCount { get; set; }
 }
 
 public sealed class EngineModelDto
@@ -56,4 +71,9 @@ public sealed class EngineModelDto
     public bool IsActive { get; set; }
     public bool NeedsReview { get; set; }
     public string? Source { get; set; }
+    /// <summary>Row creation timestamp (audit) — surfaced on the admin review queue. Additive.</summary>
+    public System.DateTime? CreatedAt { get; set; }
+    /// <summary>How many vessels reference this catalog id. Populated by the BFF (Vessel module) on the REVIEW list
+    /// only; null elsewhere (the ReferenceData module does not own the vessel FK columns). Additive.</summary>
+    public int? ReferenceCount { get; set; }
 }

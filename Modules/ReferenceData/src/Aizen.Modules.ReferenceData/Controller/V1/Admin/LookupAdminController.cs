@@ -86,7 +86,7 @@ public sealed class LookupAdminController : AizenWebApiController
     [ProducesResponseType(typeof(LookupItemDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<LookupItemDto?>> UpdateItem([FromRoute] long id, [FromBody] UpdateLookupItemRequest req, CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync<LookupItemDto>(new UpdateLookupItemCommand(id, req.Name, req.Description, req.IconKey, req.ColorCode, req.SortOrder, req.IsDefault, req.IsActive), ct);
+        var result = await _cqrs.ProcessAsync<LookupItemDto>(new UpdateLookupItemCommand(id, req.Name, req.Description, req.IconKey, req.ColorCode, req.SortOrder, req.IsDefault, req.IsActive, req.DisplayNameTr), ct);
         return SetResponse(result);
     }
 

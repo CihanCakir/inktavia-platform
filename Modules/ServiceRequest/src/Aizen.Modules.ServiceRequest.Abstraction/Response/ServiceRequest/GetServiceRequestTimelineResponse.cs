@@ -12,6 +12,8 @@ public sealed record ServiceRequestTimelineEventItemDto
 {
     public string Id { get; init; } = string.Empty;
     public string Event { get; init; } = string.Empty;
+    /// <summary>Stable machine-readable event code (SR_PUBLISHED, …) for localization. Additive.</summary>
+    public string EventCode { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string? By { get; init; }
     public string? Status { get; init; }

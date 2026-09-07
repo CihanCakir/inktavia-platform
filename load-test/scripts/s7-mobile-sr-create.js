@@ -16,9 +16,17 @@ import { randomCoastal } from './lib/geo.js';
 
 const PROFILE = __ENV.PROFILE || 'smoke';
 
+// DEV kapilari (dev-baseline): 2026-09-07 ilk temiz kosu p95 x 1,5 — 5 VU, 158 istek, %0 hata
+// (sr-create 8,44s! / sr-cancel 5,46s / sr-detail 2,30s; Prometheus flush-serisi). sr-create'in
+// 8+ sn'si dikkat cekici (publish + sehir fan-out) — optimizasyon adayi, kapi simdilik gercegi soyluyor.
 export const options = PROFILE === 'dev-baseline' ? {
   vus: 5, duration: '2m',
-  thresholds: { http_req_failed: ['rate<0.01'] },
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    'http_req_duration{name:sr-create}': ['p(95)<12700'],
+    'http_req_duration{name:sr-detail}': ['p(95)<3500'],
+    'http_req_duration{name:sr-cancel}': ['p(95)<8200'],
+  },
 } : PROFILE === 'baseline' ? {
   vus: 5, duration: '2m',
   thresholds: {

@@ -26,7 +26,7 @@ export const options = PROFILE === 'dev-baseline' ? {
     'http_req_duration{name:vessels-list}':   ['p(95)<3200'],
     'http_req_duration{name:sr-list}':        ['p(95)<2800'],
     'http_req_duration{name:cargodry-kits}':  ['p(95)<2900'],
-    'http_req_duration{name:notifications}':  ['p(95)<3000'], // TODO-CALIBRATE: fixture sonrasi ilk kosudan
+    'http_req_duration{name:notifications}':  ['p(95)<3300'], // 2026-09-07 fixture sonrasi kosu: p95 2,19s x 1,5
   },
 } : PROFILE === 'baseline' ? {
   stages: [

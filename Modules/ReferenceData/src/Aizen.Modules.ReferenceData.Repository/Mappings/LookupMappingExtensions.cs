@@ -47,6 +47,7 @@ public static class LookupMappingExtensions
         GroupHierarchyPath = entity.LookupGroup?.HierarchyPath,
         Code = entity.Code,
         Name = entity.Name,
+        DisplayNameTr = entity.DisplayNameTr,
         Description = entity.Description,
         IconKey = entity.IconKey,
         ColorCode = entity.ColorCode,

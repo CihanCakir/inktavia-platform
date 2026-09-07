@@ -10,14 +10,14 @@ Koşum: `README.md → Baseline prosedürü`. Tarih damgalı özetler: `results/
 |---|---|---:|---:|---:|---:|
 | s5 | vessels-list        | 2105 | — | 0% | 3200 |
 | s5 | sr-list             | 1812 | — | 0% | 2800 |
-| s5 | notifications       | SKIP (#109 fixture) | — | — | — |
+| s5 | notifications       | 2190 | — | 0% | 3300 |
 | s5 | cargodry-kits       | 1875 | — | 0% | 2900 |
-| s6 | vessel-create       | BLOKE (#109 participant fixture) | — | — | — |
-| s6 | vessel-set-location | BLOKE (#109 participant fixture) | — | — | — |
-| s6 | vessel-archive      | BLOKE (#109 participant fixture) | — | — | — |
-| s7 | sr-create           | BLOKE (#109 participant fixture) | — | — | — |
-| s7 | sr-detail           | BLOKE (#109 participant fixture) | — | — | — |
-| s7 | sr-cancel           | BLOKE (#109 participant fixture) | — | — | — |
+| s6 | vessel-create       | 3508 | — | 0% | 5300 |
+| s6 | vessel-set-location | 2625 | — | 0% | 3900 |
+| s6 | vessel-archive      | 2689 | — | 0% | 4000 |
+| s7 | sr-create           | 8442 | — | 0% | 12700 |
+| s7 | sr-detail           | 2304 | — | 0% | 3500 |
+| s7 | sr-cancel           | 5456 | — | 0% | 8200 |
 | s8 | marinas-nearby      | 2500 | — | 0% | 3800 |
 | s8 | discovery-list      | SKIP¹ (2026-09-07 koşusunda atlandı) | — | — | — |
 | s9 | trip-start          | TODO² | TODO² | TODO² | TODO² |

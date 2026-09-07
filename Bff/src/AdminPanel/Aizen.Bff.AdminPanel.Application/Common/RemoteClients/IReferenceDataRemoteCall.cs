@@ -7,9 +7,11 @@ using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupItem;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Measurement;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.SystemParameter;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.Catalog;
+using Aizen.Modules.ReferenceData.Abstraction.Dto.Marina;
 using Aizen.Modules.ReferenceData.Abstraction.Request.Catalog;
 using Aizen.Modules.ReferenceData.Abstraction.Request.LookupGroup;
 using Aizen.Modules.ReferenceData.Abstraction.Request.LookupItem;
+using Aizen.Modules.ReferenceData.Abstraction.Request.Marina;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 
@@ -31,9 +33,28 @@ public interface IReferenceDataRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<LookupGroupDto>> CreateLookupGroup(
         [AizenRemoteCallBody] CreateLookupGroupRequest request);
 
+    // ── Catalog merge (catalog side: validate + deactivate source with audit) ──
+    [AizenRemoteCallPost("/api/v1/admin/reference-data/catalog/merge")]
+    Task<AizenApiResponse<CatalogMergeResultDto>> MergeCatalogEntry([AizenRemoteCallBody] MergeCatalogRequest request);
+
+    // ── Marina curation (module /api/v1/admin/reference-data/marinas) ──
+    [AizenRemoteCallGet("/api/v1/admin/reference-data/marinas")]
+    Task<AizenApiResponse<MarinaAdminListResult>> GetMarinasForAdmin(
+        [Refit.Query] bool needsReview = false, [Refit.Query] string? search = null,
+        [Refit.Query] int page = 1, [Refit.Query] int pageSize = 20);
+    [AizenRemoteCallPut("/api/v1/admin/reference-data/marinas/{id}")]
+    Task<AizenApiResponse<BoolResult>> UpdateMarina(long id, [AizenRemoteCallBody] UpdateMarinaRequest req);
+    [AizenRemoteCallPut("/api/v1/admin/reference-data/marinas/{id}/mark-reviewed")]
+    Task<AizenApiResponse<BoolResult>> MarkMarinaReviewed(long id);
+    [AizenRemoteCallPut("/api/v1/admin/reference-data/marinas/{id}/deactivate")]
+    Task<AizenApiResponse<BoolResult>> DeactivateMarina(long id);
+
     [AizenRemoteCallPost("/api/v1/admin/reference-data/lookup-items")]
     Task<AizenApiResponse<LookupItemDto>> CreateLookupItem(
         [AizenRemoteCallBody] CreateLookupItemRequest request);
+
+    [AizenRemoteCallPut("/api/v1/admin/reference-data/lookup-items/{id}")]
+    Task<AizenApiResponse<LookupItemDto>> UpdateLookupItem(long id, [AizenRemoteCallBody] UpdateLookupItemRequest request);
 
     [AizenRemoteCallGet("/api/v1/reference-data/currencies")]
     Task<AizenApiResponse<IReadOnlyList<CurrencyDto>>> GetCurrencies();

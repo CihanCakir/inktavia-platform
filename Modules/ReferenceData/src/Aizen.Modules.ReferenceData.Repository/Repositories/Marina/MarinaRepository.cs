@@ -34,4 +34,27 @@ public sealed class MarinaRepository : IMarinaRepository
 
     public void Update(MarinaEntity entity)
         => _dbContext.Marinas.Update(entity);
+
+    public async Task<(IReadOnlyList<MarinaEntity> Items, int Total)> ListForAdminAsync(
+        bool needsReviewOnly, string? search, int skip, int take, CancellationToken cancellationToken = default)
+    {
+        var q = _dbContext.Marinas.AsNoTracking();
+        if (needsReviewOnly) q = q.Where(x => x.NeedsReview);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            q = q.Where(x =>
+                x.Name.ToLower().Contains(term) ||
+                (x.CityCode != null && x.CityCode.ToLower().Contains(term)) ||
+                (x.Province != null && x.Province.ToLower().Contains(term)));
+        }
+        var total = await q.CountAsync(cancellationToken);
+        var items = await q
+            .OrderByDescending(x => x.NeedsReview)   // review queue first
+            .ThenBy(x => x.Name)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+        return (items, total);
+    }
 }

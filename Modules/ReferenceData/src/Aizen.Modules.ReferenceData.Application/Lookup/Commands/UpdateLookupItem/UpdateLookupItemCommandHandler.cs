@@ -17,7 +17,7 @@ public sealed class UpdateLookupItemCommandHandler : AizenCommandHandler<UpdateL
 
     public override async Task<LookupItemDto?> Handle(UpdateLookupItemCommand request, CancellationToken cancellationToken)
     {
-        var result = await _service.UpdateItemAsync(request.Id, request.Name, request.Description, request.IconKey, request.ColorCode, request.SortOrder, request.IsDefault, request.IsActive, cancellationToken);
+        var result = await _service.UpdateItemAsync(request.Id, request.Name, request.Description, request.IconKey, request.ColorCode, request.SortOrder, request.IsDefault, request.IsActive, request.DisplayNameTr, cancellationToken);
         await _invalidation.InvalidateLookupItemAsync(cancellationToken: cancellationToken);
         return result;
     }

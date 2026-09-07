@@ -123,7 +123,8 @@ public sealed class LookupJsonSeedService
                     model.IconKey,
                     model.ColorCode,
                     model.SortOrder,
-                    model.IsDefault);
+                    model.IsDefault,
+                    model.DisplayNameTr);
 
                 if (!model.IsActive) entity.Deactivate();
                 await _itemRepository.AddAsync(entity, cancellationToken);
@@ -133,7 +134,7 @@ public sealed class LookupJsonSeedService
                 var existing = await _itemRepository.GetItemByCodeAsync(itemCode, cancellationToken);
                 if (existing is not null)
                 {
-                    existing.Update(model.Name, model.Description, model.IconKey, model.ColorCode, model.SortOrder, model.IsDefault, model.IsActive);
+                    existing.Update(model.Name, model.Description, model.IconKey, model.ColorCode, model.SortOrder, model.IsDefault, model.IsActive, model.DisplayNameTr);
                     _itemRepository.Update(existing);
                 }
             }

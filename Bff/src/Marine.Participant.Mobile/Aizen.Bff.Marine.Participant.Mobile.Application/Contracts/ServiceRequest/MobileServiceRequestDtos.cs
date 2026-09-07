@@ -38,6 +38,8 @@ public sealed class MobileServiceRequestTimelineEventDto
 {
     public string FromStatus { get; set; } = default!;
     public string ToStatus { get; set; } = default!;
+    /// <summary>Stable machine-readable event code (SR_PUBLISHED, …) for localization. Additive; Reason kept.</summary>
+    public string EventCode { get; set; } = string.Empty;
     public string? Reason { get; set; }
     public string ActorType { get; set; } = default!;
     public DateTime OccurredAt { get; set; }
