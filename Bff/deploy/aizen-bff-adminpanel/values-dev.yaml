@@ -74,12 +74,14 @@ probes:
     failureThreshold: 24   # 2 dakika — BFF'lerde migration yok, modüllerden hızlı açılır
 
 # BFF'ler modüllerden hafif: EF/migration yok, iş mantığı modüllerde.
+# CPU tavani 250m -> 1000m (2026-09-07, LT-5): 25 VU'da CFS throttle %22 olculdu, p95'ler
+# 17-32 sn'ye savruldu; node %40'ta bostu. request AYNEN kaldi — tavan sadece patlama payi.
 resources:
   requests:
     cpu: 15m
     memory: 90Mi
   limits:
-    cpu: 250m
+    cpu: 1000m
     memory: 256Mi
 
 autoscaling:

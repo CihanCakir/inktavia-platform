@@ -61,7 +61,7 @@ data:
           },
           "fieldConfig": {
             "defaults": {
-              "unit": "ms",
+              "unit": "s",
               "custom": {
                 "lineWidth": 2,
                 "fillOpacity": 10

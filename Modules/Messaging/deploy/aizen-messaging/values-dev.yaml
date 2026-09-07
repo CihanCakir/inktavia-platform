@@ -72,12 +72,14 @@ probes:
 # Ölçüldü (2026-08-17, boşta): modüller 114–258Mi, Payment en yüksek (Hangfire).
 # İstek = zamanlayıcının REZERVE ettiği miktar → gerçek kullanıma yakın olmalı.
 # Tavan = GC tepe noktası için pay → boştakinin ~3 katı.
+# CPU tavani 300m -> 750m (2026-09-07, LT-5): 25 VU kosusunda CFS throttle ~%35 olculdu
+# (yuk testinin ana darbogazi); request AYNEN kaldi, node'da bol bos cekirdek var.
 resources:
   requests:
     cpu: 25m
     memory: 120Mi
   limits:
-    cpu: 300m
+    cpu: 750m
     memory: 300Mi
 
 autoscaling:

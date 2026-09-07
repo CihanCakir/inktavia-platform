@@ -8,7 +8,13 @@ import { BASE_ADMIN, jsonHeaders } from './lib/config.js';
 import { getToken, vuUser } from './lib/auth.js';
 
 const PROFILE = __ENV.PROFILE || 'smoke';
-export const options = PROFILE === 'baseline' ? {
+// dev-baseline: LT-5 kalibrasyon profili — dev 25 VU'da doyuyor (p95 17-32 sn, 2026-09-07),
+// esikler LOKAL degerlerden; dev esigi ancak doygunluk ALTI olcumle kalibre edilir. O yuzden
+// bu profil 5 VU sabit + yalniz hata kapisi kosar; cikan p95'ler dev esiklerinin taban verisi olur.
+export const options = PROFILE === 'dev-baseline' ? {
+  vus: 5, duration: '5m',
+  thresholds: { http_req_failed: ['rate<0.01'] },
+} : PROFILE === 'baseline' ? {
   stages: [
     { duration: '1m', target: 5 },
     { duration: '1m', target: 25 },
