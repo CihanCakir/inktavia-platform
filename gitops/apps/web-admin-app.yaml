@@ -46,7 +46,7 @@ spec:
         # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
         - name: image.tag
           # FAZ24: ilk gercek image (admin-web CI #4, develop merge f54bcea — faz24/ci-ve-tip-duzeltmeleri).
-          value: "sha-1981ea8"
+          value: "sha-bb82f7d"
           # 2026-09-03: sha-33ea135 → sha-1981ea8 (admin-web PR #10 qa1/kiriklar-fe — QA-1b..7 serisi:
           #   sahte bos-durum ailesi, i18n + parite testi, menu mimarisi, permission filtresi, mobil;
           #   develop head 1981ea8, Actions kosusu YESIL — tarayici oturumundan dogrulandi).
