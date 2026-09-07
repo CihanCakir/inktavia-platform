@@ -126,6 +126,9 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
+    # hostname SABIT olmali: RabbitMQ veritabanini node adina (rabbit@<hostname>) gore tutar.
+    # Hostname'siz her recreate yeni rastgele hostname = bos broker demek (2026-09-07'de yasandi).
+    hostname: rabbitmq
     restart: unless-stopped
     logging: *default-logging
     mem_limit: 400m
