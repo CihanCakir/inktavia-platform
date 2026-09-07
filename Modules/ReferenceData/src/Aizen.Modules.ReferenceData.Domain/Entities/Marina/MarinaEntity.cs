@@ -24,6 +24,9 @@ public sealed class MarinaEntity : AizenEntityWithAudit
     public string? OsmId { get; private set; }
     /// <summary>Flagged where the source data is uncertain (inferred province, synthesized name).</summary>
     public bool NeedsReview { get; private set; }
+    /// <summary>True once an admin has curated this row (edit / mark-reviewed / deactivate). The JSON seeder then
+    /// STOPS overwriting its fields on re-run so curation survives — while still adding brand-new rows.</summary>
+    public bool IsAdminEdited { get; private set; }
 
     public const string TypeMarina = "MARINA";
     public const string TypeFishingHarbor = "FISHING_HARBOR";
@@ -84,4 +87,28 @@ public sealed class MarinaEntity : AizenEntityWithAudit
 
     public void Activate() => IsActive = true;
     public void Deactivate() => IsActive = false;
+
+    // ── Admin curation (item-1 write paths). Each marks IsAdminEdited so the seeder stops clobbering the row. ──
+    /// <summary>Admin edit of the two curatable display fields.</summary>
+    public void ApplyAdminEdit(string name, string? cityCode)
+    {
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Marina name is required.", nameof(name));
+        Name = name.Trim();
+        CityCode = string.IsNullOrWhiteSpace(cityCode) ? null : cityCode.Trim().ToUpperInvariant();
+        IsAdminEdited = true;
+    }
+
+    /// <summary>Clears the review flag (admin confirmed the row is good).</summary>
+    public void MarkReviewed()
+    {
+        NeedsReview = false;
+        IsAdminEdited = true;
+    }
+
+    /// <summary>Admin deactivation (distinct from the seeder's Deactivate() — this pins the row against re-seed).</summary>
+    public void AdminDeactivate()
+    {
+        IsActive = false;
+        IsAdminEdited = true;
+    }
 }

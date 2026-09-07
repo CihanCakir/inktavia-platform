@@ -83,6 +83,7 @@ internal static class MobileServiceRequestMapper
                 {
                     FromStatus = h.FromStatus.ToString(),
                     ToStatus = h.ToStatus.ToString(),
+                    EventCode = h.EventCode,
                     Reason = h.Reason,
                     ActorType = h.ActorType.ToString(),
                     OccurredAt = h.OccurredAt,
@@ -258,6 +259,7 @@ internal static class MobileServiceRequestMapper
                 {
                     FromStatus = h.FromStatus.ToString(),
                     ToStatus = h.ToStatus.ToString(),
+                    EventCode = h.EventCode,
                     Reason = h.Reason,
                     ActorType = h.ActorType.ToString(),
                     OccurredAt = h.OccurredAt,

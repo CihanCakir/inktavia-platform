@@ -157,13 +157,13 @@ public sealed class EngineCatalogReferenceService : IEngineCatalogReferenceServi
 
     private static EngineBrandDto ToDto(EngineBrandEntity e) => new()
     {
-        Id = e.Id, Code = e.Code, Name = e.Name, IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source,
+        Id = e.Id, Code = e.Code, Name = e.Name, IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source, CreatedAt = e.CreateDate,
     };
 
     private static EngineModelDto ToDto(EngineModelEntity e, string? brandName) => new()
     {
         Id = e.Id, EngineBrandId = e.EngineBrandId, BrandName = brandName, Code = e.Code, Name = e.Name,
         HorsePower = e.HorsePower, FuelTypeCode = e.FuelTypeCode, EngineTypeCode = e.EngineTypeCode,
-        YearFrom = e.YearFrom, YearTo = e.YearTo, IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source,
+        YearFrom = e.YearFrom, YearTo = e.YearTo, IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source, CreatedAt = e.CreateDate,
     };
 }

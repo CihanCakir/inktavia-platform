@@ -7,6 +7,8 @@ public sealed class LookupItemEntity : AizenEntityWithAudit
     public long LookupGroupId { get; private set; }
     public string Code { get; private set; } = default!;
     public string Name { get; private set; } = default!;
+    /// <summary>Turkish display name (additive; null → clients fall back to <see cref="Name"/>). English name stays in Name.</summary>
+    public string? DisplayNameTr { get; private set; }
     public string? Description { get; private set; }
     public string? IconKey { get; private set; }
     public string? ColorCode { get; private set; }
@@ -17,13 +19,14 @@ public sealed class LookupItemEntity : AizenEntityWithAudit
 
     public LookupItemEntity() { }
 
-    public static LookupItemEntity Create(long lookupGroupId, string code, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault)
+    public static LookupItemEntity Create(long lookupGroupId, string code, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, string? displayNameTr = null)
     {
         return new LookupItemEntity
         {
             LookupGroupId = lookupGroupId,
             Code = NormalizeCode(code),
             Name = name.Trim(),
+            DisplayNameTr = string.IsNullOrWhiteSpace(displayNameTr) ? null : displayNameTr.Trim(),
             Description = description,
             IconKey = iconKey,
             ColorCode = colorCode,
@@ -33,9 +36,10 @@ public sealed class LookupItemEntity : AizenEntityWithAudit
         };
     }
 
-    public void Update(string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive)
+    public void Update(string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive, string? displayNameTr = null)
     {
         Name = name.Trim();
+        DisplayNameTr = string.IsNullOrWhiteSpace(displayNameTr) ? null : displayNameTr.Trim();
         Description = description;
         IconKey = iconKey;
         ColorCode = colorCode;

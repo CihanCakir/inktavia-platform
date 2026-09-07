@@ -45,6 +45,11 @@ public sealed class MarinaJsonSeedService
             }
             else
             {
+                // CURATION GUARD: once an admin has touched this row (edit / mark-reviewed / deactivate), never
+                // clobber its fields from JSON again. New rows still seed (the insert branch above); only the
+                // field-overwrite is skipped for admin-edited rows.
+                if (existing.IsAdminEdited) continue;
+
                 existing.Update(
                     model.Name, model.Type, model.CountryCode, model.CityCode, model.Province, model.District,
                     model.Latitude, model.Longitude, model.OsmId, model.NeedsReview, model.IsActive);

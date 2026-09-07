@@ -17,21 +17,72 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 public sealed class CatalogAdminController : AizenWebApiController
 {
     private readonly IReferenceDataRemoteCall _rd;
-    public CatalogAdminController(IHttpContextAccessor http, IReferenceDataRemoteCall rd) : base(http) => _rd = rd;
+    private readonly IVesselRemoteCall _vessel;
+    public CatalogAdminController(IHttpContextAccessor http, IReferenceDataRemoteCall rd, IVesselRemoteCall vessel) : base(http)
+    { _rd = rd; _vessel = vessel; }
 
-    // ── Review queue ──
+    // ── Review queue (enriched with vesselReferenceCount from the Vessel module — review path only) ──
     [HttpGet("vessel/brands/review")]
     public async Task<AizenApiResponse<List<VesselBrandDto>?>> VesselBrandsForReview([FromQuery] int skip = 0, [FromQuery] int take = 20)
-        => SetResponse((await _rd.GetVesselBrandsForReview(skip, take))?.Body);
+    {
+        var items = (await _rd.GetVesselBrandsForReview(skip, take))?.Body;
+        var counts = await SafeCountsAsync();
+        if (items is not null && counts is not null)
+            foreach (var i in items) i.ReferenceCount = counts.VesselBrand.GetValueOrDefault(i.Id);
+        return SetResponse(items);
+    }
     [HttpGet("vessel/models/review")]
     public async Task<AizenApiResponse<List<VesselModelDto>?>> VesselModelsForReview([FromQuery] int skip = 0, [FromQuery] int take = 20)
-        => SetResponse((await _rd.GetVesselModelsForReview(skip, take))?.Body);
+    {
+        var items = (await _rd.GetVesselModelsForReview(skip, take))?.Body;
+        var counts = await SafeCountsAsync();
+        if (items is not null && counts is not null)
+            foreach (var i in items) i.ReferenceCount = counts.VesselModel.GetValueOrDefault(i.Id);
+        return SetResponse(items);
+    }
     [HttpGet("engine/brands/review")]
     public async Task<AizenApiResponse<List<EngineBrandDto>?>> EngineBrandsForReview([FromQuery] int skip = 0, [FromQuery] int take = 20)
-        => SetResponse((await _rd.GetEngineBrandsForReview(skip, take))?.Body);
+    {
+        var items = (await _rd.GetEngineBrandsForReview(skip, take))?.Body;
+        var counts = await SafeCountsAsync();
+        if (items is not null && counts is not null)
+            foreach (var i in items) i.ReferenceCount = counts.EngineBrand.GetValueOrDefault(i.Id);
+        return SetResponse(items);
+    }
     [HttpGet("engine/models/review")]
     public async Task<AizenApiResponse<List<EngineModelDto>?>> EngineModelsForReview([FromQuery] int skip = 0, [FromQuery] int take = 20)
-        => SetResponse((await _rd.GetEngineModelsForReview(skip, take))?.Body);
+    {
+        var items = (await _rd.GetEngineModelsForReview(skip, take))?.Body;
+        var counts = await SafeCountsAsync();
+        if (items is not null && counts is not null)
+            foreach (var i in items) i.ReferenceCount = counts.EngineModel.GetValueOrDefault(i.Id);
+        return SetResponse(items);
+    }
+
+    // Vessel counts are best-effort enrichment — a Vessel-module hiccup must not fail the review list.
+    private async Task<Aizen.Modules.Vessel.Abstraction.Dto.CatalogReference.CatalogReferenceCountsDto?> SafeCountsAsync()
+    {
+        try { return (await _vessel.GetCatalogReferenceCounts())?.Body; }
+        catch { return null; }
+    }
+
+    // ── Merge duplicate catalog entry: validate + deactivate source (ReferenceData), then repoint vessel refs
+    //    source→target (Vessel). Ordered + idempotent (not a distributed txn) — see the report. ──
+    [HttpPost("merge")]
+    public async Task<AizenApiResponse<CatalogMergeResultDto?>> Merge([FromBody] MergeCatalogRequest req)
+    {
+        var merge = (await _rd.MergeCatalogEntry(req))?.Body;   // throws a business error on invalid (cross-brand etc.)
+        if (merge is null || !merge.Success) return SetResponse(merge);
+
+        var repoint = (await _vessel.RepointCatalogReference(new Aizen.Modules.Vessel.Abstraction.Request.CatalogReference.RepointCatalogReferenceRequest
+        {
+            Kind = (Aizen.Modules.Vessel.Abstraction.Dto.CatalogReference.CatalogRefKind)(int)req.Type,
+            SourceId = req.SourceId,
+            TargetId = req.TargetId,
+        }))?.Body;
+        merge.RepointedVesselReferences = repoint?.RepointedCount ?? 0;
+        return SetResponse(merge);
+    }
 
     // ── Browse (admin sees inactive too) ──
     [HttpGet("vessel/brands")]

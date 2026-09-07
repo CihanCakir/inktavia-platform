@@ -22,6 +22,7 @@ public sealed class GetServiceRequestTimelineQueryHandler : AizenQueryHandler<Ge
             {
                 Id = (i + 1).ToString(),
                 Event = h.ToStatus.ToString(),
+                EventCode = Abstraction.Timeline.ServiceRequestTimelineEventCode.Derive(h.FromStatus, h.ToStatus),
                 Description = h.Reason,
                 By = h.ActorUserId?.ToString(),
                 Status = h.ToStatus.ToString().ToLowerInvariant(),

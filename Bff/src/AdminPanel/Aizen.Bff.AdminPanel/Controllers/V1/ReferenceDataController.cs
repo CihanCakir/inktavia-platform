@@ -20,9 +20,22 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 public sealed class ReferenceDataController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
+    private readonly IReferenceDataRemoteCall _rd;
 
-    public ReferenceDataController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
-        : base(httpContextAccessor) => _cqrs = cqrs;
+    public ReferenceDataController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs, IReferenceDataRemoteCall rd)
+        : base(httpContextAccessor) { _cqrs = cqrs; _rd = rd; }
+
+    // Lookup item UPDATE — thin passthrough to the module admin PUT (carries the new DisplayNameTr).
+    // Route mirrors admin-web's URL; groupId is not needed by the module (update is keyed on item id).
+    // DELTA vs admin-web payload: module takes the FLAT UpdateLookupItemRequest
+    // ({ name, displayNameTr, description?, iconKey?, colorCode?, sortOrder, isDefault, isActive }); admin-web
+    // currently PUTs { code, sortOrder, names:{en,tr,fr}, isEnabled }. See report — admin-web must map
+    // names.en→name, names.tr→displayNameTr, isEnabled→isActive (fr unsupported: no French column).
+    [HttpPut("lookup-groups/{groupId}/items/{id:long}")]
+    [Tags("Admin Panel - Lookup")]
+    public async Task<AizenApiResponse<LookupItemDto?>> UpdateLookupItem(
+        string groupId, [FromRoute] long id, [FromBody] UpdateLookupItemRequest req)
+        => SetResponse((await _rd.UpdateLookupItem(id, req))?.Body);
 
     [HttpGet("lookup-groups")]
     [HttpGet("lookup")]

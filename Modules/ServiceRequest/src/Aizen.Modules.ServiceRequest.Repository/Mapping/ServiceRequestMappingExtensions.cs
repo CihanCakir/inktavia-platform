@@ -1,5 +1,6 @@
 using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Timeline;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Completion;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
@@ -91,6 +92,7 @@ public static class ServiceRequestMappingExtensions
         Id = entity.Id,
         FromStatus = entity.FromStatus,
         ToStatus = entity.ToStatus,
+        EventCode = ServiceRequestTimelineEventCode.Derive(entity.FromStatus, entity.ToStatus),
         Reason = entity.Reason,
         ActorUserId = entity.ActorUserId,
         ActorType = entity.ActorType,

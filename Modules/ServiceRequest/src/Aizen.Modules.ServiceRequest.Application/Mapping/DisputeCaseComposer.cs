@@ -3,6 +3,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Dto.DisputeCase;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
+using Aizen.Modules.ServiceRequest.Abstraction.Timeline;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Dispute;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Entities.WorkLog;
@@ -102,6 +103,7 @@ public static class DisputeCaseComposer
         Id          = h.Id,
         FromStatus  = h.FromStatus,
         ToStatus    = h.ToStatus,
+        EventCode   = ServiceRequestTimelineEventCode.Derive(h.FromStatus, h.ToStatus),
         Reason      = h.Reason,
         ActorUserId = h.ActorUserId,
         ActorType   = h.ActorType,

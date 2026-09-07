@@ -56,6 +56,9 @@ namespace Aizen.Modules.ReferenceData.Repository.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<long?>("MergedIntoId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -129,6 +132,9 @@ namespace Aizen.Modules.ReferenceData.Repository.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<long?>("MergedIntoId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -199,6 +205,9 @@ namespace Aizen.Modules.ReferenceData.Repository.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<long?>("MergedIntoId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -262,6 +271,9 @@ namespace Aizen.Modules.ReferenceData.Repository.Migrations
 
                     b.Property<decimal?>("LengthMeters")
                         .HasColumnType("numeric");
+
+                    b.Property<long?>("MergedIntoId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("ModifyDate")
                         .HasColumnType("timestamp with time zone");
@@ -618,6 +630,9 @@ namespace Aizen.Modules.ReferenceData.Repository.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("DisplayNameTr")
+                        .HasColumnType("text");
+
                     b.Property<string>("IconKey")
                         .HasColumnType("text");
 
@@ -697,6 +712,9 @@ namespace Aizen.Modules.ReferenceData.Repository.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsAdminEdited")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")

@@ -31,6 +31,7 @@ public sealed class GetReferenceItemsQueryHandler
                 {
                     Code = i.Code,
                     Name = i.Name,
+                    DisplayNameTr = i.DisplayNameTr,
                     Description = i.Description,
                     IconKey = i.IconKey,
                     SortOrder = i.SortOrder,

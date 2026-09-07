@@ -8,6 +8,8 @@ public sealed class LookupItemSeedModel
     public string GroupCode { get; set; } = default!;
     public string Code { get; set; } = default!;
     public string Name { get; set; } = default!;
+    /// <summary>Optional Turkish display name; upserted into LookupItemEntity.DisplayNameTr (additive).</summary>
+    public string? DisplayNameTr { get; set; }
     public string? Description { get; set; }
     public string? IconKey { get; set; }
     public string? ColorCode { get; set; }

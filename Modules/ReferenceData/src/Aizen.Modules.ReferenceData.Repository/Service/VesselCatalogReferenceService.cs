@@ -159,13 +159,13 @@ public sealed class VesselCatalogReferenceService : IVesselCatalogReferenceServi
     private static VesselBrandDto ToDto(VesselBrandEntity e) => new()
     {
         Id = e.Id, Code = e.Code, Name = e.Name, CountryCode = e.CountryCode,
-        IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source,
+        IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source, CreatedAt = e.CreateDate,
     };
 
     private static VesselModelDto ToDto(VesselModelEntity e, string? brandName) => new()
     {
         Id = e.Id, VesselBrandId = e.VesselBrandId, BrandName = brandName, Code = e.Code, Name = e.Name,
         VesselTypeCode = e.VesselTypeCode, YearFrom = e.YearFrom, YearTo = e.YearTo, LengthMeters = e.LengthMeters,
-        IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source,
+        IsActive = e.IsActive, NeedsReview = e.NeedsReview, Source = e.Source, CreatedAt = e.CreateDate,
     };
 }

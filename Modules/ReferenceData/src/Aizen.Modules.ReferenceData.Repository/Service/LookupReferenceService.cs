@@ -101,11 +101,11 @@ public sealed class LookupReferenceService : ILookupReferenceService
         return reloaded.ToDto();
     }
 
-    public async Task<LookupItemDto> UpdateItemAsync(long id, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive, CancellationToken cancellationToken = default)
+    public async Task<LookupItemDto> UpdateItemAsync(long id, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive, string? displayNameTr = null, CancellationToken cancellationToken = default)
     {
         var entity = await _itemRepo.GetItemByIdAsync(id, cancellationToken)
             ?? throw new AizenBusinessException($"Lookup item with id '{id}' not found.");
-        entity.Update(name, description, iconKey, colorCode, sortOrder, isDefault, isActive);
+        entity.Update(name, description, iconKey, colorCode, sortOrder, isDefault, isActive, displayNameTr);
         _itemRepo.Update(entity);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return entity.ToDto();

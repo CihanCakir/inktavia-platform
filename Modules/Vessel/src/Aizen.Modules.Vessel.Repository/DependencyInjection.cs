@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IVesselMediaRepository, VesselMediaRepository>();
         services.AddScoped<IVesselLocationSnapshotRepository, VesselLocationSnapshotRepository>();
         services.AddScoped<IVesselStatusHistoryRepository, VesselStatusHistoryRepository>();
+        services.AddScoped<IVesselCatalogReferenceRepository, Repositories.CatalogReference.VesselCatalogReferenceRepository>();
 
         services.AddScoped<VesselProfileReadRepository>();
         services.AddScoped<VesselMongoIndexInitializer>(sp =>

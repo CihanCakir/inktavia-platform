@@ -7,6 +7,7 @@ public sealed class UpdateLookupItemCommand : AizenCommand<LookupItemDto>
 {
     public long Id { get; }
     public string Name { get; }
+    public string? DisplayNameTr { get; }
     public string? Description { get; }
     public string? IconKey { get; }
     public string? ColorCode { get; }
@@ -14,10 +15,11 @@ public sealed class UpdateLookupItemCommand : AizenCommand<LookupItemDto>
     public bool IsDefault { get; }
     public bool IsActive { get; }
 
-    public UpdateLookupItemCommand(long id, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive)
+    public UpdateLookupItemCommand(long id, string name, string? description, string? iconKey, string? colorCode, int sortOrder, bool isDefault, bool isActive, string? displayNameTr = null)
     {
         Id = id;
         Name = name;
+        DisplayNameTr = displayNameTr;
         Description = description;
         IconKey = iconKey;
         ColorCode = colorCode;

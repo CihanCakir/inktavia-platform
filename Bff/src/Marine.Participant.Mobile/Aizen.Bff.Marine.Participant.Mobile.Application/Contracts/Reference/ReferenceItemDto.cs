@@ -5,6 +5,8 @@ public sealed class ReferenceItemDto
 {
     public string Code { get; set; } = default!;
     public string Name { get; set; } = default!;
+    /// <summary>Turkish display name (additive; null → client falls back to <see cref="Name"/>). Client picks by language.</summary>
+    public string? DisplayNameTr { get; set; }
     public string? Description { get; set; }
     public string? IconKey { get; set; }
     public int SortOrder { get; set; }

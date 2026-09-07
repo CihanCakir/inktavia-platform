@@ -59,21 +59,67 @@ public sealed class MarinaReferenceService : IMarinaReferenceService
     public async Task<MarinaDto?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         var entity = await _repo.GetByIdAsync(id, cancellationToken);
-        if (entity is null) return null;
+        return entity is null ? null : ToDto(entity);
+    }
 
-        return new MarinaDto
+    public async Task<MarinaAdminListResult> ListForAdminAsync(bool needsReviewOnly, string? search, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var safePage = page < 1 ? 1 : page;
+        var safeSize = Math.Clamp(pageSize <= 0 ? 20 : pageSize, 1, 200);
+        var (items, total) = await _repo.ListForAdminAsync(needsReviewOnly, search, (safePage - 1) * safeSize, safeSize, cancellationToken);
+        return new MarinaAdminListResult
         {
-            Id = entity.Id,
-            Code = entity.Code,
-            Name = entity.Name,
-            Type = entity.Type,
-            CountryCode = entity.CountryCode,
-            CityCode = entity.CityCode,
-            Province = entity.Province,
-            District = entity.District,
-            Latitude = entity.Latitude,
-            Longitude = entity.Longitude,
-            IsActive = entity.IsActive
+            Items = items.Select(ToDto).ToList(),
+            Total = total,
+            Page = safePage,
+            PageSize = safeSize,
         };
     }
+
+    public async Task<bool> UpdateAsync(long id, string name, string? cityCode, CancellationToken cancellationToken = default)
+    {
+        var entity = await _repo.GetByIdAsync(id, cancellationToken);
+        if (entity is null) return false;
+        entity.ApplyAdminEdit(name, cityCode);
+        _repo.Update(entity);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> MarkReviewedAsync(long id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _repo.GetByIdAsync(id, cancellationToken);
+        if (entity is null) return false;
+        entity.MarkReviewed();
+        _repo.Update(entity);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeactivateAsync(long id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _repo.GetByIdAsync(id, cancellationToken);
+        if (entity is null) return false;
+        entity.AdminDeactivate();
+        _repo.Update(entity);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private static MarinaDto ToDto(Domain.Entities.Marina.MarinaEntity entity) => new()
+    {
+        Id = entity.Id,
+        Code = entity.Code,
+        Name = entity.Name,
+        Type = entity.Type,
+        CountryCode = entity.CountryCode,
+        CityCode = entity.CityCode,
+        Province = entity.Province,
+        District = entity.District,
+        Latitude = entity.Latitude,
+        Longitude = entity.Longitude,
+        OsmId = entity.OsmId,
+        NeedsReview = entity.NeedsReview,
+        IsActive = entity.IsActive
+    };
 }
