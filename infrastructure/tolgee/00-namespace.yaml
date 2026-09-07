@@ -8,12 +8,11 @@
 # (port-forward icin actigin gecici psql/debug pod'lari dahil). LimitRange varsayilanlari
 # sagladigi icin ikisi birlikte durur.
 #
-# Kota matematigi (limits.memory): tolgee 1Gi (tavan) + ~256Mi gecici debug/psql pod'una pay
-# = 1280Mi. requests.memory 640Mi = tolgee 512Mi request + 128Mi pay. Node 2026-09-06 olcumu
-# 9,0Gi available idi; 1,25Gi'lik bu ns monitoring (1280Mi) ile birlikte rahat sigar.
-# JVM 512Mi request / 1Gi limit ile baslatiliyor (gorev sarti); Tolgee bosta ~400-600Mi
-# kullanir, agir import/MT sirasinda tavana yaklasir — gerekirse 20-tolgee.yaml + bu kota
-# birlikte artirilir.
+# Kota matematigi (limits.memory, 2026-09-07 revizyonu): tolgee 2Gi (tavan) + ~512Mi gecici
+# debug/psql pod'una pay = 2560Mi. requests.memory 1152Mi = tolgee 768Mi request + pay.
+# ILK KURULUM DERSI: 1Gi tavanla pod OOMKilled oldu (Java 25 + Flyway boot'u; Tolgee'nin kendi
+# onerisi 2GB) — "gerekirse birlikte artirilir" senaryosu ilk gun yasandi, ikisi birlikte artti.
+# Node ayni gun ~9Gi available; tavanlar toplami buyudu ama gercek kullanim (request) kucuk.
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -26,8 +25,11 @@ metadata:
   namespace: tolgee
 spec:
   hard:
-    requests.memory: 640Mi
-    limits.memory: 1280Mi
+    # 2026-09-07: 640Mi/1280Mi -> 1152Mi/2560Mi. Ilk kurulumda pod OOMKilled oldu (1Gi tavan,
+    # Java 25 + Flyway boot'u yetmedi — Tolgee'nin kendi onerisi de 2GB). Node olcumu ayni gun
+    # ~9Gi available; tavan 2,5Gi'ye cikti ama request'ler kucuk kaldi.
+    requests.memory: 1152Mi
+    limits.memory: 2560Mi
     pods: "4"
 ---
 apiVersion: v1

@@ -95,8 +95,11 @@ spec:
             #   value: "https://tolgee.inktavia.com"
           ports: [{ containerPort: 8080 }]
           resources:
-            requests: { memory: 512Mi, cpu: 250m }
-            limits: { memory: 1Gi }
+            requests: { memory: 768Mi, cpu: 250m }
+            # 2026-09-07: memory 1Gi -> 2Gi (ilk boot OOMKilled — describe kaniti: Reason OOMKilled,
+            # exit 137, tam 3. dakikada). cpu limiti ACIKCA 2: yazilmazsa LimitRange 500m dayatiyor
+            # ve JVM boot'u surunuyor (dev-cap/CFS throttle dersinin ayni sinifi).
+            limits: { memory: 2Gi, cpu: "2" }
           # Spring Boot + ilk boot'ta Flyway migrasyonlari yavas; startupProbe cömert (60x5s = 5dk).
           startupProbe:
             httpGet: { path: /actuator/health, port: 8080 }
