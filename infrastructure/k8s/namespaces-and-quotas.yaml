@@ -52,8 +52,11 @@ spec:
     # AÇIK ORTAM. 15 servisin tavan toplamı ~4,2Gi; rolling update
     # sırasında her deployment geçici olarak İKİ pod çalıştırır.
     # Bu değerler ortam-degistir.py tarafından yönetiliyor.
+    # cpu 10 -> 14 (2026-09-07): LT-5 CPU tavan gevşetmesi kullanımı 9,5'e çıkardı — 10'da
+    # k6 Job'ı kotaya takıldı ve rollout surge'u kilitlenir olmuştu (node 12 çekirdek; bunlar
+    # tavan, request degil — overcommit güvenli).
     limits.memory: 8Gi
-    limits.cpu: "10"
+    limits.cpu: "14"
     pods: "32"
 ---
 apiVersion: v1
