@@ -1,0 +1,55 @@
+# Tolgee ceviri platformu — infrastructure/tolgee yiginini (ns + kota + PVC/Deployment/Service)
+# sync eden Argo CD Application. ApplicationSet DEGIL: appset 15 monorepo-Helm bileseni (tek
+# sha- tag) icin ayrilmis; Tolgee ucuncu-parti raw-YAML, monitoring/cloudflared desenini izler.
+#
+# ⚠️ BU DOSYA KENDILIGINDEN UYGULANMAZ (app-of-apps yok — bilinen bosluk). Merge SONRASI sunucuda:
+#    curl -fsSL "https://raw.githubusercontent.com/CihanCakir/inktavia-platform/develop/gitops/apps/tolgee-app.yaml?cb=$(date +%s)" \
+#      | tee /tmp/tolgee-app.yaml | grep -E 'path|targetRevision' && kubectl apply -f /tmp/tolgee-app.yaml
+#    (?cb= son eki sart: raw.githubusercontent CDN'i taze merge'i dakikalarca eski gosterebiliyor.)
+#
+# ⚠️ ONCE veritabani + sir hazir olmali (yoksa pod CrashLoop'a girer). Sunucuda, DB komutlari
+#    Postgres host'unda, secret komutu basinda BOSLUKLA (public repo — degerler repoya/sohbete girmez):
+#    # 1) Ozel DB + en-az-yetkili rol (Postgres host konteyneri; aizen = superuser):
+#     docker exec -i postgres psql -U aizen -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+#       CREATE ROLE tolgee LOGIN PASSWORD '<TOLGEE_DB_PASSWORD>';
+#       CREATE DATABASE tolgee OWNER tolgee;
+#       REVOKE ALL ON DATABASE tolgee FROM PUBLIC;
+#     SQL
+#     docker exec -i postgres psql -U aizen -d tolgee -v ON_ERROR_STOP=1 -c 'ALTER SCHEMA public OWNER TO tolgee;'
+#    # 2) Namespace (sync'ten once — CreateNamespace=false):
+#    kubectl apply -f infrastructure/tolgee/00-namespace.yaml
+#    # 3) Sir (basinda BOSLUKLA):
+#     kubectl -n tolgee create secret generic tolgee-credentials \
+#       --from-literal=SPRING_DATASOURCE_URL='jdbc:postgresql://postgres.inktavia-dev.svc.cluster.local:5432/tolgee' \
+#       --from-literal=SPRING_DATASOURCE_USERNAME='tolgee' \
+#       --from-literal=SPRING_DATASOURCE_PASSWORD='<TOLGEE_DB_PASSWORD>' \
+#       --from-literal=TOLGEE_AUTHENTICATION_INITIAL_PASSWORD='<ILK_ADMIN_SIFRESI>' \
+#       --from-literal=TOLGEE_AUTHENTICATION_JWT_SECRET='<EN_AZ_32_KARAKTER_RASTGELE>' \
+#       --from-literal=TOLGEE_MACHINE_TRANSLATION_DEEPL_AUTH_KEY='<DEEPL_API_ANAHTARI>'
+#
+# Erisim (Faz A'da ingress/tunnel yok):
+#    kubectl -n tolgee port-forward svc/tolgee 8085:8080   →  http://localhost:8085
+# Tam runbook (DB/rol, sir, apply, port-forward, ilk giris, MT anahtari, proje/import/export):
+#    docs/V1.0.1/Infra/TOLGEE_SELF_HOSTING_RUNBOOK.md
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tolgee
+  namespace: platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: infrastructure/tolgee
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tolgee
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

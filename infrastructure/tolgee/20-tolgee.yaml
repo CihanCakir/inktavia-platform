@@ -1,0 +1,149 @@
+# Tolgee self-hosted (2026-09-07) — PVC + Deployment + Service.
+# Uc frontend'in (mobile RN, provider-web, admin-web) ceviri platformu; makine cevirisi acik.
+#
+# Image: tolgee/tolgee:v3.220.0 — Docker Hub'da `latest` ile ayni olan son kararli surum
+# (2026-09 itibariyla). Tag BILEREK sabitlendi: `latest` sessizce major atlatabilir. v3 hala
+# gomulu Postgres tasir ama biz onu KAPATIYORUZ (TOLGEE_POSTGRES_AUTOSTART_ENABLED=false) ve
+# HOST Postgres'e baglaniyoruz — v4'te gomulu Postgres zaten kaldirildi, yukseltme kolay olur.
+#
+# ⚠️ VERITABANI HOST'ta: adres ICAT ETMEZ — postgres_exporter ile ayni cluster DNS adini
+# kullanir: postgres.inktavia-dev.svc.cluster.local:5432 (selector'siz Service -> EndpointSlice
+# -> host IP 192.168.1.50). Namespace'ler arasi DNS'tir; `tolgee` ns'inden inktavia-dev'deki
+# Service'e erisim serbesttir (bu ns'te default-deny NetworkPolicy yok — monitoring ns'i de
+# aynen boyle host'a cikiyor). Ayri `tolgee` DB + en-az-yetkili `tolgee` rolu runbook'ta.
+#
+# ⚠️ SIRLAR OUT-OF-BAND (public repo — deger asla buraya girmez). Sunucuda, basinda BOSLUKLA:
+#     kubectl -n tolgee create secret generic tolgee-credentials \
+#       --from-literal=SPRING_DATASOURCE_URL='jdbc:postgresql://postgres.inktavia-dev.svc.cluster.local:5432/tolgee' \
+#       --from-literal=SPRING_DATASOURCE_USERNAME='tolgee' \
+#       --from-literal=SPRING_DATASOURCE_PASSWORD='<TOLGEE_DB_PASSWORD>' \
+#       --from-literal=TOLGEE_AUTHENTICATION_INITIAL_PASSWORD='<ILK_ADMIN_SIFRESI>' \
+#       --from-literal=TOLGEE_AUTHENTICATION_JWT_SECRET='<EN_AZ_32_KARAKTER_RASTGELE>' \
+#       --from-literal=TOLGEE_MACHINE_TRANSLATION_DEEPL_AUTH_KEY='<DEEPL_API_ANAHTARI>'
+#   (Adim adim uretim + Azure alternatifi: docs/V1.0.1/Infra/TOLGEE_SELF_HOSTING_RUNBOOK.md)
+#
+# Erisim (Faz A'da ingress/tunnel YOK — Grafana ile ayni desen):
+#     kubectl -n tolgee port-forward svc/tolgee 8085:8080   ->  http://localhost:8085
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tolgee-data
+  namespace: tolgee
+spec:
+  accessModes: [ReadWriteOnce]
+  # k3s varsayilan provisioner'i (Rancher local-path). Tek node oldugu icin ReadWriteOnce +
+  # node-lokal disk yeterli; yuklenen asset/gorseller icin ~2Gi bol bol yeter.
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tolgee
+  namespace: tolgee
+spec:
+  replicas: 1
+  # Recreate SART: PVC ReadWriteOnce (tek node lokal disk) — RollingUpdate'in eski+yeni pod'u
+  # ayni volume'u ayni anda mount edemez, yeni pod Pending'de kilitlenir. Ayrica siki kotada
+  # surge pod'u kotayi asar (Grafana'da 2026-09-06'da yasandi).
+  strategy: { type: Recreate }
+  selector: { matchLabels: { app: tolgee } }
+  template:
+    metadata: { labels: { app: tolgee } }
+    spec:
+      # Yuklenen dosyalar UID 1000 (Tolgee container kullanicisi) altinda yazilir; local-path
+      # volume'unu bu gruba devret ki ilk boot'ta yazabilsin.
+      securityContext: { fsGroup: 1000 }
+      containers:
+        - name: tolgee
+          image: tolgee/tolgee:v3.220.0
+          env:
+            # --- Veritabani: HOST Postgres (gomulu Postgres KAPALI) ---
+            - name: TOLGEE_POSTGRES_AUTOSTART_ENABLED
+              value: "false"
+            - name: SPRING_DATASOURCE_URL
+              valueFrom: { secretKeyRef: { name: tolgee-credentials, key: SPRING_DATASOURCE_URL } }
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom: { secretKeyRef: { name: tolgee-credentials, key: SPRING_DATASOURCE_USERNAME } }
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom: { secretKeyRef: { name: tolgee-credentials, key: SPRING_DATASOURCE_PASSWORD } }
+            # --- Ilk admin + kayit kapali ---
+            - name: TOLGEE_AUTHENTICATION_INITIAL_USERNAME
+              value: "admin"
+            - name: TOLGEE_AUTHENTICATION_INITIAL_PASSWORD
+              valueFrom: { secretKeyRef: { name: tolgee-credentials, key: TOLGEE_AUTHENTICATION_INITIAL_PASSWORD } }
+            # Halka acik kayit KAPALI — sadece davetli kullanicilar (varsayilan false; acikca yaziyoruz).
+            - name: TOLGEE_AUTHENTICATION_REGISTRATIONS_ALLOWED
+              value: "false"
+            # JWT imza sirri sabit tutulur: verilmezse her restart'ta uretilir ve tum oturumlar duser.
+            - name: TOLGEE_AUTHENTICATION_JWT_SECRET
+              valueFrom: { secretKeyRef: { name: tolgee-credentials, key: TOLGEE_AUTHENTICATION_JWT_SECRET } }
+            # --- Yuklenen asset'ler icin dosya depolama (PVC) ---
+            - name: TOLGEE_FILE_STORAGE_FS_DATA_PATH
+              value: "/data"
+            # --- Makine cevirisi: birincil saglayici DeepL (Azure alternatifi runbook'ta) ---
+            - name: TOLGEE_MACHINE_TRANSLATION_DEEPL_AUTH_KEY
+              valueFrom: { secretKeyRef: { name: tolgee-credentials, key: TOLGEE_MACHINE_TRANSLATION_DEEPL_AUTH_KEY } }
+            # --- JVM'i konteyner limitine gore boyutlandir (1Gi limit) ---
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=75.0"
+            # TOLGEE_FRONT_END_URL: ingress acildiginda https://tolgee.inktavia.com verilmeli
+            # (link/CORS icin onerilir). Port-forward Faz A'da bilerek bos — Tolgee kendi tespit eder.
+            # - name: TOLGEE_FRONT_END_URL
+            #   value: "https://tolgee.inktavia.com"
+          ports: [{ containerPort: 8080 }]
+          resources:
+            requests: { memory: 512Mi, cpu: 250m }
+            limits: { memory: 1Gi }
+          # Spring Boot + ilk boot'ta Flyway migrasyonlari yavas; startupProbe cömert (60x5s = 5dk).
+          startupProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            failureThreshold: 60
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            periodSeconds: 10
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: tolgee-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tolgee
+  namespace: tolgee
+spec:
+  selector: { app: tolgee }
+  ports: [{ port: 8080, targetPort: 8080 }]
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# INGRESS — Faz A'da KAPALI (port-forward ile erisiliyor). Auth arkasinda disari acmaya hazir
+# olununca asagidaki blogun yorumunu kaldir, DNS'i (tolgee.inktavia.com) Cloudflare Tunnel
+# panelinden ingress-nginx-controller.ingress-nginx.svc.cluster.local:80'e yonlendir.
+# TLS Cloudflare edge/Tunnel'da sonlanir — origin sertifikasi/cert-manager YOK (tls: []).
+# ⚠️ Disari acmadan ONCE Tunnel'da Cloudflare Access (SSO) kurulmali: Tolgee'de kayit kapali
+#    ama giris sayfasi acikta kalmasin.
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: tolgee
+#   namespace: tolgee
+#   annotations:
+#     nginx.ingress.kubernetes.io/proxy-body-size: "16m"   # ceviri dosya import'lari icin
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - host: tolgee.inktavia.com
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend: { service: { name: tolgee, port: { number: 8080 } } }
+#   tls: []
