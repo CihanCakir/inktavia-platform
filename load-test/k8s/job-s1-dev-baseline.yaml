@@ -1,0 +1,54 @@
+# LT-5b — s1 DOYGUNLUK ALTI dev kalibrasyon kosumu: 5 VU sabit x 5 dk, yalniz hata kapisi.
+# NEDEN: ilk kosu (5→25 VU, 2026-09-07) dev'in 25 VU'da doydugunu gosterdi (p95 17-32 sn) —
+# dev esikleri bu kosunun p95'lerinden kalibre edilecek. Kosumdan once k6-scripts configmap'i
+# guncellenmis olmali (s1'e dev-baseline profili PR ile geldi; configmap komutu s0 basliginda).
+#   kubectl apply -f load-test/k8s/job-s1-dev-baseline.yaml
+#   kubectl -n inktavia-dev logs -f job/k6-s1-dev-baseline
+#   kubectl -n inktavia-dev delete job k6-s1-dev-baseline   # tekrar kosmadan once
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-s1-dev-baseline
+  namespace: inktavia-dev
+  labels: { app: k6-loadtest, scenario: s1-dev-baseline }
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: { app: k6-loadtest, scenario: s1-dev-baseline }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.52.0
+          args: ["run", "-o", "experimental-prometheus-rw", "/scripts/s1-token-read.js"]
+          env:
+            - name: PROFILE
+              value: dev-baseline
+            - name: BASE_ADMIN
+              value: http://aizen-bff-adminpanel.inktavia-dev.svc.cluster.local
+            - name: BASE_PROVIDER
+              value: http://aizen-bff-marineprovider.inktavia-dev.svc.cluster.local
+            - name: KEYCLOAK_BASE
+              value: http://keycloak.inktavia-dev.svc.cluster.local:8080
+            - name: KC_REALM
+              value: inktavia-realm
+            - name: LOADTEST_USER_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: loadtest-credentials, key: LOADTEST_USER_PASSWORD }
+            - name: K6_PROMETHEUS_RW_SERVER_URL
+              value: http://prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+            - name: K6_PROMETHEUS_RW_TREND_STATS
+              value: "p(95),p(99)"
+          resources:
+            requests: { cpu: 200m, memory: 128Mi }
+            limits:   { cpu: "1",  memory: 256Mi }
+          volumeMounts:
+            - { name: scripts, mountPath: /scripts, readOnly: true }
+            - { name: lib, mountPath: /scripts/lib, readOnly: true }
+      volumes:
+        - name: scripts
+          configMap: { name: k6-scripts }
+        - name: lib
+          configMap: { name: k6-lib }
