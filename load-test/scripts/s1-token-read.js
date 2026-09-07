@@ -13,7 +13,23 @@ const PROFILE = __ENV.PROFILE || 'smoke';
 // bu profil 5 VU sabit + yalniz hata kapisi kosar; cikan p95'ler dev esiklerinin taban verisi olur.
 export const options = PROFILE === 'dev-baseline' ? {
   vus: 5, duration: '5m',
-  thresholds: { http_req_failed: ['rate<0.01'] },
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    // DEV kapilari = 2026-09-07 ilk dev-baseline kosusu p95 x 1,5 (5 VU, limit gevsetmesi sonrasi;
+    // 1346 istek, %0 hata). NOT: p95'ler Prometheus flush-araligi serisinden alindi — seyrek orneklemde
+    // yukari yanlidir; esikli ILK kosunun ozeti kesin degerleri basinca gerekirse SIKILASTIR.
+    // overview yine acik ara en yavas (dev'de 6,2s) — #107 cache fix'i sonrasi bu kapi da inecek.
+    'http_req_duration{name:kc-token}':           ['p(95)<300'],
+    'http_req_duration{name:cargodry-analytics}': ['p(95)<3300'],
+    'http_req_duration{name:cargodry-kits}':      ['p(95)<2600'],
+    'http_req_duration{name:cargodry-stats}':     ['p(95)<2300'],
+    'http_req_duration{name:dashboard-charts}':   ['p(95)<6600'],
+    'http_req_duration{name:dashboard-overview}': ['p(95)<9500'],
+    'http_req_duration{name:providers-list}':     ['p(95)<2200'],
+    'http_req_duration{name:users-kpi}':          ['p(95)<4400'],
+    'http_req_duration{name:users-list}':         ['p(95)<3200'],
+    'http_req_duration{name:vessels-list}':       ['p(95)<2500'],
+  },
 } : PROFILE === 'baseline' ? {
   stages: [
     { duration: '1m', target: 5 },

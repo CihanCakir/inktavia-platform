@@ -33,3 +33,26 @@ Koşum: `README.md → Baseline prosedürü`. Tarih damgalı özetler: `results/
 | tarih | senaryo | profil | VU | ortam | results dosyası | not |
 |---|---|---|---|---|---|---|
 | _TODO_ | s5 | dev-baseline | 5 | dev | `results/…` | ilk kalibrasyon |
+
+## s1 (admin BFF) — dev-baseline kalibrasyonu TAMAM (2026-09-07)
+
+5 VU × 5 dk, 1346 istek, %0 hata; genel p95 2,21 sn / med 841 ms. Uç bazlı p95'ler Prometheus
+flush-serisinden (seyrek orneklemde yukari yanli — esikli ilk kosu kesinlestirir). Esikler s1'in
+dev-baseline profiline yazildi (x1,5):
+
+| endpoint tag | p95 (ms) | eşik p95< |
+|---|---:|---:|
+| dashboard-overview | 6254 | 9500 |
+| dashboard-charts | 4401 | 6600 |
+| users-kpi | 2938 | 4400 |
+| cargodry-analytics | 2188 | 3300 |
+| users-list | 2133 | 3200 |
+| cargodry-kits | 1727 | 2600 |
+| vessels-list | 1658 | 2500 |
+| cargodry-stats | 1531 | 2300 |
+| providers-list | 1445 | 2200 |
+| kc-token | 148 | 300 |
+
+Bağlam: aynı gün 25 VU'luk ilk koşu doygunluk göstermişti (p95 17-32 sn) → CPU limit gevşetmesi
+(PR ile) + dev-cap 10→14 sonrası bu tablo alındı. İzleme notu: identity 750m'de bile ~%77 CFS
+throttle yedi (p95'e yansımadı; 25 VU tekrarında ilk şüpheli).
