@@ -1,0 +1,55 @@
+# LT-5 — s9 sefer throttle probu (PROVIDER-kapsamlı, tek akış). ACCEPTED-ASSIGNMENT fixture ŞART:
+# PROVIDER_USER (onboarded Approved+Active provider) + TRIP_SR_ID (o provider'a atanmış SR). Ikisi de yoksa
+# senaryo TEMİZ atlanır (script başlığındaki seed adımlarını bir kez elle yap, sonra bu Job'u kos).
+#   # once fixture degerlerini gir (asagidaki env'ler), sonra:
+#   kubectl apply -f load-test/k8s/job-s9-trip.yaml
+#   kubectl -n inktavia-dev logs -f job/k6-s9-trip
+#   kubectl -n inktavia-dev delete job k6-s9-trip
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-s9-trip
+  namespace: inktavia-dev
+  labels: { app: k6-loadtest, scenario: s9-trip-ping }
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: { app: k6-loadtest, scenario: s9-trip-ping }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.52.0
+          args: ["run", "-o", "experimental-prometheus-rw", "/scripts/s9-trip-ping.js"]
+          env:
+            - name: BASE_PROVIDER
+              value: http://aizen-bff-marineprovider.inktavia-dev.svc.cluster.local
+            # --- FIXTURE (elle doldur; yoksa senaryo atlanir) ---
+            - name: PROVIDER_USER
+              value: ""          # ör. loadtest-provider-01@example.test (onboarded Approved+Active)
+            - name: TRIP_SR_ID
+              value: ""          # ör. 12345 (o provider'a accepted-assignment SR)
+            - name: KEYCLOAK_BASE
+              value: http://keycloak.inktavia-dev.svc.cluster.local:8080
+            - name: KC_REALM
+              value: inktavia-realm
+            - name: LOADTEST_USER_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: loadtest-credentials, key: LOADTEST_USER_PASSWORD }
+            - name: K6_PROMETHEUS_RW_SERVER_URL
+              value: http://prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+            - name: K6_PROMETHEUS_RW_TREND_STATS
+              value: "p(95),p(99)"
+          resources:
+            requests: { cpu: 200m, memory: 128Mi }
+            limits:   { cpu: "1",  memory: 256Mi }
+          volumeMounts:
+            - { name: scripts, mountPath: /scripts, readOnly: true }
+            - { name: lib, mountPath: /scripts/lib, readOnly: true }
+      volumes:
+        - name: scripts
+          configMap: { name: k6-scripts }
+        - name: lib
+          configMap: { name: k6-lib }

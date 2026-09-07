@@ -8,11 +8,15 @@ import { TOKEN_URL } from './config.js';
 const CLIENT_ID = __ENV.LOADTEST_CLIENT_ID || 'loadtest-runner';
 const PASSWORD = __ENV.LOADTEST_USER_PASSWORD; // .env'den compose aktarır; commit edilmez.
 
-let cached = null; // { token, expiresAt } — VU başına ayrı JS sandbox'ı olduğundan VU-yerel cache.
+// VU-yerel cache (VU başına ayrı JS sandbox'ı). Kullanıcı-ADINA anahtarlı: bir senaryo aynı VU'da
+// birden çok kimlikle konuşabilir (ör. s8/s9 katılımcı + provider) ve tek slot birbirini ezmesin.
+const cache = {}; // { [username]: { token, expiresAt } }
 
-export function getToken(username) {
+// force=true → önbelleği atla ve tazele (401 sonrası yeniden alım için).
+export function getToken(username, force) {
   const now = Date.now();
-  if (cached && cached.expiresAt - 15000 > now) return cached.token;
+  const hit = cache[username];
+  if (!force && hit && hit.expiresAt - 15000 > now) return hit.token;
   const res = http.post(TOKEN_URL, {
     grant_type: 'password',
     client_id: CLIENT_ID,
@@ -20,10 +24,23 @@ export function getToken(username) {
     password: PASSWORD,
   }, { tags: { name: 'kc-token' } });
   check(res, { 'token 200': (r) => r.status === 200 });
-  if (res.status !== 200) return null;
+  if (res.status !== 200) { delete cache[username]; return null; }
   const body = res.json();
-  cached = { token: body.access_token, expiresAt: now + body.expires_in * 1000 };
-  return cached.token;
+  cache[username] = { token: body.access_token, expiresAt: now + body.expires_in * 1000 };
+  return cache[username].token;
+}
+
+// Token'lı istek + 401'de BİR kez tazeleyip tekrar dene. reqFn: (token) => http.<verb>(...).
+// Token süresi koşu ortasında dolarsa (uzun ramp/baseline) tek 401'i şeffaf yutar; ikinci 401 gerçek hatadır.
+export function authed(reqFn, username) {
+  let token = getToken(username);
+  if (!token) return null;
+  let res = reqFn(token);
+  if (res && res.status === 401) {
+    token = getToken(username, true);
+    if (token) res = reqFn(token);
+  }
+  return res;
 }
 
 // VU numarasından deterministik test kullanıcısı: loadtest-user-01 .. loadtest-user-25
