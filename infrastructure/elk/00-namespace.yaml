@@ -1,0 +1,28 @@
+# ELK toplama katmani — yalniz Filebeat bu ns'te kosar (ES+Kibana host stack'te).
+# Kota+LimitRange birlikte (tolgee dersi: kotali ns'te limitsiz pod reddedilir).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: elk
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: elk-quota
+  namespace: elk
+spec:
+  hard:
+    requests.memory: 256Mi
+    limits.memory: 512Mi
+    pods: "3"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: defaults
+  namespace: elk
+spec:
+  limits:
+    - type: Container
+      default: { cpu: 500m, memory: 256Mi }
+      defaultRequest: { cpu: 50m, memory: 128Mi }
