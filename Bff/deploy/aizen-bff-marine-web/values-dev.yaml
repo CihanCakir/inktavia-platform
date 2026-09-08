@@ -141,6 +141,12 @@ env:
     value: "yyyy-MM-ddTHH:mm:ss.fffZ"
   - name: Logging__Console__FormatterOptions__UseUtcTimestamp
     value: "true"
+  # ── SQL log seli kapali (ELK olcumu 2026-09-08: Information'larin ~%78'i EF
+  # "Executed DbCommand" / EventId 20101 idi; yuk testinde katlanarak buyur ve
+  # olculen gecikmeye log uretim maliyeti karisir). Diger Information loglari
+  # (is olaylari, Hangfire, bus) ACIK kalir. Geri almak = bu iki satiri sil.
+  - name: Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command
+    value: "Warning"
   - name: ElasticApm__Enabled
     value: "false"
   - name: ElasticApm__ServerUrl
