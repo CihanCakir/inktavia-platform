@@ -127,6 +127,20 @@ env:
   # appsettings'te ServerUrl "__FROM_ENV__" yer tutucusuyla duruyor; ajan bunu URL
   # sanıp ayrıştırmada patlıyor ve saniyede bir 127.0.0.1:8200'e bağlanmaya çalışıyor.
   # Gözlemlenebilirlik yığını Faz 11'in işi; o zamana kadar kapalı.
+  # ── Log bicimi (ELK Faz L yayginlastirma, 2026-09-08) ───────────────────
+  # JSON console formatter: stdout satirlari yapilandirilmis JSON olur; Filebeat
+  # decode_json_fields ile alanlara ayirir. Kod degisikligi YOK — yalniz bicim.
+  # Seviyeler AYNEN korunur (Debug/Trace ACILMADI).
+  - name: Logging__Console__FormatterName
+    value: "json"
+  - name: Logging__Console__FormatterOptions__SingleLine
+    value: "true"
+  - name: Logging__Console__FormatterOptions__IncludeScopes
+    value: "true"
+  - name: Logging__Console__FormatterOptions__TimestampFormat
+    value: "yyyy-MM-ddTHH:mm:ss.fffZ"
+  - name: Logging__Console__FormatterOptions__UseUtcTimestamp
+    value: "true"
   - name: ElasticApm__Enabled
     value: "false"
   - name: ElasticApm__ServerUrl
