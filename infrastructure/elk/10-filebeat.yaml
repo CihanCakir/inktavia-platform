@@ -1,0 +1,139 @@
+# Filebeat DaemonSet — TEK birincil log yolu: stdout(JSON) -> Filebeat -> ES data stream'leri.
+# NEDEN Logstash YOK: ayristirma ihtiyaci decode_json_fields + ECS yeniden adlandirmayla
+# karsilaniyor; ayri bir Logstash katmani bu tek-node butcede bellek maliyeti olur ve mevcut
+# tasarimda gerekcesi yok (yonlendirme Filebeat'te cozuluyor).
+# Veri akisi adi: logs-<servis>-dev  (ES'in yerlesik logs-*-* data stream sablonu + logs ILM politikasi).
+# Servis kimligi: kubernetes.labels.app -> data_stream.dataset (yoksa container adi).
+# SIR: elk-credentials secret'i out-of-band (FILEBEAT_ES_PASSWORD) — repo'da yalniz referans.
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: filebeat, namespace: elk }
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: { name: filebeat }
+rules:
+  - apiGroups: [""]
+    resources: [pods, namespaces, nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["apps"]
+    resources: [replicasets, deployments]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: { name: filebeat }
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: filebeat }
+subjects: [{ kind: ServiceAccount, name: filebeat, namespace: elk }]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: elk
+data:
+  filebeat.yml: |
+    filebeat.inputs:
+      - type: container
+        paths: ["/var/log/containers/*.log"]
+        processors:
+          - add_kubernetes_metadata:
+              host: ${NODE_NAME}
+              matchers:
+                - logs_path: { logs_path: "/var/log/containers/" }
+    processors:
+      # KAPSAM: yalniz is yukleri (inktavia-dev). Altyapi ns'leri bilinclice disarida —
+      # sinirli disk butcesi is loglarina ayrildi; genisletme operasyon kilavuzunda.
+      - drop_event:
+          when:
+            not:
+              equals: { kubernetes.namespace: "inktavia-dev" }
+      # .NET JSON console satirini coz (Logging__Console__FormatterName=json olan pod'lar).
+      - decode_json_fields:
+          fields: ["message"]
+          target: "dotnet"
+          overwrite_keys: false
+          add_error_key: false
+      # ECS-uyumlu temel alanlar
+      - rename:
+          ignore_missing: true
+          fail_on_error: false
+          fields:
+            - { from: "dotnet.LogLevel", to: "log.level" }
+            - { from: "dotnet.Category", to: "log.logger" }
+      - copy_fields:
+          ignore_missing: true
+          fail_on_error: false
+          fields:
+            - { from: "kubernetes.labels.app", to: "service.name" }
+      - copy_fields:
+          when: { not: { has_fields: ["service.name"] } }
+          ignore_missing: true
+          fail_on_error: false
+          fields:
+            - { from: "kubernetes.container.name", to: "service.name" }
+      - copy_fields:
+          ignore_missing: true
+          fail_on_error: false
+          fields:
+            - { from: "service.name", to: "data_stream.dataset" }
+      - add_fields:
+          target: data_stream
+          fields: { namespace: "dev", type: "logs" }
+      # GIZLILIK: bilinen hassas alanlar dusurulur (yetki basliklari zaten loglanmiyor;
+      # savunma derinligi icin yine de filtre).
+      - drop_fields:
+          ignore_missing: true
+          fields: ["dotnet.State.Authorization", "dotnet.Scopes"]
+    output.elasticsearch:
+      hosts: ["http://192.168.1.50:9200"]   # host ES — yalniz LAN
+      username: "filebeat_ingest"            # en-az-yetkili kullanici (kurulum adiminda olusur)
+      password: "${FILEBEAT_ES_PASSWORD}"
+      index: "logs-%{[data_stream.dataset]}-%{[data_stream.namespace]}"
+    setup.template.enabled: false   # ES'in yerlesik logs-*-* data stream sablonu kullanilir
+    setup.ilm.enabled: false        # ILM, ES tarafindaki logs politikasiyla (7 gun) yonetilir
+    logging.level: info
+    logging.metrics.enabled: false
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: filebeat
+  namespace: elk
+  labels: { app: filebeat }
+spec:
+  selector: { matchLabels: { app: filebeat } }
+  template:
+    metadata:
+      labels: { app: filebeat }
+    spec:
+      serviceAccountName: filebeat
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: filebeat
+          image: docker.elastic.co/beats/filebeat:8.15.3
+          args: ["-c", "/etc/filebeat.yml", "-e"]
+          env:
+            - name: NODE_NAME
+              valueFrom: { fieldRef: { fieldPath: spec.nodeName } }
+            - name: FILEBEAT_ES_PASSWORD
+              valueFrom: { secretKeyRef: { name: elk-credentials, key: FILEBEAT_ES_PASSWORD } }
+          securityContext:
+            runAsUser: 0   # /var/log/containers okumasi icin
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+          volumeMounts:
+            - { name: config, mountPath: /etc/filebeat.yml, subPath: filebeat.yml, readOnly: true }
+            - { name: varlogcontainers, mountPath: /var/log/containers, readOnly: true }
+            - { name: varlogpods, mountPath: /var/log/pods, readOnly: true }
+            - { name: data, mountPath: /usr/share/filebeat/data }
+      volumes:
+        - name: config
+          configMap: { name: filebeat-config }
+        - name: varlogcontainers
+          hostPath: { path: /var/log/containers }
+        - name: varlogpods
+          hostPath: { path: /var/log/pods }
+        - name: data
+          hostPath: { path: /srv/data/filebeat-registry, type: DirectoryOrCreate }

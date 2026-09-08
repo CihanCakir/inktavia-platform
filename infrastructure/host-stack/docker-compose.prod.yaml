@@ -123,6 +123,56 @@ services:
   # ─────────────────────────────────────────────────────────────────────
   # RabbitMQ — modüller arası event bus
   # ─────────────────────────────────────────────────────────────────────
+  # ── ELK log yığını (2026-09-08, Faz L) ──────────────────────────────────────────
+  # NEDEN host'ta: durum tutan her sey host'ta konvansiyonu (postgres/mongo/redis ile ayni).
+  # Portlar YALNIZ ${BIND_IP} — internete kapali; Kibana'ya dis erisim Cloudflare Tunnel+Access ile.
+  # ON KOSUL (bir kez): sudo sysctl -w vm.max_map_count=262144  (+ /etc/sysctl.d/99-elasticsearch.conf)
+  # Sirlar .env'den: ELASTIC_PASSWORD, KIBANA_SYSTEM_PASSWORD (out-of-band, read -s ile).
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: elasticsearch
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 2g
+    environment:
+      - discovery.type=single-node        # TEK NODE: HA yok — dev icin bilincli sinir
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - cluster.name=inktavia-elk
+    ports:
+      - "${BIND_IP}:9200:9200"   # yalniz LAN — cluster'daki Filebeat + Kibana buradan yazar/okur
+    volumes:
+      - /srv/data/elasticsearch:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks: [aizen]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    container_name: kibana
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 1g
+    depends_on: [elasticsearch]
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - SERVER_PUBLICBASEURL=https://dev-elk.inktavia.com
+      - TELEMETRY_ENABLED=false
+    ports:
+      - "${BIND_IP}:5601:5601"   # yalniz LAN — dis erisim Tunnel+Access uzerinden
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:5601/api/status | grep -q available || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    networks: [aizen]
+
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq

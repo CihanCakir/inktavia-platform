@@ -1,0 +1,26 @@
+# ELK toplama katmani (Filebeat) — monitoring/tolgee kalibinin aynisi.
+# ⚠️ MANUEL APPLY GEREKIR (app-of-apps yok):
+#   curl -s "https://raw.githubusercontent.com/CihanCakir/inktavia-platform/develop/gitops/apps/elk-app.yaml?cb=$(date +%s)" | kubectl apply -f -
+# ON KOSULLAR (sunucuda, sirayla — ayrintili adimlar docs/V1.0.1/Infra/ELK_KURULUM_RUNBOOK.md):
+#   1) sysctl vm.max_map_count=262144
+#   2) host compose'a ES+Kibana (bu PR) + .env'e ELASTIC_PASSWORD / KIBANA_SYSTEM_PASSWORD (read -s)
+#   3) kibana_system sifresi + filebeat_ingest kullanicisi (ES API, runbook'ta)
+#   4) elk ns secret'i: kubectl -n elk create secret generic elk-credentials --from-literal=FILEBEAT_ES_PASSWORD=...
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: elk
+  namespace: platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: infrastructure/elk
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: elk
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
