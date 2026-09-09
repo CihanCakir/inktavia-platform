@@ -91,7 +91,7 @@ resources:
     cpu: 25m
     memory: 120Mi
   limits:
-    cpu: 750m
+    cpu: 2000m  # LT-6 2026-09-09: %79 CFS throttle (12 cekirdekli node %80 bosken) — auth sicak yolu
     memory: 300Mi
 
 autoscaling:
