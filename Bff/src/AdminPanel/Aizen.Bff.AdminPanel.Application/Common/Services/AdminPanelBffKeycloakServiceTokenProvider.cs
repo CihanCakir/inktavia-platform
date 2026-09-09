@@ -35,12 +35,12 @@ internal sealed class AdminPanelBffKeycloakServiceTokenProvider : IAdminPanelBff
     {
         var cacheKey = $"{_options.CacheKeyPrefix}:{_environmentName}:{_options.ClientId}:default";
 
-        if (await _cache.ExistNoHash(cacheKey))
-        {
-            var cached = await _cache.GetNoHash<CachedKeycloakServiceToken>(cacheKey);
-            if (cached is not null && cached.RefreshAfterUtc > DateTimeOffset.UtcNow)
-                return cached.AccessToken;
-        }
+        // Single async Redis round trip: GetNoHash returns null on a miss, so a separate
+        // ExistNoHash probe is unnecessary (and the old path also blocked a thread-pool
+        // worker via a synchronous KeyExists inside GetNoHash — the root cause of #112).
+        var cached = await _cache.GetNoHash<CachedKeycloakServiceToken>(cacheKey, cancellationToken);
+        if (cached is not null && cached.RefreshAfterUtc > DateTimeOffset.UtcNow)
+            return cached.AccessToken;
 
         var tokenResponse = await FetchTokenFromKeycloakAsync(cancellationToken);
 
@@ -56,7 +56,7 @@ internal sealed class AdminPanelBffKeycloakServiceTokenProvider : IAdminPanelBff
             RefreshAfterUtc = now.AddSeconds(ttlSeconds)
         };
 
-        await _cache.SetNoHash(cacheKey, entry, ttl);
+        await _cache.SetNoHash(cacheKey, entry, ttl, cancellationToken);
 
         _logger.LogDebug("Keycloak service token cached for client {ClientId}, TTL {Ttl}s", _options.ClientId, ttlSeconds);
 
