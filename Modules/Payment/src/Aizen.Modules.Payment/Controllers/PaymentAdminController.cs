@@ -248,11 +248,47 @@ public sealed class PaymentAdminController : ControllerBase
         long providerProfileId, [FromBody] RejectProviderSubMerchantRequest request, CancellationToken ct)
         => Ok(await _sender.Send(new Application.Commands.RejectProviderSubMerchant
             .RejectProviderSubMerchantCommand { ProviderProfileId = providerProfileId, Reason = request?.Reason }, ct));
+
+    /// <summary>Admin registers a provider's sub-merchant (#113): {DataSubmitted, Rejected} → SubMerchantCreated.
+    /// Manual/dev gateway mints a synthetic key; iyzico uses the P9 registration. Idempotent.</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/register")]
+    public async Task<IActionResult> RegisterProviderSubMerchant(
+        long providerProfileId, [FromBody] RegisterProviderSubMerchantRequest request, CancellationToken ct)
+        => Ok(await _sender.Send(new Application.Commands.RegisterProviderSubMerchant.RegisterProviderSubMerchantCommand
+        {
+            ProviderProfileId = providerProfileId,
+            LegalName      = request?.LegalName,
+            Email          = request?.Email,
+            Iban           = request?.Iban,
+            SubMerchantType = request?.SubMerchantType,
+            TaxNumber      = request?.TaxNumber,
+            TaxOffice      = request?.TaxOffice,
+            GsmNumber      = request?.GsmNumber,
+            ContactName    = request?.ContactName,
+            ContactSurname = request?.ContactSurname,
+            IdentityNumber = request?.IdentityNumber,
+        }, ct));
 }
 
 /// <summary>Admin body for rejecting a provider sub-merchant onboarding (BE-I1).</summary>
 public sealed class RejectProviderSubMerchantRequest
 {
     public string? Reason { get; init; }
+}
+
+/// <summary>Admin body for registering a provider sub-merchant (BE-I1/#113). All fields optional — required only for
+/// the iyzico gateway; the manual/dev gateway ignores them (mints a synthetic key from the existing profile).</summary>
+public sealed class RegisterProviderSubMerchantRequest
+{
+    public string? LegalName      { get; init; }
+    public string? Email          { get; init; }
+    public string? Iban           { get; init; }
+    public string? SubMerchantType { get; init; }
+    public string? TaxNumber      { get; init; }
+    public string? TaxOffice      { get; init; }
+    public string? GsmNumber      { get; init; }
+    public string? ContactName    { get; init; }
+    public string? ContactSurname { get; init; }
+    public string? IdentityNumber { get; init; }
 }
 

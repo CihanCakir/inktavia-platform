@@ -6,12 +6,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.Payment.Application.Services;
 
+/// <summary>Abstraction over <see cref="PaymentGatewayResolver"/> so handlers can be unit-tested without a container
+/// (the concrete resolver reads env config + does keyed DI, which is awkward to fake).</summary>
+public interface IPaymentGatewayResolver
+{
+    IPaymentGatewayProvider Resolve();
+}
+
 /// <summary>
 /// Resolves the active IPaymentGatewayProvider based on the PAYMENT_GATEWAY_ACTIVE
 /// system parameter (or environment variable for MVP). Switching gateways requires
 /// only a config change — no code change.
 /// </summary>
-public sealed class PaymentGatewayResolver
+public sealed class PaymentGatewayResolver : IPaymentGatewayResolver
 {
     private readonly IServiceProvider _provider;
     private readonly ILogger<PaymentGatewayResolver> _logger;
