@@ -77,7 +77,7 @@ resources:
     cpu: 15m
     memory: 90Mi
   limits:
-    cpu: 250m
+    cpu: 1000m  # LT-7 2026-09-09: oncelik participant/mobil — 250m tavani yuk oncesi genisletildi
     memory: 256Mi
 
 autoscaling:
@@ -141,6 +141,11 @@ env:
   # (is olaylari, Hangfire, bus) ACIK kalir. Geri almak = bu iki satiri sil.
   - name: Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command
     value: "Warning"
+  # ── Thread pool tabani (LT-7, 2026-09-09): CPU limiti altinda .NET min thread'i
+  # cekirdek sayisina (1-2) kurar; LT-6b'de RedisTimeoutException/thread-pool acligi
+  # olculdu (WORKER Busy=14 Min=1 — borc #112). Taban 32'ye cekildi.
+  - name: DOTNET_ThreadPool_MinThreads
+    value: "32"
   - name: ElasticApm__Enabled
     value: "false"
   - name: ElasticApm__ServerUrl

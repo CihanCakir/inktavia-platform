@@ -1,0 +1,52 @@
+# LT-7 — s5 mobil ana-ekran fan-out 20 VU baseline (PROFILE=baseline: 20 VU). Kapilar TODO-CALIBRATE — bu kosudan kalibre edilecek.
+# ON KOSUL: BFF CPU/thread-pool degisiklikleri (LT-7) merge + rollout SONRASI kosulmali.
+#   kubectl apply -f load-test/k8s/job-s5-baseline.yaml
+#   kubectl -n inktavia-dev logs -f job/k6-s5-baseline
+#   kubectl -n inktavia-dev delete job k6-s5-baseline   # tekrar kosmadan once
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-s5-baseline
+  namespace: inktavia-dev
+  labels: { app: k6-loadtest, scenario: s5-mobile-read }
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: { app: k6-loadtest, scenario: s5-mobile-read }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.52.0
+          args: ["run", "-o", "experimental-prometheus-rw", "/scripts/s5-mobile-read.js"]
+          env:
+            - name: PROFILE
+              value: baseline
+            # SKIP_NOTIFICATIONS kaldirildi (2026-09-07): #109 fixture'i kuruldu — mobil havuz
+            # (loadtest-mobile-XX, setup-mobile-loadtest.sh) participant kaydi tasiyor.
+            - name: BASE_MOBILE
+              value: http://aizen-bff-marine-mobile.inktavia-dev.svc.cluster.local
+            - name: KEYCLOAK_BASE
+              value: http://keycloak.inktavia-dev.svc.cluster.local:8080
+            - name: KC_REALM
+              value: inktavia-realm
+            - name: LOADTEST_USER_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: loadtest-credentials, key: LOADTEST_USER_PASSWORD }
+            - name: K6_PROMETHEUS_RW_SERVER_URL
+              value: http://prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+            - name: K6_PROMETHEUS_RW_TREND_STATS
+              value: "p(95),p(99)"
+          resources:
+            requests: { cpu: 200m, memory: 128Mi }
+            limits:   { cpu: "1",  memory: 256Mi }
+          volumeMounts:
+            - { name: scripts, mountPath: /scripts, readOnly: true }
+            - { name: lib, mountPath: /scripts/lib, readOnly: true }
+      volumes:
+        - name: scripts
+          configMap: { name: k6-scripts }
+        - name: lib
+          configMap: { name: k6-lib }
