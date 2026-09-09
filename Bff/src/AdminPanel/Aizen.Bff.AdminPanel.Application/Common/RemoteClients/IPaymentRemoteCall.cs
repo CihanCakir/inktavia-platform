@@ -442,6 +442,12 @@ public interface IPaymentRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] RejectSubMerchantBffRequest body,
         CancellationToken ct = default);
 
+    [AizenRemoteCallPost("/api/v1/payment/admin/providers/{providerProfileId}/sub-merchant/register")]
+    Task<ProviderSubMerchantOnboardingResult> RegisterSubMerchantAsync(
+        long providerProfileId,
+        [AizenRemoteCallBody] RegisterSubMerchantBffRequest body,
+        CancellationToken ct = default);
+
     // ─── BE-P3 PlatformFeeRule CRUD (module: /api/v1/payment/platform-fee) ────
 
     [AizenRemoteCallGet("/api/v1/payment/platform-fee/resolve")]

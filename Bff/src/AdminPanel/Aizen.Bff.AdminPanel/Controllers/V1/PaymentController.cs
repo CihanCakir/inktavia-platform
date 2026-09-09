@@ -40,6 +40,7 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubscriptionChurnRisk;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.CreateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.ReactivateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.RegisterSubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.RejectSubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.VerifySubMerchant;
@@ -713,6 +714,32 @@ public sealed class PaymentController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(new RejectSubMerchantBffCommand
         {
             ProviderProfileId = providerProfileId, Reason = body?.Reason,
+        }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/providers/{id}/sub-merchant/register — #113:
+    /// {DataSubmitted, Rejected} → SubMerchantCreated. Manual gateway mints a synthetic key; iyzico = P9. Idempotent.</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/register")]
+    [ProducesResponseType(typeof(ProviderSubMerchantOnboardingResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderSubMerchantOnboardingResult?>> RegisterSubMerchant(
+        long providerProfileId,
+        [FromBody] RegisterSubMerchantBffRequest body,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new RegisterSubMerchantBffCommand
+        {
+            ProviderProfileId = providerProfileId,
+            LegalName      = body?.LegalName,
+            Email          = body?.Email,
+            Iban           = body?.Iban,
+            SubMerchantType = body?.SubMerchantType,
+            TaxNumber      = body?.TaxNumber,
+            TaxOffice      = body?.TaxOffice,
+            GsmNumber      = body?.GsmNumber,
+            ContactName    = body?.ContactName,
+            ContactSurname = body?.ContactSurname,
+            IdentityNumber = body?.IdentityNumber,
         }, ct);
         return SetResponse(result?.Result);
     }

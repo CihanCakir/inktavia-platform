@@ -46,8 +46,9 @@ export const options = PROFILE === 'dev-baseline' ? {
     'http_req_duration{name:cargodry-kits}':      ['p(95)<3200'],
     'http_req_duration{name:cargodry-stats}':     ['p(95)<3200'],
     'http_req_duration{name:dashboard-charts}':   ['p(95)<4100'],
-    // overview: #107 (birleşik özet ucu / cache) hâlâ açık; LT-7'de 3,76s — fix sonrası sıkılacak.
-    'http_req_duration{name:dashboard-overview}': ['p(95)<5600'],
+    // overview: #107 fix (fan-out pageSize:1 + 20s distributed cache) sonrası kapı sıkıldı.
+    // Hedef ~<2s (kabul kriteri); dev 25 VU kabul koşusu p95'i teyit etmeli (fix öncesi LT-7: 3,76s).
+    'http_req_duration{name:dashboard-overview}': ['p(95)<2000'],
     'http_req_duration{name:providers-list}':     ['p(95)<5000'],
     'http_req_duration{name:users-kpi}':          ['p(95)<5300'],
     'http_req_duration{name:users-list}':         ['p(95)<4700'],
