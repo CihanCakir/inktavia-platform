@@ -55,8 +55,11 @@ spec:
     # cpu 10 -> 14 (2026-09-07): LT-5 CPU tavan gevşetmesi kullanımı 9,5'e çıkardı — 10'da
     # k6 Job'ı kotaya takıldı ve rollout surge'u kilitlenir olmuştu (node 12 çekirdek; bunlar
     # tavan, request degil — overcommit güvenli).
+    # cpu 14 -> 18 (2026-09-09): LT-6 throttle ölçümü — identity %79, vessel/SR %50 throttle
+    # yerken node toplamı ~2,2 çekirdekti; limitler +3,55 CPU dağıtıldı (identity 2000m,
+    # vessel/SR 1000m, cargodry/referencedata 750m). Tavan gerçek darboğazdı, donanım değil.
     limits.memory: 8Gi
-    limits.cpu: "14"
+    limits.cpu: "18"
     pods: "32"
 ---
 apiVersion: v1

@@ -26,7 +26,7 @@ KOTA = KOK / "infrastructure/k8s/namespaces-and-quotas.yaml"
 RENDER = KOK / "gitops/render-appsets.py"
 
 # Açık ortamın kotası / kapalı ortamın kotası
-BUYUK = {"mem": "8Gi", "cpu": "14", "pods": "32"}  # cpu 10->14: LT-5 limit gevşetmesi + k6 Job payı (2026-09-07)
+BUYUK = {"mem": "8Gi", "cpu": "18", "pods": "32"}  # cpu 14->18: LT-6 throttle ölçümü, limit yeniden dağıtımı (2026-09-09)
 KUCUK = {"mem": "2Gi", "cpu": "3",  "pods": "4"}
 
 if not APPSET["prod"].is_file():

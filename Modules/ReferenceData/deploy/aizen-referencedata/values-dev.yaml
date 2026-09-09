@@ -77,7 +77,7 @@ resources:
     cpu: 25m
     memory: 120Mi
   limits:
-    cpu: 300m
+    cpu: 750m  # LT-6 2026-09-09: %24 CFS throttle
     memory: 300Mi
 
 autoscaling:
