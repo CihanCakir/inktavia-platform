@@ -109,8 +109,10 @@ public class AizenServerInfo : IAizenInfo
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            var command = "lspci | grep -i vga | cut -d ':' -f3-";
-            return ExecuteShellCommand(command);
+            // #111: lspci is absent in our containers — the probe only ever wrote
+            // "lspci: command not found" to stdout (log noise) and returned empty.
+            // A GPU is never present server-side; skip the fork entirely.
+            return "Unknown";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -151,8 +153,9 @@ public class AizenServerInfo : IAizenInfo
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            var command = "xdpyinfo | grep dimensions | awk '{print $2}'";
-            return ExecuteShellCommand(command);
+            // #111: xdpyinfo (an X11 tool) is absent and there is no display server in a
+            // container — the probe only printed "xdpyinfo: command not found". Skip it.
+            return "Unknown";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -173,8 +176,10 @@ public class AizenServerInfo : IAizenInfo
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            var command = "dmidecode -t baseboard | grep -E 'Manufacturer:|Product Name:' | cut -d ':' -f2";
-            return ExecuteShellCommand(command);
+            // #111: dmidecode needs root + /dev/mem and is not installed in our images —
+            // the probe only printed "dmidecode: command not found". Baseboard detail is
+            // meaningless on virtualised/container hosts anyway; skip it.
+            return "Unknown";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
