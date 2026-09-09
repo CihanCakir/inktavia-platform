@@ -31,9 +31,11 @@ export const options = {
   vus: 1, iterations: 1,
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    'http_req_duration{name:trip-start}':  ['p(95)<3000'], // TODO-CALIBRATE
-    'http_req_duration{name:trip-ping}':   ['p(95)<3000'], // TODO-CALIBRATE
-    'http_req_duration{name:trip-arrive}': ['p(95)<3000'], // TODO-CALIBRATE
+    // s9 kalibrasyonu (2026-09-09 ilk kosu, SR 51 fixture'i): start 1,58s / ping p95 288ms /
+    // arrive 357ms. start+arrive TEK ornek (1 iterasyon) — kapilar kaba, x1,5 yuvarlanmis.
+    'http_req_duration{name:trip-start}':  ['p(95)<2400'],
+    'http_req_duration{name:trip-ping}':   ['p(95)<450'],
+    'http_req_duration{name:trip-arrive}': ['p(95)<550'],
   },
 };
 

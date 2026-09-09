@@ -28,8 +28,13 @@ spec:
               value: http://aizen-bff-marine-mobile.inktavia-dev.svc.cluster.local
             - name: BASE_PROVIDER
               value: http://aizen-bff-marineprovider.inktavia-dev.svc.cluster.local
-            # - name: PROVIDER_USER            # onboarded (Approved+Active) provider loadtest kullanicisi.
-            #   value: loadtest-provider-01@example.test   # ac → radiusless discovery leg de yuklenir.
+            # discovery-list bacagi (s9 fixture'inin actigi kapi, 2026-09-09): onboarded provider.
+            # Bos birakilirsa bacak temiz atlanir. Sifre loadtest havuzundan farkli → ayri secret anahtari.
+            - name: PROVIDER_USER
+              value: ""
+            - name: PROVIDER_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: loadtest-credentials, key: PROVIDER_PASSWORD, optional: true }
             - name: KEYCLOAK_BASE
               value: http://keycloak.inktavia-dev.svc.cluster.local:8080
             - name: KC_REALM
