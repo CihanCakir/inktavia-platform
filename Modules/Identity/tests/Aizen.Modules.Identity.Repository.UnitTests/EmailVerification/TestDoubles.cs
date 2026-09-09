@@ -12,14 +12,14 @@ internal sealed class FakeDistributedCache : IAizenDistributedCache
 {
     private readonly Dictionary<string, object?> _store = new();
 
-    public Task<T> GetNoHash<T>(string key)
+    public Task<T> GetNoHash<T>(string key, CancellationToken token = default)
     {
         if (_store.TryGetValue(key, out var v) && v is T typed)
             return Task.FromResult(typed);
         return Task.FromResult(default(T)!);
     }
 
-    public Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl)
+    public Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl, CancellationToken token = default)
     {
         _store[key] = value;
         return Task.FromResult(true);
@@ -27,10 +27,10 @@ internal sealed class FakeDistributedCache : IAizenDistributedCache
 
     // ── Kullanılmayan üyeler ────────────────────────────────────────────────
     public Task<dynamic> GetDirectStringToDynamic(string key, CancellationToken token = default) => throw new NotSupportedException();
-    public Task<bool> RemoveNoHash(string key) => throw new NotSupportedException();
-    public Task<bool> RemoveReadCacheEntry(string key) => throw new NotSupportedException();
-    public Task<bool> ExistNoHash(string key) => throw new NotSupportedException();
-    public Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key) => throw new NotSupportedException();
+    public Task<bool> RemoveNoHash(string key, CancellationToken token = default) => throw new NotSupportedException();
+    public Task<bool> RemoveReadCacheEntry(string key, CancellationToken token = default) => throw new NotSupportedException();
+    public Task<bool> ExistNoHash(string key, CancellationToken token = default) => throw new NotSupportedException();
+    public Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key, CancellationToken token = default) => throw new NotSupportedException();
     public Task<T> GetAsync<T>(CancellationToken token = default) => throw new NotSupportedException();
     public Task<T> GetAsync<T>(string key, CancellationToken token = default) => throw new NotSupportedException();
     public Task<(bool keyExists, T cacheItem)> TryGetAsync<T>(CancellationToken token = default) => throw new NotSupportedException();

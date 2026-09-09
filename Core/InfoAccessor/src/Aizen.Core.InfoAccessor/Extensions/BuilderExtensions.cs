@@ -55,6 +55,8 @@ public static class BuilderExtensions
                 "secret (e.g. AIZEN_BFF_ASSERTION_SECRET), or run with ASPNETCORE_ENVIRONMENT=Development locally.")
             .ValidateOnStart();
 
+        // #111: host probes (cpuinfo/meminfo/…) run once per process, not once per scoped container.
+        services.AddSingleton<AizenServerInfoProvider>();
         services.AddSingleton<AizenInfoContainerForSigleton>();
         services.AddScoped<AizenInfoContainerForScoped>();
         services.AddScoped<IAizenInfoContainer, AizenInfoContainer>();

@@ -5,10 +5,10 @@ namespace Aizen.Core.Cache.Abstraction;
 
 public interface IAizenDistributedCache : IAizenCache
 {
-    Task<T> GetNoHash<T>(string key);
+    Task<T> GetNoHash<T>(string key, CancellationToken token = default);
     Task<dynamic> GetDirectStringToDynamic(string key, CancellationToken token = default);
 
-    Task<bool> RemoveNoHash(string key);
+    Task<bool> RemoveNoHash(string key, CancellationToken token = default);
 
     /// <summary>
     /// Evicts an entry written by the query read-cache decorator (Microsoft
@@ -17,9 +17,9 @@ public interface IAizenDistributedCache : IAizenCache
     /// <c>RemoveNoHash</c> targets the raw key without the instance prefix and would miss the
     /// physical key the read path stored (e.g. <c>"Vessel:{HandlerName}:{hash}"</c>).
     /// </summary>
-    Task<bool> RemoveReadCacheEntry(string key);
+    Task<bool> RemoveReadCacheEntry(string key, CancellationToken token = default);
 
-    Task<bool> ExistNoHash(string key);
-    Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl);
-    Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key);
+    Task<bool> ExistNoHash(string key, CancellationToken token = default);
+    Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl, CancellationToken token = default);
+    Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key, CancellationToken token = default);
 }

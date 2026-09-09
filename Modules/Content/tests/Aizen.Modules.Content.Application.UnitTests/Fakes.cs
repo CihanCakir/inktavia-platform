@@ -144,13 +144,13 @@ public sealed class DictCache : IAizenDistributedCache
     public Task<bool> ExistsAsync<T>(string key, CancellationToken token = default) => throw new NotImplementedException();
     public Task RemoveAsync<T>(CancellationToken token = default) => throw new NotImplementedException();
     public Task RemoveAsync<T>(string key, CancellationToken token = default) => throw new NotImplementedException();
-    public Task<T> GetNoHash<T>(string key) => throw new NotImplementedException();
+    public Task<T> GetNoHash<T>(string key, CancellationToken token = default) => throw new NotImplementedException();
     public Task<dynamic> GetDirectStringToDynamic(string key, CancellationToken token = default) => throw new NotImplementedException();
-    public Task<bool> RemoveNoHash(string key) => throw new NotImplementedException();
-    public Task<bool> RemoveReadCacheEntry(string key) => throw new NotImplementedException();
-    public Task<bool> ExistNoHash(string key) => throw new NotImplementedException();
-    public Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl) => throw new NotImplementedException();
-    public Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key) => throw new NotImplementedException();
+    public Task<bool> RemoveNoHash(string key, CancellationToken token = default) => throw new NotImplementedException();
+    public Task<bool> RemoveReadCacheEntry(string key, CancellationToken token = default) => throw new NotImplementedException();
+    public Task<bool> ExistNoHash(string key, CancellationToken token = default) => throw new NotImplementedException();
+    public Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl, CancellationToken token = default) => throw new NotImplementedException();
+    public Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key, CancellationToken token = default) => throw new NotImplementedException();
 }
 
 public sealed class FakeInfo : IAizenInfoAccessor

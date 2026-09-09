@@ -8,14 +8,19 @@ internal class AizenInfoContainer : IAizenInfoContainer
 
     private readonly AizenInfoContainerForScoped _containerForScoped;
 
+    private readonly AizenServerInfoProvider _serverInfoProvider;
+
     public AizenInfoContainer(AizenInfoContainerForSigleton containerForSigleton,
-        AizenInfoContainerForScoped containerForScoped
+        AizenInfoContainerForScoped containerForScoped,
+        AizenServerInfoProvider serverInfoProvider
     )
     {
         _containerForSigleton = containerForSigleton;
         _containerForScoped = containerForScoped;
-        
-        Set(new AizenServerInfo());
+        _serverInfoProvider = serverInfoProvider;
+
+        // #111: reuse the process-wide singleton — the host probes ran once at startup, not per scope.
+        Set(_serverInfoProvider.ServerInfo);
         Set(new AizenNetworkInfo());
     }
 

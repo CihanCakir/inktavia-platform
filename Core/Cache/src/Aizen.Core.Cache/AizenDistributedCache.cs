@@ -128,9 +128,9 @@ internal sealed class AizenDistributedCache : AizenCacheBase, IAizenDistributedC
 
     public override Task RemoveAsync<T>(string key, CancellationToken token = default)
     {
-        _ = this._distributedCache.RemoveAsync(key, token);
-
-        return Task.CompletedTask;
+        // Await the removal (previously fire-and-forget: the discarded Task swallowed
+        // failures and could race the caller's next read).
+        return this._distributedCache.RemoveAsync(key, token);
     }
 
     #region IDistributedCache implementation
@@ -173,28 +173,25 @@ internal sealed class AizenDistributedCache : AizenCacheBase, IAizenDistributedC
 
     public Task RemoveAsync(string key, CancellationToken token = default)
     {
-        return this._distributedCache.RefreshAsync(key, token);
+        return this._distributedCache.RemoveAsync(key, token);
     }
 
-    public async Task<T> GetNoHash<T>(string key)
+    public async Task<T> GetNoHash<T>(string key, CancellationToken token = default)
     {
-        
-        if (Any(key))
-        {
-            string jsonData = await Database.StringGetAsync(key);
-            return JsonConvert.DeserializeObject<T>(jsonData);
-        }
-        return default;
-    }
-    public bool Any(string key)
-    {
-       
-        return Database.KeyExists(key);
+        token.ThrowIfCancellationRequested();
+
+        // Single async round trip: a null/missing key returns default without a
+        // separate KeyExists probe (the old sync Any() blocked a thread-pool worker).
+        var jsonData = await Database.StringGetAsync(key);
+        if (jsonData.IsNullOrEmpty)
+            return default;
+
+        return JsonConvert.DeserializeObject<T>(jsonData!);
     }
 
-    public async Task<bool> AnyAsync(string key)
+    public async Task<bool> AnyAsync(string key, CancellationToken token = default)
     {
-        
+        token.ThrowIfCancellationRequested();
         return await Database.KeyExistsAsync(key);
     }
 
@@ -204,58 +201,48 @@ internal sealed class AizenDistributedCache : AizenCacheBase, IAizenDistributedC
     }
 
 
-    public async Task<bool> RemoveNoHash(string key)
+    public async Task<bool> RemoveNoHash(string key, CancellationToken token = default)
     {
-
-        if (await AnyAsync(key))
-        {
-            if (await Database.KeyDeleteAsync(key, CommandFlags.None))
-                return true;
-        }
-        return false;
+        token.ThrowIfCancellationRequested();
+        // KeyDeleteAsync already reports whether the key existed — no separate KeyExists round trip.
+        return await Database.KeyDeleteAsync(key, CommandFlags.None);
     }
 
-    public async Task<bool> RemoveReadCacheEntry(string key)
+    public async Task<bool> RemoveReadCacheEntry(string key, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         // The read/set path (RedisCache) stores under InstanceName + key on the same Redis DB,
         // so evict the InstanceName-prefixed physical key.
         var physicalKey = _instanceName + key;
-        if (await AnyAsync(physicalKey))
-        {
-            return await Database.KeyDeleteAsync(physicalKey, CommandFlags.None);
-        }
-        return false;
+        return await Database.KeyDeleteAsync(physicalKey, CommandFlags.None);
     }
 
-    public async Task<bool> ExistNoHash(string key)
+    public async Task<bool> ExistNoHash(string key, CancellationToken token = default)
     {
-       
-        if (await AnyAsync(key))
-        {
-            return true;
-        }
-        return false;
+        return await AnyAsync(key, token);
     }
 
-    public async Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl)
+    public async Task<bool> SetNoHash<T>(string key, T value, TimeSpan ttl, CancellationToken token = default)
     {
-
+        token.ThrowIfCancellationRequested();
         var jsonString = JsonConvert.SerializeObject(value);
 
         return await Database.StringSetAsync(key, jsonString, ttl);
     }
 
-    public async Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key)
+    public async Task<AizenStringCacheItem<T>> GetNoHashWitTtl<T>(string key, CancellationToken token = default)
     {
-        
-        if (Any(key))
-        {
-            var redisData = await Database.StringGetWithExpiryAsync(key);
-            var data = JsonConvert.DeserializeObject<T>(redisData.Value);
-            var exp = Convert.ToInt32(redisData.Expiry.Value.TotalSeconds);
-            return new AizenStringCacheItem<T>(data, exp, redisData.Expiry.Value);
-        }
-        return default;
+        token.ThrowIfCancellationRequested();
+
+        // Single async round trip: fetch value + TTL together; a missing key returns
+        // default without a preceding sync KeyExists probe.
+        var redisData = await Database.StringGetWithExpiryAsync(key);
+        if (redisData.Value.IsNullOrEmpty || redisData.Expiry is null)
+            return default;
+
+        var data = JsonConvert.DeserializeObject<T>(redisData.Value!);
+        var exp = Convert.ToInt32(redisData.Expiry.Value.TotalSeconds);
+        return new AizenStringCacheItem<T>(data, exp, redisData.Expiry.Value);
     }
 
 

@@ -46,6 +46,8 @@ public static class DependencyInjection
 
         // ── Gateway resolver ──────────────────────────────────────────────────
         services.AddScoped<PaymentGatewayResolver>();
+        // #113: expose the resolver via its interface so the sub-merchant register handler is unit-testable.
+        services.AddScoped<IPaymentGatewayResolver>(sp => sp.GetRequiredService<PaymentGatewayResolver>());
 
         // ── Commission calculator ─────────────────────────────────────────────
         services.AddScoped<CommissionCalculationService>();
