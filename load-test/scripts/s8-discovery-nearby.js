@@ -34,7 +34,9 @@ export const options = PROFILE === 'dev-baseline' ? {
     http_req_failed: ['rate<0.01'],
     // LT-7 kalibrasyonu (2026-09-09): 20 VU, 1779 istek, %0 hata; marinas-nearby p95 2,28s x 1,5.
     'http_req_duration{name:marinas-nearby}': ['p(95)<3400'],
-    'http_req_duration{name:discovery-list}': ['p(95)<3000'], // TODO-CALIBRATE: PROVIDER_USER yok, bacak atlandi — s9 fixture sonrasi kalibre edilecek
+    // discovery-list kalibrasyonu (2026-09-09, s9 fixture'i sonrasi ilk tam kosu): 20 VU,
+    // 2796 istek, %0 hata; p95 2,88s x 1,5. Not: 20 VU tek provider kimligini paylasir (fixture).
+    'http_req_duration{name:discovery-list}': ['p(95)<4300'],
   },
 } : {
   vus: 1, duration: '1m',

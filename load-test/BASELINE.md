@@ -68,7 +68,7 @@ Koşullar: mobil+provider BFF 1000m, adminpanel 2000m, DOTNET_ThreadPool_MinThre
 | s5 | notifications | 3,18s | 4800ms |
 | s5 | cargodry-kits | 2,47s | 3700ms |
 | s8 (20 VU, 3dk, 1779 istek, %0 hata) | marinas-nearby | 2,28s | 3400ms |
-| s8 | discovery-list | — (PROVIDER_USER yok, atlandı) | TODO (s9 fixture) |
+| s8 | discovery-list | 2,88s (2026-09-09, s9 fixture sonrası tam koşu; marinas-nearby aynı koşuda 1,39s) | 4300ms |
 
 Not: s5 vessels p95 5 VU'da 2,11s idi — 4x yükte 2,48s: mobil BFF fix'i doygunluğu kırdı.
 s8 marinas-nearby 20 VU'da (2,28s) 5 VU ölçümünden (2,50s) İYİ.
