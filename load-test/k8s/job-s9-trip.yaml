@@ -38,6 +38,11 @@ spec:
             - name: LOADTEST_USER_PASSWORD
               valueFrom:
                 secretKeyRef: { name: loadtest-credentials, key: LOADTEST_USER_PASSWORD }
+            # s9: PROVIDER_USER loadtest havuzu disinda (onayli QA provider) — sifresi ayri anahtar.
+            # optional: anahtar yoksa job yine kalkar, s9 "token alinamadi" deyip temiz atlar.
+            - name: PROVIDER_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: loadtest-credentials, key: PROVIDER_PASSWORD, optional: true }
             - name: K6_PROMETHEUS_RW_SERVER_URL
               value: http://prometheus.monitoring.svc.cluster.local:9090/api/v1/write
             - name: K6_PROMETHEUS_RW_TREND_STATS

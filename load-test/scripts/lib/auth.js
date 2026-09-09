@@ -7,6 +7,9 @@ import { TOKEN_URL } from './config.js';
 
 const CLIENT_ID = __ENV.LOADTEST_CLIENT_ID || 'loadtest-runner';
 const PASSWORD = __ENV.LOADTEST_USER_PASSWORD; // .env'den compose aktarır; commit edilmez.
+// s9: PROVIDER_USER gercek (loadtest havuzu disi) bir hesap — sifresi ayri env'den gelir.
+// PROVIDER_PASSWORD verilmezse eski davranis aynen korunur (tek sifre).
+const PROVIDER_PASSWORD = __ENV.PROVIDER_PASSWORD || PASSWORD;
 
 // VU-yerel cache (VU başına ayrı JS sandbox'ı). Kullanıcı-ADINA anahtarlı: bir senaryo aynı VU'da
 // birden çok kimlikle konuşabilir (ör. s8/s9 katılımcı + provider) ve tek slot birbirini ezmesin.
@@ -21,7 +24,7 @@ export function getToken(username, force) {
     grant_type: 'password',
     client_id: CLIENT_ID,
     username: username,
-    password: PASSWORD,
+    password: (__ENV.PROVIDER_USER && username === __ENV.PROVIDER_USER) ? PROVIDER_PASSWORD : PASSWORD,
   }, { tags: { name: 'kc-token' } });
   check(res, { 'token 200': (r) => r.status === 200 });
   if (res.status !== 200) { delete cache[username]; return null; }
