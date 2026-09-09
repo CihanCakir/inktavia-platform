@@ -56,3 +56,19 @@ dev-baseline profiline yazildi (x1,5):
 Bağlam: aynı gün 25 VU'luk ilk koşu doygunluk göstermişti (p95 17-32 sn) → CPU limit gevşetmesi
 (PR ile) + dev-cap 10→14 sonrası bu tablo alındı. İzleme notu: identity 750m'de bile ~%77 CFS
 throttle yedi (p95'e yansımadı; 25 VU tekrarında ilk şüpheli).
+
+## 20 VU baseline (LT-7, 2026-09-09 — BFF CPU/thread-pool fix sonrası)
+
+Koşullar: mobil+provider BFF 1000m, adminpanel 2000m, DOTNET_ThreadPool_MinThreads=32 (4 BFF+identity).
+
+| Senaryo | Uç | p95 (ölçülen) | Kapı (×1,5) |
+|---|---|---|---|
+| s5 (20 VU, 3,5dk, 1512 istek, %0 hata) | vessels-list | 2,48s | 3700ms |
+| s5 | sr-list | 2,15s | 3200ms |
+| s5 | notifications | 3,18s | 4800ms |
+| s5 | cargodry-kits | 2,47s | 3700ms |
+| s8 (20 VU, 3dk, 1779 istek, %0 hata) | marinas-nearby | 2,28s | 3400ms |
+| s8 | discovery-list | — (PROVIDER_USER yok, atlandı) | TODO (s9 fixture) |
+
+Not: s5 vessels p95 5 VU'da 2,11s idi — 4x yükte 2,48s: mobil BFF fix'i doygunluğu kırdı.
+s8 marinas-nearby 20 VU'da (2,28s) 5 VU ölçümünden (2,50s) İYİ.

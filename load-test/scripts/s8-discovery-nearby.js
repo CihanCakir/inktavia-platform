@@ -32,8 +32,9 @@ export const options = PROFILE === 'dev-baseline' ? {
   vus: 20, duration: '3m',
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    'http_req_duration{name:marinas-nearby}': ['p(95)<3000'], // TODO-CALIBRATE
-    'http_req_duration{name:discovery-list}': ['p(95)<3000'], // TODO-CALIBRATE
+    // LT-7 kalibrasyonu (2026-09-09): 20 VU, 1779 istek, %0 hata; marinas-nearby p95 2,28s x 1,5.
+    'http_req_duration{name:marinas-nearby}': ['p(95)<3400'],
+    'http_req_duration{name:discovery-list}': ['p(95)<3000'], // TODO-CALIBRATE: PROVIDER_USER yok, bacak atlandi — s9 fixture sonrasi kalibre edilecek
   },
 } : {
   vus: 1, duration: '1m',
