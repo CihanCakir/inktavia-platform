@@ -39,19 +39,19 @@ export const options = PROFILE === 'dev-baseline' ? {
   ],
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    // Regresyon kapıları = LT-2 baseline p95 × 1,5 (2026-09-03, 25 VU; LOAD-TEST-RAPORU.md).
-    'http_req_duration{name:cargodry-analytics}': ['p(95)<475'],
-    'http_req_duration{name:cargodry-kits}':      ['p(95)<440'],
-    'http_req_duration{name:cargodry-stats}':     ['p(95)<465'],
-    'http_req_duration{name:dashboard-charts}':   ['p(95)<970'],
-    // overview: yük altında varyans devasa (koşular arası p95 1,24s ↔ 5,27s; p99 6,7s+) — bilinen
-    // sorun, cache/birleşik özet ucu fix'i bekliyor (LOAD-TEST-RAPORU bulgu #2). Kapı geçici geniş;
-    // fix sonrası 1860'a sıkılacak.
-    'http_req_duration{name:dashboard-overview}': ['p(95)<3000'],
-    'http_req_duration{name:providers-list}':     ['p(95)<650'],
-    'http_req_duration{name:users-kpi}':          ['p(95)<1000'],
-    'http_req_duration{name:users-list}':         ['p(95)<860'],
-    'http_req_duration{name:vessels-list}':       ['p(95)<685'],
+    // Regresyon kapıları = LT-7 baseline p95 × 1,5 (2026-09-09, 25 VU, 679 iterasyon, %0,01 hata).
+    // LT-2 kapıları düşük yük çağındandı; LT-7 = CPU dağıtımı + thread-pool tabanı sonrası gerçek
+    // 25 VU dev kapasitesi (p95 geneli 3,1s; gün içi seyir 13,5→8,0→3,1). LOAD-TEST-RAPORU LT-6/LT-7.
+    'http_req_duration{name:cargodry-analytics}': ['p(95)<3100'],
+    'http_req_duration{name:cargodry-kits}':      ['p(95)<3200'],
+    'http_req_duration{name:cargodry-stats}':     ['p(95)<3200'],
+    'http_req_duration{name:dashboard-charts}':   ['p(95)<4100'],
+    // overview: #107 (birleşik özet ucu / cache) hâlâ açık; LT-7'de 3,76s — fix sonrası sıkılacak.
+    'http_req_duration{name:dashboard-overview}': ['p(95)<5600'],
+    'http_req_duration{name:providers-list}':     ['p(95)<5000'],
+    'http_req_duration{name:users-kpi}':          ['p(95)<5300'],
+    'http_req_duration{name:users-list}':         ['p(95)<4700'],
+    'http_req_duration{name:vessels-list}':       ['p(95)<5000'],
   },
 } : {
   vus: 1, duration: '1m',

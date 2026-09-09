@@ -35,11 +35,12 @@ export const options = PROFILE === 'dev-baseline' ? {
   ],
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    // TODO-CALIBRATE: 20 VU degerleri limits-fix sonrasi 20 VU kosusundan kalibre edilecek (BASELINE.md).
-    'http_req_duration{name:vessels-list}':   ['p(95)<3000'], // TODO-CALIBRATE
-    'http_req_duration{name:sr-list}':        ['p(95)<3000'], // TODO-CALIBRATE
-    'http_req_duration{name:notifications}':  ['p(95)<3000'], // TODO-CALIBRATE
-    'http_req_duration{name:cargodry-kits}':  ['p(95)<3000'], // TODO-CALIBRATE
+    // LT-7 kalibrasyonu (2026-09-09): 20 VU, 1512 istek, %0 hata; p95 x 1,5.
+    // Olculen p95: vessels 2,48s / sr-list 2,15s / notifications 3,18s / kits 2,47s.
+    'http_req_duration{name:vessels-list}':   ['p(95)<3700'],
+    'http_req_duration{name:sr-list}':        ['p(95)<3200'],
+    'http_req_duration{name:notifications}':  ['p(95)<4800'],
+    'http_req_duration{name:cargodry-kits}':  ['p(95)<3700'],
   },
 } : {
   vus: 1, duration: '1m',
