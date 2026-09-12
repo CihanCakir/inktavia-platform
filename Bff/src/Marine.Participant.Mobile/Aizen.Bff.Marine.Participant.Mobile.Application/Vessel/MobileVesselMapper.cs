@@ -73,6 +73,8 @@ internal static class MobileVesselMapper
                 TypeCode = e.EngineTypeCode,
                 FuelTypeCode = e.FuelTypeCode,
                 HorsePower = e.HorsePower,
+                Brand = e.Brand,
+                Model = e.Model,
                 EngineBrandId = e.EngineBrandId,
                 EngineModelId = e.EngineModelId,
                 IsPrimary = e.IsPrimary,
