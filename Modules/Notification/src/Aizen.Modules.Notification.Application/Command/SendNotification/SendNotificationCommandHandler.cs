@@ -75,7 +75,9 @@ public sealed class SendNotificationCommandHandler
                 .FirstOrDefault();
             if (!NotificationPreferencePolicy.Resolve(emailCategory, NotificationChannel.Email, storedEmail))
             {
-                _logger.LogInformation(
+                // Warning, not Information: dev/prod run at Warning+, so an Information line is invisible exactly when
+                // a muted-email skip is what you're hunting. Volume is low (per-notification, not per-request).
+                _logger.LogWarning(
                     "Email muted for UserId={Uid} category={Cat}; email notification skipped for Type={Type}.",
                     request.RecipientUserId, emailCategory, request.Type);
                 return new SendNotificationResponse { NotificationId = 0, Dispatched = false };

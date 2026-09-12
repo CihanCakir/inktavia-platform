@@ -37,7 +37,13 @@ public sealed class ServiceRequestDisputeOpenedConsumer
     {
         // Both parties (owner + provider). 0 = unknown (e.g. no accepted offer) → skipped.
         var recipients = new HashSet<long>();
-        if (message.OwnerUserId != 0)    recipients.Add(message.OwnerUserId);
+        if (message.OwnerUserId != 0) recipients.Add(message.OwnerUserId);
+        else
+            // Surface the silent owner skip (the class of gap that hid the offer bug for a month): no owner id on the
+            // message, so the owner will NOT be told a dispute was opened.
+            _logger.LogWarning(
+                "Owner dispute-opened notification SKIPPED: message carried no owner id (OwnerUserId=0). SR={SrId} Dispute={DisputeId}.",
+                message.ServiceRequestId, message.DisputeId);
         if (message.ProviderUserId != 0) recipients.Add(message.ProviderUserId);
 
         // Admins (best-effort — a failure must not drop the party notifications).

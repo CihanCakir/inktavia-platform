@@ -115,13 +115,15 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
 
         // Create offer-as-message (idempotent per offer id)
 
-        // BE_WC1 — first-class submit event (ALWAYS published) → Messaging generates the offer card. Dedicated to the
-        // card (NOT the draft-time ServiceRequestOfferCreatedMessage, which the Notification module consumes), so no
-        // new notification fires and the card carries the final submit-time total.
+        // BE_WC1 — first-class submit event (ALWAYS published) → Messaging generates the offer card, and the
+        // Notification module notifies provider + owner. The draft→submit path never publishes the create-time
+        // ServiceRequestOfferCreatedMessage, so this is the ONLY notification trigger for it. Carries OwnerUserId
+        // (from the SR loaded above) so the owner is notified too, symmetric with the create path.
         await _messagePublisher.PublishAsync(new ServiceRequestOfferSubmittedMessage
         {
             ServiceRequestId = sr.Id, OfferId = offer.Id, ProviderProfileId = offer.ProviderProfileId,
-            ProviderUserId = currentUserId, TotalAmount = offer.GrandTotal, CurrencyCode = offer.CurrencyCode,
+            ProviderUserId = currentUserId, OwnerUserId = sr.OwnerUserId,
+            TotalAmount = offer.GrandTotal, CurrencyCode = offer.CurrencyCode,
             OccurredAt = DateTimeOffset.UtcNow,
         }, ct);
 
