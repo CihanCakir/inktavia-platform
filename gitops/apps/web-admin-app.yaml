@@ -16,7 +16,7 @@
 #    (1) dev SPA host'u kaydedildi (tunel rotasi 14: dev-admin.inktavia.com → ingress-nginx),
 #        values-dev'de ingress ACIK, replicaCount 1.
 #    (2) ilk web-admin image'i uretildi: CI #4 (develop push f54bcea) → sha-f54bcea + :dev.
-#    Ilk kurulum ELLE: kubectl apply -f gitops/apps/web-admin-app.yaml (#33: app-of-apps yok).
+#    Ilk kurulum artik ELLE DEGIL: app-of-apps (gitops/bootstrap/platform-root.yaml) bu yolu uyguluyor.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

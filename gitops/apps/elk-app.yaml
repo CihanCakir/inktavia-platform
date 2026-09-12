@@ -1,5 +1,7 @@
 # ELK toplama katmani (Filebeat) — monitoring/tolgee kalibinin aynisi.
-# ⚠️ MANUEL APPLY GEREKIR (app-of-apps yok):
+# ✅ OTOMATIK UYGULANIR — gitops/bootstrap/platform-root.yaml (app-of-apps) bu yolu izliyor;
+#    merge yeterli, elle apply GEREKMEZ. (Asagidaki manuel komut yalniz bootstrap oncesi tarih icindir.)
+# (eski not) MANUEL APPLY GEREKIRDI (app-of-apps yoktu):
 #   curl -s "https://raw.githubusercontent.com/CihanCakir/inktavia-platform/develop/gitops/apps/elk-app.yaml?cb=$(date +%s)" | kubectl apply -f -
 # ON KOSULLAR (sunucuda, sirayla — ayrintili adimlar docs/V1.0.1/Infra/ELK_KURULUM_RUNBOOK.md):
 #   1) sysctl vm.max_map_count=262144
