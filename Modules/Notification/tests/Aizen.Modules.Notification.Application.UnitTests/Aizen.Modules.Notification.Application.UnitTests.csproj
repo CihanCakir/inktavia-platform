@@ -28,6 +28,8 @@
     <ProjectReference Include="..\..\src\Aizen.Modules.Notification.Application\Aizen.Modules.Notification.Application.csproj" />
     <ProjectReference Include="..\..\src\Aizen.Modules.Notification.Domain\Aizen.Modules.Notification.Domain.csproj" />
     <ProjectReference Include="..\..\src\Aizen.Modules.Notification.Repository\Aizen.Modules.Notification.Repository.csproj" />
+    <!-- The offer consumers live in the host project; reference it to unit-test ExecuteCommitMessage directly. -->
+    <ProjectReference Include="..\..\src\Aizen.Modules.Notification\Aizen.Modules.Notification.csproj" />
   </ItemGroup>
 
 </Project>

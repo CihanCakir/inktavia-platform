@@ -38,7 +38,13 @@ public sealed class ServiceRequestDisputeResolvedConsumer
         var refundSuffix = message.RefundAmount > 0m ? $" — {message.RefundAmount:F2}" : string.Empty;
 
         var recipients = new HashSet<long>();
-        if (message.OwnerUserId != 0)    recipients.Add(message.OwnerUserId);
+        if (message.OwnerUserId != 0) recipients.Add(message.OwnerUserId);
+        else
+            // Don't let the owner drop out silently (the class of gap that hid the offer bug for a month): the
+            // message carried no owner id, so the owner will NOT hear the dispute outcome.
+            _logger.LogWarning(
+                "Owner dispute-resolved notification SKIPPED: message carried no owner id (OwnerUserId=0). SR={SrId} Dispute={DisputeId}.",
+                message.ServiceRequestId, message.DisputeId);
         if (message.ProviderUserId != 0) recipients.Add(message.ProviderUserId);
 
         foreach (var userId in recipients)

@@ -10,24 +10,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.Notification.Consumers.ServiceRequest;
 
-public sealed class ServiceRequestOfferCreatedConsumer
-    : AizenBaseMessageConsumer<ServiceRequestOfferCreatedMessage>
+// Draft→submit offers (SaveOfferDraft then SubmitOffer) publish ONLY this event, not the create-time
+// ServiceRequestOfferCreatedMessage — so without this consumer the real portal offer path notified nobody. Mirrors
+// ServiceRequestOfferCreatedConsumer exactly (provider OfferCreated + owner OfferReceived); the two events are mutually
+// exclusive per offer, so a single offer never double-notifies.
+public sealed class ServiceRequestOfferSubmittedConsumer
+    : AizenBaseMessageConsumer<ServiceRequestOfferSubmittedMessage>
 {
     private readonly ISender _sender;
     private readonly INotificationIdentityRemoteCall _identity;
-    private readonly ILogger<ServiceRequestOfferCreatedConsumer> _logger;
+    private readonly ILogger<ServiceRequestOfferSubmittedConsumer> _logger;
 
-    public ServiceRequestOfferCreatedConsumer(IServiceProvider sp) : base(sp)
+    public ServiceRequestOfferSubmittedConsumer(IServiceProvider sp) : base(sp)
     {
         _sender   = sp.GetRequiredService<ISender>();
         _identity = sp.GetRequiredService<INotificationIdentityRemoteCall>();
-        _logger   = sp.GetRequiredService<ILogger<ServiceRequestOfferCreatedConsumer>>();
+        _logger   = sp.GetRequiredService<ILogger<ServiceRequestOfferSubmittedConsumer>>();
     }
 
-    public override Task<bool> ExecutePrepareMessage(ServiceRequestOfferCreatedMessage message, CancellationToken ct)
+    public override Task<bool> ExecutePrepareMessage(ServiceRequestOfferSubmittedMessage message, CancellationToken ct)
         => Task.FromResult(true);
 
-    public override async Task ExecuteCommitMessage(ServiceRequestOfferCreatedMessage message, CancellationToken ct)
+    public override async Task ExecuteCommitMessage(ServiceRequestOfferSubmittedMessage message, CancellationToken ct)
     {
         // Providers' notifications/tokens/preferences are keyed by ProviderProfileId (the id the provider inbox +
         // push pipeline resolve — see GetUserNotifications / N-A / N-B). Using the raw ProviderUserId would file the
@@ -67,9 +71,9 @@ public sealed class ServiceRequestOfferCreatedConsumer
         }
     }
 
-    public override Task ExecuteRollbackMessage(ServiceRequestOfferCreatedMessage message, AizenMessageError ex, CancellationToken ct)
+    public override Task ExecuteRollbackMessage(ServiceRequestOfferSubmittedMessage message, AizenMessageError ex, CancellationToken ct)
     {
-        _logger.LogWarning("Rollback: ServiceRequestOfferCreatedConsumer SR={SrId}: {Error}", message.ServiceRequestId, ex.Message);
+        _logger.LogWarning("Rollback: ServiceRequestOfferSubmittedConsumer SR={SrId}: {Error}", message.ServiceRequestId, ex.Message);
         return Task.CompletedTask;
     }
 }
