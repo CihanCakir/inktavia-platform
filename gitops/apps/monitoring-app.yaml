@@ -1,6 +1,7 @@
 # Faz A observability — monitoring yigini (Prometheus 7d + Grafana + kube-state + postgres_exporter).
 #
-# ⚠️ BU DOSYA KENDILIGINDEN UYGULANMAZ (app-of-apps yok — bilinen bosluk). Merge SONRASI sunucuda:
+# ✅ OTOMATIK UYGULANIR — gitops/bootstrap/platform-root.yaml (app-of-apps) bu yolu izliyor; merge yeterli.
+# (eski not) Bu dosya kendiliginden uygulanmiyordu; merge sonrasi sunucuda elle:
 #    curl -fsSL "https://raw.githubusercontent.com/CihanCakir/inktavia-platform/develop/gitops/apps/monitoring-app.yaml?cb=$(date +%s)" \
 #      | tee /tmp/mon.yaml | grep -E 'path|targetRevision' && kubectl apply -f /tmp/mon.yaml
 #    (?cb= son eki sart: raw.githubusercontent CDN'i taze merge'i dakikalarca eski gosterebiliyor —

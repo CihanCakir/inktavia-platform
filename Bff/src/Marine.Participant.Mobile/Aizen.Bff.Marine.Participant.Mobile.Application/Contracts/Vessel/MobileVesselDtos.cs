@@ -27,6 +27,10 @@ public sealed class MobileVesselEngineDto
     public string? TypeCode { get; set; }
     public string? FuelTypeCode { get; set; }
     public int? HorsePower { get; set; }
+    // Denormalized catalog names (already carried by the upstream VesselEngineDto) — surfaced so the
+    // mobile vessel-detail engines card can render "Brand Model · HP" instead of only the display name.
+    public string? Brand { get; set; }
+    public string? Model { get; set; }
     public long? EngineBrandId { get; set; }
     public long? EngineModelId { get; set; }
     public bool IsPrimary { get; set; }

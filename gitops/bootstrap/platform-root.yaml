@@ -1,0 +1,48 @@
+# APP-OF-APPS — GitOps zincirinin son halkasını otomatikleştirir (borç #114 / #33).
+#
+# SORUN: gitops/apps/ altındaki Application + ApplicationSet dosyalarını kümeye uygulayan bir el yoktu.
+# Bot'un bump PR'ı dev-appset.yaml'daki `image.tag` satırını değiştiriyor, PR merge oluyor, ArgoCD
+# "Synced + Healthy" gösteriyor — ama küme eski tag'i koşmaya devam ediyordu, çünkü ArgoCD git'teki
+# appset DOSYASINI değil, kümedeki ApplicationSet nesnesinin ÜRETTİĞİ spec'i kıyaslıyor. Yeşil ekran
+# yanıltıcıydı (2026-09-09'da bir dağıtım turunu bu yüzden kaybettik; 2026-08-20'de bir saat).
+#
+# ÇÖZÜM: bu kök Application gitops/apps yolunu izler. Bir dosya değişince ArgoCD onu kendisi uygular:
+#   bump PR merge → kök app sync → ApplicationSet güncellenir → 15 child Application güncellenir → rollout.
+# Elle `kubectl apply` yalnızca AŞAĞIDAKİ TEK BOOTSTRAP için gerekir, bir daha değil.
+#
+# BOOTSTRAP (sunucuda, bir kez):
+#   cd /srv/deploy/inktavia-platform && sudo git pull
+#   sudo kubectl apply -f gitops/bootstrap/platform-root.yaml
+#   kubectl -n platform get app platform-root -w      # Synced + Healthy olmalı
+#
+# NEDEN gitops/apps/ İÇİNDE DEĞİL: kendi kendini yöneten bir kök app, dosyası silindiğinde/yeniden
+# adlandırıldığında kendini budamaya çalışır. Ayrı yolda durursa bu döngü hiç kurulmaz.
+#
+# prune=false BİLİNÇLİ: bu app'in "kaynakları" 15 servisi doğuran ApplicationSet'in ta kendisi.
+# prune açıkken gitops/apps'ten bir dosyanın yanlışlıkla silinmesi (ya da yol değişikliği) child
+# Application'ları ve altlarındaki tüm iş yüklerini zincirleme siler. Child app'lerin KENDİ
+# syncPolicy'lerinde prune zaten açık — orada kapsam dar ve güvenli. Kökte açmak istersen önce
+# "silindiğinde ne ölür" sorusunu yaz.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-root
+  namespace: platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CihanCakir/inktavia-platform.git
+    targetRevision: develop
+    path: gitops/apps
+    directory:
+      recurse: false      # dosyalar düz duruyor; alt klasör eklenirse true yapılacak
+      include: '*.yaml'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: platform   # Application/ApplicationSet CR'ları bu namespace'te yaşıyor
+  syncPolicy:
+    automated:
+      prune: false        # yukarıdaki gerekçe — bilinçli kapalı
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
