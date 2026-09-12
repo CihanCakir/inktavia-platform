@@ -23,9 +23,9 @@ spec:
     repoURL: https://github.com/CihanCakir/inktavia-platform.git
     targetRevision: develop
     path: infrastructure/k8s/cloudflared
-    directory:
-      # Dizin düz: cloudflared.yaml + cloudflared-tunnel-sealed.yaml
-      recurse: false
+    # Dizin düz: cloudflared.yaml + cloudflared-tunnel-sealed.yaml (recurse zaten varsayılan false;
+    # ALAN YAZILMIYOR: Argo Application tipinde `recurse` omitempty — false kümeye yazılırken düşer ve
+    # app-of-apps altında KALICI OutOfSync + sonsuz sync döngüsü üretir).
   destination:
     server: https://kubernetes.default.svc
     # Namespace'i manifest'in kendisi tanımlıyor, Argo CD yaratmasın.

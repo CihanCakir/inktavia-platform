@@ -30,8 +30,7 @@ spec:
     repoURL: https://github.com/CihanCakir/inktavia-platform.git
     targetRevision: develop
     path: infrastructure/monitoring
-    directory:
-      recurse: false
+    # recurse YAZILMIYOR: omitempty yüzünden false kümeye geçmiyor → app-of-apps altında kalıcı OutOfSync.
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
