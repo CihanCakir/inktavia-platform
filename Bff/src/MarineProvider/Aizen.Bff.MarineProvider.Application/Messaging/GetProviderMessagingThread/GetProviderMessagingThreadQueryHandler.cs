@@ -62,10 +62,18 @@ public sealed class GetProviderMessagingThreadQueryHandler
                 TotalCount  = messages.Count,
             };
         }
+        catch (Refit.ApiException ex) when (
+            ex.StatusCode is System.Net.HttpStatusCode.NotFound or System.Net.HttpStatusCode.Forbidden)
+        {
+            // 404 (no conversation yet — normal before the provider's offer / owner's reply) and 403 (not a
+            // participant) both return an EMPTY thread: uniform response preserves the no-id-space-probing
+            // property, and the guaranteed-404 eager read no longer logs an error on every detail view.
+            _logger.LogDebug(ex, "No messaging thread for SR {ServiceRequestId}, provider user {UserId}",
+                request.ServiceRequestId, _identityHolder.UserId);
+            return new ProviderMessagesResponse { Items = new(), ChannelOpen = false, TotalCount = 0 };
+        }
         catch (Refit.ApiException ex)
         {
-            // 403 (not a participant) or 404 (no conversation yet) both surface as "not found" to the provider,
-            // exactly like the SR-backed handler — no id-space probing signal.
             _logger.LogWarning(ex, "Messaging thread failed for SR {ServiceRequestId}, provider user {UserId}",
                 request.ServiceRequestId, _identityHolder.UserId);
             throw new AizenBusinessException("Service request not found.");

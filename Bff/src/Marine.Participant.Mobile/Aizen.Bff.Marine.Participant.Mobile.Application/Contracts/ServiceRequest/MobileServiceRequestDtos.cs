@@ -111,6 +111,8 @@ public sealed class CreateMobileServiceRequestRequest
     public decimal? LocationLatitude { get; set; }
     public decimal? LocationLongitude { get; set; }
     public string? OwnerNotes { get; set; }
+    /// <summary>CargoDry product code — REQUIRED by the SR module when ServiceCategoryCode is CARGODRY_SUPPLY; ignored otherwise.</summary>
+    public string? CargoDryProductCode { get; set; }
     /// <summary>Already-uploaded files (client-side presigned via /mobile/uploads) to attach to the new request.</summary>
     public List<MobileServiceRequestAttachmentInput>? Attachments { get; set; }
     public bool Publish { get; set; } = true;
