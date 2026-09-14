@@ -32,6 +32,7 @@ public sealed class GetAdminServiceRequestStatusBreakdownHandlerTests
         public Task<ServiceRequestEntity?> GetByIdAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<ServiceRequestEntity?> GetByIdWithDetailsAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<ServiceRequestEntity?> GetByCodeAsync(string requestCode, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<ServiceRequestEntity?> GetOldestOpenCargoDrySupplyAsync(long ownerUserId, long vesselId, string productCode, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<IReadOnlyList<ServiceRequestEntity>> GetByOwnerUserIdAsync(long ownerUserId, int skip, int take, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<int> CountByOwnerUserIdAsync(long ownerUserId, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<IReadOnlyList<ServiceRequestEntity>> GetByVesselIdAsync(long vesselId, CancellationToken ct = default) => throw new NotImplementedException();

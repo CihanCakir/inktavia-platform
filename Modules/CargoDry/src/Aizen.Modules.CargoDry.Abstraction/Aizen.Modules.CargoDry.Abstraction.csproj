@@ -6,5 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
+    <!-- CargoDry supply flow: IAizenRemoteCall S2S contract (ICargoDrySupplyRemoteCall) consumed by ServiceRequest -->
+    <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
   </ItemGroup>
 </Project>

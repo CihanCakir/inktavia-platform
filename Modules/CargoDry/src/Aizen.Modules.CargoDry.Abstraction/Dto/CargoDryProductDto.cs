@@ -36,6 +36,12 @@ public sealed class CargoDryProductDto
     /// Populated only by the product detail endpoint — null in list responses.
     /// </summary>
     public CargoDryProductKitStatsDto? KitStats { get; init; }
+
+    // ── Media (CargoDry supply flow, additive) ─────────────────────────────────
+    /// <summary>FileStorage file id of the product thumbnail. Null = none set. Resolved to a URL at the BFF boundary.</summary>
+    public Guid? ThumbnailFileId { get; init; }
+    /// <summary>Ordered gallery image FileStorage file ids. Populated by the product-detail endpoint (media-aware read).</summary>
+    public List<Guid> ImageFileIds { get; init; } = new();
 }
 
 /// <summary>

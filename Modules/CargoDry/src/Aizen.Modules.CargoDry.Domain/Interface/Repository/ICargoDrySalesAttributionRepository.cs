@@ -10,6 +10,12 @@ public interface ICargoDrySalesAttributionRepository
 
     Task<CargoDrySalesAttributionEntity?> GetByKitIdAsync(long kitId, CancellationToken ct);
 
+    /// <summary>
+    /// CargoDry supply flow: the attribution recorded for a source CARGODRY_SUPPLY service request, if any.
+    /// The idempotency lookup — a non-null result means this SR's sale was already recorded (skip).
+    /// </summary>
+    Task<CargoDrySalesAttributionEntity?> GetBySourceServiceRequestIdAsync(long serviceRequestId, CancellationToken ct);
+
     Task<(List<CargoDrySalesAttributionEntity> Items, int Total)> GetPagedAsync(
         long?                          providerProfileId,
         string?                        productCode,

@@ -16,6 +16,7 @@ namespace Aizen.Modules.Payment.Abstraction
         ServiceRequestRefund      = 11,  // Refund on SR cancellation / dispute resolution
         CargoDryRenewal           = 20,  // CargoDry kit renewal payment
         CargoDryRenewalRefund     = 21,  // Refund on CargoDry renewal
+        CargoDrySupplyEscrow      = 22,  // CargoDry supply (PrincipalSale): owner buys a kit at retail; platform is sole merchant, provider paid via sell-through settlement
         ProviderPlanSubscription  = 30,  // Provider platform subscription (monthly/annual)
         ParticipantSubscription   = 31,  // Participant/customer platform subscription
 

@@ -62,6 +62,11 @@ internal sealed class FakeCargoDryRemoteCall : ICargoDryRemoteCall
         if (ThrowOnGetMyKits is not null) throw ThrowOnGetMyKits;
         return Task.FromResult(MyKitsResponse!);
     }
+
+    // CargoDry supply flow (item 1): owner-safe catalog. Configurable; defaults to empty.
+    public List<CargoDryProductCatalogDto> CatalogProductsResponse { get; set; } = new();
+    public Task<List<CargoDryProductCatalogDto>> GetCatalogProducts()
+        => Task.FromResult(CatalogProductsResponse);
 }
 
 /// <summary>Vessel remote stub. Only GetUserVessels is functional (returns a configurable owned set); the rest of the

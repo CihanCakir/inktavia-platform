@@ -9,6 +9,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.Dispute;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest;
+using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest.CompleteCargoDrySupplyOnActivation;
 using Aizen.Modules.ServiceRequest.Application.Query.Dispute;
 using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetOwnerAttachmentAccessCheck;
 using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetOwnerDisputes;
@@ -61,6 +62,26 @@ public sealed class ServiceRequestController : AizenWebApiController
         [FromBody] CreateServiceRequestRequest req, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<CreateServiceRequestResponse>(new CreateServiceRequestCommand(req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// CargoDry supply flow — called by the mobile BFF right after a kit is activated. Correlates the activation with
+    /// the owner's open CARGODRY_SUPPLY request (owner from the forwarded token) and, on a match, releases the
+    /// platform-collected escrow, completes+closes the SR, and records the sale in CargoDry. Walk-in/mismatch = no-op.
+    /// </summary>
+    [HttpPost("cargodry/kit-activated")]
+    [ProducesResponseType(typeof(CompleteCargoDrySupplyOnActivationResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CompleteCargoDrySupplyOnActivationResponse?>> CargoDryKitActivated(
+        [FromBody] CargoDryKitActivatedRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<CompleteCargoDrySupplyOnActivationResponse>(
+            new CompleteCargoDrySupplyOnActivationCommand
+            {
+                KitId       = req.KitId,
+                VesselId    = req.VesselId,
+                ProductCode = req.ProductCode,
+            }, ct);
         return SetResponse(result);
     }
 

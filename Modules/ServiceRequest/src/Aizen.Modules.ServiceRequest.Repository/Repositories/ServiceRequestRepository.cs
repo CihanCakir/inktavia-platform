@@ -40,6 +40,27 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
     public Task<ServiceRequestEntity?> GetByCodeAsync(string requestCode, CancellationToken ct = default)
         => _db.ServiceRequests.FirstOrDefaultAsync(x => x.RequestCode == requestCode && !x.IsDeleted, ct);
 
+    public Task<ServiceRequestEntity?> GetOldestOpenCargoDrySupplyAsync(
+        long ownerUserId, long vesselId, string productCode, CancellationToken ct = default)
+    {
+        var code = productCode.Trim().ToUpperInvariant();
+        return _db.ServiceRequests
+            .Include(x => x.Offers).ThenInclude(o => o.Items)
+            .Where(x => !x.IsDeleted
+                && x.OwnerUserId == ownerUserId
+                && x.VesselId == vesselId
+                && x.ServiceCategoryCode == Abstraction.Constants.ServiceRequestServiceCategoryCodes.CargoDrySupply
+                && x.CargoDryProductCode == code
+                && x.PaymentTransactionId != null                                   // escrow held
+                && x.Status != Abstraction.Enum.ServiceRequestStatus.Completed
+                && x.Status != Abstraction.Enum.ServiceRequestStatus.Closed
+                && x.Status != Abstraction.Enum.ServiceRequestStatus.Cancelled
+                && x.Status != Abstraction.Enum.ServiceRequestStatus.Expired
+                && x.Status != Abstraction.Enum.ServiceRequestStatus.DisputeResolved)
+            .OrderBy(x => x.CreateDate)                                             // oldest accepted wins (deterministic)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<IReadOnlyDictionary<long, TravelPricingDetailEntity>> GetTravelPricingByOfferItemIdsAsync(
         IReadOnlyCollection<long> offerItemIds, CancellationToken ct = default)
     {
@@ -275,6 +296,13 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
 
         var pageSize = Math.Clamp(filter.PageSize, 1, 100);
 
+        // CargoDry supply flow (item 5): parse the CSV of owner ids that prefer the calling provider. Matched in the
+        // projection to set IsOwnerPreferred WITHOUT projecting the raw OwnerUserId. Empty ⇒ nobody preferred.
+        var preferredOwnerIds = string.IsNullOrWhiteSpace(filter.PreferredOwnerUserIdsCsv)
+            ? new List<long>()
+            : filter.PreferredOwnerUserIdsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(s => long.TryParse(s, out var v) ? v : 0L).Where(v => v > 0).ToList();
+
         // Select projection — NO Include
         return await ordered
             .Take(pageSize + 1)
@@ -288,6 +316,9 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
                 Priority = x.Priority.ToString(),
                 ServiceCategoryCode = x.ServiceCategoryCode,
                 ServiceTypeCode = x.ServiceTypeCode,
+                CargoDryProductCode = x.CargoDryProductCode,   // CargoDry supply flow — provider-safe (product code only)
+                // CargoDry supply flow (item 5): server-side owner-match; the raw OwnerUserId is NOT projected (privacy).
+                IsOwnerPreferred = preferredOwnerIds.Contains(x.OwnerUserId),
                 LocationCityCode = x.LocationCityCode,
                 LocationCountryCode = x.LocationCountryCode,
                 LocationMarinaName = x.LocationMarinaName,

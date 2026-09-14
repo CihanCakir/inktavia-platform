@@ -61,6 +61,19 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
         var rawToken     = _info.UserInfoAccessor.UserInfo.AccessToken; // forwarded to Payment module
         var prevStatus   = sr.Status;
 
+        // ── CargoDry supply (PrincipalSale): platform-only escrow, NO provider split ──────────────────
+        // A CARGODRY_SUPPLY request is a fixed-retail PrincipalSale: the owner buys the kit from the platform, and the
+        // fulfilling provider is compensated ONLY via the CargoDry sell-through settlement (created at kit activation),
+        // never via this escrow. So we do NOT run the marketplace economics combiner (which would compute a provider
+        // split); instead we create a platform-collected escrow (RecipientProfileId=null, Commission=0, NetPayout=0) —
+        // guaranteeing a zero provider split by construction. The owner is charged the pinned retail total.
+        if (string.Equals(sr.ServiceCategoryCode,
+                Abstraction.Constants.ServiceRequestServiceCategoryCodes.CargoDrySupply, StringComparison.OrdinalIgnoreCase))
+        {
+            await AcceptCargoDrySupplyOfferAsync(sr, offer, currentUserId, prevStatus, rawToken, cancellationToken);
+            return new AcceptServiceRequestOfferResponse(offer.Id, sr.Id);
+        }
+
         // ── BE-P8: acceptance economics + escrow BEFORE committing acceptance ──────────────────
         // Run the Payment combiner (plan → S7 commission → P3 fee → P5 gate → S8 snapshot → escrow).
         // On Rejected/ConfigurationError we BLOCK acceptance (throw) — no half-accepted offer, no escrow.
@@ -139,6 +152,65 @@ public sealed class AcceptServiceRequestOfferCommandHandler : AizenCommandHandle
             cancellationToken);
 
         return new AcceptServiceRequestOfferResponse(offer.Id, sr.Id);
+    }
+
+    // ── CargoDry supply acceptance (PrincipalSale platform-only escrow) ──────────────────────────────────────
+    /// <summary>
+    /// Accepts a CARGODRY_SUPPLY offer with a platform-collected escrow (no provider split). The owner is charged the
+    /// pinned retail total (offer.GrandTotal); the transaction is created with RecipientProfileId=null / NetPayout=0 via
+    /// <see cref="CreateEscrowRemoteCallRequest.PlatformCollectedNoProviderShare"/>. Same acceptance side effects as the
+    /// marketplace path (offer.Accept, SR→OfferAccepted, PaymentTransactionId, realtime + accepted message, assignment),
+    /// minus the economics combiner. Provider compensation flows through the CargoDry sell-through settlement at kit activation.
+    /// </summary>
+    private async Task AcceptCargoDrySupplyOfferAsync(
+        ServiceRequestEntity sr, ServiceRequestOfferEntity offer, long currentUserId,
+        ServiceRequestStatus prevStatus, string? rawToken, CancellationToken cancellationToken)
+    {
+        var escrow = await _paymentRemoteCall.CreateEscrowAsync(new CreateEscrowRemoteCallRequest
+        {
+            IdempotencyKey                   = $"SR-{sr.Id}-OFFER-{offer.Id}",
+            Context                          = Aizen.Modules.Payment.Abstraction.Model.TransactionContext.ForServiceRequest(sr.Id, offer.Id),
+            TransactionType                  = Aizen.Modules.Payment.Abstraction.TransactionType.CargoDrySupplyEscrow,
+            PayerProfileId                   = sr.OwnerUserId,
+            RecipientProfileId               = null,                 // PrincipalSale — platform is the merchant, no provider payee
+            GrossAmount                      = offer.GrandTotal,     // pinned retail total
+            DiscountAmount                   = 0m,
+            CurrencyCode                     = offer.CurrencyCode,
+            ProviderPlanId                   = null,
+            CategoryCode                     = sr.ServiceCategoryCode,
+            EscrowRequired                   = true,                 // held until kit activation; refundable before then
+            PlatformCollectedNoProviderShare = true,                 // guarantees zero provider split by construction
+        }, $"Bearer {rawToken}", cancellationToken);
+
+        offer.Accept();
+        _offerRepository.Update(offer);
+
+        sr.ChangeStatus(ServiceRequestStatus.OfferAccepted);
+        sr.AddStatusHistory(ServiceRequestStatusHistoryEntity.Create(
+            sr.Id, prevStatus, ServiceRequestStatus.OfferAccepted,
+            "CargoDry supply offer accepted (platform-collected)", currentUserId, ServiceRequestActorType.Owner));
+        sr.SetPaymentTransaction(escrow.TransactionId);
+        _srRepository.Update(sr);
+
+        _logger.LogInformation(
+            "CargoDry supply escrow created (platform-collected). SR={SrId} Offer={OfferId} Tx={TxId} Retail={Amount} {Currency} Product={Product}",
+            sr.Id, offer.Id, escrow.TransactionId, offer.GrandTotal, offer.CurrencyCode, sr.CargoDryProductCode);
+
+        await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, offer.ProviderProfileId,
+            ServiceRequestRealtimeEventType.OfferAccepted, offer.ToDto(),
+            currentUserId, ServiceRequestActorType.Owner, cancellationToken);
+
+        await _messagePublisher.PublishAsync(new ServiceRequestOfferAcceptedMessage
+        {
+            ServiceRequestId  = sr.Id,
+            OfferId           = offer.Id,
+            OwnerUserId       = sr.OwnerUserId,
+            ProviderProfileId = offer.ProviderProfileId,
+        }, cancellationToken);
+
+        await _assignmentCreator.CreateFromAcceptedOfferAsync(
+            sr, offer, currentUserId, assignedTeamMemberId: null, scheduledStartDate: null, scheduledEndDate: null,
+            cancellationToken);
     }
 
     // ── SR → Payment P8 request mapping (mirrors the S7 preview projection; Discount items excluded) ─────────

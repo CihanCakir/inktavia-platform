@@ -41,4 +41,12 @@ public sealed class CreateEscrowRemoteCallRequest
 
     /// <summary>Always true for SR payments (funds held until completion).</summary>
     public bool EscrowRequired { get; init; } = true;
+
+    /// <summary>
+    /// PrincipalSale / platform-collected (CargoDry supply, additive): when true the platform is the sole merchant —
+    /// NO provider split. Commission is skipped and the transaction is persisted with Commission=0 / NetPayout=0
+    /// (whole gross = platform revenue). The provider is compensated only via the CargoDry sell-through settlement.
+    /// Default false preserves marketplace behaviour.
+    /// </summary>
+    public bool PlatformCollectedNoProviderShare { get; init; } = false;
 }

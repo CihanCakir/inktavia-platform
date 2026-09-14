@@ -18,6 +18,9 @@ public sealed class CargoDrySalesAttributionRepository : ICargoDrySalesAttributi
     public Task<CargoDrySalesAttributionEntity?> GetByKitIdAsync(long kitId, CancellationToken ct)
         => _db.SalesAttributions.FirstOrDefaultAsync(x => x.KitId == kitId, ct);
 
+    public Task<CargoDrySalesAttributionEntity?> GetBySourceServiceRequestIdAsync(long serviceRequestId, CancellationToken ct)
+        => _db.SalesAttributions.FirstOrDefaultAsync(x => x.SourceServiceRequestId == serviceRequestId, ct);
+
     public async Task<(List<CargoDrySalesAttributionEntity> Items, int Total)> GetPagedAsync(
         long?                           providerProfileId,
         string?                         productCode,

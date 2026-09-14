@@ -24,17 +24,20 @@ public sealed class ActivateMobileKitCommandHandler
     private readonly IParticipantProfileResolver _resolver;
     private readonly IVesselRemoteCall _vessel;
     private readonly ICargoDryRemoteCall _cargoDry;
+    private readonly IServiceRequestRemoteCall _serviceRequest;
     private readonly ILogger<ActivateMobileKitCommandHandler> _logger;
 
     public ActivateMobileKitCommandHandler(
         IParticipantProfileResolver resolver,
         IVesselRemoteCall vessel,
         ICargoDryRemoteCall cargoDry,
+        IServiceRequestRemoteCall serviceRequest,
         ILogger<ActivateMobileKitCommandHandler> logger)
     {
         _resolver = resolver;
         _vessel = vessel;
         _cargoDry = cargoDry;
+        _serviceRequest = serviceRequest;
         _logger = logger;
     }
 
@@ -73,6 +76,25 @@ public sealed class ActivateMobileKitCommandHandler
 
             if (kit is null)
                 throw new AizenBusinessException("Kit activation failed.");
+
+            // CargoDry supply flow: best-effort — notify SR so it can correlate this activation with the owner's open
+            // CARGODRY_SUPPLY request (release platform escrow → complete SR → record sale). Never fail activation if
+            // correlation fails (the kit IS activated); SR no-ops for a walk-in activation. Reconcilable if it errors.
+            try
+            {
+                await _serviceRequest.NotifyCargoDryKitActivated(new Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest.CargoDryKitActivatedRequest
+                {
+                    KitId       = kit.Id,
+                    VesselId    = request.VesselId,
+                    ProductCode = kit.ProductCode,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "CargoDry supply correlation failed after activating kit {KitId} on vessel {VesselId}; activation stands, reconcile SR later.",
+                    kit.Id, request.VesselId);
+            }
 
             return MobileCargoDryMapper.MapKit(kit);
         }

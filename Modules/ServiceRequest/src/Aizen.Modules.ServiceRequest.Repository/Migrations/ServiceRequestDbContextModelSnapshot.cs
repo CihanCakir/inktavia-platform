@@ -1941,6 +1941,10 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.Property<long?>("CancelledByUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("CargoDryProductCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Category")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -2090,6 +2094,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
 
                     b.HasIndex("Status", "LocationLatitude", "LocationLongitude")
                         .HasDatabaseName("IX_service_requests_Status_Lat_Lng");
+
+                    b.HasIndex("VesselId", "CargoDryProductCode", "Status")
+                        .HasDatabaseName("IX_service_requests_Vessel_CargoDryProduct_Status");
 
                     b.ToTable("service_requests", "servicerequest");
                 });

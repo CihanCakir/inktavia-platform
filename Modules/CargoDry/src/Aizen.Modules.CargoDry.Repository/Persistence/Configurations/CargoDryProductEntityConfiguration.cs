@@ -26,6 +26,13 @@ public sealed class CargoDryProductEntityConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.ConsignmentPrice).HasColumnType("decimal(18,2)");       // null = use RetailPrice as fallback
         builder.Property(x => x.ProviderCommissionRate).HasColumnType("decimal(6,4)");  // 0.00-1.00; null = no commission
 
+        // ── Media (CargoDry supply flow, additive) ─────────────────────────────
+        builder.Property(x => x.ThumbnailFileId);   // nullable Guid — FileStorage file id, resolved to URL at BFF
+        builder.HasMany(x => x.Images)
+            .WithOne()
+            .HasForeignKey(i => i.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // IsActive: mapped by AizenEntityWithAudit base configuration
         // CreateDate / ModifyDate: mapped by AizenEntityWithAudit base configuration — DO NOT re-map
     }

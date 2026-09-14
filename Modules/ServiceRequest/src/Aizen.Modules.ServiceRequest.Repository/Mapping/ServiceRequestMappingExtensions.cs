@@ -34,6 +34,7 @@ public static class ServiceRequestMappingExtensions
         LocationLatitude = entity.LocationLatitude,
         LocationLongitude = entity.LocationLongitude,
         ExpiresAt = entity.ExpiresAt,
+        CargoDryProductCode = entity.CargoDryProductCode,
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
     };
@@ -287,6 +288,7 @@ public static class ServiceRequestMappingExtensions
         VesselId = entity.VesselId,
         VesselName = entity.VesselName,
         OwnerNotes = entity.OwnerNotes,
+        CargoDryProductCode = entity.CargoDryProductCode,
         PublishedAt = entity.PublishedAt,
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow

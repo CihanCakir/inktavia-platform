@@ -19,6 +19,21 @@ public sealed class CargoDryProductRepository : ICargoDryProductRepository
     public Task<List<CargoDryProductEntity>> GetAllAsync(CancellationToken ct)
         => _db.Products.OrderBy(x => x.ProductCode).ToListAsync(ct);
 
+    public async Task<CargoDryProductEntity?> GetByCodeWithImagesAsync(string productCode, CancellationToken ct)
+    {
+        var product = await _db.Products
+            .Include(x => x.Images.OrderBy(i => i.SortOrder))
+            .FirstOrDefaultAsync(x => x.ProductCode == productCode, ct);
+        return product;
+    }
+
+    public Task<List<CargoDryProductEntity>> GetAllActiveWithImagesAsync(CancellationToken ct)
+        => _db.Products
+            .Where(x => x.IsActive)
+            .Include(x => x.Images.OrderBy(i => i.SortOrder))
+            .OrderBy(x => x.ProductCode)
+            .ToListAsync(ct);
+
     public Task<bool> ExistsByCodeAsync(string productCode, CancellationToken ct)
         => _db.Products.AnyAsync(x => x.ProductCode == productCode, ct);
 
@@ -27,6 +42,9 @@ public sealed class CargoDryProductRepository : ICargoDryProductRepository
         await _db.Products.AddAsync(entity, ct);
         await _db.SaveChangesAsync(ct);
     }
+
+    public void RemoveImage(CargoDryProductImageEntity image)
+        => _db.ProductImages.Remove(image);
 
     public Task SaveChangesAsync(CancellationToken ct)
         => _db.SaveChangesAsync(ct);

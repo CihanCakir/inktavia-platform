@@ -3,6 +3,7 @@ using Aizen.Core.Infrastructure.Api;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer;
+using Aizen.Modules.ServiceRequest.Application.Command.Offer.CreateCargoDrySupplyOffer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.SaveOfferDraft;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.PreviewOffer;
 using Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
@@ -38,6 +39,20 @@ public sealed class ServiceRequestOfferController : AizenWebApiController
         [FromRoute] long serviceRequestId, [FromBody] CreateServiceRequestOfferRequest req, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<CreateServiceRequestOfferResponse>(new CreateServiceRequestOfferCommand(serviceRequestId, req), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// CargoDry supply flow — a program provider "accepts" a CARGODRY_SUPPLY request. No bidding: the server pins a
+    /// single offer at the product's fixed retail price. Gated server-side on an ACTIVE ConsignmentAgreement.
+    /// </summary>
+    [HttpPost("cargodry-accept")]
+    [ProducesResponseType(typeof(CreateCargoDrySupplyOfferResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CreateCargoDrySupplyOfferResponse?>> CargoDryAccept(
+        [FromRoute] long serviceRequestId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<CreateCargoDrySupplyOfferResponse>(
+            new CreateCargoDrySupplyOfferCommand { ServiceRequestId = serviceRequestId }, ct);
         return SetResponse(result);
     }
 

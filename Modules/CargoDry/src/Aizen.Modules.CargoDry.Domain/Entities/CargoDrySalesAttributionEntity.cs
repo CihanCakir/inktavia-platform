@@ -141,6 +141,14 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
     public long?     ReviewedByUserId   { get; private set; }
     public DateTime? ReviewedAt         { get; private set; }
 
+    // ── CargoDry supply flow (additive) ───────────────────────────────────────────
+    /// <summary>
+    /// Set when this attribution originates from a CARGODRY_SUPPLY service request (owner buys a kit at retail via the
+    /// SR flow, activated on their vessel). The idempotency key for supply-sale recording — at most ONE attribution per
+    /// source SR, so a re-fired kit-activation event can never double-credit the provider. Null for walk-in/direct kits.
+    /// </summary>
+    public long? SourceServiceRequestId { get; private set; }
+
     // ── Audit ───────────────────────────────────────────────────────────────────
     public DateTime CreatedAtUtc { get; private set; }
 
@@ -321,6 +329,19 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
         RateResolvedAtUtc    = resolvedAtUtc;
         RateResolvedByUserId = resolvedByUserId;
         RuleResolutionNote   = ruleResolutionNote;
+    }
+
+    /// <summary>
+    /// Links this attribution to its source CARGODRY_SUPPLY service request. Set-once — a second call means a duplicate
+    /// activation event slipped through; the caller must treat that as already-recorded and skip. Guarantees at most one
+    /// provider credit per supply SR.
+    /// </summary>
+    public void LinkSupplyServiceRequest(long serviceRequestId)
+    {
+        if (SourceServiceRequestId.HasValue)
+            throw new InvalidOperationException(
+                $"Attribution {Id} is already linked to supply SR {SourceServiceRequestId}.");
+        SourceServiceRequestId = serviceRequestId;
     }
 
     /// <summary>Cancels the attribution (kit revoked or agreement voided).</summary>

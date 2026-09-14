@@ -29,6 +29,14 @@ public interface IServiceRequestRepository
     Task AddAsync(ServiceRequestEntity entity, CancellationToken ct = default);
     void Update(ServiceRequestEntity entity);
 
+    /// <summary>
+    /// CargoDry supply flow — the OLDEST still-open (accepted, escrow held, not yet completed/closed/cancelled)
+    /// CARGODRY_SUPPLY request for the owner+vessel+product, with its Offers loaded. Deterministic tie-break by
+    /// CreateDate asc. Returns null for a walk-in activation (no matching SR) or a product/vessel mismatch.
+    /// </summary>
+    Task<ServiceRequestEntity?> GetOldestOpenCargoDrySupplyAsync(
+        long ownerUserId, long vesselId, string productCode, CancellationToken ct = default);
+
     /// <summary>BE-S4 — travel-pricing details keyed by offer-item id, for the given offer items (Travel lines). Read-only.</summary>
     Task<IReadOnlyDictionary<long, TravelPricingDetailEntity>> GetTravelPricingByOfferItemIdsAsync(
         IReadOnlyCollection<long> offerItemIds, CancellationToken ct = default);

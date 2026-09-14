@@ -21,6 +21,10 @@ public sealed record ProviderDiscoveryItemDto
     public string Priority { get; init; } = string.Empty;
     public string? ServiceCategoryCode { get; init; }
     public string? ServiceTypeCode { get; init; }
+    /// <summary>CargoDry supply flow: the requested product code (non-null only for CARGODRY_SUPPLY). Provider-safe; drives the pinned-retail accept + gating.</summary>
+    public string? CargoDryProductCode { get; init; }
+    /// <summary>CargoDry supply flow (item 5): true when the SR owner has marked the calling provider as their preferred CargoDry supplier. Server-computed without exposing the owner id.</summary>
+    public bool IsOwnerPreferred { get; init; }
     public string? LocationCityCode { get; init; }
     public string? LocationCountryCode { get; init; }
     public string? LocationMarinaName { get; init; }

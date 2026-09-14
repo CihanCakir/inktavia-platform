@@ -37,6 +37,12 @@ using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDrySellThroughSett
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.AdjustProviderInventory;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.AllocateBatchToProvider;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.CreateCargoDryProduct;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.RequestCargoDryProductImageUploadUrlBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.RegisterCargoDryProductImageBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.ReorderCargoDryProductImagesBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.RemoveCargoDryProductImageBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.SetCargoDryProductThumbnailBff;
+using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.CreateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.ExtendKit;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.GenerateCargoDryBatch;
@@ -315,6 +321,83 @@ public sealed class CargoDryController : AizenWebApiController
             }, ct);
 
         return SetResponse(result?.Product);
+    }
+
+    // ── Product media (CargoDry supply flow) ────────────────────────────────────
+    // Presigned-PUT two-step: request an upload URL → browser PUTs bytes → register the FileId. Reorder / delete /
+    // set-thumbnail proxy to the CargoDry module. Product images resolve to presigned read URLs in GET products/{code}.
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/products/{productCode}/images/upload-url</summary>
+    [HttpPost("products/{productCode}/images/upload-url")]
+    [ProducesResponseType(typeof(CargoDryProductImageUploadUrlBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProductImageUploadUrlBffResponse>> RequestProductImageUploadUrl(
+        string productCode, [FromBody] ProductImageUploadUrlBody body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new RequestCargoDryProductImageUploadUrlBffCommand
+        {
+            ProductCode   = productCode,
+            FileName      = body.FileName,
+            ContentType   = body.ContentType,
+            FileSizeBytes = body.FileSizeBytes,
+        }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/products/{productCode}/images</summary>
+    [HttpPost("products/{productCode}/images")]
+    [ProducesResponseType(typeof(CargoDryProductImagesDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProductImagesDto>> RegisterProductImage(
+        string productCode, [FromBody] RegisterProductImageBody body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new RegisterCargoDryProductImageBffCommand
+        {
+            ProductCode       = productCode,
+            FileId            = body.FileId,
+            UploadSessionCode = body.UploadSessionCode,
+        }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>PUT /api/v1/admin-panel/cargodry/products/{productCode}/images/reorder</summary>
+    [HttpPut("products/{productCode}/images/reorder")]
+    [ProducesResponseType(typeof(CargoDryProductImagesDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProductImagesDto>> ReorderProductImages(
+        string productCode, [FromBody] ReorderProductImagesBody body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new ReorderCargoDryProductImagesBffCommand
+        {
+            ProductCode    = productCode,
+            OrderedFileIds = body.OrderedFileIds,
+        }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>DELETE /api/v1/admin-panel/cargodry/products/{productCode}/images/{fileId}</summary>
+    [HttpDelete("products/{productCode}/images/{fileId:guid}")]
+    [ProducesResponseType(typeof(CargoDryProductImagesDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProductImagesDto>> RemoveProductImage(
+        string productCode, Guid fileId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new RemoveCargoDryProductImageBffCommand
+        {
+            ProductCode = productCode,
+            FileId      = fileId,
+        }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>PUT /api/v1/admin-panel/cargodry/products/{productCode}/thumbnail</summary>
+    [HttpPut("products/{productCode}/thumbnail")]
+    [ProducesResponseType(typeof(CargoDryProductImagesDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryProductImagesDto>> SetProductThumbnail(
+        string productCode, [FromBody] SetProductThumbnailBody body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new SetCargoDryProductThumbnailBffCommand
+        {
+            ProductCode = productCode,
+            FileId      = body.FileId,
+        }, ct);
+        return SetResponse(result);
     }
 
     // ── Batches ───────────────────────────────────────────────────────────────
@@ -1556,6 +1639,29 @@ public sealed record RevokeBatchBodyRequest(string Reason);
 public sealed record TransferKitBodyRequest(long NewUserId, long NewVesselId);
 public sealed record RenewKitBodyRequest(int AddedDays, string? PaymentRef);
 public sealed record ExtendKitBodyRequest(int AddedDays);
+
+public sealed class ProductImageUploadUrlBody
+{
+    public string FileName      { get; init; } = default!;
+    public string ContentType   { get; init; } = default!;
+    public long   FileSizeBytes { get; init; }
+}
+
+public sealed class RegisterProductImageBody
+{
+    public Guid    FileId            { get; init; }
+    public string? UploadSessionCode { get; init; }
+}
+
+public sealed class ReorderProductImagesBody
+{
+    public List<Guid> OrderedFileIds { get; init; } = new();
+}
+
+public sealed class SetProductThumbnailBody
+{
+    public Guid? FileId { get; init; }
+}
 
 public sealed class UpdateProductBody
 {

@@ -1,6 +1,7 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.ServiceRequest.Abstraction.Constants;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
@@ -42,6 +43,18 @@ public sealed class CreateServiceRequestCommandHandler : AizenCommandHandler<Cre
             req.Title, req.Description, req.Priority, req.RequestedStartDate, req.RequestedEndDate,
             req.LocationCountryCode, req.LocationCityCode, req.LocationMarinaName,
             req.LocationLatitude, req.LocationLongitude, req.OwnerNotes, req.ExpiresAt);
+
+        // CargoDry supply flow: the requested product code is category-specific payload. The SR aggregate has no
+        // free-form metadata column, so it lives in the additive CargoDryProductCode field. Required for the
+        // CARGODRY_SUPPLY category (drives provider-accept price pinning + kit-activation correlation); ignored
+        // for every other category. Product existence/active is validated downstream at provider accept, where the
+        // CargoDry module is already a dependency — keeping create low-coupling.
+        if (string.Equals(entity.ServiceCategoryCode, ServiceRequestServiceCategoryCodes.CargoDrySupply, StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(req.CargoDryProductCode))
+                throw new AizenBusinessException("CargoDryProductCode is required for a CARGODRY_SUPPLY service request.");
+            entity.SetCargoDryProductCode(req.CargoDryProductCode);
+        }
 
         if (!string.IsNullOrWhiteSpace(req.LocationCityCode))
         {

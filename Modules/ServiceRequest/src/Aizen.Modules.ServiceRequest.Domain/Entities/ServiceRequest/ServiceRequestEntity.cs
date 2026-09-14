@@ -29,6 +29,15 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     public decimal? LocationLatitude { get; private set; }
     public decimal? LocationLongitude { get; private set; }
     public string? OwnerNotes { get; private set; }
+
+    /// <summary>
+    /// CargoDry supply flow (additive): the requested CargoDry product code, set ONLY when
+    /// <see cref="ServiceCategoryCode"/> == "CARGODRY_SUPPLY". Null for every other category.
+    /// Carries the product identity from create → provider accept (pins retail price) → kit-activation
+    /// correlation (release escrow + attribution). Uppercased on set to match product code storage.
+    /// </summary>
+    public string? CargoDryProductCode { get; private set; }
+
     public DateTime? ExpiresAt { get; private set; }
     public DateTime? CancelledAt { get; private set; }
     /// <summary>Free-text cancel note (N-E: the ReasonNote; the structured reason lives in <see cref="CancelReasonCode"/>).</summary>
@@ -217,6 +226,10 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     {
         Status = ServiceRequestStatus.Closed;
     }
+
+    /// <summary>CargoDry supply flow: pins the requested product code. Uppercased; only meaningful for CARGODRY_SUPPLY.</summary>
+    public void SetCargoDryProductCode(string? productCode)
+        => CargoDryProductCode = string.IsNullOrWhiteSpace(productCode) ? null : productCode.Trim().ToUpperInvariant();
 
     public void UpdateCategory(string? category) => Category = category;
     public void UpdateDenormalized(string? vesselName, string? requestedByEmail) { VesselName = vesselName; RequestedByEmail = requestedByEmail; }

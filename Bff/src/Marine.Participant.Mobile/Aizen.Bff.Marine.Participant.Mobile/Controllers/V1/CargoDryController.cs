@@ -50,6 +50,15 @@ public sealed class CargoDryController : AizenWebApiController
         return SetResponse(result);
     }
 
+    /// <summary>Owner-safe active CargoDry product catalog (retail price + media only; never commercial pricing).</summary>
+    [HttpGet("products")]
+    [ProducesResponseType(typeof(List<MobileCargoDryProductDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<MobileCargoDryProductDto>>> GetProducts(CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileCargoDryProductsQuery(), ct);
+        return SetResponse(result);
+    }
+
     /// <summary>The caller's kits plus roll-up counts (empty when none).</summary>
     [HttpGet("kits")]
     [ProducesResponseType(typeof(MobileMyKitsDto), StatusCodes.Status200OK)]

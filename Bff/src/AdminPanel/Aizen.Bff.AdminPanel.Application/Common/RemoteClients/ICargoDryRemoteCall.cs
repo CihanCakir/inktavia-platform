@@ -85,6 +85,31 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] UpdateProductBffRequest request,
         CancellationToken ct = default);
 
+    // ── Product media (CargoDry supply flow) ────────────────────────────────────
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/products/{productCode}/images")]
+    Task<CargoDryProductImagesDto> AddProductImageAsync(
+        string productCode,
+        [AizenRemoteCallBody] AddProductImageRemoteRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/cargodry/admin/products/{productCode}/images/reorder")]
+    Task<CargoDryProductImagesDto> ReorderProductImagesAsync(
+        string productCode,
+        [AizenRemoteCallBody] ReorderProductImagesRemoteRequest request,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallDelete("/api/v1/cargodry/admin/products/{productCode}/images/{fileId}")]
+    Task<CargoDryProductImagesDto> RemoveProductImageAsync(
+        string productCode,
+        Guid fileId,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallPut("/api/v1/cargodry/admin/products/{productCode}/thumbnail")]
+    Task<CargoDryProductImagesDto> SetProductThumbnailAsync(
+        string productCode,
+        [AizenRemoteCallBody] SetProductThumbnailRemoteRequest request,
+        CancellationToken ct = default);
+
     [AizenRemoteCallGet("/api/v1/cargodry/admin/batches")]
     Task<CargoDryBatchListBffDto> GetBatchesAsync(
         [Query] int page,

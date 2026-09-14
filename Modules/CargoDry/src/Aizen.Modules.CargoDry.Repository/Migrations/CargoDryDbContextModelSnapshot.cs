@@ -646,6 +646,70 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.ToTable("kit_lifecycle_events", "cargodry");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryOwnerPreferredProviderEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("FirstServiceRequestId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OwnerUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProviderProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("SetAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId")
+                        .IsUnique();
+
+                    b.HasIndex("ProviderProfileId");
+
+                    b.ToTable("owner_preferred_providers", "cargodry");
+                });
+
             modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryProductEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -726,6 +790,9 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.Property<decimal>("RetailPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid?>("ThumbnailFileId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("ValidityDays")
                         .HasColumnType("integer");
 
@@ -738,6 +805,67 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                         .IsUnique();
 
                     b.ToTable("products", "cargodry");
+                });
+
+            modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryProductImageEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreateHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("CreateUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifyHost")
+                        .HasColumnType("text");
+
+                    b.Property<long?>("ModifyUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("PublicId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductId", "FileId")
+                        .IsUnique();
+
+                    b.ToTable("product_images", "cargodry");
                 });
 
             modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryProviderInventoryEntity", b =>
@@ -1310,6 +1438,9 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<long?>("SourceServiceRequestId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -1342,6 +1473,10 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.HasIndex("SalesChannel");
 
                     b.HasIndex("SellThroughSettlementId");
+
+                    b.HasIndex("SourceServiceRequestId")
+                        .IsUnique()
+                        .HasFilter("\"SourceServiceRequestId\" IS NOT NULL");
 
                     b.HasIndex("Status");
 
@@ -1860,6 +1995,15 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.ToTable("cargodry_stock_requests", "cargodry");
                 });
 
+            modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryProductImageEntity", b =>
+                {
+                    b.HasOne("Aizen.Modules.CargoDry.Domain.Entities.CargoDryProductEntity", null)
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDrySettlementAutomationRunItemEntity", b =>
                 {
                     b.HasOne("Aizen.Modules.CargoDry.Domain.Entities.CargoDrySettlementAutomationRunEntity", null)
@@ -1867,6 +2011,11 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                         .HasForeignKey("RunId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDryProductEntity", b =>
+                {
+                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("Aizen.Modules.CargoDry.Domain.Entities.CargoDrySettlementAutomationRunEntity", b =>
