@@ -38,6 +38,14 @@ public sealed class OffersController : AizenWebApiController
         long serviceRequestId, [FromBody] CreateServiceRequestOfferRequest body, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new CreateOfferBffCommand { ServiceRequestId = serviceRequestId, Body = body }, ct));
 
+    // CargoDry supply flow: provider "accept" — the server pins a retail offer (no bidding, no editable amount) and
+    // enforces the program-membership gate. Returns Success=false with a reason if the provider isn't eligible.
+    [HttpPost("service-requests/{serviceRequestId:long}/offers/cargodry-accept")]
+    [ProducesResponseType(typeof(CargoDryAcceptBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryAcceptBffResponse?>> CargoDryAccept(
+        long serviceRequestId, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new CargoDryAcceptBffCommand { ServiceRequestId = serviceRequestId }, ct));
+
     [HttpPut("service-requests/{serviceRequestId:long}/offers/{offerId:long}")]
     [ProducesResponseType(typeof(UpdateOfferBffResponse), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<UpdateOfferBffResponse?>> UpdateOffer(

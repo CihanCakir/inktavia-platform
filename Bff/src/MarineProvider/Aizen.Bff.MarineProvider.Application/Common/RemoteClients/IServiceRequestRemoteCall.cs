@@ -84,6 +84,10 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         long serviceRequestId,
         [AizenRemoteCallBody] CreateServiceRequestOfferRequest body);
 
+    // CargoDry supply flow: provider "accept" — server pins a retail offer (no bidding); gated on active agreement.
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/offers/cargodry-accept")]
+    Task<AizenApiResponse<CreateCargoDrySupplyOfferResponse>> CargoDryAccept(long serviceRequestId);
+
     [AizenRemoteCallPut("/api/v1/service-requests/{serviceRequestId}/offers/{offerId}")]
     Task<AizenApiResponse<UpdateServiceRequestOfferResponse>> UpdateOffer(
         long serviceRequestId, long offerId,
@@ -219,7 +223,9 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
         [Refit.Query] decimal? boundsMinLat = null,
         [Refit.Query] decimal? boundsMaxLat = null,
         [Refit.Query] decimal? boundsMinLng = null,
-        [Refit.Query] decimal? boundsMaxLng = null);
+        [Refit.Query] decimal? boundsMaxLng = null,
+        // CargoDry supply flow (item 5): CSV of owner ids that prefer the calling provider → server sets IsOwnerPreferred.
+        [Refit.Query] string? preferredOwnerUserIdsCsv = null);
 
     // ── Phase-2 live trip tracking. All guarded module-side to the ASSIGNED provider on an accepted job. ──
     [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/trip/start")]

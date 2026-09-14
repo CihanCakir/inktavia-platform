@@ -20,5 +20,12 @@ public sealed class CreateServiceRequestRequest
     public decimal? LocationLongitude { get; set; }
     public string? OwnerNotes { get; set; }
     public DateTime? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// CargoDry supply flow (additive): required when <see cref="ServiceCategoryCode"/> == "CARGODRY_SUPPLY";
+    /// ignored otherwise. Identifies the CargoDry product the owner wants supplied (fixed retail price).
+    /// </summary>
+    public string? CargoDryProductCode { get; set; }
+
     public List<CreateServiceRequestItemRequest> Items { get; set; } = new();
 }

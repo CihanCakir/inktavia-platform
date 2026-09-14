@@ -134,6 +134,24 @@ public sealed class CargoDryProductBffDto
     /// Null in list responses.
     /// </summary>
     public CargoDryProductKitStatsBffDto? KitStats { get; init; }
+
+    // ── Media (CargoDry supply flow, additive) ─────────────────────────────────
+    /// <summary>FileStorage file id of the thumbnail (from the module). Null = none set.</summary>
+    public Guid? ThumbnailFileId { get; init; }
+    /// <summary>Ordered gallery image file ids (from the module).</summary>
+    public List<Guid> ImageFileIds { get; init; } = new();
+    /// <summary>Presigned thumbnail read URL (resolved by the BFF for product detail). Null when no thumbnail / unresolved.</summary>
+    public string? ThumbnailUrl { get; init; }
+    /// <summary>Ordered gallery images with presigned read URLs (resolved by the BFF for product detail).</summary>
+    public List<CargoDryProductImageBffDto> Images { get; init; } = new();
+}
+
+/// <summary>A single product gallery image: its FileStorage id + presigned read URL (BFF-resolved).</summary>
+public sealed class CargoDryProductImageBffDto
+{
+    public Guid    FileId    { get; init; }
+    public string? Url       { get; init; }
+    public int     SortOrder { get; init; }
 }
 
 /// <summary>Live kit statistics for a single product. Displayed in the Product Specs drawer.</summary>

@@ -15,9 +15,12 @@ public sealed class GetProviderDiscoveryBffQueryHandler
     private readonly IProviderIdentityHolder _identityHolder;
     private readonly IServiceRequestRemoteCall _serviceRequest;
     private readonly IVesselRemoteCall _vessel;
+    private readonly ICargoDrySupplyRemoteCall _cargoDrySupply;
     private readonly IAizenDistributedCache _cache;
     private readonly ILogger<GetProviderDiscoveryBffQueryHandler> _logger;
 
+    private const string CargoDrySupplyCategory = "CARGODRY_SUPPLY";
+    private const string CargoDryNotProgramReason = "Only CargoDry program providers (active consignment agreement) can accept this request.";
     private const string VesselCacheKeyPrefix = "vessel:summary:v3:";
     private static readonly TimeSpan VesselCacheTtl = TimeSpan.FromMinutes(10);
 
@@ -26,6 +29,7 @@ public sealed class GetProviderDiscoveryBffQueryHandler
         IProviderIdentityHolder identityHolder,
         IServiceRequestRemoteCall serviceRequest,
         IVesselRemoteCall vessel,
+        ICargoDrySupplyRemoteCall cargoDrySupply,
         IAizenDistributedCache cache,
         ILogger<GetProviderDiscoveryBffQueryHandler> logger)
     {
@@ -33,6 +37,7 @@ public sealed class GetProviderDiscoveryBffQueryHandler
         _identityHolder = identityHolder;
         _serviceRequest = serviceRequest;
         _vessel = vessel;
+        _cargoDrySupply = cargoDrySupply;
         _cache = cache;
         _logger = logger;
     }
@@ -56,6 +61,26 @@ public sealed class GetProviderDiscoveryBffQueryHandler
             _ => null,
         };
 
+        // CargoDry supply flow (item 5): resolve (from CargoDry) the owner ids that prefer THIS provider and pass them
+        // to discovery as a CSV, so the module sets IsOwnerPreferred per item WITHOUT exposing the raw OwnerUserId.
+        // Page-independent (no product codes needed). Fail-safe: on a CargoDry read failure, no items are flagged.
+        string? preferredOwnerCsv = null;
+        try
+        {
+            var preferredCtx = await _cargoDrySupply.GetProviderContext(
+                new Modules.CargoDry.Abstraction.RemoteCall.Requests.GetCargoDrySupplyProviderContextRemoteRequest
+                {
+                    ProviderProfileId = _identityHolder.ProfileId ?? 0,
+                    ProductCodes = new List<string>(),
+                });
+            if (preferredCtx.PreferredOwnerUserIds.Count > 0)
+                preferredOwnerCsv = string.Join(",", preferredCtx.PreferredOwnerUserIds.Take(500)); // cap keeps the URL bounded
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CargoDry preferred-owners lookup failed; IsPreferred left false on this page.");
+        }
+
         // Call module discovery endpoint. A module business error (e.g. a bad filter) comes back as a non-2xx envelope,
         // on which Refit throws ApiException — surface it as a clean business error (400) instead of letting it bubble
         // up as an unhandled 500. (This is what turned the app's "centre without radius" call into a 500.)
@@ -69,7 +94,8 @@ public sealed class GetProviderDiscoveryBffQueryHandler
                 request.SearchTerm, offerStateCode, request.PublishedAfterUtc,
                 request.CenterLatitude, request.CenterLongitude, request.RadiusKm,
                 request.BoundsMinLat, request.BoundsMaxLat,
-                request.BoundsMinLng, request.BoundsMaxLng);
+                request.BoundsMinLng, request.BoundsMaxLng,
+                preferredOwnerCsv);
             page = moduleResult.Body;
         }
         catch (Refit.ApiException ex)
@@ -92,10 +118,43 @@ public sealed class GetProviderDiscoveryBffQueryHandler
         // Collect distinct VesselIds and resolve from cache / bulk call
         var vesselLookup = await ResolveVesselSummariesAsync(page.Items);
 
+        // CargoDry supply flow: one batch call for the whole page — which requested products this provider may accept
+        // (active consignment agreement + active product). Owners-preferring-me is also returned but cannot be applied
+        // per-item because discovery deliberately omits OwnerUserId (privacy). See IsPreferred note below.
+        var supplyProductCodes = page.Items
+            .Where(i => !string.IsNullOrWhiteSpace(i.CargoDryProductCode))
+            .Select(i => i.CargoDryProductCode!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var acceptableProducts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (supplyProductCodes.Count > 0)
+        {
+            try
+            {
+                var ctx = await _cargoDrySupply.GetProviderContext(
+                    new Modules.CargoDry.Abstraction.RemoteCall.Requests.GetCargoDrySupplyProviderContextRemoteRequest
+                    {
+                        ProviderProfileId = _identityHolder.ProfileId ?? 0,
+                        ProductCodes = supplyProductCodes,
+                    });
+                foreach (var code in ctx.AcceptableProductCodes) acceptableProducts.Add(code);
+            }
+            catch (Exception ex)
+            {
+                // Fail-safe: on a CargoDry read failure, leave supply items locked (CanAccept=false) rather than
+                // letting the whole discovery page fail.
+                _logger.LogWarning(ex, "CargoDry provider-context call failed; CARGODRY_SUPPLY items left locked on this page.");
+            }
+        }
+
         // Map module DTOs to BFF DTOs with vessel enrichment
         var items = page.Items.Select(item =>
         {
             vesselLookup.TryGetValue(item.VesselId, out var vessel);
+            var isSupply = string.Equals(item.ServiceCategoryCode, CargoDrySupplyCategory, StringComparison.OrdinalIgnoreCase)
+                           && !string.IsNullOrWhiteSpace(item.CargoDryProductCode);
+            var canAccept = !isSupply || acceptableProducts.Contains(item.CargoDryProductCode!);
             return new ProviderDiscoveryBffItemDto
             {
                 Id = item.Id,
@@ -106,6 +165,11 @@ public sealed class GetProviderDiscoveryBffQueryHandler
                 Priority = item.Priority,
                 ServiceCategoryCode = item.ServiceCategoryCode,
                 ServiceTypeCode = item.ServiceTypeCode,
+                CargoDryProductCode = item.CargoDryProductCode,
+                CanAccept = canAccept,
+                CanAcceptReason = canAccept ? null : CargoDryNotProgramReason,
+                // Item 5: server-computed match (owner ∈ preferred set) — meaningful for CARGODRY_SUPPLY items.
+                IsPreferred = isSupply && item.IsOwnerPreferred,
                 LocationCityCode = item.LocationCityCode,
                 LocationCountryCode = item.LocationCountryCode,
                 LocationMarinaName = item.LocationMarinaName,

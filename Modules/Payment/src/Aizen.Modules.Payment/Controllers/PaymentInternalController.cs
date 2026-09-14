@@ -54,6 +54,7 @@ public sealed class PaymentInternalController : ControllerBase
             ProviderPlanId     = request.ProviderPlanId,
             CategoryCode       = request.CategoryCode,
             EscrowRequired     = request.EscrowRequired,
+            PlatformCollectedNoProviderShare = request.PlatformCollectedNoProviderShare,
         }, ct);
         return Ok(result);
     }

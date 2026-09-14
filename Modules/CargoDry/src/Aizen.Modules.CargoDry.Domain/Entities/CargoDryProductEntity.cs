@@ -45,6 +45,17 @@ public sealed class CargoDryProductEntity : AizenEntityWithAudit
     /// </summary>
     public decimal? ProviderCommissionRate { get; private set; }
 
+    // ── Media (CargoDry supply flow, additive) ────────────────────────────────
+    /// <summary>
+    /// FileStorage file id used as the product thumbnail. Null = no thumbnail set (BFF falls back to first image).
+    /// Resolved to a presigned read URL at the BFF boundary — never stored as a URL.
+    /// </summary>
+    public Guid? ThumbnailFileId { get; private set; }
+
+    private readonly List<CargoDryProductImageEntity> _images = new();
+    /// <summary>Ordered gallery images (by <see cref="CargoDryProductImageEntity.SortOrder"/>).</summary>
+    public IReadOnlyCollection<CargoDryProductImageEntity> Images => _images.AsReadOnly();
+
     private CargoDryProductEntity() { }
 
     public static CargoDryProductEntity Create(
@@ -111,5 +122,55 @@ public sealed class CargoDryProductEntity : AizenEntityWithAudit
         WholesalePrice         = wholesalePrice;
         ConsignmentPrice       = consignmentPrice;
         ProviderCommissionRate = providerCommissionRate;
+    }
+
+    // ── Media management (additive) ────────────────────────────────────────────
+
+    /// <summary>Appends an image to the end of the gallery. No-op if the file id is already present.</summary>
+    public CargoDryProductImageEntity? AddImage(Guid fileId)
+    {
+        if (fileId == Guid.Empty) throw new InvalidOperationException("Image fileId cannot be empty.");
+        if (_images.Any(i => i.FileId == fileId)) return null;
+        var nextOrder = _images.Count == 0 ? 0 : _images.Max(i => i.SortOrder) + 1;
+        var image = CargoDryProductImageEntity.Create(Id, fileId, nextOrder);
+        _images.Add(image);
+        return image;
+    }
+
+    /// <summary>Removes an image by file id. If it was the thumbnail, clears the thumbnail. Returns the removed entity (for repository delete) or null.</summary>
+    public CargoDryProductImageEntity? RemoveImage(Guid fileId)
+    {
+        var image = _images.FirstOrDefault(i => i.FileId == fileId);
+        if (image is null) return null;
+        _images.Remove(image);
+        if (ThumbnailFileId == fileId) ThumbnailFileId = null;
+        // Compact remaining sort orders to stay contiguous.
+        var ordered = _images.OrderBy(i => i.SortOrder).ToList();
+        for (var i = 0; i < ordered.Count; i++) ordered[i].SetSortOrder(i);
+        return image;
+    }
+
+    /// <summary>
+    /// Reorders the gallery to match <paramref name="orderedFileIds"/>. Every current image id must appear exactly
+    /// once; unknown ids are rejected. Additive image ids not yet present are ignored (add them via AddImage first).
+    /// </summary>
+    public void ReorderImages(IReadOnlyList<Guid> orderedFileIds)
+    {
+        var current = _images.Select(i => i.FileId).ToHashSet();
+        var provided = orderedFileIds.ToList();
+        if (provided.Count != current.Count || provided.Any(id => !current.Contains(id)) || provided.Distinct().Count() != provided.Count)
+            throw new InvalidOperationException("Reorder list must be a permutation of the product's current image file ids.");
+        for (var i = 0; i < provided.Count; i++)
+            _images.First(img => img.FileId == provided[i]).SetSortOrder(i);
+    }
+
+    /// <summary>
+    /// Sets (or clears, when null) the thumbnail. A non-null id must be one of the product's gallery images.
+    /// </summary>
+    public void SetThumbnail(Guid? fileId)
+    {
+        if (fileId is { } id && id != Guid.Empty && _images.All(i => i.FileId != id))
+            throw new InvalidOperationException("Thumbnail must reference one of the product's gallery images.");
+        ThumbnailFileId = fileId == Guid.Empty ? null : fileId;
     }
 }

@@ -18,6 +18,8 @@
     <ProjectReference Include="../../../../Core/Realtime/src/Aizen.Core.Realtime.Abstraction/Aizen.Core.Realtime.Abstraction.csproj" />
     <!-- Payment.Abstraction: IPaymentModuleRemoteCall for escrow lifecycle calls -->
     <ProjectReference Include="../../../Payment/src/Aizen.Modules.Payment.Abstraction/Aizen.Modules.Payment.Abstraction.csproj" />
+    <!-- CargoDry.Abstraction: ICargoDrySupplyRemoteCall for the CargoDry supply flow (gate/pin + record-sale) -->
+    <ProjectReference Include="../../../CargoDry/src/Aizen.Modules.CargoDry.Abstraction/Aizen.Modules.CargoDry.Abstraction.csproj" />
   </ItemGroup>
 
 

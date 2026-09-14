@@ -21,7 +21,7 @@ public sealed class GetCargoDryProductDetailQueryHandler
     public override async Task<CargoDryProductDto?> Handle(
         GetCargoDryProductDetailQuery request, CancellationToken ct)
     {
-        var p = await _products.GetByCodeAsync(request.ProductCode, ct);
+        var p = await _products.GetByCodeWithImagesAsync(request.ProductCode, ct);
         if (p is null) return null;
 
         // Use SQL-level aggregation instead of loading all kits into memory.
@@ -44,6 +44,9 @@ public sealed class GetCargoDryProductDetailQueryHandler
             WholesalePrice         = p.WholesalePrice,
             ConsignmentPrice       = p.ConsignmentPrice,
             ProviderCommissionRate = p.ProviderCommissionRate,
+            // Media (CargoDry supply flow) — file ids resolved to URLs at the BFF boundary
+            ThumbnailFileId        = p.ThumbnailFileId,
+            ImageFileIds           = p.Images.OrderBy(i => i.SortOrder).Select(i => i.FileId).ToList(),
             KitStats               = new CargoDryProductKitStatsDto
             {
                 TotalKitsIssued  = s.TotalKits,

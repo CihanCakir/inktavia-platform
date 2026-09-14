@@ -26,4 +26,13 @@ public sealed class CreatePaymentEscrowCommand : AizenCommand<CreatePaymentEscro
     public string? CategoryCode { get; init; }
     /// <summary>true = hold until SR completion; false = immediate settle.</summary>
     public bool EscrowRequired { get; init; } = true;
+
+    /// <summary>
+    /// PrincipalSale / platform-collected (CargoDry supply, additive): when true the platform is the sole merchant —
+    /// NO provider split. Commission calc is skipped and the transaction is persisted with CommissionAmount=0,
+    /// CommissionRate=0, NetPayoutAmount=0 (the whole gross is platform revenue). The provider (if any) is compensated
+    /// out-of-band via the CargoDry sell-through settlement, never via this escrow. Guarantees a zero provider split
+    /// by construction. Default false preserves the existing marketplace behaviour byte-for-byte.
+    /// </summary>
+    public bool PlatformCollectedNoProviderShare { get; init; } = false;
 }

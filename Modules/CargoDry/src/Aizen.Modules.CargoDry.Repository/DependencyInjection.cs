@@ -30,6 +30,8 @@ public static class DependencyInjection
         services.AddScoped<ICargoDryRenewalPreparationRepository, CargoDryRenewalPreparationRepository>();
         services.AddScoped<ICargoDryStockRequestRepository, CargoDryStockRequestRepository>();
         services.AddScoped<ICargoDryProviderMilestoneAwardRepository, CargoDryProviderMilestoneAwardRepository>();
+        // CargoDry supply flow (additive)
+        services.AddScoped<ICargoDryOwnerPreferredProviderRepository, CargoDryOwnerPreferredProviderRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
         services.AddScoped<CargoDryProviderMockSeed>();

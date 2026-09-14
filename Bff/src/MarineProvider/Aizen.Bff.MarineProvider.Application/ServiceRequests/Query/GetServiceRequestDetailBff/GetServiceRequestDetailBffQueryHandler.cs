@@ -22,9 +22,12 @@ public sealed class GetServiceRequestDetailBffQueryHandler
     private readonly IProviderIdentityHolder _identityHolder;
     private readonly IServiceRequestRemoteCall _serviceRequest;
     private readonly IVesselRemoteCall _vessel;
+    private readonly ICargoDrySupplyRemoteCall _cargoDrySupply;
     private readonly IAizenDistributedCache _cache;
     private readonly ILogger<GetServiceRequestDetailBffQueryHandler> _logger;
 
+    private const string CargoDrySupplyCategory = "CARGODRY_SUPPLY";
+    private const string CargoDryNotProgramReason = "Only CargoDry program providers (active consignment agreement) can accept this request.";
     private const string VesselCacheKeyPrefix = "vessel:summary:v3:";
     private static readonly TimeSpan VesselCacheTtl = TimeSpan.FromMinutes(10);
 
@@ -33,6 +36,7 @@ public sealed class GetServiceRequestDetailBffQueryHandler
         IProviderIdentityHolder identityHolder,
         IServiceRequestRemoteCall serviceRequest,
         IVesselRemoteCall vessel,
+        ICargoDrySupplyRemoteCall cargoDrySupply,
         IAizenDistributedCache cache,
         ILogger<GetServiceRequestDetailBffQueryHandler> logger)
     {
@@ -40,6 +44,7 @@ public sealed class GetServiceRequestDetailBffQueryHandler
         _identityHolder = identityHolder;
         _serviceRequest = serviceRequest;
         _vessel = vessel;
+        _cargoDrySupply = cargoDrySupply;
         _cache = cache;
         _logger = logger;
     }
@@ -83,10 +88,47 @@ public sealed class GetServiceRequestDetailBffQueryHandler
                 result.Detail.Request.SuggestedTravelFee = Math.Round(dist.Value * ratePerKm.Value, 2);
         }
 
+        // CargoDry supply flow: gate this request's accept for the calling provider (canAccept + reason). IsPreferred
+        // is left false here — the provider detail projection omits OwnerUserId (privacy), so it can't be computed
+        // without a module-side owner-preference projection (see follow-up note).
+        await ApplyCargoDrySupplyGateAsync(result);
+
         // Enrich with vessel data — one call
         await EnrichVesselAsync(result);
 
         return result;
+    }
+
+    private async Task ApplyCargoDrySupplyGateAsync(GetProviderServiceRequestDetailResponse response)
+    {
+        var req = response.Detail?.Request;
+        if (req is null) return;
+
+        var isSupply = string.Equals(req.ServiceCategoryCode, CargoDrySupplyCategory, StringComparison.OrdinalIgnoreCase)
+                       && !string.IsNullOrWhiteSpace(req.CargoDryProductCode);
+        if (!isSupply)
+        {
+            req.CanAccept = true;   // non-CargoDry requests: unaffected
+            return;
+        }
+
+        try
+        {
+            var ctx = await _cargoDrySupply.GetProviderContext(
+                new Modules.CargoDry.Abstraction.RemoteCall.Requests.GetCargoDrySupplyProviderContextRemoteRequest
+                {
+                    ProviderProfileId = _identityHolder.ProfileId ?? 0,
+                    ProductCodes = new List<string> { req.CargoDryProductCode! },
+                });
+            req.CanAccept = ctx.AcceptableProductCodes.Any(c => string.Equals(c, req.CargoDryProductCode, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CargoDry provider-context call failed for SR {SrId}; leaving supply request locked.", req.Id);
+            req.CanAccept = false;   // fail-safe: locked
+        }
+        req.CanAcceptReason = req.CanAccept ? null : CargoDryNotProgramReason;
+        req.IsPreferred = false;     // see method note
     }
 
     private async Task EnrichVesselAsync(GetProviderServiceRequestDetailResponse response)

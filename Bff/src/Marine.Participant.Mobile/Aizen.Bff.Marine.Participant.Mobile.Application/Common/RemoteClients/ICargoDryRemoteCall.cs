@@ -30,4 +30,9 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
     // Auth. GetMyKits filters by OwnerUserId = UserInfo.UserId (the same asserted caller as activate).
     [AizenRemoteCallGet("/api/v1/cargodry/kits")]
     Task<CargoDryMyKitsRemoteResponse> GetMyKits();
+
+    // Owner-safe product catalog (CargoDry supply flow). Returns owner-visible fields + media file ids only —
+    // never commercial pricing. The BFF resolves the file ids to presigned read URLs before returning to the app.
+    [AizenRemoteCallGet("/api/v1/cargodry/catalog/products")]
+    Task<List<CargoDryProductCatalogDto>> GetCatalogProducts();
 }

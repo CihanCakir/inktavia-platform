@@ -141,6 +141,8 @@ public sealed class ActivateKitCommandHandler
             KitCode      = kit.KitCode,
             SerialNumber = kit.SerialNumber,
             ProductName  = product.Name,
+            ProductCode  = kit.ProductCode,
+            ProviderProfileId = kit.ProviderProfileId,
             OwnerUserId  = request.UserId,
             VesselId     = request.VesselId,
             // Belt-and-suspenders: the Activated status check above guarantees these are set, but never `!.Value`

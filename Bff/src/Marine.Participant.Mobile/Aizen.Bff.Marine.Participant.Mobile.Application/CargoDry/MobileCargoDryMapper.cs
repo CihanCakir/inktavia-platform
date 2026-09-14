@@ -71,4 +71,25 @@ public static class MobileCargoDryMapper
         ActiveCount   = r.ActiveCount,
         ExpiringCount = r.ExpiringCount,
     };
+
+    /// <summary>Owner-safe product → mobile contract, resolving media file ids to presigned URLs via
+    /// <paramref name="urlMap"/> (a missing id → omitted / null thumbnail).</summary>
+    public static MobileCargoDryProductDto MapProduct(
+        CargoDryProductCatalogDto p, IReadOnlyDictionary<Guid, string> urlMap) => new()
+    {
+        Id             = p.Id,
+        ProductCode    = p.ProductCode,
+        Name           = p.Name,
+        Description    = p.Description,
+        ValidityDays   = p.ValidityDays,
+        HasSmartDevice = p.HasSmartDevice,
+        DeviceType     = p.DeviceType,
+        RetailPrice    = p.RetailPrice,
+        CurrencyCode   = p.CurrencyCode,
+        ThumbnailUrl   = p.ThumbnailFileId is { } tid && urlMap.TryGetValue(tid, out var turl) ? turl : null,
+        ImageUrls      = p.ImageFileIds
+            .Where(id => urlMap.ContainsKey(id))
+            .Select(id => urlMap[id])
+            .ToList(),
+    };
 }

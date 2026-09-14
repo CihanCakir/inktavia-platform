@@ -23,6 +23,15 @@ public sealed record ProviderDiscoveryBffItemDto
     public string Priority { get; init; } = string.Empty;
     public string? ServiceCategoryCode { get; init; }
     public string? ServiceTypeCode { get; init; }
+    // CargoDry supply flow
+    /// <summary>Non-null only for CARGODRY_SUPPLY items — the requested product code.</summary>
+    public string? CargoDryProductCode { get; init; }
+    /// <summary>Whether the calling provider may accept this request (true for non-CargoDry items; gated for CARGODRY_SUPPLY).</summary>
+    public bool CanAccept { get; init; } = true;
+    /// <summary>Reason the provider cannot accept (null when CanAccept). For a locked CARGODRY_SUPPLY card.</summary>
+    public string? CanAcceptReason { get; init; }
+    /// <summary>Whether the owner has marked the calling provider as their preferred CargoDry supplier.</summary>
+    public bool IsPreferred { get; init; }
     public string? LocationCityCode { get; init; }
     public string? LocationCountryCode { get; init; }
     public string? LocationMarinaName { get; init; }

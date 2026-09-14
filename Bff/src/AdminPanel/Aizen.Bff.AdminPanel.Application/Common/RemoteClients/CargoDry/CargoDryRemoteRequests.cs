@@ -30,6 +30,22 @@ public sealed class GenerateBatchBffRequest
 }
 
 [DocumentationInfo("Create product BFF request", "Admin request to register a new CargoDry product in the catalog.")]
+// ── Product media (CargoDry supply flow) — module image-registration request bodies ──
+public sealed class AddProductImageRemoteRequest
+{
+    public Guid FileId { get; init; }
+}
+
+public sealed class ReorderProductImagesRemoteRequest
+{
+    public List<Guid> OrderedFileIds { get; init; } = new();
+}
+
+public sealed class SetProductThumbnailRemoteRequest
+{
+    public Guid? FileId { get; init; }
+}
+
 public sealed class CreateProductBffRequest
 {
     public string  ProductCode    { get; init; } = default!;

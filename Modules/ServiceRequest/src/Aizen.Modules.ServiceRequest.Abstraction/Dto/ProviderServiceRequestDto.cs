@@ -44,6 +44,14 @@ public sealed class ProviderServiceRequestDto
     public decimal? VesselDraftValue { get; set; }
     public string? VesselDraftUnitCode { get; set; }
     public string? OwnerNotes { get; set; }
+    /// <summary>CargoDry supply flow: requested product code (non-null only for CARGODRY_SUPPLY). Drives the fixed retail price the provider accepts.</summary>
+    public string? CargoDryProductCode { get; set; }
+    /// <summary>CargoDry supply flow: whether the calling provider may accept this request. True for non-CargoDry requests. Set by the provider BFF.</summary>
+    public bool CanAccept { get; set; } = true;
+    /// <summary>CargoDry supply flow: reason the provider cannot accept (null when CanAccept). Set by the provider BFF.</summary>
+    public string? CanAcceptReason { get; set; }
+    /// <summary>CargoDry supply flow: whether the owner has marked the calling provider as their preferred CargoDry supplier. Set by the provider BFF.</summary>
+    public bool IsPreferred { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

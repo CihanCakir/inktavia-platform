@@ -77,6 +77,7 @@ public sealed class MobileCargoDryTests
             new FakeParticipantProfileResolver(profileId: 100),
             new FakeVesselRemoteCall(ownedVesselId),
             cargoDry,
+            new FakeServiceRequestRemoteCall(),
             NullLogger<ActivateMobileKitCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -103,6 +104,7 @@ public sealed class MobileCargoDryTests
             new FakeParticipantProfileResolver(profileId: 100),
             new FakeVesselRemoteCall(ownedVesselIds: new long[] { 1, 2, 3 }), // caller does NOT own 999
             cargoDry,
+            new FakeServiceRequestRemoteCall(),
             NullLogger<ActivateMobileKitCommandHandler>.Instance);
 
         var act = () => handler.Handle(
@@ -128,6 +130,7 @@ public sealed class MobileCargoDryTests
             new FakeParticipantProfileResolver(profileId: 100),
             new FakeVesselRemoteCall(ownedVesselId),
             cargoDry,
+            new FakeServiceRequestRemoteCall(),
             NullLogger<ActivateMobileKitCommandHandler>.Instance);
 
         var act = () => handler.Handle(
@@ -145,6 +148,7 @@ public sealed class MobileCargoDryTests
             new FakeParticipantProfileResolver(profileId: null),
             new FakeVesselRemoteCall(42),
             cargoDry,
+            new FakeServiceRequestRemoteCall(),
             NullLogger<ActivateMobileKitCommandHandler>.Instance);
 
         var act = () => handler.Handle(

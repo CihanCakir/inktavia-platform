@@ -23,6 +23,8 @@ public sealed class ServiceRequestDto
     public decimal? LocationLatitude { get; set; }
     public decimal? LocationLongitude { get; set; }
     public DateTime? ExpiresAt { get; set; }
+    /// <summary>CargoDry supply flow: requested product code (non-null only for CARGODRY_SUPPLY).</summary>
+    public string? CargoDryProductCode { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

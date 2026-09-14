@@ -34,6 +34,12 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<CreateServiceRequestResponse>> Create(
         [AizenRemoteCallBody] CreateServiceRequestRequest request);
 
+    // CargoDry supply flow: after a kit is activated, notify SR so it can correlate + complete the open supply SR
+    // (release platform escrow, complete SR, record the sale). Best-effort; owner asserted from the forwarded token.
+    [AizenRemoteCallPost("/api/v1/service-requests/cargodry/kit-activated")]
+    Task<AizenApiResponse<CompleteCargoDrySupplyOnActivationResponse>> NotifyCargoDryKitActivated(
+        [AizenRemoteCallBody] CargoDryKitActivatedRequest request);
+
     // Publish a Draft (Draft → Open). Module transitions the status + records history.
     [AizenRemoteCallPatch("/api/v1/service-requests/{serviceRequestId}/publish")]
     Task<AizenApiResponse<UpdateServiceRequestResponse>> Publish(long serviceRequestId);

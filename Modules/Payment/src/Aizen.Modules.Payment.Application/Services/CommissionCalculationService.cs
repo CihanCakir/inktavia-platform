@@ -232,7 +232,25 @@ public sealed record CommissionBreakdown(
 
     /// <summary>Which precedence tier produced the commission rate (for audit).</summary>
     CommissionRateTier AppliedTier
-);
+)
+{
+    /// <summary>
+    /// PrincipalSale / platform-collected breakdown (CargoDry supply): the platform is the sole merchant, so there is
+    /// NO provider split. The whole gross (less any owner discount) is platform revenue — Commission=0, Rate=0, VAT=0,
+    /// NetPayout=0. Used only by the CreatePaymentEscrow platform-collected path; guarantees a zero provider split.
+    /// </summary>
+    public static CommissionBreakdown PlatformOnly(decimal grossAmount, decimal discountAmount = 0m)
+        => new(
+            GrossAmount:      grossAmount,
+            DiscountAmount:   discountAmount,
+            CommissionBase:   grossAmount - discountAmount,
+            CommissionRate:   0m,
+            CommissionAmount: 0m,
+            VatRate:          0m,
+            VatOnCommission:  0m,
+            NetPayoutAmount:  0m,
+            AppliedTier:      CommissionRateTier.GlobalDefault);
+}
 
 /// <summary>
 /// Indicates which tier of the commission precedence chain produced the effective rate.

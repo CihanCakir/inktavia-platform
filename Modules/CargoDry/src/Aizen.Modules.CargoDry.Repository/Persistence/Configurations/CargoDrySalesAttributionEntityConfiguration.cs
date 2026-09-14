@@ -71,6 +71,12 @@ public sealed class CargoDrySalesAttributionEntityConfiguration
         // ── Audit ──────────────────────────────────────────────────────────────
         builder.Property(x => x.CreatedAtUtc).IsRequired();
 
+        // ── CargoDry supply flow (additive) — idempotency key: one attribution per source SR ──
+        builder.Property(x => x.SourceServiceRequestId);
+        builder.HasIndex(x => x.SourceServiceRequestId)
+            .IsUnique()
+            .HasFilter("\"SourceServiceRequestId\" IS NOT NULL"); // partial-unique: only supply-sourced rows
+
         // ── Unique constraint — one attribution per kit ───────────────────────
         builder.HasIndex(x => x.KitId).IsUnique();
 

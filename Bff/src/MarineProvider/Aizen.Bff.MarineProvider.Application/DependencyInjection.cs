@@ -74,6 +74,11 @@ public static class DependencyInjection
             CreateRemoteCall<ICargoDryRemoteCall>(
                 CreateHttpClient(provider, nameof(ICargoDryRemoteCall))));
 
+        // CargoDry supply flow — provider discovery gating (canAccept) + preferred-provider context.
+        services.AddTransient<ICargoDrySupplyRemoteCall>(provider =>
+            CreateRemoteCall<ICargoDrySupplyRemoteCall>(
+                CreateHttpClient(provider, nameof(ICargoDrySupplyRemoteCall))));
+
         services.AddTransient<IPaymentRemoteCall>(provider =>
             CreateRemoteCall<IPaymentRemoteCall>(
                 CreateHttpClient(provider, nameof(IPaymentRemoteCall))));

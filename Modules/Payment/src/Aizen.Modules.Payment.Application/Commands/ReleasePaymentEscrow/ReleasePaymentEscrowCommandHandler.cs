@@ -40,6 +40,22 @@ public sealed class ReleasePaymentEscrowCommandHandler
         var tx = await _transactions.GetByIdAsync(request.TransactionId, ct)
             ?? throw new AizenBusinessException((int)PaymentErrorCode.TransactionNotFound);
 
+        // ── PrincipalSale / platform-collected (CargoDry supply): no provider split. The whole gross was already
+        //    captured to the platform at accept (RecipientProfileId=null, NetPayout=0). There is no Iyzico sub-merchant
+        //    to approve and NO PayoutRecord to create — "release" is purely the escrow-hold → released state transition
+        //    (finalises the hold so a post-activation refund is no longer expected). The provider is paid ONLY via the
+        //    CargoDry sell-through settlement. Routing this through the marketplace release below would throw
+        //    (missing GatewayItemTransactionId), so branch first. ──
+        if (tx.RecipientProfileId is null || tx.NetPayoutAmount == 0m)
+        {
+            tx.Release();
+            _transactions.Update(tx);
+            _logger.LogInformation(
+                "Platform-collected escrow finalised (no provider payout). TransactionId={TxId} Type={Type} Gross={Gross}",
+                tx.Id, tx.TransactionType, tx.GrossAmount);
+            return new ReleasePaymentEscrowResult(0, string.Empty, 0m);
+        }
+
         // Commission was frozen at creation — use snapshot, never recalculate.
         var gateway = _gatewayResolver.Resolve();
         var payoutResult = await gateway.ReleaseEscrowAsync(new ReleaseEscrowInput

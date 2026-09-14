@@ -1,7 +1,11 @@
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Application.Commands.CancelCargoDryRenewalPreparation;
 using Aizen.Modules.CargoDry.Application.Commands.CompleteCargoDryRenewal;
+using Aizen.Modules.CargoDry.Application.Commands.AddCargoDryProductImage;
 using Aizen.Modules.CargoDry.Application.Commands.CreateCargoDryProduct;
+using Aizen.Modules.CargoDry.Application.Commands.ReorderCargoDryProductImages;
+using Aizen.Modules.CargoDry.Application.Commands.RemoveCargoDryProductImage;
+using Aizen.Modules.CargoDry.Application.Commands.SetCargoDryProductThumbnail;
 using Aizen.Modules.CargoDry.Application.Commands.DispatchCargoDryRenewalNotification;
 using Aizen.Modules.CargoDry.Application.Commands.GenerateBatch;
 using Aizen.Modules.CargoDry.Application.Commands.PrepareCargoDryKitRenewal;
@@ -337,6 +341,58 @@ public sealed class CargoDryAdminController : ControllerBase
         return Ok(result);
     }
 
+    // ─── Product media (CargoDry supply flow) ──────────────────────────────────
+    // The image bytes are uploaded browser-direct via a FileStorage presigned PUT (issued by the AdminPanel BFF);
+    // these endpoints only register/organize the resulting FileStorage file ids against the product gallery.
+
+    [HttpPost("products/{productCode}/images")]
+    public async Task<IActionResult> AddProductImage(
+        string productCode, [FromBody] AddProductImageRequest request, CancellationToken ct)
+    {
+        var result = await _sender.Send(new AddCargoDryProductImageCommand
+        {
+            ProductCode = productCode,
+            FileId      = request.FileId,
+        }, ct);
+        return Ok(result);
+    }
+
+    [HttpPut("products/{productCode}/images/reorder")]
+    public async Task<IActionResult> ReorderProductImages(
+        string productCode, [FromBody] ReorderProductImagesRequest request, CancellationToken ct)
+    {
+        var result = await _sender.Send(new ReorderCargoDryProductImagesCommand
+        {
+            ProductCode    = productCode,
+            OrderedFileIds = request.OrderedFileIds,
+        }, ct);
+        return Ok(result);
+    }
+
+    [HttpDelete("products/{productCode}/images/{fileId:guid}")]
+    public async Task<IActionResult> RemoveProductImage(
+        string productCode, Guid fileId, CancellationToken ct)
+    {
+        var result = await _sender.Send(new RemoveCargoDryProductImageCommand
+        {
+            ProductCode = productCode,
+            FileId      = fileId,
+        }, ct);
+        return Ok(result);
+    }
+
+    [HttpPut("products/{productCode}/thumbnail")]
+    public async Task<IActionResult> SetProductThumbnail(
+        string productCode, [FromBody] SetProductThumbnailRequest request, CancellationToken ct)
+    {
+        var result = await _sender.Send(new SetCargoDryProductThumbnailCommand
+        {
+            ProductCode = productCode,
+            FileId      = request.FileId,
+        }, ct);
+        return Ok(result);
+    }
+
     // ─── Batches ─────────────────────────────────────────────────────────────
 
     [HttpGet("batches")]
@@ -667,6 +723,21 @@ public sealed class CreateProductRequest
     public string  CurrencyCode   { get; init; } = default!;
     public bool    HasSmartDevice { get; init; }
     public string? DeviceType     { get; init; }
+}
+
+public sealed class AddProductImageRequest
+{
+    public Guid FileId { get; init; }
+}
+
+public sealed class ReorderProductImagesRequest
+{
+    public List<Guid> OrderedFileIds { get; init; } = new();
+}
+
+public sealed class SetProductThumbnailRequest
+{
+    public Guid? FileId { get; init; }
 }
 
 public sealed class UpdateProductRequest

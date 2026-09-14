@@ -47,16 +47,22 @@ public sealed class CreatePaymentEscrowCommandHandler
                 existing.CommissionRateSnapshot, existing.CommissionAmount, existing.NetPayoutAmount);
         }
 
-        // Calculate commission (data-driven, no hardcoded rates)
-        // Precedence: ProviderOverride → ProviderPlan → Category → GlobalDefault
-        // VatRate comes from COMMISSION_VAT_RATE system parameter (not hardcoded)
-        var breakdown = await _commission.CalculateAsync(
-            grossAmount:       request.GrossAmount,
-            discountAmount:    request.DiscountAmount,
-            providerProfileId: request.RecipientProfileId,
-            providerPlanId:    request.ProviderPlanId,
-            categoryCode:      request.CategoryCode,
-            ct:                ct);
+        // Commission breakdown.
+        // PrincipalSale / platform-collected (CargoDry supply): the platform is the sole merchant, so there is NO
+        // provider split — skip commission resolution entirely and settle the whole gross to the platform
+        // (Commission=0, Net=0). This is what guarantees a zero provider split by construction for a CARGODRY_SUPPLY
+        // acceptance; the fulfilling provider is paid ONLY via the CargoDry sell-through settlement.
+        // Otherwise (marketplace): data-driven commission — ProviderOverride → ProviderPlan → Category → GlobalDefault,
+        // VatRate from the COMMISSION_VAT_RATE system parameter (not hardcoded).
+        var breakdown = request.PlatformCollectedNoProviderShare
+            ? CommissionBreakdown.PlatformOnly(request.GrossAmount, request.DiscountAmount)
+            : await _commission.CalculateAsync(
+                grossAmount:       request.GrossAmount,
+                discountAmount:    request.DiscountAmount,
+                providerProfileId: request.RecipientProfileId,
+                providerPlanId:    request.ProviderPlanId,
+                categoryCode:      request.CategoryCode,
+                ct:                ct);
 
         // Generate transaction code before gateway call (used as idempotency reference)
         var transactionCode = $"TXN-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}"[..24];

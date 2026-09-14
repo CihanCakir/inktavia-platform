@@ -15,6 +15,12 @@ public sealed class ProviderServiceRequestDiscoveryFilter
     public string? SearchTerm { get; set; }
     public OfferStateFilter? OfferState { get; set; } // null = Any
 
+    // CargoDry supply flow (item 5): the provider BFF resolves (from CargoDry) the owner ids that have marked the
+    // CALLING provider as their preferred CargoDry supplier, and passes them here as a CSV (single query param, same
+    // convention as vessel GetSummaries). The discovery projection sets IsOwnerPreferred = OwnerUserId ∈ this set
+    // WITHOUT projecting the raw OwnerUserId (privacy). Null/empty = none.
+    public string? PreferredOwnerUserIdsCsv { get; set; }
+
     // "New only" — server-side predicate on the indexed PublishedAt column. The client sends the timestamp it
     // last looked at the list; the server returns requests published after it. Keeping this server-side (rather
     // than filtering a page in the browser) is what keeps pagination correct — a client filter would drop rows
