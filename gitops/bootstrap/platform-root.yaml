@@ -35,7 +35,8 @@ spec:
     targetRevision: develop
     path: gitops/apps
     directory:
-      recurse: false      # dosyalar düz duruyor; alt klasör eklenirse true yapılacak
+      # recurse YAZILMIYOR: Argo tipinde omitempty — false kümeye geçmez, kalıcı OutOfSync üretir.
+      # Varsayılan zaten false; alt klasör gerekirse `recurse: true` eklenir.
       include: '*.yaml'
   destination:
     server: https://kubernetes.default.svc

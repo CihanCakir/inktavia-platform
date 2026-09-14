@@ -72,8 +72,32 @@ public sealed class VesselSnapshotService : IVesselSnapshotService
         ArchiveReason = vessel.ArchiveReason,
         ArchivedAt = vessel.ArchivedAt,
         CreateDate = vessel.CreateDate,
-        ModifyDate = vessel.ModifyDate
+        ModifyDate = vessel.ModifyDate,
+        // Wizard-chosen location — the detail read previously dropped this, so the mobile detail's KONUM
+        // card always rendered "—" even after the owner picked a marina/pin. Columns live on the aggregate.
+        SelectedLocation = MapSelectedLocation(vessel)
     };
+
+    // Mirror of VesselMappingExtensions.ToSelectedLocationDto (kept inline to avoid a Repository→Application
+    // dependency): null when the owner never chose a location, else the grouped selection.
+    private static VesselSelectedLocationDto? MapSelectedLocation(VesselEntity vessel)
+    {
+        var hasSelection = vessel.SelectedLocationMarinaId.HasValue
+            || !string.IsNullOrWhiteSpace(vessel.SelectedLocationMarinaName)
+            || !string.IsNullOrWhiteSpace(vessel.SelectedLocationCustomLabel)
+            || vessel.SelectedLocationLatitude.HasValue
+            || vessel.SelectedLocationLongitude.HasValue;
+        if (!hasSelection) return null;
+        return new VesselSelectedLocationDto
+        {
+            MarinaId = vessel.SelectedLocationMarinaId,
+            MarinaName = vessel.SelectedLocationMarinaName,
+            CustomLabel = vessel.SelectedLocationCustomLabel,
+            Latitude = vessel.SelectedLocationLatitude,
+            Longitude = vessel.SelectedLocationLongitude,
+            SetAt = vessel.SelectedLocationSetAt
+        };
+    }
 
     private static VesselOwnerDto MapOwner(VesselOwnerEntity o) => new()
     {
@@ -95,6 +119,9 @@ public sealed class VesselSnapshotService : IVesselSnapshotService
         VesselId = s.VesselId,
         Brand = s.Brand,
         Model = s.Model,
+        // Catalog ids — needed so the edit wizard can pre-fill (and re-filter models by) the chosen brand/model.
+        VesselBrandId = s.VesselBrandId,
+        VesselModelId = s.VesselModelId,
         ProductionYear = s.ProductionYear,
         LengthValue = s.LengthValue,
         LengthUnitCode = s.LengthUnitCode,
@@ -129,6 +156,8 @@ public sealed class VesselSnapshotService : IVesselSnapshotService
         FuelTypeCode = e.FuelTypeCode,
         Brand = e.Brand,
         Model = e.Model,
+        EngineBrandId = e.EngineBrandId,
+        EngineModelId = e.EngineModelId,
         SerialNumber = e.SerialNumber,
         HorsePower = e.HorsePower,
         ProductionYear = e.ProductionYear,
