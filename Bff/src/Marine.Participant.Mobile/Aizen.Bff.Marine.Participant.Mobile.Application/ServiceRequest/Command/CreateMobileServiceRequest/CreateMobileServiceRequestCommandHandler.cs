@@ -92,6 +92,7 @@ public sealed class CreateMobileServiceRequestCommandHandler
             LocationLatitude = locLat,
             LocationLongitude = locLng,
             OwnerNotes = NullIfBlank(r.OwnerNotes),
+            CargoDryProductCode = NullIfBlank(r.CargoDryProductCode),
         });
 
         var created = createResp?.Body?.ServiceRequest;
