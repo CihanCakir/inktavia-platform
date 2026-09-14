@@ -202,6 +202,10 @@ env:
   # Hepsi cluster içi ClusterIP servisleri; port 80 → container 8080.
   - name: RemoteCalls__ICargoDryRemoteCall__BaseUrl
     value: "http://aizen-cargodry"
+  # 2026-09-14: provider tedarik bağlamı (canAccept + isPreferred) — CargoDry modülünün
+  # /api/v1/cargodry/internal/supply/provider-context ucu; aynı servis, ayrı Refit arayüzü.
+  - name: RemoteCalls__ICargoDrySupplyRemoteCall__BaseUrl
+    value: "http://aizen-cargodry"
   - name: RemoteCalls__IFileStorageRemoteCall__BaseUrl
     value: "http://aizen-filestorage"
   - name: RemoteCalls__IIdentityRemoteCall__BaseUrl
