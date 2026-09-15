@@ -1,4 +1,5 @@
 using Aizen.Bff.MarineProvider.Application.Common.Authorization;
+using Aizen.Bff.MarineProvider.Application.Common.RemoteClients;
 using Aizen.Bff.MarineProvider.Application.Offers;
 using Aizen.Bff.MarineProvider.Application.Offers.Contracts;
 using Aizen.Bff.MarineProvider.Application.PartTerms;
@@ -45,6 +46,14 @@ public sealed class OffersController : AizenWebApiController
     public async Task<AizenApiResponse<CargoDryAcceptBffResponse?>> CargoDryAccept(
         long serviceRequestId, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new CargoDryAcceptBffCommand { ServiceRequestId = serviceRequestId }, ct));
+
+    // CargoDry supply v2: the assigned provider marks the order delivered (captures the kit; starts the auto-complete window).
+    [HttpPost("service-requests/{serviceRequestId:long}/cargodry/delivered")]
+    [ProducesResponseType(typeof(CargoDryMarkDeliveredBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryMarkDeliveredBffResponse?>> CargoDryMarkDelivered(
+        long serviceRequestId, [FromBody] MarkCargoDryDeliveredRemoteRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(
+            new CargoDryMarkDeliveredBffCommand { ServiceRequestId = serviceRequestId, KitId = body.KitId }, ct));
 
     [HttpPut("service-requests/{serviceRequestId:long}/offers/{offerId:long}")]
     [ProducesResponseType(typeof(UpdateOfferBffResponse), StatusCodes.Status200OK)]

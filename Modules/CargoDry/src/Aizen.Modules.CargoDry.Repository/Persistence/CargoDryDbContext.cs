@@ -14,6 +14,7 @@ public sealed class CargoDryDbContext : AizenDbContext
     // CargoDry supply flow (additive)
     public DbSet<CargoDryProductImageEntity>        ProductImages          => Set<CargoDryProductImageEntity>();
     public DbSet<CargoDryOwnerPreferredProviderEntity> OwnerPreferredProviders => Set<CargoDryOwnerPreferredProviderEntity>();
+    public DbSet<CargoDryDirectSaleEntity>          DirectSales            => Set<CargoDryDirectSaleEntity>();
     public DbSet<CargoDryBatchEntity>               Batches                => Set<CargoDryBatchEntity>();
     public DbSet<CargoDryKitEntity>                 Kits                   => Set<CargoDryKitEntity>();
     public DbSet<CargoDryRenewalEntity>             Renewals               => Set<CargoDryRenewalEntity>();

@@ -10,6 +10,9 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Owner;
 using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest.CompleteCargoDrySupplyOnActivation;
+using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest.CompleteCargoDrySupplyOrder;
+using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest.MarkCargoDrySupplyDelivered;
+using Aizen.Modules.ServiceRequest.Application.Command.ServiceRequest.MarkCargoDrySupplyShipped;
 using Aizen.Modules.ServiceRequest.Application.Query.Dispute;
 using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetOwnerAttachmentAccessCheck;
 using Aizen.Modules.ServiceRequest.Application.Query.Owner.GetOwnerDisputes;
@@ -82,6 +85,39 @@ public sealed class ServiceRequestController : AizenWebApiController
                 VesselId    = req.VesselId,
                 ProductCode = req.ProductCode,
             }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>CargoDry supply v2 — the assigned provider marks a supply order delivered (starts the auto-complete window).</summary>
+    [HttpPost("{serviceRequestId:long}/cargodry/delivered")]
+    [ProducesResponseType(typeof(MarkCargoDrySupplyDeliveredResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkCargoDrySupplyDeliveredResponse?>> CargoDryMarkDelivered(
+        [FromRoute] long serviceRequestId, [FromBody] MarkCargoDrySupplyDeliveredRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<MarkCargoDrySupplyDeliveredResponse>(
+            new MarkCargoDrySupplyDeliveredCommand { ServiceRequestId = serviceRequestId, KitId = req.KitId }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>CargoDry supply v2 (cargo path) — admin marks a cargo order shipped with a tracking code.</summary>
+    [HttpPost("{serviceRequestId:long}/cargodry/ship")]
+    [ProducesResponseType(typeof(MarkCargoDrySupplyShippedResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkCargoDrySupplyShippedResponse?>> CargoDryMarkShipped(
+        [FromRoute] long serviceRequestId, [FromBody] MarkCargoDrySupplyShippedRequest req, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<MarkCargoDrySupplyShippedResponse>(
+            new MarkCargoDrySupplyShippedCommand { ServiceRequestId = serviceRequestId, TrackingCode = req.TrackingCode, KitId = req.KitId }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>CargoDry supply v2 — admin manually completes a cargo order (else it auto-completes N days after shipped).</summary>
+    [HttpPost("{serviceRequestId:long}/cargodry/complete")]
+    [ProducesResponseType(typeof(CompleteCargoDrySupplyOrderResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CompleteCargoDrySupplyOrderResponse?>> CargoDryCompleteOrder(
+        [FromRoute] long serviceRequestId, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<CompleteCargoDrySupplyOrderResponse>(
+            new CompleteCargoDrySupplyOrderCommand { ServiceRequestId = serviceRequestId, Note = "Admin manual complete" }, ct);
         return SetResponse(result);
     }
 

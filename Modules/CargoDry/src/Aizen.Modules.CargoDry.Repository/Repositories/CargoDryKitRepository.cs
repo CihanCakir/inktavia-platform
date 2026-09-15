@@ -173,6 +173,12 @@ public sealed class CargoDryKitRepository : ICargoDryKitRepository
             .Where(x => x.BatchCode == batchCode && x.Status == CargoDryKitStatus.Available)
             .ToListAsync(ct);
 
+    public Task<int> CountAvailableForProviderProductAsync(long providerProfileId, string productCode, CancellationToken ct)
+        => _db.Kits.CountAsync(
+            x => x.ProviderProfileId == providerProfileId
+              && x.ProductCode == productCode
+              && x.Status == CargoDryKitStatus.Available, ct);
+
     public async Task AddAsync(CargoDryKitEntity entity, CancellationToken ct)
     {
         await _db.Kits.AddAsync(entity, ct);

@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<ICargoDryProviderMilestoneAwardRepository, CargoDryProviderMilestoneAwardRepository>();
         // CargoDry supply flow (additive)
         services.AddScoped<ICargoDryOwnerPreferredProviderRepository, CargoDryOwnerPreferredProviderRepository>();
+        services.AddScoped<ICargoDryDirectSaleRepository, CargoDryDirectSaleRepository>();
         services.AddScoped<CargoDryProductSeed>();
         services.AddScoped<CargoDryBatchMockSeed>();
         services.AddScoped<CargoDryProviderMockSeed>();

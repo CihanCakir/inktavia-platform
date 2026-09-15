@@ -6,6 +6,8 @@ using Aizen.Modules.InktaviaStore.Application.Identity.Command.Onboarding.SavePr
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Onboarding.SubmitProviderOnboarding;
 using Aizen.Modules.InktaviaStore.Application.Identity.Command.Onboarding.RequestProviderOnboardingRevision;
 using Aizen.Modules.InktaviaStore.Application.Identity.Query.Onboarding.GetProviderOnboarding;
+using Aizen.Modules.InktaviaStore.Application.Identity.Query.Onboarding.GetProvidersWithCargoDryInterest;
+using Aizen.Modules.Identity.Abstraction.Dto.Onboarding;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +30,18 @@ public sealed class ProviderOnboardingController : AizenWebApiController
     {
         var query = new GetProviderOnboardingQuery { ProfileId = profileId };
         var result = await _sender.ProcessAsync(query, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>ADDENDUM A4 — providers who declared CargoDry interest (optional onboarding step). A declared wish, not
+    /// programme participation. Admin "programme applications" queue source; the AdminPanel BFF joins CargoDry status.</summary>
+    [HttpGet("cargodry-interest")]
+    [ProducesResponseType(typeof(CargoDryInterestApplicantsResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryInterestApplicantsResult>> GetCargoDryInterest(
+        [FromQuery] int pageIndex = 0, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+    {
+        var result = await _sender.ProcessAsync(
+            new GetProvidersWithCargoDryInterestQuery { PageIndex = pageIndex, PageSize = pageSize }, ct);
         return SetResponse(result);
     }
 

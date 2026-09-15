@@ -27,6 +27,20 @@ public interface IServiceRequestReferenceDataRemoteCall : IAizenRemoteCall
     // empty-for-a-Lookup as "unknown group" and fails loud.
     [AizenRemoteCallGet("/api/v1/reference-data/lookup-groups/lookup-items/{groupCode}?onlyActive={onlyActive}")]
     Task<AizenApiResponse<List<SrLookupItemDto>>> GetLookupItemsByGroup(string groupCode, bool onlyActive);
+
+    // CargoDry supply v2 — read an admin-editable numeric config value (system parameter). Returns null Body for an
+    // unknown/inactive key; the caller falls back to a hardcoded default. Used for ProviderAcceptTimeoutHours /
+    // DeliveredAutoCompleteHours / ShippedAutoCompleteDays (keys prefixed "CargoDry.").
+    [AizenRemoteCallGet("/api/v1/reference-data/system-parameters/{key}")]
+    Task<AizenApiResponse<SrSystemParameterDto?>> GetSystemParameter(string key);
+}
+
+/// <summary>Minimal projection of a ReferenceData system parameter (CargoDry supply v2 config read).</summary>
+public sealed class SrSystemParameterDto
+{
+    public string Key { get; set; } = default!;
+    public string Value { get; set; } = default!;
+    public bool IsActive { get; set; }
 }
 
 /// <summary>S2c — minimal projection of an R4 lookup item. <see cref="Code"/> is the language-neutral key; per the R4

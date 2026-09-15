@@ -32,6 +32,15 @@ public sealed class ServiceRequestEntityConfiguration : IEntityTypeConfiguration
         builder.Property(x => x.LocationLongitude).HasPrecision(10, 7);
         builder.Property(x => x.OwnerNotes).HasMaxLength(2000);
         builder.Property(x => x.CargoDryProductCode).HasMaxLength(100); // additive: set only for CARGODRY_SUPPLY
+        // CargoDry supply v2 — order-model fields (additive)
+        builder.Property(x => x.ProviderAcceptDeadlineUtc);
+        builder.Property(x => x.DeliveredAtUtc);
+        builder.Property(x => x.DeliveredKitId);
+        builder.Property(x => x.AutoCompleteDeadlineUtc);
+        builder.Property(x => x.ShippedAtUtc);
+        builder.Property(x => x.TrackingCode).HasMaxLength(100);
+        builder.Property(x => x.CargoDryRetailAmount).HasColumnType("numeric(18,2)");
+        builder.Property(x => x.CargoDryRetailCurrency).HasMaxLength(10);
         builder.Property(x => x.CancelReason).HasMaxLength(1000);
         builder.HasIndex(x => x.RequestCode).IsUnique();
         builder.HasIndex(x => x.OwnerUserId);
@@ -66,6 +75,12 @@ public sealed class ServiceRequestEntityConfiguration : IEntityTypeConfiguration
         // CargoDry supply: kit-activation correlation looks up the open supply SR by vessel + product + status.
         builder.HasIndex(x => new { x.VesselId, x.CargoDryProductCode, x.Status })
             .HasDatabaseName("IX_service_requests_Vessel_CargoDryProduct_Status");
+
+        // CargoDry supply v2 — sweep-query indexes (status + the frozen deadline being compared).
+        builder.HasIndex(x => new { x.Status, x.ProviderAcceptDeadlineUtc })
+            .HasDatabaseName("IX_service_requests_Status_ProviderAcceptDeadline");
+        builder.HasIndex(x => new { x.Status, x.AutoCompleteDeadlineUtc })
+            .HasDatabaseName("IX_service_requests_Status_AutoCompleteDeadline");
 
         builder.HasMany(x => x.WorkPhases).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(x => x.Conversations).WithOne().HasForeignKey("ServiceRequestId").OnDelete(DeleteBehavior.Cascade);

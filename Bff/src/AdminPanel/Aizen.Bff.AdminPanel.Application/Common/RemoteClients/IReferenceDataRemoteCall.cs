@@ -75,6 +75,11 @@ public interface IReferenceDataRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/reference-data/system-parameters")]
     Task<AizenApiResponse<IReadOnlyList<SystemParameterDto>>> GetSystemParameters();
 
+    // CargoDry supply v2 — admin edit of a system parameter (used for the CargoDry.* config keys).
+    [AizenRemoteCallPut("/api/v1/admin/reference-data/system-parameters/{key}")]
+    Task<AizenApiResponse<SystemParameterDto>> UpdateSystemParameter(
+        string key, [AizenRemoteCallBody] Aizen.Modules.ReferenceData.Abstraction.Request.SystemParameter.UpdateSystemParameterRequest request);
+
     // ── Brand/model catalog — admin CRUD + review queue (module /api/v1/admin/reference-data/*-catalog) ──
     // Reads (browse; onlyActive=false so admin sees inactive) reuse the public read controller.
     [AizenRemoteCallGet("/api/v1/reference-data/vessel-catalog/brands")]

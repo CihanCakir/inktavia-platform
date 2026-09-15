@@ -399,10 +399,12 @@ public sealed class CargoDryAdminController : ControllerBase
     public async Task<IActionResult> GetBatches(
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 25,
+        [FromQuery] long? assignedProviderProfileId = null,   // ADDENDUM A3 — filter by allocated provider
+        [FromQuery] string? allocationState = null,           // all | allocated | unallocated
         CancellationToken ct = default)
     {
         var result = await _sender.Send(
-            new GetCargoDryBatchListQuery { Page = page, PageSize = pageSize }, ct);
+            new GetCargoDryBatchListQuery { Page = page, PageSize = pageSize, AssignedProviderProfileId = assignedProviderProfileId, AllocationState = allocationState }, ct);
         return Ok(result);
     }
 

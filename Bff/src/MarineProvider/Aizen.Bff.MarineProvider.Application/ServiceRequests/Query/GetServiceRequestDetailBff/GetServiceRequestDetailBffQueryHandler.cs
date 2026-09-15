@@ -28,6 +28,7 @@ public sealed class GetServiceRequestDetailBffQueryHandler
 
     private const string CargoDrySupplyCategory = "CARGODRY_SUPPLY";
     private const string CargoDryNotProgramReason = "Only CargoDry program providers (active consignment agreement) can accept this request.";
+    private const string CargoDryNoStockReason = "Stokta yok — bu ürün için uygun kit bulunmuyor.";
     private const string VesselCacheKeyPrefix = "vessel:summary:v3:";
     private static readonly TimeSpan VesselCacheTtl = TimeSpan.FromMinutes(10);
 
@@ -120,14 +121,31 @@ public sealed class GetServiceRequestDetailBffQueryHandler
                     ProviderProfileId = _identityHolder.ProfileId ?? 0,
                     ProductCodes = new List<string> { req.CargoDryProductCode! },
                 });
-            req.CanAccept = ctx.AcceptableProductCodes.Any(c => string.Equals(c, req.CargoDryProductCode, StringComparison.OrdinalIgnoreCase));
+            // A1 — 3-way gate: not-in-program / no-stock / ok (matches discovery).
+            var stock = ctx.ProductStock.FirstOrDefault(s => string.Equals(s.ProductCode, req.CargoDryProductCode, StringComparison.OrdinalIgnoreCase));
+            req.AvailableKitCount = stock?.AvailableKitCount;
+            if (stock is null || !stock.HasActiveAgreement)
+            {
+                req.CanAccept = false;
+                req.CanAcceptReason = CargoDryNotProgramReason;
+            }
+            else if (stock.AvailableKitCount <= 0)
+            {
+                req.CanAccept = false;
+                req.CanAcceptReason = CargoDryNoStockReason;
+            }
+            else
+            {
+                req.CanAccept = true;
+                req.CanAcceptReason = null;
+            }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "CargoDry provider-context call failed for SR {SrId}; leaving supply request locked.", req.Id);
             req.CanAccept = false;   // fail-safe: locked
+            req.CanAcceptReason = CargoDryNotProgramReason;
         }
-        req.CanAcceptReason = req.CanAccept ? null : CargoDryNotProgramReason;
         req.IsPreferred = false;     // see method note
     }
 

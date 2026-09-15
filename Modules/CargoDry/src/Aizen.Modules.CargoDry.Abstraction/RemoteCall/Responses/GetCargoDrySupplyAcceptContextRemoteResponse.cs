@@ -10,4 +10,6 @@ public sealed class GetCargoDrySupplyAcceptContextRemoteResponse
     public decimal RetailPrice                { get; init; }
     public string? CurrencyCode               { get; init; }
     public bool    ProviderHasActiveAgreement { get; init; }
+    /// <summary>A1 — provider's AVAILABLE consignment kit count for this product (accept requires > 0).</summary>
+    public int     AvailableKitCount          { get; init; }
 }

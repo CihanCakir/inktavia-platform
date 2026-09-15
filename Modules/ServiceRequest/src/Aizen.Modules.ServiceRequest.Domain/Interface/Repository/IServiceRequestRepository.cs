@@ -37,6 +37,16 @@ public interface IServiceRequestRepository
     Task<ServiceRequestEntity?> GetOldestOpenCargoDrySupplyAsync(
         long ownerUserId, long vesselId, string productCode, CancellationToken ct = default);
 
+    /// <summary>CargoDry supply v2 — ids of open supply orders whose provider-accept window has elapsed (cargo fallback due).</summary>
+    Task<IReadOnlyList<long>> GetCargoDrySupplyAcceptTimedOutIdsAsync(DateTime nowUtc, int maxBatch, CancellationToken ct = default);
+
+    /// <summary>CargoDry supply v2 — ids of supply orders due to auto-complete: delivered-and-overdue (Assigned) OR shipped-and-overdue (Shipped).</summary>
+    Task<IReadOnlyList<long>> GetCargoDrySupplyAutoCompleteDueIdsAsync(DateTime nowUtc, int maxBatch, CancellationToken ct = default);
+
+    /// <summary>CargoDry supply v2 (F1) — admin cargo-orders listing: paged CARGODRY_SUPPLY SRs whose status is in the given set (e.g. AwaitingShipment/Shipped).</summary>
+    Task<(IReadOnlyList<ServiceRequestEntity> Items, int Total)> GetCargoDrySupplyOrdersAsync(
+        IReadOnlyList<Abstraction.Enum.ServiceRequestStatus> statuses, int skip, int take, CancellationToken ct = default);
+
     /// <summary>BE-S4 — travel-pricing details keyed by offer-item id, for the given offer items (Travel lines). Read-only.</summary>
     Task<IReadOnlyDictionary<long, TravelPricingDetailEntity>> GetTravelPricingByOfferItemIdsAsync(
         IReadOnlyCollection<long> offerItemIds, CancellationToken ct = default);

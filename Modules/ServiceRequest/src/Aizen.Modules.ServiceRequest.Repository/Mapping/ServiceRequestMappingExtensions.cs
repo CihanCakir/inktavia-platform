@@ -35,9 +35,35 @@ public static class ServiceRequestMappingExtensions
         LocationLongitude = entity.LocationLongitude,
         ExpiresAt = entity.ExpiresAt,
         CargoDryProductCode = entity.CargoDryProductCode,
+        // CargoDry supply v2 — owner order view (only for CARGODRY_SUPPLY)
+        CargoDryOrderStatus = DeriveCargoDryOrderStatus(entity),
+        CargoDryProviderName = entity.CargoDryProductCode is null ? null : entity.AssignedProviderName,
+        CargoDryProviderAcceptDeadlineUtc = entity.ProviderAcceptDeadlineUtc,
+        CargoDryDeliveredAtUtc = entity.DeliveredAtUtc,
+        CargoDryShippedAtUtc = entity.ShippedAtUtc,
+        CargoDryTrackingCode = entity.TrackingCode,
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
     };
+
+    /// <summary>
+    /// CargoDry supply v2 — derives the owner-facing order status from the SR status + timestamps. Null for non-supply.
+    /// OrderReceived → ProviderAssigned | AwaitingShipment → Shipped → Delivered → Completed (Cancelled is terminal).
+    /// </summary>
+    private static string? DeriveCargoDryOrderStatus(ServiceRequestEntity e)
+    {
+        if (e.CargoDryProductCode is null) return null;
+        return e.Status switch
+        {
+            ServiceRequestStatus.Cancelled                                   => "Cancelled",
+            ServiceRequestStatus.Completed or ServiceRequestStatus.Closed    => "Completed",
+            ServiceRequestStatus.Shipped                                     => "Shipped",
+            ServiceRequestStatus.AwaitingShipment                            => "AwaitingShipment",
+            ServiceRequestStatus.Assigned when e.DeliveredAtUtc is not null  => "Delivered",
+            ServiceRequestStatus.Assigned                                    => "ProviderAssigned",
+            _                                                                => "OrderReceived",
+        };
+    }
 
     public static ServiceRequestSummaryDto ToSummaryDto(this ServiceRequestEntity entity) => new()
     {
@@ -60,6 +86,7 @@ public static class ServiceRequestMappingExtensions
         LastActivityAt = entity.ModifyDate ?? entity.CreateDate,
         OfferCount = entity.Offers.Count,
         HasActiveAssignment = entity.Assignment is not null,
+        CargoDryOrderStatus = DeriveCargoDryOrderStatus(entity),
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
     };

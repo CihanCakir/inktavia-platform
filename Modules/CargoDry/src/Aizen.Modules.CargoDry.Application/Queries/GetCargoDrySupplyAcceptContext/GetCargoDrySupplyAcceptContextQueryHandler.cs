@@ -11,13 +11,16 @@ public sealed class GetCargoDrySupplyAcceptContextQueryHandler
 {
     private readonly ICargoDryProductRepository              _products;
     private readonly ICargoDryConsignmentAgreementRepository _agreements;
+    private readonly ICargoDryKitRepository                  _kits;
 
     public GetCargoDrySupplyAcceptContextQueryHandler(
         ICargoDryProductRepository              products,
-        ICargoDryConsignmentAgreementRepository agreements)
+        ICargoDryConsignmentAgreementRepository agreements,
+        ICargoDryKitRepository                  kits)
     {
         _products   = products;
         _agreements = agreements;
+        _kits       = kits;
     }
 
     public override async Task<GetCargoDrySupplyAcceptContextResponse?> Handle(
@@ -29,12 +32,18 @@ public sealed class GetCargoDrySupplyAcceptContextQueryHandler
             && await _agreements.GetActiveForProviderProductAsync(
                    request.ProviderProfileId, request.ProductCode, DateTime.UtcNow, ct) is not null;
 
+        // A1 — live available-kit stock gate (only meaningful when the provider is in the programme).
+        var availableKits = request.ProviderProfileId > 0
+            ? await _kits.CountAvailableForProviderProductAsync(request.ProviderProfileId, request.ProductCode, ct)
+            : 0;
+
         return new GetCargoDrySupplyAcceptContextResponse
         {
             ProductActive              = product is { IsActive: true },
             RetailPrice                = product?.RetailPrice ?? 0m,
             CurrencyCode               = product?.CurrencyCode,
             ProviderHasActiveAgreement = hasAgreement,
+            AvailableKitCount          = availableKits,
         };
     }
 }

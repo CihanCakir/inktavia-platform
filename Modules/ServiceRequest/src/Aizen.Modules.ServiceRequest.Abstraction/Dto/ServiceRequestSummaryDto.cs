@@ -28,6 +28,8 @@ public sealed class ServiceRequestSummaryDto
     public DateTime? LastActivityAt { get; set; }
     public int OfferCount { get; set; }
     public bool HasActiveAssignment { get; set; }
+    /// <summary>CargoDry supply v2: server-derived order status for list badges (non-null only for CARGODRY_SUPPLY, includes the Delivered sub-state).</summary>
+    public string? CargoDryOrderStatus { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

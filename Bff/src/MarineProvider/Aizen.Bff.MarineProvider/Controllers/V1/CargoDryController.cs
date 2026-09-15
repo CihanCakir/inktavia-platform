@@ -13,9 +13,13 @@ namespace Aizen.Bff.MarineProvider.Controllers.V1;
 [ApiController]
 [Route("api/v1/provider/cargodry")]
 [Tags("Provider - CargoDry")]
-// PROV-MVP-002 — every action on this controller now requires ENROLMENT, not merely an active account.
-// Nine reads and two writes previously answered any approved provider on the platform.
-[Authorize(Policy = ProviderAuthorizationPolicies.CargoDryParticipant)]
+// PROV-MVP-002 gated EVERY action on CargoDryParticipant (an Active consignment agreement). ADDENDUM A2: that made the
+// whole CargoDry area (incl. the inventory page) 403 for a provider who is being onboarded but not yet a participant —
+// the SPA renders that as "Bu bölüm yüklenemedi". The READ endpoints are all provider-scoped and return EMPTY for a
+// non-participant (no data disclosure — no agreement/inventory/kits exist), so they are softened to ProviderActive so
+// the page loads an empty state instead of erroring. The WRITE endpoints (stock-request create/cancel) KEEP the
+// CargoDryParticipant gate (per-action below), preserving the PROV-MVP-002 protection against non-participant mutation.
+[Authorize(Policy = ProviderAuthorizationPolicies.ProviderActive)]
 public sealed class CargoDryController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
@@ -59,11 +63,13 @@ public sealed class CargoDryController : AizenWebApiController
         => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryStockRequestsBffQuery { Status = status, Page = page, PageSize = pageSize }, ct));
 
     [HttpPost("stock-requests")]
+    [Authorize(Policy = ProviderAuthorizationPolicies.CargoDryParticipant)] // A2: writes stay participant-gated (PROV-MVP-002)
     [ProducesResponseType(typeof(CargoDryStockRequestDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryStockRequestDto?>> CreateStockRequest([FromBody] CreateProviderStockRequestRequest body, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new CreateCargoDryStockRequestBffCommand { ProductCode = body.ProductCode, RequestedQuantity = body.RequestedQuantity, Note = body.Note }, ct));
 
     [HttpPost("stock-requests/{id:long}/cancel")]
+    [Authorize(Policy = ProviderAuthorizationPolicies.CargoDryParticipant)] // A2: writes stay participant-gated (PROV-MVP-002)
     [ProducesResponseType(typeof(CargoDryStockRequestDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryStockRequestDto?>> CancelStockRequest([FromRoute] long id, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new CancelCargoDryStockRequestBffCommand { Id = id }, ct));

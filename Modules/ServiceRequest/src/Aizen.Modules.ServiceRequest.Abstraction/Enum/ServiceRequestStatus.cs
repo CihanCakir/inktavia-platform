@@ -13,6 +13,10 @@ public enum ServiceRequestStatus
     WaitingForAssignment = 20,
     Assigned = 21,
     Scheduled = 22,
+    // CargoDry supply v2 (cargo/direct-online-sale path): no program provider accepted within the window, so the
+    // order left the provider pool permanently and is fulfilled by the platform via cargo shipment.
+    AwaitingShipment = 23,   // cargo fallback triggered; awaiting admin "mark shipped"
+    Shipped = 24,            // admin marked shipped with a tracking code
     InProgress = 30,
     WaitingForOwnerApproval = 31,
     WaitingForMaterial = 32,

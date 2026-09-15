@@ -66,6 +66,7 @@ public sealed class CargoDryInternalController : ControllerBase
             RetailPrice                = result.RetailPrice,
             CurrencyCode               = result.CurrencyCode,
             ProviderHasActiveAgreement = result.ProviderHasActiveAgreement,
+            AvailableKitCount          = result.AvailableKitCount,
         });
     }
 
@@ -87,6 +88,11 @@ public sealed class CargoDryInternalController : ControllerBase
         {
             AcceptableProductCodes = result!.AcceptableProductCodes,
             PreferredOwnerUserIds  = result.PreferredOwnerUserIds,
+            ProductStock           = result.ProductStock
+                .Select(s => new CargoDrySupplyProductStockRemoteDto
+                {
+                    ProductCode = s.ProductCode, HasActiveAgreement = s.HasActiveAgreement, AvailableKitCount = s.AvailableKitCount,
+                }).ToList(),
         });
     }
 }

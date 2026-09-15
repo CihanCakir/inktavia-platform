@@ -61,6 +61,46 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
             .FirstOrDefaultAsync(ct);
     }
 
+    public async Task<IReadOnlyList<long>> GetCargoDrySupplyAcceptTimedOutIdsAsync(DateTime nowUtc, int maxBatch, CancellationToken ct = default)
+        => await _db.ServiceRequests.AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && x.CargoDryProductCode != null
+                && x.ProviderAcceptDeadlineUtc != null
+                && x.ProviderAcceptDeadlineUtc < nowUtc
+                && (x.Status == Abstraction.Enum.ServiceRequestStatus.Open
+                    || x.Status == Abstraction.Enum.ServiceRequestStatus.WaitingForOffer
+                    || x.Status == Abstraction.Enum.ServiceRequestStatus.OfferReceived))
+            .OrderBy(x => x.ProviderAcceptDeadlineUtc)
+            .Take(maxBatch)
+            .Select(x => x.Id)
+            .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<long>> GetCargoDrySupplyAutoCompleteDueIdsAsync(DateTime nowUtc, int maxBatch, CancellationToken ct = default)
+        => await _db.ServiceRequests.AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && x.CargoDryProductCode != null
+                && x.AutoCompleteDeadlineUtc != null
+                && x.AutoCompleteDeadlineUtc < nowUtc
+                && ((x.Status == Abstraction.Enum.ServiceRequestStatus.Assigned && x.DeliveredAtUtc != null)
+                    || x.Status == Abstraction.Enum.ServiceRequestStatus.Shipped))
+            .OrderBy(x => x.AutoCompleteDeadlineUtc)
+            .Take(maxBatch)
+            .Select(x => x.Id)
+            .ToListAsync(ct);
+
+    public async Task<(IReadOnlyList<ServiceRequestEntity> Items, int Total)> GetCargoDrySupplyOrdersAsync(
+        IReadOnlyList<Abstraction.Enum.ServiceRequestStatus> statuses, int skip, int take, CancellationToken ct = default)
+    {
+        var q = _db.ServiceRequests.AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && x.CargoDryProductCode != null
+                && x.ServiceCategoryCode == Abstraction.Constants.ServiceRequestServiceCategoryCodes.CargoDrySupply
+                && statuses.Contains(x.Status));
+        var total = await q.CountAsync(ct);
+        var items = await q.OrderByDescending(x => x.CreateDate).Skip(skip).Take(take).ToListAsync(ct);
+        return (items, total);
+    }
+
     public async Task<IReadOnlyDictionary<long, TravelPricingDetailEntity>> GetTravelPricingByOfferItemIdsAsync(
         IReadOnlyCollection<long> offerItemIds, CancellationToken ct = default)
     {

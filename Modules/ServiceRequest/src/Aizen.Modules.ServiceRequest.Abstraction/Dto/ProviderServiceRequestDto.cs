@@ -52,6 +52,8 @@ public sealed class ProviderServiceRequestDto
     public string? CanAcceptReason { get; set; }
     /// <summary>CargoDry supply flow: whether the owner has marked the calling provider as their preferred CargoDry supplier. Set by the provider BFF.</summary>
     public bool IsPreferred { get; set; }
+    /// <summary>CargoDry supply v2 (A1): the calling provider's available consignment-kit count for the requested product (null for non-CARGODRY_SUPPLY). Set by the provider BFF.</summary>
+    public int? AvailableKitCount { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
