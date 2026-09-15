@@ -109,7 +109,11 @@ public sealed class CreatePaymentEscrowCommandHandler
         transaction.Capture(initResult.GatewayReference);
 
         await _transactions.AddAsync(transaction, ct);
-        // SaveChanges is handled by AizenCommandHandlerDecorator — do NOT call here.
+        // Flush explicitly so the DB-generated transaction.Id is available for the result below — callers
+        // (e.g. CreateServiceRequestCommandHandler for CargoDry supply) persist it as SR.PaymentTransactionId.
+        // Without this flush the result captured Id=0 pre-save, breaking escrow release at completion
+        // (Supply v2 E2E root cause, Sep 2026). The decorator's later SaveChanges becomes a no-op flush.
+        await _transactions.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "Escrow created. TransactionCode={Code} GrossAmount={Amount} Commission={Commission} Net={Net}",

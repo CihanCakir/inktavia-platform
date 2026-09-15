@@ -182,6 +182,11 @@ public sealed class CargoDryBatchBffDto
     public long    CreatedByAdminId { get; init; }
     public string? BatchLabel       { get; init; }
     public string? WarehouseCode    { get; init; }
+
+    // ── Commercial allocation (Supply v2 / A3) — passthrough from module CargoDryBatchDto ──
+    public long? AssignedProviderProfileId { get; init; }
+    public int?  CommercialModel           { get; init; }
+    public long? ConsignmentAgreementId    { get; init; }
 }
 
 public sealed class CargoDryBatchListBffDto

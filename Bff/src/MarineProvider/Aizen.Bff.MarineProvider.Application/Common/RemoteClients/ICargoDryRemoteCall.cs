@@ -29,6 +29,11 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
         [Refit.Query] SalesChannel? salesChannel = null, [Refit.Query] bool? hasAvailableStock = null,
         [Refit.Query] string? search = null, [Refit.Query] int page = 1, [Refit.Query] int pageSize = 25);
 
+    [AizenRemoteCallGet("/api/v1/cargodry/provider/kits")]
+    Task<AizenApiResponse<List<CargoDryProviderKitDto>>> GetKits(
+        [Refit.Query] string? productCode = null, [Refit.Query] CargoDryKitStatus? status = null,
+        [Refit.Query] int pageSize = 100);
+
     [AizenRemoteCallGet("/api/v1/cargodry/provider/inventory/movements")]
     Task<AizenApiResponse<CargoDryInventoryMovementPagedResultDto>> GetInventoryMovements(
         [Refit.Query] string? productCode = null, [Refit.Query] string? batchCode = null,

@@ -10,8 +10,14 @@ public sealed class CargoDrySupplyOrderAdminDto
     public string    RequestCode               { get; set; } = default!;
     public string?   ProductCode               { get; set; }
     public string?   VesselName                { get; set; }
+    /// <summary>Owner user id — carried so the admin BFF can enrich <see cref="OwnerName"/> from Identity.</summary>
+    public long      OwnerUserId               { get; set; }
+    /// <summary>Owner display name. Resolved by the admin BFF (Identity lookup); null when unavailable.</summary>
+    public string?   OwnerName                 { get; set; }
     /// <summary>Derived owner order status (AwaitingShipment | Shipped | ...).</summary>
     public string?   OrderStatus               { get; set; }
+    /// <summary>When the order entered AwaitingShipment (from status history; falls back to CreatedAt).</summary>
+    public DateTime? AwaitingSince             { get; set; }
     public DateTime? ProviderAcceptDeadlineUtc { get; set; }
     public DateTime? ShippedAtUtc              { get; set; }
     public string?   TrackingCode              { get; set; }

@@ -100,20 +100,28 @@ public sealed class CargoDryProviderInventoryController : ControllerBase
 
     /// <summary>
     /// GET /api/v1/cargodry/admin/inventory/preview?batchCode=X&amp;providerProfileId=Y&amp;commercialModel=Z
+    ///     &amp;salesChannel=ConsignmentSellThrough&amp;consignmentAgreementId=N
     /// Pre-flight validation for a batch→provider allocation. Returns CanAllocate + blocking reason.
+    /// salesChannel/consignmentAgreementId drive the ConsignmentSellThrough agreement-cap branch.
     /// </summary>
     [HttpGet("preview")]
     public async Task<IActionResult> GetAllocationPreview(
         [FromQuery] string                  batchCode,
         [FromQuery] long                    providerProfileId,
         [FromQuery] CargoDryCommercialModel commercialModel,
+        [FromQuery] SalesChannel?           salesChannel           = null,
+        [FromQuery] long?                   consignmentAgreementId = null,
         CancellationToken ct = default)
     {
         var result = await _sender.Send(new GetBatchAllocationPreviewQuery
         {
-            BatchCode         = batchCode,
-            ProviderProfileId = providerProfileId,
-            CommercialModel   = commercialModel,
+            BatchCode              = batchCode,
+            ProviderProfileId      = providerProfileId,
+            CommercialModel        = commercialModel,
+            // Omitted channel → default(SalesChannel) (no valid member = 0), which never equals
+            // ConsignmentSellThrough, so the agreement branch stays inert for legacy callers.
+            SalesChannel           = salesChannel ?? default,
+            ConsignmentAgreementId = consignmentAgreementId,
         }, ct);
 
         return Ok(result);

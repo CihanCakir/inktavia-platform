@@ -178,4 +178,9 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallGet("/api/v1/admin/service-requests/cargodry/orders")]
     Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto>> GetCargoDrySupplyOrders(
         [Refit.Query] string? status, [Refit.Query] int page, [Refit.Query] int pageSize);
+
+    // Dev/ops reconciliation — force the CargoDry-supply accept-timeout fallback for one SR (internal service route).
+    [AizenRemoteCallPost("/api/v1/servicerequest/internal/cargodry/force-accept-timeout")]
+    Task<AizenApiResponse<ForceCargoDryAcceptTimeoutResponse>> ForceCargoDryAcceptTimeout(
+        [AizenRemoteCallBody] ForceCargoDryAcceptTimeoutRequest request);
 }

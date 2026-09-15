@@ -1,6 +1,8 @@
 using Aizen.Modules.CargoDry.Abstraction.Interface.Service;
 using Aizen.Modules.CargoDry.Application.Services;
+using Aizen.Modules.Payment.Abstraction.Interface;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Aizen.Modules.CargoDry.Application;
 
@@ -15,6 +17,10 @@ public static class DependencyInjection
 
         // Phase 5: Commercial rule resolver
         services.AddScoped<ICargoDryCommercialRuleResolver,      CargoDryCommercialRuleResolver>();
+        // Split-host fallback: aizen-cargodry runs without Payment.Application, whose DI provides the real
+        // ICargoDryCommissionRuleLookupService. TryAdd keeps the Payment implementation authoritative when
+        // co-hosted; standalone, the null-object degrades the resolver to agreement-rate tiers (Supply v2 fix).
+        services.TryAddScoped<ICargoDryCommissionRuleLookupService, NullCargoDryCommissionRuleLookupService>();
 
         // CE-6c: Milestone evaluator
         services.AddScoped<ICargoDryProviderMilestoneEvaluator, CargoDryProviderMilestoneEvaluator>();

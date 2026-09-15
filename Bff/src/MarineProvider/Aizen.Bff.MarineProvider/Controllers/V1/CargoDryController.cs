@@ -45,6 +45,13 @@ public sealed class CargoDryController : AizenWebApiController
         [FromQuery] string? search = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryInventoryBffQuery { ProductCode = productCode, CommercialModel = commercialModel, SalesChannel = salesChannel, HasAvailableStock = hasAvailableStock, Search = search, Page = page, PageSize = pageSize }, ct));
 
+    [HttpGet("kits")]
+    [ProducesResponseType(typeof(List<CargoDryProviderKitDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CargoDryProviderKitDto>?>> GetKits(
+        [FromQuery] string? productCode = null, [FromQuery] CargoDryKitStatus? status = null,
+        [FromQuery] int pageSize = 100, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryProviderKitsBffQuery { ProductCode = productCode, Status = status, PageSize = pageSize }, ct));
+
     [HttpGet("inventory/movements")]
     [ProducesResponseType(typeof(CargoDryInventoryMovementPagedResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryInventoryMovementPagedResultDto?>> GetInventoryMovements(

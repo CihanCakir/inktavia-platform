@@ -129,8 +129,13 @@ public sealed class GetBatchAllocationPreviewQueryHandler
         // ── ConsignmentSellThrough — resolve agreement ────────────────────────
         if (request.SalesChannel == SalesChannel.ConsignmentSellThrough)
         {
-            var agreement = await _agreements.GetActiveForProviderProductAsync(
-                request.ProviderProfileId, batch.ProductCode, nowUtc, ct);
+            // Mirror AllocateBatchToProvider: honour the explicit agreement chosen in the modal when supplied,
+            // otherwise auto-resolve the active provider+product agreement. Without this the cap branch could
+            // only ever see the auto-resolved agreement, and (before SalesChannel was threaded through) never ran.
+            var agreement = request.ConsignmentAgreementId.HasValue
+                ? await _agreements.GetByIdAsync(request.ConsignmentAgreementId.Value, ct)
+                : await _agreements.GetActiveForProviderProductAsync(
+                    request.ProviderProfileId, batch.ProductCode, nowUtc, ct);
 
             if (agreement is null)
             {
@@ -146,9 +151,10 @@ public sealed class GetBatchAllocationPreviewQueryHandler
                     AgreementStatus            = null,
                     AgreementRemainingKitCount = 0,
                     CanAllocate                = false,
-                    BlockingReason             =
-                        $"No active consignment agreement found for provider {request.ProviderProfileId} " +
-                        $"and product '{batch.ProductCode}'. Create and activate an agreement first.",
+                    BlockingReason             = request.ConsignmentAgreementId.HasValue
+                        ? $"Consignment agreement {request.ConsignmentAgreementId.Value} was not found."
+                        : $"No active consignment agreement found for provider {request.ProviderProfileId} " +
+                          $"and product '{batch.ProductCode}'. Create and activate an agreement first.",
                 };
             }
 

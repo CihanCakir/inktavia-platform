@@ -7,6 +7,7 @@ using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalAlerts;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryOperationalOverview;
 using Aizen.Modules.CargoDry.Application.Queries.GetProviderInventoryList;
+using Aizen.Modules.CargoDry.Application.Queries.GetProviderKits;
 using Aizen.Modules.CargoDry.Application.Queries.GetProviderInventoryMovements;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalCandidates;
 using Aizen.Modules.CargoDry.Application.Queries.GetProviderStockRequests;
@@ -99,6 +100,24 @@ public sealed class CargoDryProviderController : AizenWebApiController
                 ProviderProfileId = pid, ProductCode = productCode, CommercialModel = commercialModel,
                 SalesChannel = salesChannel, HasAvailableStock = hasAvailableStock, Search = search,
                 Page = page, PageSize = pageSize
+            }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// GET /api/v1/cargodry/provider/kits?productCode=&amp;status=Available&amp;pageSize=
+    /// Provider kit picker — the calling provider's own kits, optionally filtered by product + status.
+    /// </summary>
+    [HttpGet("kits")]
+    public async Task<AizenApiResponse<List<CargoDryProviderKitDto>?>> GetKits(
+        [FromQuery] string? productCode = null, [FromQuery] CargoDryKitStatus? status = null,
+        [FromQuery] int pageSize = 100, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<List<CargoDryProviderKitDto>>(
+            new GetProviderKitsQuery
+            {
+                ProviderProfileId = pid, ProductCode = productCode, Status = status, PageSize = pageSize
             }, ct);
         return SetResponse(result);
     }
