@@ -114,6 +114,8 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
     Task<CargoDryBatchListBffDto> GetBatchesAsync(
         [Query] int page,
         [Query] int pageSize,
+        [Query] long? assignedProviderProfileId,   // ADDENDUM A3 — filter batches by allocated provider
+        [Query] string? allocationState,            // all | allocated | unallocated
         CancellationToken ct = default);
 
     [AizenRemoteCallGet("/api/v1/cargodry/admin/batches/{batchCode}")]

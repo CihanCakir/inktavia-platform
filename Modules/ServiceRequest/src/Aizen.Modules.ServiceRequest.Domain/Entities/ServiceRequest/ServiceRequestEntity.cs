@@ -66,6 +66,27 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     /// <summary>UTC timestamp of the last owner content edit (UpdateProfile). Not set by publish, status change, or offer flows.</summary>
     public DateTime? ContentUpdatedAt { get; private set; }
 
+    // ── CargoDry supply v2 — order model (additive; meaningful only for CARGODRY_SUPPLY) ───────────────────────
+    /// <summary>Deadline for a program provider to accept. Set at order creation (now + ProviderAcceptTimeoutHours).
+    /// The accept-timeout sweep flips an un-accepted order to AwaitingShipment (cargo fallback) once past this.</summary>
+    public DateTime? ProviderAcceptDeadlineUtc { get; private set; }
+    /// <summary>Set when the provider marks the kit delivered (assigned path). Drives the delivered auto-complete window.</summary>
+    public DateTime? DeliveredAtUtc { get; private set; }
+    /// <summary>The kit the provider delivered (captured at mark-delivered). Used by auto-complete to accrue the sale
+    /// attribution + commission for that kit when the owner never scans the QR within the window.</summary>
+    public long? DeliveredKitId { get; private set; }
+    /// <summary>Frozen deadline for auto-completion: set at mark-delivered (+DeliveredAutoCompleteHours) or at mark-shipped
+    /// (+cargo ship-to-complete). The auto-complete sweep completes the order once past this. Frozen ⇒ config-change safe.</summary>
+    public DateTime? AutoCompleteDeadlineUtc { get; private set; }
+    /// <summary>Cargo path: set when admin marks the order shipped.</summary>
+    public DateTime? ShippedAtUtc { get; private set; }
+    /// <summary>Cargo path: carrier tracking code recorded at mark-shipped.</summary>
+    public string? TrackingCode { get; private set; }
+    /// <summary>Retail price charged into escrow at order creation (frozen). Used to recognize revenue at completion
+    /// on both the provider and cargo paths (cargo has no offer to read it from).</summary>
+    public decimal? CargoDryRetailAmount { get; private set; }
+    public string? CargoDryRetailCurrency { get; private set; }
+
     private readonly List<ServiceRequestItemEntity> _items = new();
     public IReadOnlyCollection<ServiceRequestItemEntity> Items => _items.AsReadOnly();
 
@@ -230,6 +251,50 @@ public sealed class ServiceRequestEntity : AizenEntityWithAudit
     /// <summary>CargoDry supply flow: pins the requested product code. Uppercased; only meaningful for CARGODRY_SUPPLY.</summary>
     public void SetCargoDryProductCode(string? productCode)
         => CargoDryProductCode = string.IsNullOrWhiteSpace(productCode) ? null : productCode.Trim().ToUpperInvariant();
+
+    // ── CargoDry supply v2 — order-model transitions ───────────────────────────────────────────────────────────
+    /// <summary>Order creation: freeze the retail amount charged (for revenue recognition at completion).</summary>
+    public void SetCargoDryRetail(decimal amount, string currencyCode)
+    {
+        CargoDryRetailAmount = amount;
+        CargoDryRetailCurrency = currencyCode?.ToUpperInvariant();
+    }
+
+    /// <summary>Order creation: freeze the provider-accept deadline.</summary>
+    public void SetProviderAcceptDeadline(DateTime deadlineUtc) => ProviderAcceptDeadlineUtc = deadlineUtc;
+
+    /// <summary>Cargo fallback: no provider accepted within the window → leave the provider pool permanently.
+    /// Guarded: only from Open (deterministic winner vs a concurrent provider accept).</summary>
+    public void MoveToAwaitingShipment()
+    {
+        if (Status != ServiceRequestStatus.Open && Status != ServiceRequestStatus.WaitingForOffer && Status != ServiceRequestStatus.OfferReceived)
+            throw new InvalidOperationException($"CargoDry order can only fall back to cargo from an open state (was {Status}).");
+        Status = ServiceRequestStatus.AwaitingShipment;
+    }
+
+    /// <summary>Cargo path: admin marks the order shipped with a tracking code (+ optional shipped kit) + freezes the auto-complete deadline.</summary>
+    public void MarkCargoShipped(string trackingCode, DateTime shippedAtUtc, DateTime autoCompleteDeadlineUtc, long? shippedKitId = null)
+    {
+        if (Status != ServiceRequestStatus.AwaitingShipment)
+            throw new InvalidOperationException($"Only an AwaitingShipment order can be marked shipped (was {Status}).");
+        TrackingCode = trackingCode;
+        ShippedAtUtc = shippedAtUtc;
+        AutoCompleteDeadlineUtc = autoCompleteDeadlineUtc;
+        if (shippedKitId is > 0) DeliveredKitId = shippedKitId; // fulfilment kit (optional for cargo)
+        Status = ServiceRequestStatus.Shipped;
+    }
+
+    /// <summary>Assigned path: provider marks the kit delivered (capturing which kit) + freezes the auto-complete deadline.</summary>
+    public void MarkDelivered(long deliveredKitId, DateTime deliveredAtUtc, DateTime autoCompleteDeadlineUtc)
+    {
+        if (Status != ServiceRequestStatus.Assigned)
+            throw new InvalidOperationException($"Only an Assigned CargoDry order can be marked delivered (was {Status}).");
+        if (DeliveredAtUtc is not null)
+            throw new InvalidOperationException("This CargoDry order is already marked delivered.");
+        DeliveredKitId = deliveredKitId;
+        DeliveredAtUtc = deliveredAtUtc;
+        AutoCompleteDeadlineUtc = autoCompleteDeadlineUtc;
+    }
 
     public void UpdateCategory(string? category) => Category = category;
     public void UpdateDenormalized(string? vesselName, string? requestedByEmail) { VesselName = vesselName; RequestedByEmail = requestedByEmail; }

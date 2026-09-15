@@ -31,36 +31,12 @@ spec:
     targetRevision: develop
     path: Web/deploy/web-admin
     helm:
-      # ⚠️ releaseName sabit: ileride appset'e tasirken ayni kalmali, yoksa
-      # Argo CD kaynaklari devralmaz, YENILERINI yaratir ve iki kopya kosar.
       releaseName: web-admin
       valueFiles:
         - values-dev.yaml
       parameters:
-        # ▼▼▼ TEK SURUM ISARETCISI — elle guncelleniyor ▼▼▼
-        # FAZ20 (#55): Bu satir HALA elle guncelleniyor (cross-repo auto-commit YAPILMADI —
-        # public repoya yazma yetkili bir token gerektirirdi; o ayri bir guvenlik/provenance
-        # kararidir, sessizce alinmaz). AMA artik UNUTMAK SESSIZ DEGIL: platform CI'inda
-        # build/ci/gitops-frontend-isaretci-denetimi.sh her PR/push'ta bu image.tag'i GHCR'daki
-        # en yeni ':dev' image'inin digest'iyle kiyaslar; tutmuyorsa CI YUKSEK SESLE patlar.
-        # Etiket bicimi frontend CI'dan: .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD).
         - name: image.tag
-          # FAZ24: ilk gercek image (admin-web CI #4, develop merge f54bcea — faz24/ci-ve-tip-duzeltmeleri).
-          value: "sha-d231cc5"
-          # 2026-09-03: sha-33ea135 → sha-1981ea8 (admin-web PR #10 qa1/kiriklar-fe — QA-1b..7 serisi:
-          #   sahte bos-durum ailesi, i18n + parite testi, menu mimarisi, permission filtresi, mobil;
-          #   develop head 1981ea8, Actions kosusu YESIL — tarayici oturumundan dogrulandi).
-          # 2026-08-25: sha-25d9471 → sha-33ea135 (admin-web PR #9 faz/2323123 — Faz 28.8 FE:
-          #   SMS '<' anlik hata + kaydet kilidi, deep-link bicim uyarisi, i18n parite testi,
-          #   preview sandbox regresyon korumasi; develop merge 33ea135, CI #16 yesil).
-          # 2026-08-25: sha-e9b178d → sha-25d9471 (admin-web PR #8 feature/2887: kampanya
-          #   olusturma yanitindaki campaignId okuma duzeltmesi + Sent sayfasi NaN guard'i;
-          #   CI #14 yesil). DIKKAT: 25d9471 admin-web sha'sidir — provider yaml'ina YAZILMAZ
-          #   (bugun tam bu karisiklik yasandi ve isaretci denetimi yakalamadan duzeltildi).
-          # 2026-08-25: sha-ee6bd1a → sha-e9b178d (admin-web PR #7: Faz 28.4b editor on-doldurma +
-          #   28.5 Gonderilenler + 28.6 kampanya olusturma; CI #12 yesil). DIKKAT: bu surum backend'in
-          #   Faz 28.5/28.6 uclarini bekler — appset apply'i ile AYNI turda uygulanmali.
-        # ▲▲▲
+          value: "sha-2f6631c"
   destination:
     server: https://kubernetes.default.svc
     namespace: inktavia-dev

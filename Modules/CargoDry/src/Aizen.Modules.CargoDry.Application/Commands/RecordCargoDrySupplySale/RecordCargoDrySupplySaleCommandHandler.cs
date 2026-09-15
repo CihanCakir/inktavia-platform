@@ -16,17 +16,20 @@ public sealed class RecordCargoDrySupplySaleCommandHandler
 {
     private readonly ICargoDrySalesAttributionRepository       _attributions;
     private readonly ICargoDryOwnerPreferredProviderRepository _preferred;
+    private readonly Abstraction.Interface.Service.ICargoDryCommercialActivationService _commercialActivation;
     private readonly ISender                                   _sender;
     private readonly ILogger<RecordCargoDrySupplySaleCommandHandler> _logger;
 
     public RecordCargoDrySupplySaleCommandHandler(
         ICargoDrySalesAttributionRepository       attributions,
         ICargoDryOwnerPreferredProviderRepository preferred,
+        Abstraction.Interface.Service.ICargoDryCommercialActivationService commercialActivation,
         ISender                                   sender,
         ILogger<RecordCargoDrySupplySaleCommandHandler> logger)
     {
         _attributions = attributions;
         _preferred    = preferred;
+        _commercialActivation = commercialActivation;
         _sender       = sender;
         _logger       = logger;
     }
@@ -47,16 +50,26 @@ public sealed class RecordCargoDrySupplySaleCommandHandler
             };
         }
 
-        // ── Locate the attribution created at kit activation (ResolveAsync). Absent ⇒ walk-in / unattributed kit. ──
+        // ── Locate the attribution. On the owner-QR-activation path it was already created by kit activation
+        //    (ResolveAsync). On the DELIVERED AUTO-COMPLETE path (owner never scanned) it does not exist yet, so we
+        //    create it now for the delivered kit via the same commercial-activation resolver — commission accrues
+        //    exactly as an activation would. Idempotent: a later QR scan of the same kit re-enters ResolveAsync which
+        //    no-ops on the existing attribution. ──
         var attribution = await _attributions.GetByKitIdAsync(request.KitId, ct);
+        if (attribution is null && request.KitId > 0)
+        {
+            await _commercialActivation.ResolveAsync(request.KitId, request.ResolvedByUserId, ct);
+            await _attributions.SaveChangesAsync(ct);
+            attribution = await _attributions.GetByKitIdAsync(request.KitId, ct);
+        }
         if (attribution is null)
         {
             _logger.LogWarning(
-                "No attribution for kit {KitId} on supply SR {SrId} — nothing to enrich (walk-in/unattributed).",
+                "No attribution for kit {KitId} on supply SR {SrId} — nothing to record (kit not found / no commercial path).",
                 request.KitId, request.ServiceRequestId);
             return new RecordCargoDrySupplySaleResponse
             {
-                Recorded = false, Note = "No attribution for kit; nothing to enrich.",
+                Recorded = false, Note = "No attribution for kit; nothing to record.",
             };
         }
 

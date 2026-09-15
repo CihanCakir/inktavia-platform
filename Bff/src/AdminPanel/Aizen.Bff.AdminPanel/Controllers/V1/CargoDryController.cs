@@ -43,6 +43,10 @@ using Aizen.Bff.AdminPanel.Application.CargoDry.Command.ReorderCargoDryProductIm
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.RemoveCargoDryProductImageBff;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.SetCargoDryProductThumbnailBff;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.MarkCargoDrySupplyShippedBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.CompleteCargoDrySupplyOrderBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.UpdateCargoDrySupplyConfigBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDrySupplyConfigBff;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.CreateConsignmentAgreement;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.ExtendKit;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Command.GenerateCargoDryBatch;
@@ -402,16 +406,27 @@ public sealed class CargoDryController : AizenWebApiController
 
     // ── Batches ───────────────────────────────────────────────────────────────
 
+    /// <summary>ADDENDUM A4 — GET /api/v1/admin-panel/cargodry/program-applications — providers who declared CargoDry
+    /// interest (declared wish) enriched with agreement/inventory status (participation).</summary>
+    [HttpGet("program-applications")]
+    [ProducesResponseType(typeof(Application.CargoDry.Query.GetCargoDryProgramApplications.GetCargoDryProgramApplicationsBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<Application.CargoDry.Query.GetCargoDryProgramApplications.GetCargoDryProgramApplicationsBffResponse?>> GetProgramApplications(
+        [FromQuery] int pageIndex = 0, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(
+            new Application.CargoDry.Query.GetCargoDryProgramApplications.GetCargoDryProgramApplicationsBffQuery { PageIndex = pageIndex, PageSize = pageSize }, ct));
+
     /// <summary>GET /api/v1/admin-panel/cargodry/batches</summary>
     [HttpGet("batches")]
     [ProducesResponseType(typeof(CargoDryBatchListBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDryBatchListBffDto>> GetBatches(
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 25,
+        [FromQuery] long? assignedProviderProfileId = null,   // ADDENDUM A3 — filter by allocated provider
+        [FromQuery] string? allocationState = null,           // all | allocated | unallocated
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetCargoDryBatchListBffQuery { Page = page, PageSize = pageSize }, ct);
+            new GetCargoDryBatchListBffQuery { Page = page, PageSize = pageSize, AssignedProviderProfileId = assignedProviderProfileId, AllocationState = allocationState }, ct);
 
         return SetResponse(result?.BatchList);
     }
@@ -1628,6 +1643,62 @@ public sealed class CargoDryController : AizenWebApiController
         var result = await _cqrs.ProcessAsync(
             new GetCargoDryOpportunityRoutingPreviewBffQuery(body), ct);
 
+        return SetResponse(result);
+    }
+
+    // ── CargoDry supply v2 — cargo order operations + config ───────────────────────────────────────────────
+    /// <summary>GET /api/v1/admin-panel/cargodry/orders — admin cargo-orders fulfilment queue (status=AwaitingShipment|Shipped|All).</summary>
+    [HttpGet("orders")]
+    [ProducesResponseType(typeof(Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto>> GetCargoOrders(
+        [FromQuery] string? status = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(new Application.CargoDry.Query.GetCargoDrySupplyOrdersBff.GetCargoDrySupplyOrdersBffQuery
+        {
+            Status = status, Page = page, PageSize = pageSize,
+        }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/orders/{serviceRequestId}/ship — mark a cargo order shipped.</summary>
+    [HttpPost("orders/{serviceRequestId:long}/ship")]
+    [ProducesResponseType(typeof(MarkCargoDrySupplyShippedBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MarkCargoDrySupplyShippedBffResponse>> ShipCargoOrder(
+        long serviceRequestId, [FromBody] MarkCargoDrySupplyShippedBffRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new MarkCargoDrySupplyShippedBffCommand
+        {
+            ServiceRequestId = serviceRequestId, TrackingCode = body.TrackingCode, KitId = body.KitId,
+        }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/orders/{serviceRequestId}/complete — manually complete a cargo order.</summary>
+    [HttpPost("orders/{serviceRequestId:long}/complete")]
+    [ProducesResponseType(typeof(CompleteCargoDrySupplyOrderBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CompleteCargoDrySupplyOrderBffResponse>> CompleteCargoOrder(
+        long serviceRequestId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new CompleteCargoDrySupplyOrderBffCommand { ServiceRequestId = serviceRequestId }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/supply-config — the admin-editable CargoDry supply timeouts.</summary>
+    [HttpGet("supply-config")]
+    [ProducesResponseType(typeof(GetCargoDrySupplyConfigBffResponse), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<GetCargoDrySupplyConfigBffResponse>> GetSupplyConfig(CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetCargoDrySupplyConfigBffQuery(), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>PUT /api/v1/admin-panel/cargodry/supply-config/{key} — edit a CargoDry.* timeout.</summary>
+    [HttpPut("supply-config/{key}")]
+    [ProducesResponseType(typeof(CargoDrySupplyConfigBffDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySupplyConfigBffDto>> UpdateSupplyConfig(
+        string key, [FromBody] UpdateCargoDrySupplyConfigBffRequest body, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new UpdateCargoDrySupplyConfigBffCommand { Key = key, Value = body.Value }, ct);
         return SetResponse(result);
     }
 }

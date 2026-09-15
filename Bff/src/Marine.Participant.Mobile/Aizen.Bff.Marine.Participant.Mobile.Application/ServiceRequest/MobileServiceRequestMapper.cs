@@ -44,6 +44,8 @@ internal static class MobileServiceRequestMapper
         LocationCityCode = s.LocationCityCode,
         RequestedStartDate = s.RequestedStartDate,
         OfferCount = s.OfferCount,
+        // CargoDry supply v2: server-derived order status from the module summary (accurate, includes the Delivered sub-state).
+        CargoDryOrderStatus = s.CargoDryOrderStatus,
         CreatedAt = s.CreatedAt,
         UpdatedAt = s.UpdatedAt,
         LastActivityAt = s.LastActivityAt,
@@ -77,6 +79,17 @@ internal static class MobileServiceRequestMapper
             UpdatedAt = r.UpdatedAt,
             CanEdit = r.Status == ServiceRequestStatus.Draft,
             CanCancel = !TerminalStatuses.Contains(r.Status),
+            // CargoDry supply v2 — the full owner order view (null for non-CARGODRY_SUPPLY requests).
+            CargoDryOrder = r.CargoDryProductCode is null ? null : new MobileCargoDryOrderDto
+            {
+                ProductCode               = r.CargoDryProductCode,
+                OrderStatus               = r.CargoDryOrderStatus,
+                ProviderName              = r.CargoDryProviderName,
+                ProviderAcceptDeadlineUtc = r.CargoDryProviderAcceptDeadlineUtc,
+                DeliveredAtUtc            = r.CargoDryDeliveredAtUtc,
+                ShippedAtUtc              = r.CargoDryShippedAtUtc,
+                TrackingCode              = r.CargoDryTrackingCode,
+            },
             Timeline = d.StatusHistory
                 .OrderBy(h => h.OccurredAt)
                 .Select(h => new MobileServiceRequestTimelineEventDto

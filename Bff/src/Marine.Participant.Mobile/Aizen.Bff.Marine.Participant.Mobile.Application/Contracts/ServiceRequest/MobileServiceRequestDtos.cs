@@ -19,6 +19,10 @@ public sealed class MobileServiceRequestListItemDto
     public DateTime? RequestedStartDate { get; set; }
     /// <summary>Count only (cost-free) — the offers inbox arrives in MO2.</summary>
     public int OfferCount { get; set; }
+    /// <summary>CargoDry supply v2 — coarse owner order status for a CARGODRY_SUPPLY list card (null otherwise). Derived
+    /// from the request status only (the list summary has no delivered/shipped timestamps), so it never distinguishes
+    /// the "Delivered" sub-state — open the detail for the full CargoDryOrder view.</summary>
+    public string? CargoDryOrderStatus { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? LastActivityAt { get; set; }
@@ -88,6 +92,25 @@ public sealed class MobileServiceRequestDetailDto
     /// <summary>FE convenience — Draft is editable; a non-terminal request is cancellable. The module is authoritative.</summary>
     public bool CanEdit { get; set; }
     public bool CanCancel { get; set; }
+
+    /// <summary>CargoDry supply v2 — the owner order view (null for every non-CARGODRY_SUPPLY request).</summary>
+    public MobileCargoDryOrderDto? CargoDryOrder { get; set; }
+}
+
+/// <summary>
+/// CargoDry supply v2 — owner-facing order view (server-derived). Drives the mobile order-tracking screen:
+/// OrderReceived → ProviderAssigned | AwaitingShipment → Shipped → Delivered → Completed (Cancelled is terminal).
+/// </summary>
+public sealed class MobileCargoDryOrderDto
+{
+    public string? ProductCode { get; set; }
+    /// <summary>OrderReceived | ProviderAssigned | AwaitingShipment | Shipped | Delivered | Completed | Cancelled.</summary>
+    public string? OrderStatus { get; set; }
+    public string? ProviderName { get; set; }
+    public DateTime? ProviderAcceptDeadlineUtc { get; set; }
+    public DateTime? DeliveredAtUtc { get; set; }
+    public DateTime? ShippedAtUtc { get; set; }
+    public string? TrackingCode { get; set; }
 }
 
 // ── Request payloads ─────────────────────────────────────────────────────────────────────────────

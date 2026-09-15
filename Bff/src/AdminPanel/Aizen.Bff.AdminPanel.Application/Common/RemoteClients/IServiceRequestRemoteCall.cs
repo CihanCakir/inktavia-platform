@@ -1,3 +1,4 @@
+using Aizen.Bff.AdminPanel.Application.CargoDry.Dto;
 using Aizen.Bff.AdminPanel.Application.Dashboard.Dto;
 using Aizen.Core.Infrastructure.Api;
 using Aizen.Core.RemoteCall.Abstraction;
@@ -164,4 +165,17 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
 
     // BE_WC3c — removed GetAdminConversations + GetAdminConversationDetail remote-calls (SR /messages/conversations[/{id}]):
     // dead after the read cutover (admin conversation audit is served from Messaging via /admin-panel/messaging/*).
+
+    // CargoDry supply v2 — admin cargo-order operations.
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/cargodry/ship")]
+    Task<AizenApiResponse<MarkCargoDrySupplyShippedBffResponse>> MarkCargoDrySupplyShipped(
+        long serviceRequestId, [AizenRemoteCallBody] MarkCargoDrySupplyShippedRequest request);
+
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/cargodry/complete")]
+    Task<AizenApiResponse<CompleteCargoDrySupplyOrderBffResponse>> CompleteCargoDrySupplyOrder(long serviceRequestId);
+
+    // F1 — admin cargo-orders fulfilment queue (AwaitingShipment | Shipped | All).
+    [AizenRemoteCallGet("/api/v1/admin/service-requests/cargodry/orders")]
+    Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto>> GetCargoDrySupplyOrders(
+        [Refit.Query] string? status, [Refit.Query] int page, [Refit.Query] int pageSize);
 }

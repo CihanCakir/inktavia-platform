@@ -32,6 +32,23 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
 
         var currentUserId = _info.UserInfoAccessor.UserInfo.UserId;
         var previousStatus = entity.Status;
+
+        // CargoDry supply v2 — cancellation rule: an order is owner-cancellable (full refund of the platform-collected
+        // escrow via ServiceRequestCancelledConsumer) any time UP TO delivery/shipment. Once the provider has marked it
+        // delivered, or a cargo order has shipped (or it is terminal), it is NO LONGER cancellable — the owner must use
+        // the dispute path. This keeps refund vs dispute deterministic.
+        if (entity.CargoDryProductCode is not null)
+        {
+            var noLongerCancellable =
+                entity.DeliveredAtUtc is not null
+                || entity.Status is ServiceRequestStatus.Shipped
+                                  or ServiceRequestStatus.Completed
+                                  or ServiceRequestStatus.Closed;
+            if (noLongerCancellable)
+                throw new Aizen.Core.Infrastructure.Exception.AizenBusinessException(
+                    "This CargoDry order can no longer be cancelled (kit delivered / shipped). Please open a dispute.");
+        }
+
         entity.Cancel(currentUserId, request.Request.Reason, request.Request.ReasonCode);
 
         // N-E — map the structured cancel reason to a Payment RefundReason so the refund flow allocates deterministically.

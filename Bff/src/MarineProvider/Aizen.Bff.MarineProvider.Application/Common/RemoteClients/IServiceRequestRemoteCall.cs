@@ -88,6 +88,11 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/offers/cargodry-accept")]
     Task<AizenApiResponse<CreateCargoDrySupplyOfferResponse>> CargoDryAccept(long serviceRequestId);
 
+    // CargoDry supply v2: the assigned provider marks the order delivered (captures the kit; starts the auto-complete window).
+    [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/cargodry/delivered")]
+    Task<AizenApiResponse<MarkCargoDryDeliveredRemoteResponse>> CargoDryMarkDelivered(
+        long serviceRequestId, [AizenRemoteCallBody] MarkCargoDryDeliveredRemoteRequest body);
+
     [AizenRemoteCallPut("/api/v1/service-requests/{serviceRequestId}/offers/{offerId}")]
     Task<AizenApiResponse<UpdateServiceRequestOfferResponse>> UpdateOffer(
         long serviceRequestId, long offerId,

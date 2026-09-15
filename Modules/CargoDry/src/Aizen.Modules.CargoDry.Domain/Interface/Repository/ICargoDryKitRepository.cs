@@ -24,6 +24,12 @@ public interface ICargoDryKitRepository
     Task<List<CargoDryKitEntity>> GetAvailableByBatchCodeAsync(string batchCode, CancellationToken ct = default);
 
     /// <summary>
+    /// CargoDry supply v2 (A1) — live count of a provider's AVAILABLE consignment kits of a product
+    /// (ProviderProfileId == pid AND ProductCode == code AND Status == Available). Authoritative stock gate for accept.
+    /// </summary>
+    Task<int> CountAvailableForProviderProductAsync(long providerProfileId, string productCode, CancellationToken ct = default);
+
+    /// <summary>
     /// SQL-level aggregation of kit statistics for a single product.
     /// Use in place of <c>GetAllAsync</c> when only per-product counts are needed.
     /// </summary>

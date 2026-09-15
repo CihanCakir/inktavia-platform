@@ -231,3 +231,8 @@ env:
   # BaseUrl eksikti → dispute detay transcript'i çağrı anında KeyNotFoundException fırlatıyordu.
   - name: RemoteCalls__IServiceRequestMessagingRemoteCall__BaseUrl
     value: "http://aizen-messaging"
+  # ICargoDrySupplyRemoteCall → CargoDry (supply gating + record-sale). appsettings varsayılanı
+  # "cargodry-api:8080" cluster'da ÇÖZÜLMEZ (gerçek servis adı aizen-cargodry) → cargodry-accept
+  # "Name or service not known" ile düşüyordu.
+  - name: RemoteCalls__ICargoDrySupplyRemoteCall__BaseUrl
+    value: "http://aizen-cargodry"

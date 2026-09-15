@@ -72,6 +72,21 @@ public sealed class ServiceRequestCompletedConsumer
 
         if (tx is null || tx.Status == PaymentTransactionStatus.Released) return;
 
+        // ── CargoDry supply v2 — PrincipalSale / platform-collected escrow: no provider split, so there is no
+        //    Iyzico sub-merchant to approve and NO PayoutRecord. "Release" is purely the Captured → Released state
+        //    transition (finalises the hold to the platform). Mirrors the platform-only branch in
+        //    ReleasePaymentEscrowCommandHandler; routing it through the gateway payout below would fail (no item id). ──
+        if (tx.RecipientProfileId is null || tx.NetPayoutAmount == 0m)
+        {
+            tx.Release();
+            _transactions.Update(tx);
+            await _transactions.SaveChangesAsync(ct);
+            _logger.LogInformation(
+                "ServiceRequestCompletedConsumer: platform-collected escrow finalised (no provider payout). Tx {TxId} SR {SRId}.",
+                tx.Id, message.ServiceRequestId);
+            return;
+        }
+
         // ── WS1 PART C: commit-level idempotency (mirror of the partial-unique DB index) ──────
         // A non-Failed payout already claiming this transaction means a prior (or concurrent) commit copy
         // owns the release — skip so we never issue a second gateway payout.

@@ -15,8 +15,17 @@ public sealed class GetCargoDrySupplyProviderContextQuery : AizenQuery<GetCargoD
 
 public sealed class GetCargoDrySupplyProviderContextResponse
 {
-    /// <summary>Subset of the requested product codes the provider may accept (active agreement + active product).</summary>
+    /// <summary>Subset of the requested product codes the provider may accept (active agreement + active product + available stock).</summary>
     public List<string> AcceptableProductCodes  { get; init; } = new();
     /// <summary>Owner user ids whose preferred CargoDry provider is this provider.</summary>
     public List<long>   PreferredOwnerUserIds   { get; init; } = new();
+    /// <summary>A1 — per requested product: whether the provider has an active agreement + their available-kit count, so the UI can show a distinct "stokta yok" vs "not in program" locked reason.</summary>
+    public List<CargoDrySupplyProductStockDto> ProductStock { get; init; } = new();
+}
+
+public sealed class CargoDrySupplyProductStockDto
+{
+    public string ProductCode        { get; init; } = default!;
+    public bool   HasActiveAgreement { get; init; }
+    public int    AvailableKitCount  { get; init; }
 }

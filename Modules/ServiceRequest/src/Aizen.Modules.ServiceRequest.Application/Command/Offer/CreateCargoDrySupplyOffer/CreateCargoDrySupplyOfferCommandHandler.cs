@@ -30,6 +30,7 @@ public sealed class CreateCargoDrySupplyOfferCommandHandler
     private readonly IAizenMessagePublisher          _messagePublisher;
     private readonly ServiceRequestDbContext         _db;
     private readonly ICargoDrySupplyRemoteCall       _cargoDry;
+    private readonly Services.ServiceRequestAssignmentCreator _assignmentCreator;
     private readonly ILogger<CreateCargoDrySupplyOfferCommandHandler> _logger;
 
     public CreateCargoDrySupplyOfferCommandHandler(
@@ -40,6 +41,7 @@ public sealed class CreateCargoDrySupplyOfferCommandHandler
         IAizenMessagePublisher          messagePublisher,
         ServiceRequestDbContext         db,
         ICargoDrySupplyRemoteCall       cargoDry,
+        Services.ServiceRequestAssignmentCreator assignmentCreator,
         ILogger<CreateCargoDrySupplyOfferCommandHandler> logger)
     {
         _srRepository      = srRepository;
@@ -49,6 +51,7 @@ public sealed class CreateCargoDrySupplyOfferCommandHandler
         _messagePublisher  = messagePublisher;
         _db                = db;
         _cargoDry          = cargoDry;
+        _assignmentCreator = assignmentCreator;
         _logger            = logger;
     }
 
@@ -62,8 +65,18 @@ public sealed class CreateCargoDrySupplyOfferCommandHandler
             throw new AizenBusinessException("This is not a CargoDry supply request.");
         if (string.IsNullOrWhiteSpace(sr.CargoDryProductCode))
             throw new AizenBusinessException("This CargoDry supply request has no product code.");
+        // Deterministic winner vs the accept-timeout sweep: the order must still be Open AND within the accept window.
+        // Once the sweep flips it to AwaitingShipment (cargo), status is no longer Open → this throws. First writer wins.
         if (sr.Status is not (ServiceRequestStatus.Open or ServiceRequestStatus.WaitingForOffer or ServiceRequestStatus.OfferReceived))
-            throw new AizenBusinessException("This request is not open for acceptance.");
+            throw new AizenBusinessException("This CargoDry order is no longer open for provider acceptance.");
+        if (sr.ProviderAcceptDeadlineUtc is { } deadline && DateTime.UtcNow > deadline)
+            throw new AizenBusinessException("SR_CARGODRY_ACCEPT_WINDOW_CLOSED");
+
+        // F2 — legacy in-flight guard: v2 charges the escrow at ORDER CREATION (PaymentTransactionId set then). A
+        // CARGODRY_SUPPLY SR created under the v1 flow (pre-v2-deploy) has NO escrow — direct-assigning it here would
+        // fulfil an order that was never paid. Reject; such rows are cleaned up manually (owner cancel / admin).
+        if (sr.PaymentTransactionId is null)
+            throw new AizenBusinessException("SR_CARGODRY_LEGACY_UNPAID");
 
         // Provider identity from the trusted token context — never the body (mirrors CreateServiceRequestOffer).
         var providerProfileId = _info.KeycloakTokenInfoAccessor.KeycloakTokenInfo?.ProviderProfileId ?? 0;
@@ -86,6 +99,9 @@ public sealed class CreateCargoDrySupplyOfferCommandHandler
             throw new AizenBusinessException("SR_CARGODRY_PRODUCT_UNAVAILABLE");
         if (!ctx.ProviderHasActiveAgreement)
             throw new AizenBusinessException("SR_CARGODRY_NOT_PROGRAM_PROVIDER");
+        // A1 — stock gate: the provider must hold ≥1 AVAILABLE consignment kit of the product to accept.
+        if (ctx.AvailableKitCount <= 0)
+            throw new AizenBusinessException("SR_CARGODRY_NO_STOCK");
 
         var currency = string.IsNullOrWhiteSpace(ctx.CurrencyCode) ? "TRY" : ctx.CurrencyCode!;
 
@@ -111,40 +127,28 @@ public sealed class CreateCargoDrySupplyOfferCommandHandler
             unitPrice:             ctx.RetailPrice,
             currencyCode:          currency,
             sortOrder:             0));
+        // v2 — DIRECT ASSIGNMENT: payment was already captured at order creation, so the provider's "accept" both pins
+        // the offer AND is system-auto-accepted (no owner accept-and-pay step). Draft → Submitted → Accepted, then the
+        // shared assignment creator sets SR → Assigned + creates the assignment + publishes AssignmentCreated.
         offer.Submit();
+        offer.Accept();
         await _offerRepository.AddAsync(offer, cancellationToken);
 
-        if (sr.Status is ServiceRequestStatus.Open or ServiceRequestStatus.WaitingForOffer)
-        {
-            var prevStatus = sr.Status;
-            sr.ChangeStatus(ServiceRequestStatus.OfferReceived);
-            sr.AddStatusHistory(ServiceRequestStatusHistoryEntity.Create(
-                sr.Id, prevStatus, ServiceRequestStatus.OfferReceived,
-                "CargoDry supply accepted (pinned retail offer)", currentUserId, ServiceRequestActorType.Provider));
-            _srRepository.Update(sr);
-        }
-
-        // Flush so the offer id is assigned before publishing (mirrors CreateServiceRequestOffer).
+        // Flush so the offer id is assigned before the assignment references it.
         await _db.SaveChangesAsync(cancellationToken);
 
-        await _realtimePublisher.PublishAsync(sr.Id, sr.RequestCode, sr.OwnerUserId, providerProfileId,
-            ServiceRequestRealtimeEventType.OfferCreated, offer.ToDto(),
-            currentUserId, ServiceRequestActorType.Provider, cancellationToken);
+        sr.AddStatusHistory(ServiceRequestStatusHistoryEntity.Create(
+            sr.Id, sr.Status, ServiceRequestStatus.Assigned,
+            "CargoDry supply accepted → direct assignment (paid at order creation)", currentUserId, ServiceRequestActorType.Provider));
 
-        await _messagePublisher.PublishAsync(new ServiceRequestOfferCreatedMessage
-        {
-            ServiceRequestId  = sr.Id,
-            OfferId           = offer.Id,
-            ProviderProfileId = providerProfileId,
-            ProviderUserId    = currentUserId,
-            OwnerUserId       = sr.OwnerUserId,
-            TotalAmount       = offer.GrandTotal,
-            CurrencyCode      = currency,
-            Status            = offer.Status,
-        }, cancellationToken);
+        // SR → Assigned + assignment + AssignmentCreated realtime/message (idempotent; never double-assigns).
+        await _assignmentCreator.CreateFromAcceptedOfferAsync(
+            sr, offer, currentUserId, assignedTeamMemberId: null, scheduledStartDate: null, scheduledEndDate: null,
+            cancellationToken);
+        _srRepository.Update(sr);
 
         _logger.LogInformation(
-            "CargoDry supply offer pinned. SR={SrId} Offer={OfferId} Provider={Provider} Retail={Retail} {Currency}",
+            "CargoDry supply direct-assigned. SR={SrId} Offer={OfferId} Provider={Provider} Retail={Retail} {Currency}",
             sr.Id, offer.Id, providerProfileId, ctx.RetailPrice, currency);
 
         return new CreateCargoDrySupplyOfferResponse

@@ -4,6 +4,7 @@ using Aizen.Modules.ServiceRequest.Abstraction.Request.Filter;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Abstraction.Request.WorkLog;
+using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Admin;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Offer;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
@@ -42,6 +43,17 @@ public sealed class AdminServiceRequestController : AizenWebApiController
     {
         var result = await _cqrs.ProcessAsync<GetAdminServiceRequestListResponse>(
             new GetAdminServiceRequestListQuery(filter), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>CargoDry supply v2 (F1) — admin cargo-orders fulfilment queue (AwaitingShipment | Shipped | All).</summary>
+    [HttpGet("cargodry/orders")]
+    [ProducesResponseType(typeof(CargoDrySupplyOrderAdminListDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDrySupplyOrderAdminListDto?>> GetCargoDryOrders(
+        [FromQuery] string? status = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync<CargoDrySupplyOrderAdminListDto>(
+            new Application.Query.Admin.GetCargoDrySupplyOrders.GetCargoDrySupplyOrdersAdminQuery { Status = status, Page = page, PageSize = pageSize }, ct);
         return SetResponse(result);
     }
 

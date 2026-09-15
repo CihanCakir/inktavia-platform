@@ -46,5 +46,29 @@
     "description": "DEV PLACEHOLDER (TR standard KDV 20%) — VAT rate on commission income; read by CommissionCalculationService. Pending the real R2/YMM value; do not treat 0.20 as the confirmed production rate.",
     "isEncrypted": false,
     "isActive": true
+  },
+  {
+    "key": "CargoDry.ProviderAcceptTimeoutHours",
+    "value": "5",
+    "valueType": 2,
+    "description": "CargoDry supply v2: hours a CARGODRY_SUPPLY order stays open to program providers before the accept-timeout sweep converts it to a direct cargo sale (AwaitingShipment). Admin-editable.",
+    "isEncrypted": false,
+    "isActive": true
+  },
+  {
+    "key": "CargoDry.DeliveredAutoCompleteHours",
+    "value": "24",
+    "valueType": 2,
+    "description": "CargoDry supply v2: hours after a provider marks a supply order delivered before it auto-completes if the owner has not QR-activated the kit. Admin-editable.",
+    "isEncrypted": false,
+    "isActive": true
+  },
+  {
+    "key": "CargoDry.ShippedAutoCompleteDays",
+    "value": "7",
+    "valueType": 2,
+    "description": "CargoDry supply v2: days after admin marks a cargo (direct online) order shipped before it auto-completes (admin may also complete manually). Admin-editable.",
+    "isEncrypted": false,
+    "isActive": true
   }
 ]

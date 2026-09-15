@@ -12,15 +12,18 @@ public sealed class GetCargoDrySupplyProviderContextQueryHandler
     private readonly ICargoDryProductRepository               _products;
     private readonly ICargoDryConsignmentAgreementRepository  _agreements;
     private readonly ICargoDryOwnerPreferredProviderRepository _preferred;
+    private readonly ICargoDryKitRepository                   _kits;
 
     public GetCargoDrySupplyProviderContextQueryHandler(
         ICargoDryProductRepository               products,
         ICargoDryConsignmentAgreementRepository  agreements,
-        ICargoDryOwnerPreferredProviderRepository preferred)
+        ICargoDryOwnerPreferredProviderRepository preferred,
+        ICargoDryKitRepository                   kits)
     {
         _products   = products;
         _agreements = agreements;
         _preferred  = preferred;
+        _kits       = kits;
     }
 
     public override async Task<GetCargoDrySupplyProviderContextResponse?> Handle(
@@ -34,14 +37,24 @@ public sealed class GetCargoDrySupplyProviderContextQueryHandler
             .ToList();
 
         var acceptable = new List<string>();
+        var productStock = new List<CargoDrySupplyProductStockDto>();
         if (request.ProviderProfileId > 0)
         {
             foreach (var code in distinctCodes)
             {
                 var product = await _products.GetByCodeAsync(code, ct);
                 if (product is not { IsActive: true }) continue;
-                var agreement = await _agreements.GetActiveForProviderProductAsync(request.ProviderProfileId, code, now, ct);
-                if (agreement is not null) acceptable.Add(code);
+                var hasAgreement = await _agreements.GetActiveForProviderProductAsync(request.ProviderProfileId, code, now, ct) is not null;
+                // A1 — count available stock only when in-programme (no agreement ⇒ locked regardless of stock).
+                var availableKits = hasAgreement
+                    ? await _kits.CountAvailableForProviderProductAsync(request.ProviderProfileId, code, ct)
+                    : 0;
+                productStock.Add(new CargoDrySupplyProductStockDto
+                {
+                    ProductCode = code, HasActiveAgreement = hasAgreement, AvailableKitCount = availableKits,
+                });
+                // Acceptable now requires agreement AND available stock.
+                if (hasAgreement && availableKits > 0) acceptable.Add(code);
             }
         }
 
@@ -53,6 +66,7 @@ public sealed class GetCargoDrySupplyProviderContextQueryHandler
         {
             AcceptableProductCodes = acceptable,
             PreferredOwnerUserIds  = preferredOwners,
+            ProductStock           = productStock,
         };
     }
 }

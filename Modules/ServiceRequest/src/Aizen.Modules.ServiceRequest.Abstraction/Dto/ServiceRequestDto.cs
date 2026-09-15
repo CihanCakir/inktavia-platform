@@ -25,6 +25,18 @@ public sealed class ServiceRequestDto
     public DateTime? ExpiresAt { get; set; }
     /// <summary>CargoDry supply flow: requested product code (non-null only for CARGODRY_SUPPLY).</summary>
     public string? CargoDryProductCode { get; set; }
+
+    // ── CargoDry supply v2 — owner-facing order view (non-null only for CARGODRY_SUPPLY) ───────────────────────
+    /// <summary>Derived owner order status: OrderReceived | ProviderAssigned | AwaitingShipment | Shipped | Delivered | Completed | Cancelled.</summary>
+    public string? CargoDryOrderStatus { get; set; }
+    /// <summary>Assigned provider display name (ProviderAssigned/Delivered states).</summary>
+    public string? CargoDryProviderName { get; set; }
+    public DateTime? CargoDryProviderAcceptDeadlineUtc { get; set; }
+    public DateTime? CargoDryDeliveredAtUtc { get; set; }
+    public DateTime? CargoDryShippedAtUtc { get; set; }
+    /// <summary>Cargo (direct online sale) carrier tracking code (Shipped state).</summary>
+    public string? CargoDryTrackingCode { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

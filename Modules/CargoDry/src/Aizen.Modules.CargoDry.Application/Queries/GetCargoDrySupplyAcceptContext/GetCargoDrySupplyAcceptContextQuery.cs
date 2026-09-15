@@ -22,4 +22,6 @@ public sealed class GetCargoDrySupplyAcceptContextResponse
     public string? CurrencyCode              { get; init; }
     /// <summary>True when the provider has an ACTIVE ConsignmentAgreement for this product — the program-membership signal.</summary>
     public bool    ProviderHasActiveAgreement { get; init; }
+    /// <summary>A1 — live count of the provider's AVAILABLE consignment kits of this product (stock gate).</summary>
+    public int     AvailableKitCount          { get; init; }
 }

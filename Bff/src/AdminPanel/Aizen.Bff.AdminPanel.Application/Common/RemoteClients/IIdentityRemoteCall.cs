@@ -155,6 +155,11 @@ public interface IIdentityRemoteCall : IAizenRemoteCall
 
     // ── Admin Profile Approval Queue ──────────────────────────────────────────
 
+    // ADDENDUM A4 — providers who declared CargoDry interest during onboarding (a declared wish, not participation).
+    [AizenRemoteCallGet("/api/v1/identity/provider-onboarding/cargodry-interest")]
+    Task<AizenApiResponse<CargoDryInterestApplicantsResult>> GetCargoDryInterestApplicants(
+        [Query] int pageIndex, [Query] int pageSize);
+
     [AizenRemoteCallGet("/api/v1/identity/organizers/profiles")]
     Task<AizenApiResponse<OrganizerProfilePagedAdminResult>> GetAdminOrganizerProfilesByStatus(
         [Refit.Query] string? approvalStatus  = null,

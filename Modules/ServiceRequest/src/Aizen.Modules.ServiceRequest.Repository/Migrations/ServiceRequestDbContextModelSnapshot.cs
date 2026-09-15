@@ -1928,6 +1928,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<DateTime?>("AutoCompleteDeadlineUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("CancelReason")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
@@ -1944,6 +1947,13 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.Property<string>("CargoDryProductCode")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<decimal?>("CargoDryRetailAmount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("CargoDryRetailCurrency")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("Category")
                         .HasMaxLength(100)
@@ -1965,6 +1975,12 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeliveredAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("DeliveredKitId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Description")
@@ -2029,6 +2045,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("ProviderAcceptDeadlineUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid?>("PublicId")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
@@ -2060,6 +2079,9 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime?>("ShippedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -2067,6 +2089,10 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("TrackingCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long>("VesselId")
                         .HasColumnType("bigint");
@@ -2088,7 +2114,13 @@ namespace Aizen.Modules.ServiceRequest.Repository.Migrations
 
                     b.HasIndex("VesselId");
 
+                    b.HasIndex("Status", "AutoCompleteDeadlineUtc")
+                        .HasDatabaseName("IX_service_requests_Status_AutoCompleteDeadline");
+
                     b.HasIndex("Status", "LocationCityCode");
+
+                    b.HasIndex("Status", "ProviderAcceptDeadlineUtc")
+                        .HasDatabaseName("IX_service_requests_Status_ProviderAcceptDeadline");
 
                     b.HasIndex("Status", "PublishedAt");
 

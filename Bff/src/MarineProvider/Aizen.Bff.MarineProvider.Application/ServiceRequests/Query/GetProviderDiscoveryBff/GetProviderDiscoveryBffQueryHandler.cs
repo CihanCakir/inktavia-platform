@@ -21,6 +21,7 @@ public sealed class GetProviderDiscoveryBffQueryHandler
 
     private const string CargoDrySupplyCategory = "CARGODRY_SUPPLY";
     private const string CargoDryNotProgramReason = "Only CargoDry program providers (active consignment agreement) can accept this request.";
+    private const string CargoDryNoStockReason = "Stokta yok — bu ürün için uygun kit bulunmuyor.";
     private const string VesselCacheKeyPrefix = "vessel:summary:v3:";
     private static readonly TimeSpan VesselCacheTtl = TimeSpan.FromMinutes(10);
 
@@ -127,7 +128,9 @@ public sealed class GetProviderDiscoveryBffQueryHandler
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var acceptableProducts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // A1 — per requested product: active-agreement flag + available-kit count, so we can show a distinct
+        // "not in program" vs "stokta yok" locked reason and surface the available count.
+        var stockByCode = new Dictionary<string, Modules.CargoDry.Abstraction.RemoteCall.Responses.CargoDrySupplyProductStockRemoteDto>(StringComparer.OrdinalIgnoreCase);
         if (supplyProductCodes.Count > 0)
         {
             try
@@ -138,7 +141,7 @@ public sealed class GetProviderDiscoveryBffQueryHandler
                         ProviderProfileId = _identityHolder.ProfileId ?? 0,
                         ProductCodes = supplyProductCodes,
                     });
-                foreach (var code in ctx.AcceptableProductCodes) acceptableProducts.Add(code);
+                foreach (var s in ctx.ProductStock) stockByCode[s.ProductCode] = s;
             }
             catch (Exception ex)
             {
@@ -154,7 +157,26 @@ public sealed class GetProviderDiscoveryBffQueryHandler
             vesselLookup.TryGetValue(item.VesselId, out var vessel);
             var isSupply = string.Equals(item.ServiceCategoryCode, CargoDrySupplyCategory, StringComparison.OrdinalIgnoreCase)
                            && !string.IsNullOrWhiteSpace(item.CargoDryProductCode);
-            var canAccept = !isSupply || acceptableProducts.Contains(item.CargoDryProductCode!);
+
+            // A1 — 3-way gate for supply items: not-in-program / no-stock / ok. Non-supply items stay CanAccept=true.
+            bool canAccept = true;
+            string? canAcceptReason = null;
+            int? availableKitCount = null;
+            if (isSupply)
+            {
+                stockByCode.TryGetValue(item.CargoDryProductCode!, out var stock);
+                availableKitCount = stock?.AvailableKitCount;
+                if (stock is null || !stock.HasActiveAgreement)
+                {
+                    canAccept = false;
+                    canAcceptReason = CargoDryNotProgramReason;
+                }
+                else if (stock.AvailableKitCount <= 0)
+                {
+                    canAccept = false;
+                    canAcceptReason = CargoDryNoStockReason;
+                }
+            }
             return new ProviderDiscoveryBffItemDto
             {
                 Id = item.Id,
@@ -167,7 +189,8 @@ public sealed class GetProviderDiscoveryBffQueryHandler
                 ServiceTypeCode = item.ServiceTypeCode,
                 CargoDryProductCode = item.CargoDryProductCode,
                 CanAccept = canAccept,
-                CanAcceptReason = canAccept ? null : CargoDryNotProgramReason,
+                CanAcceptReason = canAcceptReason,
+                AvailableKitCount = availableKitCount,
                 // Item 5: server-computed match (owner ∈ preferred set) — meaningful for CARGODRY_SUPPLY items.
                 IsPreferred = isSupply && item.IsOwnerPreferred,
                 LocationCityCode = item.LocationCityCode,

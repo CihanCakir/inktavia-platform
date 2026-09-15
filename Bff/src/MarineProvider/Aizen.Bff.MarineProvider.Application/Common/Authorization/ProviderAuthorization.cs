@@ -33,6 +33,14 @@ public static class ProviderCapabilityNames
 /// never *are you allowed CargoDry*. A provider whose onboarding recorded
 /// `CargoDryInterest.interested = false` received HTTP 200 from all nine read endpoints and could POST a real
 /// stock request. Participation is a commercial relationship an admin sets up, not the onboarding answer.
+///
+/// SUPPLY-v2 ADDENDUM A2 (amends this decision, confirmed by owner): the CargoDryController class gate was relaxed
+/// from CargoDryParticipant to ProviderActive for the READ endpoints ONLY, so a not-yet-enrolled provider loads an
+/// EMPTY CargoDry area instead of a 403 ("Bu bölüm yüklenemedi"). Reads are provider-scoped and return empty for a
+/// non-participant (no agreement/inventory/kits ⇒ no data disclosure; only the non-sensitive product catalog is
+/// non-empty). The WRITE endpoints (stock-request create/cancel) + the supply accept path KEEP CargoDryParticipant,
+/// so the original PROV-MVP-002 protection against non-participant MUTATION is intact. This requirement is unchanged;
+/// only which endpoints carry it changed (see CargoDryController).
 /// </summary>
 public sealed class CargoDryParticipantRequirement : IAuthorizationRequirement
 {

@@ -15,7 +15,8 @@ public sealed class GetCargoDryBatchListBffQueryHandler
     public override async Task<GetCargoDryBatchListBffResponse> Handle(
         GetCargoDryBatchListBffQuery request, CancellationToken ct)
     {
-        var result = await _remote.GetBatchesAsync(request.Page, request.PageSize, ct);
+        var result = await _remote.GetBatchesAsync(
+            request.Page, request.PageSize, request.AssignedProviderProfileId, request.AllocationState, ct);
         return new GetCargoDryBatchListBffResponse { BatchList = result };
     }
 }

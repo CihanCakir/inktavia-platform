@@ -28,8 +28,10 @@ public sealed record ProviderDiscoveryBffItemDto
     public string? CargoDryProductCode { get; init; }
     /// <summary>Whether the calling provider may accept this request (true for non-CargoDry items; gated for CARGODRY_SUPPLY).</summary>
     public bool CanAccept { get; init; } = true;
-    /// <summary>Reason the provider cannot accept (null when CanAccept). For a locked CARGODRY_SUPPLY card.</summary>
+    /// <summary>Reason the provider cannot accept (null when CanAccept). For a locked CARGODRY_SUPPLY card. Distinguishes not-in-program vs stokta yok.</summary>
     public string? CanAcceptReason { get; init; }
+    /// <summary>A1 — the provider's available consignment-kit count for this product (null for non-CARGODRY_SUPPLY items).</summary>
+    public int? AvailableKitCount { get; init; }
     /// <summary>Whether the owner has marked the calling provider as their preferred CargoDry supplier.</summary>
     public bool IsPreferred { get; init; }
     public string? LocationCityCode { get; init; }
