@@ -316,6 +316,8 @@ public static class ServiceRequestMappingExtensions
         VesselName = entity.VesselName,
         OwnerNotes = entity.OwnerNotes,
         CargoDryProductCode = entity.CargoDryProductCode,
+        DeliveredAtUtc = entity.DeliveredAtUtc,
+        AutoCompleteDeadlineUtc = entity.AutoCompleteDeadlineUtc,
         PublishedAt = entity.PublishedAt,
         CreatedAt = entity.CreateDate ?? DateTime.UtcNow,
         UpdatedAt = entity.ModifyDate ?? entity.CreateDate ?? DateTime.UtcNow
@@ -370,13 +372,38 @@ public static class ServiceRequestMappingExtensions
                 .Select(a => a.ToProviderAttachmentMetaDto())
                 .ToList(),
             MyOffer = myOffer?.ToDto(),
-            Timeline = entity.StatusHistory
-                .OrderByDescending(s => s.OccurredAt)
-                .Select(s => s.ToDto())
-                .ToList(),
+            Timeline = DedupeAdjacentTimelineEvents(
+                entity.StatusHistory
+                    .OrderByDescending(s => s.OccurredAt)
+                    .Select(s => s.ToDto())),
             OfferCount = entity.Offers.Count(o => !o.IsDeleted),
             AttachmentCount = entity.Attachments.Count(a => !a.IsDeleted)
         };
+    }
+
+    /// <summary>
+    /// Collapses runs of the same timeline <c>EventCode</c> into a single entry (keeping the first of each run
+    /// in the supplied order). Several write paths legitimately record more than one status-history row that maps
+    /// to the same derived event — e.g. the CargoDry-supply create handler writes a Draft→Open row and the publish
+    /// path writes another (both "Talep yayınlandı" / SR_PUBLISHED), and the assign + assignment-creator paths both
+    /// write a →Assigned row (both "İş atandı" / SR_ASSIGNED). Those duplicates render as the same activity event
+    /// twice. Deduping only ADJACENT identical codes keeps this a display concern (the status-history audit trail is
+    /// untouched) and preserves a genuine later re-transition (e.g. reopen→reassign) that is separated by other events.
+    /// </summary>
+    private static List<ServiceRequestStatusHistoryDto> DedupeAdjacentTimelineEvents(
+        IEnumerable<ServiceRequestStatusHistoryDto> ordered)
+    {
+        var result = new List<ServiceRequestStatusHistoryDto>();
+        string? previousEventCode = null;
+        foreach (var evt in ordered)
+        {
+            // Only collapse a run of the SAME non-empty code; empty/unknown codes are never treated as duplicates.
+            if (!string.IsNullOrEmpty(evt.EventCode) && evt.EventCode == previousEventCode)
+                continue;
+            result.Add(evt);
+            previousEventCode = evt.EventCode;
+        }
+        return result;
     }
 
     /// <summary>

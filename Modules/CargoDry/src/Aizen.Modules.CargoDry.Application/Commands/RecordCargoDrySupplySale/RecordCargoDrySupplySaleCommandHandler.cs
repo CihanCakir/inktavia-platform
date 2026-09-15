@@ -87,9 +87,11 @@ public sealed class RecordCargoDrySupplySaleCommandHandler
             ResolutionNote     = $"CargoDry supply sale (SR {request.ServiceRequestId})",
         }, ct);
 
-        // ── Preferred provider (set-once on the owner's FIRST completed supply SR); only when a provider is attributed ──
+        // ── Preferred provider (set-once on the owner's FIRST completed supply SR); only when a provider is attributed
+        //    AND a real owner is supplied. A reconciliation re-fire may pass OwnerUserId=0 (owner unknown at the ops
+        //    layer) — that path repairs the financial attribution but must not create a preferred row for owner 0. ──
         var preferredSet = false;
-        if (attribution.ProviderProfileId is { } providerProfileId)
+        if (attribution.ProviderProfileId is { } providerProfileId && request.OwnerUserId > 0)
         {
             var existingPref = await _preferred.GetByOwnerAsync(request.OwnerUserId, ct);
             if (existingPref is null)

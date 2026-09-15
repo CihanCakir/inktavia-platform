@@ -30,6 +30,14 @@ public interface ICargoDryKitRepository
     Task<int> CountAvailableForProviderProductAsync(long providerProfileId, string productCode, CancellationToken ct = default);
 
     /// <summary>
+    /// CargoDry supply v2 — provider kit picker. Returns the calling provider's kits
+    /// (ProviderProfileId == providerProfileId), optionally filtered by product and status,
+    /// newest-manufactured first, capped at <paramref name="take"/>. Backs GET /api/v1/cargodry/provider/kits.
+    /// </summary>
+    Task<List<CargoDryKitEntity>> GetProviderKitsAsync(
+        long providerProfileId, string? productCode, CargoDryKitStatus? status, int take, CancellationToken ct = default);
+
+    /// <summary>
     /// SQL-level aggregation of kit statistics for a single product.
     /// Use in place of <c>GetAllAsync</c> when only per-product counts are needed.
     /// </summary>

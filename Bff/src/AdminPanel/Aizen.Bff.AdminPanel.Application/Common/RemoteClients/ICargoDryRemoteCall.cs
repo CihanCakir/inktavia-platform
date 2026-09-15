@@ -3,6 +3,8 @@ using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
 using Aizen.Core.RemoteCall.Abstraction;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
+using Aizen.Modules.CargoDry.Abstraction.RemoteCall.Requests;
+using Aizen.Modules.CargoDry.Abstraction.RemoteCall.Responses;
 using Refit;
 
 namespace Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
@@ -267,11 +269,19 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
         [Query] int     pageSize,
         CancellationToken ct = default);
 
+    // Dev/ops reconciliation — re-fire the internal supply record-sale to repair an attribution's SalePrice + commission.
+    [AizenRemoteCallPost("/api/v1/cargodry/internal/supply/record-sale")]
+    Task<RecordCargoDrySupplySaleRemoteResponse> RecordSupplySaleInternalAsync(
+        [AizenRemoteCallBody] RecordCargoDrySupplySaleRemoteRequest request,
+        CancellationToken ct = default);
+
     [AizenRemoteCallGet("/api/v1/cargodry/admin/inventory/preview")]
     Task<BatchAllocationPreviewBffDto> GetAllocationPreviewAsync(
         [Query] string batchCode,
         [Query] long   providerProfileId,
         [Query] int    commercialModel,
+        [Query] int?   salesChannel,
+        [Query] long?  consignmentAgreementId,
         CancellationToken ct = default);
 
     [AizenRemoteCallPost("/api/v1/cargodry/admin/inventory/allocate")]

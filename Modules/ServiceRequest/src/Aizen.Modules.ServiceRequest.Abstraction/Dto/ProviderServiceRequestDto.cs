@@ -54,6 +54,10 @@ public sealed class ProviderServiceRequestDto
     public bool IsPreferred { get; set; }
     /// <summary>CargoDry supply v2 (A1): the calling provider's available consignment-kit count for the requested product (null for non-CARGODRY_SUPPLY). Set by the provider BFF.</summary>
     public int? AvailableKitCount { get; set; }
+    /// <summary>CargoDry supply v2: when the provider marked the kit delivered (null until delivered). Lets the portal render the delivered state from server data, not only its own action.</summary>
+    public DateTime? DeliveredAtUtc { get; set; }
+    /// <summary>CargoDry supply v2: deadline after which delivery auto-completes the order (set at ship/deliver time; null otherwise).</summary>
+    public DateTime? AutoCompleteDeadlineUtc { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

@@ -83,10 +83,15 @@ using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryStatsComparison
 using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryUsageReport;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryWarehouseOptions;
 using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.ForceCargoDryAcceptTimeoutBff;
+using Aizen.Bff.AdminPanel.Application.CargoDry.Command.RecordCargoDrySupplySaleRetryBff;
+using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
+using Aizen.Modules.CargoDry.Abstraction.RemoteCall.Responses;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace Aizen.Bff.AdminPanel.Controllers.V1;
 
@@ -97,9 +102,22 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 public sealed class CargoDryController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
+    private readonly IHostEnvironment    _env;
 
-    public CargoDryController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs)
-        : base(httpContextAccessor) => _cqrs = cqrs;
+    public CargoDryController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs, IHostEnvironment env)
+        : base(httpContextAccessor)
+    {
+        _cqrs = cqrs;
+        _env  = env;
+    }
+
+    /// <summary>
+    /// Dev/ops reconciliation tools below are enabled ONLY in Development or Staging; every other environment
+    /// (Production and any custom/unrecognised name) gets a 404 (not 403) so the surface is invisible. Allowlisting
+    /// the two known non-prod environments — rather than denylisting Production — keeps a mis-set environment name
+    /// from silently exposing the tooling in a production deployment.
+    /// </summary>
+    private bool IsReconciliationToolingEnabled => _env.IsDevelopment() || _env.IsStaging();
 
     // ── Kits ─────────────────────────────────────────────────────────────────
 
@@ -761,21 +779,26 @@ public sealed class CargoDryController : AizenWebApiController
         return SetResponse(result?.PagedResult);
     }
 
-    /// <summary>GET /api/v1/admin-panel/cargodry/inventory/preview?batchCode=X&amp;providerProfileId=Y&amp;commercialModel=Z</summary>
+    /// <summary>GET /api/v1/admin-panel/cargodry/inventory/preview?batchCode=X&amp;providerProfileId=Y&amp;commercialModel=Z
+    ///     &amp;salesChannel=3&amp;consignmentAgreementId=N (salesChannel=3 = ConsignmentSellThrough enables the agreement-cap check)</summary>
     [HttpGet("inventory/preview")]
     [ProducesResponseType(typeof(BatchAllocationPreviewBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<BatchAllocationPreviewBffDto>> GetAllocationPreview(
         [FromQuery] string batchCode,
         [FromQuery] long   providerProfileId,
         [FromQuery] int    commercialModel,
+        [FromQuery] int?   salesChannel           = null,
+        [FromQuery] long?  consignmentAgreementId = null,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
             new GetCargoDryAllocationPreviewBffQuery
             {
-                BatchCode         = batchCode,
-                ProviderProfileId = providerProfileId,
-                CommercialModel   = commercialModel,
+                BatchCode              = batchCode,
+                ProviderProfileId      = providerProfileId,
+                CommercialModel        = commercialModel,
+                SalesChannel           = salesChannel,
+                ConsignmentAgreementId = consignmentAgreementId,
             }, ct);
 
         return SetResponse(result?.Preview);
@@ -1647,7 +1670,9 @@ public sealed class CargoDryController : AizenWebApiController
     }
 
     // ── CargoDry supply v2 — cargo order operations + config ───────────────────────────────────────────────
-    /// <summary>GET /api/v1/admin-panel/cargodry/orders — admin cargo-orders fulfilment queue (status=AwaitingShipment|Shipped|All).</summary>
+    /// <summary>GET /api/v1/admin-panel/cargodry/supply/orders (canonical, called by admin-web) and the legacy
+    /// /cargodry/orders alias — admin cargo-orders fulfilment queue (status=awaiting|shipped|all).</summary>
+    [HttpGet("supply/orders")]
     [HttpGet("orders")]
     [ProducesResponseType(typeof(Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto>> GetCargoOrders(
@@ -1680,6 +1705,49 @@ public sealed class CargoDryController : AizenWebApiController
         long serviceRequestId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(new CompleteCargoDrySupplyOrderBffCommand { ServiceRequestId = serviceRequestId }, ct);
+        return SetResponse(result);
+    }
+
+    // ── Dev/ops reconciliation (non-production only; 404 in Production) ─────────────────────────────────────────────
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/orders/{serviceRequestId}/force-accept-timeout — dev/ops: force the
+    /// CargoDry-supply accept-timeout fallback (→ AwaitingShipment) so the cargo path can be E2E-tested without the
+    /// hourly sweep. Returns 404 in Production.
+    /// </summary>
+    [HttpPost("orders/{serviceRequestId:long}/force-accept-timeout")]
+    [ProducesResponseType(typeof(ForceCargoDryAcceptTimeoutResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AizenApiResponse<ForceCargoDryAcceptTimeoutResponse>>> ForceAcceptTimeout(
+        long serviceRequestId, CancellationToken ct)
+    {
+        if (!IsReconciliationToolingEnabled) return NotFound();
+
+        var result = await _cqrs.ProcessAsync(
+            new ForceCargoDryAcceptTimeoutBffCommand { ServiceRequestId = serviceRequestId }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// POST /api/v1/admin-panel/cargodry/orders/{serviceRequestId}/record-sale-retry — dev/ops: re-fire the CargoDry
+    /// internal record-sale to repair an attribution's SalePrice + commission (idempotency keyed on the SR link, which
+    /// never persisted for the broken row). Returns 404 in Production.
+    /// </summary>
+    [HttpPost("orders/{serviceRequestId:long}/record-sale-retry")]
+    [ProducesResponseType(typeof(RecordCargoDrySupplySaleRemoteResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AizenApiResponse<RecordCargoDrySupplySaleRemoteResponse>>> RecordSaleRetry(
+        long serviceRequestId, [FromBody] RecordCargoDrySupplySaleRetryBffRequest body, CancellationToken ct)
+    {
+        if (!IsReconciliationToolingEnabled) return NotFound();
+
+        var result = await _cqrs.ProcessAsync(new RecordCargoDrySupplySaleRetryBffCommand
+        {
+            ServiceRequestId = serviceRequestId,
+            KitId            = body.KitId,
+            SaleAmount       = body.SaleAmount,
+            CurrencyCode     = body.CurrencyCode,
+        }, ct);
         return SetResponse(result);
     }
 

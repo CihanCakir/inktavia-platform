@@ -30,9 +30,10 @@ public sealed class GetCargoDrySupplyOrdersAdminQueryHandler
     {
         var statuses = request.Status?.Trim().ToLowerInvariant() switch
         {
-            "awaitingshipment" => new[] { ServiceRequestStatus.AwaitingShipment },
-            "shipped"          => new[] { ServiceRequestStatus.Shipped },
-            _                  => new[] { ServiceRequestStatus.AwaitingShipment, ServiceRequestStatus.Shipped }, // All
+            // Accept both the admin-web filter values (awaiting|shipped|all) and the full status names.
+            "awaiting" or "awaitingshipment" => new[] { ServiceRequestStatus.AwaitingShipment },
+            "shipped"                        => new[] { ServiceRequestStatus.Shipped },
+            _                                => new[] { ServiceRequestStatus.AwaitingShipment, ServiceRequestStatus.Shipped }, // all
         };
 
         var page = request.Page < 1 ? 1 : request.Page;
@@ -47,7 +48,14 @@ public sealed class GetCargoDrySupplyOrdersAdminQueryHandler
                 RequestCode               = x.RequestCode,
                 ProductCode               = x.CargoDryProductCode,
                 VesselName                = x.VesselName,
+                OwnerUserId               = x.OwnerUserId,
                 OrderStatus               = x.Status.ToString(),
+                // "Awaiting since" = when the order first entered AwaitingShipment; fall back to created time.
+                AwaitingSince             = x.StatusHistory
+                    .Where(h => h.ToStatus == ServiceRequestStatus.AwaitingShipment)
+                    .OrderBy(h => h.OccurredAt)
+                    .Select(h => (DateTime?)h.OccurredAt)
+                    .FirstOrDefault() ?? x.CreateDate,
                 ProviderAcceptDeadlineUtc = x.ProviderAcceptDeadlineUtc,
                 ShippedAtUtc              = x.ShippedAtUtc,
                 TrackingCode              = x.TrackingCode,

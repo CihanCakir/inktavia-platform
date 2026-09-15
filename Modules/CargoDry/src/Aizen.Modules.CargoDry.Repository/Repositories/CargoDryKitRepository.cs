@@ -67,6 +67,15 @@ public sealed class CargoDryKitRepository : ICargoDryKitRepository
         return (items, total);
     }
 
+    public Task<List<CargoDryKitEntity>> GetProviderKitsAsync(
+        long providerProfileId, string? productCode, CargoDryKitStatus? status, int take, CancellationToken ct = default)
+    {
+        var q = _db.Kits.AsNoTracking().Where(x => x.ProviderProfileId == providerProfileId);
+        if (!string.IsNullOrWhiteSpace(productCode)) q = q.Where(x => x.ProductCode == productCode);
+        if (status.HasValue)                         q = q.Where(x => x.Status == status.Value);
+        return q.OrderByDescending(x => x.ManufacturedAt).Take(take).ToListAsync(ct);
+    }
+
     public Task<List<CargoDryKitEntity>> GetAllAsync(CancellationToken ct)
         => _db.Kits.AsNoTracking().OrderByDescending(x => x.ManufacturedAt).ToListAsync(ct);
 

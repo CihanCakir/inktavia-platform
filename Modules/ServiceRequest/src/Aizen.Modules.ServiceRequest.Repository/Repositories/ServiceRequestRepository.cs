@@ -97,7 +97,10 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
                 && x.ServiceCategoryCode == Abstraction.Constants.ServiceRequestServiceCategoryCodes.CargoDrySupply
                 && statuses.Contains(x.Status));
         var total = await q.CountAsync(ct);
-        var items = await q.OrderByDescending(x => x.CreateDate).Skip(skip).Take(take).ToListAsync(ct);
+        // Include StatusHistory so the admin queue can surface "awaiting since" — the moment the order entered
+        // AwaitingShipment (there is no dedicated timestamp column for that transition on the entity).
+        var items = await q.Include(x => x.StatusHistory)
+            .OrderByDescending(x => x.CreateDate).Skip(skip).Take(take).ToListAsync(ct);
         return (items, total);
     }
 

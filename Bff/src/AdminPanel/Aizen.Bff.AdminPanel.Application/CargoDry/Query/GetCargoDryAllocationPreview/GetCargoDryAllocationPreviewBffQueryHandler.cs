@@ -20,6 +20,8 @@ public sealed class GetCargoDryAllocationPreviewBffQueryHandler
             request.BatchCode,
             request.ProviderProfileId,
             request.CommercialModel,
+            request.SalesChannel,
+            request.ConsignmentAgreementId,
             ct);
 
         return new GetCargoDryAllocationPreviewBffResponse { Preview = result };
