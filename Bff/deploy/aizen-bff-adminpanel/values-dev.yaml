@@ -161,6 +161,11 @@ env:
   - name: TZ
     value: Europe/Istanbul
 
+  # ── CargoDry dev/rekonsilyasyon araçları (force-accept-timeout, record-sale-retry) ──
+  # Env-adı Production olduğu için bilinçli olarak config bayrağıyla açılıyor; prod values'ta bu satır YOK → 404.
+  - name: CargoDry__ReconciliationToolingEnabled
+    value: "true"
+
   # ── Önbellek ve mesaj kuyruğu ────────────────────────────────────────────────
   - name: DistributedCache__InstanceName
     value: "AdminPanelBff:"

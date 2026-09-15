@@ -9,7 +9,11 @@ namespace Aizen.Modules.Notification.Application.Services;
 /// </summary>
 public static class DeepLinkValidator
 {
-    public static void Validate(string? deepLink, IReadOnlyCollection<string> allowedHosts, string templateCode)
+    public static void Validate(
+        string? deepLink,
+        IReadOnlyCollection<string> allowedHosts,
+        string templateCode,
+        IReadOnlyCollection<string>? allowedSchemes = null)
     {
         if (string.IsNullOrWhiteSpace(deepLink))
             return;   // derin bağlantı yok → sorun yok
@@ -36,7 +40,17 @@ public static class DeepLinkValidator
             throw Reject(templateCode, value);
         }
 
-        // javascript:, data:, özel şema, göreli olmayan diğer her şey → reddet.
+        // İzinli özel şema (ör. mobil "inktavia-marine://…"). Wave 4A: owner mobil deeplink'leri için.
+        if (allowedSchemes is { Count: > 0 } && Uri.TryCreate(value, UriKind.Absolute, out var schemeUri))
+        {
+            foreach (var scheme in allowedSchemes)
+            {
+                if (string.Equals(scheme, schemeUri.Scheme, StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
+        }
+
+        // javascript:, data:, izinsiz özel şema, göreli olmayan diğer her şey → reddet.
         throw Reject(templateCode, value);
     }
 

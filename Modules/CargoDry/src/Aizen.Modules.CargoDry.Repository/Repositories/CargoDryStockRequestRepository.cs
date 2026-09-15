@@ -24,6 +24,35 @@ public sealed class CargoDryStockRequestRepository : ICargoDryStockRequestReposi
         return (items, total);
     }
 
+    public async Task<(List<CargoDryStockRequestEntity> Items, int Total)> GetPagedAsync(
+        CargoDryStockRequestStatus? status, long? providerProfileId, int skip, int take, CancellationToken ct = default)
+    {
+        var q = _db.StockRequests.AsQueryable();
+        if (status.HasValue)            q = q.Where(x => x.Status == status.Value);
+        if (providerProfileId is { } p) q = q.Where(x => x.ProviderProfileId == p);
+        var total = await q.CountAsync(ct);
+        var items = await q.OrderByDescending(x => x.CreateDate).Skip(skip).Take(take).ToListAsync(ct);
+        return (items, total);
+    }
+
+    public Task<List<CargoDryStockRequestEntity>> GetRecentByProviderAsync(long providerProfileId, int take, CancellationToken ct = default)
+        => _db.StockRequests.AsNoTracking()
+            .Where(x => x.ProviderProfileId == providerProfileId)
+            .OrderByDescending(x => x.CreateDate).Take(take).ToListAsync(ct);
+
+    public Task<int> CountByProviderAsync(long providerProfileId, CancellationToken ct = default)
+        => _db.StockRequests.CountAsync(x => x.ProviderProfileId == providerProfileId, ct);
+
+    public async Task<IReadOnlyList<long>> GetAutoReceiveDueIdsAsync(DateTimeOffset nowUtc, int maxBatch, CancellationToken ct = default)
+        => await _db.StockRequests.AsNoTracking()
+            .Where(x => x.Status == CargoDryStockRequestStatus.Shipped
+                        && x.AutoReceiveDeadlineUtc != null
+                        && x.AutoReceiveDeadlineUtc < nowUtc)
+            .OrderBy(x => x.AutoReceiveDeadlineUtc)
+            .Take(maxBatch)
+            .Select(x => x.Id)
+            .ToListAsync(ct);
+
     public Task<bool> HasPendingForProductAsync(long providerProfileId, string productCode, CancellationToken ct = default)
         => _db.StockRequests.AnyAsync(x =>
             x.ProviderProfileId == providerProfileId

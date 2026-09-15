@@ -294,6 +294,30 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] AdjustProviderInventoryBffRequest request,
         CancellationToken ct = default);
 
+    // ── Wave 4A — provider stock-request admin lifecycle ─────────────────────────
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/stock-requests")]
+    Task<CargoDryStockRequestPagedResultDto> GetStockRequestsAsync(
+        [Query] int?  status,
+        [Query] long? providerProfileId,
+        [Query] int   page,
+        [Query] int   pageSize,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/cargodry/admin/stock-requests/{id}")]
+    Task<CargoDryStockRequestDto> GetStockRequestByIdAsync(long id, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/stock-requests/{id}/approve")]
+    Task<CargoDryStockRequestDto> ApproveStockRequestAsync(
+        long id, [AizenRemoteCallBody] ApproveStockRequestBffRequest request, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/stock-requests/{id}/ship")]
+    Task<CargoDryStockRequestDto> ShipStockRequestAsync(
+        long id, [AizenRemoteCallBody] ShipStockRequestBffRequest request, CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/cargodry/admin/stock-requests/{id}/reject")]
+    Task<CargoDryStockRequestDto> RejectStockRequestAsync(
+        long id, [AizenRemoteCallBody] RejectStockRequestBffRequest request, CancellationToken ct = default);
+
     // ── Commercial: Sales Attributions & Sell-Through Settlements ────────────
 
     [AizenRemoteCallGet("/api/v1/cargodry/admin/commercial/sales-attributions")]

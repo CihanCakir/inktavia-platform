@@ -1,8 +1,10 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Constants;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Common;
@@ -21,17 +23,20 @@ public sealed class MarkCargoDrySupplyDeliveredCommandHandler
     private readonly IServiceRequestRepository _repository;
     private readonly IAizenInfoAccessor _info;
     private readonly IServiceRequestReferenceDataRemoteCall _referenceData;
+    private readonly IAizenMessagePublisher _messagePublisher;
     private readonly ILogger<MarkCargoDrySupplyDeliveredCommandHandler> _logger;
 
     public MarkCargoDrySupplyDeliveredCommandHandler(
         IServiceRequestRepository repository,
         IAizenInfoAccessor info,
         IServiceRequestReferenceDataRemoteCall referenceData,
+        IAizenMessagePublisher messagePublisher,
         ILogger<MarkCargoDrySupplyDeliveredCommandHandler> logger)
     {
         _repository = repository;
         _info = info;
         _referenceData = referenceData;
+        _messagePublisher = messagePublisher;
         _logger = logger;
     }
 
@@ -65,6 +70,18 @@ public sealed class MarkCargoDrySupplyDeliveredCommandHandler
             $"CargoDry kit {request.KitId} delivered; auto-completes at {deadline:o} if not activated",
             _info.UserInfoAccessor.UserInfo.UserId, ServiceRequestActorType.Provider));
         _repository.Update(sr);
+
+        // Wave 4A — owner "delivered" notification + admin feed.
+        await _messagePublisher.PublishAsync(new CargoDrySupplyOrderLifecycleMessage
+        {
+            ServiceRequestId  = sr.Id,
+            RequestCode       = sr.RequestCode,
+            OwnerUserId       = sr.OwnerUserId,
+            ProductCode       = sr.CargoDryProductCode,
+            Event             = CargoDrySupplyOrderLifecycleEvent.Delivered,
+            ProviderProfileId = sr.Assignment?.ProviderProfileId,
+            DeliveredKitId    = request.KitId,
+        }, cancellationToken);
 
         _logger.LogInformation(
             "CargoDry supply SR {SrId} marked delivered (kit {KitId}); auto-complete deadline {Deadline:o}.",

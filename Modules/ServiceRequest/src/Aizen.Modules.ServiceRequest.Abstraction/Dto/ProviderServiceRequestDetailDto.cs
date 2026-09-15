@@ -16,4 +16,21 @@ public sealed class ProviderServiceRequestDetailDto
     public List<ServiceRequestStatusHistoryDto> Timeline { get; set; } = new();
     public int OfferCount { get; set; }
     public int AttachmentCount { get; set; }
+    /// <summary>CargoDry supply v2: product media block for a CARGODRY_SUPPLY request (name + presigned image URLs).
+    /// Populated by the provider BFF from FileStorage; null for non-supply requests. The module never sets it.</summary>
+    public CargoDrySupplyProductBlockDto? CargoDryProduct { get; set; }
+}
+
+/// <summary>
+/// Provider-facing product media block for a CARGODRY_SUPPLY request. All fields are BFF-resolved (presigned URLs);
+/// the ServiceRequest module leaves this null.
+/// </summary>
+public sealed class CargoDrySupplyProductBlockDto
+{
+    public string        ProductCode  { get; set; } = default!;
+    public string?       ProductName  { get; set; }
+    public decimal?      RetailPrice  { get; set; }
+    public string?       CurrencyCode { get; set; }
+    public string?       ThumbnailUrl { get; set; }
+    public List<string>  ImageUrls    { get; set; } = new();
 }

@@ -18,7 +18,7 @@ public static class NotificationCategoryMap
             >= 100 and <= 139          => NotificationCategory.ServiceRequests, // SR / offer / assignment / completion (incl. 103 maintenance-reminder N2, 133 auto-approve-approaching N3-C)
             140 or 141                 => NotificationCategory.Disputes,
             >= 150 and <= 163          => NotificationCategory.Payments,   // incl. 157 PaymentAuthorized (N-C); 160 price-change, 161/162 boost, 163 budget-low (N1/N4)
-            >= 300 and <= 309          => NotificationCategory.CargoDry,
+            >= 300 and <= 339          => NotificationCategory.CargoDry,   // 300–309 kit lifecycle; 320–333 supply-order + stock-request (Wave 4A)
             >= 400 and <= 412          => NotificationCategory.Account,          // profile + auth/OTP + e-posta doğrulama (412) — security, always-deliver
             >= 900 and <= 999          => NotificationCategory.Broadcast,   // incl. 910 SupportRequestOpened (N-D)
             _                          => NotificationCategory.Account,          // unknown → treat as always-deliver

@@ -54,6 +54,11 @@ public sealed class NotificationTemplateSeed
         }
         await _db.SaveChangesAsync(ct);
 
+        // 2.5) Wave 4A — CargoDry supply-order + stock-request templates with genuine TR+EN content and DeepLinks.
+        //      Seeded here (before the generic step below) so the generic single-en/no-DeepLink default is skipped
+        //      for these codes.
+        await CargoDryWave4ANotificationSeed.SeedAsync(_db, ct);
+
         // 3) İçerik satırları (channel×locale×version). Taze DB'de migration'ın veri taşıması boştur (henüz template
         //    yoktu) → içeriği burada üretiriz. Mevcut DB'de migration zaten taşımıştır → aşağıdaki EXISTS guard atlar.
         //    Eşleme migration SQL'i ile AYNIdır (DefaultTemplateContent.FromTemplate).
@@ -70,6 +75,9 @@ public sealed class NotificationTemplateSeed
             }
         }
         await _db.SaveChangesAsync(ct);
+
+        // 4) Wave 4A — retrofit a DeepLink onto EXISTING SR/CargoDry templates that have none (idempotent; null-guarded).
+        await NotificationDeepLinkBackfill.SeedAsync(_db, ct);
     }
 
     private static List<NotificationTemplateEntity> BuildTemplates() =>

@@ -9,7 +9,8 @@ namespace Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProductList;
 public sealed class GetCargoDryProductListQueryHandler
     : AizenQueryHandler<GetCargoDryProductListQuery, List<CargoDryProductDto>>
 {
-    private const string CacheKey = "cargodry:products:all";
+    // v2: payload now carries media ids (ThumbnailFileId / ImageFileIds); bumped so stale media-less entries are dropped.
+    private const string CacheKey = "cargodry:products:all:v2";
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(30);
 
     private readonly ICargoDryProductRepository _products;
@@ -29,7 +30,7 @@ public sealed class GetCargoDryProductListQueryHandler
         var (hit, cached) = await _cache.TryGetAsync<List<CargoDryProductDto>>(CacheKey, ct);
         if (hit) return cached;
 
-        var products = await _products.GetAllAsync(ct);
+        var products = await _products.GetAllWithImagesAsync(ct);
         var result   = products.Select(p => new CargoDryProductDto
         {
             Id                     = p.Id,
@@ -47,6 +48,9 @@ public sealed class GetCargoDryProductListQueryHandler
             WholesalePrice         = p.WholesalePrice,
             ConsignmentPrice       = p.ConsignmentPrice,
             ProviderCommissionRate = p.ProviderCommissionRate,
+            // Media (BFF resolves file ids → presigned URLs)
+            ThumbnailFileId        = p.ThumbnailFileId,
+            ImageFileIds           = p.Images.OrderBy(i => i.SortOrder).Select(i => i.FileId).ToList(),
         }).ToList();
 
         await _cache.SetAsync(result, CacheKey,

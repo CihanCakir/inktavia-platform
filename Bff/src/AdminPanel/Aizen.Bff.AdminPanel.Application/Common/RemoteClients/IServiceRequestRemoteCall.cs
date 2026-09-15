@@ -174,10 +174,10 @@ public interface IServiceRequestRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/service-requests/{serviceRequestId}/cargodry/complete")]
     Task<AizenApiResponse<CompleteCargoDrySupplyOrderBffResponse>> CompleteCargoDrySupplyOrder(long serviceRequestId);
 
-    // F1 — admin cargo-orders fulfilment queue (AwaitingShipment | Shipped | All).
+    // CargoDry supply — admin cargo-orders + history (all|awaiting|shipped|completed|cancelled); ownerUserId = one owner.
     [AizenRemoteCallGet("/api/v1/admin/service-requests/cargodry/orders")]
     Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto>> GetCargoDrySupplyOrders(
-        [Refit.Query] string? status, [Refit.Query] int page, [Refit.Query] int pageSize);
+        [Refit.Query] string? status, [Refit.Query] long? ownerUserId, [Refit.Query] int page, [Refit.Query] int pageSize);
 
     // Dev/ops reconciliation — force the CargoDry-supply accept-timeout fallback for one SR (internal service route).
     [AizenRemoteCallPost("/api/v1/servicerequest/internal/cargodry/force-accept-timeout")]

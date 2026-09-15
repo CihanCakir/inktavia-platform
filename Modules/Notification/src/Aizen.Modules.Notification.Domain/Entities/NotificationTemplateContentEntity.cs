@@ -89,6 +89,18 @@ public sealed class NotificationTemplateContentEntity : AizenEntity
     }
 
     /// <summary>
+    /// Wave 4A backfill-only: set the DeepLinkTemplate on a content row that has none yet (retrofits a deep link onto
+    /// existing Published templates). Deliberately narrow — it touches ONLY the deep link and only when currently empty,
+    /// so it can run on Published rows without violating the "Published content is immutable" rule for editable content.
+    /// </summary>
+    public void SetDeepLinkTemplate(string? deepLinkTemplate)
+    {
+        if (!string.IsNullOrEmpty(DeepLinkTemplate)) return; // never override an existing (admin-authored) deep link
+        DeepLinkTemplate = deepLinkTemplate;
+        UpdatedAt        = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
     /// Bir Draft satırının kanal içeriğini günceller. DEĞİŞMEZ: yalnızca Draft üzerinde çağrılabilir — Published/Archived
     /// içerik ASLA mutasyona uğramaz (yeni sürüm gerekir). Handler bunu Draft satırına yönlendirir; burada da guard var.
     /// </summary>

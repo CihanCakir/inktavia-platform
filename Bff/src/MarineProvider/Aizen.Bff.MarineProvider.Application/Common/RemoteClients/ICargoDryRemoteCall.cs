@@ -56,6 +56,9 @@ public interface ICargoDryRemoteCall : IAizenRemoteCall
     [AizenRemoteCallPost("/api/v1/cargodry/provider/stock-requests/{id}/cancel")]
     Task<AizenApiResponse<CargoDryStockRequestDto>> CancelStockRequest(long id);
 
+    [AizenRemoteCallPost("/api/v1/cargodry/provider/stock-requests/{id}/receive")]
+    Task<AizenApiResponse<CargoDryStockRequestDto>> ReceiveStockRequest(long id);
+
     [AizenRemoteCallGet("/api/v1/cargodry/provider/products")]
     Task<AizenApiResponse<List<CargoDryProductOptionDto>>> GetProducts();
 

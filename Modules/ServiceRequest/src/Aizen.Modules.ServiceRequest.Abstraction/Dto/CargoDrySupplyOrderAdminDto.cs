@@ -14,8 +14,17 @@ public sealed class CargoDrySupplyOrderAdminDto
     public long      OwnerUserId               { get; set; }
     /// <summary>Owner display name. Resolved by the admin BFF (Identity lookup); null when unavailable.</summary>
     public string?   OwnerName                 { get; set; }
-    /// <summary>Derived owner order status (AwaitingShipment | Shipped | ...).</summary>
+    /// <summary>Derived owner order status (AwaitingShipment | Shipped | Completed | Cancelled | ...).</summary>
     public string?   OrderStatus               { get; set; }
+    /// <summary>Fulfilment path: "ProviderFulfilled" (a program provider was assigned) or "CargoDirectSale"
+    /// (no provider accepted → cargo/direct-online sale). Derived from the assignment presence.</summary>
+    public string?   OrderPath                 { get; set; }
+    /// <summary>Assigned provider profile id (null for cargo direct sales).</summary>
+    public long?     ProviderProfileId         { get; set; }
+    /// <summary>Assigned provider display name (denormalized on the SR, or BFF-enriched); null for cargo sales.</summary>
+    public string?   ProviderName              { get; set; }
+    /// <summary>When the order completed (from status history → Completed/Closed); null while in-flight.</summary>
+    public DateTime? CompletedAtUtc            { get; set; }
     /// <summary>When the order entered AwaitingShipment (from status history; falls back to CreatedAt).</summary>
     public DateTime? AwaitingSince             { get; set; }
     public DateTime? ProviderAcceptDeadlineUtc { get; set; }

@@ -14,6 +14,8 @@ public interface ICargoDryProductRepository
     Task<CargoDryProductEntity?> GetByCodeWithImagesAsync(string productCode, CancellationToken ct = default);
     /// <summary>Active products with their ordered gallery images loaded. Used by the owner-safe mobile catalog.</summary>
     Task<List<CargoDryProductEntity>> GetAllActiveWithImagesAsync(CancellationToken ct = default);
+    /// <summary>All products (incl. inactive) with their ordered gallery images. Backs the media-aware product list.</summary>
+    Task<List<CargoDryProductEntity>> GetAllWithImagesAsync(CancellationToken ct = default);
 
     /// <summary>Deletes a single product image row (after it has been removed from the product aggregate).</summary>
     void RemoveImage(CargoDryProductImageEntity image);

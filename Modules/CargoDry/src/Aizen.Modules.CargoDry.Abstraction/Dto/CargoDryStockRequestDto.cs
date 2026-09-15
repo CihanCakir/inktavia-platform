@@ -15,6 +15,11 @@ public sealed class CargoDryStockRequestDto
     public string? DecisionNote { get; init; }
     public string? ApprovedBatchCode { get; init; }
     public int? AllocatedQuantity { get; init; }
+    // Wave 4A — lifecycle revival (Approved → Shipped → Received).
+    public string? TrackingCode { get; init; }
+    public DateTimeOffset? ShippedAtUtc { get; init; }
+    public DateTimeOffset? AutoReceiveDeadlineUtc { get; init; }
+    public DateTimeOffset? ReceivedAtUtc { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; }
 }
 

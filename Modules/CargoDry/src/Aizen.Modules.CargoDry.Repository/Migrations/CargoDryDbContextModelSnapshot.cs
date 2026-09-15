@@ -1998,6 +1998,9 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTimeOffset?>("AutoReceiveDeadlineUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<long?>("ConsignmentAgreementId")
                         .HasColumnType("bigint");
 
@@ -2057,6 +2060,12 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("ReceivedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("ReceivedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("RequestCode")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -2065,8 +2074,18 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                     b.Property<int>("RequestedQuantity")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset?>("ShippedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("ShippedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TrackingCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
@@ -2074,6 +2093,8 @@ namespace Aizen.Modules.CargoDry.Repository.Migrations
                         .IsUnique();
 
                     b.HasIndex("ProviderProfileId", "Status");
+
+                    b.HasIndex("Status", "AutoReceiveDeadlineUtc");
 
                     b.ToTable("cargodry_stock_requests", "cargodry");
                 });

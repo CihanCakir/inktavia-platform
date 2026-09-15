@@ -89,17 +89,22 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
             .ToListAsync(ct);
 
     public async Task<(IReadOnlyList<ServiceRequestEntity> Items, int Total)> GetCargoDrySupplyOrdersAsync(
-        IReadOnlyList<Abstraction.Enum.ServiceRequestStatus> statuses, int skip, int take, CancellationToken ct = default)
+        IReadOnlyList<Abstraction.Enum.ServiceRequestStatus>? statuses, long? ownerUserId, int skip, int take, CancellationToken ct = default)
     {
         var q = _db.ServiceRequests.AsNoTracking()
             .Where(x => !x.IsDeleted
                 && x.CargoDryProductCode != null
-                && x.ServiceCategoryCode == Abstraction.Constants.ServiceRequestServiceCategoryCodes.CargoDrySupply
-                && statuses.Contains(x.Status));
+                && x.ServiceCategoryCode == Abstraction.Constants.ServiceRequestServiceCategoryCodes.CargoDrySupply);
+
+        if (statuses is { Count: > 0 })
+            q = q.Where(x => statuses.Contains(x.Status));
+        if (ownerUserId is { } ownerId)
+            q = q.Where(x => x.OwnerUserId == ownerId);
+
         var total = await q.CountAsync(ct);
-        // Include StatusHistory so the admin queue can surface "awaiting since" — the moment the order entered
-        // AwaitingShipment (there is no dedicated timestamp column for that transition on the entity).
+        // Include StatusHistory (for "awaiting since" + "completed at" derivation) and Assignment (order-path derivation).
         var items = await q.Include(x => x.StatusHistory)
+            .Include(x => x.Assignment)
             .OrderByDescending(x => x.CreateDate).Skip(skip).Take(take).ToListAsync(ct);
         return (items, total);
     }
@@ -118,6 +123,10 @@ public sealed class ServiceRequestRepository : IServiceRequestRepository
     public async Task<IReadOnlyList<ServiceRequestEntity>> GetByOwnerUserIdAsync(long ownerUserId, int skip, int take, CancellationToken ct = default)
         => await _db.ServiceRequests
             .AsNoTracking()
+            // Filtered include so the mapper's OfferCount (entity.Offers.Count) reflects reality — without it the
+            // owner list always reported 0 offers and the mobile "N teklif" signal/chip never showed (design-QA
+            // finding, Sep 2026).
+            .Include(x => x.Offers.Where(o => !o.IsDeleted))
             .Where(x => x.OwnerUserId == ownerUserId && !x.IsDeleted)
             .OrderByDescending(x => x.CreateDate)
             .Skip(skip)

@@ -1,4 +1,5 @@
 using Aizen.Bff.MarineProvider.Application.CargoDry;
+using Aizen.Bff.MarineProvider.Application.CargoDry.Dto;
 using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
@@ -81,14 +82,21 @@ public sealed class CargoDryController : AizenWebApiController
     public async Task<AizenApiResponse<CargoDryStockRequestDto?>> CancelStockRequest([FromRoute] long id, CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new CancelCargoDryStockRequestBffCommand { Id = id }, ct));
 
+    /// <summary>Provider confirms receipt of a Shipped stock request. Shipped → Received.</summary>
+    [HttpPost("stock-requests/{id:long}/receive")]
+    [Authorize(Policy = ProviderAuthorizationPolicies.CargoDryParticipant)] // write stays participant-gated
+    [ProducesResponseType(typeof(CargoDryStockRequestDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<CargoDryStockRequestDto?>> ReceiveStockRequest([FromRoute] long id, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new ReceiveCargoDryStockRequestBffCommand { Id = id }, ct));
+
     [HttpGet("products")]
-    [ProducesResponseType(typeof(List<CargoDryProductOptionDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<List<CargoDryProductOptionDto>?>> GetProducts(CancellationToken ct = default)
+    [ProducesResponseType(typeof(List<CargoDryProviderProductOptionBffDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CargoDryProviderProductOptionBffDto>?>> GetProducts(CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryProductsBffQuery(), ct));
 
     [HttpGet("catalog")]
-    [ProducesResponseType(typeof(List<CargoDryProductDto>), StatusCodes.Status200OK)]
-    public async Task<AizenApiResponse<List<CargoDryProductDto>?>> GetCatalog(CancellationToken ct = default)
+    [ProducesResponseType(typeof(List<CargoDryProviderCatalogItemBffDto>), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<List<CargoDryProviderCatalogItemBffDto>?>> GetCatalog(CancellationToken ct = default)
         => SetResponse(await _cqrs.ProcessAsync(new GetCargoDryCatalogBffQuery(), ct));
 
     [HttpGet("earnings")]

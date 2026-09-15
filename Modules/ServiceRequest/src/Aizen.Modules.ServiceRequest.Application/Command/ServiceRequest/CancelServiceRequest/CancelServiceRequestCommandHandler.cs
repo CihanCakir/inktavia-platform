@@ -72,6 +72,11 @@ public sealed class CancelServiceRequestCommandHandler : AizenCommandHandler<Can
             CancelledByUserId = currentUserId,
             RefundReasonCode = (int)refundReason,
             CancellationReason = request.Request.Reason,
+            // Wave 4A — enrichment for the CARGODRY_SUPPLY cancel notification (owner + assigned provider + admin feed).
+            OwnerUserId = entity.OwnerUserId,
+            ServiceCategoryCode = entity.ServiceCategoryCode,
+            CargoDryProductCode = entity.CargoDryProductCode,
+            AssignedProviderProfileId = entity.Assignment?.ProviderProfileId,
         }, cancellationToken);
 
         // BE_WC4b — the CONVERSATION_CLOSED System message is produced solely by the Messaging WC1 lifecycle consumer

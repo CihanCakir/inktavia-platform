@@ -21,6 +21,7 @@ public sealed class TemplateRenderer : ITemplateRenderer
     private readonly IEmailLayoutRepository                 _layoutRepo;
     private readonly ITemplateInterpolator                  _interpolator;
     private readonly IReadOnlyCollection<string>            _allowedDeepLinkHosts;
+    private readonly IReadOnlyCollection<string>            _allowedDeepLinkSchemes;
 
     // deepLinkOptions opsiyonel: verilmezse allowlist boş (yalnız göreli yollara izin). DI IOptions'ı enjekte eder.
     public TemplateRenderer(
@@ -32,7 +33,8 @@ public sealed class TemplateRenderer : ITemplateRenderer
         _contentRepo  = contentRepo;
         _layoutRepo   = layoutRepo;
         _interpolator = interpolator;
-        _allowedDeepLinkHosts = deepLinkOptions?.Value?.AllowedHosts ?? new List<string>();
+        _allowedDeepLinkHosts   = deepLinkOptions?.Value?.AllowedHosts   ?? new List<string>();
+        _allowedDeepLinkSchemes = deepLinkOptions?.Value?.AllowedSchemes ?? new List<string>();
     }
 
     public async Task<RenderedContent> RenderAsync(
@@ -113,7 +115,7 @@ public sealed class TemplateRenderer : ITemplateRenderer
         // Güvenlik: render edilen derin bağlantı yalnız göreli yol ya da izinli http/https host olabilir (javascript:/
         // data:/dış host/protokol-göreli reddedilir). Render tam başarılıysa doğrulanır.
         if (!string.IsNullOrEmpty(deepLink))
-            DeepLinkValidator.Validate(deepLink, _allowedDeepLinkHosts, templateCode);
+            DeepLinkValidator.Validate(deepLink, _allowedDeepLinkHosts, templateCode, _allowedDeepLinkSchemes);
 
         return new RenderedContent(title, body, string.IsNullOrEmpty(deepLink) ? null : deepLink);
     }

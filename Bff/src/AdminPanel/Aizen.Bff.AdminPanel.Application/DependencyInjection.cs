@@ -49,6 +49,8 @@ public static class DependencyInjection
         services.AddScoped<IAdminContext, AdminContext>();
         services.AddScoped<IAdminIdentityHolder, AdminIdentityHolder>();
         services.AddScoped<IAdminIdentityResolver, AdminIdentityResolver>();
+        services.AddScoped<Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryStockRequestsBff.ICargoDryStockRequestContextEnricher,
+            Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDryStockRequestsBff.CargoDryStockRequestContextEnricher>();
 
         // Central auth handler — wired into every downstream HttpClient.
         services.AddTransient<AdminPanelBffAuthDelegatingHandler>();
