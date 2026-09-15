@@ -43,9 +43,12 @@ public interface IServiceRequestRepository
     /// <summary>CargoDry supply v2 — ids of supply orders due to auto-complete: delivered-and-overdue (Assigned) OR shipped-and-overdue (Shipped).</summary>
     Task<IReadOnlyList<long>> GetCargoDrySupplyAutoCompleteDueIdsAsync(DateTime nowUtc, int maxBatch, CancellationToken ct = default);
 
-    /// <summary>CargoDry supply v2 (F1) — admin cargo-orders listing: paged CARGODRY_SUPPLY SRs whose status is in the given set (e.g. AwaitingShipment/Shipped).</summary>
+    /// <summary>CargoDry supply v2 — admin cargo-orders/history listing: paged CARGODRY_SUPPLY SRs. When
+    /// <paramref name="statuses"/> is null/empty, every status is returned (full history); otherwise filtered to the set.
+    /// Optional <paramref name="ownerUserId"/> narrows to one owner (the cargo "what did this owner buy" view).
+    /// Includes the Assignment nav so callers can derive order path (provider-fulfilled vs cargo direct sale).</summary>
     Task<(IReadOnlyList<ServiceRequestEntity> Items, int Total)> GetCargoDrySupplyOrdersAsync(
-        IReadOnlyList<Abstraction.Enum.ServiceRequestStatus> statuses, int skip, int take, CancellationToken ct = default);
+        IReadOnlyList<Abstraction.Enum.ServiceRequestStatus>? statuses, long? ownerUserId, int skip, int take, CancellationToken ct = default);
 
     /// <summary>BE-S4 — travel-pricing details keyed by offer-item id, for the given offer items (Travel lines). Read-only.</summary>
     Task<IReadOnlyDictionary<long, TravelPricingDetailEntity>> GetTravelPricingByOfferItemIdsAsync(

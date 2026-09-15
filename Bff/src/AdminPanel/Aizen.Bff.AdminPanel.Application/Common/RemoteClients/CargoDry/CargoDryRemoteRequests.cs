@@ -335,3 +335,31 @@ public sealed class CancelRenewalPreparationBffRequest
     public string  CancellationReason { get; init; } = default!;
     public string? Note               { get; init; }
 }
+
+// ── Wave 4A — stock-request admin lifecycle request bodies (mirror the module controller bodies) ──
+
+/// <summary>Approve a stock request = allocate a batch to the provider (agreement cap enforced module-side).</summary>
+public sealed class ApproveStockRequestBffRequest
+{
+    public long    DecidedByUserId        { get; init; }
+    public string? DecisionNote           { get; init; }
+    public string  BatchCode              { get; init; } = default!;
+    public int     CommercialModel        { get; init; } = 2; // PrincipalSale
+    public int     SalesChannel           { get; init; } = 3; // ConsignmentSellThrough
+    public long?   ConsignmentAgreementId { get; init; }
+    public long?   WarehouseId            { get; init; }
+}
+
+/// <summary>Ship an approved stock request (tracking code required).</summary>
+public sealed class ShipStockRequestBffRequest
+{
+    public long   ShippedByUserId { get; init; }
+    public string TrackingCode    { get; init; } = default!;
+}
+
+/// <summary>Reject a pending stock request with a verbatim reason.</summary>
+public sealed class RejectStockRequestBffRequest
+{
+    public long   DecidedByUserId { get; init; }
+    public string Reason          { get; init; } = default!;
+}

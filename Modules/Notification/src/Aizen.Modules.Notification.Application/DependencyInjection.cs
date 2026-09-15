@@ -65,7 +65,11 @@ public static class DependencyInjection
         if (configuration is not null)
         {
             services.Configure<DeepLinkOptions>(configuration.GetSection(DeepLinkOptions.SectionName));
+            services.Configure<NotificationDeepLinkOptions>(configuration.GetSection(NotificationDeepLinkOptions.SectionName));
         }
+
+        // Wave 4A — per-audience notification deep-link builder (provider/admin web bases + owner mobile scheme).
+        services.AddScoped<INotificationDeepLinkBuilder, NotificationDeepLinkBuilder>();
 
         // Locale çözümleyici: kalıcı tercih → istek bağlamı → varsayılan. Diğer servislerle aynı Scoped ömür.
         services.AddScoped<ILocaleResolver, RecipientLocaleResolver>();

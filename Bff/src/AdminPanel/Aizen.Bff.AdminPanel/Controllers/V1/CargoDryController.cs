@@ -102,22 +102,25 @@ namespace Aizen.Bff.AdminPanel.Controllers.V1;
 public sealed class CargoDryController : AizenWebApiController
 {
     private readonly IAizenCQRSProcessor _cqrs;
-    private readonly IHostEnvironment    _env;
+    private readonly IConfiguration      _configuration;
 
-    public CargoDryController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs, IHostEnvironment env)
+    public CargoDryController(IHttpContextAccessor httpContextAccessor, IAizenCQRSProcessor cqrs, IConfiguration configuration)
         : base(httpContextAccessor)
     {
-        _cqrs = cqrs;
-        _env  = env;
+        _cqrs          = cqrs;
+        _configuration = configuration;
     }
 
     /// <summary>
-    /// Dev/ops reconciliation tools below are enabled ONLY in Development or Staging; every other environment
-    /// (Production and any custom/unrecognised name) gets a 404 (not 403) so the surface is invisible. Allowlisting
-    /// the two known non-prod environments — rather than denylisting Production — keeps a mis-set environment name
-    /// from silently exposing the tooling in a production deployment.
+    /// Dev/ops reconciliation tools below are enabled ONLY by explicit opt-in config
+    /// (CargoDry:ReconciliationToolingEnabled=true, i.e. env var CargoDry__ReconciliationToolingEnabled); every
+    /// other deployment gets a 404 (not 403) so the surface is invisible. Environment-NAME gating is deliberately
+    /// NOT used: the dev cluster intentionally runs ASPNETCORE_ENVIRONMENT=Production (to exercise prod behavior
+    /// such as BffAssertion fail-closed — see Bff/deploy/aizen-bff-adminpanel/values-dev.yaml), so IsDevelopment()
+    /// can never be true where these tools are needed. Default is false → prod stays invisible unless someone
+    /// explicitly sets the flag there.
     /// </summary>
-    private bool IsReconciliationToolingEnabled => _env.IsDevelopment() || _env.IsStaging();
+    private bool IsReconciliationToolingEnabled => _configuration.GetValue<bool>("CargoDry:ReconciliationToolingEnabled");
 
     // ── Kits ─────────────────────────────────────────────────────────────────
 
@@ -1669,18 +1672,73 @@ public sealed class CargoDryController : AizenWebApiController
         return SetResponse(result);
     }
 
+    // ── Wave 4A — provider stock-request admin lifecycle ───────────────────────────────────────────────────
+    /// <summary>GET /api/v1/admin-panel/cargodry/stock-requests?status=&amp;providerProfileId=&amp;page=&amp;pageSize=
+    /// — admin stock-request queue with per-row requester context.</summary>
+    [HttpGet("stock-requests")]
+    public async Task<AizenApiResponse<Application.CargoDry.Dto.CargoDryStockRequestAdminListBffResponse>> GetStockRequests(
+        [FromQuery] int? status = null, [FromQuery] long? providerProfileId = null,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new Application.CargoDry.Query.GetCargoDryStockRequestsBff.GetCargoDryStockRequestsBffQuery
+        { Status = status, ProviderProfileId = providerProfileId, Page = page, PageSize = pageSize }, ct));
+
+    /// <summary>GET /api/v1/admin-panel/cargodry/stock-requests/{id} — full detail + requester context.</summary>
+    [HttpGet("stock-requests/{id:long}")]
+    public async Task<AizenApiResponse<Application.CargoDry.Dto.CargoDryStockRequestAdminDetailBffResponse>> GetStockRequestDetail(
+        [FromRoute] long id, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new Application.CargoDry.Query.GetCargoDryStockRequestDetailBff.GetCargoDryStockRequestDetailBffQuery { RequestId = id }, ct));
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/stock-requests/{id}/approve — allocate a batch + mark Approved.</summary>
+    [HttpPost("stock-requests/{id:long}/approve")]
+    public async Task<AizenApiResponse<CargoDryStockRequestDto>> ApproveStockRequest(
+        [FromRoute] long id, [FromBody] ApproveStockRequestApiBody body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new Application.CargoDry.Command.StockRequestAdminBff.ApproveCargoDryStockRequestBffCommand
+        {
+            RequestId = id, DecisionNote = body.DecisionNote, BatchCode = body.BatchCode,
+            CommercialModel = body.CommercialModel, SalesChannel = body.SalesChannel,
+            ConsignmentAgreementId = body.ConsignmentAgreementId, WarehouseId = body.WarehouseId,
+        }, ct));
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/stock-requests/{id}/ship — mark Shipped (tracking code required).</summary>
+    [HttpPost("stock-requests/{id:long}/ship")]
+    public async Task<AizenApiResponse<CargoDryStockRequestDto>> ShipStockRequest(
+        [FromRoute] long id, [FromBody] ShipStockRequestApiBody body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new Application.CargoDry.Command.StockRequestAdminBff.ShipCargoDryStockRequestBffCommand
+        { RequestId = id, TrackingCode = body.TrackingCode }, ct));
+
+    /// <summary>POST /api/v1/admin-panel/cargodry/stock-requests/{id}/reject — reject with a verbatim reason.</summary>
+    [HttpPost("stock-requests/{id:long}/reject")]
+    public async Task<AizenApiResponse<CargoDryStockRequestDto>> RejectStockRequest(
+        [FromRoute] long id, [FromBody] RejectStockRequestApiBody body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new Application.CargoDry.Command.StockRequestAdminBff.RejectCargoDryStockRequestBffCommand
+        { RequestId = id, Reason = body.Reason }, ct));
+
+    public sealed class ApproveStockRequestApiBody
+    {
+        public string? DecisionNote           { get; init; }
+        public string  BatchCode              { get; init; } = default!;
+        public int     CommercialModel        { get; init; } = 2;
+        public int     SalesChannel           { get; init; } = 3;
+        public long?   ConsignmentAgreementId { get; init; }
+        public long?   WarehouseId            { get; init; }
+    }
+    public sealed class ShipStockRequestApiBody { public string TrackingCode { get; init; } = default!; }
+    public sealed class RejectStockRequestApiBody { public string Reason { get; init; } = default!; }
+
     // ── CargoDry supply v2 — cargo order operations + config ───────────────────────────────────────────────
     /// <summary>GET /api/v1/admin-panel/cargodry/supply/orders (canonical, called by admin-web) and the legacy
-    /// /cargodry/orders alias — admin cargo-orders fulfilment queue (status=awaiting|shipped|all).</summary>
+    /// /cargodry/orders alias — admin cargo-orders + history (status=all|awaiting|shipped|completed|cancelled).
+    /// ownerUserId returns one owner's cargo/direct-sale purchase history.</summary>
     [HttpGet("supply/orders")]
     [HttpGet("orders")]
     [ProducesResponseType(typeof(Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<Aizen.Modules.ServiceRequest.Abstraction.Dto.CargoDrySupplyOrderAdminListDto>> GetCargoOrders(
-        [FromQuery] string? status = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+        [FromQuery] string? status = null, [FromQuery] long? ownerUserId = null,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(new Application.CargoDry.Query.GetCargoDrySupplyOrdersBff.GetCargoDrySupplyOrdersBffQuery
         {
-            Status = status, Page = page, PageSize = pageSize,
+            Status = status, OwnerUserId = ownerUserId, Page = page, PageSize = pageSize,
         }, ct);
         return SetResponse(result);
     }

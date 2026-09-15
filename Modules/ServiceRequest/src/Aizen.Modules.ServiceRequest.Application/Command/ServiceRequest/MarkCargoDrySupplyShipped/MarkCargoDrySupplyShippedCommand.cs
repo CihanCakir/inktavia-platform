@@ -2,8 +2,10 @@ using Aizen.Core.CQRS.Handler;
 using Aizen.Core.CQRS.Message;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Constants;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.RemoteCall;
 using Aizen.Modules.ServiceRequest.Application.Common;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
@@ -38,17 +40,20 @@ public sealed class MarkCargoDrySupplyShippedCommandHandler
     private readonly IServiceRequestRepository _repository;
     private readonly IServiceRequestReferenceDataRemoteCall _referenceData;
     private readonly IAizenInfoAccessor _info;
+    private readonly IAizenMessagePublisher _messagePublisher;
     private readonly ILogger<MarkCargoDrySupplyShippedCommandHandler> _logger;
 
     public MarkCargoDrySupplyShippedCommandHandler(
         IServiceRequestRepository repository,
         IServiceRequestReferenceDataRemoteCall referenceData,
         IAizenInfoAccessor info,
+        IAizenMessagePublisher messagePublisher,
         ILogger<MarkCargoDrySupplyShippedCommandHandler> logger)
     {
         _repository = repository;
         _referenceData = referenceData;
         _info = info;
+        _messagePublisher = messagePublisher;
         _logger = logger;
     }
 
@@ -77,6 +82,17 @@ public sealed class MarkCargoDrySupplyShippedCommandHandler
             $"Cargo shipped (tracking {request.TrackingCode.Trim()}); auto-completes at {deadline:o}",
             _info.UserInfoAccessor.UserInfo.UserId, ServiceRequestActorType.Admin));
         _repository.Update(sr);
+
+        // Wave 4A — owner "kargolandı" (tracking code) + admin feed.
+        await _messagePublisher.PublishAsync(new CargoDrySupplyOrderLifecycleMessage
+        {
+            ServiceRequestId = sr.Id,
+            RequestCode      = sr.RequestCode,
+            OwnerUserId      = sr.OwnerUserId,
+            ProductCode      = sr.CargoDryProductCode,
+            Event            = CargoDrySupplyOrderLifecycleEvent.Shipped,
+            TrackingCode     = request.TrackingCode.Trim(),
+        }, cancellationToken);
 
         _logger.LogInformation("CargoDry cargo order {SrId} marked shipped; auto-complete deadline {Deadline:o}.", sr.Id, deadline);
 

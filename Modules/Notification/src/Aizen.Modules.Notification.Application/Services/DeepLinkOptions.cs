@@ -10,4 +10,7 @@ public sealed class DeepLinkOptions
 
     /// <summary>İzin verilen mutlak http/https host'ları (ör. "app.inktavia.com"). Boşsa yalnız göreli yollar geçerli.</summary>
     public List<string> AllowedHosts { get; set; } = new();
+
+    /// <summary>İzin verilen özel şemalar (host-dışı), ör. "inktavia-marine" — owner mobil deeplink'leri (Wave 4A).</summary>
+    public List<string> AllowedSchemes { get; set; } = new();
 }

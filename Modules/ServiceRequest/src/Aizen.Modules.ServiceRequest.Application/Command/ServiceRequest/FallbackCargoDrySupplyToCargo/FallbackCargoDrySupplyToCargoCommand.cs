@@ -1,7 +1,9 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.CQRS.Message;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.ServiceRequest.Abstraction.Constants;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Microsoft.Extensions.Logging;
@@ -23,13 +25,16 @@ public sealed class FallbackCargoDrySupplyToCargoCommandHandler
     : AizenCommandHandler<FallbackCargoDrySupplyToCargoCommand, bool>
 {
     private readonly IServiceRequestRepository _repository;
+    private readonly IAizenMessagePublisher _messagePublisher;
     private readonly ILogger<FallbackCargoDrySupplyToCargoCommandHandler> _logger;
 
     public FallbackCargoDrySupplyToCargoCommandHandler(
         IServiceRequestRepository repository,
+        IAizenMessagePublisher messagePublisher,
         ILogger<FallbackCargoDrySupplyToCargoCommandHandler> logger)
     {
         _repository = repository;
+        _messagePublisher = messagePublisher;
         _logger = logger;
     }
 
@@ -54,6 +59,16 @@ public sealed class FallbackCargoDrySupplyToCargoCommandHandler
             sr.Id, prev, ServiceRequestStatus.AwaitingShipment,
             "No program provider accepted within the window → direct cargo sale", sr.OwnerUserId, ServiceRequestActorType.System));
         _repository.Update(sr);
+
+        // Wave 4A — owner "kargoya hazırlanıyor" + admin (awaiting-shipment queue) notifications.
+        await _messagePublisher.PublishAsync(new CargoDrySupplyOrderLifecycleMessage
+        {
+            ServiceRequestId = sr.Id,
+            RequestCode      = sr.RequestCode,
+            OwnerUserId      = sr.OwnerUserId,
+            ProductCode      = sr.CargoDryProductCode,
+            Event            = CargoDrySupplyOrderLifecycleEvent.AwaitingShipment,
+        }, cancellationToken);
 
         _logger.LogInformation("CargoDry order {SrId} fell back to cargo (AwaitingShipment).", sr.Id);
         return true;

@@ -3,6 +3,7 @@ using Aizen.Bff.MarineProvider.Application.Common.Services;
 using Aizen.Core.Cache.Abstraction;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.Vessel.Abstraction.Response.Vessel;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,8 @@ public sealed class GetServiceRequestDetailBffQueryHandler
     private readonly IServiceRequestRemoteCall _serviceRequest;
     private readonly IVesselRemoteCall _vessel;
     private readonly ICargoDrySupplyRemoteCall _cargoDrySupply;
+    private readonly ICargoDryRemoteCall _cargoDry;
+    private readonly ICargoDryProductMediaEnricher _productMedia;
     private readonly IAizenDistributedCache _cache;
     private readonly ILogger<GetServiceRequestDetailBffQueryHandler> _logger;
 
@@ -38,6 +41,8 @@ public sealed class GetServiceRequestDetailBffQueryHandler
         IServiceRequestRemoteCall serviceRequest,
         IVesselRemoteCall vessel,
         ICargoDrySupplyRemoteCall cargoDrySupply,
+        ICargoDryRemoteCall cargoDry,
+        ICargoDryProductMediaEnricher productMedia,
         IAizenDistributedCache cache,
         ILogger<GetServiceRequestDetailBffQueryHandler> logger)
     {
@@ -46,6 +51,8 @@ public sealed class GetServiceRequestDetailBffQueryHandler
         _serviceRequest = serviceRequest;
         _vessel = vessel;
         _cargoDrySupply = cargoDrySupply;
+        _cargoDry = cargoDry;
+        _productMedia = productMedia;
         _cache = cache;
         _logger = logger;
     }
@@ -94,10 +101,51 @@ public sealed class GetServiceRequestDetailBffQueryHandler
         // without a module-side owner-preference projection (see follow-up note).
         await ApplyCargoDrySupplyGateAsync(result);
 
+        // CargoDry supply flow: attach the product media block (name + presigned image URLs) for the detail page.
+        await ApplyCargoDrySupplyProductMediaAsync(result, ct);
+
         // Enrich with vessel data — one call
         await EnrichVesselAsync(result);
 
         return result;
+    }
+
+    private async Task ApplyCargoDrySupplyProductMediaAsync(
+        GetProviderServiceRequestDetailResponse response, CancellationToken ct)
+    {
+        var detail = response.Detail;
+        var req = detail?.Request;
+        if (detail is null || req is null) return;
+
+        var isSupply = string.Equals(req.ServiceCategoryCode, CargoDrySupplyCategory, StringComparison.OrdinalIgnoreCase)
+                       && !string.IsNullOrWhiteSpace(req.CargoDryProductCode);
+        if (!isSupply) return;
+
+        try
+        {
+            var product = ((await _cargoDry.GetCatalog()).Body ?? new List<Modules.CargoDry.Abstraction.Dto.CargoDryProductDto>())
+                .FirstOrDefault(p => string.Equals(p.ProductCode, req.CargoDryProductCode, StringComparison.OrdinalIgnoreCase));
+            if (product is null) return;
+
+            var fileIds = product.ImageFileIds
+                .Concat(product.ThumbnailFileId is { } t ? new[] { t } : Array.Empty<Guid>());
+            var urlMap = await _productMedia.ResolveReadUrlsAsync(fileIds, ct);
+
+            detail.CargoDryProduct = new CargoDrySupplyProductBlockDto
+            {
+                ProductCode  = product.ProductCode,
+                ProductName  = product.Name,
+                RetailPrice  = product.RetailPrice,
+                CurrencyCode = product.CurrencyCode,
+                ThumbnailUrl = product.ThumbnailFileId is { } tid && urlMap.TryGetValue(tid, out var turl) ? turl : null,
+                ImageUrls    = product.ImageFileIds.Where(urlMap.ContainsKey).Select(id => urlMap[id]).ToList(),
+            };
+        }
+        catch (Exception ex)
+        {
+            // Media is non-essential — never fail the detail read over it.
+            _logger.LogWarning(ex, "CargoDry product media enrichment failed for SR {SrId}.", req.Id);
+        }
     }
 
     private async Task ApplyCargoDrySupplyGateAsync(GetProviderServiceRequestDetailResponse response)

@@ -15,7 +15,10 @@ public sealed class CargoDryStockRequestEntityConfiguration : IEntityTypeConfigu
         builder.Property(x => x.ProviderNote).HasMaxLength(500);
         builder.Property(x => x.DecisionNote).HasMaxLength(1000);
         builder.Property(x => x.ApprovedBatchCode).HasMaxLength(100);
+        builder.Property(x => x.TrackingCode).HasMaxLength(100);
         builder.HasIndex(x => x.RequestCode).IsUnique();
         builder.HasIndex(x => new { x.ProviderProfileId, x.Status });
+        // Auto-receive sweep: Shipped + deadline elapsed.
+        builder.HasIndex(x => new { x.Status, x.AutoReceiveDeadlineUtc });
     }
 }

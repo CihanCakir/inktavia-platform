@@ -37,6 +37,29 @@ public sealed class DeepLinkValidatorTests
         act.Should().NotThrow();
     }
 
+    // Wave 4A — mobile scheme allowlist.
+    [Fact]
+    public void Allowlisted_custom_scheme_is_accepted()
+    {
+        var act = () => DeepLinkValidator.Validate("inktavia-marine://service-requests/56", Empty, "TPL",
+            new[] { "inktavia-marine" });
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Custom_scheme_rejected_when_not_in_scheme_allowlist()
+    {
+        var act = () => DeepLinkValidator.Validate("inktavia-marine://service-requests/56", Empty, "TPL");
+        act.Should().Throw<AizenBusinessException>();
+    }
+
+    [Fact]
+    public void Other_custom_scheme_rejected_even_with_a_scheme_allowlist()
+    {
+        var act = () => DeepLinkValidator.Validate("evil-scheme://x", Empty, "TPL", new[] { "inktavia-marine" });
+        act.Should().Throw<AizenBusinessException>();
+    }
+
     [Fact]
     public void Http_allowlisted_host_is_accepted()
     {

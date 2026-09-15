@@ -1,7 +1,9 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.RemoteCall;
+using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.Payment.Abstraction;
 using Aizen.Modules.Payment.Abstraction.Model;
 using Aizen.Modules.Payment.Abstraction.RemoteCall;
@@ -29,6 +31,7 @@ public sealed class CreateServiceRequestCommandHandler : AizenCommandHandler<Cre
     private readonly ICargoDrySupplyRemoteCall _cargoDry;
     private readonly IPaymentModuleRemoteCall _payment;
     private readonly ServiceRequestDbContext _db;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public CreateServiceRequestCommandHandler(
         IServiceRequestRepository repository,
@@ -37,7 +40,8 @@ public sealed class CreateServiceRequestCommandHandler : AizenCommandHandler<Cre
         IServiceRequestReferenceDataRemoteCall referenceData,
         ICargoDrySupplyRemoteCall cargoDry,
         IPaymentModuleRemoteCall payment,
-        ServiceRequestDbContext db)
+        ServiceRequestDbContext db,
+        IAizenMessagePublisher messagePublisher)
     {
         _repository = repository;
         _info = info;
@@ -46,6 +50,7 @@ public sealed class CreateServiceRequestCommandHandler : AizenCommandHandler<Cre
         _cargoDry = cargoDry;
         _payment = payment;
         _db = db;
+        _messagePublisher = messagePublisher;
     }
 
     public override async Task<CreateServiceRequestResponse?> Handle(CreateServiceRequestCommand request, CancellationToken cancellationToken)
@@ -141,6 +146,23 @@ public sealed class CreateServiceRequestCommandHandler : AizenCommandHandler<Cre
                 entity.Id, prevStatus, ServiceRequestStatus.Open,
                 "CargoDry order created + paid (escrow held); open to program providers", currentUserId, ServiceRequestActorType.Owner));
             _repository.Update(entity);
+
+            // Wave 4A — publish the same "now biddable" event a normal publish emits, so the existing region fan-out
+            // notifies eligible program providers AND the owner gets a "your order is live" notification. (The supply
+            // create path flips Draft→Open inline and previously emitted realtime only.)
+            await _messagePublisher.PublishAsync(new ServiceRequestPublishedMessage
+            {
+                ServiceRequestId    = entity.Id,
+                RequestCode         = entity.RequestCode,
+                Title               = entity.Title,
+                OwnerUserId         = entity.OwnerUserId,
+                ServiceCategoryCode = entity.ServiceCategoryCode,
+                Priority            = entity.Priority,
+                LocationCityCode    = entity.LocationCityCode,
+                LocationCountryCode = entity.LocationCountryCode,
+                LocationMarinaName  = entity.LocationMarinaName,
+                RequestedStartDate  = entity.RequestedStartDate,
+            }, cancellationToken);
         }
 
         await _realtimePublisher.PublishAsync(

@@ -5,12 +5,14 @@ using Aizen.Modules.ServiceRequest.Abstraction.Dto;
 
 namespace Aizen.Bff.AdminPanel.Application.CargoDry.Query.GetCargoDrySupplyOrdersBff;
 
-/// <summary>F1 — admin cargo-orders fulfilment queue. Proxies the ServiceRequest admin cargo-orders listing.</summary>
+/// <summary>Admin cargo-orders + history. Proxies the ServiceRequest admin cargo-orders listing
+/// (all|awaiting|shipped|completed|cancelled); OwnerUserId narrows to one owner's cargo purchase history.</summary>
 public sealed class GetCargoDrySupplyOrdersBffQuery : AizenQuery<CargoDrySupplyOrderAdminListDto>
 {
-    public string? Status   { get; init; }
-    public int     Page     { get; init; } = 1;
-    public int     PageSize { get; init; } = 25;
+    public string? Status      { get; init; }
+    public long?   OwnerUserId { get; init; }
+    public int     Page        { get; init; } = 1;
+    public int     PageSize    { get; init; } = 25;
 }
 
 [DocumentationInfo("Get CargoDry cargo orders (BFF)",
@@ -31,7 +33,7 @@ public sealed class GetCargoDrySupplyOrdersBffQueryHandler
     public override async Task<CargoDrySupplyOrderAdminListDto?> Handle(
         GetCargoDrySupplyOrdersBffQuery request, CancellationToken ct)
     {
-        var result = await _sr.GetCargoDrySupplyOrders(request.Status, request.Page, request.PageSize);
+        var result = await _sr.GetCargoDrySupplyOrders(request.Status, request.OwnerUserId, request.Page, request.PageSize);
         var list = result.Body ?? new CargoDrySupplyOrderAdminListDto { Page = request.Page, PageSize = request.PageSize };
 
         await TryEnrichOwnerNamesAsync(list);

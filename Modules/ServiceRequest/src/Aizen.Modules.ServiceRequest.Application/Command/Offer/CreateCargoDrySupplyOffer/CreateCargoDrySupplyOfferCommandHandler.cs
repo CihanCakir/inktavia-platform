@@ -147,6 +147,17 @@ public sealed class CreateCargoDrySupplyOfferCommandHandler
             cancellationToken);
         _srRepository.Update(sr);
 
+        // Wave 4A — owner "provider assigned" notification (the provider is already notified via AssignmentCreated).
+        await _messagePublisher.PublishAsync(new Abstraction.Message.CargoDrySupplyOrderLifecycleMessage
+        {
+            ServiceRequestId  = sr.Id,
+            RequestCode       = sr.RequestCode,
+            OwnerUserId       = sr.OwnerUserId,
+            ProductCode       = sr.CargoDryProductCode,
+            Event             = Abstraction.Message.CargoDrySupplyOrderLifecycleEvent.Assigned,
+            ProviderProfileId = providerProfileId,
+        }, cancellationToken);
+
         _logger.LogInformation(
             "CargoDry supply direct-assigned. SR={SrId} Offer={OfferId} Provider={Provider} Retail={Retail} {Currency}",
             sr.Id, offer.Id, providerProfileId, ctx.RetailPrice, currency);

@@ -87,6 +87,7 @@ public sealed class EmailDispatcherPersistenceFaz15Tests
         var repo = new FakeRepo();
         var sender = new FakeEmailSender(repo, @throw: false);
         var sut = new EmailNotificationDispatcher(sender, repo, new UnusedIdentity(),
+            Microsoft.Extensions.Options.Options.Create(new NotificationDeepLinkOptions()),
             NullLogger<EmailNotificationDispatcher>.Instance);
         var notification = NewEmailNotification();
 
@@ -105,6 +106,7 @@ public sealed class EmailDispatcherPersistenceFaz15Tests
         var repo = new FakeRepo();
         var sender = new FakeEmailSender(repo, @throw: true);
         var sut = new EmailNotificationDispatcher(sender, repo, new UnusedIdentity(),
+            Microsoft.Extensions.Options.Options.Create(new NotificationDeepLinkOptions()),
             NullLogger<EmailNotificationDispatcher>.Instance);
         var notification = NewEmailNotification();
 
@@ -120,6 +122,7 @@ public sealed class EmailDispatcherPersistenceFaz15Tests
         var repo = new FakeRepo();
         var sender = new FakeEmailSender(repo, @throw: false);
         var sut = new EmailNotificationDispatcher(sender, repo, new UnusedIdentity(),
+            Microsoft.Extensions.Options.Options.Create(new NotificationDeepLinkOptions()),
             NullLogger<EmailNotificationDispatcher>.Instance);
 
         await sut.DispatchAsync(NewEmailNotification(), CancellationToken.None);

@@ -227,3 +227,12 @@ env:
     value: "false"
   - name: PaymentSeed__Enabled
     value: "false"
+
+  # ── Wave 4A: stok talebi auto-receive + ReferenceData uzak-çağrısı ───────────
+  # BaseUrl yoksa Refit istemcisinin BaseAddress'i boş kalır ve çağrı anında patlar.
+  # (#50 ile aynı sınıf: k8s appsettings.json'ı okur; appsettings.Development.json'daki
+  #  http://reference-data-api:8080 adresi YALNIZCA compose içindir, cluster'da geçersiz.)
+  - name: CargoDry__StockRequestAutoReceiveDays
+    value: "7"
+  - name: RemoteCalls__ICargoDryReferenceDataRemoteCall__BaseUrl
+    value: "http://aizen-referencedata"

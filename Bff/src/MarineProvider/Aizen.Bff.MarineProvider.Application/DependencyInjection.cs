@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IProviderProfileResolver, ProviderProfileResolver>();
         services.AddSingleton<IProviderKeycloakServiceTokenProvider, ProviderKeycloakServiceTokenProvider>();
         services.AddScoped<IProviderKeycloakAdminClient, ProviderKeycloakAdminClient>();
+        services.AddScoped<ICargoDryProductMediaEnricher, CargoDryProductMediaEnricher>();
 
         // Central outgoing auth handler wired into every downstream Refit client.
         services.AddTransient<MarineProviderBffAuthDelegatingHandler>();

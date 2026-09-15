@@ -46,14 +46,17 @@ public sealed class AdminServiceRequestController : AizenWebApiController
         return SetResponse(result);
     }
 
-    /// <summary>CargoDry supply v2 (F1) — admin cargo-orders fulfilment queue (AwaitingShipment | Shipped | All).</summary>
+    /// <summary>CargoDry supply v2 — admin cargo-orders + history (all|awaiting|shipped|completed|cancelled);
+    /// ownerUserId narrows to one owner's cargo purchase history.</summary>
     [HttpGet("cargodry/orders")]
     [ProducesResponseType(typeof(CargoDrySupplyOrderAdminListDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<CargoDrySupplyOrderAdminListDto?>> GetCargoDryOrders(
-        [FromQuery] string? status = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+        [FromQuery] string? status = null, [FromQuery] long? ownerUserId = null,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync<CargoDrySupplyOrderAdminListDto>(
-            new Application.Query.Admin.GetCargoDrySupplyOrders.GetCargoDrySupplyOrdersAdminQuery { Status = status, Page = page, PageSize = pageSize }, ct);
+            new Application.Query.Admin.GetCargoDrySupplyOrders.GetCargoDrySupplyOrdersAdminQuery
+            { Status = status, OwnerUserId = ownerUserId, Page = page, PageSize = pageSize }, ct);
         return SetResponse(result);
     }
 

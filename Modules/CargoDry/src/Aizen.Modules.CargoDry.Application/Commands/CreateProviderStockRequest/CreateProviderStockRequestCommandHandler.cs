@@ -1,6 +1,9 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Core.Messagebus.Abstraction.Senders;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
+using Aizen.Modules.CargoDry.Abstraction.Message;
+using Aizen.Modules.CargoDry.Application.Common;
 using Aizen.Modules.CargoDry.Domain.Entities;
 using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 
@@ -12,12 +15,14 @@ public sealed class CreateProviderStockRequestCommandHandler
     private readonly ICargoDryStockRequestRepository _requests;
     private readonly ICargoDryProductRepository _products;
     private readonly ICargoDryConsignmentAgreementRepository _agreements;
+    private readonly IAizenMessagePublisher _messagePublisher;
 
     public CreateProviderStockRequestCommandHandler(
         ICargoDryStockRequestRepository requests,
         ICargoDryProductRepository products,
-        ICargoDryConsignmentAgreementRepository agreements)
-    { _requests = requests; _products = products; _agreements = agreements; }
+        ICargoDryConsignmentAgreementRepository agreements,
+        IAizenMessagePublisher messagePublisher)
+    { _requests = requests; _products = products; _agreements = agreements; _messagePublisher = messagePublisher; }
 
 
     /// <summary>
@@ -59,14 +64,17 @@ public sealed class CreateProviderStockRequestCommandHandler
         await _requests.AddAsync(entity, ct);
         await _requests.SaveChangesAsync(ct);
 
-        return new CargoDryStockRequestDto
+        // Wave 4A — notify admins of the new stock request.
+        await _messagePublisher.PublishAsync(new CargoDryStockRequestEventMessage
         {
-            Id = entity.Id, RequestCode = entity.RequestCode,
-            ProviderProfileId = entity.ProviderProfileId, ProductCode = entity.ProductCode,
+            StockRequestId    = entity.Id,
+            RequestCode       = entity.RequestCode,
+            ProviderProfileId = entity.ProviderProfileId,
+            ProductCode       = entity.ProductCode,
+            Event             = CargoDryStockRequestEvent.Created,
             RequestedQuantity = entity.RequestedQuantity,
-            Status = (int)entity.Status, StatusName = entity.Status.ToString(),
-            ProviderNote = entity.ProviderNote,
-            CreatedAtUtc = entity.CreateDate.HasValue ? new DateTimeOffset(entity.CreateDate.Value, TimeSpan.Zero) : DateTimeOffset.UtcNow
-        };
+        }, ct);
+
+        return entity.ToDto();
     }
 }

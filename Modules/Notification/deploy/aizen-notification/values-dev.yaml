@@ -284,6 +284,18 @@ env:
   - name: RemoteCalls__INotificationIdentityRemoteCall__BaseUrl
     value: "http://aizen-identity"
 
+  # ── CargoDry Wave 4A: bildirim deep-link tabanları ───────────────────────────
+  # Mail gövdesindeki linkler MUTLAK olmalı; göreli link mail istemcisinde çalışmaz.
+  - name: Notification__ProviderWebBaseUrl
+    value: "https://dev-provider.inktavia.com"
+  - name: Notification__AdminWebBaseUrl
+    value: "https://dev-admin.inktavia.com"
+  - name: Notifications__DeepLink__AllowedSchemes__0
+    value: "inktavia-marine"
+  # Notification__WebBaseUrl BİLEREK unset: owner web yok — unset ⇒ göreli linkler
+  # maile gömülmez, yanlış host'a giden link oluşmaz. Owner link köprüsü (mobil BFF
+  # /link endpoint'i) deploy olunca Notification__OwnerLinkBaseUrl eklenecek.
+
   # ── SMS kanali (FAZ 28.7) ─────────────────────────────────────────────────────
   # 2026-08-25: Infobip trial hesabi acildi → dev'de gercek adapter devrede.
   # ONKOSUL (bu degisiklik merge/sync olmadan ONCE): platform-credentials secret'ina

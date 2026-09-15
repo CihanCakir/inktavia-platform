@@ -7,14 +7,16 @@ using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 namespace Aizen.Modules.ServiceRequest.Application.Query.Admin.GetCargoDrySupplyOrders;
 
 /// <summary>
-/// CargoDry supply v2 (F1) — admin cargo-orders fulfilment queue: CARGODRY_SUPPLY orders in AwaitingShipment / Shipped.
-/// Status filter: "AwaitingShipment" | "Shipped" | "All" (default All = both).
+/// CargoDry supply v2 — admin cargo-orders + history: CARGODRY_SUPPLY orders across their lifecycle.
+/// Status filter: "all" (every status incl. completed/cancelled) | "awaiting" | "shipped" | "completed" | "cancelled".
+/// Optional OwnerUserId narrows to a single owner — the cargo "what did this owner buy" purchase history.
 /// </summary>
 public sealed class GetCargoDrySupplyOrdersAdminQuery : AizenQuery<CargoDrySupplyOrderAdminListDto>
 {
-    public string? Status   { get; init; }
-    public int     Page     { get; init; } = 1;
-    public int     PageSize { get; init; } = 25;
+    public string? Status      { get; init; }
+    public long?   OwnerUserId { get; init; }
+    public int     Page        { get; init; } = 1;
+    public int     PageSize    { get; init; } = 25;
 }
 
 public sealed class GetCargoDrySupplyOrdersAdminQueryHandler
@@ -28,17 +30,22 @@ public sealed class GetCargoDrySupplyOrdersAdminQueryHandler
     public override async Task<CargoDrySupplyOrderAdminListDto?> Handle(
         GetCargoDrySupplyOrdersAdminQuery request, CancellationToken ct)
     {
-        var statuses = request.Status?.Trim().ToLowerInvariant() switch
+        // null ⇒ no status filter (full history). Accepts admin-web filter values + full status names.
+        IReadOnlyList<ServiceRequestStatus>? statuses = request.Status?.Trim().ToLowerInvariant() switch
         {
-            // Accept both the admin-web filter values (awaiting|shipped|all) and the full status names.
             "awaiting" or "awaitingshipment" => new[] { ServiceRequestStatus.AwaitingShipment },
             "shipped"                        => new[] { ServiceRequestStatus.Shipped },
-            _                                => new[] { ServiceRequestStatus.AwaitingShipment, ServiceRequestStatus.Shipped }, // all
+            // Completed cargo/provider orders settle to Completed then Closed — include both.
+            "completed"                      => new[] { ServiceRequestStatus.Completed, ServiceRequestStatus.Closed },
+            "cancelled" or "canceled"        => new[] { ServiceRequestStatus.Cancelled },
+            "all" or null or ""              => null,
+            _                                => null,
         };
 
         var page = request.Page < 1 ? 1 : request.Page;
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
-        var (items, total) = await _repository.GetCargoDrySupplyOrdersAsync(statuses, (page - 1) * pageSize, pageSize, ct);
+        var (items, total) = await _repository.GetCargoDrySupplyOrdersAsync(
+            statuses, request.OwnerUserId, (page - 1) * pageSize, pageSize, ct);
 
         return new CargoDrySupplyOrderAdminListDto
         {
@@ -50,6 +57,18 @@ public sealed class GetCargoDrySupplyOrdersAdminQueryHandler
                 VesselName                = x.VesselName,
                 OwnerUserId               = x.OwnerUserId,
                 OrderStatus               = x.Status.ToString(),
+                // Order path: a program provider was assigned ⇒ provider-fulfilled; otherwise the accept window
+                // lapsed and it settled as a cargo/direct-online sale. (The authoritative direct-sale record lives
+                // in the CargoDry module; the assignment presence is the SR-local, deploy-independent discriminator.)
+                OrderPath                 = x.Assignment != null ? "ProviderFulfilled" : "CargoDirectSale",
+                ProviderProfileId         = x.Assignment != null ? x.Assignment.ProviderProfileId : null,
+                ProviderName              = x.AssignedProviderName,
+                // Completed-at from the terminal transition (no dedicated column); prefer Completed, else Closed.
+                CompletedAtUtc            = x.StatusHistory
+                    .Where(h => h.ToStatus == ServiceRequestStatus.Completed || h.ToStatus == ServiceRequestStatus.Closed)
+                    .OrderByDescending(h => h.OccurredAt)
+                    .Select(h => (DateTime?)h.OccurredAt)
+                    .FirstOrDefault(),
                 // "Awaiting since" = when the order first entered AwaitingShipment; fall back to created time.
                 AwaitingSince             = x.StatusHistory
                     .Where(h => h.ToStatus == ServiceRequestStatus.AwaitingShipment)

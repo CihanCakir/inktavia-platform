@@ -71,6 +71,24 @@ public enum NotificationType
     CargoDryProviderMonthlyTargetReached   = 307,
     CargoDryProviderTierUp                 = 308,
     CargoDryProviderStreakMilestone         = 309,
+
+    // ── Wave 4A — CargoDry supply-order lifecycle (320–329). Audience encoded in the name. ──
+    CargoDrySupplyOrderAssignedOwner          = 320, // owner: a provider was assigned
+    CargoDrySupplyOrderDelivered              = 321, // owner: provider marked delivered
+    CargoDrySupplyOrderShipped                = 322, // owner: cargo shipped (tracking code)
+    CargoDrySupplyOrderCompleted              = 323, // owner: order completed
+    CargoDrySupplyOrderCancelledOwner         = 324, // owner: order cancelled
+    CargoDrySupplyOrderCancelledProvider      = 325, // assigned provider: order cancelled
+    CargoDrySupplyOrderAwaitingShipmentOwner  = 326, // owner: no provider accepted → "kargoya hazırlanıyor"
+    CargoDrySupplyOrderAdminActivity          = 327, // admin feed: generic supply-order activity (variable-driven)
+
+    // ── Wave 4A — CargoDry provider stock-request lifecycle (330–339). ──
+    CargoDryStockRequestCreatedAdmin          = 330, // admin: a provider requested stock (InApp + Email)
+    CargoDryStockRequestApproved              = 331, // provider: request approved (allocated)
+    CargoDryStockRequestShipped               = 332, // provider: request shipped (tracking code)
+    CargoDryStockRequestRejected              = 333, // provider: request rejected (reason)
+    CargoDryStockRequestAdminActivity         = 334, // admin feed: generic stock-request activity (variable-driven)
+
     ProfileApprovalDecision      = 400,
     ProfileApproved              = 401,
     ProfileRejected              = 402,

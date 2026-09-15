@@ -13,6 +13,7 @@ using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryRenewalCandidates;
 using Aizen.Modules.CargoDry.Application.Queries.GetProviderStockRequests;
 using Aizen.Modules.CargoDry.Application.Commands.CreateProviderStockRequest;
 using Aizen.Modules.CargoDry.Application.Commands.CancelProviderStockRequest;
+using Aizen.Modules.CargoDry.Application.Commands.ReceiveProviderStockRequest;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProductList;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderEarnings;
 using Aizen.Modules.CargoDry.Application.Queries.GetCargoDryProviderCommissionTrend;
@@ -180,6 +181,18 @@ public sealed class CargoDryProviderController : AizenWebApiController
         return SetResponse(result);
     }
 
+    /// <summary>POST /api/v1/cargodry/provider/stock-requests/{id}/receive — provider confirms receipt of a Shipped request.</summary>
+    [HttpPost("stock-requests/{id:long}/receive")]
+    public async Task<AizenApiResponse<CargoDryStockRequestDto?>> ReceiveStockRequest([FromRoute] long id, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        // The provider token carries only the profile id (no numeric user id) — ownership is verified via pid;
+        // ReceivedByUserId stays null for the provider-confirm path.
+        var result = await _cqrs.ProcessAsync<CargoDryStockRequestDto>(
+            new ReceiveProviderStockRequestCommand { RequestId = id, ProviderProfileId = pid, ReceivedByUserId = null }, ct);
+        return SetResponse(result);
+    }
+
     [HttpPost("stock-requests/{id:long}/cancel")]
     public async Task<IActionResult> CancelStockRequest([FromRoute] long id, [FromBody] CancelStockRequestBody? body, CancellationToken ct = default)
     {
@@ -192,13 +205,16 @@ public sealed class CargoDryProviderController : AizenWebApiController
     [HttpGet("products")]
     public async Task<AizenApiResponse<List<CargoDryProductOptionDto>?>> GetProducts(CancellationToken ct = default)
     {
-        var pid = ResolveProviderProfileId();
-        var inventoryResult = await _cqrs.ProcessAsync<CargoDryProviderInventoryPagedResultDto>(
-            new GetProviderInventoryListQuery { ProviderProfileId = pid, Page = 1, PageSize = 100 }, ct);
-        var products = inventoryResult?.Items
-            .Select(i => new CargoDryProductOptionDto { ProductCode = i.ProductCode })
-            .DistinctBy(p => p.ProductCode)
-            .ToList() ?? new List<CargoDryProductOptionDto>();
+        // Product options for the STOCK-REQUEST picker. Sourced from the ACTIVE retail catalog, not the
+        // provider's existing inventory: a stock request is precisely for products the provider does NOT
+        // hold yet (inventory-derived options showed only already-allocated products — E2E finding, Sep 2026).
+        // CreateStockRequest itself only requires ≥1 active agreement + a valid catalog product, so the
+        // full active catalog is the correct option set; admin decides on allocation.
+        var catalog = await _cqrs.ProcessAsync<List<CargoDryProductDto>>(new GetCargoDryProductListQuery(), ct);
+        var products = (catalog ?? new List<CargoDryProductDto>())
+            .Where(p => p.IsActive)
+            .Select(p => new CargoDryProductOptionDto { ProductCode = p.ProductCode, ProductName = p.Name })
+            .ToList();
         return SetResponse(products);
     }
 

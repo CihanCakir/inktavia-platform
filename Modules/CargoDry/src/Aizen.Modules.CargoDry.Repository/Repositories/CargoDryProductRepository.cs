@@ -34,6 +34,12 @@ public sealed class CargoDryProductRepository : ICargoDryProductRepository
             .OrderBy(x => x.ProductCode)
             .ToListAsync(ct);
 
+    public Task<List<CargoDryProductEntity>> GetAllWithImagesAsync(CancellationToken ct)
+        => _db.Products
+            .Include(x => x.Images.OrderBy(i => i.SortOrder))
+            .OrderBy(x => x.ProductCode)
+            .ToListAsync(ct);
+
     public Task<bool> ExistsByCodeAsync(string productCode, CancellationToken ct)
         => _db.Products.AnyAsync(x => x.ProductCode == productCode, ct);
 

@@ -18,6 +18,15 @@ public sealed class CargoDryStockRequestEntity : AizenEntityWithAudit
     public string? ApprovedBatchCode { get; private set; }
     public int? AllocatedQuantity { get; private set; }
 
+    // Wave 4A — lifecycle revival (Pending → Approved → Shipped → Received).
+    public string? TrackingCode { get; private set; }
+    public DateTimeOffset? ShippedAtUtc { get; private set; }
+    public long? ShippedByUserId { get; private set; }
+    /// <summary>Frozen at ship time (now + CargoDry.StockRequestAutoReceiveDays). The auto-receive sweep never re-reads config.</summary>
+    public DateTimeOffset? AutoReceiveDeadlineUtc { get; private set; }
+    public DateTimeOffset? ReceivedAtUtc { get; private set; }
+    public long? ReceivedByUserId { get; private set; }
+
     public CargoDryStockRequestEntity() { }
 
     public static CargoDryStockRequestEntity Create(
@@ -75,5 +84,32 @@ public sealed class CargoDryStockRequestEntity : AizenEntityWithAudit
         if (Status != CargoDryStockRequestStatus.Approved)
             throw new InvalidOperationException($"Cannot fulfil a request in status {Status}.");
         Status = CargoDryStockRequestStatus.Fulfilled;
+    }
+
+    /// <summary>Admin ships the approved allocation. Approved → Shipped. Tracking code required; auto-receive deadline
+    /// is frozen here so the sweep never re-reads config.</summary>
+    public void Ship(long userId, string trackingCode, DateTimeOffset autoReceiveDeadlineUtc)
+    {
+        if (Status != CargoDryStockRequestStatus.Approved)
+            throw new InvalidOperationException($"Cannot ship a request in status {Status}.");
+        if (string.IsNullOrWhiteSpace(trackingCode))
+            throw new ArgumentException("Tracking code is required to ship.", nameof(trackingCode));
+
+        Status = CargoDryStockRequestStatus.Shipped;
+        TrackingCode = trackingCode.Trim();
+        ShippedByUserId = userId;
+        ShippedAtUtc = DateTimeOffset.UtcNow;
+        AutoReceiveDeadlineUtc = autoReceiveDeadlineUtc;
+    }
+
+    /// <summary>Provider confirms receipt (or the auto-receive sweep fires). Shipped → Received.
+    /// <paramref name="receivedByUserId"/> is null for the system/auto path.</summary>
+    public void Receive(long? receivedByUserId)
+    {
+        if (Status != CargoDryStockRequestStatus.Shipped)
+            throw new InvalidOperationException($"Cannot receive a request in status {Status}.");
+        Status = CargoDryStockRequestStatus.Received;
+        ReceivedByUserId = receivedByUserId;
+        ReceivedAtUtc = DateTimeOffset.UtcNow;
     }
 }

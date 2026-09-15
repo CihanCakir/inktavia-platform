@@ -8,5 +8,7 @@
     <ProjectReference Include="../../../../Core/Messagebus/src/Aizen.Core.Messagebus.Abstraction/Aizen.Core.Messagebus.Abstraction.csproj" />
     <!-- CargoDry supply flow: IAizenRemoteCall S2S contract (ICargoDrySupplyRemoteCall) consumed by ServiceRequest -->
     <ProjectReference Include="../../../../Core/RemoteCall/src/Aizen.Core.RemoteCall.Abstraction/Aizen.Core.RemoteCall.Abstraction.csproj" />
+    <!-- Wave 4A: AizenApiResponse for the ReferenceData remote-call contract (ICargoDryReferenceDataRemoteCall) -->
+    <ProjectReference Include="../../../../Core/Api/src/Aizen.Core.Api.Abstraction/Aizen.Core.Api.Abstraction.csproj" />
   </ItemGroup>
 </Project>
