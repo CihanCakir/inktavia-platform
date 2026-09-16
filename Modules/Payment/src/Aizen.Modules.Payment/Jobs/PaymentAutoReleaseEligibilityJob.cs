@@ -95,7 +95,7 @@ public sealed class PaymentAutoReleaseEligibilityJob : AizenRecurringJob
                     "PaymentAutoReleaseEligibilityJob: published auto-release for SR {SRId} " +
                     "TxId={TxId} Age={AgeH:F1}h",
                     tx.ContextId, tx.Id,
-                    (DateTime.UtcNow - tx.CreateDate)?.TotalHours ?? 0);
+                    (DateTime.UtcNow - (tx.CapturedAt ?? tx.CreateDate))?.TotalHours ?? 0); // FIX_AUTORELEASE_AGE_SOURCE: escrow age = since capture
             }
             catch (Exception ex)
             {
