@@ -90,7 +90,10 @@ public static class DependencyInjection
     private static HttpClient CreateHttpClient(IServiceProvider provider, string clientName)
     {
         var authHandler = provider.GetRequiredService<MarineProviderBffAuthDelegatingHandler>();
-        authHandler.InnerHandler = new HttpClientHandler();
+        // FIX_PROVIDER_ENVELOPE_FIDELITY: a module 4xx whose body is an Aizen fail envelope is re-thrown as
+        // AizenBusinessException(errorCode, errorMessage) instead of surfacing as a raw Refit.ApiException → generic
+        // 500, so provider-web receives the module's real business code (e.g. SR_STOCK_REQUEST_DUPLICATE_PENDING).
+        authHandler.InnerHandler = new ProviderBffFailEnvelopeHandler { InnerHandler = new HttpClientHandler() };
 
         var configs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
         configs.TryGetValue(clientName, out var cfg);

@@ -23,6 +23,13 @@ public sealed class CargoDryBatchEntity : AizenEntityWithAudit
     public string? WarehouseCode    { get; private set; }
     /// <summary>Optional free-text production notes.</summary>
     public string? ProductionNotes  { get; private set; }
+    /// <summary>
+    /// AES-encrypted per-batch HMAC signing key (kit QR signature secret). Encrypted at rest with
+    /// <c>CargoDry:BatchKeyEncryptionKey</c> (mirrors the Payment IBAN pattern). Set at generation time so the key is
+    /// persisted durably — batch codes are generated at runtime, so config-only storage cannot hold them.
+    /// Null for legacy batches whose keys still live in <c>CargoDry:BatchKeys:{code}</c> config.
+    /// </summary>
+    public string? SigningKeyEncrypted { get; private set; }
     // CreateDate from AizenEntityWithAudit — DO NOT re-declare
     public DateTimeOffset? RevokedAt         { get; private set; }
     public long            CreatedByAdminId  { get; private set; }
@@ -77,6 +84,9 @@ public sealed class CargoDryBatchEntity : AizenEntityWithAudit
         QrZipFileRef = qrZipRef;
         ExcelFileRef = excelRef;
     }
+
+    /// <summary>Stores the AES-encrypted per-batch signing key, captured at generation time before persistence.</summary>
+    public void SetSigningKey(string signingKeyEncrypted) => SigningKeyEncrypted = signingKeyEncrypted;
 
     /// <summary>
     /// Allocates this batch to a provider with a commercial model.

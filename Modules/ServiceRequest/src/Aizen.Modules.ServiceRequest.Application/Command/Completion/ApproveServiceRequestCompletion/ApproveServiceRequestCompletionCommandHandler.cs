@@ -1,6 +1,7 @@
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.InfoAccessor.Abstraction;
 using Aizen.Core.Messagebus.Abstraction.Senders;
+using Aizen.Modules.Payment.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Enum;
 using Aizen.Modules.ServiceRequest.Abstraction.Message;
 using Aizen.Modules.ServiceRequest.Abstraction.Response.Completion;
@@ -81,6 +82,23 @@ public sealed class ApproveServiceRequestCompletionCommandHandler : AizenCommand
             ProviderUserId = completion.ProviderUserId,
             ProviderProfileId = assignment?.ProviderProfileId ?? 0,
             OwnerUserId = sr.OwnerUserId
+        }, cancellationToken);
+
+        // FIX_ESCROW_RELEASE_ON_APPROVAL: Payment's escrow release listens for ServiceRequestCompletedMessage,
+        // which until now was only published by the CargoDry supply path — so on the normal service-job path the
+        // Captured escrow sat until the 72h PaymentAutoReleaseEligibilityJob safety net. Publish it here too
+        // (the Payment consumer is idempotent: an already-Released tx is a no-op, so the safety net stays harmless).
+        // The auto-approval job routes through this same handler, so timed approvals release as well.
+        await _messagePublisher.PublishAsync(new ServiceRequestCompletedMessage
+        {
+            ServiceRequestId  = sr.Id,
+            OfferId           = assignment?.ServiceRequestOfferId ?? 0,
+            ProviderProfileId = assignment?.ProviderProfileId ?? 0,
+            PayerProfileId    = sr.OwnerUserId,
+            CompletedAtUtc    = DateTime.UtcNow,
+            AdminNote         = actorType == ServiceRequestActorType.Owner
+                ? "Completion approved by owner"
+                : "Completion auto-approved (review window elapsed)",
         }, cancellationToken);
 
         // BE_WC4b — the JOB_COMPLETED System message is produced solely by the Messaging WC1 lifecycle consumer (from

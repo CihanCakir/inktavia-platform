@@ -45,13 +45,15 @@ public sealed class GenerateBatchCommandHandler
 
         var batchCode = $"{DateTime.UtcNow:yyyyMM}-{product.ProductCode[..Math.Min(4, product.ProductCode.Length)]}-{Guid.NewGuid().ToString("N")[..4].ToUpperInvariant()}";
 
-        await _keyVault.CreateKeyAsync(batchCode, ct);
+        // Generate + cache the signing key (raw held in-vault for in-flight signing below); persist the encrypted blob.
+        var encryptedSigningKey = await _keyVault.CreateKeyAsync(batchCode, ct);
 
         var batch = CargoDryBatchEntity.Create(
             batchCode, product.ProductCode, request.Count, _info.UserInfoAccessor.UserInfo.UserId,
             batchLabel:      request.BatchLabel,
             warehouseCode:   request.WarehouseCode,
             productionNotes: request.ProductionNotes);
+        batch.SetSigningKey(encryptedSigningKey);
         await _batches.AddAsync(batch, ct);
 
         var kits = new List<CargoDryKitEntity>(request.Count);
