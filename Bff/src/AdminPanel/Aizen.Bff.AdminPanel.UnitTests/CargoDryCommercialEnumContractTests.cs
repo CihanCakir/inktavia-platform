@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text;
 using Aizen.Bff.AdminPanel.Application.CargoDry.Dto;
+using Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 using Aizen.Core.RemoteCall.Extensions;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
@@ -108,5 +109,41 @@ public class CargoDryCommercialEnumContractTests
         var bff = await DeserializeWithRefitSerializerAsync<CargoDrySellThroughSettlementBffDto>(json);
         bff.SettlementCode.Should().Be("STL-1");
         bff.Status.Should().Be(CargoDrySellThroughSettlementStatus.ReadyForSettlement);
+    }
+
+    // Reproduces the "Partiler" list + Stok Talepleri enrichment 500: the batch list DTO's CommercialModel was int?,
+    // so Refit threw on the module's string enum token. It is now CargoDryCommercialModel? — round-trip must preserve it.
+    [Fact]
+    public async Task BatchList_moduleStringEnumJson_deserializes_intoBffDto_withCommercialModelPreserved()
+    {
+        var module = new CargoDryBatchListDto
+        {
+            Items = new List<CargoDryBatchDto>
+            {
+                new()
+                {
+                    Id                        = 5,
+                    BatchCode                 = "202609-STAN-0486",
+                    ProductCode               = "STAN",
+                    ProductName               = "Standard Kit",
+                    TotalKits                 = 10,
+                    GeneratedAt               = "2026-09-16T00:00:00Z",
+                    AssignedProviderProfileId = 32,
+                    CommercialModel           = CargoDryCommercialModel.PrincipalSale,
+                },
+            },
+            Total = 1, Page = 1, PageSize = 20,
+        };
+
+        var json = JsonConvert.SerializeObject(module, ModuleNewtonsoftSettings);
+        json.Should().Contain("\"commercialModel\":\"PrincipalSale\"", "the module emits the enum as a STRING token");
+
+        Func<Task> act = () => DeserializeWithRefitSerializerAsync<CargoDryBatchListBffDto>(json);
+        await act.Should().NotThrowAsync();
+
+        var bff = await DeserializeWithRefitSerializerAsync<CargoDryBatchListBffDto>(json);
+        bff.Items.Should().ContainSingle();
+        bff.Items[0].CommercialModel.Should().Be(CargoDryCommercialModel.PrincipalSale);
+        bff.Items[0].AssignedProviderProfileId.Should().Be(32);
     }
 }

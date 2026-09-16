@@ -23,6 +23,7 @@ public sealed class CargoDryBatchEntityConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.BatchLabel).HasMaxLength(200);
         builder.Property(x => x.WarehouseCode).HasMaxLength(50);
         builder.Property(x => x.ProductionNotes).HasMaxLength(2000);
+        builder.Property(x => x.SigningKeyEncrypted).HasMaxLength(200);   // AES-encrypted per-batch HMAC key
         // ── Commercial foundation (Phase 0, July 2026) ────────────────────────
         builder.Property(x => x.AssignedProviderProfileId);               // null = platform warehouse
         builder.Property(x => x.CommercialModel).HasConversion<int>();    // null until allocated

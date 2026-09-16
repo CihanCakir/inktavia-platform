@@ -36,7 +36,7 @@ spec:
         - values-dev.yaml
       parameters:
         - name: image.tag
-          value: "sha-b154f0a"
+          value: "sha-59dff80"
   destination:
     server: https://kubernetes.default.svc
     namespace: inktavia-dev

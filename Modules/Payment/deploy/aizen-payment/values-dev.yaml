@@ -143,6 +143,12 @@ env:
   # Tek veritabanı (inktavia_store), modül başına ayrı PostgreSQL şeması.
   # Maximum Pool Size=5 KRİTİK: max_connections=200 ve 15 servis var (15×12=180).
   # appsettings'teki 300 değeri 15 modülde 4500 bağlantı demekti.
+  # DEV ONLY — shorten the stuck-escrow safety net so approved escrows release on the next hourly
+  # PaymentAutoReleaseEligibilityJob run instead of waiting 72h (E2E B3). NOT 0: the job treats EVERY
+  # Captured SR tx as stuck regardless of SR state, so 0 would auto-release freshly accepted escrows
+  # mid-test. 1h keeps a grace window. Remove for prod parity (default 72).
+  - name: Payment__AutoReleaseHours
+    value: "1"
   - name: DatabaseSettings__Payment__Type
     value: "PostgreSQL"
   - name: DatabaseSettings__Payment__ConnectionString

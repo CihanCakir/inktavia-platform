@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Aizen.Bff.AdminPanel.Application.Common;
+using Aizen.Modules.CargoDry.Abstraction.Enum;
 
 namespace Aizen.Bff.AdminPanel.Application.Vessels.Dto;
 
@@ -184,8 +185,12 @@ public sealed class CargoDryBatchBffDto
     public string? WarehouseCode    { get; init; }
 
     // ── Commercial allocation (Supply v2 / A3) — passthrough from module CargoDryBatchDto ──
+    // CommercialModel is the module CargoDryCommercialModel enum, which the module serializes as a STRING
+    // (Newtonsoft + StringEnumConverter). Refit (STJ + JsonStringEnumConverter) only maps string enum tokens onto
+    // enum-TYPED properties — an int? here threw "could not be converted to Nullable<Int32>". The BFF's own Newtonsoft
+    // (no StringEnumConverter) re-serializes the enum as its NUMBER to the FE, matching admin-web's numeric constants.
     public long? AssignedProviderProfileId { get; init; }
-    public int?  CommercialModel           { get; init; }
+    public CargoDryCommercialModel? CommercialModel { get; init; }
     public long? ConsignmentAgreementId    { get; init; }
 }
 
