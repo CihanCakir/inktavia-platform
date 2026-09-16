@@ -119,12 +119,19 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
     public Task<List<PaymentTransactionEntity>> GetCapturedOlderThanAsync(
         TransactionContextType contextType, TimeSpan olderThan, int maxBatch, CancellationToken ct)
     {
+        // FIX_AUTORELEASE_AGE_SOURCE: the "stuck escrow" threshold must measure ESCROW age (time since capture),
+        // not intent age - a tx opened as PendingIntent and captured hours later would otherwise count as stuck
+        // right after capture. Worse, rows saved through this repository bypass AizenUnitOfWork's audit stamping,
+        // so CreateDate can be NULL (seen live: SR 58 tx Id 26) and a NULL CreateDate NEVER satisfies
+        // "CreateDate <= cutoff" - the safety net was permanently blind to exactly the rows it exists for.
+        // CapturedAt is set by the domain entity itself on capture, so it is always present on a Captured tx;
+        // CreateDate remains only as a defensive fallback.
         var cutoff = DateTime.UtcNow - olderThan;
         return _db.Transactions
             .Where(x => x.Status == PaymentTransactionStatus.Captured
                      && x.ContextType == contextType
-                     && x.CreateDate <= cutoff)
-            .OrderBy(x => x.CreateDate)
+                     && (x.CapturedAt ?? x.CreateDate) <= cutoff)
+            .OrderBy(x => x.CapturedAt ?? x.CreateDate)
             .Take(maxBatch)
             .ToListAsync(ct);
     }

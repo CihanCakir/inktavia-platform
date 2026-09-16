@@ -1,4 +1,5 @@
 using Aizen.Core.CQRS.Handler;
+using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.CargoDry.Abstraction.Dto;
 using Aizen.Modules.CargoDry.Abstraction.Enum;
 using Aizen.Modules.CargoDry.Domain.Entities;
@@ -6,6 +7,11 @@ using Aizen.Modules.CargoDry.Domain.Interface.Repository;
 
 namespace Aizen.Modules.CargoDry.Application.Commands.AllocateBatchToProvider;
 
+// FIX_ALLOCATION_BUSINESS_ERRORS: every rejection below (batch missing/revoked/already-allocated/no kits,
+// agreement missing/inactive, kit cap exceeded) is a business rule, not a programming fault. They used to throw
+// InvalidOperationException, which the exception middleware surfaced as an unhandled 500 and the admin FE showed
+// as a raw "Response status code does not indicate success" toast (seen live on the agreement-cap case, E2E C3).
+// AizenBusinessException produces the standard fail envelope instead, which the BFF envelope handlers translate.
 [DocumentationInfo("Allocate batch to provider command handler",
     "Allocates all available kits in a CargoDry batch to a provider under the specified commercial model. " +
     "For ConsignmentSellThrough: validates active consignment agreement, enforces kit cap, " +
@@ -43,11 +49,11 @@ public sealed class AllocateBatchToProviderCommandHandler
 
         // ── Load batch ─────────────────────────────────────────────────────────
         var batch = await _batches.GetByCodeAsync(request.BatchCode, ct)
-                    ?? throw new InvalidOperationException(
+                    ?? throw new AizenBusinessException(
                         $"Batch '{request.BatchCode}' not found.");
 
         if (batch.IsRevoked)
-            throw new InvalidOperationException(
+            throw new AizenBusinessException(
                 $"Batch '{request.BatchCode}' has been revoked and cannot be allocated.");
 
         // ── Idempotency check ──────────────────────────────────────────────────
@@ -86,7 +92,7 @@ public sealed class AllocateBatchToProviderCommandHandler
                 };
             }
 
-            throw new InvalidOperationException(
+            throw new AizenBusinessException(
                 $"Batch '{request.BatchCode}' is already allocated to provider " +
                 $"{batch.AssignedProviderProfileId.Value}. " +
                 "Cannot reallocate to a different provider.");
@@ -96,7 +102,7 @@ public sealed class AllocateBatchToProviderCommandHandler
         var availableKits = await _kits.GetAvailableByBatchCodeAsync(request.BatchCode, ct);
 
         if (availableKits.Count == 0)
-            throw new InvalidOperationException(
+            throw new AizenBusinessException(
                 $"Batch '{request.BatchCode}' has no available kits to allocate.");
 
         var count = availableKits.Count;
@@ -112,7 +118,7 @@ public sealed class AllocateBatchToProviderCommandHandler
             if (request.ConsignmentAgreementId.HasValue)
             {
                 agreement = await _agreements.GetByIdAsync(request.ConsignmentAgreementId.Value, ct)
-                            ?? throw new InvalidOperationException(
+                            ?? throw new AizenBusinessException(
                                 $"Consignment agreement {request.ConsignmentAgreementId.Value} not found.");
             }
             else
@@ -120,13 +126,13 @@ public sealed class AllocateBatchToProviderCommandHandler
                 // Auto-resolve active agreement for provider+product
                 agreement = await _agreements.GetActiveForProviderProductAsync(
                     request.ProviderProfileId, batch.ProductCode, nowUtc, ct)
-                            ?? throw new InvalidOperationException(
+                            ?? throw new AizenBusinessException(
                                 $"No active consignment agreement found for provider {request.ProviderProfileId} " +
                                 $"and product '{batch.ProductCode}'. Create and activate one first.");
             }
 
             if (!agreement.CanAllocate(count, nowUtc))
-                throw new InvalidOperationException(
+                throw new AizenBusinessException(
                     $"Agreement '{agreement.AgreementCode}' cannot accommodate {count} kit(s). " +
                     $"Remaining cap: {agreement.RemainingKitCount}. " +
                     $"Agreement status: {agreement.Status}.");
