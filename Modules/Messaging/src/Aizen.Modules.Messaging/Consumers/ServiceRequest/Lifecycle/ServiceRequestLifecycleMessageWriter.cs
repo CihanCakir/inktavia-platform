@@ -79,6 +79,15 @@ public sealed class ServiceRequestLifecycleMessageWriter
                 conv.AddParticipant(ConversationParticipantEntity.Create(conv.Id, 0, "System", MessagingParticipantRole.System));
             await _db.Conversations.AddAsync(conv, ct);
         }
+        else if (providerUserId is { } pLate && conv.Participants.All(x => x.UserId != pLate))
+        {
+            // FIX_SR_THREAD_PROVIDER_PARTICIPANT: the conversation is usually CREATED at OFFER_RECEIVED, when no
+            // accepted provider exists yet — so it holds only the owner (+ System). Without this, the accepted
+            // provider is never added on the later OFFER_ACCEPTED/lifecycle writes and every provider-side read
+            // fails with "User X is not a participant of conversation Y". Idempotent late-join: add the accepted
+            // provider to an existing conversation the first time a lifecycle event sees one.
+            conv.AddParticipant(ConversationParticipantEntity.Create(conv.Id, pLate, providerName, MessagingParticipantRole.Provider));
+        }
 
         var sourceKey = ServiceRequestMessageMapping.SystemSourceKey(serviceRequestId, code);
 
