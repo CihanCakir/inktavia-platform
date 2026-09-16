@@ -2,14 +2,10 @@ using Aizen.Bff.MarineProvider.Application.Common.Authorization;
 using Aizen.Bff.MarineProvider.Application.Contracts.Me;
 using Aizen.Bff.MarineProvider.Application.Contracts.Phone;
 using Aizen.Bff.MarineProvider.Application.Me;
-using Aizen.Bff.MarineProvider.Application.Me;
-using Aizen.Bff.MarineProvider.Application.Me;
-using Aizen.Bff.MarineProvider.Application.Phone;
 using Aizen.Bff.MarineProvider.Application.Phone;
 using Aizen.Core.CQRS.Abstraction;
 using Aizen.Core.Infrastructure.Api;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Aizen.Bff.MarineProvider.Controllers.V1;
