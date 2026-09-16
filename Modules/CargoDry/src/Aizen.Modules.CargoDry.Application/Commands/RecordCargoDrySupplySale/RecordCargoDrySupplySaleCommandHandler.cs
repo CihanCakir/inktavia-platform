@@ -14,6 +14,15 @@ namespace Aizen.Modules.CargoDry.Application.Commands.RecordCargoDrySupplySale;
 public sealed class RecordCargoDrySupplySaleCommandHandler
     : AizenCommandHandler<RecordCargoDrySupplySaleCommand, RecordCargoDrySupplySaleResponse>
 {
+    /// <summary>
+    /// NOT transactional at this level: nests the canonical ResolveCargoDrySalesAttributionFinancialsCommand
+    /// through the mediator, whose own command decorator opens the transaction — a second BeginTransaction on
+    /// the same connection throws "The connection is already in a transaction" (same class of bug as
+    /// ApproveProviderStockRequest / CompleteCargoDryRenewal). The link + preferred-provider changes made here
+    /// persist via the inner command's flush and the decorator's closing SaveChanges on the shared DbContext.
+    /// </summary>
+    public override bool IsTransactional => false;
+
     private readonly ICargoDrySalesAttributionRepository       _attributions;
     private readonly ICargoDryOwnerPreferredProviderRepository _preferred;
     private readonly Abstraction.Interface.Service.ICargoDryCommercialActivationService _commercialActivation;

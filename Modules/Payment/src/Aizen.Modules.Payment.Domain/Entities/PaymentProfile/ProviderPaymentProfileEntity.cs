@@ -26,6 +26,21 @@ public sealed class ProviderPaymentProfileEntity : AizenEntityWithAudit
 
     public DateTime? VerifiedAt         { get; private set; }
 
+    // ── Async sub-merchant provisioning attempt tracking (iyzico) ──
+    /// <summary>UTC of the most recent provisioning attempt (consumer run). Null ⇒ never attempted.</summary>
+    public DateTime? LastAttemptAtUtc   { get; private set; }
+    /// <summary>Last gateway/business error from a failed provisioning attempt (cleared on success). Surfaced to the provider dashboard.</summary>
+    public string?   LastAttemptError   { get; private set; }
+    /// <summary>Count of FAILED provisioning attempts — the retry sweep stops auto-retrying at the configured cap.</summary>
+    public int       AttemptCount       { get; private set; }
+
+    /// <summary>
+    /// AES-encrypted JSON of the iyzico KYC fields NOT otherwise persisted as columns (Email, SubMerchantType, TaxOffice,
+    /// GsmNumber, ContactName, ContactSurname, IdentityNumber). Captured at data-submit so the ASYNC provisioning consumer
+    /// can build the canonical register call without carrying PII on the bus message. Encrypted at rest like the IBAN.
+    /// </summary>
+    public string?   KycPayloadEncrypted { get; private set; }
+
     /// <summary>
     /// The single split-eligibility gate signal (§21.4). Split-eligible ⇔ a sub-merchant key exists AND onboarding is in
     /// {SubMerchantCreated, Verified}. Being in that set inherently excludes Suspended/Blocked/Rejected. Documented
@@ -84,6 +99,7 @@ public sealed class ProviderPaymentProfileEntity : AizenEntityWithAudit
                                 or ProviderSubMerchantOnboardingStatus.Rejected);
         SubMerchantKey       = subMerchantKey;
         SubMerchantAccountId = accountId;
+        LastAttemptError     = null;   // provisioning succeeded — clear the last failure surfaced to the provider
         Transition(ProviderSubMerchantOnboardingStatus.SubMerchantCreated);
     }
 
@@ -134,6 +150,25 @@ public sealed class ProviderPaymentProfileEntity : AizenEntityWithAudit
     {
         IbanEncrypted = ibanEncrypted;
         IbanLast4     = ibanLast4;
+    }
+
+    /// <summary>Stores the encrypted KYC blob captured at data-submit (used by the async provisioning consumer).</summary>
+    public void SetKycPayload(string? kycPayloadEncrypted) => KycPayloadEncrypted = kycPayloadEncrypted;
+
+    /// <summary>Records a FAILED provisioning attempt: increments the counter, stamps the time, stores a (truncated) error.
+    /// Status stays DataSubmitted so the retry sweep can pick it up again (until the attempt cap).</summary>
+    public void RecordProvisioningFailure(string? error)
+    {
+        AttemptCount     += 1;
+        LastAttemptAtUtc  = DateTime.UtcNow;
+        LastAttemptError  = string.IsNullOrEmpty(error) ? error : (error.Length > 1000 ? error[..1000] : error);
+    }
+
+    /// <summary>Admin re-trigger of a capped/failed profile: clears the failure counter + last error so the sweep resumes.</summary>
+    public void ResetProvisioningAttempts()
+    {
+        AttemptCount     = 0;
+        LastAttemptError = null;
     }
 
     /// <summary>Profile edit that invalidates verification → back to DataSubmitted (re-verify), VerifiedAt cleared.</summary>

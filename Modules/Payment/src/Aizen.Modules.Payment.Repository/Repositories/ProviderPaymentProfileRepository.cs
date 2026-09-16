@@ -16,6 +16,17 @@ public sealed class ProviderPaymentProfileRepository : IProviderPaymentProfileRe
     public Task<bool> ExistsAsync(long providerProfileId, CancellationToken ct)
         => _db.PaymentProfiles.AnyAsync(x => x.ProviderProfileId == providerProfileId, ct);
 
+    public async Task<IReadOnlyList<long>> GetProvisioningRetryDueIdsAsync(
+        DateTime retryBefore, int maxAttempts, int take, CancellationToken ct = default)
+        => await _db.PaymentProfiles.AsNoTracking()
+            .Where(x => x.OnboardingStatus == Abstraction.Enum.ProviderSubMerchantOnboardingStatus.DataSubmitted
+                        && x.AttemptCount < maxAttempts
+                        && (x.LastAttemptAtUtc == null || x.LastAttemptAtUtc < retryBefore))
+            .OrderBy(x => x.LastAttemptAtUtc)   // nulls first (never attempted) → oldest attempts next
+            .Take(take)
+            .Select(x => x.ProviderProfileId)
+            .ToListAsync(ct);
+
     public async Task<ProviderSplitEligibility> GetSplitEligibilityAsync(long providerProfileId, CancellationToken ct)
     {
         var profile = await _db.PaymentProfiles.AsNoTracking()

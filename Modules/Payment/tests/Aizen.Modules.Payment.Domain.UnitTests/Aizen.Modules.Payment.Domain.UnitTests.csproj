@@ -26,6 +26,8 @@
     <ProjectReference Include="..\..\src\Aizen.Modules.Payment.Application\Aizen.Modules.Payment.Application.csproj" />
     <!-- FIX_KEYED_SERVICE_DI: regression test resolves keyed IPaymentGatewayProvider through the Aizen container. -->
     <ProjectReference Include="..\..\..\..\Core\IOC\src\Aizen.Core.IOC\Aizen.Core.IOC.csproj" />
+    <!-- BE-I1 async provisioning: consumer under test lives in the Payment host (Web SDK — same pattern as Identity.Api.UnitTests). -->
+    <ProjectReference Include="..\..\src\Aizen.Modules.Payment\Aizen.Modules.Payment.csproj" />
   </ItemGroup>
 
 </Project>

@@ -448,6 +448,13 @@ public interface IPaymentRemoteCall : IAizenRemoteCall
         [AizenRemoteCallBody] RegisterSubMerchantBffRequest body,
         CancellationToken ct = default);
 
+    // Admin "approve billing / send to iyzico" — enqueues async provisioning + resets the retry counter (re-trigger for
+    // capped/failed profiles). Idempotent: an already-keyed profile is returned as-is.
+    [AizenRemoteCallPost("/api/v1/payment/admin/providers/{providerProfileId}/sub-merchant/enqueue-provisioning")]
+    Task<ProviderSubMerchantOnboardingResult> EnqueueSubMerchantProvisioningAsync(
+        long providerProfileId,
+        CancellationToken ct = default);
+
     // ─── BE-P3 PlatformFeeRule CRUD (module: /api/v1/payment/platform-fee) ────
 
     [AizenRemoteCallGet("/api/v1/payment/platform-fee/resolve")]

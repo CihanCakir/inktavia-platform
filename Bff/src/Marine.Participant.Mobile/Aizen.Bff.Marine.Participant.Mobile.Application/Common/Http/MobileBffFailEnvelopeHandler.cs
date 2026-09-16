@@ -1,0 +1,113 @@
+using System.Text;
+using System.Text.Json;
+using Aizen.Core.Infrastructure.Exception;
+
+namespace Aizen.Bff.Marine.Participant.Mobile.Application.Common.Http;
+
+/// <summary>
+/// Fail-envelope fidelity handler for Mobile BFF → module calls (port of the AdminPanel BFF's
+/// <c>AdminBffFailEnvelopeHandler</c> — FIX_MOBILE_ENVELOPE_5091).
+///
+/// A module surfaces business errors (e.g. Payment's <c>ProviderNotSplitEligible</c> = 5091 or
+/// <c>ServiceRequestEconomicsRejected</c> = 5080 on offer accept) as an <c>AizenBusinessException</c> which its
+/// global middleware maps to <b>HTTP 400 + a fail envelope</b>
+/// (<c>{ header: { isSuccess:false, errorCode, errorMessage } }</c>). Without this handler, Refit sees the raw
+/// 4xx/5xx and throws a <c>Refit.ApiException</c>; that is NOT an <c>AizenBusinessException</c>, so the mobile
+/// BFF's own global middleware maps it to a generic error (code 911) and the module's
+/// <c>errorCode</c>/<c>errorMessage</c> are lost — the app can then only show "Payment failed".
+///
+/// This handler intercepts a non-success response whose body is an Aizen fail envelope and re-throws it as the
+/// BFF's own <see cref="AizenBusinessException"/> (preserving the numeric <c>errorCode</c> + <c>errorMessage</c>),
+/// so the mobile middleware returns a structured envelope the app's <c>normalizeEnvelope</c> maps to
+/// <c>ApiError.code</c>. Non-envelope errors pass through unchanged (Refit's normal <c>ApiException</c> behavior
+/// is preserved).
+///
+/// SCOPE: wired into <c>CreateHttpClient</c> for every downstream Refit client (auth handler → this → transport),
+/// since every mobile surface benefits from verbatim module error codes. It does NOT touch
+/// <c>Core.RemoteCall</c> internals or the global exception middleware.
+/// </summary>
+public sealed class MobileBffFailEnvelopeHandler : DelegatingHandler
+{
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var response = await base.SendAsync(request, cancellationToken);
+
+        // Only inspect failures; success responses flow straight through untouched.
+        if (response.IsSuccessStatusCode || response.Content is null)
+            return response;
+
+        var mediaType = response.Content.Headers.ContentType?.MediaType;
+        if (mediaType is not null && !mediaType.Contains("json", StringComparison.OrdinalIgnoreCase))
+            return response;
+
+        // Buffer the body once so we can either translate it (throw) or hand it back to Refit unchanged.
+        var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (TryReadFailEnvelope(raw, out var errorCode, out var errorMessage))
+        {
+            // Re-throw as the BFF's own fail-loud business error → mobile global middleware returns a fail
+            // envelope carrying this errorCode + errorMessage verbatim to the app.
+            throw new AizenBusinessException(errorCode, errorMessage);
+        }
+
+        // Not an Aizen fail envelope — restore the consumed body so Refit's normal error handling still applies.
+        // Content-Type + Content-Length are managed by StringContent; copy only the remaining content headers.
+        var restored = new StringContent(raw, Encoding.UTF8, mediaType ?? "application/json");
+        foreach (var header in response.Content.Headers)
+        {
+            if (header.Key.Equals("Content-Type", StringComparison.OrdinalIgnoreCase) ||
+                header.Key.Equals("Content-Length", StringComparison.OrdinalIgnoreCase))
+                continue;
+            restored.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+        response.Content = restored;
+        return response;
+    }
+
+    /// <summary>
+    /// Parses <paramref name="body"/> as an Aizen envelope and, when it is a genuine fail envelope
+    /// (<c>header.isSuccess == false</c> with a non-zero <c>errorCode</c>), yields the module's code + message.
+    /// </summary>
+    private static bool TryReadFailEnvelope(string body, out int errorCode, out string errorMessage)
+    {
+        errorCode = 0;
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(body))
+            return false;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                return false;
+
+            if (!doc.RootElement.TryGetProperty("header", out var header) ||
+                header.ValueKind != JsonValueKind.Object)
+                return false;
+
+            // A fail envelope must explicitly say isSuccess == false.
+            if (!header.TryGetProperty("isSuccess", out var isSuccess) ||
+                isSuccess.ValueKind != JsonValueKind.False)
+                return false;
+
+            if (!header.TryGetProperty("errorCode", out var code) ||
+                code.ValueKind != JsonValueKind.Number ||
+                !code.TryGetInt32(out errorCode) ||
+                errorCode == 0)
+                return false;
+
+            errorMessage = header.TryGetProperty("errorMessage", out var msg) &&
+                           msg.ValueKind == JsonValueKind.String
+                ? msg.GetString() ?? string.Empty
+                : string.Empty;
+
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+}
