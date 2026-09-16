@@ -21,6 +21,13 @@ namespace Aizen.Modules.CargoDry.Application.Commands.CompleteCargoDryRenewal;
 public sealed class CompleteCargoDryRenewalCommandHandler
     : AizenCommandHandler<CompleteCargoDryRenewalCommand, CargoDryRenewalPreparationDto>
 {
+    /// <summary>
+    /// NOT transactional at this level: nests the canonical RenewKitCommand through the mediator, whose own
+    /// command decorator opens the transaction — a second BeginTransaction on the same connection throws
+    /// "The connection is already in a transaction" (same class of bug as ApproveProviderStockRequest).
+    /// </summary>
+    public override bool IsTransactional => false;
+
     private readonly ICargoDryRenewalPreparationRepository _preparations;
     private readonly ICargoDryProductRepository            _products;
     private readonly ISender                               _sender;
