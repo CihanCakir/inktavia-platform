@@ -54,6 +54,25 @@ public sealed class PaymentController : AizenWebApiController
             LegalCompanyTitle = body.LegalCompanyTitle,
         }, ct));
 
+    /// <summary>POST /api/v1/provider/payment/payment-profile/submit — capture full KYC → DataSubmitted → enqueue async provisioning.</summary>
+    [HttpPost("payment-profile/submit")]
+    [ProducesResponseType(typeof(ProviderPaymentProfileDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderPaymentProfileDto?>> SubmitPaymentProfile(
+        [FromBody] SubmitProviderPaymentProfileRequest body, CancellationToken ct = default)
+        => SetResponse(await _cqrs.ProcessAsync(new SubmitProviderPaymentProfileBffCommand
+        {
+            Iban            = body.Iban,
+            LegalName       = body.LegalName,
+            TaxNumber       = body.TaxNumber,
+            SubMerchantType = body.SubMerchantType,
+            Email           = body.Email,
+            TaxOffice       = body.TaxOffice,
+            GsmNumber       = body.GsmNumber,
+            ContactName     = body.ContactName,
+            ContactSurname  = body.ContactSurname,
+            IdentityNumber  = body.IdentityNumber,
+        }, ct));
+
     [HttpGet("transactions")]
     [ProducesResponseType(typeof(ProviderTransactionPagedResultDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<ProviderTransactionPagedResultDto?>> GetTransactions(

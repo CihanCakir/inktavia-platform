@@ -26,6 +26,11 @@ public interface IProviderPaymentProfileRepository
     Task<(List<ProviderPaymentProfileEntity> Items, int Total)> GetOnboardingQueueAsync(
         ProviderSubMerchantOnboardingStatus? status, int skip, int take, CancellationToken ct = default);
 
+    /// <summary>Retry-sweep selection — DataSubmitted profiles under the attempt cap whose last attempt is null or older
+    /// than <paramref name="retryBefore"/>. Returns the provider profile ids to re-publish (bounded by <paramref name="take"/>).</summary>
+    Task<IReadOnlyList<long>> GetProvisioningRetryDueIdsAsync(
+        DateTime retryBefore, int maxAttempts, int take, CancellationToken ct = default);
+
     Task AddAsync(ProviderPaymentProfileEntity entity, CancellationToken ct = default);
     void Update(ProviderPaymentProfileEntity entity);
     Task SaveChangesAsync(CancellationToken ct = default);

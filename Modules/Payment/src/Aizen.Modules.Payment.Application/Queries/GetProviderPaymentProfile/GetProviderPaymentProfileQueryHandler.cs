@@ -35,6 +35,7 @@ public sealed class GetProviderPaymentProfileQueryHandler
             IbanRequired         = !hasIban,                 // BE-P9-fix §5 — no IBAN ⇒ never split-eligible
             SubMerchantType      = null,                     // reserved: BE-I1 does not persist the KYC type on the profile
             RejectionReason      = null,                     // reserved: BE-I1 does not persist the admin reject reason
+            LastAttemptError     = entity.LastAttemptError,  // async provisioning failure surfaced to the dashboard
         };
     }
 

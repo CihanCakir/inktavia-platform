@@ -107,7 +107,10 @@ public static class DependencyInjection
     private static HttpClient CreateHttpClient(IServiceProvider provider, string clientName)
     {
         var authHandler = provider.GetRequiredService<MarineMobileBffAuthDelegatingHandler>();
-        authHandler.InnerHandler = new HttpClientHandler();
+        // FIX_MOBILE_ENVELOPE_5091: fail-envelope fidelity — a module 4xx whose body is an Aizen fail envelope
+        // is re-thrown as AizenBusinessException(errorCode, errorMessage) instead of surfacing as a generic 911,
+        // so the app receives the module's real error code (e.g. Payment 5091/5080 on offer accept).
+        authHandler.InnerHandler = new MobileBffFailEnvelopeHandler { InnerHandler = new HttpClientHandler() };
 
         var configs = provider.GetRequiredService<IOptions<RemoteCallConfigurations>>().Value;
         configs.TryGetValue(clientName, out var cfg);

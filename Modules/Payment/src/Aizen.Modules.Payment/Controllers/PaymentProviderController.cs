@@ -5,6 +5,7 @@ using Aizen.Core.Infrastructure.Exception;
 using Aizen.Modules.Payment.Abstraction.Dto;
 using Aizen.Modules.Payment.Abstraction.Request;
 using Aizen.Modules.Payment.Application.Commands.UpsertProviderPaymentProfile;
+using Aizen.Modules.Payment.Application.Commands.SubmitProviderPaymentProfile;
 using Aizen.Modules.Payment.Application.Queries.GetProviderPaymentProfile;
 using Aizen.Modules.Payment.Application.Queries.GetProviderPayouts;
 using Aizen.Modules.Payment.Application.Queries.GetProviderPayoutSummary;
@@ -184,6 +185,34 @@ public sealed class PaymentProviderController : AizenWebApiController
                 IdentityNumber    = body.IdentityNumber,
                 TaxOffice         = body.TaxOffice,
                 LegalCompanyTitle = body.LegalCompanyTitle,
+            }, ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>
+    /// POST /api/v1/payment/provider/payment-profile/submit — capture KYC → DataSubmitted → ENQUEUE async provisioning.
+    /// Does NOT call the gateway inline. The FE dashboard reads GET payment-profile/status for the resulting state.
+    /// </summary>
+    [HttpPost("payment-profile/submit")]
+    [ProducesResponseType(typeof(ProviderPaymentProfileDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderPaymentProfileDto?>> SubmitPaymentProfile(
+        [FromBody] SubmitProviderPaymentProfileRequest body, CancellationToken ct = default)
+    {
+        var pid = ResolveProviderProfileId();
+        var result = await _cqrs.ProcessAsync<ProviderPaymentProfileDto>(
+            new SubmitProviderPaymentProfileCommand
+            {
+                ProviderProfileId = pid,
+                Iban            = body.Iban,
+                LegalName       = body.LegalName,
+                TaxNumber       = body.TaxNumber,
+                SubMerchantType = body.SubMerchantType,
+                Email           = body.Email,
+                TaxOffice       = body.TaxOffice,
+                GsmNumber       = body.GsmNumber,
+                ContactName     = body.ContactName,
+                ContactSurname  = body.ContactSurname,
+                IdentityNumber  = body.IdentityNumber,
             }, ct);
         return SetResponse(result);
     }

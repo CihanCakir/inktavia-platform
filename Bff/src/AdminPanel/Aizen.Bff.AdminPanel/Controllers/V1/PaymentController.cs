@@ -40,6 +40,7 @@ using Aizen.Bff.AdminPanel.Application.Payment.Query.GetSubscriptionChurnRisk;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.CreateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.DeactivateCommissionRule;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.ReactivateCommissionRule;
+using Aizen.Bff.AdminPanel.Application.Payment.Command.EnqueueSubMerchantProvisioning;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.RegisterSubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.RejectSubMerchant;
 using Aizen.Bff.AdminPanel.Application.Payment.Command.UpdateCommissionRule;
@@ -741,6 +742,20 @@ public sealed class PaymentController : AizenWebApiController
             ContactSurname = body?.ContactSurname,
             IdentityNumber = body?.IdentityNumber,
         }, ct);
+        return SetResponse(result?.Result);
+    }
+
+    /// <summary>POST api/v1/admin-panel/payment/providers/{id}/sub-merchant/enqueue-provisioning — approve billing /
+    /// re-trigger: enqueues async provisioning (publishes the same message the submit path does) and resets the retry
+    /// counter so a capped/failed profile is picked up again. Idempotent: an already-keyed profile is returned as-is.</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/enqueue-provisioning")]
+    [ProducesResponseType(typeof(ProviderSubMerchantOnboardingResult), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<ProviderSubMerchantOnboardingResult?>> EnqueueSubMerchantProvisioning(
+        long providerProfileId,
+        CancellationToken ct = default)
+    {
+        var result = await _cqrs.ProcessAsync(
+            new EnqueueSubMerchantProvisioningBffCommand { ProviderProfileId = providerProfileId }, ct);
         return SetResponse(result?.Result);
     }
 

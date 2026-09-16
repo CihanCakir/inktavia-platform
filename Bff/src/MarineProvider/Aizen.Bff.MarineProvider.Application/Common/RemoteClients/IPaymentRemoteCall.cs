@@ -24,6 +24,10 @@ public interface IPaymentRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<ProviderPaymentProfileDto>> UpsertPaymentProfile(
         [AizenRemoteCallBody] UpsertProviderPaymentProfileRequest body);
 
+    [AizenRemoteCallPost("/api/v1/payment/provider/payment-profile/submit")]
+    Task<AizenApiResponse<ProviderPaymentProfileDto>> SubmitPaymentProfile(
+        [AizenRemoteCallBody] SubmitProviderPaymentProfileRequest body);
+
     [AizenRemoteCallGet("/api/v1/payment/provider/transactions")]
     Task<AizenApiResponse<ProviderTransactionPagedResultDto>> GetTransactions(
         [Refit.Query] int? status = null, [Refit.Query] int? type = null,

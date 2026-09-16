@@ -44,6 +44,16 @@ public sealed class RegisterProviderSubMerchantCommand : AizenCommand<ProviderSu
 public sealed class RegisterProviderSubMerchantCommandHandler
     : AizenCommandHandler<RegisterProviderSubMerchantCommand, ProviderSubMerchantOnboardingResult>
 {
+    /// <summary>
+    /// NOT transactional at this level: the iyzico branch nests the canonical <see cref="RegisterSubMerchantCommand"/>
+    /// through the mediator, whose own command decorator opens the transaction. With the default (true) the outer
+    /// decorator has already begun a transaction on the same connection and the nested BeginTransaction throws
+    /// "The connection is already in a transaction" (same class of bug as ApproveProviderStockRequest /
+    /// RecordCargoDrySupplySale). The manual branch persists via its own explicit Update + SaveChanges; the iyzico
+    /// branch relies on the inner command's transaction + a re-read here.
+    /// </summary>
+    public override bool IsTransactional => false;
+
     private const string ManualGatewayKey = "manual";
 
     private readonly IProviderPaymentProfileRepository _profiles;

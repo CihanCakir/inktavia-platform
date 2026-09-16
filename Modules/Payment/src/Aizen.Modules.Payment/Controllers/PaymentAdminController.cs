@@ -268,6 +268,15 @@ public sealed class PaymentAdminController : ControllerBase
             ContactSurname = request?.ContactSurname,
             IdentityNumber = request?.IdentityNumber,
         }, ct));
+
+    /// <summary>Admin "approve billing / send to iyzico" — ENQUEUES async provisioning (publishes the same message the
+    /// submit path does) and resets the retry counter, so a capped or failed profile is picked up again by the consumer
+    /// and the hourly sweep. Idempotent: an already-keyed profile is returned as-is. Use this to re-trigger capped/failed
+    /// profiles; the sync <c>register</c> endpoint above stays for immediate/manual provisioning.</summary>
+    [HttpPost("providers/{providerProfileId:long}/sub-merchant/enqueue-provisioning")]
+    public async Task<IActionResult> EnqueueProviderSubMerchantProvisioning(long providerProfileId, CancellationToken ct)
+        => Ok(await _sender.Send(new Application.Commands.EnqueueProviderSubMerchantProvisioning
+            .EnqueueProviderSubMerchantProvisioningCommand { ProviderProfileId = providerProfileId }, ct));
 }
 
 /// <summary>Admin body for rejecting a provider sub-merchant onboarding (BE-I1).</summary>

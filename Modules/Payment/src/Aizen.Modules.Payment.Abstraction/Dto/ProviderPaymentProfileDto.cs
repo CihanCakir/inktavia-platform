@@ -23,4 +23,6 @@ public sealed class ProviderPaymentProfileDto
     public bool    IbanRequired     { get; init; }
     /// <summary>Populated when onboarding was rejected (admin reason), for the provider-facing banner.</summary>
     public string? RejectionReason  { get; init; }
+    /// <summary>Last async provisioning failure surfaced to the provider dashboard (null when none / on success).</summary>
+    public string? LastAttemptError { get; init; }
 }

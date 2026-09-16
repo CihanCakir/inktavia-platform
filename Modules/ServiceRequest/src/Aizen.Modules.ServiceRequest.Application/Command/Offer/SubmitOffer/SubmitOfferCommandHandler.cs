@@ -9,6 +9,8 @@ using Aizen.Modules.ServiceRequest.Application.Services;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Aizen.Modules.Payment.Abstraction.RemoteCall;
+using Aizen.Modules.Payment.Abstraction.RemoteCall.Requests;
 
 namespace Aizen.Modules.ServiceRequest.Application.Command.Offer.SubmitOffer;
 
@@ -32,6 +34,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
     private readonly UnitCodeValidator _unitCodeValidator;
     private readonly IAizenMessagePublisher _messagePublisher;
     private readonly Services.Fx.OfferFxResolver _fxResolver;
+    private readonly IPaymentModuleRemoteCall _payment;
 
     public SubmitOfferCommandHandler(
         IServiceRequestRepository srRepository,
@@ -40,7 +43,8 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         OfferCalculationService calculation,
         UnitCodeValidator unitCodeValidator,
         IAizenMessagePublisher messagePublisher,
-        Services.Fx.OfferFxResolver fxResolver)
+        Services.Fx.OfferFxResolver fxResolver,
+        IPaymentModuleRemoteCall payment)
     {
         _srRepository = srRepository;
         _offerRepository = offerRepository;
@@ -49,6 +53,7 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
         _unitCodeValidator = unitCodeValidator;
         _messagePublisher = messagePublisher;
         _fxResolver = fxResolver;
+        _payment = payment;
     }
 
     public override async Task<SubmitOfferResponse?> Handle(SubmitOfferCommand command, CancellationToken ct)
@@ -75,6 +80,15 @@ public sealed class SubmitOfferCommandHandler : AizenCommandHandler<SubmitOfferC
 
         if (offer.Status != ServiceRequestOfferStatus.Draft)
             throw new AizenBusinessException("SR_OFFER_ALREADY_SUBMITTED");
+
+        // Offer gate (BE-I1): a provider may SUBMIT an offer only once payment-split-eligible (completed payment
+        // profile → sub-merchant created). Enforced server-side here, at submit (not draft save), before any economics.
+        var rawToken = _info.UserInfoAccessor.UserInfo.AccessToken;
+        var eligibility = await _payment.GetProviderSplitEligibilityAsync(
+            new GetProviderSplitEligibilityRemoteCallRequest { ProviderProfileId = providerProfileId },
+            $"Bearer {rawToken}", ct);
+        if (!eligibility.IsSplitEligible)
+            throw new AizenBusinessException("SR_OFFER_PROVIDER_PAYMENT_PROFILE_REQUIRED");
 
         // Validate unit codes on persisted items
         var itemsForValidation = offer.Items

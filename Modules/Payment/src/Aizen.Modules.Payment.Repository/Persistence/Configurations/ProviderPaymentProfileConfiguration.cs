@@ -23,5 +23,12 @@ public sealed class ProviderPaymentProfileConfiguration : IEntityTypeConfigurati
         // BE-I1 onboarding lifecycle (legacy rows default NotStarted; migration backfills from key/VerifiedAt/Status).
         b.Property(x => x.OnboardingStatus).HasConversion<int>().IsRequired()
             .HasDefaultValue(Aizen.Modules.Payment.Abstraction.Enum.ProviderSubMerchantOnboardingStatus.NotStarted);
+
+        // Async sub-merchant provisioning (attempt tracking + encrypted KYC blob for the consumer).
+        b.Property(x => x.LastAttemptError).HasMaxLength(1000);
+        b.Property(x => x.AttemptCount).HasDefaultValue(0);
+        b.Property(x => x.KycPayloadEncrypted).HasMaxLength(4000);  // Encrypted at rest
+        // Retry-sweep selection: DataSubmitted + attempt/deadline windowing.
+        b.HasIndex(x => new { x.OnboardingStatus, x.LastAttemptAtUtc });
     }
 }
