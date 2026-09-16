@@ -24,17 +24,46 @@ public sealed class TemplateRenderer : ITemplateRenderer
     private readonly IReadOnlyCollection<string>            _allowedDeepLinkSchemes;
 
     // deepLinkOptions opsiyonel: verilmezse allowlist boş (yalnız göreli yollara izin). DI IOptions'ı enjekte eder.
+    // baseUrlOptions (Notification bölümü) verilirse yapılandırılmış base URL host'ları ve mobil şema allowlist'e
+    // OTOMATİK eklenir: sistemin KENDİ ürettiği admin/provider/owner linklerinin ayrıca
+    // Notifications__DeepLink__AllowedHosts'a elle yazılması gerekmez (Wave 4A saha kırığı: base URL set edilip
+    // allowlist unutulunca tüm mutlak linkli bildirimler rollback oluyordu).
     public TemplateRenderer(
         INotificationTemplateContentRepository contentRepo,
         IEmailLayoutRepository layoutRepo,
         ITemplateInterpolator interpolator,
-        IOptions<DeepLinkOptions>? deepLinkOptions = null)
+        IOptions<DeepLinkOptions>? deepLinkOptions = null,
+        IOptions<NotificationDeepLinkOptions>? baseUrlOptions = null)
     {
         _contentRepo  = contentRepo;
         _layoutRepo   = layoutRepo;
         _interpolator = interpolator;
-        _allowedDeepLinkHosts   = deepLinkOptions?.Value?.AllowedHosts   ?? new List<string>();
-        _allowedDeepLinkSchemes = deepLinkOptions?.Value?.AllowedSchemes ?? new List<string>();
+
+        var hosts   = new List<string>(deepLinkOptions?.Value?.AllowedHosts   ?? new List<string>());
+        var schemes = new List<string>(deepLinkOptions?.Value?.AllowedSchemes ?? new List<string>());
+
+        var b = baseUrlOptions?.Value;
+        if (b is not null)
+        {
+            foreach (var baseUrl in new[] { b.ProviderWebBaseUrl, b.AdminWebBaseUrl, b.OwnerWebBaseUrl, b.OwnerLinkBaseUrl, b.WebBaseUrl })
+            {
+                if (!string.IsNullOrWhiteSpace(baseUrl)
+                    && Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri)
+                    && !hosts.Contains(uri.Host, StringComparer.OrdinalIgnoreCase))
+                {
+                    hosts.Add(uri.Host);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(b.MobileScheme)
+                && !schemes.Contains(b.MobileScheme, StringComparer.OrdinalIgnoreCase))
+            {
+                schemes.Add(b.MobileScheme);
+            }
+        }
+
+        _allowedDeepLinkHosts   = hosts;
+        _allowedDeepLinkSchemes = schemes;
     }
 
     public async Task<RenderedContent> RenderAsync(

@@ -39,6 +39,15 @@ public sealed class ApproveProviderStockRequestCommandHandler
     private readonly ISender                         _sender;
     private readonly IAizenMessagePublisher          _messagePublisher;
 
+    /// <summary>
+    /// NOT transactional at this level: this handler nests the canonical <see cref="AllocateBatchToProviderCommand"/>
+    /// through the mediator, whose own command decorator opens the transaction. With the default (true) the outer
+    /// decorator has already begun a transaction on the same connection and the nested BeginTransaction throws
+    /// "The connection is already in a transaction". The allocation therefore commits in ITS transaction; the
+    /// subsequent Approve + SaveChanges here is a single atomic save on the same DbContext.
+    /// </summary>
+    public override bool IsTransactional => false;
+
     public ApproveProviderStockRequestCommandHandler(
         ICargoDryStockRequestRepository requests, ISender sender, IAizenMessagePublisher messagePublisher)
     {
