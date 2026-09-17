@@ -6,7 +6,9 @@ using Aizen.Modules.ServiceRequest.Domain.Entities.Assignment;
 using Aizen.Modules.ServiceRequest.Domain.Entities.Offer;
 using Aizen.Modules.ServiceRequest.Domain.Entities.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
+using Aizen.Modules.ServiceRequest.Repository.Persistence;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Xunit;
@@ -84,8 +86,13 @@ public sealed class GetProviderServiceRequestDetailAccessTests
         kc.KeycloakTokenInfo.Returns(new AizenKeycloakTokenInfo { ProviderProfileId = providerProfileId });
         info.KeycloakTokenInfoAccessor.Returns(kc);
 
+        // The handler reads xmin from the DbContext only when the caller has an offer surfaced as MyOffer; the SRs in
+        // these access tests carry no offers (MyOffer stays null), so a throwaway InMemory context is never dereferenced.
+        var db = new ServiceRequestDbContext(new DbContextOptionsBuilder<ServiceRequestDbContext>()
+            .UseInMemoryDatabase($"detail-access-{Guid.NewGuid():N}").Options);
+
         return new GetProviderServiceRequestDetailQueryHandler(
-            srRepo, offerRepo, assignmentRepo, info,
+            srRepo, offerRepo, assignmentRepo, info, db,
             NullLogger<GetProviderServiceRequestDetailQueryHandler>.Instance);
     }
 

@@ -101,6 +101,23 @@ public sealed class SaveOfferDraftCommandHandler : AizenCommandHandler<SaveOffer
         else
             _offerRepository.Update(offer);
 
+        // ── Optimistic concurrency (SR_OFFER_STALE) ────────────────────────────
+        // On an EXISTING draft, force the tracked entity's ORIGINAL xmin to the client's last-read token so the UPDATE's
+        // WHERE clause carries `xmin = <token>`. If another save happened since, the row's xmin has advanced → 0 rows
+        // affected → DbUpdateConcurrencyException → SR_OFFER_STALE. Without this the tracked entity always carries the
+        // CURRENT xmin (freshly loaded above), so a stale tab could only lose a same-instant race — never a real stale
+        // save. Rules:
+        //   • unparsable token (e.g. a legacy offer-id token handed out before this change) → treat as stale, NEVER as
+        //     "skip the check" — a mid-deploy editor gets one stale warning and reloads.
+        //   • null/empty token → keep today's last-write-wins (backward compatible during rollout / first create).
+        if (!isNew && !string.IsNullOrEmpty(req.ConcurrencyToken))
+        {
+            if (!uint.TryParse(req.ConcurrencyToken, out var expectedXmin))
+                throw new AizenBusinessException("SR_OFFER_STALE");
+
+            _db.Entry(offer!).Property<uint>("xmin").OriginalValue = expectedXmin;
+        }
+
         try
         {
             await _db.SaveChangesAsync(ct);
@@ -110,7 +127,10 @@ public sealed class SaveOfferDraftCommandHandler : AizenCommandHandler<SaveOffer
             throw new AizenBusinessException("SR_OFFER_STALE");
         }
 
-        return new SaveOfferDraftResponse(offer.ToDto(), offer.Id.ToString());
+        // Return the CURRENT xmin (EF refreshes it from the DB via RETURNING after SaveChanges) — never the offer id,
+        // which never changes and made the token useless.
+        var concurrencyToken = _db.Entry(offer!).Property<uint>("xmin").CurrentValue.ToString();
+        return new SaveOfferDraftResponse(offer.ToDto(), concurrencyToken);
     }
 
     private static void ValidateItems(Abstraction.Request.Offer.SaveOfferDraftRequest req)
