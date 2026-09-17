@@ -55,7 +55,10 @@ public sealed class CreateCargoDrySettlementPayoutPreparationCommandHandler
             description:       request.Description);
 
         await _payouts.AddAsync(payout, ct);
-        // SaveChanges handled by AizenCommandHandlerDecorator.
+        // FIX_GENERATED_ID_BEFORE_SAVE: flush now so payout.Id below is the real DB-generated id.
+        // The decorator saves only after the handler returns; without this the creation path
+        // returned PayoutRecordId=0 (same bug class as the settlement-statement handler).
+        await _payouts.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "CargoDry settlement payout record created. " +

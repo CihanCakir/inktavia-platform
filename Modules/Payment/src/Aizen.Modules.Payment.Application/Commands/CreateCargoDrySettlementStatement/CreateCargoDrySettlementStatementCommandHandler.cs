@@ -108,7 +108,11 @@ public sealed class CreateCargoDrySettlementStatementCommandHandler
         invoiceHeader.AddLine(settlementLine);
 
         await _invoices.AddAsync(invoiceHeader, ct);
-        // SaveChanges handled by AizenCommandHandlerDecorator.
+        // FIX_GENERATED_ID_BEFORE_SAVE: flush now so the DB-generated invoiceHeader.Id is real
+        // before it is returned. The decorator's SaveChanges runs only AFTER this handler returns,
+        // so without this flush the result carried InvoiceId=0 (proven live: settlement 2 was
+        // stamped InvoiceId=0 over the split-host bridge). The decorator's later save is a no-op.
+        await _invoices.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "ProviderSettlementStatement Draft created. " +
