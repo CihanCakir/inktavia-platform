@@ -64,6 +64,30 @@ public static class MobileCargoDryMapper
         IsExpiringSoon    = k.Status == CargoDryKitStatus.Activated && k.DaysUntilExpiry <= ExpiringSoonThresholdDays,
     };
 
+    /// <summary>Per-vessel CargoDry summary from the caller's OWN kit set filtered to one vessel. Owner-safe: the input
+    /// is already OwnerUserId-scoped by the module's GetMyKits, so filtering by vessel can never surface a foreign kit.
+    /// ActiveCount counts protecting kits (Activated/Renewed), mirroring the FE's active-status set.</summary>
+    public static MobileVesselCargoDryDto MapVesselCargoDry(long vesselId, CargoDryMyKitsRemoteResponse r)
+    {
+        var onVessel = (r.Items ?? new List<CargoDryKitDto>())
+            .Where(k => k.VesselId == vesselId)
+            .ToList();
+
+        return new MobileVesselCargoDryDto
+        {
+            ActiveCount = onVessel.Count(k => k.Status is CargoDryKitStatus.Activated or CargoDryKitStatus.Renewed),
+            TotalCount  = onVessel.Count,
+            Kits        = onVessel.Select(k => new MobileVesselCargoDryKitDto
+            {
+                Id              = k.Id,
+                ProductName     = k.ProductName,
+                Status          = k.Status.ToString(),
+                ExpiresAt       = k.ExpiresAt,
+                DaysUntilExpiry = k.DaysUntilExpiry,
+            }).ToList(),
+        };
+    }
+
     public static MobileMyKitsDto MapMyKits(CargoDryMyKitsRemoteResponse r) => new()
     {
         Items         = r.Items?.Select(MapKit).ToList() ?? new List<MobileKitDto>(),

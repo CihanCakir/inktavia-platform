@@ -73,6 +73,28 @@ public sealed class MobileKitDetailDto
     public bool IsExpiringSoon { get; set; }
 }
 
+/// <summary>Per-vessel CargoDry summary for the vessel screen's "protected" card (BE_MO11a read-path fix). Built from
+/// the caller's OWN kit set filtered to one vessel, so it never leaks another owner's kits. <see cref="ActiveCount"/>
+/// drives the FE's protected/unprotected state; the kit list gives the card its per-kit rows.</summary>
+public sealed class MobileVesselCargoDryDto
+{
+    /// <summary>Kits on this vessel that are actively protecting it (Activated or Renewed). &gt; 0 ⇒ "protected".</summary>
+    public int ActiveCount { get; set; }
+    /// <summary>All of the caller's kits on this vessel, regardless of status.</summary>
+    public int TotalCount  { get; set; }
+    public List<MobileVesselCargoDryKitDto> Kits { get; set; } = new();
+}
+
+/// <summary>One kit on a vessel — the fields the vessel CargoDry card renders.</summary>
+public sealed class MobileVesselCargoDryKitDto
+{
+    public long            Id              { get; set; }
+    public string          ProductName     { get; set; } = default!;
+    public string          Status          { get; set; } = default!;
+    public DateTimeOffset? ExpiresAt       { get; set; }
+    public int             DaysUntilExpiry { get; set; }
+}
+
 // ── Remote request / response bodies (typed — no object/JsonElement over the wire) ───────────────
 
 /// <summary>POST /api/v1/cargodry/public/validate body. Serial + batch identify the kit; signature is optional

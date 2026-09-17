@@ -20,9 +20,11 @@ public sealed class CargoDryKitDetailBffDto
     public string  BatchCode         { get; init; } = default!;
     public string  Status            { get; init; } = default!;
     public long?   OwnerUserId       { get; init; }
-    public string? OwnerDisplayName  { get; init; }
+    // BFF-enriched (module leaves these null): OwnerUserId → owner display name, VesselId → vessel name. Settable so the
+    // detail handler can fill them after resolving Identity/Vessel; the admin GEMİ/SAHİP fields showed "—" before.
+    public string? OwnerDisplayName  { get; set; }
     public long?   VesselId          { get; init; }
-    public string? VesselName        { get; init; }
+    public string? VesselName        { get; set; }
 
     [JsonPropertyName("activatedAt")]
     public string? ActivatedDate     { get; init; }
