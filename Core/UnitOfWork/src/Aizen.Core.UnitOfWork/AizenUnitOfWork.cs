@@ -36,113 +36,39 @@ public class AizenUnitOfWork<TContext> : IAizenUnitOfWork<TContext>, IAizenUnitO
         return new AizenRepository<TEntity>(respository);
     }
 
+    // Audit stamping (Create*/Modify*) moved to AizenAuditSaveChangesInterceptor at the DbContext layer, so it runs
+    // on EVERY save path — not just through this UnitOfWork. Stamping happens in exactly ONE place (the interceptor),
+    // preventing double-stamps with divergent timestamps. _aizenInfoAccessor is retained on the ctor for DI/behavioral
+    // compatibility (the interceptor is the sole consumer of user/host now).
+    //
+    // SOFT-DELETE conversion, however, stays HERE — it always was a UnitOfWork-path behavior. Direct-save call sites
+    // rely on physical deletes (delete-all+reinsert under unique indexes, consumed-token cleanup), so the interceptor
+    // must not convert them. We only flip Deleted → Modified + IsDeleted; the interceptor then sees the Modified entry
+    // during the inner SaveChanges and applies the Modify* stamps — still a single stamping layer.
     public int SaveChanges()
     {
-        var addedEntities = Context.ChangeTracker
-                                 .Entries()
-                                 .Where(x => x.State == EntityState.Added && x.Entity.GetType().IsSubclassOf(typeof(AizenEntityWithAudit)))
-                                 .ToList();
-
-        foreach (var entry in addedEntities)
-        {
-            var entity = entry.Entity as AizenEntityWithAudit;
-            if (entity != null)
-            {
-                entity.CreateDate = DateTime.UtcNow;
-                entity.CreateUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo != null ? _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId : 1;// Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
-                entity.CreateHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
-            }
-        }
-
-        var updatedEntities = Context.ChangeTracker
-                             .Entries()
-                             .Where(x => x.State == EntityState.Modified && x.Entity.GetType().IsSubclassOf(typeof(AizenEntityWithAudit)))
-                             .ToList();
-
-        foreach (var entry in updatedEntities)
-        {
-            var entity = entry.Entity as AizenEntityWithAudit;
-            if (entity != null)
-            {
-                entity.ModifyDate = DateTime.UtcNow;
-                entity.ModifyUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo != null ? _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId : 1; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
-                entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
-            }
-        }
-
-        var deletedEntities = Context.ChangeTracker
-                             .Entries()
-                             .Where(x => x.State == EntityState.Deleted && x.Entity.GetType().IsSubclassOf(typeof(AizenEntityWithAudit)))
-                             .ToList();
-
-        foreach (var entry in deletedEntities)
-        {
-            var entity = entry.Entity as AizenEntityWithAudit;
-            if (entity != null)
-            {
-                entity.IsDeleted = true;
-                entry.State = EntityState.Modified; // Nesnenin durumunu "Modified" (Güncellendi) olarak değiştiriyoruz çünkü artık fiziksel olarak silmiyoruz.
-                entity.ModifyDate = DateTime.UtcNow;
-                entity.ModifyUserId =  _aizenInfoAccessor.UserInfoAccessor.UserInfo != null ? _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId : 1; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
-                entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
-            }
-        }
-
+        ConvertDeletesToSoftDeletes();
         return _unitOfWork.SaveChanges();
     }
 
     public Task<int> SaveChangesAsync()
     {
+        ConvertDeletesToSoftDeletes();
+        return _unitOfWork.SaveChangesAsync();
+    }
 
-        var addedEntities = Context.ChangeTracker
-                                 .Entries()
-                                 .Where(x => x.State == EntityState.Added && x.Entity.GetType().IsSubclassOf(typeof(AizenEntityWithAudit)))
-                                 .ToList();
-
-        foreach (var entry in addedEntities)
-        {
-            var entity = entry.Entity as AizenEntityWithAudit;
-            if (entity != null)
-            {
-                entity.CreateDate = DateTime.UtcNow;
-                entity.CreateUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo == null ? 1 : _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
-                entity.CreateHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
-            }
-        }
-
-        var updatedEntities = Context.ChangeTracker
-                             .Entries()
-                             .Where(x => x.State == EntityState.Modified && x.Entity.GetType().IsSubclassOf(typeof(AizenEntityWithAudit)))
-                             .ToList();
-
-        foreach (var entry in updatedEntities)
-        {
-            var entity = entry.Entity as AizenEntityWithAudit;
-            if (entity != null)
-            {
-                entity.ModifyDate = DateTime.UtcNow;
-                entity.ModifyUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo == null ? 1 : _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
-                entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
-            }
-        }
-
+    private void ConvertDeletesToSoftDeletes()
+    {
         var deletedEntities = Context.ChangeTracker
                              .Entries()
-                             .Where(x => x.State == EntityState.Deleted && x.Entity.GetType().IsSubclassOf(typeof(AizenEntityWithAudit)))
+                             .Where(x => x.State == EntityState.Deleted && x.Entity is AizenEntityWithAudit)
                              .ToList();
 
         foreach (var entry in deletedEntities)
         {
-            var entity = entry.Entity as AizenEntityWithAudit;
-            if (entity != null)
-            {
-                entity.IsDeleted = true;
-                entry.State = EntityState.Modified; // Nesnenin durumunu "Modified" (Güncellendi) olarak değiştiriyoruz çünkü artık fiziksel olarak silmiyoruz.
-                entity.ModifyDate = DateTime.UtcNow;
-                entity.ModifyUserId = _aizenInfoAccessor.UserInfoAccessor.UserInfo == null ? 1 : _aizenInfoAccessor.UserInfoAccessor.UserInfo.UserId; // Burada oturum bilgilerinden ya da diğer kaynaklardan kullanıcı adını alıp atayabilirsiniz.
-                entity.ModifyHost = _aizenInfoAccessor.ServerInfoAccessor.ServerInfo.MachineName;
-            }
+            var entity = (AizenEntityWithAudit)entry.Entity;
+            entity.IsDeleted = true;
+            entry.State      = EntityState.Modified; // Fiziksel silme yok — soft-delete: interceptor Modify* damgalarını basar.
         }
-        return _unitOfWork.SaveChangesAsync();
     }
 }
