@@ -88,8 +88,13 @@ public static class DependencyInjection
                 CreateHttpClient(provider, "IReferenceDataAdminBffRemoteCall")));
 
         services.AddTransient<ICargoDryRemoteCall>(provider =>
+            // FIX_CARGODRY_ENVELOPE_FIDELITY: CargoDry now raises business rejections as fail envelopes
+            // (allocation cap, batch revoked, stock-request rules - FIX_ALLOCATION_BUSINESS_ERRORS). Without
+            // the fidelity handler Refit turned that 400 envelope into a bare ApiException and the admin FE
+            // showed the raw "Response status code does not indicate success" text (seen live, E2E C3 re-run).
             CreateRemoteCall<ICargoDryRemoteCall>(
-                CreateHttpClient(provider, "IAdminCargoDryBffRemoteCall")));
+                CreateHttpClient(provider, "IAdminCargoDryBffRemoteCall",
+                    innerHandler: provider.GetRequiredService<AdminBffFailEnvelopeHandler>())));
 
         services.AddTransient<INotificationRemoteCall>(provider =>
             CreateRemoteCall<INotificationRemoteCall>(

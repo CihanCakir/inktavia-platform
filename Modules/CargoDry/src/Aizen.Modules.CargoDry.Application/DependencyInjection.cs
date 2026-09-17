@@ -25,6 +25,9 @@ public static class DependencyInjection
         // CE-6c: Milestone evaluator
         services.AddScoped<ICargoDryProviderMilestoneEvaluator, CargoDryProviderMilestoneEvaluator>();
 
+        // Second-pass settlement linker (heals orphaned attributions) — used by the monthly automation.
+        services.AddScoped<ICargoDrySettlementLinkingService, CargoDrySettlementLinkingService>();
+
         // Phase 6: Monthly settlement automation
         services.AddScoped<ICargoDryMonthlySettlementAutomationService, CargoDryMonthlySettlementAutomationService>();
 

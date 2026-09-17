@@ -56,6 +56,15 @@ public sealed class GetCargoDrySalesAttributionDetailQueryHandler
                 SellThroughSettlementId   = x.SellThroughSettlementId,
                 TierAtSale                = x.TierAtSale,
                 TierBonusRate             = x.TierBonusRate,
+                // Phase 5 rule trace — previously unmapped here, so the detail view always showed the "no rule trace"
+                // empty-state even after a successful resolution. Project the stored trace so it renders.
+                ResolvedRuleId            = x.ResolvedRuleId,
+                ResolvedRuleSource        = x.ResolvedRuleSource,
+                ResolvedRuleName          = x.ResolvedRuleName,
+                ResolvedRate              = x.ResolvedRate,
+                RateResolvedAtUtc         = x.RateResolvedAtUtc,
+                RateResolvedByUserId      = x.RateResolvedByUserId,
+                RuleResolutionNote        = x.RuleResolutionNote,
                 AttributedAt            = x.AttributedAt,
                 AttributedByUserId      = x.AttributedByUserId,
                 ReviewNote              = x.ReviewNote,

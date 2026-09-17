@@ -48,6 +48,15 @@ public interface ICargoDrySalesAttributionRepository
         long settlementId, CancellationToken ct);
 
     /// <summary>
+    /// Returns ConsignmentSellThrough attributions created within [periodStartUtc, periodEndUtc) that are NOT yet linked
+    /// to any sell-through settlement (SellThroughSettlementId is null) and are not in a terminal status
+    /// (Settled/Cancelled). Used by the monthly settlement automation's second-pass linker to heal orphaned attributions
+    /// (link them to — or create — the period settlement). Ordered by CreatedAtUtc for deterministic grouping.
+    /// </summary>
+    Task<IReadOnlyList<CargoDrySalesAttributionEntity>> GetUnlinkedConsignmentSellThroughForPeriodAsync(
+        DateTime periodStartUtc, DateTime periodEndUtc, CancellationToken ct);
+
+    /// <summary>
     /// Returns commission rule usage rows grouped by ResolvedRuleId/Name/Source,
     /// with aggregated sale amounts and provider/platform shares.
     /// Used by the Finance Commission Rule Usage Report.

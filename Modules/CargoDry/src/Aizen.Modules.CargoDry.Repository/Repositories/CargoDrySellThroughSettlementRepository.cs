@@ -37,6 +37,24 @@ public sealed class CargoDrySellThroughSettlementRepository : ICargoDrySellThrou
                 x.Status            == CargoDrySellThroughSettlementStatus.Pending,
             ct);
 
+    /// <inheritdoc cref="ICargoDrySellThroughSettlementRepository.GetByProviderCurrencyProductPeriodAsync"/>
+    public Task<CargoDrySellThroughSettlementEntity?> GetByProviderCurrencyProductPeriodAsync(
+        long              providerProfileId,
+        string            currencyCode,
+        string            productCode,
+        DateTime          periodStartUtc,
+        DateTime          periodEndUtc,
+        CancellationToken ct)
+        => _db.SellThroughSettlements
+            .FirstOrDefaultAsync(x =>
+                x.ProviderProfileId == providerProfileId &&
+                x.CurrencyCode      == currencyCode      &&
+                x.ProductCode       == productCode       &&
+                x.PeriodStartUtc    == periodStartUtc    &&
+                x.PeriodEndUtc      == periodEndUtc      &&
+                x.Status            != CargoDrySellThroughSettlementStatus.Cancelled,
+            ct);
+
     public async Task<(List<CargoDrySellThroughSettlementEntity> Items, int Total)> GetPagedAsync(
         long?                                providerProfileId,
         long?                                consignmentAgreementId,

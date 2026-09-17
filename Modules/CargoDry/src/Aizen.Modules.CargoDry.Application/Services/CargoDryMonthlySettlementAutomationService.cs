@@ -34,6 +34,7 @@ public sealed class CargoDryMonthlySettlementAutomationService : ICargoDryMonthl
     private readonly ICargoDrySellThroughSettlementRepository _settlements;
     private readonly ICargoDrySalesAttributionRepository      _attributions;
     private readonly ICargoDrySettlementAutomationRunRepository _runs;
+    private readonly ICargoDrySettlementLinkingService        _linking;
     private readonly ISender                                  _sender;
     private readonly ILogger<CargoDryMonthlySettlementAutomationService> _logger;
 
@@ -67,12 +68,14 @@ public sealed class CargoDryMonthlySettlementAutomationService : ICargoDryMonthl
         ICargoDrySellThroughSettlementRepository     settlements,
         ICargoDrySalesAttributionRepository          attributions,
         ICargoDrySettlementAutomationRunRepository   runs,
+        ICargoDrySettlementLinkingService            linking,
         ISender                                      sender,
         ILogger<CargoDryMonthlySettlementAutomationService> logger)
     {
         _settlements  = settlements;
         _attributions = attributions;
         _runs         = runs;
+        _linking      = linking;
         _sender       = sender;
         _logger       = logger;
     }
@@ -346,6 +349,25 @@ public sealed class CargoDryMonthlySettlementAutomationService : ICargoDryMonthl
         long                                 triggeredByUserId,
         CancellationToken                    ct)
     {
+        // ── Second pass (Task 1b): link orphaned attributions BEFORE loading settlements, so newly created/healed
+        // period settlements are included in this same run and any settlement that was previously blind to its
+        // attributions (the dead-link bug) can now be resolved with correct totals. Non-fatal: a linking failure is
+        // logged and the run continues with whatever is already linked. ──
+        try
+        {
+            var linkedCount = await _linking.LinkUnlinkedForPeriodAsync(targetYearMonth, triggeredByUserId, ct);
+            if (linkedCount > 0)
+                _logger.LogInformation(
+                    "Run {RunCode}: second-pass linked {Linked} orphan attribution(s) for period {Period}.",
+                    run.RunCode, linkedCount, targetYearMonth);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Run {RunCode}: second-pass attribution linking failed for period {Period}; continuing with existing links.",
+                run.RunCode, targetYearMonth);
+        }
+
         var settlementsInScope = new List<CargoDrySellThroughSettlementEntity>();
 
         try

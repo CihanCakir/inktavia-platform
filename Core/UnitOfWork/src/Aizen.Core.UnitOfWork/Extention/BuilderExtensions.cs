@@ -1,5 +1,6 @@
 using Aizen.Core.Common.Abstraction.Settings;
 using Aizen.Core.UnitOfWork;
+using Aizen.Core.UnitOfWork.Interceptors;
 using Aizen.Core.UnitOfWork.Abstraction;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -36,10 +37,16 @@ public static class BuilderExtensions
         $"DatabaseSettings altında '{dbName}' bulunamadı. " +
         $"appsettings.* içinde DatabaseSettings -> {{ \"{dbName}\": {{ ... }} }} ekleyin.");
         
-        services.AddDbContext<TContext>(o =>
+        // Audit stamping lives at the DbContext layer (interceptor), so EVERY save path — UnitOfWork, direct repo
+        // SaveChanges, Hangfire jobs, MassTransit consumers, seeders — stamps Create*/Modify* + soft-delete. Scoped so
+        // it resolves IAizenInfoAccessor from the same scope that resolves the context (HTTP request OR background scope).
+        services.AddScoped<AizenAuditSaveChangesInterceptor>();
+
+        services.AddDbContext<TContext>((sp, o) =>
             {
                 if (options.UseLazyLoadingProxies)
                     o.UseLazyLoadingProxies();
+                o.AddInterceptors(sp.GetRequiredService<AizenAuditSaveChangesInterceptor>());
                 switch (db.Value.Type)
                 {
                     case DatabaseType.SqlLite:

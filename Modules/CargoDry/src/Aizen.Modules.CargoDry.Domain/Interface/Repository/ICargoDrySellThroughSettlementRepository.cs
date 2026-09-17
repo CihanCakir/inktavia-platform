@@ -23,6 +23,21 @@ public interface ICargoDrySellThroughSettlementRepository
         DateTime          periodEndUtc,
         CancellationToken ct);
 
+    /// <summary>
+    /// Finds THE settlement for the grouping key (Provider + Currency + Product + Month) regardless of status
+    /// (Pending, ReadyForSettlement, …). Unlike <see cref="GetOpenForProviderCurrencyProductPeriodAsync"/> (Pending-only),
+    /// this is used by the second-pass linker so orphan attributions are healed onto the EXISTING period settlement —
+    /// including a damaged ReadyForSettlement one — instead of spawning a duplicate. Terminal Cancelled settlements are
+    /// excluded so a cancelled period does not capture new links.
+    /// </summary>
+    Task<CargoDrySellThroughSettlementEntity?> GetByProviderCurrencyProductPeriodAsync(
+        long              providerProfileId,
+        string            currencyCode,
+        string            productCode,
+        DateTime          periodStartUtc,
+        DateTime          periodEndUtc,
+        CancellationToken ct);
+
     Task<(List<CargoDrySellThroughSettlementEntity> Items, int Total)> GetPagedAsync(
         long?                               providerProfileId,
         long?                               consignmentAgreementId,

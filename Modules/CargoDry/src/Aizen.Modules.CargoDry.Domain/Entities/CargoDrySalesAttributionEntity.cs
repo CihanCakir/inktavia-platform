@@ -208,12 +208,27 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
 
     /// <summary>
     /// Links this attribution to a sell-through settlement and marks it as SettlementPending.
+    ///
+    /// Called from two paths that are deliberately reconciled here:
+    ///   1. Activation (ICargoDryCommercialActivationService) — the attribution was just created directly in
+    ///      SettlementPending status, so this only stamps the FK; re-asserting SettlementPending is an idempotent no-op
+    ///      (NOT a double-transition to a new status).
+    ///   2. Second-pass healing (settlement automation) — a historical orphan may sit in Attributed; linking it moves it
+    ///      into SettlementPending, which is the correct transition for "now part of a settlement".
+    ///
+    /// Set-once on the FK: the already-linked guard makes the second pass idempotent. Settled/Cancelled attributions are
+    /// terminal and must never be pulled into a settlement.
     /// </summary>
     public void LinkToSettlement(long settlementId, DateTime nowUtc)
     {
         if (SellThroughSettlementId.HasValue)
             throw new InvalidOperationException(
                 $"Attribution {Id} is already linked to settlement {SellThroughSettlementId}.");
+
+        if (Status is CargoDrySalesAttributionStatus.Settled
+                   or CargoDrySalesAttributionStatus.Cancelled)
+            throw new InvalidOperationException(
+                $"Cannot link attribution {Id} to a settlement from terminal status {Status}.");
 
         SellThroughSettlementId = settlementId;
         Status                  = CargoDrySalesAttributionStatus.SettlementPending;
@@ -287,8 +302,10 @@ public sealed class CargoDrySalesAttributionEntity : AizenEntityWithAudit
             throw new ArgumentOutOfRangeException(nameof(commissionRate),
                 "CommissionRate must be between 0.00 and 1.00.");
 
-        var providerShare  = Math.Round(salePrice * commissionRate,      4, MidpointRounding.AwayFromZero);
-        var platformShare  = Math.Round(salePrice - providerShare,       4, MidpointRounding.AwayFromZero);
+        // Round to 2 decimals (currency minor unit) — money persisted here feeds provider payouts and the settlement
+        // totals verbatim. Rounding to 4 left values like 149.99 × 0.20 = 29.9980 → displayed ₺29,998 instead of ₺30,00.
+        var providerShare  = Math.Round(salePrice * commissionRate,      2, MidpointRounding.AwayFromZero);
+        var platformShare  = Math.Round(salePrice - providerShare,       2, MidpointRounding.AwayFromZero);
         var commissionAmt  = providerShare; // CommissionAmount = provider's earnings (their commission)
 
         SalePrice               = salePrice;

@@ -200,6 +200,27 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
     }
 
     /// <summary>
+    /// Reopens a ReadyForSettlement settlement back to Pending so its totals can be recalculated and re-resolved.
+    /// This is the self-heal path for a settlement whose totals were wiped (resolved while its attributions were not yet
+    /// linked). Guarded: only ReadyForSettlement, and ONLY while no payment/invoice has been prepared — once a payout or
+    /// invoice exists the amounts are committed downstream and must not silently change.
+    /// </summary>
+    public void ReopenForResolution()
+    {
+        if (Status != CargoDrySellThroughSettlementStatus.ReadyForSettlement)
+            throw new InvalidOperationException(
+                $"Settlement {Id} must be ReadyForSettlement to reopen (current: {Status}).");
+
+        if (PayoutRecordId.HasValue || InvoiceId.HasValue)
+            throw new InvalidOperationException(
+                $"Settlement {Id} cannot be reopened — payment/invoice already prepared " +
+                $"(PayoutRecordId={PayoutRecordId}, InvoiceId={InvoiceId}).");
+
+        Status                  = CargoDrySellThroughSettlementStatus.Pending;
+        ReadyForSettlementAtUtc = null;
+    }
+
+    /// <summary>
     /// Finance marks the settlement as ready for payout after reviewing amounts.
     /// Phase 4A: requires readyAtUtc parameter.
     /// </summary>

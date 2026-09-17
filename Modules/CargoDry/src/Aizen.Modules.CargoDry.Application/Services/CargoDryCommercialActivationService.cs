@@ -162,7 +162,7 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
 
         if (settlement is null)
         {
-            var settlementCode = GenerateSettlementCode(
+            var settlementCode = CargoDrySettlementCode.Generate(
                 agreement.ProviderProfileId, currencyCode, kit.ProductCode, nowUtc);
             settlement = CargoDrySellThroughSettlementEntity.Create(
                 settlementCode:         settlementCode,
@@ -185,6 +185,12 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
 
         // Update settlement totals (Phase 3: use 0 placeholders — real amounts resolved in Phase 4)
         settlement.AddAttribution(salePrice ?? 0m, commissionAmount ?? 0m, nowUtc);
+
+        // Materialise the settlement Id BEFORE creating the attribution so we can set the SellThroughSettlementId FK
+        // inline (link-at-activation). A brand-new settlement is Id=0 until flushed; an existing one already has an Id.
+        // Safe within the ActivateKit command transaction — this flush stays uncommitted until the handler commits.
+        if (settlement.Id == 0)
+            await _settlements.SaveChangesAsync(ct);
 
         // Resolve provider inventory row
         long? inventoryId = null;
@@ -214,7 +220,7 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
             }
         }
 
-        // Create attribution in SettlementPending status and link to settlement
+        // Create attribution in SettlementPending status and link to the settlement.
         var attribution = await CreateAttributionAsync(
             kit,
             CargoDrySalesAttributionStatus.SettlementPending,
@@ -228,25 +234,18 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
             commissionAmount: commissionAmount,
             currencyCode:    currencyCode);
 
+        // Link-at-activation: stamp the SellThroughSettlementId FK now that the settlement has a real Id. The attribution
+        // was created directly in SettlementPending, so LinkToSettlement only sets the FK (re-asserting SettlementPending
+        // is an idempotent no-op — see LinkToSettlement). Without this the FK was NULL forever and settlement resolution
+        // could never find the attribution (the dead-link bug). The handler's final SaveChanges persists the FK.
+        attribution.LinkToSettlement(settlement.Id, nowUtc);
+
         // ── Milestone evaluation (non-blocking) ────────────────────────────────
         if (kit.ProviderProfileId.HasValue)
         {
             try { await _milestones.EvaluateAfterSaleAsync(kit.ProviderProfileId.Value, DateTimeOffset.UtcNow, ct); }
             catch (Exception ex) { _logger.LogError(ex, "Milestone eval failed for provider {Pid}", kit.ProviderProfileId); }
         }
-
-        // Link requires an Id, which won't exist until SaveChanges — defer link via settlement
-        // (the settlement already holds the aggregated totals; the SellThroughSettlementId FK
-        // on the attribution is set only after the EF insert assigns an Id, so this is handled
-        // by the caller's SaveChanges + a second-pass update in Phase 4 settlement job)
-        // For Phase 3: set SellThroughSettlementId on attribution inline using the staged entity.
-        // Since settlement is tracked, its Id will be populated by EF after SaveChanges;
-        // but we can't set it before save. Instead we set it via a domain linkage after-save.
-        // Workaround: save here then link. Caller is responsible for final SaveChanges.
-        // Attribution is not yet saved — we pass the staged settlement reference;
-        // EF will resolve the FK when both are saved in the same SaveChanges call.
-        // This is correct EF Core behaviour: both entities are Added → EF assigns temporary IDs.
-        _ = attribution; // used via AddAsync already staged
     }
 
     // ── ProviderAttributedSale ───────────────────────────────────────────────────
@@ -371,23 +370,5 @@ public sealed class CargoDryCommercialActivationService : ICargoDryCommercialAct
 
         await _attributions.AddAsync(entity, ct);
         return entity;
-    }
-
-    /// <summary>
-    /// Generates a human-readable settlement code encoding the approved grouping dimensions:
-    /// Provider + Currency + Product + Month.
-    /// Format: STS-{providerProfileId}-{currencyCode}-{productCode}-{yyyyMM}
-    /// Example: STS-129-TRY-CD-BASIC-202607
-    /// ProductCode is normalized to uppercase; spaces replaced with dashes.
-    /// </summary>
-    private static string GenerateSettlementCode(
-        long     providerProfileId,
-        string   currencyCode,
-        string   productCode,
-        DateTime nowUtc)
-    {
-        var normalizedProduct  = productCode.ToUpperInvariant().Replace(" ", "-");
-        var normalizedCurrency = currencyCode.ToUpperInvariant();
-        return $"STS-{providerProfileId}-{normalizedCurrency}-{normalizedProduct}-{nowUtc:yyyyMM}";
     }
 }

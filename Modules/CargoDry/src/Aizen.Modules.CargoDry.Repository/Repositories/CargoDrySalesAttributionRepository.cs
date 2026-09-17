@@ -96,6 +96,19 @@ public sealed class CargoDrySalesAttributionRepository : ICargoDrySalesAttributi
                         x.FinancialResolvedAtUtc == null)
             .ToListAsync(ct);
 
+    /// <inheritdoc cref="ICargoDrySalesAttributionRepository.GetUnlinkedConsignmentSellThroughForPeriodAsync"/>
+    public async Task<IReadOnlyList<CargoDrySalesAttributionEntity>> GetUnlinkedConsignmentSellThroughForPeriodAsync(
+        DateTime periodStartUtc, DateTime periodEndUtc, CancellationToken ct)
+        => await _db.SalesAttributions
+            .Where(x => x.SellThroughSettlementId == null &&
+                        x.SalesChannel == SalesChannel.ConsignmentSellThrough &&
+                        x.Status != CargoDrySalesAttributionStatus.Settled &&
+                        x.Status != CargoDrySalesAttributionStatus.Cancelled &&
+                        x.CreatedAtUtc >= periodStartUtc &&
+                        x.CreatedAtUtc <  periodEndUtc)
+            .OrderBy(x => x.CreatedAtUtc)
+            .ToListAsync(ct);
+
     /// <inheritdoc cref="ICargoDrySalesAttributionRepository.GetCommissionRuleUsageGroupedAsync"/>
     public async Task<(List<CargoDryCommissionRuleUsageRowDto> Items, int Total)> GetCommissionRuleUsageGroupedAsync(
         DateTime?         dateFrom,

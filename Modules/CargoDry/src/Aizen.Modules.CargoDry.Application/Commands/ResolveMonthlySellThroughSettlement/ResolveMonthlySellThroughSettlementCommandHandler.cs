@@ -36,10 +36,26 @@ public sealed class ResolveMonthlySellThroughSettlementCommandHandler
             ?? throw new AizenBusinessException(
                 $"Sell-through settlement {request.SettlementId} not found.");
 
-        if (settlement.Status != CargoDrySellThroughSettlementStatus.Pending)
+        // ── Status gate (Task 2 repair path) ───────────────────────────────────
+        // Pending is the normal case. A ReadyForSettlement settlement may also be re-resolved (self-heal for a settlement
+        // whose totals were wiped because it was resolved before its attributions were linked) — but ONLY while no
+        // payment/invoice has been prepared, so committed downstream amounts can never change silently. Reopen it to
+        // Pending first so the same recalc + MarkReadyForSettlement flow applies.
+        if (settlement.Status == CargoDrySellThroughSettlementStatus.ReadyForSettlement)
+        {
+            if (settlement.PayoutRecordId.HasValue || settlement.InvoiceId.HasValue)
+                throw new AizenBusinessException(
+                    $"Settlement {settlement.Id} ({settlement.SettlementCode}) is ReadyForSettlement with a prepared " +
+                    $"payment/invoice — it cannot be re-resolved. Handle via the payout/dispute flow instead.");
+
+            settlement.ReopenForResolution();
+        }
+        else if (settlement.Status != CargoDrySellThroughSettlementStatus.Pending)
+        {
             throw new AizenBusinessException(
                 $"Settlement {settlement.Id} ({settlement.SettlementCode}) is in status " +
-                $"{settlement.Status} — only Pending settlements can be resolved.");
+                $"{settlement.Status} — only Pending (or an unpaid ReadyForSettlement) settlement can be resolved.");
+        }
 
         // ── Verify all attributions are financially resolved ───────────────────
         var unresolved = await _attributions.GetUnresolvedBySettlementIdAsync(settlement.Id, ct);
@@ -55,9 +71,18 @@ public sealed class ResolveMonthlySellThroughSettlementCommandHandler
         // ── Recalculate totals from all resolved attributions ──────────────────
         var allAttributions = await _attributions.GetBySettlementIdAsync(settlement.Id, ct);
 
-        var totalKitCount           = allAttributions.Count;
-        var totalSaleAmount         = allAttributions.Sum(a => a.SalePrice            ?? 0m);
-        var totalProviderShareAmount = allAttributions.Sum(a => a.ProviderShareAmount ?? 0m);
+        // Task 3 — guard the wipe: 0 linked attributions but the settlement still records kits means the settlement↔
+        // attribution link is broken (the dead-link bug). Zeroing the totals would silently hide the corruption and
+        // prepare a ₺0 payout. Refuse instead so the orphans can be linked (activation fix / second-pass) and retried.
+        if (allAttributions.Count == 0 && settlement.TotalKitCount > 0)
+            throw new AizenBusinessException(
+                $"Settlement {settlement.Id} ({settlement.SettlementCode}) has 0 linked attributions but records " +
+                $"{settlement.TotalKitCount} kit(s). Attribution linking is broken — refusing to zero the totals. " +
+                "Run the settlement automation (second-pass linker) or verify SellThroughSettlementId links, then retry.");
+
+        var totalKitCount            = allAttributions.Count;
+        var totalSaleAmount          = Math.Round(allAttributions.Sum(a => a.SalePrice            ?? 0m), 2, MidpointRounding.AwayFromZero);
+        var totalProviderShareAmount = Math.Round(allAttributions.Sum(a => a.ProviderShareAmount ?? 0m), 2, MidpointRounding.AwayFromZero);
 
         settlement.RecalculateTotals(
             totalKitCount:            totalKitCount,
