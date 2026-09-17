@@ -1,5 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 
 namespace Aizen.Bff.AdminPanel.Application.CargoDry.Command.CompleteCargoDrySettlementPayout;
@@ -14,17 +15,29 @@ public sealed class CompleteCargoDrySettlementPayoutBffCommandHandler
     : AizenCommandHandler<CompleteCargoDrySettlementPayoutBffCommand,
                           CompleteCargoDrySettlementPayoutBffCommandResponse>
 {
-    private readonly ICargoDryRemoteCall _remote;
+    private readonly ICargoDryRemoteCall    _remote;
+    private readonly IAdminIdentityResolver  _resolver;
+    private readonly IAdminIdentityHolder    _holder;
 
-    public CompleteCargoDrySettlementPayoutBffCommandHandler(ICargoDryRemoteCall remote)
-        => _remote = remote;
+    public CompleteCargoDrySettlementPayoutBffCommandHandler(
+        ICargoDryRemoteCall remote, IAdminIdentityResolver resolver, IAdminIdentityHolder holder)
+    {
+        _remote   = remote;
+        _resolver = resolver;
+        _holder   = holder;
+    }
 
     public override async Task<CompleteCargoDrySettlementPayoutBffCommandResponse> Handle(
         CompleteCargoDrySettlementPayoutBffCommand request, CancellationToken ct)
     {
+        // FIX_RESOLVE_FINANCIALS_ACTOR (same bug class as attribution resolve-financials / automation run):
+        // the FE sends no actor id and the body default (0) fails module validation. Stamp the acting admin
+        // server-side; the client-supplied value is ignored on purpose.
+        await _resolver.ResolveAsync(ct);
+
         var remoteRequest = new CompleteCargoDrySettlementPayoutBffRequest
         {
-            CompletedByUserId      = request.CompletedByUserId,
+            CompletedByUserId      = _holder.UserId ?? 0,
             ManualPaymentReference = request.ManualPaymentReference,
             Note                   = request.Note,
         };
