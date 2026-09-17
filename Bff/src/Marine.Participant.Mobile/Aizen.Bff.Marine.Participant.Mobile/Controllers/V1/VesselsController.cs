@@ -1,4 +1,6 @@
+using Aizen.Bff.Marine.Participant.Mobile.Application.CargoDry;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Common.Authorization;
+using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.CargoDry;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Contracts.Vessel;
 using Aizen.Bff.Marine.Participant.Mobile.Application.Vessel;
 using Aizen.Core.CQRS.Abstraction;
@@ -39,6 +41,18 @@ public sealed class VesselsController : AizenWebApiController
     public async Task<AizenApiResponse<MobileVesselDetailDto>> GetVessel([FromRoute] long vesselId, CancellationToken ct)
     {
         var result = await _cqrs.ProcessAsync(new GetMobileVesselDetailQuery(vesselId), ct);
+        return SetResponse(result);
+    }
+
+    /// <summary>CargoDry protection summary for one of the caller's vessels — the active-kit count + the kits on that
+    /// vessel. Owner-scoped (built from the caller's own kit set filtered to this vessel); an unknown/foreign vessel
+    /// returns an empty summary rather than leaking anything.</summary>
+    [HttpGet("{vesselId:long}/cargodry")]
+    [ProducesResponseType(typeof(MobileVesselCargoDryDto), StatusCodes.Status200OK)]
+    public async Task<AizenApiResponse<MobileVesselCargoDryDto>> GetVesselCargoDry(
+        [FromRoute] long vesselId, CancellationToken ct)
+    {
+        var result = await _cqrs.ProcessAsync(new GetMobileVesselCargoDryQuery(vesselId), ct);
         return SetResponse(result);
     }
 

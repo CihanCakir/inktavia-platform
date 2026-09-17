@@ -15,9 +15,11 @@ public sealed class CargoDryKitBffDto
     public string  BatchCode         { get; init; } = default!;
     public string  Status            { get; init; } = default!;
     public long?   OwnerUserId       { get; init; }
-    public string? OwnerDisplayName  { get; init; }
+    // BFF-enriched (module leaves these null): OwnerUserId → owner display name, VesselId → vessel name. Settable so the
+    // list/detail handlers can fill them after resolving Identity/Vessel; the admin GEMİ/SAHİP columns showed "—" before.
+    public string? OwnerDisplayName  { get; set; }
     public long?   VesselId          { get; init; }
-    public string? VesselName        { get; init; }
+    public string? VesselName        { get; set; }
 
     // Backend sends "activatedAt" / "expiresAt" (Newtonsoft camelCase of ActivatedAt/ExpiresAt).
     // STJ [JsonPropertyName] maps the Refit deserialization key without affecting
