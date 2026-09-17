@@ -45,4 +45,11 @@ public sealed class ServiceRequestOfferDto
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Optimistic-concurrency token (PostgreSQL xmin as a string). Populated where a draft is surfaced for resume
+    /// (provider SR detail's MyOffer) so the OfferBuilder can seed its token and SaveOfferDraft can detect a stale save.
+    /// Null where not applicable (list projections, non-draft reads).
+    /// </summary>
+    public string? ConcurrencyToken { get; set; }
 }

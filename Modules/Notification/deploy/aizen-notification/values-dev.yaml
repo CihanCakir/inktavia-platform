@@ -293,8 +293,12 @@ env:
   - name: Notifications__DeepLink__AllowedSchemes__0
     value: "inktavia-marine"
   # Notification__WebBaseUrl BİLEREK unset: owner web yok — unset ⇒ göreli linkler
-  # maile gömülmez, yanlış host'a giden link oluşmaz. Owner link köprüsü (mobil BFF
-  # /link endpoint'i) deploy olunca Notification__OwnerLinkBaseUrl eklenecek.
+  # maile gömülmez, yanlış host'a giden link oluşmaz.
+  # FIX_OWNER_EMAIL_LINK (17 Eyl 2026, F1 canlı bulgusu): owner maillerinde link YOKTU çünkü bu
+  # değer hâlâ eksikti; LinkBridgeController (GET /link/{*path}) dev-mapi'de zaten canlı.
+  # Dispatcher owner linkini {OwnerLinkBaseUrl}/{path} olarak kurar → dev-mapi.../link/service-requests/59.
+  - name: Notification__OwnerLinkBaseUrl
+    value: "https://dev-mapi.inktavia.com/link"
 
   # ── SMS kanali (FAZ 28.7) ─────────────────────────────────────────────────────
   # 2026-08-25: Infobip trial hesabi acildi → dev'de gercek adapter devrede.

@@ -6,6 +6,8 @@ using Aizen.Modules.ServiceRequest.Abstraction.Response.ServiceRequest;
 using Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderDiscovery;
 using Aizen.Modules.ServiceRequest.Domain.Interface.Repository;
 using Aizen.Modules.ServiceRequest.Repository.Mapping;
+using Aizen.Modules.ServiceRequest.Repository.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Aizen.Modules.ServiceRequest.Application.Query.Provider.GetProviderServiceRequestDetail;
@@ -55,6 +57,7 @@ public sealed class GetProviderServiceRequestDetailQueryHandler
     private readonly IServiceRequestOfferRepository _offerRepository;
     private readonly IServiceRequestAssignmentRepository _assignmentRepository;
     private readonly IAizenInfoAccessor _info;
+    private readonly ServiceRequestDbContext _db;
     private readonly ILogger<GetProviderServiceRequestDetailQueryHandler> _logger;
 
     public GetProviderServiceRequestDetailQueryHandler(
@@ -62,12 +65,14 @@ public sealed class GetProviderServiceRequestDetailQueryHandler
         IServiceRequestOfferRepository offerRepository,
         IServiceRequestAssignmentRepository assignmentRepository,
         IAizenInfoAccessor info,
+        ServiceRequestDbContext db,
         ILogger<GetProviderServiceRequestDetailQueryHandler> logger)
     {
         _srRepository = srRepository;
         _offerRepository = offerRepository;
         _assignmentRepository = assignmentRepository;
         _info = info;
+        _db = db;
         _logger = logger;
     }
 
@@ -106,6 +111,22 @@ public sealed class GetProviderServiceRequestDetailQueryHandler
         // Surface the assignment id when this request is assigned to the caller, so the detail page can link the
         // accepted+assigned state straight to its Job.
         detail.AssignmentId = isAssignedToMe ? assignment!.Id : null;
+
+        // Seed the OfferBuilder's optimistic-concurrency token: expose the caller's offer xmin so a resumed draft edit
+        // starts with a VALID token (SaveOfferDraft then detects a stale save). Read the xmin shadow column directly via
+        // an EF.Property projection — works without tracking. Only a Draft is actually edited, but exposing it for any
+        // MyOffer is harmless (the FE only uses it when resuming a draft).
+        if (detail.MyOffer is not null)
+        {
+            var offerId = detail.MyOffer.Id;
+            var xmin = await _db.ServiceRequestOffers
+                .AsNoTracking()
+                .Where(o => o.Id == offerId)
+                .Select(o => (uint?)EF.Property<uint>(o, "xmin"))
+                .FirstOrDefaultAsync(ct);
+            if (xmin.HasValue)
+                detail.MyOffer.ConcurrencyToken = xmin.Value.ToString();
+        }
 
         // Compute distance from the provider's location (exact coords stay in the module)
         if (request.CenterLatitude.HasValue && request.CenterLongitude.HasValue
