@@ -78,7 +78,11 @@ public sealed class ReleasePaymentEscrowCommandHandler
             paymentTransactionId: tx.Id,
             amount:               tx.NetPayoutAmount,
             currencyCode:         tx.CurrencyCode,
-            gatewayProvider:      gateway.ProviderKey
+            gatewayProvider:      gateway.ProviderKey,
+            // FIX_PAYOUT_SOURCE_FIELDS: stamp payout source (parity with settlement path).
+            sourceType:           "ServiceRequest",
+            sourceId:             tx.ContextId,
+            description:          $"Service request #{tx.ContextId} payout — escrow release"
         );
         payout.MarkCompleted(payoutResult.GatewayPayoutId, request.AdminNote);
         await _payouts.AddAsync(payout, ct);

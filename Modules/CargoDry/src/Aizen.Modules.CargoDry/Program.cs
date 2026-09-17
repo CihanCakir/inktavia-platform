@@ -41,6 +41,9 @@ builder.Services.AddCargoDryRepository(builder.Configuration);
 builder.Services.AddCargoDryApplication();
 
 // ── Identity + BFF Assertion (provider-scoped endpoints) ─────────────────────
+// NOTE: AddAizenRemoteCall(configuration) is registered automatically by AizenOperationServiceConfiguration
+// (AppType.Operation), so the CargoDry → Payment Refit client (ICargoDrySettlementPaymentRemoteCall) is wired without
+// an explicit call here — it only needs RemoteCalls__ICargoDrySettlementPaymentRemoteCall__BaseUrl in host config.
 builder.Services.AddAizenInfoAccessor(builder.Configuration);
 
 // ── Redis Cache (IAizenDistributedCache — required by cacheable handlers) ─────

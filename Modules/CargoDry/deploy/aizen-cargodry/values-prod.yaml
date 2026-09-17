@@ -214,3 +214,6 @@ env:
     value: "7"
   - name: RemoteCalls__ICargoDryReferenceDataRemoteCall__BaseUrl
     value: "http://aizen-referencedata"
+  # CargoDry → Payment settlement-payout preparation (split-host bridge). Cluster-internal [AllowAnonymous] endpoint.
+  - name: RemoteCalls__ICargoDrySettlementPaymentRemoteCall__BaseUrl
+    value: "http://aizen-payment"

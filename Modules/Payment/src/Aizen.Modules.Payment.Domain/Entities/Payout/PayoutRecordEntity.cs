@@ -68,9 +68,14 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
 
     private PayoutRecordEntity() { }
 
+    // FIX_PAYOUT_SOURCE_FIELDS: the escrow-release path used to leave SourceType/SourceId/Description NULL,
+    // so the provider Finans "KAYNAK" column showed "—" for service-job payouts while CargoDry settlement payouts
+    // (CreateForCargoDrySettlement) carried a description. Optional source params keep every existing caller
+    // compiling; the escrow-release consumer now passes them.
     public static PayoutRecordEntity Create(
         long providerProfileId, long paymentTransactionId,
-        decimal amount, string currencyCode, string gatewayProvider)
+        decimal amount, string currencyCode, string gatewayProvider,
+        string? sourceType = null, long? sourceId = null, string? description = null)
     {
         return new PayoutRecordEntity
         {
@@ -80,6 +85,9 @@ public sealed class PayoutRecordEntity : AizenEntityWithAudit
             CurrencyCode         = currencyCode.ToUpperInvariant(),
             Status               = PayoutStatus.Pending,
             GatewayProvider      = gatewayProvider,
+            SourceType           = sourceType,
+            SourceId             = sourceId,
+            Description          = description,
             RequestedAt          = DateTime.UtcNow,
             IsActive             = true,
         };
