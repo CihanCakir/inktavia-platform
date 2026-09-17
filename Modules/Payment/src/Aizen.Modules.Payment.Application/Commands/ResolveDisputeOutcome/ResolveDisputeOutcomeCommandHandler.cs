@@ -121,7 +121,11 @@ public sealed class ResolveDisputeOutcomeCommandHandler
             paymentTransactionId: tx.Id,
             amount:               tx.NetPayoutAmount,
             currencyCode:         tx.CurrencyCode,
-            gatewayProvider:      gateway.ProviderKey);
+            gatewayProvider:      gateway.ProviderKey,
+            // FIX_PAYOUT_SOURCE_FIELDS: stamp payout source (parity with settlement path).
+            sourceType:           "ServiceRequest",
+            sourceId:             tx.ContextId,
+            description:          $"Service request #{tx.ContextId} payout — dispute resolution");
         payout.MarkCompleted(payoutResult.GatewayPayoutId, $"DISPUTE-{request.DisputeId}");
         await _payouts.AddAsync(payout, ct);
         // SaveChanges handled by the command decorator.

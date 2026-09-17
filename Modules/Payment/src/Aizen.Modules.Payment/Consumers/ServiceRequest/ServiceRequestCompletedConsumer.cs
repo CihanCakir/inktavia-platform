@@ -112,7 +112,12 @@ public sealed class ServiceRequestCompletedConsumer
             paymentTransactionId: tx.Id,
             amount:               tx.NetPayoutAmount,
             currencyCode:         tx.CurrencyCode,
-            gatewayProvider:      gateway.ProviderKey);   // status = Pending (marker)
+            gatewayProvider:      gateway.ProviderKey,
+            // FIX_PAYOUT_SOURCE_FIELDS: stamp the payout source so provider Finance
+            // shows the origin (was "—" — only the settlement path set these).
+            sourceType:           "ServiceRequest",
+            sourceId:             tx.ContextId,
+            description:          $"Service request #{tx.ContextId} payout");   // status = Pending (marker)
 
         await _payouts.AddAsync(payout, ct);
         try

@@ -22,6 +22,22 @@ public static class DependencyInjection
         // co-hosted; standalone, the null-object degrades the resolver to agreement-rate tiers (Supply v2 fix).
         services.TryAddScoped<ICargoDryCommissionRuleLookupService, NullCargoDryCommissionRuleLookupService>();
 
+        // ── Split-host Payment bridges ────────────────────────────────────────────
+        // Every service below is implemented in Payment.Application (in-process MediatR bridge) and injected by a
+        // CargoDry settlement/invoice handler. Co-hosted, Payment.Application's real AddScoped wins over these TryAdds.
+        // In the split aizen-cargodry pod (no Payment.Application) these registrations are what let the handlers ACTIVATE
+        // at all — without them the module 911s on DI activation (this task's bug class). See the DI smoke test.
+        //
+        // All four bridges are real HTTP bridges over the single ICargoDrySettlementPaymentRemoteCall client (one BaseUrl:
+        // RemoteCalls__ICargoDrySettlementPaymentRemoteCall__BaseUrl; AddAizenRemoteCall is wired by the Operation Starter).
+        // Co-hosted, Payment.Application's in-process AddScoped wins over these TryAdds; the split aizen-cargodry pod uses
+        // the remote impls. Complete only moves the PayoutRecord — settlement closure (→ Settled) stays in the CargoDry
+        // CompleteCargoDrySettlementPayout handler.
+        services.TryAddScoped<ICargoDrySettlementPayoutService, RemoteCargoDrySettlementPayoutService>();
+        services.TryAddScoped<ICargoDrySettlementPayoutLifecycleService, RemoteCargoDrySettlementPayoutLifecycleService>();
+        services.TryAddScoped<ICargoDrySettlementInvoiceService, RemoteCargoDrySettlementInvoiceService>();
+        services.TryAddScoped<ICargoDryRenewalInvoiceService, RemoteCargoDryRenewalInvoiceService>();
+
         // CE-6c: Milestone evaluator
         services.AddScoped<ICargoDryProviderMilestoneEvaluator, CargoDryProviderMilestoneEvaluator>();
 

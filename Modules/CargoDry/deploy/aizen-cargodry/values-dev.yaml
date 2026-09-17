@@ -236,3 +236,8 @@ env:
     value: "7"
   - name: RemoteCalls__ICargoDryReferenceDataRemoteCall__BaseUrl
     value: "http://aizen-referencedata"
+  # CargoDry → Payment settlement-payout preparation (split-host bridge). Without this BaseUrl the aizen-cargodry pod
+  # cannot reach Payment and prepare-payment 911'd on the in-process Payment.Application bridge. Endpoint is
+  # cluster-internal [AllowAnonymous] (token-less S2S), so no auth wiring is needed.
+  - name: RemoteCalls__ICargoDrySettlementPaymentRemoteCall__BaseUrl
+    value: "http://aizen-payment"
