@@ -1,5 +1,6 @@
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients;
 using Aizen.Bff.AdminPanel.Application.Common.RemoteClients.CargoDry;
+using Aizen.Bff.AdminPanel.Application.Common.Services;
 using Aizen.Core.CQRS.Handler;
 
 namespace Aizen.Bff.AdminPanel.Application.CargoDry.Command.PrepareCargoDrySettlementInvoice;
@@ -17,17 +18,29 @@ public sealed class PrepareCargoDrySettlementInvoiceBffCommandHandler
     : AizenCommandHandler<PrepareCargoDrySettlementInvoiceBffCommand,
                           PrepareCargoDrySettlementInvoiceBffCommandResponse>
 {
-    private readonly ICargoDryRemoteCall _remote;
+    private readonly ICargoDryRemoteCall    _remote;
+    private readonly IAdminIdentityResolver  _resolver;
+    private readonly IAdminIdentityHolder    _holder;
 
-    public PrepareCargoDrySettlementInvoiceBffCommandHandler(ICargoDryRemoteCall remote)
-        => _remote = remote;
+    public PrepareCargoDrySettlementInvoiceBffCommandHandler(
+        ICargoDryRemoteCall remote, IAdminIdentityResolver resolver, IAdminIdentityHolder holder)
+    {
+        _remote   = remote;
+        _resolver = resolver;
+        _holder   = holder;
+    }
 
     public override async Task<PrepareCargoDrySettlementInvoiceBffCommandResponse> Handle(
         PrepareCargoDrySettlementInvoiceBffCommand request, CancellationToken ct)
     {
+        // FIX_RESOLVE_FINANCIALS_ACTOR (same bug class as attribution resolve-financials / automation run):
+        // the FE sends no actor id and the body default (0) fails module validation. Stamp the acting admin
+        // server-side; the client-supplied value is ignored on purpose.
+        await _resolver.ResolveAsync(ct);
+
         var remoteRequest = new PrepareCargoDrySettlementInvoiceBffRequest
         {
-            PreparedByUserId = request.PreparedByUserId,
+            PreparedByUserId = _holder.UserId ?? 0,
             PreparationNote  = request.PreparationNote,
         };
 
