@@ -361,6 +361,23 @@ public sealed class CargoDrySellThroughSettlementEntity : AizenEntityWithAudit
     }
 
     /// <summary>
+    /// Records how many of this settlement's linked attributions were settled when the payout closed (settle-on-close).
+    /// Mirrors ResolveMonthly's kit accounting — one attribution == one kit — so this is a count, not a sum. Guarded to
+    /// Settled status because the count is only meaningful once the settlement has closed; the setter stays private.
+    /// </summary>
+    public void RecordSettledKits(int settledKitCount)
+    {
+        if (Status != CargoDrySellThroughSettlementStatus.Settled)
+            throw new InvalidOperationException(
+                $"Settlement {Id} must be Settled to record settled kits (current: {Status}).");
+
+        if (settledKitCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(settledKitCount), "Settled kit count must be non-negative.");
+
+        SettledKitCount = settledKitCount;
+    }
+
+    /// <summary>
     /// Records a payout failure without closing the settlement.
     /// Does NOT set Status = Settled. Settlement remains Scheduled (retryable).
     ///

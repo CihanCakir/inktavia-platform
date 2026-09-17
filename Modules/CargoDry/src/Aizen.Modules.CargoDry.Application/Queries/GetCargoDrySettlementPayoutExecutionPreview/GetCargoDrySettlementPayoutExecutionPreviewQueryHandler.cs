@@ -104,8 +104,14 @@ public sealed class GetCargoDrySettlementPayoutExecutionPreviewQueryHandler
         bool canApprovePayout  = isScheduled && paymentPrepared && ps == PayoutStatus.Pending;
         bool canMarkProcessing = isScheduled && paymentPrepared
                                  && (ps == PayoutStatus.Approved || ps == PayoutStatus.Pending);
+        // FIX_COMPLETE_ELIGIBILITY_INCLUDES_COMPLETED: a payout that is already Completed on the
+        // Payment side (e.g. an idempotency-reused record) while the settlement is still Scheduled
+        // left the settlement unclosable from the UI (all Can* false, no blocking reason). The
+        // Complete command is idempotent (AlreadyCompleted passthrough) and is the ONLY path to
+        // Settled, so offer it for Completed payouts too.
         bool canCompletePayout = isScheduled && paymentPrepared && invoicePrepared
-                                 && (ps == PayoutStatus.Approved || ps == PayoutStatus.Processing || ps == PayoutStatus.Pending);
+                                 && (ps == PayoutStatus.Approved || ps == PayoutStatus.Processing
+                                     || ps == PayoutStatus.Pending || ps == PayoutStatus.Completed);
         bool canFailPayout     = isScheduled && paymentPrepared
                                  && ps is not (null or PayoutStatus.Completed or PayoutStatus.Cancelled);
 

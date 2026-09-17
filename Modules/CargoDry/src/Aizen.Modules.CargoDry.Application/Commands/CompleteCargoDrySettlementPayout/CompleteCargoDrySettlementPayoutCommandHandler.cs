@@ -21,15 +21,18 @@ public sealed class CompleteCargoDrySettlementPayoutCommandHandler
     : AizenCommandHandler<CompleteCargoDrySettlementPayoutCommand, CompleteCargoDrySettlementPayoutResponse>
 {
     private readonly ICargoDrySellThroughSettlementRepository         _settlements;
+    private readonly ICargoDrySalesAttributionRepository              _attributions;
     private readonly ICargoDrySettlementPayoutLifecycleService        _lifecycleService;
     private readonly ILogger<CompleteCargoDrySettlementPayoutCommandHandler> _logger;
 
     public CompleteCargoDrySettlementPayoutCommandHandler(
         ICargoDrySellThroughSettlementRepository              settlements,
+        ICargoDrySalesAttributionRepository                  attributions,
         ICargoDrySettlementPayoutLifecycleService             lifecycleService,
         ILogger<CompleteCargoDrySettlementPayoutCommandHandler> logger)
     {
         _settlements      = settlements;
+        _attributions     = attributions;
         _lifecycleService = lifecycleService;
         _logger           = logger;
     }
@@ -54,8 +57,19 @@ public sealed class CompleteCargoDrySettlementPayoutCommandHandler
             // Still call the lifecycle service to get current payout state for the response
             if (settlement.PayoutRecordId.HasValue)
             {
+                // Idempotent repair: an already-Settled settlement may still carry linked attributions stuck in
+                // SettlementPending (the pre-fix dead-seam state) and/or a stale SettledKitCount. Settle-on-close here
+                // too so a re-run of complete-payout heals existing data without any SQL. SaveChanges is a no-op when
+                // nothing changed (EF change tracking), so a clean re-run writes nothing.
+                var settledCount = await SettleLinkedAttributionsAsync(settlement, ct);
+                await _settlements.SaveChangesAsync(ct);
+
                 var existingPayoutResult = await _lifecycleService.GetPayoutStateAsync(
                     settlement.PayoutRecordId.Value, settlement.Id, ct);
+
+                _logger.LogInformation(
+                    "Settlement {Id} ({Code}) already Settled — settle-on-close repair set SettledKitCount={Count}.",
+                    settlement.Id, settlement.SettlementCode, settledCount);
 
                 return new CompleteCargoDrySettlementPayoutResponse
                 {
@@ -104,13 +118,16 @@ public sealed class CompleteCargoDrySettlementPayoutCommandHandler
             payoutReference:   request.ManualPaymentReference,
             note:              request.Note);
 
+        // ── Settle-on-close: settle the linked attributions and record SettledKitCount ─────
+        var settledKitCount = await SettleLinkedAttributionsAsync(settlement, ct);
+
         await _settlements.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "CargoDry settlement payout completed and settlement closed. " +
-            "SettlementId={Id} Code={Code} PayoutRecordId={PayoutId} Reference={Ref} Status={Status}",
+            "SettlementId={Id} Code={Code} PayoutRecordId={PayoutId} Reference={Ref} Status={Status} SettledKits={SettledKits}",
             settlement.Id, settlement.SettlementCode,
-            settlement.PayoutRecordId, request.ManualPaymentReference, settlement.Status);
+            settlement.PayoutRecordId, request.ManualPaymentReference, settlement.Status, settledKitCount);
 
         return new CompleteCargoDrySettlementPayoutResponse
         {
@@ -118,6 +135,46 @@ public sealed class CompleteCargoDrySettlementPayoutCommandHandler
             PayoutResult     = payoutResult,
             AlreadyCompleted = payoutResult.AlreadyCompleted,
         };
+    }
+
+    /// <summary>
+    /// Settle-on-close: closes out the attributions linked to a now-Settled settlement and writes SettledKitCount.
+    /// Requires the settlement to already be Settled (RecordSettledKits guards this). Each attribution counts as one kit
+    /// (mirrors ResolveMonthly's TotalKitCount = attribution count). SettlementPending attributions are advanced to
+    /// Settled; already-Settled ones are counted (idempotent re-run); anything else (Cancelled, or an unexpected
+    /// non-settleable status) is skipped with a Warning — never throws, so a straggler can't fail the whole command.
+    /// Returns the resulting settled-kit count.
+    /// </summary>
+    private async Task<int> SettleLinkedAttributionsAsync(
+        Domain.Entities.CargoDrySellThroughSettlementEntity settlement, CancellationToken ct)
+    {
+        var linked = await _attributions.GetBySettlementIdAsync(settlement.Id, ct);
+
+        var settledCount = 0;
+        foreach (var attribution in linked)
+        {
+            switch (attribution.Status)
+            {
+                case CargoDrySalesAttributionStatus.SettlementPending:
+                    attribution.MarkSettled();
+                    settledCount++;
+                    break;
+
+                case CargoDrySalesAttributionStatus.Settled:
+                    settledCount++; // already settled — count it so a re-run reports a stable SettledKitCount
+                    break;
+
+                default:
+                    _logger.LogWarning(
+                        "Settle-on-close: skipping attribution {AttributionId} on settlement {SettlementId} — " +
+                        "non-settleable status {Status} (not advancing, not counting).",
+                        attribution.Id, settlement.Id, attribution.Status);
+                    break;
+            }
+        }
+
+        settlement.RecordSettledKits(settledCount);
+        return settledCount;
     }
 
     private static CargoDrySellThroughSettlementDto BuildSettlementDto(

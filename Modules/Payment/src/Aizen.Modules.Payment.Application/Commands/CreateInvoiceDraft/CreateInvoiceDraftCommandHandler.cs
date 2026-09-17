@@ -26,7 +26,8 @@ namespace Aizen.Modules.Payment.Application.Commands.CreateInvoiceDraft;
 ///  TaxType string is derived as "KDV{rate%}" (e.g. 0.20 → "KDV20").
 ///
 /// ── SaveChanges ───────────────────────────────────────────────────────────────
-///  NOT called here — delegated to AizenCommandHandlerDecorator (UnitOfWork pattern).
+///  Flushed once at the end of the handler (FIX_GENERATED_ID_BEFORE_SAVE) so the returned
+///  invoice.Id is the real DB-generated id; the decorator's later SaveChanges is a no-op.
 /// </summary>
 [DocumentationInfo("Create invoice draft command handler",
     "Creates a Draft InvoiceHeaderEntity with computed totals, line items, and tax breakdown rows. " +
@@ -151,6 +152,12 @@ public sealed class CreateInvoiceDraftCommandHandler
         _logger.LogInformation(
             "Invoice draft created. Type={Type} Buyer={Buyer} Total={Total} {Currency}",
             request.InvoiceType, request.BuyerName, totalAmount, request.Currency);
+
+        // FIX_GENERATED_ID_BEFORE_SAVE: flush now so invoice.Id is the real DB-generated id
+        // (the decorator saves only after the handler returns; without this the result carried
+        // Id=0 — same bug class as the settlement-statement handler). Children (lines, tax
+        // breakdowns) are already attached to the aggregate, so this single flush persists all.
+        await _invoices.SaveChangesAsync(ct);
 
         return new CreateInvoiceDraftResult(invoice.Id, invoice.PublicId);
     }
