@@ -98,9 +98,14 @@ public sealed class CargoDryProviderController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<CargoDryProviderInventoryPagedResultDto>(
             new GetProviderInventoryListQuery
             {
-                ProviderProfileId = pid, ProductCode = productCode, CommercialModel = commercialModel,
-                SalesChannel = salesChannel, HasAvailableStock = hasAvailableStock, Search = search,
-                Page = page, PageSize = pageSize
+                ProviderProfileId = pid,
+                ProductCode = productCode,
+                CommercialModel = commercialModel,
+                SalesChannel = salesChannel,
+                HasAvailableStock = hasAvailableStock,
+                Search = search,
+                Page = page,
+                PageSize = pageSize
             }, ct);
         return SetResponse(result);
     }
@@ -118,7 +123,10 @@ public sealed class CargoDryProviderController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<List<CargoDryProviderKitDto>>(
             new GetProviderKitsQuery
             {
-                ProviderProfileId = pid, ProductCode = productCode, Status = status, PageSize = pageSize
+                ProviderProfileId = pid,
+                ProductCode = productCode,
+                Status = status,
+                PageSize = pageSize
             }, ct);
         return SetResponse(result);
     }
@@ -135,9 +143,14 @@ public sealed class CargoDryProviderController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<CargoDryInventoryMovementPagedResultDto>(
             new GetProviderInventoryMovementsQuery
             {
-                ProviderProfileId = pid, ProductCode = productCode, BatchCode = batchCode,
-                MovementType = movementType, DateFrom = dateFrom, DateTo = dateTo,
-                Page = page, PageSize = pageSize
+                ProviderProfileId = pid,
+                ProductCode = productCode,
+                BatchCode = batchCode,
+                MovementType = movementType,
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+                Page = page,
+                PageSize = pageSize
             }, ct);
         return SetResponse(result);
     }
@@ -151,7 +164,10 @@ public sealed class CargoDryProviderController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<List<CargoDryRenewalCandidateDto>>(
             new GetCargoDryRenewalCandidatesQuery
             {
-                ProviderProfileId = pid, WithinDays = withinDays, Page = page, PageSize = pageSize
+                ProviderProfileId = pid,
+                WithinDays = withinDays,
+                Page = page,
+                PageSize = pageSize
             }, ct);
         return SetResponse(result);
     }
@@ -175,8 +191,10 @@ public sealed class CargoDryProviderController : AizenWebApiController
         var result = await _cqrs.ProcessAsync<CargoDryStockRequestDto>(
             new CreateProviderStockRequestCommand
             {
-                ProviderProfileId = pid, ProductCode = body.ProductCode,
-                RequestedQuantity = body.RequestedQuantity, Note = body.Note
+                ProviderProfileId = pid,
+                ProductCode = body.ProductCode,
+                RequestedQuantity = body.RequestedQuantity,
+                Note = body.Note
             }, ct);
         return SetResponse(result);
     }
@@ -285,7 +303,7 @@ public sealed class CargoDryProviderController : AizenWebApiController
                 Page = page,
                 PageSize = pageSize,
                 From = from.HasValue ? DateTime.SpecifyKind(from.Value, DateTimeKind.Utc) : null,
-                To   = to.HasValue   ? DateTime.SpecifyKind(to.Value,   DateTimeKind.Utc) : null,
+                To = to.HasValue ? DateTime.SpecifyKind(to.Value, DateTimeKind.Utc) : null,
             }, ct);
         return SetResponse(result);
     }
