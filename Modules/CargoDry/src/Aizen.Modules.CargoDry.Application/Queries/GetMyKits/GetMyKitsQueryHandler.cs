@@ -32,6 +32,8 @@ public sealed class GetMyKitsQueryHandler
             KitCode           = k.KitCode,
             ProductCode       = k.ProductCode,
             ProductName       = productMap.TryGetValue(k.ProductCode, out var p) ? p.Name : k.ProductCode,
+            // FIX_MYKITS_CARD_DURATION_CHIP: SKU base duration for the card duration chip (0 when the product is missing).
+            ProductValidityDays = p?.ValidityDays ?? 0,
             BatchCode         = k.BatchCode,
             Status            = k.Status,
             OwnerUserId       = k.OwnerUserId,

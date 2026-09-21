@@ -265,7 +265,7 @@ env:
   - name: Vapid__Subject
     value: "mailto:info@inktavia.com"
   - name: Vapid__PublicKey
-    value: "BOa1fkDwYHBKp5xe3CmZZUNLImTYzHIfE1td5jU49Qs8DLtuug6cCqpe9wX9qFSMroqwosk54qu32XEI7ADvxoE"
+    value: "BASjEtaUU-brLCX9p9Q8gcHAJChSjmUnjMkSzAuzujGaCVtyeDDlJ4tEzkui7E43kEoV6flmp4HFARO7Jixp88U"
   - name: Vapid__PrivateKey
     valueFrom:
       secretKeyRef: { name: platform-credentials, key: VAPID_PRIVATE_KEY }
