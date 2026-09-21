@@ -22,6 +22,11 @@ public class CargoDryKitDto
     public int               RenewalCount      { get; init; }
     public DateTimeOffset    ManufacturedAt    { get; init; }
 
+    // FIX_MYKITS_CARD_DURATION_CHIP: the SKU base duration (product ValidityDays, e.g. 90). The My Kits card duration
+    // chip must show this — the SKU duration the detail hero shows — NOT the activation→expiry window (which grows on
+    // renewal, e.g. 180). Same value the product catalog exposes.
+    public int               ProductValidityDays { get; init; }
+
     // ── Commercial foundation (Phase 0, July 2026) ────────────────────────────
     /// <summary>Provider that sold or attributed this kit. Null = no attribution.</summary>
     public long?                    ProviderProfileId    { get; init; }

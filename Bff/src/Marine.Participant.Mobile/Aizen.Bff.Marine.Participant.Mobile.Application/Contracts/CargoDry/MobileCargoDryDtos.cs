@@ -35,6 +35,9 @@ public sealed class MobileKitDto
     public int             DaysUntilExpiry   { get; set; }
     public int             RenewalCount      { get; set; }
     public bool            HasSmartDevice    { get; set; }
+    // FIX_MYKITS_CARD_DURATION_CHIP: SKU base duration (product ValidityDays) so the My Kits card duration chip shows
+    // the same number as the Kit Detail hero, not the activation→expiry window.
+    public int             ProductValidityDays { get; set; }
 }
 
 /// <summary>The caller's kits plus the roll-up counts the app shows on the kits screen.</summary>

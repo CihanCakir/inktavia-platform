@@ -37,6 +37,8 @@ public static class MobileCargoDryMapper
         // The module's kit DTO doesn't echo HasSmartDevice (only the validation reply carries it, per product), so
         // it stays false here — the field exists on the mobile contract for the validate flow, not the kit list.
         HasSmartDevice    = false,
+        // FIX_MYKITS_CARD_DURATION_CHIP: pass the SKU base duration through so the card chip matches the detail hero.
+        ProductValidityDays = k.ProductValidityDays,
     };
 
     // The module's ExpiringCount uses Activated && DaysUntilExpiry <= 30 — keep the FE from re-deriving the rule.
