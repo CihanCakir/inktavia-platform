@@ -17,8 +17,15 @@ public sealed class CreateNotificationCampaignRequest
     /// <summary>Custom yol: locale→{title,body}. Desteklenen tüm dilleri (tr+en) kapsamalı; kısmi kapsama reddedilir.</summary>
     public Dictionary<string, CampaignLocaleContent>? CustomContent { get; set; }
 
-    /// <summary>Yalnız InApp ve/veya Email. Sms Faz 7'ye kadar reddedilir.</summary>
+    /// <summary>InApp, Push ve/veya Email. Sms Faz 7'ye kadar reddedilir.</summary>
     public List<NotificationChannel> Channels { get; set; } = new();
+
+    /// <summary>
+    /// Opsiyonel, locale-bağımsız derin bağlantı. null/boş OLABİLİR ya da tek '/' ile başlayan aynı-site GÖRELİ yol
+    /// olmalıdır (şema/host/ters-eğik-çizgi yok, '//' ile başlayamaz — açık-yönlendirme reddi). Push'un tıklanabilir
+    /// olmasını sağlar (kampanyaların referenceType/referenceId'si yoktur).
+    /// </summary>
+    public string?            DeepLinkPath { get; set; }
 
     /// <summary>Gelecekteyse v1'de sadece saklanır (consumer store-and-refuse eder); poller sonraki faz.</summary>
     public DateTimeOffset?    ScheduledAt { get; set; }

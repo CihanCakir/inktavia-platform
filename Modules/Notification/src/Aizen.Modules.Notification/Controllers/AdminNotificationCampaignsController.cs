@@ -39,6 +39,7 @@ public sealed class AdminNotificationCampaignsController : AizenWebApiController
                    TemplateCode         = body.TemplateCode,
                    CustomContent        = body.CustomContent,
                    Channels             = body.Channels,
+                   DeepLinkPath         = body.DeepLinkPath,
                    ScheduledAt          = body.ScheduledAt,
                }, ct));
 

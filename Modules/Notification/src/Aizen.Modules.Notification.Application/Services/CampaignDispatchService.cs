@@ -151,11 +151,13 @@ public sealed class CampaignDispatchService : ICampaignDispatchService
                         }
 
                         var meta = JsonSerializer.Serialize(new { campaignId = campaign.Id });
+                        // Kampanyanın locale-bağımsız derin bağlantısı (varsa) her satıra taşınır → push'u tıklanabilir
+                        // yapar. Kampanyaların referenceType/referenceId'si yoktur; deepLink (url) tek yönlendirme yolu.
                         var entity = NotificationEntity.Create(
                             rid, rowType, channel, rowTemplateCode,
                             content.Content!.Title, content.Content.Body,
                             metadataJson: meta, referenceType: null, referenceId: null,
-                            locale: locale, deepLink: content.Content.DeepLink, campaignId: campaign.Id);
+                            locale: locale, deepLink: campaign.DeepLinkPath, campaignId: campaign.Id);
 
                         await _notificationRepository.AddAsync(entity, ct);
 

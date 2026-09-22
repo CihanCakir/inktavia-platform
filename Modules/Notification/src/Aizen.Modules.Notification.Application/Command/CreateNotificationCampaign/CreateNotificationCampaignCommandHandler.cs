@@ -17,8 +17,9 @@ namespace Aizen.Modules.Notification.Application.Command.CreateNotificationCampa
 public sealed class CreateNotificationCampaignCommandHandler
     : AizenCommandHandler<CreateNotificationCampaignCommand, NotificationCampaignMutationResponse>
 {
-    // Kampanya kanalları yalnız InApp ve/veya Email olabilir (Sms/Push Faz 7'ye kadar reddedilir).
-    private static readonly NotificationChannel[] AllowedChannels = { NotificationChannel.InApp, NotificationChannel.Email };
+    // Kampanya kanalları InApp, Push ve/veya Email olabilir (Sms Faz 7'ye kadar reddedilir).
+    private static readonly NotificationChannel[] AllowedChannels =
+        { NotificationChannel.InApp, NotificationChannel.Push, NotificationChannel.Email };
 
     private readonly INotificationCampaignRepository        _campaignRepository;
     private readonly INotificationTemplateRepository        _templateRepository;
@@ -49,13 +50,14 @@ public sealed class CreateNotificationCampaignCommandHandler
         var channels = ValidateChannels(request.Channels);
         var (templateCode, customContentJson) = await ValidateContentPathAsync(request, channels, cancellationToken);
         var selectedJson = ValidateAndSerializeRecipients(request);
+        var deepLinkPath = ValidateDeepLinkPath(request.DeepLinkPath);
 
         var channelsCsv = string.Join(",", channels.Select(c => ((int)c).ToString()));
         var createdByUserId = _info.UserInfoAccessor.UserInfo.UserId;
 
         var campaign = NotificationCampaignEntity.Create(
             request.Audience, request.TargetMode, selectedJson, templateCode, customContentJson,
-            channelsCsv, request.ScheduledAt, createdByUserId);
+            channelsCsv, request.ScheduledAt, createdByUserId, deepLinkPath);
 
         await _campaignRepository.AddAsync(campaign, cancellationToken);
 
@@ -82,14 +84,42 @@ public sealed class CreateNotificationCampaignCommandHandler
         if (channels.Count == 0)
             throw new AizenBusinessException("En az bir kanal seçilmelidir.");
 
-        // Sms/Push reddedilir (yalnız InApp/Email). "Sms refused until Phase 7".
+        // Sms reddedilir (yalnız InApp/Push/Email). "Sms refused until Phase 7".
         var invalid = channels.Where(c => !AllowedChannels.Contains(c)).ToList();
         if (invalid.Count > 0)
             throw new AizenBusinessException(
-                $"Kampanya kanalları yalnız InApp ve/veya Email olabilir. Reddedilen: {string.Join(", ", invalid)}.");
+                $"Kampanya kanalları yalnız InApp, Push ve/veya Email olabilir. Reddedilen: {string.Join(", ", invalid)}.");
 
         return channels;
     }
+
+    /// <summary>
+    /// Kampanya derin bağlantısı: null/boş ya da tek '/' ile başlayan aynı-site GÖRELİ yol. Şema/host/ters-eğik-çizgi
+    /// içeremez ve '//' ile başlayamaz (açık-yönlendirme reddi). Kabul: "/app/x". Reddet: "http://…", "//evil", "../x",
+    /// "app/x", "\x". Döner: trimlenmiş yol ya da null.
+    /// </summary>
+    private static string? ValidateDeepLinkPath(string? deepLinkPath)
+    {
+        if (string.IsNullOrWhiteSpace(deepLinkPath))
+            return null;
+
+        var value = deepLinkPath.Trim();
+
+        // Tek '/' ile başlamalı: bu tek başına şema ("http:", "javascript:") ve host'u (mutlak URL) engeller — bunlar
+        // '/' ile başlamaz. Protokol-göreli "//host" ve göreli-olmayan yollar ("app/x", "../x") reddedilir.
+        if (!value.StartsWith('/') || value.StartsWith("//", StringComparison.Ordinal))
+            throw InvalidDeepLink(value);
+
+        // Ters eğik çizgi (backslash) → reddet (bazı tarayıcılar "/\evil.com"i protokol-göreli sayar → açık-yönlendirme).
+        if (value.Contains('\\'))
+            throw InvalidDeepLink(value);
+
+        return value;
+    }
+
+    private static AizenBusinessException InvalidDeepLink(string value)
+        => new($"Geçersiz derin bağlantı: '{value}'. Yalnız tek '/' ile başlayan aynı-site göreli yollar kabul edilir " +
+               "(şema/host/ters-eğik-çizgi yok, '//' ile başlayamaz).");
 
     /// <summary>Tam olarak BİR içerik yolu (şablon YA DA custom). Döner: (kanonik templateCode?, customContentJson?).</summary>
     private async Task<(string? TemplateCode, string? CustomContentJson)> ValidateContentPathAsync(
