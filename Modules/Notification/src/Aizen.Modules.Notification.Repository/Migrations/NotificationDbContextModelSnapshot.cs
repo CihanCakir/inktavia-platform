@@ -167,6 +167,10 @@ namespace Aizen.Modules.Notification.Repository.Migrations
                     b.Property<string>("CustomContentJson")
                         .HasColumnType("jsonb");
 
+                    b.Property<string>("DeepLinkPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<int>("FailedCount")
                         .HasColumnType("integer");
 

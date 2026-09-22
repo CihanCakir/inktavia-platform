@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Aizen.Modules.Notification.Abstraction.Enum;
 using Aizen.Modules.Notification.Domain.Entities;
 using Aizen.Modules.Notification.Domain.Interface.Repository;
@@ -57,6 +58,18 @@ public sealed class PushNotificationDispatcher : INotificationDispatcher
         var anySucceeded = false;
         string? firstSuccessRef = null;
 
+        // Push data blob: NotificationSentPushConsumer ile AYNI şekil (notificationId + referenceType/referenceId) +
+        // açık `url`. Eskiden MetadataJson gönderiliyordu (deep-link taşımıyordu). referenceType/referenceId domain
+        // Channel=Push gönderimlerinde akmaya devam eder; kampanyaların ref'i yoktur → `url` (DeepLink) tıklanabilirliği
+        // sağlar. (SW/FcmMessageMapper bu blob'u data dict'ine parse eder.)
+        var dataJson = JsonSerializer.Serialize(new
+        {
+            notificationId = notification.Id,
+            referenceType  = notification.ReferenceType,
+            referenceId    = notification.ReferenceId,
+            url            = notification.DeepLink,
+        });
+
         foreach (var token in tokens)
         {
             try
@@ -65,11 +78,11 @@ public sealed class PushNotificationDispatcher : INotificationDispatcher
                 {
                     PushPlatform.WebPush => await _webPushSender.SendAsync(
                         token, notification.Title, notification.Body,
-                        notification.MetadataJson, ct),
+                        dataJson, ct),
 
                     PushPlatform.Fcm => await _fcmSender.SendAsync(
                         token.DeviceToken, notification.Title, notification.Body,
-                        notification.MetadataJson, ct),
+                        dataJson, ct),
 
                     PushPlatform.Apns => throw new NotImplementedException(
                         $"APNs push sender is not implemented. Platform={token.Platform}, UserId={notification.RecipientUserId}"),

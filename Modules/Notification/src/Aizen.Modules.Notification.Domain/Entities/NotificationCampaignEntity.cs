@@ -23,6 +23,8 @@ public sealed class NotificationCampaignEntity : AizenEntity
     /// (power-of-two değil) → bit-maske yerine repo-dostu en basit yol: virgülle ayrılmış int CSV.
     /// </summary>
     public string             ChannelsCsv             { get; private set; } = default!;
+    /// <summary>Opsiyonel, locale-bağımsız göreli derin bağlantı ("/app/..."); push satırlarını tıklanabilir yapar. Null olabilir.</summary>
+    public string?            DeepLinkPath            { get; private set; }
     public CampaignStatus     Status                  { get; private set; }
     public int                TotalRecipients         { get; private set; }
     public int                SentCount               { get; private set; }
@@ -42,7 +44,8 @@ public sealed class NotificationCampaignEntity : AizenEntity
         string? customContentJson,
         string channelsCsv,
         DateTimeOffset? scheduledAt,
-        long createdByUserId)
+        long createdByUserId,
+        string? deepLinkPath = null)
     {
         return new NotificationCampaignEntity
         {
@@ -52,6 +55,7 @@ public sealed class NotificationCampaignEntity : AizenEntity
             TemplateCode             = templateCode,
             CustomContentJson        = customContentJson,
             ChannelsCsv              = channelsCsv,
+            DeepLinkPath             = deepLinkPath,
             // Oluşturulur oluşturulmaz kuyruğa alınır (mesaj yayınlanacak); ScheduledAt geleceyse consumer store-and-refuse eder.
             Status                   = CampaignStatus.Queued,
             TotalRecipients          = 0,

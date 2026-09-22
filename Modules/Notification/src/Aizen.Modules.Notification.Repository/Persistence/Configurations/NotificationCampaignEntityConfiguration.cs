@@ -16,6 +16,7 @@ public sealed class NotificationCampaignEntityConfiguration : IEntityTypeConfigu
         builder.Property(x => x.TemplateCode).HasMaxLength(100);
         builder.Property(x => x.CustomContentJson).HasColumnType("jsonb");
         builder.Property(x => x.ChannelsCsv).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.DeepLinkPath).HasMaxLength(500);
         builder.Property(x => x.Status).IsRequired();
         builder.Property(x => x.TotalRecipients).IsRequired();
         builder.Property(x => x.SentCount).IsRequired();

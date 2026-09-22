@@ -13,5 +13,7 @@ public sealed class CreateNotificationCampaignCommand : AizenCommand<Notificatio
     public string?            TemplateCode         { get; set; }
     public Dictionary<string, CampaignLocaleContent>? CustomContent { get; set; }
     public List<NotificationChannel> Channels      { get; set; } = new();
+    /// <summary>Opsiyonel, locale-bağımsız göreli derin bağlantı ("/app/..."); push'u tıklanabilir yapar.</summary>
+    public string?            DeepLinkPath         { get; set; }
     public DateTimeOffset?    ScheduledAt          { get; set; }
 }
