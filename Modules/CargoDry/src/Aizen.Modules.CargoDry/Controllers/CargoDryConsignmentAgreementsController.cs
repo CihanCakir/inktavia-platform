@@ -31,26 +31,26 @@ public sealed class CargoDryConsignmentAgreementsController : ControllerBase
     /// <summary>GET /api/v1/cargodry/admin/consignment/agreements?page=1&amp;pageSize=25</summary>
     [HttpGet]
     public async Task<IActionResult> GetPaged(
-        [FromQuery] long?                       providerProfileId = null,
-        [FromQuery] string?                     productCode       = null,
-        [FromQuery] ConsignmentAgreementStatus? status            = null,
-        [FromQuery] DateTime?                   dateFrom          = null,
-        [FromQuery] DateTime?                   dateTo            = null,
-        [FromQuery] string?                     search            = null,
-        [FromQuery] int                         page              = 1,
-        [FromQuery] int                         pageSize          = 25,
+        [FromQuery] long? providerProfileId = null,
+        [FromQuery] string? productCode = null,
+        [FromQuery] ConsignmentAgreementStatus? status = null,
+        [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null,
+        [FromQuery] string? search = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
         var result = await _sender.Send(new GetConsignmentAgreementsPagedQuery
         {
             ProviderProfileId = providerProfileId,
-            ProductCode       = productCode,
-            Status            = status,
-            DateFrom          = dateFrom,
-            DateTo            = dateTo,
-            Search            = search,
-            Page              = page,
-            PageSize          = pageSize,
+            ProductCode = productCode,
+            Status = status,
+            DateFrom = dateFrom,
+            DateTo = dateTo,
+            Search = search,
+            Page = page,
+            PageSize = pageSize,
         }, ct);
 
         return Ok(result);
@@ -88,7 +88,7 @@ public sealed class CargoDryConsignmentAgreementsController : ControllerBase
         var result = await _sender.Send(new GetActiveConsignmentAgreementForProviderQuery
         {
             ProviderProfileId = providerProfileId,
-            ProductCode       = productCode,
+            ProductCode = productCode,
         }, ct);
 
         if (result is null) return NotFound();
@@ -104,17 +104,17 @@ public sealed class CargoDryConsignmentAgreementsController : ControllerBase
     {
         var result = await _sender.Send(new CreateConsignmentAgreementCommand
         {
-            AgreementCode           = request.AgreementCode,
-            ProviderProfileId       = request.ProviderProfileId,
-            ProductCode             = request.ProductCode,
-            ConsignmentRate         = request.ConsignmentRate,
+            AgreementCode = request.AgreementCode,
+            ProviderProfileId = request.ProviderProfileId,
+            ProductCode = request.ProductCode,
+            ConsignmentRate = request.ConsignmentRate,
             MinimumSettlementAmount = request.MinimumSettlementAmount,
-            CurrencyCode            = request.CurrencyCode,
-            MaxKitCount             = request.MaxKitCount,
-            StartDateUtc            = request.StartDateUtc,
-            EndDateUtc              = request.EndDateUtc,
-            TermsDocumentRef        = request.TermsDocumentRef,
-            Notes                   = request.Notes,
+            CurrencyCode = request.CurrencyCode,
+            MaxKitCount = request.MaxKitCount,
+            StartDateUtc = request.StartDateUtc,
+            EndDateUtc = request.EndDateUtc,
+            TermsDocumentRef = request.TermsDocumentRef,
+            Notes = request.Notes,
         }, ct);
 
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -129,15 +129,15 @@ public sealed class CargoDryConsignmentAgreementsController : ControllerBase
     {
         var result = await _sender.Send(new UpdateConsignmentAgreementCommand
         {
-            Id                      = id,
-            ConsignmentRate         = request.ConsignmentRate,
+            Id = id,
+            ConsignmentRate = request.ConsignmentRate,
             MinimumSettlementAmount = request.MinimumSettlementAmount,
-            CurrencyCode            = request.CurrencyCode,
-            MaxKitCount             = request.MaxKitCount,
-            StartDateUtc            = request.StartDateUtc,
-            EndDateUtc              = request.EndDateUtc,
-            TermsDocumentRef        = request.TermsDocumentRef,
-            Notes                   = request.Notes,
+            CurrencyCode = request.CurrencyCode,
+            MaxKitCount = request.MaxKitCount,
+            StartDateUtc = request.StartDateUtc,
+            EndDateUtc = request.EndDateUtc,
+            TermsDocumentRef = request.TermsDocumentRef,
+            Notes = request.Notes,
         }, ct);
 
         return Ok(result);
@@ -159,7 +159,7 @@ public sealed class CargoDryConsignmentAgreementsController : ControllerBase
     {
         var result = await _sender.Send(new SuspendConsignmentAgreementCommand
         {
-            Id     = id,
+            Id = id,
             Reason = request.Reason,
         }, ct);
         return Ok(result);
@@ -172,7 +172,7 @@ public sealed class CargoDryConsignmentAgreementsController : ControllerBase
     {
         var result = await _sender.Send(new TerminateConsignmentAgreementCommand
         {
-            Id     = id,
+            Id = id,
             Reason = request.Reason,
         }, ct);
         return Ok(result);
@@ -183,29 +183,29 @@ public sealed class CargoDryConsignmentAgreementsController : ControllerBase
 
 public sealed class CreateConsignmentAgreementRequest
 {
-    public string    AgreementCode           { get; init; } = default!;
-    public long      ProviderProfileId       { get; init; }
-    public string    ProductCode             { get; init; } = default!;
-    public decimal   ConsignmentRate         { get; init; }
-    public decimal   MinimumSettlementAmount { get; init; }
-    public string    CurrencyCode            { get; init; } = "TRY";
-    public int       MaxKitCount             { get; init; }
-    public DateTime  StartDateUtc            { get; init; }
-    public DateTime? EndDateUtc              { get; init; }
-    public string?   TermsDocumentRef        { get; init; }
-    public string?   Notes                   { get; init; }
+    public string AgreementCode { get; init; } = default!;
+    public long ProviderProfileId { get; init; }
+    public string ProductCode { get; init; } = default!;
+    public decimal ConsignmentRate { get; init; }
+    public decimal MinimumSettlementAmount { get; init; }
+    public string CurrencyCode { get; init; } = "TRY";
+    public int MaxKitCount { get; init; }
+    public DateTime StartDateUtc { get; init; }
+    public DateTime? EndDateUtc { get; init; }
+    public string? TermsDocumentRef { get; init; }
+    public string? Notes { get; init; }
 }
 
 public sealed class UpdateConsignmentAgreementRequest
 {
-    public decimal   ConsignmentRate         { get; init; }
-    public decimal   MinimumSettlementAmount { get; init; }
-    public string    CurrencyCode            { get; init; } = "TRY";
-    public int       MaxKitCount             { get; init; }
-    public DateTime  StartDateUtc            { get; init; }
-    public DateTime? EndDateUtc              { get; init; }
-    public string?   TermsDocumentRef        { get; init; }
-    public string?   Notes                   { get; init; }
+    public decimal ConsignmentRate { get; init; }
+    public decimal MinimumSettlementAmount { get; init; }
+    public string CurrencyCode { get; init; } = "TRY";
+    public int MaxKitCount { get; init; }
+    public DateTime StartDateUtc { get; init; }
+    public DateTime? EndDateUtc { get; init; }
+    public string? TermsDocumentRef { get; init; }
+    public string? Notes { get; init; }
 }
 
 public sealed class AgreementReasonRequest
