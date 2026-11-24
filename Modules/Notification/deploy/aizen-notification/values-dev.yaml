@@ -318,6 +318,10 @@ env:
   # Dispatcher owner linkini {OwnerLinkBaseUrl}/{path} olarak kurar → dev-mapi.../link/service-requests/59.
   - name: Notification__OwnerLinkBaseUrl
     value: "https://dev-mapi.inktavia.com/link"
+  # Bulten cift onay (double opt-in) mail linklerinin kamuya acik site kokeni. Linkler maile gomulur →
+  # MUTLAK ve herkese acik olmali (path'ler appsettings NewsletterIntake:Links altinda).
+  - name: NewsletterIntake__PublicSiteBaseUrl
+    value: "https://dev-www.inktavia.com"
 
   # ── SMS kanali (FAZ 28.7) ─────────────────────────────────────────────────────
   # 2026-08-25: Infobip trial hesabi acildi → dev'de gercek adapter devrede.
