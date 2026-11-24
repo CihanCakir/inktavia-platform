@@ -57,7 +57,7 @@ spec:
           #   + env.ts faz-farkindalikli dogrulama duzeltmesi — 9f80364'un prod build'i
           #   "Invalid server environment" ile dusmustu, CI #13). `image-prod`
           #   workflow_dispatch ile uretildi (build_prod_image=true, CI #17).
-          value: "sha-387a358-prod"
+          value: "sha-3d589f7-prod"
         # ▲▲▲
   destination:
     server: https://kubernetes.default.svc
