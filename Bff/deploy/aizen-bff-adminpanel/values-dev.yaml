@@ -269,3 +269,7 @@ env:
     value: "http://aizen-servicerequest"
   - name: RemoteCalls__IVesselAdminBffRemoteCall__BaseUrl
     value: "http://aizen-vessel"
+  # Content modulu (editoryal icerik yonetimi). appsettings.json'da __FROM_ENV__ yer tutucusu; cluster-ici
+  # servis adi diger BFF'lerle ayni (aizen-bff-marine-web de ayni adresi kullanir).
+  - name: RemoteCalls__IContentRemoteCall__BaseUrl
+    value: "http://aizen-content"
