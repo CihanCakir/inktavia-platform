@@ -60,7 +60,7 @@ spec:
           #   `image` isi YESIL biten bir commit'in sha'si yazilir.
           # Etiket bicimi frontend CI'dan:
           #   .github/workflows/ci.yml → sha-$(git rev-parse --short=7 HEAD)
-          value: "sha-9eb2cb1"
+          value: "sha-387a358"
           # 2026-09-03: sha-0e528d5 → sha-9eb2cb1 (marine-web develop head; task serisi merge'leri.
           #   develop Actions kosusu 9eb2cb1 YESIL — dev kanali. Prod isaretcisi AYRI dosyada ve
           #   ancak main'de `image-prod` dispatch'i kosup yesil bitince guncellenir).

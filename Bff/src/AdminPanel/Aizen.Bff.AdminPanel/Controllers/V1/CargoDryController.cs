@@ -111,15 +111,7 @@ public sealed class CargoDryController : AizenWebApiController
         _configuration = configuration;
     }
 
-    /// <summary>
-    /// Dev/ops reconciliation tools below are enabled ONLY by explicit opt-in config
-    /// (CargoDry:ReconciliationToolingEnabled=true, i.e. env var CargoDry__ReconciliationToolingEnabled); every
-    /// other deployment gets a 404 (not 403) so the surface is invisible. Environment-NAME gating is deliberately
-    /// NOT used: the dev cluster intentionally runs ASPNETCORE_ENVIRONMENT=Production (to exercise prod behavior
-    /// such as BffAssertion fail-closed — see Bff/deploy/aizen-bff-adminpanel/values-dev.yaml), so IsDevelopment()
-    /// can never be true where these tools are needed. Default is false → prod stays invisible unless someone
-    /// explicitly sets the flag there.
-    /// </summary>
+
     private bool IsReconciliationToolingEnabled => _configuration.GetValue<bool>("CargoDry:ReconciliationToolingEnabled");
 
     // ── Kits ─────────────────────────────────────────────────────────────────
