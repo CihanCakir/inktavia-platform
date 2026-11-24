@@ -245,6 +245,7 @@ public interface IPaymentRemoteCall : IAizenRemoteCall
 
     [AizenRemoteCallGet("/api/v1/payment/admin/dashboard/kpis")]
     Task<PaymentDashboardKpisBffDto> GetDashboardKpisAsync(
+        [Query] string? period = null,   // FIX_DASHBOARD_KPI_PERIOD
         CancellationToken ct = default);
 
     // ─── Transaction Stats (gap report) ──────────────────────────────────────

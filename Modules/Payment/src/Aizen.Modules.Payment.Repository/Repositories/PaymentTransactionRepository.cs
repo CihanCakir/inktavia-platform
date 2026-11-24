@@ -59,6 +59,33 @@ public sealed class PaymentTransactionRepository : IPaymentTransactionRepository
         return (items, total);
     }
 
+    // FIX_DASHBOARD_KPI_PERIOD: server-side aggregate for the dashboard KPI strip (no list materialization).
+    public async Task<(decimal Gross, decimal Commission, int Count)> GetVolumeAggregateAsync(
+        PaymentTransactionStatus[] statuses, DateTime? fromDate, DateTime? toDate, CancellationToken ct)
+    {
+        var q = _db.Transactions.AsQueryable();
+
+        if (statuses is { Length: > 0 })
+            q = q.Where(x => statuses.Contains(x.Status));
+        if (fromDate.HasValue)
+            q = q.Where(x => x.CreateDate >= fromDate.Value);
+        if (toDate.HasValue)
+            q = q.Where(x => x.CreateDate < toDate.Value);
+
+        // GroupBy(_ => 1) collapses to a single server-side aggregate row; null when no rows match.
+        var agg = await q
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Gross      = g.Sum(x => x.GrossAmount),
+                Commission = g.Sum(x => x.CommissionAmount + x.VatOnCommission),
+                Count      = g.Count(),
+            })
+            .FirstOrDefaultAsync(ct);
+
+        return agg is null ? (0m, 0m, 0) : (agg.Gross, agg.Commission, agg.Count);
+    }
+
     public async Task<(List<PaymentTransactionEntity> Items, int Total)> GetProviderPagedAsync(
         long recipientProfileId,
         PaymentTransactionStatus? status,

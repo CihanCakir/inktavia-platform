@@ -24,4 +24,12 @@ public sealed class CheckoutInitResult
 
     public required bool   IsSuccess    { get; init; }
     public string?         ErrorMessage { get; init; }
+
+    /// <summary>
+    /// FIX_ESCROW_CAPTURE_AT_INIT — true only when the gateway settles synchronously at init
+    /// (ManualPaymentGatewayProvider): the escrow transaction may be Captured immediately. False for an async gateway
+    /// (Iyzico): the transaction MUST stay PendingIntent until the payment webhook confirms the real charge and records
+    /// the sub-merchant item breakdown. Capturing at init would make that webhook idempotency-skip.
+    /// </summary>
+    public bool CapturedAtInit { get; init; }
 }

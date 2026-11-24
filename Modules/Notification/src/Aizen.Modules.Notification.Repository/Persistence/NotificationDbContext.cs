@@ -16,6 +16,7 @@ public sealed class NotificationDbContext : AizenDbContext
     public DbSet<NotificationPreferenceEntity>      NotificationPreferences    => Set<NotificationPreferenceEntity>();
     public DbSet<ContactMessageEntity>              ContactMessages            => Set<ContactMessageEntity>();
     public DbSet<NotificationCampaignEntity>        NotificationCampaigns      => Set<NotificationCampaignEntity>();
+    public DbSet<NewsletterSubscriberEntity>        NewsletterSubscribers      => Set<NewsletterSubscriberEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

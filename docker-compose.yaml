@@ -149,6 +149,7 @@ services:
       - messaging-api
       - notification-api
       - payment-api
+      - content-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
@@ -195,6 +196,7 @@ services:
       Realtime__SignalR__AllowedOrigins__0: ${ADMIN_WEB_ORIGIN:-http://localhost:3000}
       RemoteCalls__INotificationAdminBffRemoteCall__BaseUrl: http://notification-api:8080
       RemoteCalls__IAdminPaymentBffRemoteCall__BaseUrl: http://payment-api:8080
+      RemoteCalls__IContentRemoteCall__BaseUrl: http://content-api:8080
     ports:
       - "${BFF_ADMINPANEL_PORT:-17001}:8080"
     networks: [aizen]
@@ -395,6 +397,9 @@ services:
       RateLimiting__PublicRead__WindowSeconds: 60
       RateLimiting__ContactSubmit__PermitLimit: 5
       RateLimiting__ContactSubmit__WindowSeconds: 60
+      # P1 — newsletter double opt-in WRITE limit (same shape as contact-submit).
+      RateLimiting__NewsletterSubmit__PermitLimit: 5
+      RateLimiting__NewsletterSubmit__WindowSeconds: 60
       # CORS: local browser dev only (server-to-server calls do not exercise CORS).
       Cors__AllowedOrigins__0: ${MARINE_WEB_BASE:-http://localhost:3000}
       # Redis — BFF distributed-cache (DB 17, chosen in W0).
@@ -973,6 +978,15 @@ services:
       Vapid__Subject: ${VAPID_SUBJECT:-}
       Vapid__PublicKey: ${VAPID_PUBLIC_KEY:-}
       Vapid__PrivateKey: ${VAPID_PRIVATE_KEY:-}
+      # P4 — newsletter double opt-in links. Base URL reuses MARINE_WEB_BASE (the public website origin already used
+      # by bff-marine-web for the revalidation webhook); paths are the locale-prefixed public routes (next-intl).
+      NewsletterIntake__ConfirmationTokenTtlHours: "48"
+      NewsletterIntake__PublicSiteBaseUrl: ${MARINE_WEB_BASE:-http://localhost:3000}
+      NewsletterIntake__FallbackLang: tr
+      NewsletterIntake__Links__tr__Confirm: /tr/bulten/onay
+      NewsletterIntake__Links__tr__Unsubscribe: /tr/bulten/abonelikten-cik
+      NewsletterIntake__Links__en__Confirm: /en/newsletter/confirm
+      NewsletterIntake__Links__en__Unsubscribe: /en/newsletter/unsubscribe
       # N-C region fan-out — resolve area-eligible providers from Identity I2 read-model (internal call)
       RemoteCalls__INotificationIdentityRemoteCall__BaseUrl: http://identity-api:8080
       # Redis backplane for SignalR (NotificationHub).

@@ -37,6 +37,17 @@ public interface IPaymentTransactionRepository
         CancellationToken ct = default);
 
     /// <summary>
+    /// FIX_DASHBOARD_KPI_PERIOD: server-side SUM of GrossAmount and (CommissionAmount + VatOnCommission)
+    /// over the given <paramref name="statuses"/> and optional [<paramref name="fromDate"/>, <paramref name="toDate"/>)
+    /// window. Used by the payment dashboard KPI strip so it does not page whole transaction lists into memory.
+    /// </summary>
+    Task<(decimal Gross, decimal Commission, int Count)> GetVolumeAggregateAsync(
+        PaymentTransactionStatus[] statuses,
+        DateTime?                  fromDate,
+        DateTime?                  toDate,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Returns paged transactions where the provider is the recipient.
     /// Used by the provider-facing transaction list (PAY-3).
     /// </summary>

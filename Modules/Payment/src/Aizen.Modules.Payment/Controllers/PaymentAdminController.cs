@@ -132,9 +132,11 @@ public sealed class PaymentAdminController : ControllerBase
 
     /// <summary>Returns KPI strip for the payment admin dashboard (gross volume, commission, escrow, pending counts).</summary>
     [HttpGet("dashboard/kpis")]
-    public async Task<IActionResult> GetDashboardKpis(CancellationToken ct)
+    public async Task<IActionResult> GetDashboardKpis(
+        [FromQuery] string? period = null,   // FIX_DASHBOARD_KPI_PERIOD: 1W | 1M | 1Y (default 1M)
+        CancellationToken ct = default)
     {
-        var result = await _sender.Send(new GetPaymentDashboardKpisQuery(), ct);
+        var result = await _sender.Send(new GetPaymentDashboardKpisQuery { Period = period }, ct);
         return Ok(result);
     }
 

@@ -25,6 +25,19 @@ public static class DependencyInjection
             services.Configure<Command.SubmitContactMessage.ContactIntakeOptions>(
                 configuration.GetSection(Command.SubmitContactMessage.ContactIntakeOptions.SectionName));
 
+        // P1/P4 — newsletter double opt-in: token TTL + per-locale public confirm/unsubscribe links (reuses ContactIntake
+        // for the spam threshold + IP-hash salt). The mailer wraps the existing template renderer + email sender; the
+        // link builder resolves the subscriber's locale → the configured paths (fallback + warning on unknown locale).
+        // Fail-closed: PublicSiteBaseUrl + the fallback-locale Links entry are REQUIRED and validated at startup, so a
+        // misconfigured deployment refuses to boot instead of mailing links to the wrong domain for a month.
+        if (configuration is not null)
+            services.AddOptions<Command.SubscribeNewsletter.NewsletterIntakeOptions>()
+                .Bind(configuration.GetSection(Command.SubscribeNewsletter.NewsletterIntakeOptions.SectionName))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+        services.AddScoped<INewsletterMailer, NewsletterMailer>();
+        services.AddScoped<INewsletterLinkBuilder, NewsletterLinkBuilder>();
+
         // FCM sender: the real FirebaseAdmin FcmSender when the Firebase service account is configured
         // (ProjectId + PrivateKey + ClientEmail present, injected via env/secret), otherwise the dev logging stub —
         // so the module builds/runs/tests with no credentials. The stub is retained as the no-creds fallback.

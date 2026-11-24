@@ -16,7 +16,7 @@ public sealed class GetPaymentDashboardKpisBffQueryHandler
     public override async Task<GetPaymentDashboardKpisBffResponse> Handle(
         GetPaymentDashboardKpisBffQuery request, CancellationToken ct)
     {
-        var kpis = await _remote.GetDashboardKpisAsync(ct);
+        var kpis = await _remote.GetDashboardKpisAsync(request.Period, ct);
         return new GetPaymentDashboardKpisBffResponse { Kpis = kpis };
     }
 }

@@ -632,6 +632,29 @@ if [ -n "$AP_BFF_SA_UID" ]; then
     && echo "admin-panel-bff: REALM 'Admin' rolu verildi (modul [Authorize(Roles=Admin)] icin sart)." \
     || echo "admin-panel-bff: REALM 'Admin' grant atlandi (zaten var veya rol yok)."
 
+  # ── P2 Content: content-api audience mapper on the admin-panel-bff CLIENT ──────────────────────
+  # content-api validates KEYCLOAK_AUDIENCE=content-api, so the BFF service token must carry
+  # aud:content-api or it 401s at authentication (before any role check). Unlike marine-web-bff, the
+  # admin-panel-bff client is defined in realm.json (not created here) and its mapper list ships WITHOUT
+  # content-api — so add it here, idempotent (create once). AP_BFF_UUID_FOR_SA is the client UUID.
+  # NOTE: no content client-role grant is needed — the Content module authorizes on the realm 'Admin'
+  # role (granted just above), which is a member of both ContentRoles.AdminAuthoring and .Moderation.
+  if [ -n "$AP_BFF_UUID_FOR_SA" ]; then
+    HAS_CONTENT_AUD=$($KCADM get "clients/${AP_BFF_UUID_FOR_SA}/protocol-mappers/models" -r ${REALM} 2>/dev/null | grep -c '"audience-content-api"' || true)
+    if [ "$HAS_CONTENT_AUD" -eq 0 ]; then
+      $KCADM create "clients/${AP_BFF_UUID_FOR_SA}/protocol-mappers/models" -r ${REALM} \
+        -s name=audience-content-api \
+        -s protocol=openid-connect \
+        -s protocolMapper=oidc-audience-mapper \
+        -s 'config."included.client.audience"=content-api' \
+        -s 'config."id.token.claim"=false' \
+        -s 'config."access.token.claim"=true' 2>/dev/null || true
+      echo "admin-panel-bff: added audience mapper (service token aud += content-api)."
+    else
+      echo "admin-panel-bff: audience mapper 'audience-content-api' already present."
+    fi
+  fi
+
   # Her --cclientid bloğu o API client'ının dotted rollerini verir. Idempotent (var olan no-op).
   $KCADM add-roles -r ${REALM} --uid "$AP_BFF_SA_UID" --cclientid cargodry-api \
     --rolename cargodry.admin --rolename cargodry.read --rolename cargodry.write 2>/dev/null \
@@ -695,6 +718,20 @@ if [ -n "$AP_BFF_SA_UID" ]; then
 else
   echo "WARN: could not resolve admin-panel-bff service-account user id — role grants skipped."
 fi
+
+# ── P2 Content: editorial realm roles + admin-user grant ───────────────────────────────────────
+# The Content module gates its admin surface on ContentRoles (AdminAuthoring / Moderation), which are
+# REALM roles carried in the Identity token. None of ContentAdmin/ContentEditor/ContentModerator exist
+# in realm.json — create them (create-if-absent, mirrors the 'Admin' role idiom above). Then grant the
+# admin user ContentAdmin: it is a member of BOTH AdminAuthoring and Moderation AND satisfies the
+# module's in-handler Elevated narrowing (publish/delete/categories). ADMIN_EMAIL is set near the top.
+for R in ContentAdmin ContentEditor ContentModerator; do
+  $KCADM get "roles/${R}" -r ${REALM} >/dev/null 2>&1 || \
+    $KCADM create roles -r ${REALM} -s name=${R} -s "description=Content module role (${R})" 2>/dev/null || true
+done
+$KCADM add-roles -r ${REALM} --uusername "${ADMIN_EMAIL}" --rolename ContentAdmin 2>/dev/null \
+  && echo "Ensured Content realm roles and assigned 'ContentAdmin' to ${ADMIN_EMAIL}." \
+  || echo "Content realm roles ensured; 'ContentAdmin' grant to ${ADMIN_EMAIL} skipped (already present or user absent)."
 
 # ── Dev login-user self-heal (companion) ───────────────────────────────────────
 # The KC 25 init image has no psql/curl/openssl and Identity Postgres only accepts SCRAM off-box,

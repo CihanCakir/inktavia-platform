@@ -27,12 +27,20 @@ public sealed class ServiceController : AizenWebApiController
         : base(httpContextAccessor)
         => _cqrs = cqrs;
 
+    /// <summary>
+    /// <paramref name="lang"/> selects the display language and the canonical <c>slug</c>; every tile carries the
+    /// full <c>slugs</c> map either way. It is a QUERY parameter, not a header, on purpose: the response is cached
+    /// with an ETag and consumed by a server-rendered client, and a URL that varies is a cache key that varies —
+    /// with a header we would need <c>Vary</c> and would still be at the mercy of intermediaries that ignore it.
+    /// </summary>
     [HttpGet]
     [EnableRateLimiting("public-read-ip")]
     [WebCache(WebCacheAttribute.ServicesMaxAge, WebCacheAttribute.ServicesSwr)]
-    public async Task<AizenApiResponse<List<WebServiceSummaryDto>?>> Catalogue(CancellationToken ct = default)
+    public async Task<AizenApiResponse<List<WebServiceSummaryDto>?>> Catalogue(
+        [FromQuery] string? lang = null,
+        CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new GetWebServiceCatalogueQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetWebServiceCatalogueQuery { Lang = lang }, ct);
         return SetResponse(result);
     }
 }

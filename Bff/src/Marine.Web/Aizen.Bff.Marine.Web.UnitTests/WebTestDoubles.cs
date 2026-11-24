@@ -30,6 +30,42 @@ internal sealed class FakeNotificationRemoteCall : INotificationRemoteCall
             Body = new SubmitContactResponse { Accepted = true, TicketRef = "CT-TEST123456" },
         });
     }
+
+    // ── P1 newsletter — capture the forwarded IP + payload/token; return canned enveloped bodies. ──
+    public AizenApiResponse<NewsletterSubscribeResponse>? SubscribeResponse { get; set; }
+    public SubscribeNewsletterRequest? LastSubscribeRequest { get; private set; }
+    public string? LastSubscribeForwardedFor { get; private set; }
+    public ConfirmNewsletterRequest? LastConfirmRequest { get; private set; }
+    public UnsubscribeNewsletterRequest? LastUnsubscribeRequest { get; private set; }
+
+    public Task<AizenApiResponse<NewsletterSubscribeResponse>> SubscribeNewsletter(
+        SubscribeNewsletterRequest request, string? forwardedFor)
+    {
+        LastSubscribeRequest = request;
+        LastSubscribeForwardedFor = forwardedFor;
+        return Task.FromResult(SubscribeResponse ?? new AizenApiResponse<NewsletterSubscribeResponse>
+        {
+            Body = new NewsletterSubscribeResponse { Accepted = true },
+        });
+    }
+
+    public Task<AizenApiResponse<NewsletterConfirmResponse>> ConfirmNewsletter(ConfirmNewsletterRequest request)
+    {
+        LastConfirmRequest = request;
+        return Task.FromResult(new AizenApiResponse<NewsletterConfirmResponse>
+        {
+            Body = new NewsletterConfirmResponse { Confirmed = true },
+        });
+    }
+
+    public Task<AizenApiResponse<NewsletterUnsubscribeResponse>> UnsubscribeNewsletter(UnsubscribeNewsletterRequest request)
+    {
+        LastUnsubscribeRequest = request;
+        return Task.FromResult(new AizenApiResponse<NewsletterUnsubscribeResponse>
+        {
+            Body = new NewsletterUnsubscribeResponse { Unsubscribed = true },
+        });
+    }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────

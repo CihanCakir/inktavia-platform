@@ -105,8 +105,16 @@ public sealed class CreatePaymentEscrowCommandHandler
             idempotencyKey:         request.IdempotencyKey,
             escrowRequired:         request.EscrowRequired);
 
-        // Capture gateway reference (for Iyzico: checkoutToken; for manual: MANUAL-{key})
-        transaction.Capture(initResult.GatewayReference);
+        // FIX_ESCROW_CAPTURE_AT_INIT: only a synchronously-settling gateway (manual) may capture at init.
+        // For an async gateway (Iyzico) the real charge is confirmed later by the payment webhook, which performs the
+        // Capture AND records the sub-merchant item breakdown (required for release/refund/settlement). Capturing here
+        // would set CapturedAt and make that webhook idempotency-skip → the item transaction id is never recorded
+        // → "manual payout required" at release. Async gateways only attach the reference and stay PendingIntent
+        // (an abandoned checkout is then swept by StaleEscrowCleanupJob).
+        if (initResult.CapturedAtInit)
+            transaction.Capture(initResult.GatewayReference);
+        else
+            transaction.AttachGatewayReference(initResult.GatewayReference);
 
         await _transactions.AddAsync(transaction, ct);
         // Flush explicitly so the DB-generated transaction.Id is available for the result below — callers
