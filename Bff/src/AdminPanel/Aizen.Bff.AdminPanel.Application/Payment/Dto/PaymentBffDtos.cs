@@ -169,9 +169,9 @@ public sealed record CommissionRateBffResult(decimal Rate, string ResolvedFrom);
 
 /// <summary>Payment admin dashboard KPI summary.</summary>
 public sealed record PaymentDashboardKpisBffDto(
-    decimal GrossVolumeToday,
+    decimal GrossVolume,
     decimal GrossVolumeChange,
-    decimal PlatformCommissionToday,
+    decimal PlatformCommission,
     decimal CommissionChange,
     decimal PayoutPendingTotal,
     decimal PayoutChange,

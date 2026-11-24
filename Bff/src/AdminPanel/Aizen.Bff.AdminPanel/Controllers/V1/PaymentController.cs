@@ -162,9 +162,10 @@ public sealed class PaymentController : AizenWebApiController
     [HttpGet("dashboard/kpis")]
     [ProducesResponseType(typeof(PaymentDashboardKpisBffDto), StatusCodes.Status200OK)]
     public async Task<AizenApiResponse<PaymentDashboardKpisBffDto>> GetDashboardKpis(
+        [FromQuery] string? period = null,   // FIX_DASHBOARD_KPI_PERIOD: 1W | 1M | 1Y (default 1M)
         CancellationToken ct = default)
     {
-        var result = await _cqrs.ProcessAsync(new GetPaymentDashboardKpisBffQuery(), ct);
+        var result = await _cqrs.ProcessAsync(new GetPaymentDashboardKpisBffQuery { Period = period }, ct);
         return SetResponse(result?.Kpis);
     }
 

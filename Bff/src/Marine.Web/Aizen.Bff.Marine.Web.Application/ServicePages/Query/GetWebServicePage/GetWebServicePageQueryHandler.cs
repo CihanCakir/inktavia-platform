@@ -1,8 +1,10 @@
 using Aizen.Bff.Marine.Web.Application.Catalogue;
 using Aizen.Bff.Marine.Web.Application.Common.RemoteClients;
+using Aizen.Bff.Marine.Web.Application.Common.Text;
 using Aizen.Bff.Marine.Web.Application.Contracts.ServicePages;
 using Aizen.Core.CQRS.Handler;
 using Aizen.Core.Infrastructure.Exception;
+using Aizen.Modules.ReferenceData.Abstraction.Dto.Location;
 using Aizen.Modules.ReferenceData.Abstraction.Dto.LookupItem;
 using Microsoft.Extensions.Logging;
 
@@ -35,19 +37,21 @@ public sealed class GetWebServicePageQueryHandler
         if (string.IsNullOrWhiteSpace(slug))
             throw new AizenBusinessException("A service slug is required.");
 
+        var locale = WebLocale.Normalize(request.Lang);
+
         // City comes either directly (M2 interim) or by resolving a location slug to its city (M3). Availability is
-        // city-keyed either way.
-        var cityCode = await ResolveCityCode(request);
+        // city-keyed either way. The resolved location is kept so the projection can carry its name and slugs.
+        var (cityCode, location) = await ResolveLocation(request);
         if (string.IsNullOrWhiteSpace(cityCode))
             throw new AizenBusinessException("A cityCode or a resolvable locationSlug is required.");
 
-        // Resolve serviceSlug → SERVICE_PROVIDER_CATEGORY item using the SAME deterministic slug transform the W4
-        // catalogue derives — the reverse lookup. An unknown slug is a clean not-found, never faked.
+        // Resolve serviceSlug → SERVICE_PROVIDER_CATEGORY item by matching ANY locale's slug — the reverse of the
+        // catalogue's slug map. An unknown slug is a clean not-found, never faked.
         var item = await ResolveServiceBySlug(slug);
         if (item is null)
             throw new AizenBusinessException($"Unknown service '{slug}'.");
 
-        var service = WebServiceMapper.ToSummary(item);
+        var service = WebServiceMapper.ToSummary(item, locale);
 
         // Coarse availability for (city, canonical Code). The module compares Code.ToLowerInvariant() against the
         // stored lower(Code). Fail-safe to "none" (never over-state availability) if the signal is unavailable.
@@ -56,23 +60,51 @@ public sealed class GetWebServicePageQueryHandler
         return new WebServicePageDto
         {
             Service = service,
-            Location = new WebServicePageLocationDto { CityCode = cityCode },
+            Location = BuildLocation(cityCode, location),
             Availability = availability,
         };
     }
 
     private const string CityLocationType = "city";
 
+    /// <summary>
+    /// Builds the location block. On the M3 slug form the resolved record supplies the name and the slug; on the M2
+    /// code form there is nothing but the code, and the optional fields stay null rather than being back-filled with
+    /// the code dressed up as a name.
+    /// </summary>
+    private static WebServicePageLocationDto BuildLocation(string cityCode, LocationBySlugDto? location)
+    {
+        var dto = new WebServicePageLocationDto { CityCode = cityCode };
+        if (location is null)
+            return dto;
+
+        dto.Name = location.Name;
+        dto.Slug = string.IsNullOrWhiteSpace(location.Slug)
+            ? WebLocale.ToSlug(location.Name)
+            : location.Slug;
+
+        // Geography is not translated: the module stores ONE name and ONE slug per place, and "Bodrum" is the same
+        // word in every locale we publish. Emitting the same value under both keys states that plainly, and keeps
+        // the consumer's slug-map handling uniform across entity types.
+        if (!string.IsNullOrEmpty(dto.Slug))
+        {
+            foreach (var supported in WebLocale.Supported)
+                dto.Slugs[supported] = dto.Slug;
+        }
+
+        return dto;
+    }
+
     // Interim form: cityCode directly. M3 form: resolve locationSlug → location, then walk to the city (city itself,
     // or the "city" entry in its parent chain). Availability is city-keyed, so a district/neighborhood uses its city.
-    private async Task<string> ResolveCityCode(GetWebServicePageQuery request)
+    private async Task<(string CityCode, LocationBySlugDto? Location)> ResolveLocation(GetWebServicePageQuery request)
     {
         if (!string.IsNullOrWhiteSpace(request.CityCode))
-            return request.CityCode.Trim();
+            return (request.CityCode.Trim(), null);
 
         var locationSlug = (request.LocationSlug ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(locationSlug))
-            return string.Empty;
+            return (string.Empty, null);
 
         try
         {
@@ -80,12 +112,14 @@ public sealed class GetWebServicePageQueryHandler
                 ?? throw new AizenBusinessException($"Unknown location '{locationSlug}'.");
 
             if (string.Equals(loc.LocationType, CityLocationType, StringComparison.OrdinalIgnoreCase))
-                return loc.Code;
+                return (loc.Code, loc);
 
             // district / neighborhood → the city ancestor drives the (city-keyed) availability. A country has none.
-            return loc.ParentChain
+            var city = loc.ParentChain
                 .FirstOrDefault(p => string.Equals(p.LocationType, CityLocationType, StringComparison.OrdinalIgnoreCase))
                 ?.Code ?? string.Empty;
+
+            return (city, loc);
         }
         catch (Refit.ApiException ex)
         {
@@ -100,8 +134,7 @@ public sealed class GetWebServicePageQueryHandler
         {
             var resp = await _reference.GetLookupItems(ServiceCategoryGroupCode);
             var items = resp?.Body ?? new();
-            return items.FirstOrDefault(i =>
-                string.Equals(WebServiceMapper.ToSlug(i.Code), slug, StringComparison.OrdinalIgnoreCase));
+            return items.FirstOrDefault(i => WebServiceMapper.MatchesSlug(i, slug));
         }
         catch (Refit.ApiException ex)
         {

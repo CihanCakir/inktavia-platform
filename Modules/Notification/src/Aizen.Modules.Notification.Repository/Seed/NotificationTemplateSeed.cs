@@ -500,5 +500,38 @@ public sealed class NotificationTemplateSeed
             NotificationType.CargoDryProviderStreakMilestone, NotificationChannel.InApp,
             "Sales streak milestone!",
             "{{displayValue}} consecutive months of sales! Your momentum is going strong."),
+
+        // ── P1 — Website newsletter double opt-in (Email). Bilingual TR+EN body so both locales are readable even when
+        // only the seeded 'en' content exists (the renderer falls back to 'en'). {{confirmUrl}} / {{unsubscribeUrl}}
+        // are interpolated into the HTML (variable VALUES are HTML-encoded by the renderer, safe inside href). ──────────
+        NotificationTemplateEntity.Create("NEWSLETTER_CONFIRM_EMAIL", "Newsletter Confirmation (Email)",
+            NotificationType.NewsletterConfirmation, NotificationChannel.Email,
+            "Aboneliğinizi doğrulayın / Confirm your subscription",
+            @"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1a2b3c;line-height:1.5;"">
+  <h2 style=""color:#0b3d5c;margin:0 0 16px;"">E-bülten aboneliğinizi doğrulayın</h2>
+  <p>Merhaba,</p>
+  <p>Inktavia Marine e-bültenine abone olduğunuz için teşekkürler. Aboneliğinizi tamamlamak için aşağıdaki düğmeye tıklayın:</p>
+  <p style=""text-align:center;margin:28px 0;"">
+    <a href=""{{confirmUrl}}"" style=""background:#0b3d5c;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;display:inline-block;font-weight:bold;"">Aboneliğimi doğrula / Confirm</a>
+  </p>
+  <p>Düğme çalışmazsa bu bağlantıyı tarayıcınıza kopyalayın:</p>
+  <p style=""word-break:break-all;""><a href=""{{confirmUrl}}"" style=""color:#0b3d5c;"">{{confirmUrl}}</a></p>
+  <hr style=""border:none;border-top:1px solid #e0e4e8;margin:24px 0;"">
+  <p style=""color:#6b7c8c;font-size:13px;"">Bu aboneliği siz başlatmadıysanız bu e-postayı yok sayabilir ya da <a href=""{{unsubscribeUrl}}"" style=""color:#6b7c8c;"">buradan çıkabilirsiniz / unsubscribe</a>.</p>
+  <p style=""margin-top:16px;"">Inktavia Marine</p>
+</div>"),
+
+        NotificationTemplateEntity.Create("NEWSLETTER_WELCOME_EMAIL", "Newsletter Welcome (Email)",
+            NotificationType.NewsletterWelcome, NotificationChannel.Email,
+            "E-bültene hoş geldiniz / Welcome to the newsletter",
+            @"<div style=""font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1a2b3c;line-height:1.5;"">
+  <h2 style=""color:#0b3d5c;margin:0 0 16px;"">Hoş geldiniz! / Welcome!</h2>
+  <p>Merhaba,</p>
+  <p>E-bülten aboneliğiniz onaylandı. Bundan sonra Inktavia Marine haberlerini ve fırsatlarını e-posta ile alacaksınız.</p>
+  <p>Your newsletter subscription is confirmed. You'll now receive Inktavia Marine news and offers by email.</p>
+  <hr style=""border:none;border-top:1px solid #e0e4e8;margin:24px 0;"">
+  <p style=""color:#6b7c8c;font-size:13px;"">İstediğiniz zaman <a href=""{{unsubscribeUrl}}"" style=""color:#6b7c8c;"">abonelikten çıkabilirsiniz / unsubscribe</a>.</p>
+  <p style=""margin-top:16px;"">Inktavia Marine</p>
+</div>"),
     ];
 }

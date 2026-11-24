@@ -110,4 +110,8 @@ public enum NotificationType
     /// <summary>M4 — an anonymous website contact form was submitted (below the spam threshold); notifies admins.
     /// New value → the BFFs must be rebuilt after adding it (Refit binds the Abstraction DLL).</summary>
     ContactReceived              = 920,
+    /// <summary>P1 — newsletter double opt-in: the confirmation-link mail sent to a Pending subscriber (Email).</summary>
+    NewsletterConfirmation       = 930,
+    /// <summary>P1 — newsletter welcome mail sent once a subscriber confirms (Email).</summary>
+    NewsletterWelcome            = 931,
 }

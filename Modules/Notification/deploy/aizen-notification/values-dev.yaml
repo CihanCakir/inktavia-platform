@@ -270,6 +270,25 @@ env:
     valueFrom:
       secretKeyRef: { name: platform-credentials, key: VAPID_PRIVATE_KEY }
 
+  # ── Mobil push (FCM / APNs) — Firebase Admin SDK service account ──────────────
+  # IsConfigured = ProjectId + PrivateKey + ClientEmail dolu. Bos birakilirsa FcmSender YERINE stub
+  # devreye girer (sadece log, cihaza push gitmez). Type/AuthUri/TokenUri appsettings'te sabit.
+  # Sir olmayanlar duz yazilir; PrivateKey SIRDIR → ayri `firebase-credentials` Sealed Secret'inda
+  # (platform-credentials'a dokunulmadi). Firebase projesi: inktavia-marine.
+  - name: PushNotification__Firebase__ProjectId
+    value: "inktavia-marine"
+  - name: PushNotification__Firebase__PrivateKeyId
+    value: "15e4660fef900285c8c2358930f69df607367729"
+  - name: PushNotification__Firebase__ClientEmail
+    value: "firebase-adminsdk-fbsvc@inktavia-marine.iam.gserviceaccount.com"
+  - name: PushNotification__Firebase__ClientId
+    value: "108280992154533330508"
+  - name: PushNotification__Firebase__ClientX509CertUrl
+    value: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40inktavia-marine.iam.gserviceaccount.com"
+  - name: PushNotification__Firebase__PrivateKey
+    valueFrom:
+      secretKeyRef: { name: firebase-credentials, key: PRIVATE_KEY }
+
   # ContactIntake.IpHashSalt: IP adreslerini hash'lemek icin. TOKEN_SECURITY_KEY
   # TEKRAR KULLANILMADI — ayri amac, ayri anahtar.
   - name: ContactIntake__IpHashSalt

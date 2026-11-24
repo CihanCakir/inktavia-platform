@@ -118,6 +118,11 @@ public static class DependencyInjection
             CreateRemoteCall<IProfilePerformanceRemoteCall>(
                 CreateHttpClient(provider, "IAdminProfilePerformanceBffRemoteCall")));
 
+        // Content (blog/editorial) — key matches docker-compose: RemoteCalls__IContentRemoteCall__BaseUrl.
+        services.AddTransient<IContentRemoteCall>(provider =>
+            CreateRemoteCall<IContentRemoteCall>(
+                CreateHttpClient(provider, "IContentRemoteCall")));
+
         return services;
     }
 

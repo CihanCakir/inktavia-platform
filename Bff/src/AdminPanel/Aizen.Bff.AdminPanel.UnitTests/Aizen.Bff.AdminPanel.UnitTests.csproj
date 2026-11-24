@@ -23,6 +23,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Aizen.Bff.AdminPanel.Application\Aizen.Bff.AdminPanel.Application.csproj" />
+    <!-- Content P2: the web project (ContentController) for authorization-attribute reflection, and the
+         Content module + its Core roles for the route-drift and role-subset contract tests. -->
+    <ProjectReference Include="..\Aizen.Bff.AdminPanel\Aizen.Bff.AdminPanel.csproj" />
+    <ProjectReference Include="..\..\..\..\Modules\Content\src\Aizen.Modules.Content\Aizen.Modules.Content.csproj" />
+    <ProjectReference Include="..\..\..\..\Modules\Content\src\Aizen.Modules.Content.Core\Aizen.Modules.Content.Core.csproj" />
   </ItemGroup>
 
 </Project>

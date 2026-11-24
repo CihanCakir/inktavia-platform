@@ -69,14 +69,26 @@ moderation, placements.
 **Caveat:** `lastModified` is the item's **PublishedAt**, not a true modified timestamp — a later edit that does not
 republish will not move it. Fine for sitemap `<lastmod>`.
 
-## Services — `api/v1/web/services` ✅ EXISTING (W4)
+## Services — `api/v1/web/services` ✅ EXISTING (W4, localized)
 
-### `GET /` — service-category catalogue grid
-**Returned:** `[{ code, slug, name, description, iconKey, colorCode, sortOrder }]` (`slug` derived deterministically
-from `code`).
+### `GET /?lang` — service-category catalogue grid
+**Returned:** `[{ code, slug, slugs{lang→segment}, name, description, iconKey, colorCode, sortOrder }]`.
+
+- `lang` — `tr` / `en`. Unrecognised or absent resolves to `en`, so a caller that predates this parameter sees the
+  response it saw before.
+- `name` — resolved for `lang`. Turkish reads the lookup item's `displayNameTr` and falls back to `name` when the
+  item has not been translated. (This used to be dropped: the Turkish name was in the data and in the DTO the whole
+  time — the Provider and Mobile BFFs already surfaced it — and only this BFF ignored it, so the Turkish site showed
+  "Motor Maintenance".)
+- `slugs` — the per-locale map **D-02 requires**: `{"tr":"motor-bakimi","en":"motor-maintenance"}`. The English slug
+  is derived from `code` so a reworded name never moves a URL; the Turkish slug is derived from `displayNameTr`,
+  ASCII-folded (`ı→i, İ→i, ş→s, ğ→g, ç→c, ö→o, ü→u`). A locale with no translation is **omitted** from the map, so an
+  absent key means "not translated" rather than "same as English".
+- `slug` — the same value for the requested `lang`, repeated so a single-locale caller need not index the map.
+
 **Withheld:** `id`, `lookupGroupId`, `groupType`, `groupHierarchyPath`, `isDefault`, `isActive`.
-**No `seo`/`availableLangs`** — this is a taxonomy grid (a lookup item has no body or translation set). Rich,
-indexable per-service pages are **editorial content** under `web/content`, not here.
+**No `seo`** — this is a taxonomy grid and a lookup item has no body, so an indexability verdict would be fabricated.
+Rich, indexable per-service pages are **editorial content** under `web/content`, not here.
 
 ## Locations — `api/v1/web/locations` ✅ EXISTING (W4 + M3 slug resolver)
 
@@ -134,7 +146,17 @@ never the Emergency surge or any negotiated per-provider rate.
 
 ## Service × location — `api/v1/web/service-pages` ✅ EXISTING (M2 + M3 slug form)
 
-### `GET /{serviceSlug}/{locationSlug}` (M3) — or `GET /{serviceSlug}?cityCode={cityCode}` (M2 interim)
+### `GET /{serviceSlug}/{locationSlug}?lang` (M3) — or `GET /{serviceSlug}?cityCode={cityCode}&lang` (M2 interim)
+
+`serviceSlug` may be **any published locale's** slug — the resolver matches the whole slug map — so
+`/tr/hizmetler/motor-bakimi` and `/en/services/motor-maintenance` both resolve to the same category. `lang` selects
+the language of the embedded service summary.
+
+`location` now carries `{ cityCode, slug?, name?, slugs{} }`. `cityCode` is the key the availability signal was
+computed against and is always present; `slug`/`name`/`slugs` describe the location the reader actually asked for and
+arrive only on the M3 slug form (the M2 form has nothing but a code, and sends nothing rather than passing the code
+off as a name). Geography is not translated — ReferenceData stores one name and one slug per place — so both locale
+keys carry the same value, which is the honest answer and keeps slug-map handling uniform across entity types.
 Prefer the **`/{serviceSlug}/{locationSlug}`** slug form: `locationSlug` is resolved to its city via the location
 resolver (a district/neighborhood uses its parent city — availability is **city-keyed**). The interim `?cityCode=`
 form still works.

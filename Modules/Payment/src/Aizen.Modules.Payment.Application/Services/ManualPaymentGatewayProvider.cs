@@ -31,6 +31,7 @@ public sealed class ManualPaymentGatewayProvider : IPaymentGatewayProvider
             RedirectUrl         = null,
             IsSuccess           = true,
             ErrorMessage        = null,
+            CapturedAtInit      = true,   // FIX_ESCROW_CAPTURE_AT_INIT: manual settles synchronously (no webhook)
         };
         return Task.FromResult(result);
     }

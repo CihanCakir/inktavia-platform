@@ -11,10 +11,12 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace Aizen.Bff.Marine.Web.Controllers.V1;
 
 /// <summary>
-/// Public service × location landing (M2, interim code form) — anonymous, cached, trusted-caller aware. ONE call the
-/// page renders from: service summary + city summary + a COARSE availability signal (available/limited/none). The
-/// full <c>{serviceSlug}/{locationSlug}</c> slug form lands with M3's location-slug resolver; until then the city is
-/// supplied as a code. Carries no provider count/ids.
+/// Public service × location landing — anonymous, cached, trusted-caller aware. ONE call the page renders from:
+/// service summary + location summary + a COARSE availability signal (available/limited/none). Carries no provider
+/// count/ids.
+///
+/// <c>serviceSlug</c> may be the slug of ANY published locale; the resolver matches all of them, so a Turkish and an
+/// English URL for the same category both land here. <c>lang</c> selects the display language of the response.
 /// </summary>
 [ApiController]
 [AllowAnonymous]
@@ -35,10 +37,11 @@ public sealed class ServicePageController : AizenWebApiController
     public async Task<AizenApiResponse<WebServicePageDto?>> ServicePage(
         [FromRoute] string serviceSlug,
         [FromQuery] string cityCode,
+        [FromQuery] string? lang = null,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetWebServicePageQuery { ServiceSlug = serviceSlug, CityCode = cityCode }, ct);
+            new GetWebServicePageQuery { ServiceSlug = serviceSlug, CityCode = cityCode, Lang = lang }, ct);
         return SetResponse(result);
     }
 
@@ -49,10 +52,11 @@ public sealed class ServicePageController : AizenWebApiController
     public async Task<AizenApiResponse<WebServicePageDto?>> ServicePageBySlug(
         [FromRoute] string serviceSlug,
         [FromRoute] string locationSlug,
+        [FromQuery] string? lang = null,
         CancellationToken ct = default)
     {
         var result = await _cqrs.ProcessAsync(
-            new GetWebServicePageQuery { ServiceSlug = serviceSlug, LocationSlug = locationSlug }, ct);
+            new GetWebServicePageQuery { ServiceSlug = serviceSlug, LocationSlug = locationSlug, Lang = lang }, ct);
         return SetResponse(result);
     }
 }

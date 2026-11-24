@@ -79,4 +79,27 @@ public interface INotificationRemoteCall : IAizenRemoteCall
     Task<AizenApiResponse<NotificationPreferencesResponse>> UpdatePreferenceAsync(
         [AizenRemoteCallBody] UpdateNotificationPreferenceRequest body,
         CancellationToken ct = default);
+
+    // ─── P1 admin newsletter (subscribers list, stats, suppression, CSV export) ─────
+    [AizenRemoteCallGet("/api/v1/notification/admin/newsletter/subscribers")]
+    Task<AizenApiResponse<NewsletterSubscriberListResult>> GetNewsletterSubscribersAsync(
+        [Refit.Query] NewsletterSubscriberStatus? status = null,
+        [Refit.Query] string? lang                       = null,
+        [Refit.Query] string? search                     = null,
+        [Refit.Query] DateTimeOffset? from               = null,
+        [Refit.Query] DateTimeOffset? to                 = null,
+        [Refit.Query] int page                           = 1,
+        [Refit.Query] int pageSize                       = 20,
+        CancellationToken ct = default);
+
+    [AizenRemoteCallGet("/api/v1/notification/admin/newsletter/stats")]
+    Task<AizenApiResponse<NewsletterStatsDto>> GetNewsletterStatsAsync(CancellationToken ct = default);
+
+    [AizenRemoteCallPost("/api/v1/notification/admin/newsletter/subscribers/{id}/suppress")]
+    Task<AizenApiResponse<NewsletterSubscriberListItemDto>> SuppressNewsletterSubscriberAsync(
+        long id, CancellationToken ct = default);
+
+    // CSV file passthrough (text/csv, not the JSON envelope) — the controller re-emits it as a file download.
+    [AizenRemoteCallGet("/api/v1/notification/admin/newsletter/export")]
+    Task<string> ExportNewsletterAsync(CancellationToken ct = default);
 }

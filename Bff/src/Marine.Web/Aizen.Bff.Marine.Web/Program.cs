@@ -129,6 +129,24 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0,
             }));
+
+    // P1 — newsletter WRITE surface (POST /web/newsletter/*): same shape/policy as contact-submit — a per-IP limit
+    // stricter than public-read-ip and NOT bypassed by the trusted-caller secret (sign-up is user-driven, so it
+    // partitions on the real caller IP regardless). Config RateLimiting:NewsletterSubmit (defaults 5 / 60s).
+    var newsletterCfg = builder.Configuration.GetSection("RateLimiting:NewsletterSubmit");
+    var newsletterPermit = newsletterCfg.GetValue("PermitLimit", 5);
+    var newsletterWindow = newsletterCfg.GetValue("WindowSeconds", 60);
+    options.AddPolicy("newsletter-submit", httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? TrustedWebCaller.UnknownIpPartitionKey,
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = newsletterPermit,
+                Window = TimeSpan.FromSeconds(newsletterWindow),
+                SegmentsPerWindow = 6,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+            }));
 });
 
 var app = builder.Build();

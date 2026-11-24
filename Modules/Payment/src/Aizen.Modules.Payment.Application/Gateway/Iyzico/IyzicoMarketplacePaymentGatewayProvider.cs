@@ -133,6 +133,7 @@ public sealed class IyzicoMarketplacePaymentGatewayProvider : IPaymentGatewayPro
             RedirectUrl         = null,  // Iyzico uses embedded form, not redirect
             IsSuccess           = true,
             ErrorMessage        = null,
+            CapturedAtInit      = false, // FIX_ESCROW_CAPTURE_AT_INIT: real capture happens in the payment webhook
         };
     }
 
